@@ -29,6 +29,7 @@ serve(async (req) => {
 
     // Get Mapbox token from environment first, then fall back to user's token
     let mapboxToken = Deno.env.get("MAPBOX_TOKEN");
+    console.log("Mapbox token from environment:", mapboxToken ? "found" : "not found");
     
     if (!mapboxToken) {
       // Get the JWT from the request to identify user
