@@ -35,8 +35,20 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
   );
 
   useEffect(() => {
+    // Check for saved token in localStorage
+    const savedToken = localStorage.getItem('mapbox_token');
+    if (savedToken && !mapboxToken) {
+      setMapboxToken(savedToken);
+      setShowTokenInput(false);
+    }
+  }, [mapboxToken]);
+
+  useEffect(() => {
     if (!mapContainer.current || map.current || !mapboxToken) return;
 
+    // Save token to localStorage for geocoding
+    localStorage.setItem('mapbox_token', mapboxToken);
+    
     mapboxgl.accessToken = mapboxToken;
 
     map.current = new mapboxgl.Map({

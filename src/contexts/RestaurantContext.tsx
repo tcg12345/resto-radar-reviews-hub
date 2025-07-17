@@ -43,9 +43,16 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
   // Geocode the address to get latitude and longitude
   const geocodeAddress = useCallback(async (address: string, city: string): Promise<{ latitude: number, longitude: number } | null> => {
     try {
+      // Get token from localStorage
+      const mapboxToken = localStorage.getItem('mapbox_token');
+      if (!mapboxToken) {
+        console.warn('No Mapbox token found. Please add a token in the Map tab.');
+        return null;
+      }
+
       const query = `${address}, ${city}`;
       const encodedQuery = encodeURIComponent(query);
-      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedQuery}.json?access_token=pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbHhtZ3V1cjAwMTdjMmtzMDNrNjVrbzRtIn0.ZtSlpKA9nra05HPsSCTOhQ`;
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedQuery}.json?access_token=${mapboxToken}`;
       
       const response = await fetch(url);
       const data = await response.json();
@@ -95,7 +102,13 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       
       setRestaurants((prev) => [...prev, newRestaurant]);
       
-      toast.success('Restaurant added successfully!');
+      if (coordinates) {
+        toast.success('Restaurant added and placed on map!');
+      } else if (data.address && data.city) {
+        toast.warning('Restaurant added but couldn\'t be placed on map. Check your Mapbox token in the Map tab.');
+      } else {
+        toast.success('Restaurant added successfully!');
+      }
       return newRestaurant.id;
     } catch (error) {
       console.error('Error adding restaurant:', error);
@@ -161,7 +174,13 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         )
       );
       
-      toast.success('Restaurant updated successfully!');
+      if (coordinates.latitude && coordinates.longitude) {
+        toast.success('Restaurant updated and placed on map!');
+      } else if (data.address && data.city) {
+        toast.warning('Restaurant updated but couldn\'t be placed on map. Check your Mapbox token in the Map tab.');
+      } else {
+        toast.success('Restaurant updated successfully!');
+      }
     } catch (error) {
       console.error('Error updating restaurant:', error);
       toast.error('Failed to update restaurant.');
