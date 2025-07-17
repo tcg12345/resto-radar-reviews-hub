@@ -176,41 +176,51 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
           console.log('Attempting to geocode:', data.address, data.city);
           
           // Get the stored Mapbox token
-          const { data: settings } = await supabase
+          const { data: settings, error: settingsError } = await supabase
             .from('settings')
             .select('value')
             .eq('key', 'mapbox_token')
             .eq('user_id', session.user.id)
             .maybeSingle();
 
+          console.log('Settings query result:', { settings, settingsError });
           const mapboxToken = settings?.value;
-          console.log('Mapbox token available:', !!mapboxToken);
+          console.log('Mapbox token available:', !!mapboxToken, 'Length:', mapboxToken?.length);
           
           if (mapboxToken) {
             const query = `${data.address}, ${data.city}`;
             const encodedQuery = encodeURIComponent(query);
             const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedQuery}.json?access_token=${mapboxToken}`;
             
-            console.log('Geocoding URL:', url.replace(mapboxToken, '[TOKEN]'));
+            console.log('Making geocoding request to Mapbox...');
             
             const response = await fetch(url);
-            const geoData = await response.json();
+            console.log('Response status:', response.status, response.statusText);
             
-            console.log('Geocode response:', geoData);
-            
-            if (geoData.features && geoData.features.length > 0) {
-              const [longitude, latitude] = geoData.features[0].center;
-              coordinates = { latitude, longitude };
-              console.log('Successfully geocoded to:', coordinates);
+            if (!response.ok) {
+              console.error('Mapbox API error:', response.status, response.statusText);
+              const errorText = await response.text();
+              console.error('Error response:', errorText);
             } else {
-              console.warn('No geocoding results found');
+              const geoData = await response.json();
+              console.log('Geocode response:', geoData);
+              
+              if (geoData.features && geoData.features.length > 0) {
+                const [longitude, latitude] = geoData.features[0].center;
+                coordinates = { latitude, longitude };
+                console.log('Successfully geocoded to:', coordinates);
+              } else {
+                console.warn('No geocoding results found for:', query);
+              }
             }
           } else {
-            console.warn('No Mapbox token found for user');
+            console.warn('No Mapbox token found for user. User ID:', session.user.id);
           }
         } catch (error) {
-          console.error('Error calling geocode:', error);
+          console.error('Error during geocoding:', error);
         }
+      } else {
+        console.log('Skipping geocoding - missing address or city:', { address: data.address, city: data.city });
       }
       
       // Create new restaurant object
