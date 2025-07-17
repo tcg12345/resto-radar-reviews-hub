@@ -38,35 +38,49 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
 
   // Initialize map when token is available
   useEffect(() => {
+    // Clear existing map if it exists
+    if (map.current) {
+      map.current.remove();
+      map.current = null;
+    }
+    
+    // Check if we have a token
     if (!token) {
       setShowTokenInput(true);
       return;
     }
     
+    // Token exists, update input and hide token dialog
     setTokenInput(token);
     setShowTokenInput(false);
 
-    if (!mapContainer.current || map.current) return;
+    if (!mapContainer.current) return;
     
+    // Initialize map with token
     mapboxgl.accessToken = token;
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [-98.5795, 39.8283], // Center of the US by default
-      zoom: 3,
-    });
+    try {
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [-98.5795, 39.8283], // Center of the US by default
+        zoom: 3,
+      });
 
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-    map.current.on('load', () => {
-      setMapLoaded(true);
-    });
+      map.current.on('load', () => {
+        setMapLoaded(true);
+      });
 
-    map.current.on('error', (e) => {
-      console.error('Map error:', e);
+      map.current.on('error', (e) => {
+        console.error('Map error:', e);
+        setShowTokenInput(true);
+      });
+    } catch (error) {
+      console.error('Error initializing map:', error);
       setShowTokenInput(true);
-    });
+    }
 
     return () => {
       if (map.current) {

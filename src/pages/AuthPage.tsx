@@ -67,11 +67,15 @@ export default function AuthPage() {
       // Generate redirect URL using the current origin
       const redirectUrl = `${window.location.origin}/`;
       
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: redirectUrl
+          emailRedirectTo: redirectUrl,
+          data: {
+            // Additional user metadata that will be stored in profiles
+            email: email,
+          }
         }
       });
       

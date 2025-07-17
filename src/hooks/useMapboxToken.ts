@@ -10,10 +10,23 @@ export function useMapboxToken() {
     const loadToken = async () => {
       setIsLoading(true);
       try {
+        // Get current user session
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session?.user) {
+          setToken(null);
+          setIsLoading(false);
+          return;
+        }
+        
+        const user_id = session.user.id;
+        
+        // Query with user_id to get the correct token
         const { data: settings } = await supabase
           .from('settings')
           .select('value')
           .eq('key', 'mapbox_token')
+          .eq('user_id', user_id)
           .maybeSingle();
 
         setToken(settings?.value ?? null);
@@ -25,6 +38,15 @@ export function useMapboxToken() {
     };
 
     loadToken();
+    
+    // Also reload when auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      loadToken();
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
 const saveToken = useCallback(async (newToken: string) => {
