@@ -17,9 +17,9 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { StarRating } from '@/components/StarRating';
+import { WeightedRating } from '@/components/WeightedRating';
 import { format } from 'date-fns';
-import { Restaurant, RestaurantFormData } from '@/types/restaurant';
+import { Restaurant, RestaurantFormData, CategoryRating } from '@/types/restaurant';
 import { Switch } from '@/components/ui/switch';
 
 interface RestaurantFormProps {
@@ -42,6 +42,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     city: initialData?.city || '',
     cuisine: initialData?.cuisine || '',
     rating: initialData?.rating,
+    categoryRatings: initialData?.categoryRatings || { food: 0, service: 0, atmosphere: 0 },
     notes: initialData?.notes || '',
     dateVisited: initialData?.dateVisited || '',
     photos: [],
@@ -61,8 +62,12 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleRatingChange = (rating: number) => {
-    setFormData(prev => ({ ...prev, rating }));
+  const handleRatingChange = (categoryRatings: CategoryRating, weightedRating: number) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      categoryRatings,
+      rating: weightedRating
+    }));
   };
 
   const handleDateChange = (newDate: Date | undefined) => {
@@ -209,8 +214,8 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
             <div className="space-y-2">
               <Label>Rating</Label>
               <div className="mt-1">
-                <StarRating
-                  rating={formData.rating || 0}
+                <WeightedRating
+                  categoryRatings={formData.categoryRatings}
                   onRatingChange={handleRatingChange}
                   size="md"
                 />
