@@ -38,6 +38,8 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
 
   // Initialize map when token is available
   useEffect(() => {
+    console.log('MapView effect - token:', !!token, 'isLoading:', isLoading, 'showTokenInput:', showTokenInput);
+    
     // Don't show token input if we have a token or are loading
     if (token || isLoading) {
       setShowTokenInput(false);

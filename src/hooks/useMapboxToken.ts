@@ -8,27 +8,35 @@ export function useMapboxToken() {
 
   useEffect(() => {
     const loadToken = async () => {
+      console.log('Loading Mapbox token...');
       setIsLoading(true);
       try {
         // Get current user session
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session?.user) {
+          console.log('No user session found');
           setToken(null);
           setIsLoading(false);
           return;
         }
         
         const user_id = session.user.id;
+        console.log('Loading token for user:', user_id);
         
         // Query with user_id to get the correct token
-        const { data: settings } = await supabase
+        const { data: settings, error } = await supabase
           .from('settings')
           .select('value')
           .eq('key', 'mapbox_token')
           .eq('user_id', user_id)
           .maybeSingle();
 
+        if (error) {
+          console.error('Error querying settings:', error);
+        }
+
+        console.log('Settings result:', settings);
         setToken(settings?.value ?? null);
       } catch (error) {
         console.error('Error loading Mapbox token:', error);
@@ -40,7 +48,8 @@ export function useMapboxToken() {
     loadToken();
     
     // Also reload when auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, !!session);
       loadToken();
     });
     
