@@ -26,15 +26,23 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
   const [showTokenInput, setShowTokenInput] = useState(false);
   const { token, saveToken, isLoading } = useMapboxToken();
 
-  // Filter restaurants by search term
-  const filteredRestaurants = restaurants.filter(restaurant => 
-    restaurant.latitude && restaurant.longitude && (
-      restaurant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  // Filter restaurants by search term and ensure they have coordinates
+  const filteredRestaurants = restaurants.filter(restaurant => {
+    const hasCoordinates = restaurant.latitude != null && restaurant.longitude != null;
+    const matchesSearch = restaurant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       restaurant.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
       restaurant.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      restaurant.cuisine.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  );
+      restaurant.cuisine.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    console.log(`Restaurant ${restaurant.name}:`, {
+      hasCoordinates,
+      latitude: restaurant.latitude,
+      longitude: restaurant.longitude,
+      matchesSearch
+    });
+    
+    return hasCoordinates && matchesSearch;
+  });
 
   // Initialize map when token is available
   useEffect(() => {
