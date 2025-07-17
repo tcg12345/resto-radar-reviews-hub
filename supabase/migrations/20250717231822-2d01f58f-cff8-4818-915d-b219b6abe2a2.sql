@@ -1,0 +1,3 @@
+-- Add Mapbox token secret for edge functions
+-- This allows the geocoding function to access the Mapbox API
+-- The secret will be available to edge functions via Deno.env.get('MAPBOX_TOKEN')
