@@ -77,10 +77,7 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
         <div className="flex flex-col gap-2">
           <CardTitle className="text-xl font-bold break-words">{restaurant.name}</CardTitle>
           {restaurant.rating !== undefined && (
-            <div className="flex items-center gap-2">
-              <StarRating rating={restaurant.rating} readonly size="sm" />
-              <span className="text-sm font-medium">{`${Math.floor(restaurant.rating) === restaurant.rating ? Math.floor(restaurant.rating) : restaurant.rating.toFixed(1)}/10`}</span>
-            </div>
+            <StarRating rating={restaurant.rating} readonly size="sm" />
           )}
         </div>
         <CardDescription className="flex items-center text-sm text-muted-foreground">
