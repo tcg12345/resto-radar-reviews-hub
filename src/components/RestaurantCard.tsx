@@ -79,7 +79,7 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
           {restaurant.rating !== undefined && (
             <div className="flex items-center gap-2">
               <StarRating rating={restaurant.rating} readonly size="sm" />
-              <span className="text-sm font-medium">{restaurant.rating === 10 ? '10' : restaurant.rating.toFixed(1)}</span>
+              <span className="text-sm font-medium">{`${restaurant.rating === 10 ? '10' : restaurant.rating.toFixed(1)}/10`}</span>
             </div>
           )}
         </div>
