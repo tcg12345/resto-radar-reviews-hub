@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+const MAPBOX_TOKEN_KEY = 'mapbox_token';
+
 export function useMapboxToken() {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -10,8 +12,18 @@ export function useMapboxToken() {
     const loadToken = async () => {
       console.log('Loading Mapbox token...');
       setIsLoading(true);
+      
       try {
-        // Get current user session
+        // First try localStorage for immediate access
+        const localToken = localStorage.getItem(MAPBOX_TOKEN_KEY);
+        if (localToken) {
+          console.log('Found token in localStorage');
+          setToken(localToken);
+          setIsLoading(false);
+          return;
+        }
+        
+        // Then try database
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session?.user) {
@@ -24,7 +36,6 @@ export function useMapboxToken() {
         const user_id = session.user.id;
         console.log('Loading token for user:', user_id);
         
-        // Query with user_id to get the correct token
         const { data: settings, error } = await supabase
           .from('settings')
           .select('value')
@@ -37,7 +48,14 @@ export function useMapboxToken() {
         }
 
         console.log('Settings result:', settings);
-        setToken(settings?.value ?? null);
+        const dbToken = settings?.value ?? null;
+        
+        if (dbToken) {
+          // Store in localStorage for next time
+          localStorage.setItem(MAPBOX_TOKEN_KEY, dbToken);
+        }
+        
+        setToken(dbToken);
       } catch (error) {
         console.error('Error loading Mapbox token:', error);
       } finally {
@@ -50,7 +68,12 @@ export function useMapboxToken() {
     // Also reload when auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth state changed:', event, !!session);
-      loadToken();
+      if (event === 'SIGNED_OUT') {
+        localStorage.removeItem(MAPBOX_TOKEN_KEY);
+        setToken(null);
+      } else if (event === 'SIGNED_IN') {
+        loadToken();
+      }
     });
     
     return () => {
@@ -58,9 +81,13 @@ export function useMapboxToken() {
     };
   }, []);
 
-const saveToken = useCallback(async (newToken: string) => {
+  const saveToken = useCallback(async (newToken: string) => {
     setIsLoading(true);
     try {
+      // Save to localStorage immediately
+      localStorage.setItem(MAPBOX_TOKEN_KEY, newToken);
+      setToken(newToken);
+      
       // Get current user session
       const { data: { session } } = await supabase.auth.getSession();
       
@@ -90,7 +117,6 @@ const saveToken = useCallback(async (newToken: string) => {
         if (insertError) throw insertError;
       }
 
-      setToken(newToken);
       toast.success('Mapbox token saved successfully!');
     } catch (error) {
       console.error('Error saving Mapbox token:', error);
