@@ -1,14 +1,65 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from 'react';
+import { RestaurantProvider } from '@/contexts/RestaurantContext';
+import { Navbar } from '@/components/Navbar';
+import { RatedRestaurantsPage } from '@/pages/RatedRestaurantsPage';
+import { MapPage } from '@/pages/MapPage';
+import { WishlistPage } from '@/pages/WishlistPage';
+import { useRestaurants } from '@/contexts/RestaurantContext';
 
-const Index = () => {
+function AppContent() {
+  const [activeTab, setActiveTab] = useState<'rated' | 'wishlist' | 'map'>('rated');
+  const { restaurants, addRestaurant, updateRestaurant, deleteRestaurant } = useRestaurants();
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'rated':
+        return (
+          <RatedRestaurantsPage
+            restaurants={restaurants}
+            onAddRestaurant={addRestaurant}
+            onEditRestaurant={updateRestaurant}
+            onDeleteRestaurant={deleteRestaurant}
+          />
+        );
+      case 'wishlist':
+        return (
+          <WishlistPage
+            restaurants={restaurants}
+            onAddRestaurant={addRestaurant}
+            onEditRestaurant={updateRestaurant}
+            onDeleteRestaurant={deleteRestaurant}
+          />
+        );
+      case 'map':
+        return (
+          <MapPage
+            restaurants={restaurants}
+            onEditRestaurant={(id) => {
+              // Handle edit functionality
+            }}
+          />
+        );
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="flex min-h-screen flex-col bg-background">
+      <Navbar 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab} 
+      />
+      
+      <main className="flex-1">
+        {renderContent()}
+      </main>
     </div>
   );
-};
+}
 
-export default Index;
+export default function Index() {
+  return (
+    <RestaurantProvider>
+      <AppContent />
+    </RestaurantProvider>
+  );
+}
