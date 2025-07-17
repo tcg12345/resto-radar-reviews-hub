@@ -38,23 +38,21 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
 
   // Initialize map when token is available
   useEffect(() => {
-    // Clear existing map if it exists
-    if (map.current) {
-      map.current.remove();
-      map.current = null;
-    }
-    
-    // Check if we have a token
-    if (!token) {
+    // Don't show token input if we have a token or are loading
+    if (token || isLoading) {
+      setShowTokenInput(false);
+    } else if (!token && !isLoading) {
       setShowTokenInput(true);
       return;
     }
     
-    // Token exists, update input and hide token dialog
-    setTokenInput(token);
-    setShowTokenInput(false);
+    // Update input field with current token
+    if (token) {
+      setTokenInput(token);
+    }
 
-    if (!mapContainer.current) return;
+    // Don't reinitialize map if it already exists and token hasn't changed
+    if (map.current || !mapContainer.current || !token) return;
     
     // Initialize map with token
     mapboxgl.accessToken = token;
@@ -83,12 +81,14 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
     }
 
     return () => {
+      // Only clean up if component is unmounting, not just re-rendering
       if (map.current) {
         map.current.remove();
         map.current = null;
+        setMapLoaded(false);
       }
     };
-  }, [token]);
+  }, [token, isLoading]);
 
   // Add/update markers for restaurants
   useEffect(() => {
