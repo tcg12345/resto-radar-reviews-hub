@@ -16,22 +16,26 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
       <AuthProvider>
-        <RestaurantProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <Routes>
-              <Route path="/" element={
-                <RequireAuth>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <Routes>
+            {/* Auth route - doesn't need RestaurantProvider */}
+            <Route path="/auth" element={<AuthPage />} />
+            
+            {/* Protected routes - with RestaurantProvider */}
+            <Route path="/" element={
+              <RequireAuth>
+                <RestaurantProvider>
                   <Index />
-                </RequireAuth>
-              } />
-              <Route path="/auth" element={<AuthPage />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </TooltipProvider>
-        </RestaurantProvider>
+                </RestaurantProvider>
+              </RequireAuth>
+            } />
+            
+            {/* 404 route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </TooltipProvider>
       </AuthProvider>
     </BrowserRouter>
   </QueryClientProvider>

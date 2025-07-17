@@ -57,9 +57,5 @@ function AppContent() {
 }
 
 export default function Index() {
-  return (
-    <RestaurantProvider>
-      <AppContent />
-    </RestaurantProvider>
-  );
+  return <AppContent />;
 }
