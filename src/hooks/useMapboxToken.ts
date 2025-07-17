@@ -10,13 +10,12 @@ export function useMapboxToken() {
     const loadToken = async () => {
       setIsLoading(true);
       try {
-        const { data: settings, error } = await supabase
+        const { data: settings } = await supabase
           .from('settings')
           .select('value')
           .eq('key', 'mapbox_token')
-          .single();
+          .maybeSingle();
 
-        if (error) throw error;
         setToken(settings?.value ?? null);
       } catch (error) {
         console.error('Error loading Mapbox token:', error);
