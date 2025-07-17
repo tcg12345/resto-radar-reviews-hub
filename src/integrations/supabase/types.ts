@@ -14,7 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      restaurants: {
+        Row: {
+          address: string
+          category_ratings: Json | null
+          city: string
+          created_at: string | null
+          cuisine: string
+          date_visited: string | null
+          id: string
+          is_wishlist: boolean | null
+          latitude: number | null
+          longitude: number | null
+          name: string
+          notes: string | null
+          photos: string[] | null
+          rating: number | null
+          updated_at: string | null
+          use_weighted_rating: boolean | null
+        }
+        Insert: {
+          address: string
+          category_ratings?: Json | null
+          city: string
+          created_at?: string | null
+          cuisine: string
+          date_visited?: string | null
+          id?: string
+          is_wishlist?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          notes?: string | null
+          photos?: string[] | null
+          rating?: number | null
+          updated_at?: string | null
+          use_weighted_rating?: boolean | null
+        }
+        Update: {
+          address?: string
+          category_ratings?: Json | null
+          city?: string
+          created_at?: string | null
+          cuisine?: string
+          date_visited?: string | null
+          id?: string
+          is_wishlist?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          notes?: string | null
+          photos?: string[] | null
+          rating?: number | null
+          updated_at?: string | null
+          use_weighted_rating?: boolean | null
+        }
+        Relationships: []
+      }
+      settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          key: string
+          updated_at: string | null
+          value: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          key: string
+          updated_at?: string | null
+          value: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          key?: string
+          updated_at?: string | null
+          value?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

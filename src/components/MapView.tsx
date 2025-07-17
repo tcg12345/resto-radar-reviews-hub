@@ -8,6 +8,7 @@ import { Search, MapPin, Settings } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { StarRating } from '@/components/StarRating';
 import { Label } from '@/components/ui/label';
+import { useMapboxToken } from '@/hooks/useMapboxToken';
 
 interface MapViewProps {
   restaurants: Restaurant[];
@@ -21,8 +22,9 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
   const [mapLoaded, setMapLoaded] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [mapboxToken, setMapboxToken] = useState('');
+  const [tokenInput, setTokenInput] = useState('');
   const [showTokenInput, setShowTokenInput] = useState(true);
+  const { token, saveToken, isLoading } = useMapboxToken();
 
   // Filter restaurants by search term
   const filteredRestaurants = restaurants.filter(restaurant => 
@@ -35,21 +37,16 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
   );
 
   useEffect(() => {
-    // Check for saved token in localStorage
-    const savedToken = localStorage.getItem('mapbox_token');
-    if (savedToken && !mapboxToken) {
-      setMapboxToken(savedToken);
+    if (token) {
+      setTokenInput(token);
       setShowTokenInput(false);
     }
-  }, [mapboxToken]);
+  }, [token]);
 
   useEffect(() => {
-    if (!mapContainer.current || map.current || !mapboxToken) return;
-
-    // Save token to localStorage for geocoding
-    localStorage.setItem('mapbox_token', mapboxToken);
+    if (!mapContainer.current || map.current || !token) return;
     
-    mapboxgl.accessToken = mapboxToken;
+    mapboxgl.accessToken = token;
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -73,7 +70,7 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
       map.current?.remove();
       map.current = null;
     };
-  }, [mapboxToken]);
+  }, [token]);
 
   // Add/update markers for restaurants
   useEffect(() => {
@@ -134,6 +131,11 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
     }
   }, [filteredRestaurants, mapLoaded]);
 
+  const handleSaveToken = async () => {
+    await saveToken(tokenInput);
+    setShowTokenInput(false);
+  };
+
   return (
     <div className="h-full w-full">
       {showTokenInput && (
@@ -152,8 +154,8 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
                 <Input
                   id="mapbox-token"
                   type="password"
-                  value={mapboxToken}
-                  onChange={(e) => setMapboxToken(e.target.value)}
+                  value={tokenInput}
+                  onChange={(e) => setTokenInput(e.target.value)}
                   placeholder="pk.ey..."
                 />
               </div>
@@ -169,11 +171,11 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
                 </a>
               </div>
               <Button 
-                onClick={() => setShowTokenInput(false)}
-                disabled={!mapboxToken}
+                onClick={handleSaveToken}
+                disabled={!tokenInput || isLoading}
                 className="w-full"
               >
-                Load Map
+                {isLoading ? 'Saving...' : 'Load Map'}
               </Button>
             </div>
           </div>

@@ -1,12 +1,31 @@
-import { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import { Restaurant, RestaurantFormData } from '@/types/restaurant';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { createContext, useContext, useState, useCallback, useMemo, ReactNode, useEffect } from 'react';
+import { Restaurant, RestaurantFormData, CategoryRating } from '@/types/restaurant';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { Json } from '@/integrations/supabase/types';
+
+interface DbRestaurant {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  cuisine: string;
+  rating: number | null;
+  notes: string | null;
+  date_visited: string | null;
+  photos: string[];
+  is_wishlist: boolean;
+  latitude: number | null;
+  longitude: number | null;
+  category_ratings: Json;
+  use_weighted_rating: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
 interface RestaurantContextType {
   restaurants: Restaurant[];
-addRestaurant: (data: RestaurantFormData) => Promise<string>;
+  addRestaurant: (data: RestaurantFormData) => Promise<string>;
   updateRestaurant: (id: string, data: RestaurantFormData) => Promise<void>;
   deleteRestaurant: (id: string) => void;
   getRestaurant: (id: string) => Restaurant | undefined;
@@ -19,9 +38,51 @@ interface RestaurantProviderProps {
   children: ReactNode;
 }
 
+const mapDbRestaurantToRestaurant = (dbRestaurant: DbRestaurant): Restaurant => ({
+  id: dbRestaurant.id,
+  name: dbRestaurant.name,
+  address: dbRestaurant.address,
+  city: dbRestaurant.city,
+  cuisine: dbRestaurant.cuisine,
+  rating: dbRestaurant.rating ?? undefined,
+  notes: dbRestaurant.notes ?? undefined,
+  dateVisited: dbRestaurant.date_visited ?? undefined,
+  photos: dbRestaurant.photos,
+  isWishlist: dbRestaurant.is_wishlist,
+  latitude: dbRestaurant.latitude ?? undefined,
+  longitude: dbRestaurant.longitude ?? undefined,
+  categoryRatings: dbRestaurant.category_ratings ? dbRestaurant.category_ratings as unknown as CategoryRating : undefined,
+  useWeightedRating: dbRestaurant.use_weighted_rating,
+  createdAt: dbRestaurant.created_at,
+  updatedAt: dbRestaurant.updated_at,
+});
+
 export function RestaurantProvider({ children }: RestaurantProviderProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [restaurants, setRestaurants] = useLocalStorage<Restaurant[]>('restaurants', []);
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+
+  // Load restaurants from Supabase
+  useEffect(() => {
+    const loadRestaurants = async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('restaurants')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        setRestaurants((data || []).map(mapDbRestaurantToRestaurant));
+      } catch (error) {
+        console.error('Error loading restaurants:', error);
+        toast.error('Failed to load restaurants');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadRestaurants();
+  }, []);
 
   // Convert File objects to data URLs
   const convertPhotosToDataUrls = useCallback(async (photos: File[]): Promise<string[]> => {
@@ -43,8 +104,14 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
   // Geocode the address to get latitude and longitude
   const geocodeAddress = useCallback(async (address: string, city: string): Promise<{ latitude: number, longitude: number } | null> => {
     try {
-      // Get token from localStorage
-      const mapboxToken = localStorage.getItem('mapbox_token');
+      // Get token from settings table
+      const { data: settings } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'mapbox_token')
+        .single();
+
+      const mapboxToken = settings?.value;
       if (!mapboxToken) {
         console.warn('No Mapbox token found. Please add a token in the Map tab.');
         return null;
@@ -83,24 +150,32 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       }
       
       // Create new restaurant object
-      const newRestaurant: Restaurant = {
-        id: uuidv4(),
+      const newRestaurant = {
         name: data.name,
         address: data.address,
         city: data.city,
         cuisine: data.cuisine,
-        rating: data.rating,
-        notes: data.notes,
-        dateVisited: data.dateVisited,
+        rating: data.rating ?? null,
+        notes: data.notes ?? null,
+        date_visited: data.dateVisited ?? null,
         photos: photoDataUrls,
-        isWishlist: data.isWishlist,
-        latitude: coordinates?.latitude,
-        longitude: coordinates?.longitude,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        is_wishlist: data.isWishlist,
+        latitude: coordinates?.latitude ?? null,
+        longitude: coordinates?.longitude ?? null,
+        category_ratings: data.categoryRatings as unknown as Json,
+        use_weighted_rating: data.useWeightedRating,
       };
       
-      setRestaurants((prev) => [...prev, newRestaurant]);
+      const { data: inserted, error } = await supabase
+        .from('restaurants')
+        .insert(newRestaurant)
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      const restaurant = mapDbRestaurantToRestaurant(inserted);
+      setRestaurants((prev) => [restaurant, ...prev]);
       
       if (coordinates) {
         toast.success('Restaurant added and placed on map!');
@@ -109,7 +184,8 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       } else {
         toast.success('Restaurant added successfully!');
       }
-      return newRestaurant.id;
+
+      return inserted.id;
     } catch (error) {
       console.error('Error adding restaurant:', error);
       toast.error('Failed to add restaurant.');
@@ -117,7 +193,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [convertPhotosToDataUrls, geocodeAddress, setRestaurants]);
+  }, [convertPhotosToDataUrls, geocodeAddress]);
 
   const updateRestaurant = useCallback(async (id: string, data: RestaurantFormData) => {
     try {
@@ -151,27 +227,35 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         }
       }
       
-      // Update restaurant
+      // Update restaurant in Supabase
+      const { data: updated, error } = await supabase
+        .from('restaurants')
+        .update({
+          name: data.name,
+          address: data.address,
+          city: data.city,
+          cuisine: data.cuisine,
+          rating: data.rating ?? null,
+          notes: data.notes ?? null,
+          date_visited: data.dateVisited ?? null,
+          photos: combinedPhotos,
+          is_wishlist: data.isWishlist,
+          latitude: coordinates.latitude ?? null,
+          longitude: coordinates.longitude ?? null,
+          category_ratings: data.categoryRatings as unknown as Json,
+          use_weighted_rating: data.useWeightedRating,
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const restaurant = mapDbRestaurantToRestaurant(updated);
+      
+      // Update local state
       setRestaurants((prev) =>
-        prev.map((restaurant) =>
-          restaurant.id === id
-            ? {
-                ...restaurant,
-                name: data.name,
-                address: data.address,
-                city: data.city,
-                cuisine: data.cuisine,
-                rating: data.rating,
-                notes: data.notes,
-                dateVisited: data.dateVisited,
-                photos: combinedPhotos,
-                isWishlist: data.isWishlist,
-                latitude: coordinates.latitude,
-                longitude: coordinates.longitude,
-                updatedAt: new Date().toISOString(),
-              }
-            : restaurant
-        )
+        prev.map((r) => (r.id === id ? restaurant : r))
       );
       
       if (coordinates.latitude && coordinates.longitude) {
@@ -187,17 +271,24 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [restaurants, convertPhotosToDataUrls, geocodeAddress, setRestaurants]);
+  }, [restaurants, convertPhotosToDataUrls, geocodeAddress]);
 
-  const deleteRestaurant = useCallback((id: string) => {
+  const deleteRestaurant = useCallback(async (id: string) => {
     try {
+      const { error } = await supabase
+        .from('restaurants')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
       setRestaurants((prev) => prev.filter((restaurant) => restaurant.id !== id));
       toast.success('Restaurant deleted successfully!');
     } catch (error) {
       console.error('Error deleting restaurant:', error);
       toast.error('Failed to delete restaurant.');
     }
-  }, [setRestaurants]);
+  }, []);
 
   const getRestaurant = useCallback((id: string) => {
     return restaurants.find((restaurant) => restaurant.id === id);
