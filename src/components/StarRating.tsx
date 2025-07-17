@@ -65,7 +65,7 @@ export function StarRating({
       
       {showValue && (
         <span className={`font-medium text-foreground ${textSizeClasses[size]}`}>
-          {displayRating.toFixed(1)}/10
+          {displayRating % 1 === 0 ? displayRating : displayRating.toFixed(1)}/10
         </span>
       )}
     </div>
