@@ -173,15 +173,28 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       let coordinates = null;
       if (data.address && data.city) {
         try {
+          console.log('Attempting to geocode:', data.address, data.city);
+          
+          // Get the session to pass auth header
+          const { data: { session } } = await supabase.auth.getSession();
+          
           const { data: geoData, error } = await supabase.functions.invoke('geocode', {
             body: { 
               address: data.address, 
               city: data.city 
+            },
+            headers: {
+              Authorization: `Bearer ${session?.access_token}`
             }
           });
           
+          console.log('Geocode response:', geoData, 'Error:', error);
+          
           if (!error && geoData) {
             coordinates = geoData;
+            console.log('Successfully geocoded to:', coordinates);
+          } else {
+            console.warn('Geocoding failed:', error);
           }
         } catch (error) {
           console.error('Error calling geocode function:', error);
@@ -272,6 +285,9 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
             body: { 
               address: data.address, 
               city: data.city 
+            },
+            headers: {
+              Authorization: `Bearer ${session?.access_token}`
             }
           });
           

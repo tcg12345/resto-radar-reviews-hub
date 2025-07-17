@@ -27,23 +27,43 @@ serve(async (req) => {
       );
     }
 
-    // Get Mapbox token from environment
-    const mapboxToken = Deno.env.get("MAPBOX_TOKEN");
+    // Get Mapbox token from environment first, then fall back to user's token
+    let mapboxToken = Deno.env.get("MAPBOX_TOKEN");
+    
+    if (!mapboxToken) {
+      // Get the JWT from the request to identify user
+      const authHeader = req.headers.get("Authorization");
+      if (authHeader) {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+        const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        const jwt = authHeader.replace("Bearer ", "");
+        const { data: { user } } = await supabase.auth.getUser(jwt);
+
+        if (user) {
+          // Get user's Mapbox token from settings
+          const { data: settings } = await supabase
+            .from('settings')
+            .select('value')
+            .eq('key', 'mapbox_token')
+            .eq('user_id', user.id)
+            .maybeSingle();
+            
+          mapboxToken = settings?.value;
+        }
+      }
+    }
     
     if (!mapboxToken) {
       return new Response(
-        JSON.stringify({ error: "Mapbox token not configured" }),
+        JSON.stringify({ error: "Mapbox token not available" }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
     }
-
-    // Create Supabase client
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-    const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Geocode the address
     const searchAddress = `${address}, ${city}`;
