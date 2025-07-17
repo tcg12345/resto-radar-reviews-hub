@@ -18,6 +18,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { WeightedRating } from '@/components/WeightedRating';
+import { StarRating } from '@/components/StarRating';
 import { format } from 'date-fns';
 import { Restaurant, RestaurantFormData, CategoryRating } from '@/types/restaurant';
 import { Switch } from '@/components/ui/switch';
@@ -42,7 +43,8 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     city: initialData?.city || '',
     cuisine: initialData?.cuisine || '',
     rating: initialData?.rating,
-    categoryRatings: initialData?.categoryRatings || { food: 0, service: 0, atmosphere: 0 },
+    categoryRatings: initialData?.categoryRatings,
+    useWeightedRating: initialData?.useWeightedRating || false,
     notes: initialData?.notes || '',
     dateVisited: initialData?.dateVisited || '',
     photos: [],
@@ -213,12 +215,40 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Rating</Label>
-              <div className="mt-1">
-                <WeightedRating
-                  categoryRatings={formData.categoryRatings}
-                  onRatingChange={handleRatingChange}
-                  size="md"
-                />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between space-x-2">
+                  <Label htmlFor="useWeightedRating" className="text-sm font-medium">
+                    Use weighted rating system
+                  </Label>
+                  <Switch
+                    id="useWeightedRating"
+                    checked={formData.useWeightedRating}
+                    onCheckedChange={(checked) => {
+                      setFormData(prev => ({
+                        ...prev,
+                        useWeightedRating: checked,
+                        rating: undefined,
+                        categoryRatings: checked ? { food: 0, service: 0, atmosphere: 0 } : undefined
+                      }));
+                    }}
+                  />
+                </div>
+
+                {formData.useWeightedRating ? (
+                  <WeightedRating
+                    categoryRatings={formData.categoryRatings}
+                    onRatingChange={handleRatingChange}
+                    size="md"
+                  />
+                ) : (
+                  <div className="mt-1">
+                    <StarRating
+                      rating={formData.rating || 0}
+                      onRatingChange={(rating) => setFormData(prev => ({ ...prev, rating }))}
+                      size="md"
+                    />
+                  </div>
+                )}
               </div>
             </div>
 

@@ -10,8 +10,9 @@ export interface Restaurant {
   address: string;
   city: string;
   cuisine: string;
-  rating?: number; // Calculated weighted average
+  rating?: number;
   categoryRatings?: CategoryRating;
+  useWeightedRating?: boolean;
   photos: string[];
   notes?: string;
   dateVisited?: string;
@@ -29,6 +30,7 @@ export interface RestaurantFormData {
   cuisine: string;
   rating?: number;
   categoryRatings?: CategoryRating;
+  useWeightedRating?: boolean;
   photos: File[];
   notes?: string;
   dateVisited?: string;
