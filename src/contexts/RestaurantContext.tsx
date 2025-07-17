@@ -252,7 +252,9 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       const restaurant = mapDbRestaurantToRestaurant(inserted);
       setRestaurants((prev) => [restaurant, ...prev]);
       
-      if (coordinates) {
+      console.log('Final coordinates for restaurant:', coordinates);
+      
+      if (coordinates && coordinates.latitude && coordinates.longitude) {
         toast.success('Restaurant added and placed on map!');
       } else if (data.address && data.city) {
         toast.warning('Restaurant added but couldn\'t be placed on map. Check your Mapbox token in the Map tab.');
