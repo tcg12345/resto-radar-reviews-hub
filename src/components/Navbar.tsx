@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { Moon, Sun, MapPin, Star, Heart } from 'lucide-react';
+import { Moon, Sun, MapPin, Star, Heart, LogOut, LogIn } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/hooks/useTheme';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface NavbarProps {
   activeTab: 'rated' | 'wishlist' | 'map';
@@ -10,12 +12,19 @@ interface NavbarProps {
 
 export function Navbar({ activeTab, onTabChange }: NavbarProps) {
   const { theme, toggleTheme } = useTheme();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const tabs = [
     { id: 'rated' as const, label: 'My Ratings', icon: Star },
     { id: 'wishlist' as const, label: 'Wishlist', icon: Heart },
     { id: 'map' as const, label: 'Map View', icon: MapPin },
   ];
+  
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -52,19 +61,43 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
           })}
         </div>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleTheme}
-          className="h-10 w-10"
-        >
-          {theme === 'light' ? (
-            <Moon className="h-5 w-5" />
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            className="h-10 w-10"
+          >
+            {theme === 'light' ? (
+              <Moon className="h-5 w-5" />
+            ) : (
+              <Sun className="h-5 w-5" />
+            )}
+            <span className="sr-only">Toggle theme</span>
+          </Button>
+
+          {user ? (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleSignOut}
+              className="flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </Button>
           ) : (
-            <Sun className="h-5 w-5" />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate('/auth')}
+              className="flex items-center gap-2"
+            >
+              <LogIn className="h-4 w-4" />
+              Sign In
+            </Button>
           )}
-          <span className="sr-only">Toggle theme</span>
-        </Button>
+        </div>
       </div>
     </nav>
   );

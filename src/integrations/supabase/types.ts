@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          name: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          id: string
+          name?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       restaurants: {
         Row: {
           address: string
@@ -32,6 +59,7 @@ export type Database = {
           rating: number | null
           updated_at: string | null
           use_weighted_rating: boolean | null
+          user_id: string
         }
         Insert: {
           address: string
@@ -50,6 +78,7 @@ export type Database = {
           rating?: number | null
           updated_at?: string | null
           use_weighted_rating?: boolean | null
+          user_id: string
         }
         Update: {
           address?: string
@@ -68,29 +97,33 @@ export type Database = {
           rating?: number | null
           updated_at?: string | null
           use_weighted_rating?: boolean | null
+          user_id?: string
         }
         Relationships: []
       }
       settings: {
         Row: {
-          created_at: string | null
+          created_at: string
           id: string
           key: string
-          updated_at: string | null
+          updated_at: string
+          user_id: string
           value: string
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
           id?: string
           key: string
-          updated_at?: string | null
+          updated_at?: string
+          user_id: string
           value: string
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
           id?: string
           key?: string
-          updated_at?: string | null
+          updated_at?: string
+          user_id?: string
           value?: string
         }
         Relationships: []

@@ -27,20 +27,34 @@ export function useMapboxToken() {
     loadToken();
   }, []);
 
-  const saveToken = useCallback(async (newToken: string) => {
+const saveToken = useCallback(async (newToken: string) => {
     setIsLoading(true);
     try {
+      // Get current user session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.user) {
+        throw new Error('Authentication required to save settings');
+      }
+      
+      const user_id = session.user.id;
+      
       // Try to update existing token first
       const { error: updateError } = await supabase
         .from('settings')
         .update({ value: newToken })
-        .eq('key', 'mapbox_token');
+        .eq('key', 'mapbox_token')
+        .eq('user_id', user_id);
 
       // If update fails (no record exists), insert new token
       if (updateError) {
         const { error: insertError } = await supabase
           .from('settings')
-          .insert({ key: 'mapbox_token', value: newToken });
+          .insert({ 
+            key: 'mapbox_token', 
+            value: newToken,
+            user_id 
+          });
 
         if (insertError) throw insertError;
       }

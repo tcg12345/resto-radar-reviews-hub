@@ -66,13 +66,24 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
     const loadRestaurants = async () => {
       setIsLoading(true);
       try {
-        const { data, error } = await supabase
-          .from('restaurants')
-          .select('*')
-          .order('created_at', { ascending: false });
+        // Check if user is authenticated
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          // User is authenticated, fetch their restaurants
+          const { data, error } = await supabase
+            .from('restaurants')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .order('created_at', { ascending: false });
 
-        if (error) throw error;
-        setRestaurants((data || []).map(mapDbRestaurantToRestaurant));
+          if (error) throw error;
+          setRestaurants((data || []).map(mapDbRestaurantToRestaurant));
+        } else {
+          // User is not authenticated, show empty list
+          setRestaurants([]);
+          console.log('User not authenticated. Please sign in to view your restaurants.');
+        }
       } catch (error) {
         console.error('Error loading restaurants:', error);
         toast.error('Failed to load restaurants');
@@ -82,6 +93,15 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
     };
 
     loadRestaurants();
+    
+    // Set up auth state listener to reload restaurants when auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      loadRestaurants();
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Convert File objects to data URLs
@@ -140,13 +160,32 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
     try {
       setIsLoading(true);
       
+      // Get current user
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        throw new Error('Authentication required to add restaurants');
+      }
+      
       // Convert photos to data URLs
       const photoDataUrls = await convertPhotosToDataUrls(data.photos);
       
-      // Geocode the address
+      // Geocode the address using the edge function instead of direct API call
       let coordinates = null;
       if (data.address && data.city) {
-        coordinates = await geocodeAddress(data.address, data.city);
+        try {
+          const { data: geoData, error } = await supabase.functions.invoke('geocode', {
+            body: { 
+              address: data.address, 
+              city: data.city 
+            }
+          });
+          
+          if (!error && geoData) {
+            coordinates = geoData;
+          }
+        } catch (error) {
+          console.error('Error calling geocode function:', error);
+        }
       }
       
       // Create new restaurant object
@@ -164,6 +203,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         longitude: coordinates?.longitude ?? null,
         category_ratings: data.categoryRatings as unknown as Json,
         use_weighted_rating: data.useWeightedRating,
+        user_id: session.user.id,
       };
       
       const { data: inserted, error } = await supabase
@@ -199,6 +239,12 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
     try {
       setIsLoading(true);
       
+      // Get current user
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        throw new Error('Authentication required to update restaurants');
+      }
+      
       // Find existing restaurant
       const existingRestaurant = restaurants.find((r) => r.id === id);
       if (!existingRestaurant) {
@@ -211,7 +257,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       // Combine existing and new photos
       const combinedPhotos = [...existingRestaurant.photos, ...newPhotoDataUrls];
       
-      // Geocode the address if it changed
+      // Geocode the address if it changed using the edge function
       let coordinates = {
         latitude: existingRestaurant.latitude,
         longitude: existingRestaurant.longitude,
@@ -221,9 +267,19 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         (data.address !== existingRestaurant.address || data.city !== existingRestaurant.city) &&
         data.address && data.city
       ) {
-        const newCoordinates = await geocodeAddress(data.address, data.city);
-        if (newCoordinates) {
-          coordinates = newCoordinates;
+        try {
+          const { data: geoData, error } = await supabase.functions.invoke('geocode', {
+            body: { 
+              address: data.address, 
+              city: data.city 
+            }
+          });
+          
+          if (!error && geoData) {
+            coordinates = geoData;
+          }
+        } catch (error) {
+          console.error('Error calling geocode function:', error);
         }
       }
       
@@ -244,6 +300,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
           longitude: coordinates.longitude ?? null,
           category_ratings: data.categoryRatings as unknown as Json,
           use_weighted_rating: data.useWeightedRating,
+          // user_id is already set, no need to update it
         })
         .eq('id', id)
         .select()
