@@ -77,13 +77,9 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
       <CardHeader className="pb-2">
         <div className="flex flex-col gap-2">
           <CardTitle className="text-xl font-bold break-words">{restaurant.name}</CardTitle>
-          <div className="space-y-3">
-            <WeightedRating
-              categoryRatings={restaurant.categoryRatings}
-              readonly
-              size="sm"
-            />
-          </div>
+          {restaurant.rating !== undefined && (
+            <StarRating rating={restaurant.rating} readonly size="sm" />
+          )}
         </div>
         <CardDescription className="flex items-center text-sm text-muted-foreground">
           <MapPin className="mr-1 h-3.5 w-3.5" />
