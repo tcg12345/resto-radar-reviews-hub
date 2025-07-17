@@ -23,7 +23,7 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [tokenInput, setTokenInput] = useState('');
-  const [showTokenInput, setShowTokenInput] = useState(true);
+  const [showTokenInput, setShowTokenInput] = useState(false);
   const { token, saveToken, isLoading } = useMapboxToken();
 
   // Filter restaurants by search term
@@ -36,15 +36,17 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
     )
   );
 
+  // Initialize map when token is available
   useEffect(() => {
-    if (token) {
-      setTokenInput(token);
-      setShowTokenInput(false);
+    if (!token) {
+      setShowTokenInput(true);
+      return;
     }
-  }, [token]);
+    
+    setTokenInput(token);
+    setShowTokenInput(false);
 
-  useEffect(() => {
-    if (!mapContainer.current || map.current || !token) return;
+    if (!mapContainer.current || map.current) return;
     
     mapboxgl.accessToken = token;
 
@@ -67,8 +69,10 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
     });
 
     return () => {
-      map.current?.remove();
-      map.current = null;
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
     };
   }, [token]);
 
@@ -133,7 +137,6 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
 
   const handleSaveToken = async () => {
     await saveToken(tokenInput);
-    setShowTokenInput(false);
   };
 
   return (
