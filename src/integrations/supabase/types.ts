@@ -14,74 +14,7 @@ export type Database = {
   }
   public: {
     Tables: {
-      ratings: {
-        Row: {
-          created_at: string
-          id: string
-          rating: number
-          restaurant_id: string
-          review: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          rating: number
-          restaurant_id: string
-          review?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          rating?: number
-          restaurant_id?: string
-          review?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ratings_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurants"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      restaurants: {
-        Row: {
-          created_at: string
-          cuisine_type: string | null
-          description: string | null
-          id: string
-          location: string | null
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          cuisine_type?: string | null
-          description?: string | null
-          id?: string
-          location?: string | null
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          cuisine_type?: string | null
-          description?: string | null
-          id?: string
-          location?: string | null
-          name?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
