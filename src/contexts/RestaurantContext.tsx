@@ -169,35 +169,47 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       // Convert photos to data URLs
       const photoDataUrls = await convertPhotosToDataUrls(data.photos);
       
-      // Geocode the address using the edge function instead of direct API call
+      // Geocode the address directly using Mapbox API
       let coordinates = null;
       if (data.address && data.city) {
         try {
           console.log('Attempting to geocode:', data.address, data.city);
           
-          // Get the session to pass auth header
-          const { data: { session } } = await supabase.auth.getSession();
+          // Get the stored Mapbox token
+          const { data: settings } = await supabase
+            .from('settings')
+            .select('value')
+            .eq('key', 'mapbox_token')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+
+          const mapboxToken = settings?.value;
+          console.log('Mapbox token available:', !!mapboxToken);
           
-          const { data: geoData, error } = await supabase.functions.invoke('geocode', {
-            body: { 
-              address: data.address, 
-              city: data.city 
-            },
-            headers: {
-              Authorization: `Bearer ${session?.access_token}`
+          if (mapboxToken) {
+            const query = `${data.address}, ${data.city}`;
+            const encodedQuery = encodeURIComponent(query);
+            const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedQuery}.json?access_token=${mapboxToken}`;
+            
+            console.log('Geocoding URL:', url.replace(mapboxToken, '[TOKEN]'));
+            
+            const response = await fetch(url);
+            const geoData = await response.json();
+            
+            console.log('Geocode response:', geoData);
+            
+            if (geoData.features && geoData.features.length > 0) {
+              const [longitude, latitude] = geoData.features[0].center;
+              coordinates = { latitude, longitude };
+              console.log('Successfully geocoded to:', coordinates);
+            } else {
+              console.warn('No geocoding results found');
             }
-          });
-          
-          console.log('Geocode response:', geoData, 'Error:', error);
-          
-          if (!error && geoData) {
-            coordinates = geoData;
-            console.log('Successfully geocoded to:', coordinates);
           } else {
-            console.warn('Geocoding failed:', error);
+            console.warn('No Mapbox token found for user');
           }
         } catch (error) {
-          console.error('Error calling geocode function:', error);
+          console.error('Error calling geocode:', error);
         }
       }
       
@@ -270,7 +282,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       // Combine existing and new photos
       const combinedPhotos = [...existingRestaurant.photos, ...newPhotoDataUrls];
       
-      // Geocode the address if it changed using the edge function
+      // Geocode the address if it changed using direct Mapbox API
       let coordinates = {
         latitude: existingRestaurant.latitude,
         longitude: existingRestaurant.longitude,
@@ -281,21 +293,34 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         data.address && data.city
       ) {
         try {
-          const { data: geoData, error } = await supabase.functions.invoke('geocode', {
-            body: { 
-              address: data.address, 
-              city: data.city 
-            },
-            headers: {
-              Authorization: `Bearer ${session?.access_token}`
-            }
-          });
+          console.log('Attempting to geocode updated address:', data.address, data.city);
           
-          if (!error && geoData) {
-            coordinates = geoData;
+          // Get the stored Mapbox token
+          const { data: settings } = await supabase
+            .from('settings')
+            .select('value')
+            .eq('key', 'mapbox_token')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+
+          const mapboxToken = settings?.value;
+          
+          if (mapboxToken) {
+            const query = `${data.address}, ${data.city}`;
+            const encodedQuery = encodeURIComponent(query);
+            const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedQuery}.json?access_token=${mapboxToken}`;
+            
+            const response = await fetch(url);
+            const geoData = await response.json();
+            
+            if (geoData.features && geoData.features.length > 0) {
+              const [longitude, latitude] = geoData.features[0].center;
+              coordinates = { latitude, longitude };
+              console.log('Successfully geocoded updated address to:', coordinates);
+            }
           }
         } catch (error) {
-          console.error('Error calling geocode function:', error);
+          console.error('Error geocoding updated address:', error);
         }
       }
       
