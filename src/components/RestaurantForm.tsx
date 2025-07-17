@@ -26,6 +26,7 @@ interface RestaurantFormProps {
   initialData?: Restaurant;
   onSubmit: (data: RestaurantFormData) => void;
   onCancel: () => void;
+  defaultWishlist?: boolean;
 }
 
 const cuisineOptions = [
@@ -34,7 +35,7 @@ const cuisineOptions = [
   'Spanish', 'Vietnamese', 'Greek', 'Brazilian', 'Other'
 ];
 
-export function RestaurantForm({ initialData, onSubmit, onCancel }: RestaurantFormProps) {
+export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlist = false }: RestaurantFormProps) {
   const [formData, setFormData] = useState<RestaurantFormData>({
     name: initialData?.name || '',
     address: initialData?.address || '',
@@ -44,7 +45,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel }: RestaurantFo
     notes: initialData?.notes || '',
     dateVisited: initialData?.dateVisited || '',
     photos: [],
-    isWishlist: initialData?.isWishlist || false,
+    isWishlist: initialData?.isWishlist || defaultWishlist,
   });
 
   const [date, setDate] = useState<Date | undefined>(

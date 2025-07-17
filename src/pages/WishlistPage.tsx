@@ -160,6 +160,7 @@ export function WishlistPage({
         onOpenChange={setIsAddDialogOpen}
         onSave={handleAddRestaurant}
         dialogType="add"
+        defaultWishlist={true}
       />
 
       <RestaurantDialog

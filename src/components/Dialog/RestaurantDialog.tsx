@@ -14,6 +14,7 @@ interface RestaurantDialogProps {
   restaurant?: Restaurant;
   onSave: (data: RestaurantFormData) => void;
   dialogType: "add" | "edit";
+  defaultWishlist?: boolean;
 }
 
 export function RestaurantDialog({
@@ -22,6 +23,7 @@ export function RestaurantDialog({
   restaurant,
   onSave,
   dialogType,
+  defaultWishlist = false,
 }: RestaurantDialogProps) {
   const handleSave = (data: RestaurantFormData) => {
     onSave(data);
@@ -49,6 +51,7 @@ export function RestaurantDialog({
           initialData={restaurant}
           onSubmit={handleSave}
           onCancel={handleCancel}
+          defaultWishlist={defaultWishlist}
         />
       </DialogContent>
     </Dialog>

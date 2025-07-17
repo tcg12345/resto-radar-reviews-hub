@@ -4,11 +4,10 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { Restaurant } from '@/types/restaurant';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Search, MapPin } from 'lucide-react';
+import { Search, MapPin, Settings } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { StarRating } from '@/components/StarRating';
-
-mapboxgl.accessToken = 'pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbHhtZ3V1cjAwMTdjMmtzMDNrNjVrbzRtIn0.ZtSlpKA9nra05HPsSCTOhQ';
+import { Label } from '@/components/ui/label';
 
 interface MapViewProps {
   restaurants: Restaurant[];
@@ -22,6 +21,8 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
   const [mapLoaded, setMapLoaded] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [mapboxToken, setMapboxToken] = useState('');
+  const [showTokenInput, setShowTokenInput] = useState(true);
 
   // Filter restaurants by search term
   const filteredRestaurants = restaurants.filter(restaurant => 
@@ -34,7 +35,9 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
   );
 
   useEffect(() => {
-    if (!mapContainer.current || map.current) return;
+    if (!mapContainer.current || map.current || !mapboxToken) return;
+
+    mapboxgl.accessToken = mapboxToken;
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -49,11 +52,16 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
       setMapLoaded(true);
     });
 
+    map.current.on('error', (e) => {
+      console.error('Map error:', e);
+      setShowTokenInput(true);
+    });
+
     return () => {
       map.current?.remove();
       map.current = null;
     };
-  }, []);
+  }, [mapboxToken]);
 
   // Add/update markers for restaurants
   useEffect(() => {
@@ -116,6 +124,50 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
 
   return (
     <div className="h-full w-full">
+      {showTokenInput && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-lg bg-card p-6 shadow-lg">
+            <div className="mb-4 text-center">
+              <Settings className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
+              <h3 className="text-lg font-semibold">Mapbox Setup Required</h3>
+              <p className="text-sm text-muted-foreground">
+                Enter your Mapbox public token to view the map
+              </p>
+            </div>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="mapbox-token">Mapbox Public Token</Label>
+                <Input
+                  id="mapbox-token"
+                  type="password"
+                  value={mapboxToken}
+                  onChange={(e) => setMapboxToken(e.target.value)}
+                  placeholder="pk.ey..."
+                />
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Get your token from{" "}
+                <a 
+                  href="https://mapbox.com/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-primary underline"
+                >
+                  mapbox.com
+                </a>
+              </div>
+              <Button 
+                onClick={() => setShowTokenInput(false)}
+                disabled={!mapboxToken}
+                className="w-full"
+              >
+                Load Map
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="absolute left-4 right-4 top-4 z-10 flex gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -126,6 +178,14 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
             className="pl-10"
           />
         </div>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setShowTokenInput(true)}
+          title="Configure Mapbox Token"
+        >
+          <Settings className="h-4 w-4" />
+        </Button>
       </div>
 
       {selectedRestaurant && (
