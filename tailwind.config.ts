@@ -61,7 +61,19 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+                culinary: {
+                    DEFAULT: 'hsl(var(--culinary))',
+                    foreground: 'hsl(var(--culinary-foreground))',
+                    muted: 'hsl(var(--culinary-muted))',
+                    accent: 'hsl(var(--culinary-accent))',
+                    highlight: 'hsl(var(--culinary-highlight))'
+                },
+                rating: {
+                    empty: 'hsl(var(--rating-empty))',
+                    filled: 'hsl(var(--rating-filled))',
+                    hover: 'hsl(var(--rating-hover))'
+                }
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
