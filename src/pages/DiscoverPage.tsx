@@ -43,12 +43,17 @@ interface RestaurantResult {
   phoneNumber?: string;
   openingHours?: string;
   features: string[];
-  location: {
+  location?: {
     lat: number;
     lng: number;
     city: string;
     country: string;
   };
+  // Fallback properties in case location object is missing
+  city?: string;
+  lat?: number;
+  lng?: number;
+  country?: string;
   images?: string[];
   isOpen?: boolean;
   nextAvailableSlot?: string;
@@ -125,14 +130,14 @@ export function DiscoverPage() {
     const newRestaurant = {
       name: restaurant.name,
       address: restaurant.address,
-      city: restaurant.location.city,
+      city: restaurant.location?.city || restaurant.city || 'Unknown',
       cuisine: restaurant.cuisine,
       priceRange: restaurant.priceRange,
       rating: 0,
       notes: restaurant.description,
       isWishlist: true,
-      latitude: restaurant.location.lat,
-      longitude: restaurant.location.lng,
+      latitude: restaurant.location?.lat || restaurant.lat,
+      longitude: restaurant.location?.lng || restaurant.lng,
       website: restaurant.website,
       phoneNumber: restaurant.phoneNumber,
       photos: [] as File[], // Add required photos property
@@ -372,7 +377,7 @@ function RestaurantImageCard({ restaurant, onAddToWishlist }: { restaurant: Rest
          <span className="text-muted-foreground">•</span>
          <MapPin className="h-4 w-4 text-muted-foreground" />
          <span className="text-sm text-muted-foreground truncate">
-           {restaurant.location.city}
+           {restaurant.location?.city || restaurant.city || 'Unknown location'}
          </span>
        </div>
 
