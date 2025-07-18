@@ -4,7 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { Restaurant } from '@/types/restaurant';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Search, MapPin, Settings } from 'lucide-react';
+import { Search, MapPin, Settings, Satellite, Map } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { StarRating } from '@/components/StarRating';
 import { Label } from '@/components/ui/label';
@@ -15,6 +15,14 @@ interface MapViewProps {
   onRestaurantSelect: (id: string) => void;
 }
 
+type MapStyle = 'streets' | 'satellite' | 'hybrid';
+
+const MAP_STYLES = {
+  streets: 'mapbox://styles/mapbox/streets-v12',
+  satellite: 'mapbox://styles/mapbox/satellite-v9',
+  hybrid: 'mapbox://styles/mapbox/satellite-streets-v12'
+};
+
 export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -24,6 +32,7 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [tokenInput, setTokenInput] = useState('');
   const [showTokenInput, setShowTokenInput] = useState(false);
+  const [mapStyle, setMapStyle] = useState<MapStyle>('streets');
   const { token, saveToken, isLoading } = useMapboxToken();
 
   // Filter restaurants by search term and ensure they have coordinates
@@ -70,7 +79,7 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
     try {
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/streets-v12',
+        style: MAP_STYLES[mapStyle],
         center: [-98.5795, 39.8283], // Center of the US by default
         zoom: 3,
       });
@@ -98,7 +107,25 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
         setMapLoaded(false);
       }
     };
-  }, [token, isLoading]);
+  }, [token, isLoading, mapStyle]);
+
+  // Handle map style changes
+  const handleStyleChange = (newStyle: MapStyle) => {
+    if (!map.current || mapStyle === newStyle) return;
+    
+    setMapStyle(newStyle);
+    map.current.setStyle(MAP_STYLES[newStyle]);
+    
+    // Re-add markers after style loads
+    map.current.once('styledata', () => {
+      // Markers should persist but let's ensure they're visible
+      Object.values(markers.current).forEach(marker => {
+        if (marker.getElement()) {
+          marker.addTo(map.current!);
+        }
+      });
+    });
+  };
 
   // Add/update markers for restaurants
   useEffect(() => {
@@ -211,7 +238,7 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
         </div>
       )}
       
-      {/* Search bar - full width */}
+      {/* Search bar */}
       <div className="absolute left-4 right-4 top-4 z-10">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -221,6 +248,40 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
             placeholder="Search restaurants..."
             className="pl-10"
           />
+        </div>
+      </div>
+
+      {/* Map style toggle */}
+      <div className="absolute left-4 top-20 z-10">
+        <div className="flex rounded-md bg-card shadow-lg border">
+          <Button
+            variant={mapStyle === 'streets' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => handleStyleChange('streets')}
+            className="rounded-r-none border-r"
+            title="Streets View"
+          >
+            <Map className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={mapStyle === 'satellite' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => handleStyleChange('satellite')}
+            className="rounded-none border-r"
+            title="Satellite View"
+          >
+            <Satellite className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={mapStyle === 'hybrid' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => handleStyleChange('hybrid')}
+            className="rounded-l-none"
+            title="Hybrid View"
+          >
+            <Satellite className="h-4 w-4 mr-1" />
+            <Map className="h-3 w-3" />
+          </Button>
         </div>
       </div>
 
