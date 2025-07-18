@@ -9,9 +9,31 @@ interface LazyImageProps {
   onError?: () => void;
 }
 
-// Global cache to remember loaded images
-const imageCache = new Set<string>();
-const errorCache = new Set<string>();
+// Global cache to remember loaded images with localStorage persistence
+const CACHE_KEY = 'lazy-image-cache';
+const ERROR_CACHE_KEY = 'lazy-image-error-cache';
+
+// Load cached images from localStorage on startup
+const loadCacheFromStorage = (key: string): Set<string> => {
+  try {
+    const stored = localStorage.getItem(key);
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  } catch {
+    return new Set();
+  }
+};
+
+// Save cache to localStorage
+const saveCacheToStorage = (key: string, cache: Set<string>) => {
+  try {
+    localStorage.setItem(key, JSON.stringify([...cache]));
+  } catch {
+    // Ignore localStorage errors
+  }
+};
+
+const imageCache = loadCacheFromStorage(CACHE_KEY);
+const errorCache = loadCacheFromStorage(ERROR_CACHE_KEY);
 
 export const LazyImage = React.memo(({ src, alt, className, onLoad, onError }: LazyImageProps) => {
   const [isLoaded, setIsLoaded] = useState(() => imageCache.has(src));
@@ -34,6 +56,9 @@ export const LazyImage = React.memo(({ src, alt, className, onLoad, onError }: L
     imageCache.add(src);
     // Remove from error cache if it was there
     errorCache.delete(src);
+    // Persist to localStorage
+    saveCacheToStorage(CACHE_KEY, imageCache);
+    saveCacheToStorage(ERROR_CACHE_KEY, errorCache);
     onLoad?.();
   }, [src, onLoad]);
 
@@ -42,6 +67,9 @@ export const LazyImage = React.memo(({ src, alt, className, onLoad, onError }: L
     errorCache.add(src);
     // Remove from success cache if it was there
     imageCache.delete(src);
+    // Persist to localStorage
+    saveCacheToStorage(CACHE_KEY, imageCache);
+    saveCacheToStorage(ERROR_CACHE_KEY, errorCache);
     onError?.();
   }, [src, onError]);
 
