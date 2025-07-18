@@ -1,13 +1,13 @@
 import { useState } from 'react';
-import { Moon, Sun, MapPin, Star, Heart, LogOut, LogIn } from 'lucide-react';
+import { Moon, Sun, MapPin, Star, Heart, LogOut, LogIn, Home } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface NavbarProps {
-  activeTab: 'rated' | 'wishlist' | 'map';
-  onTabChange: (tab: 'rated' | 'wishlist' | 'map') => void;
+  activeTab: 'home' | 'rated' | 'wishlist' | 'map';
+  onTabChange: (tab: 'home' | 'rated' | 'wishlist' | 'map') => void;
 }
 
 export function Navbar({ activeTab, onTabChange }: NavbarProps) {
@@ -16,6 +16,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
   const navigate = useNavigate();
 
   const tabs = [
+    { id: 'home' as const, label: 'Home', icon: Home },
     { id: 'rated' as const, label: 'My Ratings', icon: Star },
     { id: 'wishlist' as const, label: 'Wishlist', icon: Heart },
     { id: 'map' as const, label: 'Map View', icon: MapPin },
