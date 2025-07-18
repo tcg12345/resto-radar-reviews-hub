@@ -252,7 +252,7 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
       </div>
 
       {/* Map style toggle */}
-      <div className="absolute left-4 top-20 z-10">
+      <div className="absolute left-4 top-16 z-10">
         <div className="flex rounded-md bg-card shadow-lg border">
           <Button
             variant={mapStyle === 'streets' ? 'default' : 'ghost'}
