@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { PlusCircle, Trash2, Calendar, MapPin, Camera, Images, Monitor, Upload } from 'lucide-react';
+import { PlusCircle, Trash2, Calendar, MapPin, Camera, Images, Monitor, Upload, Search, Loader } from 'lucide-react';
 import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { supabase } from '@/integrations/supabase/client';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import {
   Popover,
@@ -64,6 +65,9 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
   const [customCuisineInput, setCustomCuisineInput] = useState('');
   const [removedPhotoIndexes, setRemovedPhotoIndexes] = useState<number[]>([]);
   const [draggedPhotoIndex, setDraggedPhotoIndex] = useState<number | null>(null);
+  const [isLookingUp, setIsLookingUp] = useState(false);
+  const [lookupName, setLookupName] = useState('');
+  const [lookupCity, setLookupCity] = useState('');
   const [customCuisine, setCustomCuisine] = useState(() => {
     // Initialize with custom cuisine if initial data has a cuisine not in the predefined list
     if (initialData?.cuisine && !cuisineOptions.includes(initialData.cuisine)) {
@@ -469,6 +473,67 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     }
   };
 
+  const handleLookupRestaurant = async () => {
+    if (!lookupName.trim()) {
+      toast.error('Please enter a restaurant name');
+      return;
+    }
+
+    setIsLookingUp(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('restaurant-lookup', {
+        body: {
+          restaurantName: lookupName.trim(),
+          city: lookupCity.trim() || undefined
+        }
+      });
+
+      if (error) {
+        console.error('Lookup error:', error);
+        throw new Error(error.message || 'Failed to lookup restaurant');
+      }
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to lookup restaurant');
+      }
+
+      const restaurantInfo = data.data;
+
+      // Auto-fill form with the lookup results
+      setFormData(prev => ({
+        ...prev,
+        name: restaurantInfo.name || prev.name,
+        address: restaurantInfo.address || prev.address,
+        city: restaurantInfo.city || prev.city,
+        cuisine: restaurantInfo.cuisine || prev.cuisine,
+        priceRange: restaurantInfo.priceRange || prev.priceRange,
+        michelinStars: restaurantInfo.michelinStars || prev.michelinStars,
+        notes: restaurantInfo.description ? 
+          (prev.notes ? `${prev.notes}\n\n${restaurantInfo.description}` : restaurantInfo.description) 
+          : prev.notes
+      }));
+
+      // Show success message with confidence level
+      if (restaurantInfo.confidence > 70) {
+        toast.success(`Restaurant information found! (${restaurantInfo.confidence}% confidence)`);
+      } else if (restaurantInfo.confidence > 40) {
+        toast.warning(`Some information found, but please verify details. (${restaurantInfo.confidence}% confidence)`);
+      } else {
+        toast.error(`Could not find reliable information for this restaurant. (${restaurantInfo.confidence}% confidence)`);
+      }
+
+      // Clear lookup fields
+      setLookupName('');
+      setLookupCity('');
+
+    } catch (error) {
+      console.error('Error looking up restaurant:', error);
+      toast.error(error.message || 'Failed to lookup restaurant information');
+    } finally {
+      setIsLookingUp(false);
+    }
+  };
+
   const handleCustomCuisineSubmit = () => {
     if (customCuisineInput.trim()) {
       setFormData(prev => ({ ...prev, cuisine: customCuisineInput.trim() }));
@@ -532,7 +597,75 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    <form onSubmit={handleSubmit} className="space-y-6">
+      
+      {/* Restaurant Lookup Section */}
+      <div className="p-4 border rounded-lg bg-muted/30 space-y-4">
+        <div className="flex items-center gap-2">
+          <Search className="h-5 w-5 text-primary" />
+          <h3 className="text-lg font-semibold">Auto-Fill Restaurant Information</h3>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Enter a restaurant name to automatically fill in details like cuisine, location, and price range.
+        </p>
+        
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="space-y-2">
+            <Label htmlFor="lookupName">Restaurant Name</Label>
+            <Input
+              id="lookupName"
+              value={lookupName}
+              onChange={(e) => setLookupName(e.target.value)}
+              placeholder="e.g., Le Bernardin"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleLookupRestaurant();
+                }
+              }}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="lookupCity">City (optional)</Label>
+            <Input
+              id="lookupCity"
+              value={lookupCity}
+              onChange={(e) => setLookupCity(e.target.value)}
+              placeholder="e.g., New York"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleLookupRestaurant();
+                }
+              }}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label>&nbsp;</Label>
+            <Button
+              type="button"
+              onClick={handleLookupRestaurant}
+              disabled={!lookupName.trim() || isLookingUp}
+              className="w-full"
+            >
+              {isLookingUp ? (
+                <>
+                  <Loader className="mr-2 h-4 w-4 animate-spin" />
+                  Looking up...
+                </>
+              ) : (
+                <>
+                  <Search className="mr-2 h-4 w-4" />
+                  Look up Restaurant
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
+      
+      <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
