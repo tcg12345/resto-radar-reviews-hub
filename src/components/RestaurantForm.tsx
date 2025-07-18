@@ -475,10 +475,10 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     }
   };
 
-  const generateRestaurantPhotos = async (restaurantName: string, restaurantCuisine: string) => {
+  const generateRestaurantRating = async (restaurantName: string, restaurantCuisine: string) => {
     setIsGeneratingPhotos(true);
     try {
-      const { data, error } = await supabase.functions.invoke('generate-restaurant-photos', {
+      const { data, error } = await supabase.functions.invoke('generate-restaurant-rating', {
         body: {
           restaurantName,
           cuisine: restaurantCuisine
@@ -486,44 +486,28 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       });
 
       if (error) {
-        console.error('Photo generation error:', error);
-        throw new Error(error.message || 'Failed to generate photos');
+        console.error('Rating generation error:', error);
+        throw new Error(error.message || 'Failed to generate rating');
       }
 
       if (!data.success) {
-        throw new Error(data.error || 'Failed to generate photos');
+        throw new Error(data.error || 'Failed to generate rating');
       }
 
-      // Convert base64 images to files and add to form
-      const newFiles: File[] = [];
-      const newPreviews: string[] = [];
+      // Apply the AI-generated rating to the form
+      if (data.rating) {
+        setFormData(prev => ({
+          ...prev,
+          rating: data.rating,
+          notes: prev.notes ? `${prev.notes}\n\nAI Research: ${data.reasoning}` : `AI Research: ${data.reasoning}`
+        }));
 
-      for (const [index, imageData] of data.images.entries()) {
-        // Convert base64 to blob
-        const response = await fetch(imageData.url);
-        const blob = await response.blob();
-        
-        // Create file with descriptive name
-        const filename = `ai-generated-${imageData.type}-${index + 1}.jpg`;
-        const file = new File([blob], filename, { type: 'image/jpeg' });
-        
-        newFiles.push(file);
-        newPreviews.push(imageData.url);
+        toast.success(`Found accurate rating: ${data.rating}/10 for ${restaurantName}!`);
       }
-
-      // Update form data with new photos
-      setFormData(prev => ({
-        ...prev,
-        photos: [...prev.photos, ...newFiles],
-      }));
-
-      setPreviewImages(prev => [...prev, ...newPreviews]);
-
-      toast.success(`Found ${newFiles.length} real photos for ${restaurantName}!`);
 
     } catch (error) {
-      console.error('Error generating photos:', error);
-      toast.error(error.message || 'Failed to generate restaurant photos');
+      console.error('Error generating rating:', error);
+      toast.error(error.message || 'Failed to find restaurant rating');
     } finally {
       setIsGeneratingPhotos(false);
     }
@@ -578,9 +562,9 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
         toast.error(`Could not find reliable information for this restaurant. (${restaurantInfo.confidence}% confidence)`);
       }
 
-      // Generate photos if toggle is enabled
+      // Generate rating if toggle is enabled
       if (autoGeneratePhotos && restaurantInfo.name && restaurantInfo.cuisine) {
-        await generateRestaurantPhotos(restaurantInfo.name, restaurantInfo.cuisine);
+        await generateRestaurantRating(restaurantInfo.name, restaurantInfo.cuisine);
       }
 
       // Clear lookup fields
@@ -727,13 +711,13 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
         
         <div className="flex items-center space-x-2 p-3 bg-muted/50 rounded-lg">
           <Switch
-            id="autoGeneratePhotos"
+            id="autoGenerateRating"
             checked={autoGeneratePhotos}
             onCheckedChange={setAutoGeneratePhotos}
           />
-          <Label htmlFor="autoGeneratePhotos" className="flex items-center gap-2 cursor-pointer">
+          <Label htmlFor="autoGenerateRating" className="flex items-center gap-2 cursor-pointer">
             <Search className="h-4 w-4 text-primary" />
-            Auto-find real photos of restaurant atmosphere and food
+            Auto-find accurate restaurant rating using AI
           </Label>
         </div>
         
@@ -741,7 +725,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
           <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex items-center gap-2">
               <Loader className="h-4 w-4 animate-spin text-blue-600" />
-              <span className="text-sm text-blue-800">Finding real photos...</span>
+              <span className="text-sm text-blue-800">Finding accurate rating...</span>
             </div>
           </div>
         )}
