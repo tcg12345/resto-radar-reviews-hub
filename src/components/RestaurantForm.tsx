@@ -341,7 +341,8 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
 
             <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-md border border-dashed bg-muted/50 text-muted-foreground transition-colors hover:bg-muted">
               <PlusCircle className="mb-1 h-6 w-6" />
-              <span className="text-sm">Add Photo</span>
+              <span className="text-sm font-medium">Add Photos</span>
+              <span className="text-xs opacity-75">Select multiple</span>
               <input
                 type="file"
                 accept="image/*"
