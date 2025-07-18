@@ -14,9 +14,9 @@ export function PriceRange({
   size = 'md' 
 }: PriceRangeProps) {
   const sizeClasses = {
-    sm: 'h-3 w-3',
-    md: 'h-4 w-4',
-    lg: 'h-5 w-5'
+    sm: 'h-4 w-4',
+    md: 'h-5 w-5',
+    lg: 'h-6 w-6'
   };
 
   const displayPrice = priceRange || 0;
@@ -37,10 +37,10 @@ export function PriceRange({
             }`}
           >
             <DollarSign
-              className={`${sizeClasses[size]} transition-colors duration-150 ${
+              className={`${sizeClasses[size]} transition-colors duration-150 stroke-2 ${
                 isFilled
-                  ? 'fill-green-500 text-green-500'
-                  : 'fill-gray-200 text-gray-300 hover:fill-green-300 hover:text-green-400'
+                  ? 'fill-green-500 text-green-600'
+                  : 'fill-gray-200 text-gray-400 hover:fill-green-300 hover:text-green-500'
               }`}
             />
           </button>
