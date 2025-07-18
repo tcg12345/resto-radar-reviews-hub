@@ -274,7 +274,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
 
 
         <div className="space-y-2">
-          <Label>Price Range</Label>
+          <Label>Price Range *</Label>
           <div className="flex items-center gap-2">
             <PriceRange
               priceRange={formData.priceRange}
@@ -310,7 +310,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
         {!formData.isWishlist && (
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Rating</Label>
+              <Label>Rating *</Label>
               <div className="space-y-4">
                 <div className="flex items-center justify-between space-x-2">
                   <Label htmlFor="useWeightedRating" className="text-sm font-medium">
@@ -460,7 +460,14 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit" disabled={!formData.name || !formData.address || !formData.city || !formData.cuisine}>
+        <Button type="submit" disabled={
+          !formData.name || 
+          !formData.address || 
+          !formData.city || 
+          !formData.cuisine || 
+          !formData.priceRange ||
+          (!formData.isWishlist && !formData.rating)
+        }>
           Save Restaurant
         </Button>
       </div>

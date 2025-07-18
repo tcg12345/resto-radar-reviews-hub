@@ -86,9 +86,17 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
             {restaurant.michelinStars && (
               <MichelinStars stars={restaurant.michelinStars} readonly size="sm" />
             )}
-            {restaurant.priceRange && (
-              <PriceRange priceRange={restaurant.priceRange} readonly size="sm" />
-            )}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center text-sm font-medium">
+                {restaurant.priceRange && (
+                  <>
+                    <span className="text-primary">{`${'$'.repeat(restaurant.priceRange)}`}</span>
+                    <span className="mx-1 text-muted-foreground">•</span>
+                  </>
+                )}
+                <span className="text-foreground">{restaurant.cuisine}</span>
+              </div>
+            </div>
           </div>
         </div>
         <CardDescription className="flex items-center text-sm text-muted-foreground">
@@ -99,11 +107,6 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
       
       <CardContent className="pb-2">
         <div className="flex flex-wrap gap-2">
-          <div className="inline-flex items-center rounded-full bg-culinary/10 px-2.5 py-1 text-xs font-medium text-culinary">
-            <Tag className="mr-1 h-3 w-3" />
-            {restaurant.cuisine}
-          </div>
-          
           {restaurant.dateVisited && (
             <div className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
               <Clock className="mr-1 h-3 w-3" />
