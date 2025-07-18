@@ -378,18 +378,36 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragOver(true);
+    
+    // Only set drag over state for file drops, not photo reordering
+    const isPhotoReorder = e.dataTransfer.types.includes('photo/index');
+    if (!isPhotoReorder) {
+      setIsDragOver(true);
+    }
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragOver(false);
+    
+    // Only reset drag over state for file drops
+    const isPhotoReorder = e.dataTransfer.types.includes('photo/index');
+    if (!isPhotoReorder) {
+      setIsDragOver(false);
+    }
   };
 
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Check if this is a photo reorder operation
+    const isPhotoReorder = e.dataTransfer.types.includes('photo/index');
+    if (isPhotoReorder) {
+      // Let photo drop handlers handle this
+      return;
+    }
+    
     setIsDragOver(false);
 
     const files = Array.from(e.dataTransfer.files).filter(file => 
@@ -751,28 +769,50 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
             {previewImages.map((src, index) => (
               <div 
                 key={index} 
-                className={`group relative aspect-square overflow-hidden rounded-md border cursor-move transition-all ${
-                  draggedPhotoIndex === index ? 'opacity-50 scale-95' : 'hover:scale-105'
+                className={`group relative aspect-square overflow-hidden rounded-md border transition-all duration-200 ${
+                  draggedPhotoIndex === index 
+                    ? 'opacity-50 scale-95 cursor-grabbing' 
+                    : 'cursor-grab hover:shadow-lg'
                 }`}
                 draggable
-                onDragStart={(e) => handlePhotoDragStart(e, index)}
-                onDragEnd={handlePhotoDragEnd}
-                onDragOver={handlePhotoDragOver}
-                onDrop={(e) => handlePhotoDrop(e, index)}
+                onDragStart={(e) => {
+                  console.log('Drag start:', index);
+                  handlePhotoDragStart(e, index);
+                }}
+                onDragEnd={(e) => {
+                  console.log('Drag end:', index);
+                  handlePhotoDragEnd(e);
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  e.dataTransfer.dropEffect = 'move';
+                }}
+                onDrop={(e) => {
+                  console.log('Drop on:', index);
+                  handlePhotoDrop(e, index);
+                }}
+                onDragEnter={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
               >
                 <LazyImage
                   src={src}
                   alt={`Preview ${index + 1}`}
-                  className="h-full w-full object-cover pointer-events-none"
+                  className="h-full w-full object-cover pointer-events-none select-none"
                 />
                 <button
                   type="button"
-                  onClick={() => removePhoto(index)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removePhoto(index);
+                  }}
                   className="absolute top-2 right-2 flex items-center justify-center w-8 h-8 bg-red-500/80 hover:bg-red-500 rounded-full opacity-0 transition-opacity group-hover:opacity-100 z-10"
                 >
                   <Trash2 className="h-4 w-4 text-white" />
                 </button>
-                <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                   {index + 1}
                 </div>
               </div>
