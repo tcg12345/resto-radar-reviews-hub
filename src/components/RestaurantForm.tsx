@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PlusCircle, Trash2, Calendar, MapPin, Camera, Images, Monitor } from 'lucide-react';
+import { PlusCircle, Trash2, Calendar, MapPin, Camera, Images, Monitor, Upload } from 'lucide-react';
 import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +25,9 @@ import { MichelinStars } from '@/components/MichelinStars';
 import { format } from 'date-fns';
 import { Restaurant, RestaurantFormData, CategoryRating } from '@/types/restaurant';
 import { Switch } from '@/components/ui/switch';
+import { Progress } from '@/components/ui/progress';
+import { LazyImage } from '@/components/LazyImage';
+import { createThumbnail } from '@/utils/imageUtils';
 
 interface RestaurantFormProps {
   initialData?: Restaurant;
@@ -41,6 +44,9 @@ const cuisineOptions = [
 
 export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlist = false }: RestaurantFormProps) {
   const [isMobile, setIsMobile] = useState(false);
+  const [isProcessingPhotos, setIsProcessingPhotos] = useState(false);
+  const [photoProgress, setPhotoProgress] = useState(0);
+  const [photosToProcess, setPhotosToProcess] = useState(0);
   
   useEffect(() => {
     // Detect if we're on a mobile device
@@ -119,22 +125,45 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     }
   };
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     
     const newFiles = Array.from(e.target.files);
-    setFormData(prev => ({
-      ...prev,
-      photos: [...prev.photos, ...newFiles],
-    }));
+    setIsProcessingPhotos(true);
+    setPhotosToProcess(newFiles.length);
+    setPhotoProgress(0);
     
-    // Create preview URLs for the new files
-    const newPreviews = newFiles.map(file => URL.createObjectURL(file));
-    setPreviewImages(prev => [...prev, ...newPreviews]);
+    try {
+      // Create thumbnails for quick preview
+      const thumbnails = await Promise.all(
+        newFiles.map(async (file, index) => {
+          const thumbnail = await createThumbnail(file);
+          setPhotoProgress(((index + 1) / newFiles.length) * 100);
+          return thumbnail;
+        })
+      );
+      
+      setFormData(prev => ({
+        ...prev,
+        photos: [...prev.photos, ...newFiles],
+      }));
+      
+      setPreviewImages(prev => [...prev, ...thumbnails]);
+    } catch (error) {
+      console.error('Error processing photos:', error);
+    } finally {
+      setIsProcessingPhotos(false);
+      setPhotoProgress(0);
+      setPhotosToProcess(0);
+    }
   };
 
   const addPhotoFromGallery = async () => {
     try {
+      setIsProcessingPhotos(true);
+      setPhotosToProcess(1);
+      setPhotoProgress(0);
+      
       const image = await CapacitorCamera.getPhoto({
         quality: 90,
         allowEditing: false,
@@ -148,20 +177,32 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
         const blob = await response.blob();
         const file = new File([blob], `photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
 
+        // Create thumbnail for quick preview
+        const thumbnail = await createThumbnail(file);
+        setPhotoProgress(100);
+
         setFormData(prev => ({
           ...prev,
           photos: [...prev.photos, file],
         }));
 
-        setPreviewImages(prev => [...prev, image.dataUrl!]);
+        setPreviewImages(prev => [...prev, thumbnail]);
       }
     } catch (error) {
       console.error('Error selecting photo from gallery:', error);
+    } finally {
+      setIsProcessingPhotos(false);
+      setPhotoProgress(0);
+      setPhotosToProcess(0);
     }
   };
 
   const takePhoto = async () => {
     try {
+      setIsProcessingPhotos(true);
+      setPhotosToProcess(1);
+      setPhotoProgress(0);
+      
       const image = await CapacitorCamera.getPhoto({
         quality: 90,
         allowEditing: false,
@@ -175,15 +216,23 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
         const blob = await response.blob();
         const file = new File([blob], `camera-${Date.now()}.jpg`, { type: 'image/jpeg' });
 
+        // Create thumbnail for quick preview
+        const thumbnail = await createThumbnail(file);
+        setPhotoProgress(100);
+
         setFormData(prev => ({
           ...prev,
           photos: [...prev.photos, file],
         }));
 
-        setPreviewImages(prev => [...prev, image.dataUrl!]);
+        setPreviewImages(prev => [...prev, thumbnail]);
       }
     } catch (error) {
       console.error('Error taking photo:', error);
+    } finally {
+      setIsProcessingPhotos(false);
+      setPhotoProgress(0);
+      setPhotosToProcess(0);
     }
   };
 
@@ -390,10 +439,21 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
 
         <div className="space-y-2">
           <Label>Photos</Label>
+          
+          {isProcessingPhotos && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Upload className="h-4 w-4 animate-pulse" />
+                Processing {photosToProcess} photo{photosToProcess > 1 ? 's' : ''}...
+              </div>
+              <Progress value={photoProgress} className="w-full" />
+            </div>
+          )}
+          
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
             {previewImages.map((src, index) => (
               <div key={index} className="group relative aspect-square overflow-hidden rounded-md border">
-                <img
+                <LazyImage
                   src={src}
                   alt={`Preview ${index + 1}`}
                   className="h-full w-full object-cover"
@@ -466,7 +526,8 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
           !formData.city || 
           !formData.cuisine || 
           !formData.priceRange ||
-          (!formData.isWishlist && !formData.rating)
+          (!formData.isWishlist && !formData.rating) ||
+          isProcessingPhotos
         }>
           Save Restaurant
         </Button>

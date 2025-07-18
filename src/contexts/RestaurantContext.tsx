@@ -110,21 +110,19 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
     };
   }, []);
 
-  // Convert File objects to data URLs
-  const convertPhotosToDataUrls = useCallback(async (photos: File[]): Promise<string[]> => {
-    const dataUrls: string[] = [];
+  // Convert File objects to compressed data URLs
+  const convertPhotosToDataUrls = useCallback(async (
+    photos: File[], 
+    onProgress?: (processed: number, total: number) => void
+  ): Promise<string[]> => {
+    const { processImagesInParallel } = await import('@/utils/imageUtils');
     
-    for (const photo of photos) {
-      const dataUrl = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.readAsDataURL(photo);
-      });
-      
-      dataUrls.push(dataUrl);
-    }
-    
-    return dataUrls;
+    return processImagesInParallel(photos, {
+      maxWidth: 1200,
+      maxHeight: 1200,
+      quality: 0.8,
+      format: 'jpeg'
+    }, onProgress);
   }, []);
 
   // Geocode the address using the edge function
@@ -164,8 +162,10 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         throw new Error('Authentication required to add restaurants');
       }
       
-      // Convert photos to data URLs
-      const photoDataUrls = await convertPhotosToDataUrls(data.photos);
+      // Convert photos to data URLs with progress tracking
+      const photoDataUrls = await convertPhotosToDataUrls(data.photos, (processed, total) => {
+        console.log(`Processing photos: ${processed}/${total}`);
+      });
       
       // Geocode the address using the edge function
       let coordinates = null;
@@ -241,8 +241,10 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         throw new Error('Restaurant not found');
       }
       
-      // Convert new photos to data URLs
-      const newPhotoDataUrls = await convertPhotosToDataUrls(data.photos);
+      // Convert new photos to data URLs with progress tracking
+      const newPhotoDataUrls = await convertPhotosToDataUrls(data.photos, (processed, total) => {
+        console.log(`Processing updated photos: ${processed}/${total}`);
+      });
       
       // Combine existing and new photos
       const combinedPhotos = [...existingRestaurant.photos, ...newPhotoDataUrls];
