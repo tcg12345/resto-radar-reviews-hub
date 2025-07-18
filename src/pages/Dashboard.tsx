@@ -4,6 +4,7 @@ import { RatedRestaurantsPage } from '@/pages/RatedRestaurantsPage';
 import { MapPage } from '@/pages/MapPage';
 import { WishlistPage } from '@/pages/WishlistPage';
 import HomePage from '@/pages/HomePage';
+import { AIChatbot } from '@/components/AIChatbot';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 
 export default function Dashboard() {
@@ -61,6 +62,8 @@ export default function Dashboard() {
       <main className="flex-1">
         {renderContent()}
       </main>
+      
+      <AIChatbot />
     </div>
   );
 }
