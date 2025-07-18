@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PlusCircle, Trash2, Calendar, MapPin, Camera, Images, Monitor, Upload, Search, Loader } from 'lucide-react';
+import { PlusCircle, Trash2, Calendar, MapPin, Camera, Images, Monitor, Upload, Search, Loader, Sparkles } from 'lucide-react';
 import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -68,6 +68,8 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [lookupName, setLookupName] = useState('');
   const [lookupCity, setLookupCity] = useState('');
+  const [autoGeneratePhotos, setAutoGeneratePhotos] = useState(false);
+  const [isGeneratingPhotos, setIsGeneratingPhotos] = useState(false);
   const [customCuisine, setCustomCuisine] = useState(() => {
     // Initialize with custom cuisine if initial data has a cuisine not in the predefined list
     if (initialData?.cuisine && !cuisineOptions.includes(initialData.cuisine)) {
@@ -473,6 +475,60 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     }
   };
 
+  const generateRestaurantPhotos = async (restaurantName: string, restaurantCuisine: string) => {
+    setIsGeneratingPhotos(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-restaurant-photos', {
+        body: {
+          restaurantName,
+          cuisine: restaurantCuisine
+        }
+      });
+
+      if (error) {
+        console.error('Photo generation error:', error);
+        throw new Error(error.message || 'Failed to generate photos');
+      }
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to generate photos');
+      }
+
+      // Convert base64 images to files and add to form
+      const newFiles: File[] = [];
+      const newPreviews: string[] = [];
+
+      for (const [index, imageData] of data.images.entries()) {
+        // Convert base64 to blob
+        const response = await fetch(imageData.url);
+        const blob = await response.blob();
+        
+        // Create file with descriptive name
+        const filename = `ai-generated-${imageData.type}-${index + 1}.jpg`;
+        const file = new File([blob], filename, { type: 'image/jpeg' });
+        
+        newFiles.push(file);
+        newPreviews.push(imageData.url);
+      }
+
+      // Update form data with new photos
+      setFormData(prev => ({
+        ...prev,
+        photos: [...prev.photos, ...newFiles],
+      }));
+
+      setPreviewImages(prev => [...prev, ...newPreviews]);
+
+      toast.success(`Generated ${newFiles.length} AI photos for ${restaurantName}!`);
+
+    } catch (error) {
+      console.error('Error generating photos:', error);
+      toast.error(error.message || 'Failed to generate restaurant photos');
+    } finally {
+      setIsGeneratingPhotos(false);
+    }
+  };
+
   const handleLookupRestaurant = async () => {
     if (!lookupName.trim()) {
       toast.error('Please enter a restaurant name');
@@ -520,6 +576,11 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
         toast.warning(`Some information found, but please verify details. (${restaurantInfo.confidence}% confidence)`);
       } else {
         toast.error(`Could not find reliable information for this restaurant. (${restaurantInfo.confidence}% confidence)`);
+      }
+
+      // Generate photos if toggle is enabled
+      if (autoGeneratePhotos && restaurantInfo.name && restaurantInfo.cuisine) {
+        await generateRestaurantPhotos(restaurantInfo.name, restaurantInfo.cuisine);
       }
 
       // Clear lookup fields
@@ -646,7 +707,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
             <Button
               type="button"
               onClick={handleLookupRestaurant}
-              disabled={!lookupName.trim() || isLookingUp}
+              disabled={!lookupName.trim() || isLookingUp || isGeneratingPhotos}
               className="w-full"
             >
               {isLookingUp ? (
@@ -663,6 +724,27 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
             </Button>
           </div>
         </div>
+        
+        <div className="flex items-center space-x-2 p-3 bg-muted/50 rounded-lg">
+          <Switch
+            id="autoGeneratePhotos"
+            checked={autoGeneratePhotos}
+            onCheckedChange={setAutoGeneratePhotos}
+          />
+          <Label htmlFor="autoGeneratePhotos" className="flex items-center gap-2 cursor-pointer">
+            <Sparkles className="h-4 w-4 text-primary" />
+            Auto-generate AI photos of restaurant atmosphere and food
+          </Label>
+        </div>
+        
+        {isGeneratingPhotos && (
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Loader className="h-4 w-4 animate-spin text-blue-600" />
+              <span className="text-sm text-blue-800">Generating AI photos...</span>
+            </div>
+          </div>
+        )}
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-6">
