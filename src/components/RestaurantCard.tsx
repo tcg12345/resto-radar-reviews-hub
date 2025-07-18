@@ -83,11 +83,11 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
             {restaurant.rating !== undefined && (
               <StarRating rating={restaurant.rating} readonly size="sm" />
             )}
-            {restaurant.priceRange && (
-              <PriceRange priceRange={restaurant.priceRange} readonly size="sm" />
-            )}
             {restaurant.michelinStars && (
               <MichelinStars stars={restaurant.michelinStars} readonly size="sm" />
+            )}
+            {restaurant.priceRange && (
+              <PriceRange priceRange={restaurant.priceRange} readonly size="sm" />
             )}
           </div>
         </div>
