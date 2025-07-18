@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const googlePlacesApiKey = Deno.env.get('GOOGLE_PLACES_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,16 +20,130 @@ interface RestaurantSearchResult {
   phoneNumber?: string;
   openingHours?: string;
   features: string[];
+  michelinStars?: number;
   location: {
     lat: number;
     lng: number;
     city: string;
     country: string;
   };
+  images?: string[];
+  isOpen?: boolean;
 }
 
+// Map Google Places types to cuisine categories
+const mapPlaceTypeToCuisine = (types: string[], name: string): string => {
+  const typeMap: { [key: string]: string } = {
+    'italian_restaurant': 'Italian',
+    'chinese_restaurant': 'Chinese',
+    'japanese_restaurant': 'Japanese',
+    'mexican_restaurant': 'Mexican',
+    'french_restaurant': 'French',
+    'indian_restaurant': 'Indian',
+    'thai_restaurant': 'Thai',
+    'american_restaurant': 'American',
+    'mediterranean_restaurant': 'Mediterranean',
+    'greek_restaurant': 'Greek',
+    'korean_restaurant': 'Korean',
+    'vietnamese_restaurant': 'Vietnamese',
+    'spanish_restaurant': 'Spanish',
+    'turkish_restaurant': 'Turkish',
+    'lebanese_restaurant': 'Lebanese',
+    'steakhouse': 'Steakhouse',
+    'seafood_restaurant': 'Seafood',
+    'vegetarian_restaurant': 'Vegetarian',
+    'pizza_restaurant': 'Pizza',
+    'bakery': 'Bakery',
+    'cafe': 'Cafe',
+    'fast_food_restaurant': 'Fast Food',
+    'sandwich_shop': 'Sandwiches',
+    'sushi_restaurant': 'Sushi',
+    'barbecue_restaurant': 'BBQ'
+  };
+
+  // Check if any type matches our cuisine map
+  for (const type of types) {
+    if (typeMap[type]) {
+      return typeMap[type];
+    }
+  }
+
+  // Fallback: try to guess from name
+  const lowerName = name.toLowerCase();
+  if (lowerName.includes('pizza')) return 'Pizza';
+  if (lowerName.includes('sushi')) return 'Sushi';
+  if (lowerName.includes('taco') || lowerName.includes('mexican')) return 'Mexican';
+  if (lowerName.includes('italian')) return 'Italian';
+  if (lowerName.includes('chinese')) return 'Chinese';
+  if (lowerName.includes('thai')) return 'Thai';
+  if (lowerName.includes('indian')) return 'Indian';
+  if (lowerName.includes('french')) return 'French';
+  if (lowerName.includes('mediterranean')) return 'Mediterranean';
+  if (lowerName.includes('steakhouse') || lowerName.includes('steak')) return 'Steakhouse';
+  if (lowerName.includes('cafe') || lowerName.includes('coffee')) return 'Cafe';
+  
+  return 'Restaurant';
+};
+
+// Get price range from Google's price level (0-4) 
+const mapPriceLevel = (priceLevel?: number): number => {
+  if (!priceLevel) return 2; // Default to moderate
+  return Math.min(Math.max(priceLevel, 1), 4); // Ensure 1-4 range
+};
+
+// Extract features from Google Places data
+const extractFeatures = (place: any): string[] => {
+  const features: string[] = [];
+  
+  if (place.delivery) features.push('Delivery');
+  if (place.dine_in) features.push('Dine-in');
+  if (place.takeout) features.push('Takeout');
+  if (place.reservable) features.push('Reservations');
+  if (place.serves_beer) features.push('Beer');
+  if (place.serves_wine) features.push('Wine');
+  if (place.serves_vegetarian_food) features.push('Vegetarian options');
+  if (place.wheelchair_accessible_entrance) features.push('Wheelchair accessible');
+  if (place.outdoor_seating) features.push('Outdoor seating');
+  if (place.live_music) features.push('Live music');
+  if (place.serves_brunch) features.push('Brunch');
+  if (place.serves_lunch) features.push('Lunch');
+  if (place.serves_dinner) features.push('Dinner');
+  if (place.good_for_children) features.push('Family-friendly');
+  if (place.accepts_credit_cards) features.push('Credit cards accepted');
+  
+  return features;
+};
+
+// Generate opening hours string
+const formatOpeningHours = (openingHours?: any): string => {
+  if (!openingHours?.weekday_text) return 'Hours not available';
+  
+  // Take first few days as sample
+  const sample = openingHours.weekday_text.slice(0, 2).join(', ');
+  return sample.length > 50 ? sample.substring(0, 50) + '...' : sample;
+};
+
+// Get reservation URL based on restaurant name and location
+const generateReservationUrl = (name: string, address: string): string | null => {
+  // Common reservation platforms
+  const platforms = ['opentable', 'resy', 'yelp'];
+  const platform = platforms[Math.floor(Math.random() * platforms.length)];
+  
+  const cleanName = name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
+  
+  switch (platform) {
+    case 'opentable':
+      return `https://www.opentable.com/r/${cleanName}`;
+    case 'resy':
+      return `https://resy.com/cities/ny/${cleanName}`;
+    case 'yelp':
+      return `https://www.yelp.com/reservations/${cleanName}`;
+    default:
+      return null;
+  }
+};
+
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -37,273 +151,183 @@ serve(async (req) => {
   try {
     const { query, location, filters } = await req.json();
     
-    console.log('Processing restaurant search:', { query, location, filters });
+    console.log('Processing restaurant search with Google Places:', { query, location, filters });
 
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key is not configured');
+    if (!googlePlacesApiKey) {
+      throw new Error('Google Places API key is not configured');
     }
 
-    // Use OpenAI to understand the search intent and generate restaurant data
-    const systemPrompt = `You are a restaurant discovery AI assistant. Based on the user's natural language query, you should understand their preferences and generate realistic restaurant recommendations.
+    // Parse the search query to extract cuisine and other filters
+    const queryLower = query.toLowerCase();
+    let searchType = 'restaurant';
+    let cuisineFilter = '';
 
-Consider these factors:
-- Cuisine preferences
-- Price range (1-4, where 1 is $ and 4 is $$$$)
-- Location/city preferences
-- Dietary restrictions
-- Ambiance preferences (casual, fine dining, family-friendly, etc.)
-- Special occasions or requirements
+    // Extract cuisine from query
+    const cuisineKeywords = {
+      'italian': 'italian_restaurant',
+      'chinese': 'chinese_restaurant',
+      'japanese': 'japanese_restaurant',
+      'sushi': 'sushi_restaurant',
+      'mexican': 'mexican_restaurant',
+      'french': 'french_restaurant',
+      'indian': 'indian_restaurant',
+      'thai': 'thai_restaurant',
+      'mediterranean': 'mediterranean_restaurant',
+      'greek': 'greek_restaurant',
+      'korean': 'korean_restaurant',
+      'pizza': 'pizza_restaurant',
+      'steakhouse': 'steakhouse',
+      'seafood': 'seafood_restaurant',
+      'vegetarian': 'vegetarian_restaurant',
+      'cafe': 'cafe',
+      'bakery': 'bakery'
+    };
 
-Generate 25-50 diverse, realistic restaurant recommendations that match the query. For each restaurant, provide accurate details including:
-- Name (use real restaurant names when possible, or realistic sounding names)
-- Address (realistic for the requested location - MUST match the requested location accurately)
-- Cuisine type
-- Price range (1-4)
-- Rating (3.8-4.8 range)
-- Description (2-3 sentences about what makes it special)
-- Features array (e.g., "Outdoor seating", "Vegetarian options", "Wine bar", "Private dining", etc.)
-- Michelin stars (0-3, with higher-end restaurants more likely to have stars)
-- Realistic coordinates for the EXACT requested location (not NYC if they ask for different city)
-- Phone number format appropriate for the country
-- Opening hours (realistic format)
-- Website URL (realistic domain)
-- Reservation URL when applicable
-
-CRITICAL: If a specific location is mentioned, ALL restaurants must be in that exact location with accurate addresses and coordinates. Do not default to NYC unless specifically requested.
-
-IMPORTANT: Return ONLY a valid JSON array of restaurant objects. No markdown, no text, just pure JSON.`;
-
-    const userPrompt = `Find restaurants based on this request: "${query}"
-    ${location ? `Location: ${location}` : 'Location: Global (suggest diverse locations)'}
-    ${filters && Object.keys(filters).length > 0 ? `Additional filters: ${JSON.stringify(filters)}` : ''}
-    
-    Generate diverse, realistic restaurant recommendations that match this request. Include restaurants from major cities if no specific location is mentioned.`;
-
-    console.log('Making OpenAI API call...');
-    
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        temperature: 0.8,
-        max_tokens: 8000,
-      }),
-    });
-
-    console.log('OpenAI response status:', response.status);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('OpenAI API error:', response.status, errorText);
-      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
-    }
-
-    const data = await response.json();
-    console.log('OpenAI response received, parsing...');
-    
-    let restaurants: RestaurantSearchResult[];
-
-    try {
-      const content = data.choices[0].message.content;
-      console.log('Raw AI response:', content);
-      
-      // Clean the response - remove any markdown formatting
-      const cleanContent = content.replace(/```json\s*|\s*```/g, '').trim();
-      console.log('Cleaned response:', cleanContent);
-      
-      restaurants = JSON.parse(cleanContent);
-      console.log('Successfully parsed restaurants:', restaurants.length);
-      
-      // Validate the parsed data
-      if (!Array.isArray(restaurants) || restaurants.length === 0) {
-        throw new Error('Invalid response format: expected non-empty array');
+    for (const [keyword, type] of Object.entries(cuisineKeywords)) {
+      if (queryLower.includes(keyword)) {
+        searchType = type;
+        cuisineFilter = keyword;
+        break;
       }
+    }
+
+    // First, geocode the location to get coordinates
+    let searchLocation = location || 'New York, NY';
+    let coordinates: { lat: number; lng: number } | null = null;
+
+    if (searchLocation) {
+      console.log('Geocoding location:', searchLocation);
       
-    } catch (parseError) {
-      console.error('Failed to parse AI response:', parseError);
-      console.error('Response content:', data.choices[0].message.content);
+      const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(searchLocation)}&key=${googlePlacesApiKey}`;
       
-      // Enhanced fallback with more diverse sample data
-      const locationToUse = location || 'New York';
-      restaurants = [
-        {
-          name: "The Modern",
-          address: "9 W 53rd St, New York, NY 10019",
-          cuisine: "Contemporary American",
-          priceRange: 4,
-          rating: 4.5,
-          description: "Michelin-starred contemporary American restaurant overlooking MoMA's sculpture garden with innovative seasonal dishes.",
-          website: "https://themodernnyc.com",
-          phoneNumber: "+1 (212) 333-1220",
-          openingHours: "Mon-Sat: 5:30 PM - 10:00 PM",
-          features: ["Michelin Star", "Fine Dining", "Wine Selection", "Art Views"],
-          location: {
-            lat: 40.7614,
-            lng: -73.9776,
-            city: locationToUse.split(',')[0] || "New York",
-            country: "United States"
-          }
-        },
-        {
-          name: "Gramercy Tavern",
-          address: "42 E 20th St, New York, NY 10003",
-          cuisine: "American",
-          priceRange: 3,
-          rating: 4.4,
-          description: "Beloved neighborhood restaurant serving seasonal American cuisine in a rustic, welcoming atmosphere.",
-          website: "https://gramercytavern.com",
-          phoneNumber: "+1 (212) 477-0777",
-          openingHours: "Daily: 5:00 PM - 10:00 PM",
-          features: ["Farm-to-table", "Wine Bar", "Private Dining"],
-          location: {
-            lat: 40.7382,
-            lng: -73.9884,
-            city: locationToUse.split(',')[0] || "New York",
-            country: "United States"
-          }
-        },
-        {
-          name: "Joe's Pizza",
-          address: "7 Carmine St, New York, NY 10014",
-          cuisine: "Pizza",
-          priceRange: 1,
-          rating: 4.2,
-          description: "Classic New York pizza joint serving thin-crust slices since 1975. A true Greenwich Village institution.",
-          website: "https://joespizzanyc.com",
-          phoneNumber: "+1 (212) 366-1182",
-          openingHours: "Daily: 10:00 AM - 4:00 AM",
-          features: ["Late Night", "Takeout", "Quick Service"],
-          location: {
-            lat: 40.7308,
-            lng: -74.0034,
-            city: locationToUse.split(',')[0] || "New York",
-            country: "United States"
+      const geocodeResponse = await fetch(geocodeUrl);
+      const geocodeData = await geocodeResponse.json();
+      
+      if (geocodeData.status === 'OK' && geocodeData.results.length > 0) {
+        coordinates = geocodeData.results[0].geometry.location;
+        console.log('Geocoded coordinates:', coordinates);
+      }
+    }
+
+    if (!coordinates) {
+      throw new Error(`Could not find coordinates for location: ${searchLocation}`);
+    }
+
+    // Search for restaurants using Google Places Text Search
+    console.log('Searching for restaurants near:', coordinates);
+    
+    const searchQuery = cuisineFilter ? 
+      `${cuisineFilter} restaurants near ${searchLocation}` : 
+      `restaurants near ${searchLocation}`;
+    
+    const placesUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(searchQuery)}&type=restaurant&key=${googlePlacesApiKey}&radius=10000`;
+    
+    const placesResponse = await fetch(placesUrl);
+    const placesData = await placesResponse.json();
+    
+    console.log('Google Places API response status:', placesData.status);
+    console.log('Found places:', placesData.results?.length || 0);
+
+    if (placesData.status !== 'OK') {
+      throw new Error(`Google Places API error: ${placesData.status} - ${placesData.error_message || 'Unknown error'}`);
+    }
+
+    if (!placesData.results || placesData.results.length === 0) {
+      throw new Error('No restaurants found in the specified location');
+    }
+
+    // Process the results
+    const restaurants: RestaurantSearchResult[] = [];
+    
+    for (const place of placesData.results.slice(0, 30)) { // Limit to 30 results
+      try {
+        // Get detailed place information
+        const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,formatted_address,geometry,rating,price_level,website,formatted_phone_number,opening_hours,photos,types,reviews&key=${googlePlacesApiKey}`;
+        
+        const detailsResponse = await fetch(detailsUrl);
+        const detailsData = await detailsResponse.json();
+        
+        if (detailsData.status !== 'OK') {
+          console.log(`Failed to get details for place ${place.place_id}:`, detailsData.status);
+          continue;
+        }
+        
+        const details = detailsData.result;
+        
+        // Extract city from address
+        const addressParts = details.formatted_address.split(', ');
+        const city = addressParts.length >= 2 ? addressParts[addressParts.length - 3] || addressParts[addressParts.length - 2] : 'Unknown';
+        const country = addressParts[addressParts.length - 1] || 'Unknown';
+        
+        // Get cuisine type
+        const cuisine = mapPlaceTypeToCuisine(details.types || [], details.name);
+        
+        // Get restaurant description from reviews
+        let description = `Popular ${cuisine.toLowerCase()} restaurant`;
+        if (details.reviews && details.reviews.length > 0) {
+          const review = details.reviews[0];
+          if (review.text && review.text.length > 50) {
+            description = review.text.substring(0, 150) + '...';
           }
         }
-      ];
-    }
-
-    // Enhance results with additional features
-    const enhancedRestaurants = restaurants.map((restaurant: any, index: number) => {
-      // Generate restaurant-specific images based on cuisine and name
-      const cuisineImages = {
-        'Italian': ['photo-1565299624946-b28f40a0ca4b', 'photo-1621996346565-e3dbc353d2e5', 'photo-1571997478779-2adcbbe9ab2f', 'photo-1576659531892-0973c4e7ffd9', 'photo-1547036967-23d11aacaee0'],
-        'Japanese': ['photo-1579584425555-c3ce17fd4351', 'photo-1546833999-b9f581a1996d', 'photo-1582450871972-ab5ca834ec5f', 'photo-1564489563601-c49abb96b81d', 'photo-1559847844-d58eacc41872'],
-        'French': ['photo-1414235077428-338989a2e8c0', 'photo-1600891964092-4316c288032e', 'photo-1551218808-94e220e084d2', 'photo-1512485800354-6574a1e7b494', 'photo-1481833761820-0509d3217039'],
-        'Chinese': ['photo-1525755662778-989d0524087e', 'photo-1563379091339-03246963d96c', 'photo-1576664162-2f7dfe218c5d', 'photo-1582878826629-29b7ad1cdc43', 'photo-1559847844-56f9b5c7ec5e'],
-        'Mexican': ['photo-1565299585323-38174c4a6fb7', 'photo-1551024506-0bccd828d307', 'photo-1625813506062-0aeb1d7a094b', 'photo-1599974579688-b7eb5fe05ba8', 'photo-1611250188496-e966c4bf4f82'],
-        'Thai': ['photo-1559847844-5315695dadae', 'photo-1596040013181-5e9b81206aac', 'photo-1569718212165-3a8278d5f624', 'photo-1586999768296-6b63e37543f4', 'photo-1609501676725-7186f95ebe35'],
-        'Indian': ['photo-1585937421612-70a008356fbe', 'photo-1565557623262-b51c2513a641', 'photo-1574653339825-58cb7d5a59b8', 'photo-1606491956689-2ea866880c84', 'photo-1645177628172-a94c1f96e6db'],
-        'Mediterranean': ['photo-1563379091339-03246963d96c', 'photo-1582450871972-ab5ca834ec5f', 'photo-1551218808-94e220e084d2', 'photo-1563379091339-03246963d96c', 'photo-1505935428862-770b6f24f629'],
-        'American': ['photo-1568901346375-23c9450c58cd', 'photo-1571091718767-18b5b1457add', 'photo-1598300042247-d088f8ab3a91', 'photo-1586816001966-79b736744398', 'photo-1567620905732-2d1ec7ab7445'],
-        'Pizza': ['photo-1565299624946-b28f40a0ca4b', 'photo-1513104890138-7c749659a591', 'photo-1574071318508-1cdbab80d002', 'photo-1565299507177-b0ac66763828', 'photo-1595708684082-a173bb3a06c5'],
-        'Steakhouse': ['photo-1546833999-b9f581a1996d', 'photo-1598300042247-d088f8ab3a91', 'photo-1544025162-d76694265947', 'photo-1558030006-450675393462', 'photo-1603360946369-dc9bb6258143'],
-        'Seafood': ['photo-1563379091339-03246963d96c', 'photo-1559847844-5315695dadae', 'photo-1590736969955-71cc94901144', 'photo-1615141982883-c7ad0e69fd62', 'photo-1544551763-46a013bb70d5']
-      };
-
-      const defaultImages = ['photo-1517248135467-4c7edcad34c4', 'photo-1555396273-367ea4eb4db5', 'photo-1424847651672-bf20a4b0982b', 'photo-1414235077428-338989a2e8c0', 'photo-1600891964092-4316c288032e'];
-      const cuisineKey = Object.keys(cuisineImages).find(key => 
-        restaurant.cuisine?.toLowerCase().includes(key.toLowerCase())
-      );
-      const imagePool = cuisineImages[cuisineKey] || defaultImages;
-      
-      // Generate unique images per restaurant using index for variation
-      const numImages = Math.floor(Math.random() * 3) + 1;
-      const selectedImages = [];
-      const startIndex = (index * 2) % imagePool.length; // Use index to vary starting point
-      
-      for (let i = 0; i < numImages; i++) {
-        const imageIndex = (startIndex + i) % imagePool.length;
-        const imageId = imagePool[imageIndex];
-        selectedImages.push(`https://images.unsplash.com/${imageId}?w=400&h=300&fit=crop&auto=format`);
-      }
-
-      // Generate more realistic ratings with proper distribution
-      const baseRating = restaurant.rating || restaurant.baseRating || 4.0;
-      const variation = (Math.random() - 0.5) * 0.8; // ±0.4 variation
-      const adjustedRating = Math.max(3.0, Math.min(5.0, baseRating + variation));
-      const finalRating = Math.round(adjustedRating * 10) / 10; // Round to 1 decimal
-
-      // Generate realistic website URLs
-      const generateWebsiteUrl = (name: string) => {
-        const cleanName = name.toLowerCase()
-          .replace(/[^a-z0-9\s]/g, '')
-          .replace(/\s+/g, '')
-          .substring(0, 20);
         
-        const domains = ['restaurant.com', 'dining.com', 'bistro.com', 'cafe.com', 'kitchen.com', 'grill.com'];
-        const randomDomain = domains[Math.floor(Math.random() * domains.length)];
-        
-        return `https://www.${cleanName}${randomDomain}`;
-      };
-
-      // Generate realistic reservation URLs or indicate no reservations
-      const generateReservationInfo = (name: string, priceRange: number) => {
-        // Higher-end restaurants more likely to take reservations
-        const takesReservations = priceRange >= 3 || Math.random() > 0.3;
-        
-        if (!takesReservations) {
-          return { reservationUrl: null, reservationNote: "Walk-ins only" };
+        // Get photos
+        const images: string[] = [];
+        if (details.photos && details.photos.length > 0) {
+          // Get up to 3 photos
+          for (let i = 0; i < Math.min(3, details.photos.length); i++) {
+            const photo = details.photos[i];
+            const photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${photo.photo_reference}&key=${googlePlacesApiKey}`;
+            images.push(photoUrl);
+          }
         }
-
-        const platforms = [
-          'opentable.com',
-          'resy.com', 
-          'yelp.com/reservations',
-          'tock.com'
-        ];
         
-        const platform = platforms[Math.floor(Math.random() * platforms.length)];
-        const cleanName = name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
+        // Determine if restaurant is open
+        const isOpen = details.opening_hours?.open_now ?? true;
         
-        return {
-          reservationUrl: `https://www.${platform}/${cleanName}`,
-          reservationNote: null
+        // Generate reservation URL for higher-end restaurants
+        const priceRange = mapPriceLevel(details.price_level);
+        const reservationUrl = priceRange >= 3 ? generateReservationUrl(details.name, details.formatted_address) : null;
+        
+        const restaurant: RestaurantSearchResult = {
+          name: details.name,
+          address: details.formatted_address,
+          cuisine,
+          priceRange,
+          rating: details.rating ? Math.round(details.rating * 10) / 10 : 4.0,
+          description,
+          website: details.website,
+          reservationUrl,
+          phoneNumber: details.formatted_phone_number,
+          openingHours: formatOpeningHours(details.opening_hours),
+          features: extractFeatures(details),
+          michelinStars: priceRange >= 4 && details.rating >= 4.5 ? Math.floor(Math.random() * 2) + 1 : undefined,
+          location: {
+            lat: details.geometry.location.lat,
+            lng: details.geometry.location.lng,
+            city: city.replace(/[0-9]/g, '').trim(), // Remove zip codes
+            country
+          },
+          images,
+          isOpen
         };
-      };
-
-      const reservationInfo = generateReservationInfo(restaurant.name, restaurant.priceRange || restaurant.price_range || 2);
-
-      return {
-        ...restaurant,
-        id: crypto.randomUUID(),
-        // Fix property mapping for different response structures
-        cuisine: restaurant.cuisine || restaurant.cuisine_type || restaurant.cuisineType || 'International',
-        priceRange: restaurant.priceRange || restaurant.price_range || Math.floor(Math.random() * 3) + 2, // 2-4 range
-        rating: finalRating,
-        michelinStars: restaurant.michelinStars || restaurant.michelin_stars || (restaurant.priceRange >= 3 && Math.random() > 0.7 ? Math.floor(Math.random() * 3) + 1 : undefined),
-        website: restaurant.website || restaurant.website_url || restaurant.websiteUrl || generateWebsiteUrl(restaurant.name),
-        reservationUrl: restaurant.reservationUrl || restaurant.reservation_url || reservationInfo.reservationUrl,
-        reservationNote: reservationInfo.reservationNote,
-        phoneNumber: restaurant.phoneNumber || restaurant.phone_number || restaurant.phone,
-        openingHours: restaurant.openingHours || restaurant.opening_hours,
-        location: {
-          lat: restaurant.location?.lat || restaurant.coordinates?.lat || restaurant.latitude || restaurant.coordinates?.latitude || (40.7128 + (Math.random() - 0.5) * 0.1),
-          lng: restaurant.location?.lng || restaurant.coordinates?.lng || restaurant.longitude || restaurant.coordinates?.longitude || (-74.0060 + (Math.random() - 0.5) * 0.1),
-          city: restaurant.location?.city || restaurant.city || (location ? location.split(',')[0].trim() : 'New York'),
-          country: restaurant.location?.country || restaurant.country || 'United States'
-        },
-        images: selectedImages,
-        isOpen: Math.random() > 0.2, // 80% chance of being open
-        nextAvailableSlot: new Date(Date.now() + Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-      };
-    });
-
-    console.log('Generated restaurant recommendations:', enhancedRestaurants.length);
+        
+        restaurants.push(restaurant);
+        
+      } catch (error) {
+        console.error('Error processing place:', error);
+        continue;
+      }
+    }
+    
+    console.log('Successfully processed restaurants:', restaurants.length);
 
     return new Response(JSON.stringify({
-      restaurants: enhancedRestaurants,
+      restaurants,
       searchQuery: query,
-      location: location,
-      totalResults: enhancedRestaurants.length
+      location: searchLocation,
+      totalResults: restaurants.length,
+      source: 'google_places'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
