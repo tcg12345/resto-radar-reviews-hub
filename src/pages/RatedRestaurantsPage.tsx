@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
+import { Slider } from '@/components/ui/slider';
+import { Label } from '@/components/ui/label';
 
 interface RatedRestaurantsPageProps {
   restaurants: Restaurant[];
@@ -33,6 +35,7 @@ export function RatedRestaurantsPage({
   const [filterCuisines, setFilterCuisines] = useState<string[]>([]);
   const [filterPrices, setFilterPrices] = useState<string[]>([]);
   const [filterMichelins, setFilterMichelins] = useState<string[]>([]);
+  const [ratingRange, setRatingRange] = useState<[number, number]>([0, 5]);
 
   const ratedRestaurants = restaurants.filter((r) => !r.isWishlist);
 
@@ -68,7 +71,100 @@ export function RatedRestaurantsPage({
     setFilterCuisines([]);
     setFilterPrices([]);
     setFilterMichelins([]);
+    setRatingRange([0, 5]);
   };
+
+  // Calculate counts for each filter option based on current filters
+  const getFilterCounts = () => {
+    const baseFilteredRestaurants = ratedRestaurants.filter((restaurant) => {
+      const matchesSearch = searchTerm === '' 
+        || restaurant.name.toLowerCase().includes(searchTerm.toLowerCase())
+        || restaurant.city.toLowerCase().includes(searchTerm.toLowerCase())
+        || restaurant.cuisine.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesRating = !restaurant.rating || 
+        (restaurant.rating >= ratingRange[0] && restaurant.rating <= ratingRange[1]);
+      
+      return matchesSearch && matchesRating;
+    });
+
+    // Calculate counts for each cuisine
+    const cuisineCounts = cuisines.map(cuisine => ({
+      cuisine,
+      count: baseFilteredRestaurants.filter(r => 
+        r.cuisine === cuisine &&
+        (filterPrices.length === 0 || 
+         (r.priceRange && filterPrices.includes(r.priceRange.toString()))) &&
+        (filterMichelins.length === 0 || 
+         (filterMichelins.includes('none') && !r.michelinStars) ||
+         (r.michelinStars && filterMichelins.includes(r.michelinStars.toString())))
+      ).length
+    }));
+
+    // Calculate counts for each price range
+    const priceCounts = [
+      { price: '1', count: baseFilteredRestaurants.filter(r => 
+        r.priceRange === 1 &&
+        (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
+        (filterMichelins.length === 0 || 
+         (filterMichelins.includes('none') && !r.michelinStars) ||
+         (r.michelinStars && filterMichelins.includes(r.michelinStars.toString())))
+      ).length },
+      { price: '2', count: baseFilteredRestaurants.filter(r => 
+        r.priceRange === 2 &&
+        (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
+        (filterMichelins.length === 0 || 
+         (filterMichelins.includes('none') && !r.michelinStars) ||
+         (r.michelinStars && filterMichelins.includes(r.michelinStars.toString())))
+      ).length },
+      { price: '3', count: baseFilteredRestaurants.filter(r => 
+        r.priceRange === 3 &&
+        (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
+        (filterMichelins.length === 0 || 
+         (filterMichelins.includes('none') && !r.michelinStars) ||
+         (r.michelinStars && filterMichelins.includes(r.michelinStars.toString())))
+      ).length },
+      { price: '4', count: baseFilteredRestaurants.filter(r => 
+        r.priceRange === 4 &&
+        (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
+        (filterMichelins.length === 0 || 
+         (filterMichelins.includes('none') && !r.michelinStars) ||
+         (r.michelinStars && filterMichelins.includes(r.michelinStars.toString())))
+      ).length },
+    ];
+
+    // Calculate counts for Michelin stars
+    const michelinCounts = [
+      { michelin: 'none', count: baseFilteredRestaurants.filter(r => 
+        !r.michelinStars &&
+        (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
+        (filterPrices.length === 0 || 
+         (r.priceRange && filterPrices.includes(r.priceRange.toString())))
+      ).length },
+      { michelin: '1', count: baseFilteredRestaurants.filter(r => 
+        r.michelinStars === 1 &&
+        (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
+        (filterPrices.length === 0 || 
+         (r.priceRange && filterPrices.includes(r.priceRange.toString())))
+      ).length },
+      { michelin: '2', count: baseFilteredRestaurants.filter(r => 
+        r.michelinStars === 2 &&
+        (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
+        (filterPrices.length === 0 || 
+         (r.priceRange && filterPrices.includes(r.priceRange.toString())))
+      ).length },
+      { michelin: '3', count: baseFilteredRestaurants.filter(r => 
+        r.michelinStars === 3 &&
+        (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
+        (filterPrices.length === 0 || 
+         (r.priceRange && filterPrices.includes(r.priceRange.toString())))
+      ).length },
+    ];
+
+    return { cuisineCounts, priceCounts, michelinCounts };
+  };
+
+  const { cuisineCounts, priceCounts, michelinCounts } = getFilterCounts();
 
   // Filter and sort restaurants
   const filteredRestaurants = ratedRestaurants
@@ -85,7 +181,6 @@ export function RatedRestaurantsPage({
 
       // Apply price filter
       const matchesPrice = filterPrices.length === 0 
-        || (filterPrices.includes('none') && !restaurant.priceRange)
         || (restaurant.priceRange && filterPrices.includes(restaurant.priceRange.toString()));
 
       // Apply Michelin star filter
@@ -93,7 +188,11 @@ export function RatedRestaurantsPage({
         || (filterMichelins.includes('none') && !restaurant.michelinStars)
         || (restaurant.michelinStars && filterMichelins.includes(restaurant.michelinStars.toString()));
 
-      return matchesSearch && matchesCuisine && matchesPrice && matchesMichelin;
+      // Apply rating range filter
+      const matchesRating = !restaurant.rating || 
+        (restaurant.rating >= ratingRange[0] && restaurant.rating <= ratingRange[1]);
+
+      return matchesSearch && matchesCuisine && matchesPrice && matchesMichelin && matchesRating;
     })
     .sort((a, b) => {
       // Apply sorting
@@ -156,7 +255,7 @@ export function RatedRestaurantsPage({
 
         <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:ml-auto">
           {/* Clear Filters Button */}
-          {(filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0) && (
+          {(filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0 || ratingRange[0] > 0 || ratingRange[1] < 5) && (
             <Button variant="outline" size="sm" onClick={clearFilters}>
               <X className="mr-2 h-4 w-4" />
               Clear Filters
@@ -182,15 +281,15 @@ export function RatedRestaurantsPage({
               <PopoverContent className="w-[200px] p-0">
                 <div className="p-2">
                   <div className="space-y-2">
-                    {cuisines.map((cuisine) => (
+                    {cuisineCounts.map(({ cuisine, count }) => (
                       <div key={cuisine} className="flex items-center space-x-2">
                         <Checkbox
                           id={`cuisine-${cuisine}`}
                           checked={filterCuisines.includes(cuisine)}
                           onCheckedChange={() => toggleCuisine(cuisine)}
                         />
-                        <label htmlFor={`cuisine-${cuisine}`} className="text-sm cursor-pointer">
-                          {cuisine}
+                        <label htmlFor={`cuisine-${cuisine}`} className="text-sm cursor-pointer flex-1">
+                          {cuisine} ({count})
                         </label>
                       </div>
                     ))}
@@ -209,7 +308,7 @@ export function RatedRestaurantsPage({
                     {filterPrices.length === 0 
                       ? 'Price' 
                       : filterPrices.length === 1 
-                        ? filterPrices[0] === 'none' ? 'No Price Set' : filterPrices[0] === '1' ? '$' : filterPrices[0] === '2' ? '$$' : filterPrices[0] === '3' ? '$$$' : '$$$$'
+                        ? filterPrices[0] === '1' ? '$' : filterPrices[0] === '2' ? '$$' : filterPrices[0] === '3' ? '$$$' : '$$$$'
                         : `${filterPrices.length} prices`
                     }
                   </span>
@@ -219,56 +318,18 @@ export function RatedRestaurantsPage({
               <PopoverContent className="w-[200px] p-0">
                 <div className="p-2">
                   <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="price-none"
-                        checked={filterPrices.includes('none')}
-                        onCheckedChange={() => togglePrice('none')}
-                      />
-                      <label htmlFor="price-none" className="text-sm cursor-pointer">
-                        No Price Set
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="price-1"
-                        checked={filterPrices.includes('1')}
-                        onCheckedChange={() => togglePrice('1')}
-                      />
-                      <label htmlFor="price-1" className="text-sm cursor-pointer">
-                        $ (Budget)
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="price-2"
-                        checked={filterPrices.includes('2')}
-                        onCheckedChange={() => togglePrice('2')}
-                      />
-                      <label htmlFor="price-2" className="text-sm cursor-pointer">
-                        $$ (Moderate)
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="price-3"
-                        checked={filterPrices.includes('3')}
-                        onCheckedChange={() => togglePrice('3')}
-                      />
-                      <label htmlFor="price-3" className="text-sm cursor-pointer">
-                        $$$ (Expensive)
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="price-4"
-                        checked={filterPrices.includes('4')}
-                        onCheckedChange={() => togglePrice('4')}
-                      />
-                      <label htmlFor="price-4" className="text-sm cursor-pointer">
-                        $$$$ (Very Expensive)
-                      </label>
-                    </div>
+                    {priceCounts.map(({ price, count }) => (
+                      <div key={price} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`price-${price}`}
+                          checked={filterPrices.includes(price)}
+                          onCheckedChange={() => togglePrice(price)}
+                        />
+                        <label htmlFor={`price-${price}`} className="text-sm cursor-pointer flex-1">
+                          {price === '1' ? '$' : price === '2' ? '$$' : price === '3' ? '$$$' : '$$$$'} ({count})
+                        </label>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </PopoverContent>
@@ -294,45 +355,55 @@ export function RatedRestaurantsPage({
               <PopoverContent className="w-[200px] p-0">
                 <div className="p-2">
                   <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="michelin-none"
-                        checked={filterMichelins.includes('none')}
-                        onCheckedChange={() => toggleMichelin('none')}
-                      />
-                      <label htmlFor="michelin-none" className="text-sm cursor-pointer">
-                        No Michelin Stars
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="michelin-1"
-                        checked={filterMichelins.includes('1')}
-                        onCheckedChange={() => toggleMichelin('1')}
-                      />
-                      <label htmlFor="michelin-1" className="text-sm cursor-pointer">
-                        1 Michelin Star
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="michelin-2"
-                        checked={filterMichelins.includes('2')}
-                        onCheckedChange={() => toggleMichelin('2')}
-                      />
-                      <label htmlFor="michelin-2" className="text-sm cursor-pointer">
-                        2 Michelin Stars
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="michelin-3"
-                        checked={filterMichelins.includes('3')}
-                        onCheckedChange={() => toggleMichelin('3')}
-                      />
-                      <label htmlFor="michelin-3" className="text-sm cursor-pointer">
-                        3 Michelin Stars
-                      </label>
+                    {michelinCounts.map(({ michelin, count }) => (
+                      <div key={michelin} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`michelin-${michelin}`}
+                          checked={filterMichelins.includes(michelin)}
+                          onCheckedChange={() => toggleMichelin(michelin)}
+                        />
+                        <label htmlFor={`michelin-${michelin}`} className="text-sm cursor-pointer flex-1">
+                          {michelin === 'none' ? 'No Michelin Stars' : `${michelin} Michelin Star${michelin === '1' ? '' : 's'}`} ({count})
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Rating Range Filter */}
+          <div className="w-[180px]">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  <span>
+                    {ratingRange[0] === 0 && ratingRange[1] === 5 
+                      ? 'Rating' 
+                      : `${ratingRange[0]}-${ratingRange[1]}`
+                    }
+                  </span>
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[220px] p-0">
+                <div className="p-4">
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-sm font-medium">Rating Range</Label>
+                      <div className="mt-2 flex items-center space-x-2">
+                        <span className="text-sm text-muted-foreground">{ratingRange[0]}</span>
+                        <Slider
+                          value={ratingRange}
+                          onValueChange={(value) => setRatingRange(value as [number, number])}
+                          max={5}
+                          min={0}
+                          step={0.5}
+                          className="flex-1"
+                        />
+                        <span className="text-sm text-muted-foreground">{ratingRange[1]}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -360,7 +431,7 @@ export function RatedRestaurantsPage({
         <div className="rounded-lg border border-dashed bg-muted/50 p-8 text-center">
           <h3 className="mb-2 text-lg font-medium">No rated restaurants yet</h3>
           <p className="mb-4 text-muted-foreground">
-            {searchTerm || filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0
+            {searchTerm || filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0 || ratingRange[0] > 0 || ratingRange[1] < 5
               ? "No restaurants match your search criteria."
               : "Start adding restaurants you've visited!"}
           </p>
