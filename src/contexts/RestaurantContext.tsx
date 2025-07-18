@@ -9,7 +9,7 @@ interface DbRestaurant {
   name: string;
   address: string;
   city: string;
-  country: string | null;
+  country?: string | null;
   cuisine: string;
   rating: number | null;
   notes: string | null;

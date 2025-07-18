@@ -46,6 +46,7 @@ export type Database = {
           address: string
           category_ratings: Json | null
           city: string
+          country: string | null
           created_at: string | null
           cuisine: string
           date_visited: string | null
@@ -67,6 +68,7 @@ export type Database = {
           address: string
           category_ratings?: Json | null
           city: string
+          country?: string | null
           created_at?: string | null
           cuisine: string
           date_visited?: string | null
@@ -88,6 +90,7 @@ export type Database = {
           address?: string
           category_ratings?: Json | null
           city?: string
+          country?: string | null
           created_at?: string | null
           cuisine?: string
           date_visited?: string | null
