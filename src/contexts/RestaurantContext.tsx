@@ -337,6 +337,8 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
 
   const deleteRestaurant = useCallback(async (id: string) => {
     try {
+      console.log('Deleting restaurant with id:', id);
+      
       const { error } = await supabase
         .from('restaurants')
         .delete()
@@ -344,7 +346,13 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
 
       if (error) throw error;
 
-      setRestaurants((prev) => prev.filter((restaurant) => restaurant.id !== id));
+      console.log('Restaurant deleted from database, updating local state');
+      setRestaurants((prev) => {
+        const filtered = prev.filter((restaurant) => restaurant.id !== id);
+        console.log('Updated restaurants count:', filtered.length);
+        return filtered;
+      });
+      
       toast.success('Restaurant deleted successfully!');
     } catch (error) {
       console.error('Error deleting restaurant:', error);

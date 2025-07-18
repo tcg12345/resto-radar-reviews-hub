@@ -102,6 +102,8 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
 
   // Add/update markers for restaurants
   useEffect(() => {
+    console.log('MapView: Restaurants changed, total:', restaurants.length, 'filtered:', filteredRestaurants.length);
+    
     if (!map.current || !mapLoaded) return;
 
     // Remove old markers
