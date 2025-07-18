@@ -6,6 +6,9 @@ import Dashboard from './Dashboard';
 export default function Index() {
   const { user, isLoading } = useAuth();
 
+  // Debug: Log the current authentication state
+  console.log('Auth state:', { user: !!user, isLoading, userEmail: user?.email });
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
