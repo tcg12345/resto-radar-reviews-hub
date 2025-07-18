@@ -18,123 +18,45 @@ import { WeightedRating } from '@/components/WeightedRating';
 import { PhotoGallery } from '@/components/PhotoGallery';
 import { Restaurant } from '@/types/restaurant';
 import { useRestaurants } from '@/contexts/RestaurantContext';
-
-// Map of major US cities to states
-const US_CITY_TO_STATE: Record<string, string> = {
-  'new york': 'New York',
-  'los angeles': 'California',
-  'chicago': 'Illinois',
-  'houston': 'Texas',
-  'phoenix': 'Arizona',
-  'philadelphia': 'Pennsylvania',
-  'san antonio': 'Texas',
-  'san diego': 'California',
-  'dallas': 'Texas',
-  'san jose': 'California',
-  'austin': 'Texas',
-  'jacksonville': 'Florida',
-  'fort worth': 'Texas',
-  'columbus': 'Ohio',
-  'indianapolis': 'Indiana',
-  'charlotte': 'North Carolina',
-  'san francisco': 'California',
-  'seattle': 'Washington',
-  'denver': 'Colorado',
-  'washington': 'District of Columbia',
-  'boston': 'Massachusetts',
-  'el paso': 'Texas',
-  'detroit': 'Michigan',
-  'nashville': 'Tennessee',
-  'portland': 'Oregon',
-  'memphis': 'Tennessee',
-  'oklahoma city': 'Oklahoma',
-  'las vegas': 'Nevada',
-  'louisville': 'Kentucky',
-  'baltimore': 'Maryland',
-  'milwaukee': 'Wisconsin',
-  'albuquerque': 'New Mexico',
-  'tucson': 'Arizona',
-  'fresno': 'California',
-  'mesa': 'Arizona',
-  'sacramento': 'California',
-  'atlanta': 'Georgia',
-  'kansas city': 'Missouri',
-  'colorado springs': 'Colorado',
-  'omaha': 'Nebraska',
-  'raleigh': 'North Carolina',
-  'miami': 'Florida',
-  'long beach': 'California',
-  'virginia beach': 'Virginia',
-  'oakland': 'California',
-  'minneapolis': 'Minnesota',
-  'tulsa': 'Oklahoma',
-  'arlington': 'Texas',
-  'tampa': 'Florida',
-  'new orleans': 'Louisiana',
-  'wichita': 'Kansas',
-  'cleveland': 'Ohio',
-  'bakersfield': 'California',
-  'aurora': 'Colorado',
-  'anaheim': 'California',
-  'honolulu': 'Hawaii',
-  'santa ana': 'California',
-  'riverside': 'California',
-  'corpus christi': 'Texas',
-  'lexington': 'Kentucky',
-  'stockton': 'California',
-  'henderson': 'Nevada',
-  'saint paul': 'Minnesota',
-  'st. paul': 'Minnesota',
-  'cincinnati': 'Ohio',
-  'pittsburgh': 'Pennsylvania',
-  'greensboro': 'North Carolina',
-  'anchorage': 'Alaska',
-  'plano': 'Texas',
-  'lincoln': 'Nebraska',
-  'orlando': 'Florida',
-  'irvine': 'California',
-  'newark': 'New Jersey',
-  'toledo': 'Ohio',
-  'jersey city': 'New Jersey',
-  'chula vista': 'California',
-  'fort wayne': 'Indiana',
-  'buffalo': 'New York',
-  'chandler': 'Arizona',
-  'st. petersburg': 'Florida',
-  'saint petersburg': 'Florida',
-  'laredo': 'Texas',
-  'durham': 'North Carolina',
-  'madison': 'Wisconsin',
-  'lubbock': 'Texas',
-  'winston-salem': 'North Carolina',
-  'garland': 'Texas',
-  'glendale': 'Arizona',
-  'hialeah': 'Florida',
-  'reno': 'Nevada',
-  'baton rouge': 'Louisiana',
-  'irving': 'Texas',
-  'chesapeake': 'Virginia',
-  'scottsdale': 'Arizona',
-  'north las vegas': 'Nevada',
-  'fremont': 'California',
-  'gilbert': 'Arizona',
-  'san bernardino': 'California',
-  'boise': 'Idaho',
-  'birmingham': 'Alabama'
-};
-
-function getLocationSuffix(city: string, country?: string): string {
-  if (country === 'United States') {
-    const state = US_CITY_TO_STATE[city.toLowerCase()];
-    return state ? `, ${state}` : ', United States';
-  }
-  return country ? `, ${country}` : '';
-}
+import { getStateFromCoordinatesCached } from '@/utils/geocoding';
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
+}
+
+// Component for displaying location with geocoding
+function LocationDisplay({ restaurant }: { restaurant: Restaurant }) {
+  const [locationText, setLocationText] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    async function determineLocation() {
+      if (restaurant.country === 'United States' && restaurant.latitude && restaurant.longitude) {
+        setIsLoading(true);
+        try {
+          const state = await getStateFromCoordinatesCached(restaurant.latitude, restaurant.longitude);
+          setLocationText(state ? `${restaurant.city}, ${state}` : `${restaurant.city}, United States`);
+        } catch (error) {
+          console.error('Error getting state:', error);
+          setLocationText(`${restaurant.city}, United States`);
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        setLocationText(`${restaurant.city}${restaurant.country ? `, ${restaurant.country}` : ''}`);
+      }
+    }
+
+    determineLocation();
+  }, [restaurant.city, restaurant.country, restaurant.latitude, restaurant.longitude]);
+
+  if (isLoading) {
+    return <span>{restaurant.city}, ...</span>;
+  }
+
+  return <span>{locationText}</span>;
 }
 
 export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardProps) {
@@ -251,7 +173,7 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
         </div>
         <CardDescription className="flex items-center text-sm text-muted-foreground">
           <MapPin className="mr-1 h-3.5 w-3.5" />
-          {restaurant.city}{getLocationSuffix(restaurant.city, restaurant.country)}
+          <LocationDisplay restaurant={restaurant} />
         </CardDescription>
       </CardHeader>
       
