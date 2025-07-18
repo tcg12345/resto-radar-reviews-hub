@@ -31,7 +31,7 @@ export function RatedRestaurantsPage({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'latest' | 'rating' | 'name'>('latest');
+  const [sortBy, setSortBy] = useState<'latest' | 'oldest' | 'rating-high' | 'rating-low' | 'name-az' | 'name-za' | 'price-low' | 'price-high' | 'michelin-high' | 'michelin-low'>('latest');
   const [filterCuisines, setFilterCuisines] = useState<string[]>([]);
   const [filterPrices, setFilterPrices] = useState<string[]>([]);
   const [filterMichelins, setFilterMichelins] = useState<string[]>([]);
@@ -204,11 +204,26 @@ export function RatedRestaurantsPage({
       // Apply sorting
       if (sortBy === 'latest') {
         return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-      } else if (sortBy === 'rating') {
+      } else if (sortBy === 'oldest') {
+        return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+      } else if (sortBy === 'rating-high') {
         return (b.rating || 0) - (a.rating || 0);
-      } else {
+      } else if (sortBy === 'rating-low') {
+        return (a.rating || 0) - (b.rating || 0);
+      } else if (sortBy === 'name-az') {
         return a.name.localeCompare(b.name);
+      } else if (sortBy === 'name-za') {
+        return b.name.localeCompare(a.name);
+      } else if (sortBy === 'price-low') {
+        return (a.priceRange || 0) - (b.priceRange || 0);
+      } else if (sortBy === 'price-high') {
+        return (b.priceRange || 0) - (a.priceRange || 0);
+      } else if (sortBy === 'michelin-high') {
+        return (b.michelinStars || 0) - (a.michelinStars || 0);
+      } else if (sortBy === 'michelin-low') {
+        return (a.michelinStars || 0) - (b.michelinStars || 0);
       }
+      return 0;
     });
 
   const handleOpenEditDialog = (id: string) => {
@@ -379,21 +394,7 @@ export function RatedRestaurantsPage({
             </Popover>
           </div>
 
-          {/* Sort By */}
-          <div className="w-[180px]">
-            <Select value={sortBy} onValueChange={(value: 'latest' | 'rating' | 'name') => setSortBy(value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="latest">Latest</SelectItem>
-                <SelectItem value="rating">Rating (High to Low)</SelectItem>
-                <SelectItem value="name">Name (A-Z)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Rating Range Filter */}
+          {/* Sort & Filter */}
           <div className="w-[60px]">
             <Popover>
               <PopoverTrigger asChild>
@@ -401,9 +402,97 @@ export function RatedRestaurantsPage({
                   <Sliders className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-[280px] p-0">
+              <PopoverContent className="w-[320px] p-0">
                 <div className="p-4">
-                  <div className="space-y-4">
+                  <div className="space-y-6">
+                    {/* Sort Options */}
+                    <div>
+                      <Label className="text-sm font-medium">Sort By</Label>
+                      <div className="mt-2 grid grid-cols-2 gap-2">
+                        <Button
+                          variant={sortBy === 'latest' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('latest')}
+                          className="justify-start"
+                        >
+                          Latest
+                        </Button>
+                        <Button
+                          variant={sortBy === 'oldest' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('oldest')}
+                          className="justify-start"
+                        >
+                          Oldest
+                        </Button>
+                        <Button
+                          variant={sortBy === 'rating-high' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('rating-high')}
+                          className="justify-start"
+                        >
+                          Rating ↓
+                        </Button>
+                        <Button
+                          variant={sortBy === 'rating-low' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('rating-low')}
+                          className="justify-start"
+                        >
+                          Rating ↑
+                        </Button>
+                        <Button
+                          variant={sortBy === 'name-az' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('name-az')}
+                          className="justify-start"
+                        >
+                          Name A-Z
+                        </Button>
+                        <Button
+                          variant={sortBy === 'name-za' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('name-za')}
+                          className="justify-start"
+                        >
+                          Name Z-A
+                        </Button>
+                        <Button
+                          variant={sortBy === 'price-low' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('price-low')}
+                          className="justify-start"
+                        >
+                          Price ↑
+                        </Button>
+                        <Button
+                          variant={sortBy === 'price-high' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('price-high')}
+                          className="justify-start"
+                        >
+                          Price ↓
+                        </Button>
+                        <Button
+                          variant={sortBy === 'michelin-high' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('michelin-high')}
+                          className="justify-start"
+                        >
+                          Michelin ↓
+                        </Button>
+                        <Button
+                          variant={sortBy === 'michelin-low' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('michelin-low')}
+                          className="justify-start"
+                        >
+                          Michelin ↑
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Rating Range Filter */}
                     <div>
                       <Label className="text-sm font-medium">Rating Range</Label>
                       <div className="mt-2 flex items-center space-x-2">
@@ -419,6 +508,7 @@ export function RatedRestaurantsPage({
                         <span className="text-sm text-muted-foreground">{tempRatingRange[1]}</span>
                       </div>
                     </div>
+
                     <div className="flex justify-end">
                       <Button onClick={applyRatingFilter} size="sm">
                         Apply
