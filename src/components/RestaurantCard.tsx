@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { MapPin, Clock, Tag, Edit2, Trash2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Card,
   CardContent,
@@ -27,6 +28,7 @@ interface RestaurantCardProps {
 export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardProps) {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [isLoadingPhotos, setIsLoadingPhotos] = useState(false);
   const { loadRestaurantPhotos } = useRestaurants();
   
   const hasMultiplePhotos = restaurant.photos.length > 1;
@@ -34,7 +36,10 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
   // Load photos when component mounts if they aren't already loaded
   useEffect(() => {
     if (restaurant.photos.length === 0) {
-      loadRestaurantPhotos(restaurant.id);
+      setIsLoadingPhotos(true);
+      loadRestaurantPhotos(restaurant.id).finally(() => {
+        setIsLoadingPhotos(false);
+      });
     }
   }, [restaurant.id, restaurant.photos.length, loadRestaurantPhotos]);
   
@@ -70,6 +75,8 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
             className="h-full w-full object-cover transition-transform duration-300 hover:scale-105 cursor-pointer"
             onClick={openGallery}
           />
+        ) : isLoadingPhotos ? (
+          <Skeleton className="h-full w-full" />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-muted">
             <p className="text-muted-foreground">No photos available</p>

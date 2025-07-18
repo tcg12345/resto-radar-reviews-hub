@@ -367,7 +367,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
     return restaurants.find((restaurant) => restaurant.id === id);
   }, [restaurants]);
 
-  const loadRestaurantPhotos = useCallback(async (id: string) => {
+  const loadRestaurantPhotos = useCallback(async (id: string): Promise<void> => {
     try {
       const { data, error } = await supabase
         .from('restaurants')
