@@ -48,6 +48,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
   const [isProcessingPhotos, setIsProcessingPhotos] = useState(false);
   const [photoProgress, setPhotoProgress] = useState(0);
   const [photosToProcess, setPhotosToProcess] = useState(0);
+  const [isDragOver, setIsDragOver] = useState(false);
   
   useEffect(() => {
     // Detect if we're on a mobile device
@@ -276,6 +277,82 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     // For existing photos, we'll handle removal on the submit side
   };
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    const files = Array.from(e.dataTransfer.files).filter(file => 
+      file.type.startsWith('image/')
+    );
+
+    if (files.length === 0) {
+      toast.error('Please drop image files only');
+      return;
+    }
+
+    const maxPhotos = 50;
+    if (formData.photos.length + files.length > maxPhotos) {
+      toast.error(`Maximum ${maxPhotos} photos allowed`);
+      return;
+    }
+
+    if (files.length > 10) {
+      toast.warning('Processing large number of photos. This may take a moment...');
+    }
+
+    setIsProcessingPhotos(true);
+    setPhotosToProcess(files.length);
+    setPhotoProgress(0);
+
+    try {
+      const batchSize = 3;
+      const newPreviews: string[] = [];
+      
+      for (let i = 0; i < files.length; i += batchSize) {
+        const batch = files.slice(i, i + batchSize);
+        const batchPreviews = await Promise.all(
+          batch.map(file => createThumbnail(file))
+        );
+        newPreviews.push(...batchPreviews);
+        
+        setPhotoProgress(Math.round(((i + batch.length) / files.length) * 100));
+        
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
+      
+      setFormData(prev => ({
+        ...prev,
+        photos: [...prev.photos, ...files],
+      }));
+      
+      setPreviewImages(prev => [...prev, ...newPreviews]);
+      
+      if (files.length > 1) {
+        toast.success(`${files.length} photos added successfully!`);
+      }
+    } catch (error) {
+      console.error('Error processing dropped photos:', error);
+      toast.error('Failed to process some photos');
+    } finally {
+      setIsProcessingPhotos(false);
+      setPhotoProgress(0);
+      setPhotosToProcess(0);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
@@ -475,7 +552,37 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
             </div>
           )}
           
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+          <div 
+            className={`grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 p-4 rounded-lg border-2 border-dashed transition-colors ${
+              isDragOver 
+                ? 'border-primary bg-primary/10' 
+                : 'border-border bg-background'
+            }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            {previewImages.length === 0 && !isDragOver && (
+              <div className="col-span-full flex flex-col items-center justify-center py-8 text-center">
+                <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                <p className="text-sm text-muted-foreground mb-1">
+                  Drag and drop photos here, or click to select
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Supports multiple image files
+                </p>
+              </div>
+            )}
+            
+            {isDragOver && (
+              <div className="col-span-full flex flex-col items-center justify-center py-8 text-center">
+                <Upload className="h-8 w-8 text-primary mb-2" />
+                <p className="text-sm text-primary font-medium">
+                  Drop your photos here
+                </p>
+              </div>
+            )}
+            
             {previewImages.map((src, index) => (
               <div key={index} className="group relative aspect-square overflow-hidden rounded-md border">
                 <LazyImage
