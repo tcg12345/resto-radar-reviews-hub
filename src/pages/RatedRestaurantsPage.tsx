@@ -36,6 +36,7 @@ export function RatedRestaurantsPage({
   const [filterPrices, setFilterPrices] = useState<string[]>([]);
   const [filterMichelins, setFilterMichelins] = useState<string[]>([]);
   const [ratingRange, setRatingRange] = useState<[number, number]>([0, 10]);
+  const [tempRatingRange, setTempRatingRange] = useState<[number, number]>([0, 10]);
 
   const ratedRestaurants = restaurants.filter((r) => !r.isWishlist);
 
@@ -72,6 +73,11 @@ export function RatedRestaurantsPage({
     setFilterPrices([]);
     setFilterMichelins([]);
     setRatingRange([0, 10]);
+    setTempRatingRange([0, 10]);
+  };
+
+  const applyRatingFilter = () => {
+    setRatingRange(tempRatingRange);
   };
 
   // Calculate counts for each filter option based on current filters
@@ -401,17 +407,22 @@ export function RatedRestaurantsPage({
                     <div>
                       <Label className="text-sm font-medium">Rating Range</Label>
                       <div className="mt-2 flex items-center space-x-2">
-                        <span className="text-sm text-muted-foreground">{ratingRange[0]}</span>
+                        <span className="text-sm text-muted-foreground">{tempRatingRange[0]}</span>
                         <Slider
-                          value={ratingRange}
-                          onValueChange={(value) => setRatingRange(value as [number, number])}
+                          value={tempRatingRange}
+                          onValueChange={(value) => setTempRatingRange(value as [number, number])}
                           max={10}
                           min={0}
                           step={0.1}
                           className="flex-1"
                         />
-                        <span className="text-sm text-muted-foreground">{ratingRange[1]}</span>
+                        <span className="text-sm text-muted-foreground">{tempRatingRange[1]}</span>
                       </div>
+                    </div>
+                    <div className="flex justify-end">
+                      <Button onClick={applyRatingFilter} size="sm">
+                        Apply
+                      </Button>
                     </div>
                   </div>
                 </div>
