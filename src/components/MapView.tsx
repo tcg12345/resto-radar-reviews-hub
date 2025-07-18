@@ -239,7 +239,7 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
       )}
       
       {/* Search bar */}
-      <div className="absolute left-4 right-4 top-4 z-10">
+      <div className="absolute left-4 top-4 z-10 w-80 max-w-[calc(100vw-8rem)]">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
