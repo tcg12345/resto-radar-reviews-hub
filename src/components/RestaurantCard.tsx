@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { MapPin, Clock, Tag, Edit2, Trash2 } from 'lucide-react';
+import { MapPin, Clock, Tag, Edit2, Trash2, Eye } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Card,
@@ -11,6 +11,7 @@ import {
   CardTitle 
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { StarRating } from '@/components/StarRating';
 import { PriceRange } from '@/components/PriceRange';
 import { MichelinStars } from '@/components/MichelinStars';
@@ -63,6 +64,7 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [isLoadingPhotos, setIsLoadingPhotos] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const { loadRestaurantPhotos } = useRestaurants();
   
   const hasMultiplePhotos = restaurant.photos.length > 1;
@@ -192,15 +194,90 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
             </div>
           )}
         </div>
-        
-        {restaurant.notes && (
-          <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
-            {restaurant.notes}
-          </p>
-        )}
       </CardContent>
       
       <CardFooter className="flex justify-end gap-2 pt-0">
+        <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+          <DialogTrigger asChild>
+            <Button 
+              size="sm" 
+              variant="outline"
+              className="h-8"
+            >
+              <Eye className="mr-1 h-3.5 w-3.5" />
+              Details
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>{restaurant.name}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-semibold mb-2">Location</h4>
+                  <p className="text-sm text-muted-foreground flex items-center">
+                    <MapPin className="mr-1 h-3.5 w-3.5" />
+                    <LocationDisplay restaurant={restaurant} />
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">Cuisine</h4>
+                  <p className="text-sm text-muted-foreground">{restaurant.cuisine}</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                {restaurant.rating !== undefined && (
+                  <div>
+                    <h4 className="font-semibold mb-2">Rating</h4>
+                    <StarRating rating={restaurant.rating} readonly size="sm" />
+                  </div>
+                )}
+                {restaurant.priceRange && (
+                  <div>
+                    <h4 className="font-semibold mb-2">Price Range</h4>
+                    <span className="text-green-600 font-medium">{`${'$'.repeat(restaurant.priceRange)}`}</span>
+                  </div>
+                )}
+              </div>
+              
+              {restaurant.michelinStars && (
+                <div>
+                  <h4 className="font-semibold mb-2">Michelin Stars</h4>
+                  <MichelinStars stars={restaurant.michelinStars} readonly size="sm" />
+                </div>
+              )}
+              
+              {restaurant.dateVisited && (
+                <div>
+                  <h4 className="font-semibold mb-2">Date Visited</h4>
+                  <p className="text-sm text-muted-foreground flex items-center">
+                    <Clock className="mr-1 h-3 w-3" />
+                    {format(new Date(restaurant.dateVisited), 'MMM d, yyyy')}
+                  </p>
+                </div>
+              )}
+              
+              {restaurant.isWishlist && (
+                <div>
+                  <h4 className="font-semibold mb-2">Status</h4>
+                  <span className="inline-flex items-center rounded-full bg-accent/10 px-2.5 py-1 text-xs font-medium text-accent">
+                    Wishlist
+                  </span>
+                </div>
+              )}
+              
+              {restaurant.notes && (
+                <div>
+                  <h4 className="font-semibold mb-2">Notes</h4>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{restaurant.notes}</p>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+        
         {onEdit && (
           <Button 
             size="sm" 
