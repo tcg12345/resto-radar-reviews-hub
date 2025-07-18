@@ -63,6 +63,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
   const [isCustomCuisineDialogOpen, setIsCustomCuisineDialogOpen] = useState(false);
   const [customCuisineInput, setCustomCuisineInput] = useState('');
   const [removedPhotoIndexes, setRemovedPhotoIndexes] = useState<number[]>([]);
+  const [draggedPhotoIndex, setDraggedPhotoIndex] = useState<number | null>(null);
   const [customCuisine, setCustomCuisine] = useState(() => {
     // Initialize with custom cuisine if initial data has a cuisine not in the predefined list
     if (initialData?.cuisine && !cuisineOptions.includes(initialData.cuisine)) {
@@ -300,6 +301,70 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
         photos: prev.photos.filter((_, i) => i !== adjustedIndex),
       }));
     }
+  };
+
+  const reorderPhotos = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return;
+    
+    const existingPhotosCount = initialData?.photos.length || 0;
+    
+    // Reorder preview images
+    setPreviewImages(prev => {
+      const newImages = [...prev];
+      const [movedImage] = newImages.splice(fromIndex, 1);
+      newImages.splice(toIndex, 0, movedImage);
+      return newImages;
+    });
+    
+    // Reorder form data photos (only new photos)
+    if (fromIndex >= existingPhotosCount || toIndex >= existingPhotosCount) {
+      setFormData(prev => {
+        const newPhotos = [...prev.photos];
+        
+        // Handle moving new photos
+        if (fromIndex >= existingPhotosCount && toIndex >= existingPhotosCount) {
+          const fromPhotoIndex = fromIndex - existingPhotosCount;
+          const toPhotoIndex = toIndex - existingPhotosCount;
+          const [movedPhoto] = newPhotos.splice(fromPhotoIndex, 1);
+          newPhotos.splice(toPhotoIndex, 0, movedPhoto);
+        }
+        
+        return { ...prev, photos: newPhotos };
+      });
+    }
+  };
+
+  const handlePhotoMouseDown = (e: React.MouseEvent, index: number) => {
+    e.preventDefault();
+    setDraggedPhotoIndex(index);
+  };
+
+  const handlePhotoMouseUp = () => {
+    setDraggedPhotoIndex(null);
+  };
+
+  const handlePhotoDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedPhotoIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', index.toString());
+  };
+
+  const handlePhotoDragEnd = () => {
+    setDraggedPhotoIndex(null);
+  };
+
+  const handlePhotoDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handlePhotoDrop = (e: React.DragEvent, toIndex: number) => {
+    e.preventDefault();
+    const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+    if (!isNaN(fromIndex)) {
+      reorderPhotos(fromIndex, toIndex);
+    }
+    setDraggedPhotoIndex(null);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -676,19 +741,34 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
             )}
             
             {previewImages.map((src, index) => (
-              <div key={index} className="group relative aspect-square overflow-hidden rounded-md border">
+              <div 
+                key={index} 
+                className={`group relative aspect-square overflow-hidden rounded-md border cursor-move transition-all ${
+                  draggedPhotoIndex === index ? 'opacity-50 scale-95' : 'hover:scale-105'
+                }`}
+                draggable
+                onMouseDown={(e) => handlePhotoMouseDown(e, index)}
+                onMouseUp={handlePhotoMouseUp}
+                onDragStart={(e) => handlePhotoDragStart(e, index)}
+                onDragEnd={handlePhotoDragEnd}
+                onDragOver={(e) => handlePhotoDragOver(e, index)}
+                onDrop={(e) => handlePhotoDrop(e, index)}
+              >
                 <LazyImage
                   src={src}
                   alt={`Preview ${index + 1}`}
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-cover pointer-events-none"
                 />
                 <button
                   type="button"
                   onClick={() => removePhoto(index)}
-                  className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity group-hover:opacity-100"
+                  className="absolute top-2 right-2 flex items-center justify-center w-8 h-8 bg-red-500/80 hover:bg-red-500 rounded-full opacity-0 transition-opacity group-hover:opacity-100 z-10"
                 >
-                  <Trash2 className="h-6 w-6 text-white" />
+                  <Trash2 className="h-4 w-4 text-white" />
                 </button>
+                <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                  {index + 1}
+                </div>
               </div>
             ))}
 
