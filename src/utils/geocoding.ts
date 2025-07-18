@@ -22,8 +22,9 @@ export async function getStateFromCoordinates(latitude: number, longitude: numbe
     }
 
     // Use Mapbox Geocoding API for reverse geocoding
+    // Remove types=region to get full context
     const response = await fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${tokenData.token}&types=region`
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${tokenData.token}&limit=1`
     );
 
     if (!response.ok) {
@@ -33,21 +34,30 @@ export async function getStateFromCoordinates(latitude: number, longitude: numbe
 
     const data: GeocodingResponse = await response.json();
     
+    console.log('Reverse geocoding response:', data);
+    
     if (data.features && data.features.length > 0) {
       const feature = data.features[0];
       
       // Look for region (state) in the context
       const regionContext = feature.context?.find(ctx => ctx.id.startsWith('region'));
       if (regionContext) {
+        console.log('Found region context:', regionContext.text);
         return regionContext.text;
       }
       
-      // If no region context, check if the main feature is a region
+      // Alternative: parse from place_name if context doesn't have region
       if (feature.place_name) {
-        // Extract state from place name (usually the last part after comma)
+        console.log('Parsing from place_name:', feature.place_name);
         const parts = feature.place_name.split(', ');
-        if (parts.length > 1) {
-          return parts[parts.length - 1];
+        // Look for US state pattern (usually 2-letter abbreviation or full state name)
+        for (let i = parts.length - 1; i >= 0; i--) {
+          const part = parts[i].trim();
+          // Check if this part looks like a US state (2 letters or common state names)
+          if (part.match(/^[A-Z]{2}$/) || isUSState(part)) {
+            console.log('Found state:', part);
+            return expandStateAbbreviation(part);
+          }
         }
       }
     }
@@ -57,6 +67,38 @@ export async function getStateFromCoordinates(latitude: number, longitude: numbe
     console.error('Error in reverse geocoding:', error);
     return null;
   }
+}
+
+// Helper function to check if a string is a US state name
+function isUSState(str: string): boolean {
+  const states = [
+    'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware',
+    'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky',
+    'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi',
+    'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico',
+    'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania',
+    'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont',
+    'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'
+  ];
+  return states.includes(str);
+}
+
+// Helper function to expand state abbreviations to full names
+function expandStateAbbreviation(abbreviation: string): string {
+  const stateMap: Record<string, string> = {
+    'AL': 'Alabama', 'AK': 'Alaska', 'AZ': 'Arizona', 'AR': 'Arkansas', 'CA': 'California',
+    'CO': 'Colorado', 'CT': 'Connecticut', 'DE': 'Delaware', 'FL': 'Florida', 'GA': 'Georgia',
+    'HI': 'Hawaii', 'ID': 'Idaho', 'IL': 'Illinois', 'IN': 'Indiana', 'IA': 'Iowa', 'KS': 'Kansas',
+    'KY': 'Kentucky', 'LA': 'Louisiana', 'ME': 'Maine', 'MD': 'Maryland', 'MA': 'Massachusetts',
+    'MI': 'Michigan', 'MN': 'Minnesota', 'MS': 'Mississippi', 'MO': 'Missouri', 'MT': 'Montana',
+    'NE': 'Nebraska', 'NV': 'Nevada', 'NH': 'New Hampshire', 'NJ': 'New Jersey', 'NM': 'New Mexico',
+    'NY': 'New York', 'NC': 'North Carolina', 'ND': 'North Dakota', 'OH': 'Ohio', 'OK': 'Oklahoma',
+    'OR': 'Oregon', 'PA': 'Pennsylvania', 'RI': 'Rhode Island', 'SC': 'South Carolina',
+    'SD': 'South Dakota', 'TN': 'Tennessee', 'TX': 'Texas', 'UT': 'Utah', 'VT': 'Vermont',
+    'VA': 'Virginia', 'WA': 'Washington', 'WV': 'West Virginia', 'WI': 'Wisconsin', 'WY': 'Wyoming'
+  };
+  
+  return stateMap[abbreviation] || abbreviation;
 }
 
 // Cache for storing state results to avoid repeated API calls
