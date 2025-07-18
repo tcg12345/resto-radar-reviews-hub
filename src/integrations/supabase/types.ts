@@ -56,6 +56,7 @@ export type Database = {
           name: string
           notes: string | null
           photos: string[] | null
+          price_range: number | null
           rating: number | null
           updated_at: string | null
           use_weighted_rating: boolean | null
@@ -75,6 +76,7 @@ export type Database = {
           name: string
           notes?: string | null
           photos?: string[] | null
+          price_range?: number | null
           rating?: number | null
           updated_at?: string | null
           use_weighted_rating?: boolean | null
@@ -94,6 +96,7 @@ export type Database = {
           name?: string
           notes?: string | null
           photos?: string[] | null
+          price_range?: number | null
           rating?: number | null
           updated_at?: string | null
           use_weighted_rating?: boolean | null

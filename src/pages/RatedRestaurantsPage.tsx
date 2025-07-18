@@ -28,6 +28,7 @@ export function RatedRestaurantsPage({
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'latest' | 'rating' | 'name'>('latest');
   const [filterCuisine, setFilterCuisine] = useState<string>('all');
+  const [filterPrice, setFilterPrice] = useState<string>('all');
 
   const ratedRestaurants = restaurants.filter((r) => !r.isWishlist);
 
@@ -47,7 +48,12 @@ export function RatedRestaurantsPage({
       const matchesCuisine = filterCuisine === 'all' 
         || restaurant.cuisine === filterCuisine;
 
-      return matchesSearch && matchesCuisine;
+      // Apply price filter
+      const matchesPrice = filterPrice === 'all' 
+        || (filterPrice === 'none' && !restaurant.priceRange)
+        || restaurant.priceRange?.toString() === filterPrice;
+
+      return matchesSearch && matchesCuisine && matchesPrice;
     })
     .sort((a, b) => {
       // Apply sorting
@@ -125,6 +131,22 @@ export function RatedRestaurantsPage({
           </div>
 
           <div className="w-[180px]">
+            <Select value={filterPrice} onValueChange={setFilterPrice}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by price" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Prices</SelectItem>
+                <SelectItem value="none">No Price Set</SelectItem>
+                <SelectItem value="1">$ (Budget)</SelectItem>
+                <SelectItem value="2">$$ (Moderate)</SelectItem>
+                <SelectItem value="3">$$$ (Expensive)</SelectItem>
+                <SelectItem value="4">$$$$ (Very Expensive)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="w-[180px]">
             <Select value={sortBy} onValueChange={(value: 'latest' | 'rating' | 'name') => setSortBy(value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Sort by" />
@@ -143,7 +165,7 @@ export function RatedRestaurantsPage({
         <div className="rounded-lg border border-dashed bg-muted/50 p-8 text-center">
           <h3 className="mb-2 text-lg font-medium">No rated restaurants yet</h3>
           <p className="mb-4 text-muted-foreground">
-            {searchTerm || filterCuisine !== 'all'
+            {searchTerm || filterCuisine !== 'all' || filterPrice !== 'all'
               ? "No restaurants match your search criteria."
               : "Start adding restaurants you've visited!"}
           </p>

@@ -13,6 +13,7 @@ export interface Restaurant {
   rating?: number;
   categoryRatings?: CategoryRating;
   useWeightedRating?: boolean;
+  priceRange?: number; // 1-4 dollar signs
   photos: string[];
   notes?: string;
   dateVisited?: string;
@@ -31,6 +32,7 @@ export interface RestaurantFormData {
   rating?: number;
   categoryRatings?: CategoryRating;
   useWeightedRating?: boolean;
+  priceRange?: number; // 1-4 dollar signs
   photos: File[];
   notes?: string;
   dateVisited?: string;

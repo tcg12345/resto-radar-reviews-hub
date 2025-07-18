@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StarRating } from '@/components/StarRating';
+import { PriceRange } from '@/components/PriceRange';
 import { WeightedRating } from '@/components/WeightedRating';
 import { Restaurant } from '@/types/restaurant';
 
@@ -77,9 +78,14 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
       <CardHeader className="pb-2">
         <div className="flex flex-col gap-2">
           <CardTitle className="text-xl font-bold break-words">{restaurant.name}</CardTitle>
-          {restaurant.rating !== undefined && (
-            <StarRating rating={restaurant.rating} readonly size="sm" />
-          )}
+          <div className="flex items-center gap-3">
+            {restaurant.rating !== undefined && (
+              <StarRating rating={restaurant.rating} readonly size="sm" />
+            )}
+            {restaurant.priceRange && (
+              <PriceRange priceRange={restaurant.priceRange} readonly size="sm" />
+            )}
+          </div>
         </div>
         <CardDescription className="flex items-center text-sm text-muted-foreground">
           <MapPin className="mr-1 h-3.5 w-3.5" />

@@ -19,6 +19,7 @@ interface DbRestaurant {
   longitude: number | null;
   category_ratings: Json;
   use_weighted_rating: boolean;
+  price_range: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -53,6 +54,7 @@ const mapDbRestaurantToRestaurant = (dbRestaurant: DbRestaurant): Restaurant => 
   longitude: dbRestaurant.longitude ?? undefined,
   categoryRatings: dbRestaurant.category_ratings ? dbRestaurant.category_ratings as unknown as CategoryRating : undefined,
   useWeightedRating: dbRestaurant.use_weighted_rating,
+  priceRange: dbRestaurant.price_range ?? undefined,
   createdAt: dbRestaurant.created_at,
   updatedAt: dbRestaurant.updated_at,
 });
@@ -182,6 +184,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         longitude: coordinates?.longitude ?? null,
         category_ratings: data.categoryRatings as unknown as Json,
         use_weighted_rating: data.useWeightedRating,
+        price_range: data.priceRange ?? null,
         user_id: session.user.id,
       };
       
@@ -297,6 +300,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
           longitude: coordinates.longitude ?? null,
           category_ratings: data.categoryRatings as unknown as Json,
           use_weighted_rating: data.useWeightedRating,
+          price_range: data.priceRange ?? null,
           // user_id is already set, no need to update it
         })
         .eq('id', id)
