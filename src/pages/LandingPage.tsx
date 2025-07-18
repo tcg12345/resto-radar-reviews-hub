@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Star, MapPin, Heart, Users, TrendingUp, Award, ChefHat, Utensils } from 'lucide-react';
+import { Star, MapPin, Heart, Users, TrendingUp, Award, ChefHat, Utensils, Moon, Sun } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '@/hooks/useTheme';
 import heroImage from '@/assets/hero-restaurant.jpg';
 
 const features = [
@@ -55,6 +56,7 @@ const stats = [
 export default function LandingPage() {
   const [activeFeature, setActiveFeature] = useState(0);
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
 
   const handleGetStarted = () => {
     navigate('/auth');
@@ -66,11 +68,24 @@ export default function LandingPage() {
       <nav className="fixed top-0 z-50 w-full bg-background/80 backdrop-blur-md border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/')}>
               <ChefHat className="h-8 w-8 text-primary" />
-              <span className="text-2xl font-bold">Dine Tracker</span>
+              <span className="text-2xl font-bold">Grubby</span>
             </div>
             <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleTheme}
+                className="h-10 w-10"
+              >
+                {theme === 'light' ? (
+                  <Moon className="h-5 w-5" />
+                ) : (
+                  <Sun className="h-5 w-5" />
+                )}
+                <span className="sr-only">Toggle theme</span>
+              </Button>
               <Button variant="ghost" onClick={() => navigate('/auth')}>
                 Sign In
               </Button>
@@ -239,12 +254,12 @@ export default function LandingPage() {
       <footer className="py-12 bg-background border-t">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between">
-            <div className="flex items-center space-x-2 mb-4 md:mb-0">
+            <div className="flex items-center space-x-2 mb-4 md:mb-0 cursor-pointer" onClick={() => navigate('/')}>
               <ChefHat className="h-6 w-6 text-primary" />
-              <span className="text-lg font-semibold">Dine Tracker</span>
+              <span className="text-lg font-semibold">Grubby</span>
             </div>
             <div className="text-muted-foreground text-sm">
-              © 2024 Dine Tracker. Track your culinary journey.
+              © 2024 Grubby. Track your culinary journey.
             </div>
           </div>
         </div>

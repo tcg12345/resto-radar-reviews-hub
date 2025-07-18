@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Check, ChevronDown, X, Sliders } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,8 @@ interface RatedRestaurantsPageProps {
   onAddRestaurant: (data: RestaurantFormData) => void;
   onEditRestaurant: (id: string, data: RestaurantFormData) => void;
   onDeleteRestaurant: (id: string) => void;
+  shouldOpenAddDialog?: boolean;
+  onAddDialogClose?: () => void;
 }
 
 export function RatedRestaurantsPage({
@@ -25,6 +27,8 @@ export function RatedRestaurantsPage({
   onAddRestaurant,
   onEditRestaurant,
   onDeleteRestaurant,
+  shouldOpenAddDialog = false,
+  onAddDialogClose,
 }: RatedRestaurantsPageProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -39,6 +43,14 @@ export function RatedRestaurantsPage({
   const [tempRatingRange, setTempRatingRange] = useState<[number, number]>([0, 10]);
 
   const ratedRestaurants = restaurants.filter((r) => !r.isWishlist);
+
+  // Handle opening the add dialog when triggered from HomePage
+  useEffect(() => {
+    if (shouldOpenAddDialog) {
+      setIsAddDialogOpen(true);
+      onAddDialogClose?.();
+    }
+  }, [shouldOpenAddDialog, onAddDialogClose]);
 
   // Get unique cuisines
   const cuisines = Array.from(new Set(ratedRestaurants.map(r => r.cuisine)));

@@ -13,6 +13,7 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -53,8 +54,8 @@ export default function AuthPage() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
-      toast.error('Please enter both email and password');
+    if (!email || !password || !name) {
+      toast.error('Please enter email, password, and name');
       return;
     }
     
@@ -77,6 +78,7 @@ export default function AuthPage() {
           data: {
             // Additional user metadata that will be stored in profiles
             email: email,
+            name: name,
           }
         }
       });
@@ -101,7 +103,7 @@ export default function AuthPage() {
     <div className="flex justify-center items-center min-h-screen p-4 bg-card">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Restaurant Rater</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Grubby</CardTitle>
           <CardDescription className="text-center">
             Sign in or create an account to manage your restaurant ratings
           </CardDescription>
@@ -159,6 +161,17 @@ export default function AuthPage() {
           <TabsContent value="signup">
             <form onSubmit={handleSignUp}>
               <CardContent className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="signup-name">Name</Label>
+                  <Input
+                    id="signup-name"
+                    type="text"
+                    placeholder="Your full name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                  />
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
                   <Input

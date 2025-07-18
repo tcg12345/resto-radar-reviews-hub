@@ -8,12 +8,18 @@ import { useRestaurants } from '@/contexts/RestaurantContext';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<'home' | 'rated' | 'wishlist' | 'map'>('home');
+  const [shouldOpenAddDialog, setShouldOpenAddDialog] = useState(false);
   const { restaurants, addRestaurant, updateRestaurant, deleteRestaurant } = useRestaurants();
+
+  const handleOpenAddRestaurant = () => {
+    setShouldOpenAddDialog(true);
+    setActiveTab('rated');
+  };
 
   const renderContent = () => {
     switch (activeTab) {
       case 'home':
-        return <HomePage onNavigate={setActiveTab} />;
+        return <HomePage onNavigate={setActiveTab} onOpenAddRestaurant={handleOpenAddRestaurant} />;
       case 'rated':
         return (
           <RatedRestaurantsPage
@@ -21,6 +27,8 @@ export default function Dashboard() {
             onAddRestaurant={addRestaurant}
             onEditRestaurant={updateRestaurant}
             onDeleteRestaurant={deleteRestaurant}
+            shouldOpenAddDialog={shouldOpenAddDialog}
+            onAddDialogClose={() => setShouldOpenAddDialog(false)}
           />
         );
       case 'wishlist':

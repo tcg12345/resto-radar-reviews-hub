@@ -22,10 +22,11 @@ import { useRestaurants } from '@/contexts/RestaurantContext';
 
 interface HomePageProps {
   onNavigate: (tab: 'rated' | 'wishlist' | 'map') => void;
+  onOpenAddRestaurant: () => void;
 }
 
-export default function HomePage({ onNavigate }: HomePageProps) {
-  const { user } = useAuth();
+export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePageProps) {
+  const { user, profile } = useAuth();
   const { restaurants } = useRestaurants();
 
   const ratedRestaurants = restaurants.filter(r => !r.isWishlist);
@@ -55,7 +56,7 @@ export default function HomePage({ onNavigate }: HomePageProps) {
       description: 'Rate a new dining experience',
       icon: Plus,
       color: 'bg-green-500',
-      action: () => onNavigate('rated')
+      action: onOpenAddRestaurant
     },
     {
       title: 'View Map',
@@ -118,12 +119,20 @@ export default function HomePage({ onNavigate }: HomePageProps) {
     return 'Good Evening';
   };
 
+  const getFirstName = () => {
+    if (profile?.name) {
+      const firstName = profile.name.split(' ')[0];
+      return firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
+    }
+    return user?.email?.split('@')[0] || 'Food Lover';
+  };
+
   return (
     <div className="container py-6 space-y-8">
       {/* Header */}
       <div className="space-y-2">
         <h1 className="text-3xl font-bold">
-          {getGreeting()}, {user?.email?.split('@')[0] || 'Food Lover'}! 👋
+          {getGreeting()}, {getFirstName()}! 👋
         </h1>
         <p className="text-muted-foreground text-lg">
           Welcome back to your culinary journey dashboard
