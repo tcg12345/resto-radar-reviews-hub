@@ -225,17 +225,19 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
       </div>
 
       {selectedRestaurant && (
-        <div className="absolute bottom-4 left-4 right-4 z-10 rounded-lg bg-card p-4 shadow-lg md:left-auto md:right-4 md:w-80">
-          <div className="mb-2 flex items-start justify-between">
-            <h3 className="font-semibold">{selectedRestaurant.name}</h3>
+        <div className="absolute bottom-4 left-4 right-4 z-10 rounded-lg bg-card p-4 shadow-lg md:left-auto md:right-4 md:w-96">
+          <div className="mb-3 flex flex-col gap-2">
+            <h3 className="font-semibold text-lg leading-tight">{selectedRestaurant.name}</h3>
             {selectedRestaurant.rating && (
-              <StarRating rating={selectedRestaurant.rating} readonly size="sm" />
+              <div className="flex items-center">
+                <StarRating rating={selectedRestaurant.rating} readonly size="sm" />
+              </div>
             )}
           </div>
           
           <div className="mb-2 flex items-center text-sm text-muted-foreground">
-            <MapPin className="mr-1 h-3.5 w-3.5" />
-            {selectedRestaurant.address}, {selectedRestaurant.city}
+            <MapPin className="mr-1 h-3.5 w-3.5 flex-shrink-0" />
+            <span className="break-words">{selectedRestaurant.address}, {selectedRestaurant.city}</span>
           </div>
           
           <div className="mb-2 text-sm">
@@ -252,7 +254,7 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
             <Button 
               onClick={() => onRestaurantSelect(selectedRestaurant.id)} 
               size="sm" 
-              className="w-full"
+              className="flex-1"
             >
               View Details
             </Button>
