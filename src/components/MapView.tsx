@@ -23,8 +23,9 @@ const MAP_STYLES = {
   hybrid: 'mapbox://styles/mapbox/satellite-streets-v12'
 };
 
-// Helper function to determine marker color based on rating
-const getMarkerColor = (rating?: number): string => {
+// Helper function to determine marker color based on rating and wishlist status
+const getMarkerColor = (rating?: number, isWishlist?: boolean): string => {
+  if (isWishlist) return '9333ea'; // purple for wishlist items
   if (!rating) return 'e91e63'; // red for no rating
   if (rating <= 5) return 'e91e63'; // red for 0-5 stars
   if (rating <= 7.5) return '2196f3'; // blue for 5.01-7.5 stars
@@ -157,7 +158,7 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
         el.className = 'marker';
         el.style.width = '24px';
         el.style.height = '24px';
-        el.style.backgroundImage = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%23${getMarkerColor(restaurant.rating)}" stroke="%23ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>')`;
+        el.style.backgroundImage = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%23${getMarkerColor(restaurant.rating, restaurant.isWishlist)}" stroke="%23ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>')`;
         el.style.backgroundSize = '100%';
         el.style.cursor = 'pointer';
 
