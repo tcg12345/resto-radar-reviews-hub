@@ -31,7 +31,7 @@ export function RatedRestaurantsPage({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'latest' | 'oldest' | 'rating-high' | 'rating-low' | 'name-az' | 'name-za' | 'price-low' | 'price-high' | 'michelin-high' | 'michelin-low'>('latest');
+  const [sortBy, setSortBy] = useState<'latest' | 'oldest' | 'rating-high' | 'rating-low' | 'name-az' | 'name-za' | 'price-low' | 'price-high' | 'michelin-high' | 'michelin-low'>('rating-high');
   const [filterCuisines, setFilterCuisines] = useState<string[]>([]);
   const [filterPrices, setFilterPrices] = useState<string[]>([]);
   const [filterMichelins, setFilterMichelins] = useState<string[]>([]);
