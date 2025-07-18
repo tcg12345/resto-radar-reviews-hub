@@ -452,18 +452,6 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
               />
             </label>
           </div>
-          
-          {/* Help text for Mac users */}
-          {!isMobile && (
-            <div className="mt-2 text-sm text-muted-foreground bg-muted/30 rounded-md p-3">
-              <p className="font-medium mb-1">💡 Mac Photo Selection Tips:</p>
-              <ul className="space-y-1 text-xs">
-                <li>• <strong>Multiple photos:</strong> Hold <kbd className="px-1 py-0.5 bg-background rounded text-xs border">⌘ Cmd</kbd> and click multiple photos</li>
-                <li>• <strong>Range selection:</strong> Click first photo, hold <kbd className="px-1 py-0.5 bg-background rounded text-xs border">⇧ Shift</kbd>, click last photo</li>
-                <li>• <strong>All photos:</strong> Press <kbd className="px-1 py-0.5 bg-background rounded text-xs border">⌘ Cmd</kbd> + <kbd className="px-1 py-0.5 bg-background rounded text-xs border">A</kbd> to select all</li>
-              </ul>
-            </div>
-          )}
         </div>
       </div>
 
