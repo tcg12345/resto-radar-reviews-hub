@@ -90,7 +90,7 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
               <div className="flex items-center text-sm font-medium">
                 {restaurant.priceRange && (
                   <>
-                    <span className="text-primary">{`${'$'.repeat(restaurant.priceRange)}`}</span>
+                    <span className="text-green-600">{`${'$'.repeat(restaurant.priceRange)}`}</span>
                     <span className="mx-1 text-muted-foreground">•</span>
                   </>
                 )}
