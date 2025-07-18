@@ -18,12 +18,17 @@ import {
   ArrowRight,
   AlertCircle,
   Moon,
-  Sun
+  Sun,
+  Lock,
+  MessageCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@/hooks/useTheme';
 import { GrubbyLogo } from '@/components/GrubbyLogo';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { StarRating } from '@/components/StarRating';
+import { MichelinStars } from '@/components/MichelinStars';
+import { useToast } from '@/hooks/use-toast';
 
 // Mock data for demo
 const mockRestaurants = [
@@ -81,11 +86,14 @@ const mockRestaurants = [
 
 export default function DemoPage() {
   const [activeTab, setActiveTab] = useState<'home' | 'rated' | 'wishlist' | 'map'>('home');
+  const [restaurants, setRestaurants] = useState(mockRestaurants);
+  const [showLockedChat, setShowLockedChat] = useState(false);
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const { toast } = useToast();
 
-  const ratedRestaurants = mockRestaurants.filter(r => !r.isWishlist);
-  const wishlistRestaurants = mockRestaurants.filter(r => r.isWishlist);
+  const ratedRestaurants = restaurants.filter(r => !r.isWishlist);
+  const wishlistRestaurants = restaurants.filter(r => r.isWishlist);
   const michelinRestaurants = ratedRestaurants.filter(r => r.michelinStars);
   
   const averageRating = ratedRestaurants.length > 0 
@@ -148,6 +156,42 @@ export default function DemoPage() {
     if (hour < 12) return 'Good Morning';
     if (hour < 17) return 'Good Afternoon';
     return 'Good Evening';
+  };
+
+  const handleRatingChange = (restaurantId: string, rating: number) => {
+    setRestaurants(prev => prev.map(r => 
+      r.id === restaurantId 
+        ? { ...r, rating, updatedAt: new Date().toISOString() }
+        : r
+    ));
+    toast({
+      title: "Rating updated!",
+      description: `Your rating has been updated to ${rating}/10`,
+    });
+  };
+
+  const handleMichelinStarsChange = (restaurantId: string, stars: number | undefined) => {
+    setRestaurants(prev => prev.map(r => 
+      r.id === restaurantId 
+        ? { ...r, michelinStars: stars || 0, updatedAt: new Date().toISOString() }
+        : r
+    ));
+    toast({
+      title: "Michelin stars updated!",
+      description: `Michelin stars updated to ${stars || 0}`,
+    });
+  };
+
+  const handleRateFromWishlist = (restaurantId: string, rating: number) => {
+    setRestaurants(prev => prev.map(r => 
+      r.id === restaurantId 
+        ? { ...r, rating, isWishlist: false, updatedAt: new Date().toISOString() }
+        : r
+    ));
+    toast({
+      title: "Restaurant rated!",
+      description: `Restaurant moved to your rated list with ${rating}/10 rating`,
+    });
   };
 
   const renderContent = () => {
@@ -257,24 +301,45 @@ export default function DemoPage() {
       case 'rated':
         return (
           <div className="container py-6 space-y-6">
-            <h1 className="text-3xl font-bold">My Ratings</h1>
+            <div className="flex items-center justify-between">
+              <h1 className="text-3xl font-bold">My Ratings</h1>
+              <Badge variant="secondary" className="text-sm">
+                {ratedRestaurants.length} Restaurant{ratedRestaurants.length !== 1 ? 's' : ''}
+              </Badge>
+            </div>
             <div className="grid gap-4">
               {ratedRestaurants.map((restaurant) => (
-                <Card key={restaurant.id}>
+                <Card key={restaurant.id} className="hover:shadow-lg transition-shadow">
                   <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-lg font-semibold">{restaurant.name}</h3>
-                        <p className="text-muted-foreground">{restaurant.cuisine} • {restaurant.city}</p>
+                    <div className="space-y-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold">{restaurant.name}</h3>
+                          <p className="text-muted-foreground">{restaurant.cuisine} • {restaurant.city}</p>
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          Interactive Demo
+                        </Badge>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="font-semibold">{restaurant.rating}</span>
-                        {restaurant.michelinStars > 0 && (
-                          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                            {restaurant.michelinStars} ⭐
-                          </Badge>
-                        )}
+                      
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">Your Rating</label>
+                          <StarRating
+                            rating={restaurant.rating}
+                            onRatingChange={(rating) => handleRatingChange(restaurant.id, rating)}
+                            size="sm"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">Michelin Stars</label>
+                          <MichelinStars
+                            stars={restaurant.michelinStars}
+                            onStarsChange={(stars) => handleMichelinStarsChange(restaurant.id, stars)}
+                            size="sm"
+                          />
+                        </div>
                       </div>
                     </div>
                   </CardContent>
@@ -286,17 +351,52 @@ export default function DemoPage() {
       case 'wishlist':
         return (
           <div className="container py-6 space-y-6">
-            <h1 className="text-3xl font-bold">Wishlist</h1>
+            <div className="flex items-center justify-between">
+              <h1 className="text-3xl font-bold">Wishlist</h1>
+              <Badge variant="secondary" className="text-sm">
+                {wishlistRestaurants.length} Restaurant{wishlistRestaurants.length !== 1 ? 's' : ''}
+              </Badge>
+            </div>
             <div className="grid gap-4">
               {wishlistRestaurants.map((restaurant) => (
-                <Card key={restaurant.id}>
+                <Card key={restaurant.id} className="hover:shadow-lg transition-shadow">
                   <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-lg font-semibold">{restaurant.name}</h3>
-                        <p className="text-muted-foreground">{restaurant.cuisine} • {restaurant.city}</p>
+                    <div className="space-y-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold">{restaurant.name}</h3>
+                          <p className="text-muted-foreground">{restaurant.cuisine} • {restaurant.city}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs">
+                            Interactive Demo
+                          </Badge>
+                          <Heart className="h-5 w-5 text-red-500" />
+                        </div>
                       </div>
-                      <Heart className="h-5 w-5 text-red-500" />
+                      
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">Rate this restaurant</label>
+                          <StarRating
+                            rating={0}
+                            onRatingChange={(rating) => handleRateFromWishlist(restaurant.id, rating)}
+                            size="sm"
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Rating this restaurant will move it to your rated list
+                          </p>
+                        </div>
+                        
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">Michelin Stars (optional)</label>
+                          <MichelinStars
+                            stars={0}
+                            onStarsChange={(stars) => handleMichelinStarsChange(restaurant.id, stars)}
+                            size="sm"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -379,6 +479,75 @@ export default function DemoPage() {
       </nav>
 
       {renderContent()}
+      
+      {/* Locked AI Chatbot */}
+      <div className="fixed bottom-6 right-6 z-50">
+        {showLockedChat ? (
+          <Card className="w-80 mb-4 shadow-lg border-2 border-primary/20">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <MessageCircle className="h-5 w-5" />
+                  AI Culinary Assistant
+                </CardTitle>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowLockedChat(false)}
+                  className="h-8 w-8"
+                >
+                  ×
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-center p-8 bg-muted/50 rounded-lg">
+                <div className="text-center space-y-3">
+                  <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                    <Lock className="h-8 w-8 text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-lg">Premium Feature</h4>
+                    <p className="text-sm text-muted-foreground">
+                      AI-powered restaurant recommendations and culinary advice
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <Badge variant="secondary" className="text-xs">✨</Badge>
+                  <span>Personalized restaurant suggestions</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Badge variant="secondary" className="text-xs">🍽️</Badge>
+                  <span>Cuisine expertise & pairing advice</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Badge variant="secondary" className="text-xs">📍</Badge>
+                  <span>Location-based recommendations</span>
+                </div>
+              </div>
+              
+              <Button className="w-full" onClick={() => navigate('/auth')}>
+                Sign Up to Unlock AI Features
+              </Button>
+            </CardContent>
+          </Card>
+        ) : null}
+        
+        <Button
+          onClick={() => setShowLockedChat(!showLockedChat)}
+          size="icon"
+          className="h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 relative"
+        >
+          <MessageCircle className="h-6 w-6" />
+          <div className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center">
+            <Lock className="h-3 w-3" />
+          </div>
+        </Button>
+      </div>
     </div>
   );
 }
