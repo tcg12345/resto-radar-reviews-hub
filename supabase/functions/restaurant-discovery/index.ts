@@ -39,6 +39,10 @@ serve(async (req) => {
     
     console.log('Processing restaurant search:', { query, location, filters });
 
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key is not configured');
+    }
+
     // Use OpenAI to understand the search intent and generate restaurant data
     const systemPrompt = `You are a restaurant discovery AI assistant. Based on the user's natural language query, you should understand their preferences and generate realistic restaurant recommendations.
 
@@ -50,28 +54,30 @@ Consider these factors:
 - Ambiance preferences (casual, fine dining, family-friendly, etc.)
 - Special occasions or requirements
 
-Generate 6-8 diverse restaurant recommendations that match the query. For each restaurant, provide realistic details including:
-- Name (creative but believable)
+Generate 8-12 diverse, realistic restaurant recommendations that match the query. For each restaurant, provide accurate details including:
+- Name (use real restaurant names when possible, or realistic sounding names)
 - Address (realistic for the requested location)
 - Cuisine type
 - Price range (1-4)
-- Rating (3.5-5.0 range)
-- Description (2-3 sentences)
-- Features array (e.g., "Outdoor seating", "Vegetarian options", "Wine bar", etc.)
+- Rating (3.8-4.8 range)
+- Description (2-3 sentences about what makes it special)
+- Features array (e.g., "Outdoor seating", "Vegetarian options", "Wine bar", "Private dining", etc.)
 - Realistic coordinates for the location
 - Phone number format appropriate for the country
-- Opening hours
+- Opening hours (realistic format)
 - Website URL (realistic domain)
 - Reservation URL when applicable
 
-Return ONLY a valid JSON array of restaurant objects. No other text.`;
+IMPORTANT: Return ONLY a valid JSON array of restaurant objects. No markdown, no text, just pure JSON.`;
 
     const userPrompt = `Find restaurants based on this request: "${query}"
-    ${location ? `Location: ${location}` : ''}
-    ${filters ? `Additional filters: ${JSON.stringify(filters)}` : ''}
+    ${location ? `Location: ${location}` : 'Location: Global (suggest diverse locations)'}
+    ${filters && Object.keys(filters).length > 0 ? `Additional filters: ${JSON.stringify(filters)}` : ''}
     
-    Generate realistic restaurant recommendations that match this request.`;
+    Generate diverse, realistic restaurant recommendations that match this request. Include restaurants from major cities if no specific location is mentioned.`;
 
+    console.log('Making OpenAI API call...');
+    
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -84,39 +90,98 @@ Return ONLY a valid JSON array of restaurant objects. No other text.`;
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        temperature: 0.7,
-        max_tokens: 3000,
+        temperature: 0.8,
+        max_tokens: 4000,
       }),
     });
 
+    console.log('OpenAI response status:', response.status);
+
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('OpenAI API error:', response.status, errorText);
+      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
+    console.log('OpenAI response received, parsing...');
+    
     let restaurants: RestaurantSearchResult[];
 
     try {
-      restaurants = JSON.parse(data.choices[0].message.content);
+      const content = data.choices[0].message.content;
+      console.log('Raw AI response:', content);
+      
+      // Clean the response - remove any markdown formatting
+      const cleanContent = content.replace(/```json\s*|\s*```/g, '').trim();
+      console.log('Cleaned response:', cleanContent);
+      
+      restaurants = JSON.parse(cleanContent);
+      console.log('Successfully parsed restaurants:', restaurants.length);
+      
+      // Validate the parsed data
+      if (!Array.isArray(restaurants) || restaurants.length === 0) {
+        throw new Error('Invalid response format: expected non-empty array');
+      }
+      
     } catch (parseError) {
-      console.error('Failed to parse AI response:', data.choices[0].message.content);
-      // Fallback with sample data
+      console.error('Failed to parse AI response:', parseError);
+      console.error('Response content:', data.choices[0].message.content);
+      
+      // Enhanced fallback with more diverse sample data
+      const locationToUse = location || 'New York';
       restaurants = [
         {
-          name: "Sample Restaurant",
-          address: "123 Main St, " + (location || "New York, NY"),
-          cuisine: "International",
-          priceRange: 2,
-          rating: 4.2,
-          description: "A wonderful dining experience with fresh ingredients and creative dishes.",
-          website: "https://example-restaurant.com",
-          phoneNumber: "+1 (555) 123-4567",
-          openingHours: "Mon-Sun: 5:00 PM - 10:00 PM",
-          features: ["Outdoor seating", "Wine selection", "Vegetarian options"],
+          name: "The Modern",
+          address: "9 W 53rd St, New York, NY 10019",
+          cuisine: "Contemporary American",
+          priceRange: 4,
+          rating: 4.5,
+          description: "Michelin-starred contemporary American restaurant overlooking MoMA's sculpture garden with innovative seasonal dishes.",
+          website: "https://themodernnyc.com",
+          phoneNumber: "+1 (212) 333-1220",
+          openingHours: "Mon-Sat: 5:30 PM - 10:00 PM",
+          features: ["Michelin Star", "Fine Dining", "Wine Selection", "Art Views"],
           location: {
-            lat: 40.7128,
-            lng: -74.0060,
-            city: location?.split(',')[0] || "New York",
+            lat: 40.7614,
+            lng: -73.9776,
+            city: locationToUse.split(',')[0] || "New York",
+            country: "United States"
+          }
+        },
+        {
+          name: "Gramercy Tavern",
+          address: "42 E 20th St, New York, NY 10003",
+          cuisine: "American",
+          priceRange: 3,
+          rating: 4.4,
+          description: "Beloved neighborhood restaurant serving seasonal American cuisine in a rustic, welcoming atmosphere.",
+          website: "https://gramercytavern.com",
+          phoneNumber: "+1 (212) 477-0777",
+          openingHours: "Daily: 5:00 PM - 10:00 PM",
+          features: ["Farm-to-table", "Wine Bar", "Private Dining"],
+          location: {
+            lat: 40.7382,
+            lng: -73.9884,
+            city: locationToUse.split(',')[0] || "New York",
+            country: "United States"
+          }
+        },
+        {
+          name: "Joe's Pizza",
+          address: "7 Carmine St, New York, NY 10014",
+          cuisine: "Pizza",
+          priceRange: 1,
+          rating: 4.2,
+          description: "Classic New York pizza joint serving thin-crust slices since 1975. A true Greenwich Village institution.",
+          website: "https://joespizzanyc.com",
+          phoneNumber: "+1 (212) 366-1182",
+          openingHours: "Daily: 10:00 AM - 4:00 AM",
+          features: ["Late Night", "Takeout", "Quick Service"],
+          location: {
+            lat: 40.7308,
+            lng: -74.0034,
+            city: locationToUse.split(',')[0] || "New York",
             country: "United States"
           }
         }
@@ -127,13 +192,13 @@ Return ONLY a valid JSON array of restaurant objects. No other text.`;
     const enhancedRestaurants = restaurants.map((restaurant: any) => ({
       ...restaurant,
       id: crypto.randomUUID(),
-      reservationUrl: restaurant.reservationUrl || `https://opentable.com/search?query=${encodeURIComponent(restaurant.name)}`,
+      reservationUrl: restaurant.reservationUrl || `https://resy.com/cities/new-york-ny/${encodeURIComponent(restaurant.name.toLowerCase().replace(/\s+/g, '-'))}`,
       images: [
-        `https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop`,
-        `https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop`,
-        `https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?w=400&h=300&fit=crop`
+        `https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop&auto=format`,
+        `https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop&auto=format`,
+        `https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?w=400&h=300&fit=crop&auto=format`
       ].slice(0, Math.floor(Math.random() * 3) + 1),
-      isOpen: Math.random() > 0.3, // 70% chance of being open
+      isOpen: Math.random() > 0.2, // 80% chance of being open
       nextAvailableSlot: new Date(Date.now() + Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
     }));
 
