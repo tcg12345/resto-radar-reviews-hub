@@ -50,6 +50,23 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
     .sort(() => Math.random() - 0.5)
     .slice(0, 3);
 
+  const recentWishlistRestaurants = [...wishlistRestaurants]
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    .slice(0, 3);
+
+  const cuisineStats = ratedRestaurants.reduce((acc, r) => {
+    acc[r.cuisine] = (acc[r.cuisine] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const topCuisines = Object.entries(cuisineStats)
+    .sort(([,a], [,b]) => b - a)
+    .slice(0, 3);
+
+  const topCuisineRestaurants = topCuisines.length > 0 
+    ? ratedRestaurants.filter(r => r.cuisine === topCuisines[0][0]).slice(0, 3)
+    : [];
+
   const cardRotationData = [
     {
       title: "Recently Rated",
@@ -68,6 +85,18 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
       description: "A random selection from your collection",
       restaurants: randomRestaurants,
       icon: TrendingUp
+    },
+    {
+      title: "Recently Added",
+      description: "Latest additions to your wishlist",
+      restaurants: recentWishlistRestaurants,
+      icon: Heart
+    },
+    {
+      title: "Top Cuisine",
+      description: `From your favorite ${topCuisines.length > 0 ? topCuisines[0][0] : 'cuisine'}`,
+      restaurants: topCuisineRestaurants,
+      icon: ChefHat
     }
   ];
 
@@ -80,15 +109,6 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
   }, [cardRotationData.length]);
 
   const currentCardData = cardRotationData[rotatingCardIndex];
-
-  const cuisineStats = ratedRestaurants.reduce((acc, r) => {
-    acc[r.cuisine] = (acc[r.cuisine] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const topCuisines = Object.entries(cuisineStats)
-    .sort(([,a], [,b]) => b - a)
-    .slice(0, 3);
 
   const quickActions = [
     {
