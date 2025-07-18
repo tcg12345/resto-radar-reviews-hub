@@ -106,54 +106,60 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
         restaurantName={restaurant.name}
       />
     <Card className="overflow-hidden bg-card shadow-md hover:shadow-lg transition-shadow duration-300">
-      {/* Only show photo section if restaurant has photos */}
-      {restaurant.photos.length > 0 && (
-        <div className="relative aspect-video w-full overflow-hidden">
-          {imageLoading && (
-            <div className="absolute inset-0 z-10">
-              <Skeleton className="h-full w-full" />
-            </div>
-          )}
-          <img
-            src={restaurant.photos[currentPhotoIndex]}
-            alt={`${restaurant.name} photo ${currentPhotoIndex + 1}`}
-            className="h-full w-full object-cover transition-transform duration-300 hover:scale-105 cursor-pointer"
-            onClick={openGallery}
-            onLoad={() => setImageLoading(false)}
-            onError={() => setImageLoading(false)}
-          />
-          
-          {hasMultiplePhotos && (
-            <div className="absolute inset-x-0 bottom-0 flex justify-between p-2">
-              <Button 
-                size="icon" 
-                variant="secondary" 
-                className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  previousPhoto();
-                }}
-              >
-                &larr;
-              </Button>
-              <span className="rounded-full bg-background/80 px-2 py-1 text-xs font-medium backdrop-blur-sm">
-                {currentPhotoIndex + 1}/{restaurant.photos.length}
-              </span>
-              <Button 
-                size="icon" 
-                variant="secondary" 
-                className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  nextPhoto();
-                }}
-              >
-                &rarr;
-              </Button>
-            </div>
-          )}
-        </div>
-      )}
+      {/* Always show photo section, even if no photos */}
+      <div className="relative aspect-video w-full overflow-hidden bg-muted">
+        {restaurant.photos.length > 0 ? (
+          <>
+            {imageLoading && (
+              <div className="absolute inset-0 z-10">
+                <Skeleton className="h-full w-full" />
+              </div>
+            )}
+            <img
+              src={restaurant.photos[currentPhotoIndex]}
+              alt={`${restaurant.name} photo ${currentPhotoIndex + 1}`}
+              className="h-full w-full object-cover transition-transform duration-300 hover:scale-105 cursor-pointer"
+              onClick={openGallery}
+              onLoad={() => setImageLoading(false)}
+              onError={() => setImageLoading(false)}
+            />
+            
+            {hasMultiplePhotos && (
+              <div className="absolute inset-x-0 bottom-0 flex justify-between p-2">
+                <Button 
+                  size="icon" 
+                  variant="secondary" 
+                  className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    previousPhoto();
+                  }}
+                >
+                  &larr;
+                </Button>
+                <span className="rounded-full bg-background/80 px-2 py-1 text-xs font-medium backdrop-blur-sm">
+                  {currentPhotoIndex + 1}/{restaurant.photos.length}
+                </span>
+                <Button 
+                  size="icon" 
+                  variant="secondary" 
+                  className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    nextPhoto();
+                  }}
+                >
+                  &rarr;
+                </Button>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="h-full w-full flex items-center justify-center">
+            {/* Empty photo box - no text */}
+          </div>
+        )}
+      </div>
       
       <CardHeader className="pb-2">
         <div className="flex flex-col gap-2">
