@@ -23,7 +23,7 @@ export function PriceRange({
 
   return (
     <div className="flex items-center gap-1">
-      {[1, 2, 3, 4].map((level) => {
+      {[1, 2, 3, 4, 5].map((level) => {
         const isFilled = level <= displayPrice;
         
         return (
