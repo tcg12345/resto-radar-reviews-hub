@@ -209,8 +209,8 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
         </div>
       )}
       
-      {/* Search bar - top center */}
-      <div className="absolute left-4 right-16 top-4 z-10">
+      {/* Search bar - full width */}
+      <div className="absolute left-4 right-4 top-4 z-10">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -220,18 +220,6 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
             className="pl-10"
           />
         </div>
-      </div>
-
-      {/* Settings button - top left */}
-      <div className="absolute left-4 top-16 z-10">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => setShowTokenInput(true)}
-          title="Configure Mapbox Token"
-        >
-          <Settings className="h-4 w-4" />
-        </Button>
       </div>
 
       {selectedRestaurant && (
