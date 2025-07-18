@@ -1,5 +1,5 @@
 import { ReactNode, useEffect } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -10,14 +10,12 @@ interface RequireAuthProps {
 export function RequireAuth({ children }: RequireAuthProps) {
   const { user, isLoading } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (!isLoading && !user) {
       toast.error('Please sign in to access this page');
-      navigate('/auth', { state: { from: location.pathname } });
     }
-  }, [user, isLoading, navigate, location]);
+  }, [user, isLoading]);
 
   if (isLoading) {
     // Show loading state

@@ -22,8 +22,12 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
   ];
   
   const handleSignOut = async () => {
-    await signOut();
-    navigate('/auth');
+    try {
+      await signOut();
+      navigate('/auth');
+    } catch (error) {
+      console.error('Error during sign out:', error);
+    }
   };
 
   return (
