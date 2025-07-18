@@ -9,6 +9,7 @@ const corsHeaders = {
 };
 
 interface RestaurantSearchResult {
+  id: string;
   name: string;
   address: string;
   cuisine: string;
@@ -85,65 +86,9 @@ const mapPlaceTypeToCuisine = (types: string[], name: string): string => {
   return 'Restaurant';
 };
 
-// Get price range from Google's price level (0-4) 
-const mapPriceLevel = (priceLevel?: number): number => {
-  if (!priceLevel) return 2; // Default to moderate
-  return Math.min(Math.max(priceLevel, 1), 4); // Ensure 1-4 range
-};
-
-// Extract features from Google Places data
-const extractFeatures = (place: any): string[] => {
-  const features: string[] = [];
-  
-  if (place.delivery) features.push('Delivery');
-  if (place.dine_in) features.push('Dine-in');
-  if (place.takeout) features.push('Takeout');
-  if (place.reservable) features.push('Reservations');
-  if (place.serves_beer) features.push('Beer');
-  if (place.serves_wine) features.push('Wine');
-  if (place.serves_vegetarian_food) features.push('Vegetarian options');
-  if (place.wheelchair_accessible_entrance) features.push('Wheelchair accessible');
-  if (place.outdoor_seating) features.push('Outdoor seating');
-  if (place.live_music) features.push('Live music');
-  if (place.serves_brunch) features.push('Brunch');
-  if (place.serves_lunch) features.push('Lunch');
-  if (place.serves_dinner) features.push('Dinner');
-  if (place.good_for_children) features.push('Family-friendly');
-  if (place.accepts_credit_cards) features.push('Credit cards accepted');
-  
-  return features;
-};
-
-// Generate opening hours string
-const formatOpeningHours = (openingHours?: any): string => {
-  if (!openingHours?.weekday_text) return 'Hours not available';
-  
-  // Take first few days as sample
-  const sample = openingHours.weekday_text.slice(0, 2).join(', ');
-  return sample.length > 50 ? sample.substring(0, 50) + '...' : sample;
-};
-
-// Get reservation URL based on restaurant name and location
-const generateReservationUrl = (name: string, address: string): string | null => {
-  // Common reservation platforms
-  const platforms = ['opentable', 'resy', 'yelp'];
-  const platform = platforms[Math.floor(Math.random() * platforms.length)];
-  
-  const cleanName = name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
-  
-  switch (platform) {
-    case 'opentable':
-      return `https://www.opentable.com/r/${cleanName}`;
-    case 'resy':
-      return `https://resy.com/cities/ny/${cleanName}`;
-    case 'yelp':
-      return `https://www.yelp.com/reservations/${cleanName}`;
-    default:
-      return null;
-  }
-};
-
 serve(async (req) => {
+  console.log('Restaurant discovery function called');
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -151,171 +96,140 @@ serve(async (req) => {
   try {
     const { query, location, filters } = await req.json();
     
-    console.log('Processing restaurant search with Google Places:', { query, location, filters });
+    console.log('Processing restaurant search:', { query, location, filters });
 
     if (!googlePlacesApiKey) {
-      throw new Error('Google Places API key is not configured');
+      console.error('Google Places API key is not configured');
+      throw new Error('Google Places API key is not configured. Please add GOOGLE_PLACES_API_KEY to your Supabase secrets.');
     }
 
-    // Parse the search query to extract cuisine and other filters
+    console.log('Google Places API key found, proceeding with search');
+
+    // Default to a location if none provided
+    const searchLocation = location || 'New York, NY';
+    console.log('Search location:', searchLocation);
+
+    // Parse the search query to extract cuisine type
     const queryLower = query.toLowerCase();
-    let searchType = 'restaurant';
-    let cuisineFilter = '';
+    let cuisineType = '';
+    
+    const cuisineKeywords = [
+      'italian', 'chinese', 'japanese', 'sushi', 'mexican', 'french', 
+      'indian', 'thai', 'mediterranean', 'greek', 'korean', 'pizza', 
+      'steakhouse', 'seafood', 'vegetarian', 'cafe', 'bakery'
+    ];
 
-    // Extract cuisine from query
-    const cuisineKeywords = {
-      'italian': 'italian_restaurant',
-      'chinese': 'chinese_restaurant',
-      'japanese': 'japanese_restaurant',
-      'sushi': 'sushi_restaurant',
-      'mexican': 'mexican_restaurant',
-      'french': 'french_restaurant',
-      'indian': 'indian_restaurant',
-      'thai': 'thai_restaurant',
-      'mediterranean': 'mediterranean_restaurant',
-      'greek': 'greek_restaurant',
-      'korean': 'korean_restaurant',
-      'pizza': 'pizza_restaurant',
-      'steakhouse': 'steakhouse',
-      'seafood': 'seafood_restaurant',
-      'vegetarian': 'vegetarian_restaurant',
-      'cafe': 'cafe',
-      'bakery': 'bakery'
-    };
-
-    for (const [keyword, type] of Object.entries(cuisineKeywords)) {
+    for (const keyword of cuisineKeywords) {
       if (queryLower.includes(keyword)) {
-        searchType = type;
-        cuisineFilter = keyword;
+        cuisineType = keyword;
         break;
       }
     }
 
-    // First, geocode the location to get coordinates
-    let searchLocation = location || 'New York, NY';
-    let coordinates: { lat: number; lng: number } | null = null;
-
-    if (searchLocation) {
-      console.log('Geocoding location:', searchLocation);
-      
-      const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(searchLocation)}&key=${googlePlacesApiKey}`;
-      
-      const geocodeResponse = await fetch(geocodeUrl);
-      const geocodeData = await geocodeResponse.json();
-      
-      if (geocodeData.status === 'OK' && geocodeData.results.length > 0) {
-        coordinates = geocodeData.results[0].geometry.location;
-        console.log('Geocoded coordinates:', coordinates);
-      }
-    }
-
-    if (!coordinates) {
-      throw new Error(`Could not find coordinates for location: ${searchLocation}`);
-    }
+    // Build search query
+    const searchQuery = cuisineType ? 
+      `${cuisineType} restaurants in ${searchLocation}` : 
+      `restaurants in ${searchLocation}`;
+    
+    console.log('Google Places search query:', searchQuery);
 
     // Search for restaurants using Google Places Text Search
-    console.log('Searching for restaurants near:', coordinates);
+    const placesUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(searchQuery)}&type=restaurant&key=${googlePlacesApiKey}`;
     
-    const searchQuery = cuisineFilter ? 
-      `${cuisineFilter} restaurants near ${searchLocation}` : 
-      `restaurants near ${searchLocation}`;
-    
-    const placesUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(searchQuery)}&type=restaurant&key=${googlePlacesApiKey}&radius=10000`;
+    console.log('Making request to Google Places API...');
     
     const placesResponse = await fetch(placesUrl);
+    
+    if (!placesResponse.ok) {
+      console.error('Google Places API HTTP error:', placesResponse.status, placesResponse.statusText);
+      throw new Error(`Google Places API HTTP error: ${placesResponse.status}`);
+    }
+    
     const placesData = await placesResponse.json();
     
     console.log('Google Places API response status:', placesData.status);
     console.log('Found places:', placesData.results?.length || 0);
 
+    if (placesData.status === 'REQUEST_DENIED') {
+      console.error('Google Places API request denied. Check your API key and billing account.');
+      throw new Error('Google Places API request denied. Please check your API key and ensure billing is enabled.');
+    }
+
+    if (placesData.status === 'OVER_QUERY_LIMIT') {
+      console.error('Google Places API quota exceeded');
+      throw new Error('Google Places API quota exceeded. Please try again later.');
+    }
+
     if (placesData.status !== 'OK') {
+      console.error('Google Places API error:', placesData.status, placesData.error_message);
       throw new Error(`Google Places API error: ${placesData.status} - ${placesData.error_message || 'Unknown error'}`);
     }
 
     if (!placesData.results || placesData.results.length === 0) {
-      throw new Error('No restaurants found in the specified location');
+      console.log('No restaurants found for the search criteria');
+      return new Response(JSON.stringify({
+        restaurants: [],
+        searchQuery: query,
+        location: searchLocation,
+        totalResults: 0,
+        source: 'google_places',
+        message: 'No restaurants found for your search criteria. Try a different location or cuisine type.'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    // Process the results
+    // Process the results (simplified for debugging)
     const restaurants: RestaurantSearchResult[] = [];
     
-    for (const place of placesData.results.slice(0, 30)) { // Limit to 30 results
+    for (let i = 0; i < Math.min(20, placesData.results.length); i++) {
+      const place = placesData.results[i];
+      
       try {
-        // Get detailed place information
-        const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,formatted_address,geometry,rating,price_level,website,formatted_phone_number,opening_hours,photos,types,reviews&key=${googlePlacesApiKey}`;
-        
-        const detailsResponse = await fetch(detailsUrl);
-        const detailsData = await detailsResponse.json();
-        
-        if (detailsData.status !== 'OK') {
-          console.log(`Failed to get details for place ${place.place_id}:`, detailsData.status);
-          continue;
-        }
-        
-        const details = detailsData.result;
+        console.log(`Processing place ${i + 1}: ${place.name}`);
         
         // Extract city from address
-        const addressParts = details.formatted_address.split(', ');
-        const city = addressParts.length >= 2 ? addressParts[addressParts.length - 3] || addressParts[addressParts.length - 2] : 'Unknown';
+        const addressParts = place.formatted_address?.split(', ') || [];
+        const city = addressParts.length >= 2 ? 
+          addressParts[addressParts.length - 3] || addressParts[addressParts.length - 2] : 
+          searchLocation.split(',')[0];
         const country = addressParts[addressParts.length - 1] || 'Unknown';
         
         // Get cuisine type
-        const cuisine = mapPlaceTypeToCuisine(details.types || [], details.name);
+        const cuisine = mapPlaceTypeToCuisine(place.types || [], place.name);
         
-        // Get restaurant description from reviews
-        let description = `Popular ${cuisine.toLowerCase()} restaurant`;
-        if (details.reviews && details.reviews.length > 0) {
-          const review = details.reviews[0];
-          if (review.text && review.text.length > 50) {
-            description = review.text.substring(0, 150) + '...';
-          }
-        }
+        // Map price level (Google uses 0-4, we use 1-4)
+        const priceRange = place.price_level ? Math.min(Math.max(place.price_level, 1), 4) : 2;
         
-        // Get photos
-        const images: string[] = [];
-        if (details.photos && details.photos.length > 0) {
-          // Get up to 3 photos
-          for (let i = 0; i < Math.min(3, details.photos.length); i++) {
-            const photo = details.photos[i];
-            const photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${photo.photo_reference}&key=${googlePlacesApiKey}`;
-            images.push(photoUrl);
-          }
-        }
-        
-        // Determine if restaurant is open
-        const isOpen = details.opening_hours?.open_now ?? true;
-        
-        // Generate reservation URL for higher-end restaurants
-        const priceRange = mapPriceLevel(details.price_level);
-        const reservationUrl = priceRange >= 3 ? generateReservationUrl(details.name, details.formatted_address) : null;
-        
+        // Create restaurant object with basic info
         const restaurant: RestaurantSearchResult = {
-          name: details.name,
-          address: details.formatted_address,
+          id: place.place_id || `place_${i}`,
+          name: place.name || 'Unknown Restaurant',
+          address: place.formatted_address || 'Address not available',
           cuisine,
           priceRange,
-          rating: details.rating ? Math.round(details.rating * 10) / 10 : 4.0,
-          description,
-          website: details.website,
-          reservationUrl,
-          phoneNumber: details.formatted_phone_number,
-          openingHours: formatOpeningHours(details.opening_hours),
-          features: extractFeatures(details),
-          michelinStars: priceRange >= 4 && details.rating >= 4.5 ? Math.floor(Math.random() * 2) + 1 : undefined,
+          rating: place.rating ? Math.round(place.rating * 10) / 10 : 4.0,
+          description: `A ${cuisine.toLowerCase()} restaurant in ${city}. ${place.rating ? `Rated ${place.rating} stars` : 'Popular local spot'}.`,
+          website: null, // Will be filled in with details API if needed
+          reservationUrl: priceRange >= 3 ? `https://www.opentable.com/r/${place.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}` : null,
+          phoneNumber: null,
+          openingHours: place.opening_hours?.open_now ? 'Currently open' : 'Hours vary',
+          features: [],
+          michelinStars: priceRange >= 4 && place.rating >= 4.5 ? Math.floor(Math.random() * 2) + 1 : undefined,
           location: {
-            lat: details.geometry.location.lat,
-            lng: details.geometry.location.lng,
-            city: city.replace(/[0-9]/g, '').trim(), // Remove zip codes
+            lat: place.geometry?.location?.lat || 0,
+            lng: place.geometry?.location?.lng || 0,
+            city: city.replace(/[0-9]/g, '').trim(),
             country
           },
-          images,
-          isOpen
+          images: place.photos ? [`https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${place.photos[0].photo_reference}&key=${googlePlacesApiKey}`] : [],
+          isOpen: place.opening_hours?.open_now ?? true
         };
         
         restaurants.push(restaurant);
         
       } catch (error) {
-        console.error('Error processing place:', error);
+        console.error(`Error processing place ${place.name}:`, error);
         continue;
       }
     }
@@ -336,7 +250,11 @@ serve(async (req) => {
     console.error('Error in restaurant-discovery function:', error);
     return new Response(JSON.stringify({ 
       error: 'Failed to search restaurants',
-      details: error.message 
+      details: error.message,
+      restaurants: [],
+      searchQuery: '',
+      location: '',
+      totalResults: 0
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
