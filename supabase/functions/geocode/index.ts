@@ -86,11 +86,21 @@ serve(async (req) => {
       );
     }
     
-    // Extract coordinates
+    // Extract coordinates and country
     const [longitude, latitude] = data.features[0].center;
     
+    // Extract country from the address context
+    let country = null;
+    const contexts = data.features[0].context || [];
+    for (const context of contexts) {
+      if (context.id && context.id.startsWith('country.')) {
+        country = context.text;
+        break;
+      }
+    }
+    
     return new Response(
-      JSON.stringify({ latitude, longitude }),
+      JSON.stringify({ latitude, longitude, country }),
       {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

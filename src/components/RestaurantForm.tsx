@@ -57,7 +57,6 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     name: initialData?.name || '',
     address: initialData?.address || '',
     city: initialData?.city || '',
-    country: initialData?.country || '',
     cuisine: initialData?.cuisine || '',
     rating: initialData?.rating,
     categoryRatings: initialData?.categoryRatings,
@@ -273,16 +272,6 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="country">Country</Label>
-          <Input
-            id="country"
-            name="country"
-            value={formData.country}
-            onChange={handleInputChange}
-            placeholder="Country"
-          />
-        </div>
 
         <div className="space-y-2">
           <Label>Price Range</Label>

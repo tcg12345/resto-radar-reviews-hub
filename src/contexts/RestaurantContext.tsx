@@ -128,7 +128,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
   }, []);
 
   // Geocode the address using the edge function
-  const geocodeAddress = useCallback(async (address: string, city: string): Promise<{ latitude: number, longitude: number } | null> => {
+  const geocodeAddress = useCallback(async (address: string, city: string): Promise<{ latitude: number, longitude: number, country?: string } | null> => {
     try {
       console.log('Attempting to geocode:', address, city);
       
@@ -143,7 +143,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
 
       if (data && data.latitude && data.longitude) {
         console.log('Geocoding successful:', data);
-        return { latitude: data.latitude, longitude: data.longitude };
+        return { latitude: data.latitude, longitude: data.longitude, country: data.country };
       }
       
       console.log('No coordinates returned from geocoding');
@@ -178,7 +178,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         name: data.name,
         address: data.address,
         city: data.city,
-        country: data.country ?? null,
+        country: coordinates?.country ?? null,
         cuisine: data.cuisine,
         rating: data.rating ?? null,
         notes: data.notes ?? null,
@@ -247,45 +247,25 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       // Combine existing and new photos
       const combinedPhotos = [...existingRestaurant.photos, ...newPhotoDataUrls];
       
-      // Geocode the address if it changed using direct Mapbox API
+      // Geocode the address if it changed using the edge function
       let coordinates = {
         latitude: existingRestaurant.latitude,
         longitude: existingRestaurant.longitude,
+        country: existingRestaurant.country,
       };
       
       if (
         (data.address !== existingRestaurant.address || data.city !== existingRestaurant.city) &&
         data.address && data.city
       ) {
-        try {
-          console.log('Attempting to geocode updated address:', data.address, data.city);
-          
-          // Get the stored Mapbox token
-          const { data: settings } = await supabase
-            .from('settings')
-            .select('value')
-            .eq('key', 'mapbox_token')
-            .eq('user_id', session.user.id)
-            .maybeSingle();
-
-          const mapboxToken = settings?.value;
-          
-          if (mapboxToken) {
-            const query = `${data.address}, ${data.city}`;
-            const encodedQuery = encodeURIComponent(query);
-            const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedQuery}.json?access_token=${mapboxToken}`;
-            
-            const response = await fetch(url);
-            const geoData = await response.json();
-            
-            if (geoData.features && geoData.features.length > 0) {
-              const [longitude, latitude] = geoData.features[0].center;
-              coordinates = { latitude, longitude };
-              console.log('Successfully geocoded updated address to:', coordinates);
-            }
-          }
-        } catch (error) {
-          console.error('Error geocoding updated address:', error);
+        const newCoordinates = await geocodeAddress(data.address, data.city);
+        if (newCoordinates) {
+          coordinates = {
+            latitude: newCoordinates.latitude,
+            longitude: newCoordinates.longitude,
+            country: newCoordinates.country || existingRestaurant.country,
+          };
+          console.log('Successfully geocoded updated address to:', coordinates);
         }
       }
       
@@ -296,7 +276,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
           name: data.name,
           address: data.address,
           city: data.city,
-          country: data.country ?? null,
+          country: coordinates.country ?? null,
           cuisine: data.cuisine,
           rating: data.rating ?? null,
           notes: data.notes ?? null,
