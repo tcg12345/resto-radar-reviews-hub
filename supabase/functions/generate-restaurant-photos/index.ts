@@ -17,40 +17,7 @@ interface RestaurantPhoto {
   description: string;
 }
 
-async function searchRestaurantImages(restaurantName: string, searchType: 'atmosphere' | 'food'): Promise<string[]> {
-  try {
-    // Use a more reliable image search approach
-    const query = searchType === 'atmosphere' 
-      ? `${restaurantName} restaurant interior dining room`
-      : `${restaurantName} restaurant food menu dish`;
-    
-    console.log(`Searching for ${searchType} images with query:`, query);
-    
-    // Use Unsplash API for high-quality restaurant photos
-    const unsplashQuery = searchType === 'atmosphere' 
-      ? `restaurant interior dining elegant`
-      : `restaurant food gourmet dish`;
-    
-    const response = await fetch(
-      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(unsplashQuery)}&per_page=3&client_id=your_unsplash_access_key`
-    );
-    
-    if (!response.ok) {
-      console.log('Unsplash API not available, using fallback images');
-      // Return curated restaurant photo URLs as fallback
-      return getFallbackImages(searchType);
-    }
-    
-    const data = await response.json();
-    return data.results?.map((img: any) => img.urls.regular) || getFallbackImages(searchType);
-    
-  } catch (error) {
-    console.error('Error searching for images:', error);
-    return getFallbackImages(searchType);
-  }
-}
-
-function getFallbackImages(searchType: 'atmosphere' | 'food'): string[] {
+function getRestaurantPhotos(searchType: 'atmosphere' | 'food'): string[] {
   // Return curated restaurant photos from reliable sources
   if (searchType === 'atmosphere') {
     return [
@@ -103,38 +70,36 @@ serve(async (req) => {
       throw new Error('Restaurant name and cuisine are required');
     }
 
-    console.log('Searching for photos of restaurant:', restaurantName, 'cuisine:', cuisine);
+    console.log('Finding photos for restaurant:', restaurantName, 'cuisine:', cuisine);
 
     const photos: RestaurantPhoto[] = [];
 
-    // Search for restaurant atmosphere photos
-    const atmosphereUrls = await searchRestaurantImages(restaurantName, 'atmosphere');
+    // Get restaurant atmosphere photos
+    const atmosphereUrls = getRestaurantPhotos('atmosphere');
+    console.log('Processing atmosphere photo from:', atmosphereUrls[0]);
     
-    if (atmosphereUrls.length > 0) {
-      const atmosphereImageData = await downloadImageAsBase64(atmosphereUrls[0]);
-      if (atmosphereImageData) {
-        photos.push({
-          url: atmosphereImageData,
-          type: 'atmosphere',
-          description: 'Restaurant interior atmosphere'
-        });
-        console.log('Successfully processed atmosphere photo');
-      }
+    const atmosphereImageData = await downloadImageAsBase64(atmosphereUrls[0]);
+    if (atmosphereImageData) {
+      photos.push({
+        url: atmosphereImageData,
+        type: 'atmosphere',
+        description: 'Restaurant interior atmosphere'
+      });
+      console.log('Successfully processed atmosphere photo');
     }
 
-    // Search for restaurant food photos
-    const foodUrls = await searchRestaurantImages(restaurantName, 'food');
+    // Get restaurant food photos
+    const foodUrls = getRestaurantPhotos('food');
+    console.log('Processing food photo from:', foodUrls[0]);
     
-    if (foodUrls.length > 0) {
-      const foodImageData = await downloadImageAsBase64(foodUrls[0]);
-      if (foodImageData) {
-        photos.push({
-          url: foodImageData,
-          type: 'food',
-          description: 'Restaurant signature dish'
-        });
-        console.log('Successfully processed food photo');
-      }
+    const foodImageData = await downloadImageAsBase64(foodUrls[0]);
+    if (foodImageData) {
+      photos.push({
+        url: foodImageData,
+        type: 'food',
+        description: 'Restaurant signature dish'
+      });
+      console.log('Successfully processed food photo');
     }
 
     console.log('Successfully found', photos.length, 'photos');
