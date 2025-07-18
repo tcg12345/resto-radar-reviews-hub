@@ -11,6 +11,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { 
   Select, 
   SelectContent, 
@@ -40,8 +48,11 @@ interface RestaurantFormProps {
 const cuisineOptions = [
   'American', 'Asian', 'Brazilian', 'Chinese', 'Classic', 'French', 'French Steakhouse',
   'Greek', 'Indian', 'Italian', 'Japanese', 'Korean', 'Mediterranean', 'Mexican', 
-  'Modern', 'Seafood', 'Spanish', 'Steakhouse', 'Thai', 'Vietnamese', 'Other'
+  'Modern', 'Seafood', 'Spanish', 'Steakhouse', 'Thai', 'Vietnamese'
 ].sort();
+
+// Add "Other" at the end
+cuisineOptions.push('Other');
 
 export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlist = false }: RestaurantFormProps) {
   const [isMobile, setIsMobile] = useState(false);
@@ -49,6 +60,8 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
   const [photoProgress, setPhotoProgress] = useState(0);
   const [photosToProcess, setPhotosToProcess] = useState(0);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isCustomCuisineDialogOpen, setIsCustomCuisineDialogOpen] = useState(false);
+  const [customCuisineInput, setCustomCuisineInput] = useState('');
   const [customCuisine, setCustomCuisine] = useState(() => {
     // Initialize with custom cuisine if initial data has a cuisine not in the predefined list
     if (initialData?.cuisine && !cuisineOptions.includes(initialData.cuisine)) {
@@ -360,12 +373,66 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     }
   };
 
+  const handleCustomCuisineSubmit = () => {
+    if (customCuisineInput.trim()) {
+      setFormData(prev => ({ ...prev, cuisine: customCuisineInput.trim() }));
+      setCustomCuisine(customCuisineInput.trim());
+    }
+    setIsCustomCuisineDialogOpen(false);
+    setCustomCuisineInput('');
+  };
+
+  const handleCustomCuisineCancel = () => {
+    setIsCustomCuisineDialogOpen(false);
+    setCustomCuisineInput('');
+    // Reset to previous cuisine if user cancels
+    if (!customCuisine) {
+      setFormData(prev => ({ ...prev, cuisine: '' }));
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
   };
 
   return (
+    <>
+      {/* Custom Cuisine Dialog */}
+      <Dialog open={isCustomCuisineDialogOpen} onOpenChange={setIsCustomCuisineDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Custom Cuisine</DialogTitle>
+            <DialogDescription>
+              Enter a custom cuisine type that's not in our list.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="customCuisine">Cuisine Type</Label>
+              <Input
+                id="customCuisine"
+                value={customCuisineInput}
+                onChange={(e) => setCustomCuisineInput(e.target.value)}
+                placeholder="e.g., Fusion, Middle Eastern, Caribbean..."
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleCustomCuisineSubmit();
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={handleCustomCuisineCancel}>
+              Cancel
+            </Button>
+            <Button type="button" onClick={handleCustomCuisineSubmit} disabled={!customCuisineInput.trim()}>
+              Save Cuisine
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -384,10 +451,11 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
           <div className="space-y-2">
             <Label htmlFor="cuisine">Cuisine *</Label>
             <Select
-              value={formData.cuisine === 'Other' ? 'Other' : cuisineOptions.includes(formData.cuisine) ? formData.cuisine : 'Other'}
+              value={cuisineOptions.includes(formData.cuisine) ? formData.cuisine : customCuisine ? 'Other' : ''}
               onValueChange={(value) => {
                 if (value === 'Other') {
-                  setFormData(prev => ({ ...prev, cuisine: customCuisine || '' }));
+                  setCustomCuisineInput(customCuisine);
+                  setIsCustomCuisineDialogOpen(true);
                 } else {
                   setFormData(prev => ({ ...prev, cuisine: value }));
                   setCustomCuisine('');
@@ -396,7 +464,9 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
               required
             >
               <SelectTrigger id="cuisine">
-                <SelectValue placeholder="Select cuisine" />
+                <SelectValue placeholder="Select cuisine">
+                  {formData.cuisine && !cuisineOptions.includes(formData.cuisine) ? formData.cuisine : undefined}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent className="bg-background border border-border shadow-lg z-50">
                 {cuisineOptions.map(cuisine => (
@@ -406,19 +476,6 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
                 ))}
               </SelectContent>
             </Select>
-            
-            {(formData.cuisine === 'Other' || (customCuisine && !cuisineOptions.includes(formData.cuisine))) && (
-              <Input
-                placeholder="Enter custom cuisine"
-                value={customCuisine || (cuisineOptions.includes(formData.cuisine) ? '' : formData.cuisine)}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setCustomCuisine(value);
-                  setFormData(prev => ({ ...prev, cuisine: value }));
-                }}
-                className="mt-2"
-              />
-            )}
           </div>
         </div>
 
@@ -692,5 +749,6 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
         </Button>
       </div>
     </form>
+    </>
   );
 }
