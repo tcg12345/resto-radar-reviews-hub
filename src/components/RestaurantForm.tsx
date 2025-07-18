@@ -519,7 +519,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
 
       setPreviewImages(prev => [...prev, ...newPreviews]);
 
-      toast.success(`Generated ${newFiles.length} AI photos for ${restaurantName}!`);
+      toast.success(`Found ${newFiles.length} real photos for ${restaurantName}!`);
 
     } catch (error) {
       console.error('Error generating photos:', error);
@@ -732,8 +732,8 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
             onCheckedChange={setAutoGeneratePhotos}
           />
           <Label htmlFor="autoGeneratePhotos" className="flex items-center gap-2 cursor-pointer">
-            <Sparkles className="h-4 w-4 text-primary" />
-            Auto-generate AI photos of restaurant atmosphere and food
+            <Search className="h-4 w-4 text-primary" />
+            Auto-find real photos of restaurant atmosphere and food
           </Label>
         </div>
         
@@ -741,7 +741,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
           <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex items-center gap-2">
               <Loader className="h-4 w-4 animate-spin text-blue-600" />
-              <span className="text-sm text-blue-800">Generating AI photos...</span>
+              <span className="text-sm text-blue-800">Finding real photos...</span>
             </div>
           </div>
         )}
