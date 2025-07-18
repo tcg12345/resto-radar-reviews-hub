@@ -14,6 +14,7 @@ import { StarRating } from '@/components/StarRating';
 import { PriceRange } from '@/components/PriceRange';
 import { MichelinStars } from '@/components/MichelinStars';
 import { WeightedRating } from '@/components/WeightedRating';
+import { PhotoGallery } from '@/components/PhotoGallery';
 import { Restaurant } from '@/types/restaurant';
 
 interface RestaurantCardProps {
@@ -24,6 +25,7 @@ interface RestaurantCardProps {
 
 export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardProps) {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const hasMultiplePhotos = restaurant.photos.length > 1;
   
   const nextPhoto = () => {
@@ -36,14 +38,27 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
     );
   };
 
+  const openGallery = () => {
+    setIsGalleryOpen(true);
+  };
+
   return (
+    <>
+      <PhotoGallery
+        photos={restaurant.photos}
+        initialIndex={currentPhotoIndex}
+        isOpen={isGalleryOpen}
+        onClose={() => setIsGalleryOpen(false)}
+        restaurantName={restaurant.name}
+      />
     <Card className="overflow-hidden bg-card shadow-md hover:shadow-lg transition-shadow duration-300">
       <div className="relative aspect-video w-full overflow-hidden">
         {restaurant.photos.length > 0 ? (
           <img
             src={restaurant.photos[currentPhotoIndex]}
             alt={`${restaurant.name} photo ${currentPhotoIndex + 1}`}
-            className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-300 hover:scale-105 cursor-pointer"
+            onClick={openGallery}
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-muted">
@@ -57,7 +72,10 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
               size="icon" 
               variant="secondary" 
               className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm"
-              onClick={previousPhoto}
+              onClick={(e) => {
+                e.stopPropagation();
+                previousPhoto();
+              }}
             >
               &larr;
             </Button>
@@ -68,7 +86,10 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
               size="icon" 
               variant="secondary" 
               className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm"
-              onClick={nextPhoto}
+              onClick={(e) => {
+                e.stopPropagation();
+                nextPhoto();
+              }}
             >
               &rarr;
             </Button>
@@ -153,6 +174,7 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
           </Button>
         )}
       </CardFooter>
-    </Card>
+     </Card>
+    </>
   );
 }
