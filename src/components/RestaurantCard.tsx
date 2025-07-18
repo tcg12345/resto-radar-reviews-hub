@@ -212,13 +212,13 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
         </div>
       </CardContent>
       
-      <CardFooter className="flex justify-end gap-2 pt-0">
+      <CardFooter className="flex flex-wrap justify-end gap-2 pt-0">
         <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
           <DialogTrigger asChild>
             <Button 
               size="sm" 
               variant="outline"
-              className="h-8"
+              className="h-8 flex-shrink-0"
             >
               <Eye className="mr-1 h-3.5 w-3.5" />
               Details
@@ -298,7 +298,7 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
           <Button 
             size="sm" 
             variant="outline"
-            className="h-8"
+            className="h-8 flex-shrink-0"
             onClick={() => setIsAIReviewOpen(true)}
           >
             <Bot className="mr-1 h-3.5 w-3.5" />
@@ -310,7 +310,7 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
           <Button 
             size="sm" 
             variant="outline"
-            className="h-8"
+            className="h-8 flex-shrink-0"
             onClick={() => onEdit(restaurant.id)}
           >
             <Edit2 className="mr-1 h-3.5 w-3.5" />
@@ -322,7 +322,7 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
           <Button 
             size="sm" 
             variant="outline" 
-            className="h-8 text-destructive hover:bg-destructive/10"
+            className="h-8 text-destructive hover:bg-destructive/10 flex-shrink-0"
             onClick={() => onDelete(restaurant.id)}
           >
             <Trash2 className="mr-1 h-3.5 w-3.5" />

@@ -62,6 +62,7 @@ Generate 25-50 diverse, realistic restaurant recommendations that match the quer
 - Rating (3.8-4.8 range)
 - Description (2-3 sentences about what makes it special)
 - Features array (e.g., "Outdoor seating", "Vegetarian options", "Wine bar", "Private dining", etc.)
+- Michelin stars (0-3, with higher-end restaurants more likely to have stars)
 - Realistic coordinates for the EXACT requested location (not NYC if they ask for different city)
 - Phone number format appropriate for the country
 - Opening hours (realistic format)
@@ -278,6 +279,7 @@ IMPORTANT: Return ONLY a valid JSON array of restaurant objects. No markdown, no
         cuisine: restaurant.cuisine || restaurant.cuisine_type || restaurant.cuisineType || 'International',
         priceRange: restaurant.priceRange || restaurant.price_range || Math.floor(Math.random() * 3) + 2, // 2-4 range
         rating: finalRating,
+        michelinStars: restaurant.michelinStars || restaurant.michelin_stars || (restaurant.priceRange >= 3 && Math.random() > 0.7 ? Math.floor(Math.random() * 3) + 1 : undefined),
         website: restaurant.website || restaurant.website_url || restaurant.websiteUrl || generateWebsiteUrl(restaurant.name),
         reservationUrl: restaurant.reservationUrl || restaurant.reservation_url || reservationInfo.reservationUrl,
         reservationNote: reservationInfo.reservationNote,

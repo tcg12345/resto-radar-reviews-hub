@@ -23,12 +23,14 @@ import {
   Car,
   Wifi,
   CreditCard,
-  AlertCircle
+  AlertCircle,
+  Award
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { LazyImage } from '@/components/LazyImage';
 import { useRestaurants } from '@/contexts/RestaurantContext';
+import { useDiscover } from '@/contexts/DiscoverContext';
 
 interface RestaurantResult {
   id: string;
@@ -44,6 +46,7 @@ interface RestaurantResult {
   phoneNumber?: string;
   openingHours?: string;
   features: string[];
+  michelinStars?: number;
   location?: {
     lat: number;
     lng: number;
@@ -67,11 +70,17 @@ interface SearchFilters {
 }
 
 export function DiscoverPage() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [locationQuery, setLocationQuery] = useState('');
-  const [restaurants, setRestaurants] = useState<RestaurantResult[]>([]);
+  const {
+    searchQuery,
+    setSearchQuery,
+    locationQuery,
+    setLocationQuery,
+    restaurants,
+    setRestaurants,
+    hasSearched,
+    setHasSearched,
+  } = useDiscover();
   const [isLoading, setIsLoading] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
   const [filters, setFilters] = useState<SearchFilters>({});
   const [showFilters, setShowFilters] = useState(false);
   const { addRestaurant } = useRestaurants();
@@ -361,14 +370,24 @@ function RestaurantImageCard({ restaurant, onAddToWishlist }: { restaurant: Rest
          <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
            {restaurant.name}
          </h3>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2">
             <Badge variant="outline" className="text-xs">
               {restaurant.cuisine}
             </Badge>
             <span className="text-green-600 font-bold text-base">
               {getPriceRangeDisplay(restaurant.priceRange)}
             </span>
+            {restaurant.michelinStars && (
+              <div className="flex items-center gap-1">
+                <Award className="h-4 w-4 text-amber-500" />
+                <span className="text-xs font-medium text-amber-600">
+                  {restaurant.michelinStars} Michelin
+                </span>
+              </div>
+            )}
           </div>
+        </div>
        </div>
 
        <div className="flex items-center gap-2">
