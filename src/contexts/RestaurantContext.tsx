@@ -20,6 +20,7 @@ interface DbRestaurant {
   category_ratings: Json;
   use_weighted_rating: boolean;
   price_range: number | null;
+  michelin_stars: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -55,6 +56,7 @@ const mapDbRestaurantToRestaurant = (dbRestaurant: DbRestaurant): Restaurant => 
   categoryRatings: dbRestaurant.category_ratings ? dbRestaurant.category_ratings as unknown as CategoryRating : undefined,
   useWeightedRating: dbRestaurant.use_weighted_rating,
   priceRange: dbRestaurant.price_range ?? undefined,
+  michelinStars: dbRestaurant.michelin_stars ?? undefined,
   createdAt: dbRestaurant.created_at,
   updatedAt: dbRestaurant.updated_at,
 });
@@ -185,6 +187,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         category_ratings: data.categoryRatings as unknown as Json,
         use_weighted_rating: data.useWeightedRating,
         price_range: data.priceRange ?? null,
+        michelin_stars: data.michelinStars ?? null,
         user_id: session.user.id,
       };
       
@@ -301,6 +304,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
           category_ratings: data.categoryRatings as unknown as Json,
           use_weighted_rating: data.useWeightedRating,
           price_range: data.priceRange ?? null,
+          michelin_stars: data.michelinStars ?? null,
           // user_id is already set, no need to update it
         })
         .eq('id', id)

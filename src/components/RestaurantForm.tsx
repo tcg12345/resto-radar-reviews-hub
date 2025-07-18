@@ -20,6 +20,7 @@ import {
 import { WeightedRating } from '@/components/WeightedRating';
 import { StarRating } from '@/components/StarRating';
 import { PriceRange } from '@/components/PriceRange';
+import { MichelinStars } from '@/components/MichelinStars';
 import { format } from 'date-fns';
 import { Restaurant, RestaurantFormData, CategoryRating } from '@/types/restaurant';
 import { Switch } from '@/components/ui/switch';
@@ -47,6 +48,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     categoryRatings: initialData?.categoryRatings,
     useWeightedRating: initialData?.useWeightedRating || false,
     priceRange: initialData?.priceRange,
+    michelinStars: initialData?.michelinStars,
     notes: initialData?.notes || '',
     dateVisited: initialData?.dateVisited || '',
     photos: [],
@@ -214,6 +216,15 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
               {formData.priceRange ? `${'$'.repeat(formData.priceRange)}` : 'Select price range'}
             </span>
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Michelin Stars</Label>
+          <MichelinStars
+            stars={formData.michelinStars}
+            onStarsChange={(stars) => setFormData(prev => ({ ...prev, michelinStars: stars }))}
+            size="md"
+          />
         </div>
 
         <div className="flex items-center justify-between space-x-2">

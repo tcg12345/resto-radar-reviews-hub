@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { StarRating } from '@/components/StarRating';
 import { PriceRange } from '@/components/PriceRange';
+import { MichelinStars } from '@/components/MichelinStars';
 import { WeightedRating } from '@/components/WeightedRating';
 import { Restaurant } from '@/types/restaurant';
 
@@ -79,6 +80,9 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
         <div className="flex flex-col gap-2">
           <CardTitle className="text-xl font-bold break-words">{restaurant.name}</CardTitle>
           <div className="flex flex-col gap-2">
+            {restaurant.michelinStars && (
+              <MichelinStars stars={restaurant.michelinStars} readonly size="sm" />
+            )}
             {restaurant.rating !== undefined && (
               <StarRating rating={restaurant.rating} readonly size="sm" />
             )}

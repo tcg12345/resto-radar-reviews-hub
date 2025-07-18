@@ -14,6 +14,7 @@ export interface Restaurant {
   categoryRatings?: CategoryRating;
   useWeightedRating?: boolean;
   priceRange?: number; // 1-4 dollar signs
+  michelinStars?: number; // 1-3 Michelin stars
   photos: string[];
   notes?: string;
   dateVisited?: string;
@@ -33,6 +34,7 @@ export interface RestaurantFormData {
   categoryRatings?: CategoryRating;
   useWeightedRating?: boolean;
   priceRange?: number; // 1-4 dollar signs
+  michelinStars?: number; // 1-3 Michelin stars
   photos: File[];
   notes?: string;
   dateVisited?: string;

@@ -29,6 +29,7 @@ export function RatedRestaurantsPage({
   const [sortBy, setSortBy] = useState<'latest' | 'rating' | 'name'>('latest');
   const [filterCuisine, setFilterCuisine] = useState<string>('all');
   const [filterPrice, setFilterPrice] = useState<string>('all');
+  const [filterMichelin, setFilterMichelin] = useState<string>('all');
 
   const ratedRestaurants = restaurants.filter((r) => !r.isWishlist);
 
@@ -53,7 +54,12 @@ export function RatedRestaurantsPage({
         || (filterPrice === 'none' && !restaurant.priceRange)
         || restaurant.priceRange?.toString() === filterPrice;
 
-      return matchesSearch && matchesCuisine && matchesPrice;
+      // Apply Michelin star filter
+      const matchesMichelin = filterMichelin === 'all' 
+        || (filterMichelin === 'none' && !restaurant.michelinStars)
+        || restaurant.michelinStars?.toString() === filterMichelin;
+
+      return matchesSearch && matchesCuisine && matchesPrice && matchesMichelin;
     })
     .sort((a, b) => {
       // Apply sorting
@@ -147,6 +153,21 @@ export function RatedRestaurantsPage({
           </div>
 
           <div className="w-[180px]">
+            <Select value={filterMichelin} onValueChange={setFilterMichelin}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by Michelin" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Restaurants</SelectItem>
+                <SelectItem value="none">No Michelin Stars</SelectItem>
+                <SelectItem value="1">1 Michelin Star</SelectItem>
+                <SelectItem value="2">2 Michelin Stars</SelectItem>
+                <SelectItem value="3">3 Michelin Stars</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="w-[180px]">
             <Select value={sortBy} onValueChange={(value: 'latest' | 'rating' | 'name') => setSortBy(value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Sort by" />
@@ -165,7 +186,7 @@ export function RatedRestaurantsPage({
         <div className="rounded-lg border border-dashed bg-muted/50 p-8 text-center">
           <h3 className="mb-2 text-lg font-medium">No rated restaurants yet</h3>
           <p className="mb-4 text-muted-foreground">
-            {searchTerm || filterCuisine !== 'all' || filterPrice !== 'all'
+            {searchTerm || filterCuisine !== 'all' || filterPrice !== 'all' || filterMichelin !== 'all'
               ? "No restaurants match your search criteria."
               : "Start adding restaurants you've visited!"}
           </p>

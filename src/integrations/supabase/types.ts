@@ -53,6 +53,7 @@ export type Database = {
           is_wishlist: boolean | null
           latitude: number | null
           longitude: number | null
+          michelin_stars: number | null
           name: string
           notes: string | null
           photos: string[] | null
@@ -73,6 +74,7 @@ export type Database = {
           is_wishlist?: boolean | null
           latitude?: number | null
           longitude?: number | null
+          michelin_stars?: number | null
           name: string
           notes?: string | null
           photos?: string[] | null
@@ -93,6 +95,7 @@ export type Database = {
           is_wishlist?: boolean | null
           latitude?: number | null
           longitude?: number | null
+          michelin_stars?: number | null
           name?: string
           notes?: string | null
           photos?: string[] | null
