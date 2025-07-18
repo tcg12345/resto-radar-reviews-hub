@@ -1,4 +1,4 @@
-import { Flower2 } from 'lucide-react';
+import { MichelinStarIcon } from './MichelinStarIcon';
 
 interface MichelinStarsProps {
   stars?: number;
@@ -50,11 +50,11 @@ export function MichelinStars({
                 readonly ? 'cursor-default' : 'cursor-pointer hover:scale-110'
               }`}
             >
-              <Flower2
-                className={`${sizeClasses[size]} transition-colors duration-150 stroke-2 ${
+              <MichelinStarIcon
+                className={`${sizeClasses[size]} transition-colors duration-150 ${
                   isFilled
-                    ? 'fill-red-600 text-red-700'
-                    : 'fill-gray-200 text-gray-400 hover:fill-red-300 hover:text-red-500'
+                    ? 'text-red-600'
+                    : 'text-gray-400 hover:text-red-500'
                 }`}
               />
             </button>
