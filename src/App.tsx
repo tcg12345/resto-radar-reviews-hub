@@ -23,14 +23,8 @@ const App = () => (
             {/* Auth route - doesn't need RestaurantProvider */}
             <Route path="/auth" element={<AuthPage />} />
             
-            {/* Protected routes - with RestaurantProvider */}
-            <Route path="/" element={
-              <RequireAuth>
-                <RestaurantProvider>
-                  <Index />
-                </RestaurantProvider>
-              </RequireAuth>
-            } />
+            {/* Main route - shows landing page or dashboard based on auth */}
+            <Route path="/" element={<Index />} />
             
             {/* 404 route */}
             <Route path="*" element={<NotFound />} />
