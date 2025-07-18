@@ -34,9 +34,8 @@ function AppContent() {
         return (
           <MapPage
             restaurants={restaurants}
-            onEditRestaurant={(id) => {
-              // Handle edit functionality
-            }}
+            onEditRestaurant={updateRestaurant}
+            onDeleteRestaurant={deleteRestaurant}
           />
         );
     }
