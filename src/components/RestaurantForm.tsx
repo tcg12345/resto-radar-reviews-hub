@@ -306,8 +306,6 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
   const reorderPhotos = (fromIndex: number, toIndex: number) => {
     if (fromIndex === toIndex) return;
     
-    const existingPhotosCount = initialData?.photos.length || 0;
-    
     // Reorder preview images
     setPreviewImages(prev => {
       const newImages = [...prev];
@@ -316,12 +314,13 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       return newImages;
     });
     
-    // Reorder form data photos (only new photos)
+    // Reorder form data photos for new photos
+    const existingPhotosCount = initialData?.photos.length || 0;
     if (fromIndex >= existingPhotosCount || toIndex >= existingPhotosCount) {
       setFormData(prev => {
         const newPhotos = [...prev.photos];
         
-        // Handle moving new photos
+        // Handle moving new photos only
         if (fromIndex >= existingPhotosCount && toIndex >= existingPhotosCount) {
           const fromPhotoIndex = fromIndex - existingPhotosCount;
           const toPhotoIndex = toIndex - existingPhotosCount;
@@ -334,36 +333,45 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     }
   };
 
-  const handlePhotoMouseDown = (e: React.MouseEvent, index: number) => {
-    e.preventDefault();
-    setDraggedPhotoIndex(index);
-  };
-
-  const handlePhotoMouseUp = () => {
-    setDraggedPhotoIndex(null);
-  };
-
   const handlePhotoDragStart = (e: React.DragEvent, index: number) => {
+    e.stopPropagation(); // Prevent interference with file drop zone
     setDraggedPhotoIndex(index);
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', index.toString());
+    e.dataTransfer.setData('photo/index', index.toString());
+    
+    // Add visual feedback
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = '0.5';
+    }
   };
 
-  const handlePhotoDragEnd = () => {
+  const handlePhotoDragEnd = (e: React.DragEvent) => {
+    e.stopPropagation();
     setDraggedPhotoIndex(null);
+    
+    // Reset visual feedback
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = '1';
+    }
   };
 
-  const handlePhotoDragOver = (e: React.DragEvent, index: number) => {
+  const handlePhotoDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     e.dataTransfer.dropEffect = 'move';
   };
 
   const handlePhotoDrop = (e: React.DragEvent, toIndex: number) => {
     e.preventDefault();
-    const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
-    if (!isNaN(fromIndex)) {
+    e.stopPropagation();
+    
+    const fromIndexStr = e.dataTransfer.getData('photo/index');
+    const fromIndex = parseInt(fromIndexStr);
+    
+    if (!isNaN(fromIndex) && fromIndex !== toIndex) {
       reorderPhotos(fromIndex, toIndex);
     }
+    
     setDraggedPhotoIndex(null);
   };
 
@@ -747,11 +755,9 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
                   draggedPhotoIndex === index ? 'opacity-50 scale-95' : 'hover:scale-105'
                 }`}
                 draggable
-                onMouseDown={(e) => handlePhotoMouseDown(e, index)}
-                onMouseUp={handlePhotoMouseUp}
                 onDragStart={(e) => handlePhotoDragStart(e, index)}
                 onDragEnd={handlePhotoDragEnd}
-                onDragOver={(e) => handlePhotoDragOver(e, index)}
+                onDragOver={handlePhotoDragOver}
                 onDrop={(e) => handlePhotoDrop(e, index)}
               >
                 <LazyImage
