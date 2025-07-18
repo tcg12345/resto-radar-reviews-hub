@@ -24,7 +24,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
   const handleSignOut = async () => {
     try {
       await signOut();
-      navigate('/auth');
+      navigate('/'); // Navigate to home page to show landing page
     } catch (error) {
       console.error('Error during sign out:', error);
     }
