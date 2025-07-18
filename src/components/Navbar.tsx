@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/contexts/AuthContext';
+import { GrubbyLogo } from '@/components/GrubbyLogo';
 
 interface NavbarProps {
   activeTab: 'home' | 'rated' | 'wishlist' | 'map';
@@ -34,11 +35,8 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center space-x-2 cursor-pointer" onClick={() => onTabChange('home')}>
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent">
-            <span className="text-lg font-bold text-primary-foreground">G</span>
-          </div>
-          <h1 className="text-xl font-bold tracking-tight">Grubby</h1>
+        <div className="cursor-pointer" onClick={() => onTabChange('home')}>
+          <GrubbyLogo size="md" />
         </div>
 
         <div className="flex items-center space-x-1 rounded-lg bg-muted/50 p-1">

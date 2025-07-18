@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +28,7 @@ interface HomePageProps {
 export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePageProps) {
   const { user, profile } = useAuth();
   const { restaurants } = useRestaurants();
+  const [rotatingCardIndex, setRotatingCardIndex] = useState(0);
 
   const ratedRestaurants = restaurants.filter(r => !r.isWishlist);
   const wishlistRestaurants = restaurants.filter(r => r.isWishlist);
@@ -40,6 +41,45 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
   const recentRestaurants = [...ratedRestaurants]
     .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
     .slice(0, 3);
+
+  const highestRatedRestaurants = [...ratedRestaurants]
+    .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+    .slice(0, 3);
+
+  const randomRestaurants = [...ratedRestaurants]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 3);
+
+  const cardRotationData = [
+    {
+      title: "Recently Rated",
+      description: "Your latest dining experiences",
+      restaurants: recentRestaurants,
+      icon: Clock
+    },
+    {
+      title: "Highest Rated",
+      description: "Your top-rated restaurants",
+      restaurants: highestRatedRestaurants,
+      icon: Star
+    },
+    {
+      title: "Random Picks",
+      description: "A random selection from your collection",
+      restaurants: randomRestaurants,
+      icon: TrendingUp
+    }
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRotatingCardIndex((prev) => (prev + 1) % cardRotationData.length);
+    }, 5000); // Rotate every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [cardRotationData.length]);
+
+  const currentCardData = cardRotationData[rotatingCardIndex];
 
   const cuisineStats = ratedRestaurants.reduce((acc, r) => {
     acc[r.cuisine] = (acc[r.cuisine] || 0) + 1;
@@ -124,7 +164,13 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
       const firstName = profile.name.split(' ')[0];
       return firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
     }
-    return user?.email?.split('@')[0] || 'Food Lover';
+    if (user?.email) {
+      const emailName = user.email.split('@')[0];
+      // Handle cases like "tyler.gorin" or "tyler_gorin"
+      const firstName = emailName.split(/[._]/)[0];
+      return firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
+    }
+    return 'Food Lover';
   };
 
   return (
@@ -188,21 +234,31 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
 
       {/* Recent Activity & Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Restaurants */}
-        <Card>
+        {/* Rotating Restaurant Card */}
+        <Card className="transition-all duration-500 ease-in-out">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Recently Rated
+              <currentCardData.icon className="h-5 w-5" />
+              {currentCardData.title}
             </CardTitle>
             <CardDescription>
-              Your latest dining experiences
+              {currentCardData.description}
             </CardDescription>
+            <div className="flex space-x-1 mt-2">
+              {cardRotationData.map((_, index) => (
+                <div
+                  key={index}
+                  className={`h-1 w-8 rounded-full transition-all duration-300 ${
+                    index === rotatingCardIndex ? 'bg-primary' : 'bg-muted'
+                  }`}
+                />
+              ))}
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {recentRestaurants.length > 0 ? (
+            {currentCardData.restaurants.length > 0 ? (
               <>
-                {recentRestaurants.map((restaurant) => (
+                {currentCardData.restaurants.map((restaurant) => (
                   <div key={restaurant.id} className="flex items-center space-x-4 p-3 rounded-lg bg-muted/50">
                     <div className="flex-shrink-0">
                       <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">

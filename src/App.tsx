@@ -9,6 +9,7 @@ import { RequireAuth } from "./components/RequireAuth";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/AuthPage";
+import DemoPage from "./pages/DemoPage";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,9 @@ const App = () => (
           <Routes>
             {/* Auth route - doesn't need RestaurantProvider */}
             <Route path="/auth" element={<AuthPage />} />
+            
+            {/* Demo route - shows demo functionality */}
+            <Route path="/demo" element={<DemoPage />} />
             
             {/* Main route - shows landing page or dashboard based on auth */}
             <Route path="/" element={<Index />} />

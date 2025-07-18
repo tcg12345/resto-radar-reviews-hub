@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Star, MapPin, Heart, Users, TrendingUp, Award, ChefHat, Utensils, Moon, Sun } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@/hooks/useTheme';
+import { GrubbyLogo } from '@/components/GrubbyLogo';
 import heroImage from '@/assets/hero-restaurant.jpg';
 
 const features = [
@@ -62,15 +63,18 @@ export default function LandingPage() {
     navigate('/auth');
   };
 
+  const handleViewDemo = () => {
+    navigate('/demo');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted">
       {/* Navigation */}
       <nav className="fixed top-0 z-50 w-full bg-background/80 backdrop-blur-md border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/')}>
-              <ChefHat className="h-8 w-8 text-primary" />
-              <span className="text-2xl font-bold">Grubby</span>
+            <div className="cursor-pointer" onClick={() => navigate('/')}>
+              <GrubbyLogo size="lg" />
             </div>
             <div className="flex items-center space-x-4">
               <Button
@@ -123,7 +127,7 @@ export default function LandingPage() {
                 <Button size="lg" onClick={handleGetStarted} className="text-lg px-8">
                   Start Your Journey
                 </Button>
-                <Button variant="outline" size="lg" className="text-lg px-8">
+                <Button variant="outline" size="lg" className="text-lg px-8" onClick={handleViewDemo}>
                   View Demo
                 </Button>
               </div>
@@ -254,9 +258,8 @@ export default function LandingPage() {
       <footer className="py-12 bg-background border-t">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between">
-            <div className="flex items-center space-x-2 mb-4 md:mb-0 cursor-pointer" onClick={() => navigate('/')}>
-              <ChefHat className="h-6 w-6 text-primary" />
-              <span className="text-lg font-semibold">Grubby</span>
+            <div className="cursor-pointer" onClick={() => navigate('/')}>
+              <GrubbyLogo size="sm" />
             </div>
             <div className="text-muted-foreground text-sm">
               © 2024 Grubby. Track your culinary journey.
