@@ -298,7 +298,7 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
           
           <div className="mb-2 flex items-center text-sm text-muted-foreground">
             <MapPin className="mr-1 h-3.5 w-3.5 flex-shrink-0" />
-            <span className="break-words">{selectedRestaurant.address}, {selectedRestaurant.city}</span>
+            <span className="break-words">{selectedRestaurant.city}{selectedRestaurant.country && `, ${selectedRestaurant.country}`}</span>
           </div>
           
           <div className="mb-2 text-sm">

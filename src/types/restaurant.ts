@@ -9,6 +9,7 @@ export interface Restaurant {
   name: string;
   address: string;
   city: string;
+  country?: string;
   cuisine: string;
   rating?: number;
   categoryRatings?: CategoryRating;
@@ -29,6 +30,7 @@ export interface RestaurantFormData {
   name: string;
   address: string;
   city: string;
+  country?: string;
   cuisine: string;
   rating?: number;
   categoryRatings?: CategoryRating;
