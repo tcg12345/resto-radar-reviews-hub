@@ -9,6 +9,7 @@ interface DbRestaurant {
   name: string;
   address: string;
   city: string;
+  country: string | null;
   cuisine: string;
   rating: number | null;
   notes: string | null;
@@ -45,6 +46,7 @@ const mapDbRestaurantToRestaurant = (dbRestaurant: DbRestaurant): Restaurant => 
   name: dbRestaurant.name,
   address: dbRestaurant.address,
   city: dbRestaurant.city,
+  country: dbRestaurant.country ?? undefined,
   cuisine: dbRestaurant.cuisine,
   rating: dbRestaurant.rating ?? undefined,
   notes: dbRestaurant.notes ?? undefined,
@@ -176,6 +178,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         name: data.name,
         address: data.address,
         city: data.city,
+        country: data.country ?? null,
         cuisine: data.cuisine,
         rating: data.rating ?? null,
         notes: data.notes ?? null,
@@ -293,6 +296,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
           name: data.name,
           address: data.address,
           city: data.city,
+          country: data.country ?? null,
           cuisine: data.cuisine,
           rating: data.rating ?? null,
           notes: data.notes ?? null,
