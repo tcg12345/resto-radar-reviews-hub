@@ -158,7 +158,13 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
         el.className = 'marker';
         el.style.width = '24px';
         el.style.height = '24px';
-        el.style.backgroundImage = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%23${getMarkerColor(restaurant.rating, restaurant.isWishlist)}" stroke="%23ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>')`;
+        
+        // Use heart icon for wishlist items, location pin for others
+        const iconSvg = restaurant.isWishlist
+          ? `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%23${getMarkerColor(restaurant.rating, restaurant.isWishlist)}" stroke="%23ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`
+          : `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%23${getMarkerColor(restaurant.rating, restaurant.isWishlist)}" stroke="%23ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>`;
+        
+        el.style.backgroundImage = `url('data:image/svg+xml;utf8,${iconSvg}')`;
         el.style.backgroundSize = '100%';
         el.style.cursor = 'pointer';
 
