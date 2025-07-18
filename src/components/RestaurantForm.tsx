@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { PlusCircle, Trash2, Calendar, MapPin } from 'lucide-react';
+import { PlusCircle, Trash2, Calendar, MapPin, Camera, Images } from 'lucide-react';
+import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -117,6 +118,60 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     // Create preview URLs for the new files
     const newPreviews = newFiles.map(file => URL.createObjectURL(file));
     setPreviewImages(prev => [...prev, ...newPreviews]);
+  };
+
+  const addPhotoFromGallery = async () => {
+    try {
+      const image = await CapacitorCamera.getPhoto({
+        quality: 90,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Photos,
+      });
+
+      if (image.dataUrl) {
+        // Convert data URL to File object
+        const response = await fetch(image.dataUrl);
+        const blob = await response.blob();
+        const file = new File([blob], `photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
+
+        setFormData(prev => ({
+          ...prev,
+          photos: [...prev.photos, file],
+        }));
+
+        setPreviewImages(prev => [...prev, image.dataUrl!]);
+      }
+    } catch (error) {
+      console.error('Error selecting photo from gallery:', error);
+    }
+  };
+
+  const takePhoto = async () => {
+    try {
+      const image = await CapacitorCamera.getPhoto({
+        quality: 90,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Camera,
+      });
+
+      if (image.dataUrl) {
+        // Convert data URL to File object
+        const response = await fetch(image.dataUrl);
+        const blob = await response.blob();
+        const file = new File([blob], `camera-${Date.now()}.jpg`, { type: 'image/jpeg' });
+
+        setFormData(prev => ({
+          ...prev,
+          photos: [...prev.photos, file],
+        }));
+
+        setPreviewImages(prev => [...prev, image.dataUrl!]);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+    }
   };
 
   const removePhoto = (index: number) => {
@@ -339,9 +394,32 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
               </div>
             ))}
 
+            {/* Native Photo Gallery Button */}
+            <button
+              type="button"
+              onClick={addPhotoFromGallery}
+              className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-md border border-dashed bg-muted/50 text-muted-foreground transition-colors hover:bg-muted"
+            >
+              <Images className="mb-1 h-6 w-6" />
+              <span className="text-sm font-medium">Photo Gallery</span>
+              <span className="text-xs opacity-75">Select from album</span>
+            </button>
+
+            {/* Native Camera Button */}
+            <button
+              type="button"
+              onClick={takePhoto}
+              className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-md border border-dashed bg-muted/50 text-muted-foreground transition-colors hover:bg-muted"
+            >
+              <Camera className="mb-1 h-6 w-6" />
+              <span className="text-sm font-medium">Take Photo</span>
+              <span className="text-xs opacity-75">Use camera</span>
+            </button>
+
+            {/* File System Selection (Original) */}
             <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-md border border-dashed bg-muted/50 text-muted-foreground transition-colors hover:bg-muted">
               <PlusCircle className="mb-1 h-6 w-6" />
-              <span className="text-sm font-medium">Add Photos</span>
+              <span className="text-sm font-medium">Files</span>
               <span className="text-xs opacity-75">Select multiple</span>
               <input
                 type="file"
