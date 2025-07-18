@@ -4,11 +4,12 @@ import { RatedRestaurantsPage } from '@/pages/RatedRestaurantsPage';
 import { MapPage } from '@/pages/MapPage';
 import { WishlistPage } from '@/pages/WishlistPage';
 import HomePage from '@/pages/HomePage';
+import { DiscoverPage } from '@/pages/DiscoverPage';
 import { AIChatbot } from '@/components/AIChatbot';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState<'home' | 'rated' | 'wishlist' | 'map'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'rated' | 'wishlist' | 'map' | 'discover'>('home');
   const [shouldOpenAddDialog, setShouldOpenAddDialog] = useState(false);
   const { restaurants, addRestaurant, updateRestaurant, deleteRestaurant } = useRestaurants();
 
@@ -21,6 +22,8 @@ export default function Dashboard() {
     switch (activeTab) {
       case 'home':
         return <HomePage onNavigate={setActiveTab} onOpenAddRestaurant={handleOpenAddRestaurant} />;
+      case 'discover':
+        return <DiscoverPage />;
       case 'rated':
         return (
           <RatedRestaurantsPage

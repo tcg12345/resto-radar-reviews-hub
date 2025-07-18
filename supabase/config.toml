@@ -39,3 +39,6 @@ verify_jwt = true
 
 [edge_functions.set-mapbox-token]
 verify_jwt = true
+
+[edge_functions.restaurant-discovery]
+verify_jwt = false
