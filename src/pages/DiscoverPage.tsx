@@ -40,6 +40,7 @@ interface RestaurantResult {
   description: string;
   website?: string;
   reservationUrl?: string;
+  reservationNote?: string;
   phoneNumber?: string;
   openingHours?: string;
   features: string[];
@@ -360,15 +361,14 @@ function RestaurantImageCard({ restaurant, onAddToWishlist }: { restaurant: Rest
          <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
            {restaurant.name}
          </h3>
-         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-           <Badge variant="outline" className="text-xs">
-             {restaurant.cuisine}
-           </Badge>
-           <span className="flex items-center">
-             <DollarSign className="h-3 w-3 mr-1" />
-             {getPriceRangeDisplay(restaurant.priceRange)}
-           </span>
-         </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Badge variant="outline" className="text-xs">
+              {restaurant.cuisine}
+            </Badge>
+            <span className="text-green-600 font-bold text-base">
+              {getPriceRangeDisplay(restaurant.priceRange)}
+            </span>
+          </div>
        </div>
 
        <div className="flex items-center gap-2">
@@ -430,15 +430,20 @@ function RestaurantImageCard({ restaurant, onAddToWishlist }: { restaurant: Rest
              </Button>
            )}
            
-           {restaurant.reservationUrl && (
-             <Button size="sm" className="flex-1" asChild>
-               <a href={restaurant.reservationUrl} target="_blank" rel="noopener noreferrer">
-                 <Calendar className="h-4 w-4 mr-1" />
-                 Reserve
-                 <ExternalLink className="h-3 w-3 ml-1" />
-               </a>
-             </Button>
-           )}
+            {restaurant.reservationUrl ? (
+              <Button size="sm" className="flex-1" asChild>
+                <a href={restaurant.reservationUrl} target="_blank" rel="noopener noreferrer">
+                  <Calendar className="h-4 w-4 mr-1" />
+                  Reserve
+                  <ExternalLink className="h-3 w-3 ml-1" />
+                </a>
+              </Button>
+            ) : (
+              <Button size="sm" variant="outline" className="flex-1" disabled>
+                <Calendar className="h-4 w-4 mr-1" />
+                {restaurant.reservationNote || "No reservations"}
+              </Button>
+            )}
          </div>
        </div>
        </CardContent>
