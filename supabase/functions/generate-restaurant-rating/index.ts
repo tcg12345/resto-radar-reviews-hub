@@ -59,7 +59,7 @@ Respond in JSON format:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
+        model: 'gpt-4o',
         messages: [
           { role: 'system', content: 'You are a restaurant expert who provides accurate, fair ratings based on real restaurant quality factors.' },
           { role: 'user', content: prompt }
