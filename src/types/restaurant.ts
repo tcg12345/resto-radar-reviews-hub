@@ -41,4 +41,5 @@ export interface RestaurantFormData {
   notes?: string;
   dateVisited?: string;
   isWishlist: boolean;
+  removedPhotoIndexes?: number[];
 }

@@ -246,8 +246,21 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         console.log(`Processing updated photos: ${processed}/${total}`);
       });
       
-      // Combine existing and new photos
-      const combinedPhotos = [...existingRestaurant.photos, ...newPhotoDataUrls];
+      // Handle photo removal and combine with new photos
+      let updatedPhotos = [...existingRestaurant.photos];
+      
+      // Remove photos that were marked for deletion (in reverse order to maintain correct indexes)
+      if (data.removedPhotoIndexes && data.removedPhotoIndexes.length > 0) {
+        const sortedIndexes = [...data.removedPhotoIndexes].sort((a, b) => b - a);
+        sortedIndexes.forEach(index => {
+          if (index >= 0 && index < updatedPhotos.length) {
+            updatedPhotos.splice(index, 1);
+          }
+        });
+      }
+      
+      // Add new photos
+      const combinedPhotos = [...updatedPhotos, ...newPhotoDataUrls];
       
       // Geocode the address if it changed using the edge function
       let coordinates = {

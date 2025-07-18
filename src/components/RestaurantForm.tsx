@@ -62,6 +62,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
   const [isDragOver, setIsDragOver] = useState(false);
   const [isCustomCuisineDialogOpen, setIsCustomCuisineDialogOpen] = useState(false);
   const [customCuisineInput, setCustomCuisineInput] = useState('');
+  const [removedPhotoIndexes, setRemovedPhotoIndexes] = useState<number[]>([]);
   const [customCuisine, setCustomCuisine] = useState(() => {
     // Initialize with custom cuisine if initial data has a cuisine not in the predefined list
     if (initialData?.cuisine && !cuisineOptions.includes(initialData.cuisine)) {
@@ -283,18 +284,22 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
   };
 
   const removePhoto = (index: number) => {
-    // Remove from preview
+    const existingPhotosCount = initialData?.photos.length || 0;
+    
+    // Remove from preview images
     setPreviewImages(prev => prev.filter((_, i) => i !== index));
     
-    // Remove from form data if it's a new photo
-    if (index >= (initialData?.photos.length || 0)) {
-      const adjustedIndex = index - (initialData?.photos.length || 0);
+    if (index < existingPhotosCount) {
+      // This is an existing photo - track it for removal
+      setRemovedPhotoIndexes(prev => [...prev, index]);
+    } else {
+      // This is a new photo - remove from form data
+      const adjustedIndex = index - existingPhotosCount;
       setFormData(prev => ({
         ...prev,
         photos: prev.photos.filter((_, i) => i !== adjustedIndex),
       }));
     }
-    // For existing photos, we'll handle removal on the submit side
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -393,7 +398,10 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    onSubmit({
+      ...formData,
+      removedPhotoIndexes: removedPhotoIndexes
+    });
   };
 
   return (
