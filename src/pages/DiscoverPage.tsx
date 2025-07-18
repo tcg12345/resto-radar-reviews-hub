@@ -81,10 +81,12 @@ export function DiscoverPage() {
       return;
     }
 
+    console.log('Starting search with query:', searchQuery);
     setIsLoading(true);
     setHasSearched(true);
 
     try {
+      console.log('Invoking restaurant-discovery function...');
       const { data, error } = await supabase.functions.invoke('restaurant-discovery', {
         body: {
           query: searchQuery,
@@ -93,8 +95,14 @@ export function DiscoverPage() {
         }
       });
 
-      if (error) throw error;
+      console.log('Function response:', { data, error });
 
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
+
+      console.log('Setting restaurants data:', data.restaurants);
       setRestaurants(data.restaurants || []);
       toast({
         title: "Search completed!",
@@ -108,6 +116,7 @@ export function DiscoverPage() {
         variant: "destructive",
       });
     } finally {
+      console.log('Search completed, setting loading to false');
       setIsLoading(false);
     }
   }, [searchQuery, locationQuery, filters, toast]);
@@ -149,6 +158,14 @@ export function DiscoverPage() {
     if (lowerFeature.includes('card') || lowerFeature.includes('payment')) return CreditCard;
     return Sparkles;
   };
+
+  console.log('DiscoverPage rendering with:', { 
+    searchQuery, 
+    locationQuery, 
+    restaurants: restaurants.length, 
+    isLoading, 
+    hasSearched 
+  });
 
   return (
     <div className="container py-6 space-y-6">
@@ -281,19 +298,23 @@ export function DiscoverPage() {
             {restaurants.map((restaurant) => (
               <Card key={restaurant.id} className="hover:shadow-lg transition-all duration-200 group">
                 <CardHeader className="p-0">
-                  <div className="relative">
-                    <LazyImage
-                      src={restaurant.images?.[0] || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=200&fit=crop'}
-                      alt={restaurant.name}
-                      className="h-48 w-full object-cover rounded-t-lg"
-                    />
-                    <div className="absolute top-3 left-3">
-                      <Badge 
-                        variant={restaurant.isOpen ? "default" : "secondary"}
-                        className={restaurant.isOpen ? "bg-green-600" : ""}
-                      >
-                        {restaurant.isOpen ? "Open Now" : "Closed"}
-                      </Badge>
+                   <div className="relative">
+                     <img
+                       src={restaurant.images?.[0] || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=200&fit=crop'}
+                       alt={restaurant.name}
+                       className="h-48 w-full object-cover rounded-t-lg"
+                       onError={(e) => {
+                         console.error('Image load error for restaurant:', restaurant.name);
+                         e.currentTarget.src = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=200&fit=crop';
+                       }}
+                     />
+                     <div className="absolute top-3 left-3">
+                       <Badge 
+                         variant={restaurant.isOpen ? "default" : "secondary"}
+                         className={restaurant.isOpen ? "bg-green-600" : ""}
+                       >
+                         {restaurant.isOpen ? "Open Now" : "Closed"}
+                       </Badge>
                     </div>
                     <div className="absolute top-3 right-3">
                       <Button
