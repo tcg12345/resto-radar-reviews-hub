@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Star } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface StarRatingProps {
   rating: number;
@@ -18,6 +19,7 @@ export function StarRating({
   showValue = true 
 }: StarRatingProps) {
   const [hoverRating, setHoverRating] = useState<number | null>(null);
+  const [sliderStep, setSliderStep] = useState<number>(0.01);
 
   const sizeClasses = {
     sm: 'h-4 w-4',
@@ -95,14 +97,30 @@ export function StarRating({
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <span>Fine-tune rating</span>
-            <span>{rating.toFixed(2)}/10</span>
+            <div className="flex items-center gap-2">
+              <span>Step:</span>
+              <Select
+                value={sliderStep.toString()}
+                onValueChange={(value) => setSliderStep(parseFloat(value))}
+              >
+                <SelectTrigger className="w-20 h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1</SelectItem>
+                  <SelectItem value="0.1">0.1</SelectItem>
+                  <SelectItem value="0.01">0.01</SelectItem>
+                </SelectContent>
+              </Select>
+              <span>{rating.toFixed(2)}/10</span>
+            </div>
           </div>
           <Slider
             value={[rating]}
             onValueChange={handleSliderChange}
             max={10}
             min={0}
-            step={0.01}
+            step={sliderStep}
             className="w-full"
           />
         </div>
