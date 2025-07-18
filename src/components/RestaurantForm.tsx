@@ -38,10 +38,10 @@ interface RestaurantFormProps {
 }
 
 const cuisineOptions = [
-  'American', 'Italian', 'Japanese', 'Chinese', 'Mexican', 
-  'Thai', 'Indian', 'French', 'Mediterranean', 'Korean',
-  'Spanish', 'Vietnamese', 'Greek', 'Brazilian', 'Other'
-];
+  'American', 'Asian', 'Brazilian', 'Chinese', 'Classic', 'French', 'French Steakhouse',
+  'Greek', 'Indian', 'Italian', 'Japanese', 'Korean', 'Mediterranean', 'Mexican', 
+  'Modern', 'Seafood', 'Spanish', 'Steakhouse', 'Thai', 'Vietnamese', 'Other'
+].sort();
 
 export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlist = false }: RestaurantFormProps) {
   const [isMobile, setIsMobile] = useState(false);
@@ -49,6 +49,13 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
   const [photoProgress, setPhotoProgress] = useState(0);
   const [photosToProcess, setPhotosToProcess] = useState(0);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [customCuisine, setCustomCuisine] = useState(() => {
+    // Initialize with custom cuisine if initial data has a cuisine not in the predefined list
+    if (initialData?.cuisine && !cuisineOptions.includes(initialData.cuisine)) {
+      return initialData.cuisine;
+    }
+    return '';
+  });
   
   useEffect(() => {
     // Detect if we're on a mobile device
@@ -377,14 +384,21 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
           <div className="space-y-2">
             <Label htmlFor="cuisine">Cuisine *</Label>
             <Select
-              value={formData.cuisine}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, cuisine: value }))}
+              value={formData.cuisine === 'Other' ? 'Other' : cuisineOptions.includes(formData.cuisine) ? formData.cuisine : 'Other'}
+              onValueChange={(value) => {
+                if (value === 'Other') {
+                  setFormData(prev => ({ ...prev, cuisine: customCuisine || '' }));
+                } else {
+                  setFormData(prev => ({ ...prev, cuisine: value }));
+                  setCustomCuisine('');
+                }
+              }}
               required
             >
               <SelectTrigger id="cuisine">
                 <SelectValue placeholder="Select cuisine" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-background border border-border shadow-lg z-50">
                 {cuisineOptions.map(cuisine => (
                   <SelectItem key={cuisine} value={cuisine}>
                     {cuisine}
@@ -392,6 +406,19 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
                 ))}
               </SelectContent>
             </Select>
+            
+            {(formData.cuisine === 'Other' || (customCuisine && !cuisineOptions.includes(formData.cuisine))) && (
+              <Input
+                placeholder="Enter custom cuisine"
+                value={customCuisine || (cuisineOptions.includes(formData.cuisine) ? '' : formData.cuisine)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setCustomCuisine(value);
+                  setFormData(prev => ({ ...prev, cuisine: value }));
+                }}
+                className="mt-2"
+              />
+            )}
           </div>
         </div>
 
