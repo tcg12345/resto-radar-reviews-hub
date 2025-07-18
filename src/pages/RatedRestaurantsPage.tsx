@@ -103,7 +103,7 @@ export function RatedRestaurantsPage({
   return (
     <div className="container py-6">
       <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-        <h2 className="text-3xl font-bold tracking-tight">My Rated Restaurants</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Rated Restaurants</h2>
         <Button onClick={() => setIsAddDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Add Restaurant
