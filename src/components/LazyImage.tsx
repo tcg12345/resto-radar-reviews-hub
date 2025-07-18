@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface LazyImageProps {
@@ -9,20 +9,41 @@ interface LazyImageProps {
   onError?: () => void;
 }
 
+// Global cache to remember loaded images
+const imageCache = new Set<string>();
+const errorCache = new Set<string>();
+
 export const LazyImage = React.memo(({ src, alt, className, onLoad, onError }: LazyImageProps) => {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [hasError, setHasError] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(() => imageCache.has(src));
+  const [hasError, setHasError] = useState(() => errorCache.has(src));
   const [isInView, setIsInView] = useState(false);
+
+  // Check if image is already cached when component mounts
+  useEffect(() => {
+    if (imageCache.has(src)) {
+      setIsLoaded(true);
+      setIsInView(true); // If cached, we can show it immediately
+    }
+    if (errorCache.has(src)) {
+      setHasError(true);
+    }
+  }, [src]);
 
   const handleLoad = useCallback(() => {
     setIsLoaded(true);
+    imageCache.add(src);
+    // Remove from error cache if it was there
+    errorCache.delete(src);
     onLoad?.();
-  }, [onLoad]);
+  }, [src, onLoad]);
 
   const handleError = useCallback(() => {
     setHasError(true);
+    errorCache.add(src);
+    // Remove from success cache if it was there
+    imageCache.delete(src);
     onError?.();
-  }, [onError]);
+  }, [src, onError]);
 
   const handleIntersection = useCallback((entries: IntersectionObserverEntry[]) => {
     entries.forEach(entry => {
@@ -33,7 +54,7 @@ export const LazyImage = React.memo(({ src, alt, className, onLoad, onError }: L
   }, []);
 
   const imgRef = useCallback((node: HTMLDivElement | null) => {
-    if (node) {
+    if (node && !isLoaded) {
       const observer = new IntersectionObserver(handleIntersection, {
         threshold: 0.1,
         rootMargin: '50px'
@@ -41,7 +62,7 @@ export const LazyImage = React.memo(({ src, alt, className, onLoad, onError }: L
       observer.observe(node);
       return () => observer.disconnect();
     }
-  }, [handleIntersection]);
+  }, [handleIntersection, isLoaded]);
 
   if (hasError) {
     return (
@@ -56,7 +77,7 @@ export const LazyImage = React.memo(({ src, alt, className, onLoad, onError }: L
       {!isLoaded && (
         <Skeleton className="absolute inset-0 w-full h-full" />
       )}
-      {isInView && (
+      {(isInView || isLoaded) && (
         <img
           src={src}
           alt={alt}
