@@ -25,9 +25,9 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | undefined>(undefined);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
-    cuisine: '',
-    priceRange: '',
-    rating: '',
+    cuisine: 'all',
+    priceRange: 'all',
+    rating: 'all',
     type: 'all' // 'all', 'rated', 'wishlist'
   });
   
@@ -67,16 +67,16 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
 
   const clearFilters = () => {
     setFilters({
-      cuisine: '',
-      priceRange: '',
-      rating: '',
+      cuisine: 'all',
+      priceRange: 'all',
+      rating: 'all',
       type: 'all'
     });
   };
 
   const getActiveFilterCount = () => {
     return Object.entries(filters).filter(([key, value]) => 
-      key !== 'type' && value !== ''
+      key !== 'type' && value !== 'all' && value !== ''
     ).length + (filters.type !== 'all' ? 1 : 0);
   };
   
@@ -90,13 +90,13 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
     if (filters.type === 'wishlist' && !restaurant.isWishlist) return false;
     
     // Cuisine filter
-    if (filters.cuisine && restaurant.cuisine !== filters.cuisine) return false;
+    if (filters.cuisine && filters.cuisine !== 'all' && restaurant.cuisine !== filters.cuisine) return false;
     
     // Price range filter
-    if (filters.priceRange && restaurant.priceRange?.toString() !== filters.priceRange) return false;
+    if (filters.priceRange && filters.priceRange !== 'all' && restaurant.priceRange?.toString() !== filters.priceRange) return false;
     
     // Rating filter
-    if (filters.rating) {
+    if (filters.rating && filters.rating !== 'all') {
       const minRating = parseFloat(filters.rating);
       if (!restaurant.rating || restaurant.rating < minRating) return false;
     }
@@ -156,7 +156,7 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
                   <SelectValue placeholder="Any cuisine" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any cuisine</SelectItem>
+                  <SelectItem value="all">Any cuisine</SelectItem>
                   {uniqueCuisines.map(cuisine => (
                     <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
                   ))}
@@ -171,7 +171,7 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
                   <SelectValue placeholder="Any price" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any price</SelectItem>
+                  <SelectItem value="all">Any price</SelectItem>
                   {uniquePriceRanges.map(range => (
                     <SelectItem key={range} value={range.toString()}>
                       <div className="flex items-center gap-2">
@@ -191,7 +191,7 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
                   <SelectValue placeholder="Any rating" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any rating</SelectItem>
+                  <SelectItem value="all">Any rating</SelectItem>
                   <SelectItem value="7">7+ stars</SelectItem>
                   <SelectItem value="8">8+ stars</SelectItem>
                   <SelectItem value="9">9+ stars</SelectItem>
