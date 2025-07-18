@@ -80,14 +80,14 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
         <div className="flex flex-col gap-2">
           <CardTitle className="text-xl font-bold break-words">{restaurant.name}</CardTitle>
           <div className="flex flex-col gap-2">
-            {restaurant.michelinStars && (
-              <MichelinStars stars={restaurant.michelinStars} readonly size="sm" />
-            )}
             {restaurant.rating !== undefined && (
               <StarRating rating={restaurant.rating} readonly size="sm" />
             )}
             {restaurant.priceRange && (
               <PriceRange priceRange={restaurant.priceRange} readonly size="sm" />
+            )}
+            {restaurant.michelinStars && (
+              <MichelinStars stars={restaurant.michelinStars} readonly size="sm" />
             )}
           </div>
         </div>
