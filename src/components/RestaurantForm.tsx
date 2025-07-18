@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { PlusCircle, Trash2, Calendar, MapPin, Camera, Images, Monitor, Upload, Search, Loader, Sparkles } from 'lucide-react';
 import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { AIReviewAssistant } from '@/components/AIReviewAssistant';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -909,16 +910,34 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
           </div>
         )}
 
-        <div className="space-y-2">
-          <Label htmlFor="notes">Notes</Label>
+        <div className="space-y-4">
+          <Label htmlFor="notes">Notes & Review</Label>
           <Textarea
             id="notes"
             name="notes"
             value={formData.notes}
             onChange={handleInputChange}
-            placeholder="Any thoughts about this place..."
-            className="min-h-[100px]"
+            placeholder="Write your review or notes about this restaurant..."
+            className="min-h-[120px]"
           />
+          
+          {/* AI Review Assistant - only show for non-wishlist restaurants */}
+          {!formData.isWishlist && formData.name && formData.cuisine && (
+            <AIReviewAssistant
+              restaurantName={formData.name}
+              cuisine={formData.cuisine}
+              rating={formData.rating}
+              priceRange={formData.priceRange}
+              aspects={formData.categoryRatings ? {
+                food: formData.categoryRatings.food,
+                service: formData.categoryRatings.service,
+                ambiance: formData.categoryRatings.atmosphere,
+                value: 3 // Default fallback since value might not exist in CategoryRating
+              } : undefined}
+              currentReview={formData.notes}
+              onReviewUpdate={(review) => setFormData(prev => ({ ...prev, notes: review }))}
+            />
+          )}
         </div>
 
         {/* Only show photos section for non-wishlist restaurants */}
