@@ -93,7 +93,7 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
         </div>
         <CardDescription className="flex items-center text-sm text-muted-foreground">
           <MapPin className="mr-1 h-3.5 w-3.5" />
-          {restaurant.address}, {restaurant.city}
+          {restaurant.city}{restaurant.country && `, ${restaurant.country}`}
         </CardDescription>
       </CardHeader>
       
