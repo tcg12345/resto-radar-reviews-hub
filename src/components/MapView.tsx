@@ -23,6 +23,15 @@ const MAP_STYLES = {
   hybrid: 'mapbox://styles/mapbox/satellite-streets-v12'
 };
 
+// Helper function to determine marker color based on rating
+const getMarkerColor = (rating?: number): string => {
+  if (!rating) return 'e91e63'; // red for no rating
+  if (rating <= 5) return 'e91e63'; // red for 0-5 stars
+  if (rating <= 7.5) return '2196f3'; // blue for 5.01-7.5 stars
+  if (rating <= 9) return '4caf50'; // green for 7.51-9 stars
+  return 'ffd700'; // gold for 9+ stars
+};
+
 export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -148,7 +157,7 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
         el.className = 'marker';
         el.style.width = '24px';
         el.style.height = '24px';
-        el.style.backgroundImage = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%23${restaurant.isWishlist ? '4caf50' : 'e91e63'}" stroke="%23ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>')`;
+        el.style.backgroundImage = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%23${getMarkerColor(restaurant.rating)}" stroke="%23ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>')`;
         el.style.backgroundSize = '100%';
         el.style.cursor = 'pointer';
 
