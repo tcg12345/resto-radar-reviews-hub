@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { MapPin, Clock, Tag, Edit2, Trash2, Eye } from 'lucide-react';
+import { MapPin, Clock, Tag, Edit2, Trash2, Eye, Bot } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Card,
@@ -17,6 +17,7 @@ import { PriceRange } from '@/components/PriceRange';
 import { MichelinStars } from '@/components/MichelinStars';
 import { WeightedRating } from '@/components/WeightedRating';
 import { PhotoGallery } from '@/components/PhotoGallery';
+import { AIReviewAssistant } from '@/components/AIReviewAssistant';
 import { Restaurant } from '@/types/restaurant';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 import { getStateFromCoordinatesCached } from '@/utils/geocoding';
@@ -25,6 +26,7 @@ interface RestaurantCardProps {
   restaurant: Restaurant;
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
+  showAIReviewAssistant?: boolean;
 }
 
 // Component for displaying location with geocoding
@@ -60,11 +62,12 @@ function LocationDisplay({ restaurant }: { restaurant: Restaurant }) {
   return <span>{locationText}</span>;
 }
 
-export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardProps) {
+export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssistant = false }: RestaurantCardProps) {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [isLoadingPhotos, setIsLoadingPhotos] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isAIReviewOpen, setIsAIReviewOpen] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
   const { loadRestaurantPhotos } = useRestaurants();
   
@@ -291,6 +294,18 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
           </DialogContent>
         </Dialog>
         
+        {showAIReviewAssistant && !restaurant.isWishlist && (
+          <Button 
+            size="sm" 
+            variant="outline"
+            className="h-8"
+            onClick={() => setIsAIReviewOpen(true)}
+          >
+            <Bot className="mr-1 h-3.5 w-3.5" />
+            AI Review
+          </Button>
+        )}
+        
         {onEdit && (
           <Button 
             size="sm" 
@@ -316,6 +331,29 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
         )}
       </CardFooter>
      </Card>
+     
+     {/* AI Review Assistant Dialog */}
+     {showAIReviewAssistant && (
+       <Dialog open={isAIReviewOpen} onOpenChange={setIsAIReviewOpen}>
+         <DialogContent className="max-w-4xl">
+           <DialogHeader>
+             <DialogTitle>AI Review Assistant - {restaurant.name}</DialogTitle>
+           </DialogHeader>
+           <AIReviewAssistant 
+             restaurantName={restaurant.name}
+             cuisine={restaurant.cuisine}
+             rating={restaurant.rating}
+             priceRange={restaurant.priceRange}
+             currentReview={restaurant.notes}
+             onReviewUpdate={(review) => {
+               // This is just for viewing, not editing, so we'll show a message
+               navigator.clipboard.writeText(review);
+               // You could add a toast here to show it was copied
+             }}
+           />
+         </DialogContent>
+       </Dialog>
+     )}
     </>
   );
 }

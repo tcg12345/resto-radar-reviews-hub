@@ -115,9 +115,9 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
 
   return (
     <div className="relative h-[calc(100vh-64px)]">
-      {/* Filter Panel */}
+      {/* Filter Panel - moved further right to avoid overlapping with filter button */}
       {showFilters && (
-        <Card className="absolute top-4 left-4 z-10 w-80 max-h-[calc(100vh-120px)] overflow-y-auto">
+        <Card className="absolute top-16 left-4 z-10 w-80 max-h-[calc(100vh-140px)] overflow-y-auto">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
@@ -215,10 +215,10 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
         </Card>
       )}
 
-      {/* Filter Toggle Button */}
+      {/* Filter Toggle Button - moved to left to avoid blocking map controls */}
       <Button
         onClick={() => setShowFilters(!showFilters)}
-        className="absolute top-4 right-4 z-10 flex items-center gap-2"
+        className="absolute top-4 left-4 z-10 flex items-center gap-2"
         variant={showFilters ? "default" : "secondary"}
       >
         <Filter className="h-4 w-4" />
@@ -247,6 +247,7 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
                 restaurant={mapSelectedRestaurant}
                 onEdit={handleOpenEditDialog}
                 onDelete={handleOpenDeleteDialog}
+                showAIReviewAssistant={true}
               />
             )}
           </ScrollArea>

@@ -538,12 +538,13 @@ export function RatedRestaurantsPage({
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filteredRestaurants.map((restaurant) => (
-            <RestaurantCard
-              key={restaurant.id}
-              restaurant={restaurant}
-              onEdit={handleOpenEditDialog}
-              onDelete={handleOpenDeleteDialog}
-            />
+                  <RestaurantCard
+                    key={restaurant.id}
+                    restaurant={restaurant}
+                    onEdit={handleOpenEditDialog}
+                    onDelete={handleOpenDeleteDialog}
+                    showAIReviewAssistant={true}
+                  />
           ))}
         </div>
       )}

@@ -56,17 +56,19 @@ Consider these factors:
 
 Generate 25-50 diverse, realistic restaurant recommendations that match the query. For each restaurant, provide accurate details including:
 - Name (use real restaurant names when possible, or realistic sounding names)
-- Address (realistic for the requested location)
+- Address (realistic for the requested location - MUST match the requested location accurately)
 - Cuisine type
 - Price range (1-4)
 - Rating (3.8-4.8 range)
 - Description (2-3 sentences about what makes it special)
 - Features array (e.g., "Outdoor seating", "Vegetarian options", "Wine bar", "Private dining", etc.)
-- Realistic coordinates for the location
+- Realistic coordinates for the EXACT requested location (not NYC if they ask for different city)
 - Phone number format appropriate for the country
 - Opening hours (realistic format)
 - Website URL (realistic domain)
 - Reservation URL when applicable
+
+CRITICAL: If a specific location is mentioned, ALL restaurants must be in that exact location with accurate addresses and coordinates. Do not default to NYC unless specifically requested.
 
 IMPORTANT: Return ONLY a valid JSON array of restaurant objects. No markdown, no text, just pure JSON.`;
 
@@ -282,9 +284,9 @@ IMPORTANT: Return ONLY a valid JSON array of restaurant objects. No markdown, no
         phoneNumber: restaurant.phoneNumber || restaurant.phone_number || restaurant.phone,
         openingHours: restaurant.openingHours || restaurant.opening_hours,
         location: {
-          lat: restaurant.location?.lat || restaurant.coordinates?.lat || restaurant.latitude || (40.7128 + (Math.random() - 0.5) * 0.1),
-          lng: restaurant.location?.lng || restaurant.coordinates?.lng || restaurant.longitude || (-74.0060 + (Math.random() - 0.5) * 0.1),
-          city: restaurant.location?.city || restaurant.city || 'New York',
+          lat: restaurant.location?.lat || restaurant.coordinates?.lat || restaurant.latitude || restaurant.coordinates?.latitude || (40.7128 + (Math.random() - 0.5) * 0.1),
+          lng: restaurant.location?.lng || restaurant.coordinates?.lng || restaurant.longitude || restaurant.coordinates?.longitude || (-74.0060 + (Math.random() - 0.5) * 0.1),
+          city: restaurant.location?.city || restaurant.city || (location ? location.split(',')[0].trim() : 'New York'),
           country: restaurant.location?.country || restaurant.country || 'United States'
         },
         images: selectedImages,
