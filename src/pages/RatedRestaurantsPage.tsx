@@ -373,6 +373,20 @@ export function RatedRestaurantsPage({
             </Popover>
           </div>
 
+          {/* Sort By */}
+          <div className="w-[180px]">
+            <Select value={sortBy} onValueChange={(value: 'latest' | 'rating' | 'name') => setSortBy(value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="latest">Latest</SelectItem>
+                <SelectItem value="rating">Rating (High to Low)</SelectItem>
+                <SelectItem value="name">Name (A-Z)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Rating Range Filter */}
           <div className="w-[60px]">
             <Popover>
@@ -403,20 +417,6 @@ export function RatedRestaurantsPage({
                 </div>
               </PopoverContent>
             </Popover>
-          </div>
-
-          {/* Sort By */}
-          <div className="w-[180px]">
-            <Select value={sortBy} onValueChange={(value: 'latest' | 'rating' | 'name') => setSortBy(value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="latest">Latest</SelectItem>
-                <SelectItem value="rating">Rating (High to Low)</SelectItem>
-                <SelectItem value="name">Name (A-Z)</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
         </div>
       </div>
