@@ -32,6 +32,7 @@ interface RestaurantContextType {
   updateRestaurant: (id: string, data: RestaurantFormData) => Promise<void>;
   deleteRestaurant: (id: string) => void;
   getRestaurant: (id: string) => Restaurant | undefined;
+  loadRestaurantPhotos: (id: string) => Promise<void>;
   isLoading: boolean;
 }
 
@@ -79,12 +80,15 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
           // User is authenticated, fetch their restaurants
           const { data, error } = await supabase
             .from('restaurants')
-            .select('*')
+            .select('id, name, address, city, country, cuisine, rating, notes, date_visited, is_wishlist, latitude, longitude, category_ratings, use_weighted_rating, price_range, michelin_stars, created_at, updated_at')
             .eq('user_id', session.user.id)
             .order('created_at', { ascending: false });
 
           if (error) throw error;
-          setRestaurants((data || []).map(mapDbRestaurantToRestaurant));
+          setRestaurants((data || []).map(restaurant => mapDbRestaurantToRestaurant({
+            ...restaurant,
+            photos: [] // Photos will be loaded separately when needed
+          })));
         } else {
           // User is not authenticated, show empty list
           setRestaurants([]);
@@ -363,6 +367,30 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
     return restaurants.find((restaurant) => restaurant.id === id);
   }, [restaurants]);
 
+  const loadRestaurantPhotos = useCallback(async (id: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('restaurants')
+        .select('photos')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setRestaurants(prev => 
+          prev.map(restaurant => 
+            restaurant.id === id 
+              ? { ...restaurant, photos: data.photos || [] }
+              : restaurant
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Error loading restaurant photos:', error);
+    }
+  }, []);
+
   const value = useMemo(
     () => ({
       restaurants,
@@ -370,9 +398,10 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       updateRestaurant,
       deleteRestaurant,
       getRestaurant,
+      loadRestaurantPhotos,
       isLoading,
     }),
-    [restaurants, addRestaurant, updateRestaurant, deleteRestaurant, getRestaurant, isLoading]
+    [restaurants, addRestaurant, updateRestaurant, deleteRestaurant, getRestaurant, loadRestaurantPhotos, isLoading]
   );
 
   return <RestaurantContext.Provider value={value}>{children}</RestaurantContext.Provider>;

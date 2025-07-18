@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { MapPin, Clock, Tag, Edit2, Trash2 } from 'lucide-react';
 import { 
@@ -16,6 +16,7 @@ import { MichelinStars } from '@/components/MichelinStars';
 import { WeightedRating } from '@/components/WeightedRating';
 import { PhotoGallery } from '@/components/PhotoGallery';
 import { Restaurant } from '@/types/restaurant';
+import { useRestaurants } from '@/contexts/RestaurantContext';
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
@@ -26,7 +27,16 @@ interface RestaurantCardProps {
 export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardProps) {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const { loadRestaurantPhotos } = useRestaurants();
+  
   const hasMultiplePhotos = restaurant.photos.length > 1;
+  
+  // Load photos when component mounts if they aren't already loaded
+  useEffect(() => {
+    if (restaurant.photos.length === 0) {
+      loadRestaurantPhotos(restaurant.id);
+    }
+  }, [restaurant.id, restaurant.photos.length, loadRestaurantPhotos]);
   
   const nextPhoto = () => {
     setCurrentPhotoIndex((prev) => (prev + 1) % restaurant.photos.length);
