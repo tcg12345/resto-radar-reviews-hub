@@ -1,4 +1,4 @@
-import { Star } from 'lucide-react';
+import { Flower2 } from 'lucide-react';
 
 interface MichelinStarsProps {
   stars?: number;
@@ -50,7 +50,7 @@ export function MichelinStars({
                 readonly ? 'cursor-default' : 'cursor-pointer hover:scale-110'
               }`}
             >
-              <Star
+              <Flower2
                 className={`${sizeClasses[size]} transition-colors duration-150 stroke-2 ${
                   isFilled
                     ? 'fill-red-600 text-red-700'
