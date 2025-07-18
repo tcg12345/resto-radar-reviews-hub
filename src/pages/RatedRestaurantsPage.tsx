@@ -101,9 +101,8 @@ export function RatedRestaurantsPage({
         r.cuisine === cuisine &&
         (filterPrices.length === 0 || 
          (r.priceRange && filterPrices.includes(r.priceRange.toString()))) &&
-        (filterMichelins.length === 0 || 
-         (filterMichelins.includes('none') && !r.michelinStars) ||
-         (r.michelinStars && filterMichelins.includes(r.michelinStars.toString())))
+         (filterMichelins.length === 0 || 
+          (r.michelinStars && filterMichelins.includes(r.michelinStars.toString())))
       ).length
     }));
 
@@ -112,41 +111,31 @@ export function RatedRestaurantsPage({
       { price: '1', count: baseFilteredRestaurants.filter(r => 
         r.priceRange === 1 &&
         (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
-        (filterMichelins.length === 0 || 
-         (filterMichelins.includes('none') && !r.michelinStars) ||
-         (r.michelinStars && filterMichelins.includes(r.michelinStars.toString())))
+         (filterMichelins.length === 0 || 
+          (r.michelinStars && filterMichelins.includes(r.michelinStars.toString())))
       ).length },
       { price: '2', count: baseFilteredRestaurants.filter(r => 
         r.priceRange === 2 &&
         (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
-        (filterMichelins.length === 0 || 
-         (filterMichelins.includes('none') && !r.michelinStars) ||
-         (r.michelinStars && filterMichelins.includes(r.michelinStars.toString())))
+         (filterMichelins.length === 0 || 
+          (r.michelinStars && filterMichelins.includes(r.michelinStars.toString())))
       ).length },
       { price: '3', count: baseFilteredRestaurants.filter(r => 
         r.priceRange === 3 &&
-        (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
-        (filterMichelins.length === 0 || 
-         (filterMichelins.includes('none') && !r.michelinStars) ||
-         (r.michelinStars && filterMichelins.includes(r.michelinStars.toString())))
+         (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
+         (filterMichelins.length === 0 || 
+          (r.michelinStars && filterMichelins.includes(r.michelinStars.toString())))
       ).length },
       { price: '4', count: baseFilteredRestaurants.filter(r => 
         r.priceRange === 4 &&
         (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
-        (filterMichelins.length === 0 || 
-         (filterMichelins.includes('none') && !r.michelinStars) ||
-         (r.michelinStars && filterMichelins.includes(r.michelinStars.toString())))
+         (filterMichelins.length === 0 || 
+          (r.michelinStars && filterMichelins.includes(r.michelinStars.toString())))
       ).length },
     ];
 
     // Calculate counts for Michelin stars
     const michelinCounts = [
-      { michelin: 'none', count: baseFilteredRestaurants.filter(r => 
-        !r.michelinStars &&
-        (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
-        (filterPrices.length === 0 || 
-         (r.priceRange && filterPrices.includes(r.priceRange.toString())))
-      ).length },
       { michelin: '1', count: baseFilteredRestaurants.filter(r => 
         r.michelinStars === 1 &&
         (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
@@ -191,7 +180,6 @@ export function RatedRestaurantsPage({
 
       // Apply Michelin star filter
       const matchesMichelin = filterMichelins.length === 0 
-        || (filterMichelins.includes('none') && !restaurant.michelinStars)
         || (restaurant.michelinStars && filterMichelins.includes(restaurant.michelinStars.toString()));
 
       // Apply rating range filter
@@ -363,11 +351,11 @@ export function RatedRestaurantsPage({
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-between">
                   <span>
-                    {filterMichelins.length === 0 
-                      ? 'Michelin' 
-                      : filterMichelins.length === 1 
-                        ? filterMichelins[0] === 'none' ? 'No Stars' : `${filterMichelins[0]} Star${filterMichelins[0] === '1' ? '' : 's'}`
-                        : `${filterMichelins.length} selected`
+                      {filterMichelins.length === 0 
+                        ? 'Michelin' 
+                        : filterMichelins.length === 1 
+                          ? `${filterMichelins[0]} Star${filterMichelins[0] === '1' ? '' : 's'}`
+                          : `${filterMichelins.length} selected`
                     }
                   </span>
                   <ChevronDown className="ml-2 h-4 w-4" />
@@ -384,7 +372,7 @@ export function RatedRestaurantsPage({
                           onCheckedChange={() => toggleMichelin(michelin)}
                         />
                         <label htmlFor={`michelin-${michelin}`} className="text-sm cursor-pointer flex-1">
-                          {michelin === 'none' ? 'No Michelin Stars' : `${michelin} Michelin Star${michelin === '1' ? '' : 's'}`} ({count})
+                           {`${michelin} Michelin Star${michelin === '1' ? '' : 's'}`} ({count})
                         </label>
                       </div>
                     ))}
