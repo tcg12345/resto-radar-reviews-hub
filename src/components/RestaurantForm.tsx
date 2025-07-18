@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { PlusCircle, Trash2, Calendar, MapPin, Camera, Images } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { PlusCircle, Trash2, Calendar, MapPin, Camera, Images, Monitor } from 'lucide-react';
 import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,6 +40,19 @@ const cuisineOptions = [
 ];
 
 export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlist = false }: RestaurantFormProps) {
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    // Detect if we're on a mobile device
+    const checkIsMobile = () => {
+      const userAgent = navigator.userAgent.toLowerCase();
+      const isMobileDevice = /iphone|ipad|android|mobile/.test(userAgent);
+      setIsMobile(isMobileDevice);
+    };
+    
+    checkIsMobile();
+  }, []);
+
   const [formData, setFormData] = useState<RestaurantFormData>({
     name: initialData?.name || '',
     address: initialData?.address || '',
@@ -394,33 +407,42 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
               </div>
             ))}
 
-            {/* Native Photo Gallery Button */}
-            <button
-              type="button"
-              onClick={addPhotoFromGallery}
-              className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-md border border-dashed bg-muted/50 text-muted-foreground transition-colors hover:bg-muted"
-            >
-              <Images className="mb-1 h-6 w-6" />
-              <span className="text-sm font-medium">Photo Gallery</span>
-              <span className="text-xs opacity-75">Select from album</span>
-            </button>
+            {/* Show native mobile buttons only on mobile devices */}
+            {isMobile && (
+              <>
+                {/* Native Photo Gallery Button */}
+                <button
+                  type="button"
+                  onClick={addPhotoFromGallery}
+                  className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-md border border-dashed bg-muted/50 text-muted-foreground transition-colors hover:bg-muted"
+                >
+                  <Images className="mb-1 h-6 w-6" />
+                  <span className="text-sm font-medium">Photo Gallery</span>
+                  <span className="text-xs opacity-75">Select from album</span>
+                </button>
 
-            {/* Native Camera Button */}
-            <button
-              type="button"
-              onClick={takePhoto}
-              className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-md border border-dashed bg-muted/50 text-muted-foreground transition-colors hover:bg-muted"
-            >
-              <Camera className="mb-1 h-6 w-6" />
-              <span className="text-sm font-medium">Take Photo</span>
-              <span className="text-xs opacity-75">Use camera</span>
-            </button>
+                {/* Native Camera Button */}
+                <button
+                  type="button"
+                  onClick={takePhoto}
+                  className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-md border border-dashed bg-muted/50 text-muted-foreground transition-colors hover:bg-muted"
+                >
+                  <Camera className="mb-1 h-6 w-6" />
+                  <span className="text-sm font-medium">Take Photo</span>
+                  <span className="text-xs opacity-75">Use camera</span>
+                </button>
+              </>
+            )}
 
-            {/* File System Selection (Original) */}
+            {/* Enhanced File System Selection for Desktop */}
             <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-md border border-dashed bg-muted/50 text-muted-foreground transition-colors hover:bg-muted">
-              <PlusCircle className="mb-1 h-6 w-6" />
-              <span className="text-sm font-medium">Files</span>
-              <span className="text-xs opacity-75">Select multiple</span>
+              {isMobile ? <PlusCircle className="mb-1 h-6 w-6" /> : <Monitor className="mb-1 h-6 w-6" />}
+              <span className="text-sm font-medium">
+                {isMobile ? 'Files' : 'Photo Library'}
+              </span>
+              <span className="text-xs opacity-75 text-center">
+                {isMobile ? 'Select multiple' : 'Cmd+click multiple'}
+              </span>
               <input
                 type="file"
                 accept="image/*"
@@ -430,6 +452,18 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
               />
             </label>
           </div>
+          
+          {/* Help text for Mac users */}
+          {!isMobile && (
+            <div className="mt-2 text-sm text-muted-foreground bg-muted/30 rounded-md p-3">
+              <p className="font-medium mb-1">💡 Mac Photo Selection Tips:</p>
+              <ul className="space-y-1 text-xs">
+                <li>• <strong>Multiple photos:</strong> Hold <kbd className="px-1 py-0.5 bg-background rounded text-xs border">⌘ Cmd</kbd> and click multiple photos</li>
+                <li>• <strong>Range selection:</strong> Click first photo, hold <kbd className="px-1 py-0.5 bg-background rounded text-xs border">⇧ Shift</kbd>, click last photo</li>
+                <li>• <strong>All photos:</strong> Press <kbd className="px-1 py-0.5 bg-background rounded text-xs border">⌘ Cmd</kbd> + <kbd className="px-1 py-0.5 bg-background rounded text-xs border">A</kbd> to select all</li>
+              </ul>
+            </div>
+          )}
         </div>
       </div>
 
