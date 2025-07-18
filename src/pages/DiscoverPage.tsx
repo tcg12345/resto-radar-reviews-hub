@@ -145,20 +145,6 @@ export function DiscoverPage() {
     });
   };
 
-  const getPriceRangeDisplay = (range: number) => {
-    return '$'.repeat(range);
-  };
-
-  const getFeatureIcon = (feature: string) => {
-    const lowerFeature = feature.toLowerCase();
-    if (lowerFeature.includes('outdoor') || lowerFeature.includes('patio')) return Car;
-    if (lowerFeature.includes('wifi') || lowerFeature.includes('internet')) return Wifi;
-    if (lowerFeature.includes('vegetarian') || lowerFeature.includes('vegan')) return ChefHat;
-    if (lowerFeature.includes('family') || lowerFeature.includes('kids')) return Users;
-    if (lowerFeature.includes('card') || lowerFeature.includes('payment')) return CreditCard;
-    return Sparkles;
-  };
-
   console.log('DiscoverPage rendering with:', { 
     searchQuery, 
     locationQuery, 
@@ -296,131 +282,161 @@ export function DiscoverPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {restaurants.map((restaurant) => (
-              <Card key={restaurant.id} className="hover:shadow-lg transition-all duration-200 group">
-                <CardHeader className="p-0">
-                   <div className="relative">
-                     <img
-                       src={restaurant.images?.[0] || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=200&fit=crop'}
-                       alt={restaurant.name}
-                       className="h-48 w-full object-cover rounded-t-lg"
-                       onError={(e) => {
-                         console.error('Image load error for restaurant:', restaurant.name);
-                         e.currentTarget.src = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=200&fit=crop';
-                       }}
-                     />
-                     <div className="absolute top-3 left-3">
-                       <Badge 
-                         variant={restaurant.isOpen ? "default" : "secondary"}
-                         className={restaurant.isOpen ? "bg-green-600" : ""}
-                       >
-                         {restaurant.isOpen ? "Open Now" : "Closed"}
-                       </Badge>
-                    </div>
-                    <div className="absolute top-3 right-3">
-                      <Button
-                        size="icon"
-                        variant="secondary"
-                        className="h-8 w-8 bg-white/90 hover:bg-white"
-                        onClick={() => handleAddToWishlist(restaurant)}
-                      >
-                        <Heart className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="p-4 space-y-3">
-                  <div>
-                    <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
-                      {restaurant.name}
-                    </h3>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Badge variant="outline" className="text-xs">
-                        {restaurant.cuisine}
-                      </Badge>
-                      <span className="flex items-center">
-                        <DollarSign className="h-3 w-3 mr-1" />
-                        {getPriceRangeDisplay(restaurant.priceRange)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium">{restaurant.rating}</span>
-                    <span className="text-muted-foreground">•</span>
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground truncate">
-                      {restaurant.location.city}
-                    </span>
-                  </div>
-
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {restaurant.description}
-                  </p>
-
-                  {/* Features */}
-                  <div className="flex flex-wrap gap-1">
-                    {restaurant.features.slice(0, 3).map((feature, index) => {
-                      const FeatureIcon = getFeatureIcon(feature);
-                      return (
-                        <Badge key={index} variant="secondary" className="text-xs">
-                          <FeatureIcon className="h-3 w-3 mr-1" />
-                          {feature}
-                        </Badge>
-                      );
-                    })}
-                    {restaurant.features.length > 3 && (
-                      <Badge variant="secondary" className="text-xs">
-                        +{restaurant.features.length - 3} more
-                      </Badge>
-                    )}
-                  </div>
-
-                  {/* Contact Info */}
-                  <div className="space-y-2 pt-2 border-t">
-                    {restaurant.phoneNumber && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        <span>{restaurant.phoneNumber}</span>
-                      </div>
-                    )}
-                    
-                    {restaurant.openingHours && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span className="truncate">{restaurant.openingHours}</span>
-                      </div>
-                    )}
-                    
-                    <div className="flex gap-2">
-                      {restaurant.website && (
-                        <Button size="sm" variant="outline" className="flex-1" asChild>
-                          <a href={restaurant.website} target="_blank" rel="noopener noreferrer">
-                            <Globe className="h-4 w-4 mr-1" />
-                            Website
-                            <ExternalLink className="h-3 w-3 ml-1" />
-                          </a>
-                        </Button>
-                      )}
-                      
-                      {restaurant.reservationUrl && (
-                        <Button size="sm" className="flex-1" asChild>
-                          <a href={restaurant.reservationUrl} target="_blank" rel="noopener noreferrer">
-                            <Calendar className="h-4 w-4 mr-1" />
-                            Reserve
-                            <ExternalLink className="h-3 w-3 ml-1" />
-                          </a>
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <RestaurantImageCard key={restaurant.id} restaurant={restaurant} onAddToWishlist={handleAddToWishlist} />
             ))}
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+// Restaurant card component with image loading placeholder
+function RestaurantImageCard({ restaurant, onAddToWishlist }: { restaurant: RestaurantResult; onAddToWishlist: (restaurant: RestaurantResult) => void }) {
+  const [imageLoading, setImageLoading] = useState(true);
+  
+  const getPriceRangeDisplay = (range: number) => {
+    return '$'.repeat(range);
+  };
+
+  const getFeatureIcon = (feature: string) => {
+    const lowerFeature = feature.toLowerCase();
+    if (lowerFeature.includes('outdoor') || lowerFeature.includes('patio')) return Car;
+    if (lowerFeature.includes('wifi') || lowerFeature.includes('internet')) return Wifi;
+    if (lowerFeature.includes('vegetarian') || lowerFeature.includes('vegan')) return ChefHat;
+    if (lowerFeature.includes('family') || lowerFeature.includes('kids')) return Users;
+    if (lowerFeature.includes('card') || lowerFeature.includes('payment')) return CreditCard;
+    return Sparkles;
+  };
+
+  return (
+    <Card className="hover:shadow-lg transition-all duration-200 group">
+      <CardHeader className="p-0">
+         <div className="relative">
+           {imageLoading && (
+             <div className="absolute inset-0 z-10">
+               <div className="h-48 w-full bg-muted animate-pulse rounded-t-lg" />
+             </div>
+           )}
+           <img
+             src={restaurant.images?.[0] || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=200&fit=crop'}
+             alt={restaurant.name}
+             className="h-48 w-full object-cover rounded-t-lg"
+             onLoad={() => setImageLoading(false)}
+             onError={(e) => {
+               console.error('Image load error for restaurant:', restaurant.name);
+               e.currentTarget.src = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=200&fit=crop';
+               setImageLoading(false);
+             }}
+           />
+           <div className="absolute top-3 left-3">
+             <Badge 
+               variant={restaurant.isOpen ? "default" : "secondary"}
+               className={restaurant.isOpen ? "bg-green-600" : ""}
+             >
+               {restaurant.isOpen ? "Open Now" : "Closed"}
+             </Badge>
+         </div>
+         <div className="absolute top-3 right-3">
+           <Button
+             size="icon"
+             variant="secondary"
+             className="h-8 w-8 bg-white/90 hover:bg-white"
+             onClick={() => onAddToWishlist(restaurant)}
+           >
+             <Heart className="h-4 w-4" />
+           </Button>
+         </div>
+       </div>
+     </CardHeader>
+
+     <CardContent className="p-4 space-y-3">
+       <div>
+         <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+           {restaurant.name}
+         </h3>
+         <div className="flex items-center gap-2 text-sm text-muted-foreground">
+           <Badge variant="outline" className="text-xs">
+             {restaurant.cuisine}
+           </Badge>
+           <span className="flex items-center">
+             <DollarSign className="h-3 w-3 mr-1" />
+             {getPriceRangeDisplay(restaurant.priceRange)}
+           </span>
+         </div>
+       </div>
+
+       <div className="flex items-center gap-2">
+         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+         <span className="font-medium">{restaurant.rating}</span>
+         <span className="text-muted-foreground">•</span>
+         <MapPin className="h-4 w-4 text-muted-foreground" />
+         <span className="text-sm text-muted-foreground truncate">
+           {restaurant.location.city}
+         </span>
+       </div>
+
+       <p className="text-sm text-muted-foreground line-clamp-2">
+         {restaurant.description}
+       </p>
+
+       {/* Features */}
+       <div className="flex flex-wrap gap-1">
+         {restaurant.features.slice(0, 3).map((feature, index) => {
+           const FeatureIcon = getFeatureIcon(feature);
+           return (
+             <Badge key={index} variant="secondary" className="text-xs">
+               <FeatureIcon className="h-3 w-3 mr-1" />
+               {feature}
+             </Badge>
+           );
+         })}
+         {restaurant.features.length > 3 && (
+           <Badge variant="secondary" className="text-xs">
+             +{restaurant.features.length - 3} more
+           </Badge>
+         )}
+       </div>
+
+       {/* Contact Info */}
+       <div className="space-y-2 pt-2 border-t">
+         {restaurant.phoneNumber && (
+           <div className="flex items-center gap-2 text-sm">
+             <Phone className="h-4 w-4 text-muted-foreground" />
+             <span>{restaurant.phoneNumber}</span>
+           </div>
+         )}
+         
+         {restaurant.openingHours && (
+           <div className="flex items-center gap-2 text-sm">
+             <Clock className="h-4 w-4 text-muted-foreground" />
+             <span className="truncate">{restaurant.openingHours}</span>
+           </div>
+         )}
+         
+         <div className="flex gap-2">
+           {restaurant.website && (
+             <Button size="sm" variant="outline" className="flex-1" asChild>
+               <a href={restaurant.website} target="_blank" rel="noopener noreferrer">
+                 <Globe className="h-4 w-4 mr-1" />
+                 Website
+                 <ExternalLink className="h-3 w-3 ml-1" />
+               </a>
+             </Button>
+           )}
+           
+           {restaurant.reservationUrl && (
+             <Button size="sm" className="flex-1" asChild>
+               <a href={restaurant.reservationUrl} target="_blank" rel="noopener noreferrer">
+                 <Calendar className="h-4 w-4 mr-1" />
+                 Reserve
+                 <ExternalLink className="h-3 w-3 ml-1" />
+               </a>
+             </Button>
+           )}
+         </div>
+       </div>
+       </CardContent>
+     </Card>
   );
 }

@@ -65,6 +65,7 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [isLoadingPhotos, setIsLoadingPhotos] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
   const { loadRestaurantPhotos } = useRestaurants();
   
   const hasMultiplePhotos = restaurant.photos.length > 1;
@@ -80,10 +81,12 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
   }, [restaurant.id, restaurant.photos.length, loadRestaurantPhotos]);
   
   const nextPhoto = () => {
+    setImageLoading(true);
     setCurrentPhotoIndex((prev) => (prev + 1) % restaurant.photos.length);
   };
   
   const previousPhoto = () => {
+    setImageLoading(true);
     setCurrentPhotoIndex((prev) => 
       prev === 0 ? restaurant.photos.length - 1 : prev - 1
     );
@@ -106,11 +109,18 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
       {/* Only show photo section if restaurant has photos */}
       {restaurant.photos.length > 0 && (
         <div className="relative aspect-video w-full overflow-hidden">
+          {imageLoading && (
+            <div className="absolute inset-0 z-10">
+              <Skeleton className="h-full w-full" />
+            </div>
+          )}
           <img
             src={restaurant.photos[currentPhotoIndex]}
             alt={`${restaurant.name} photo ${currentPhotoIndex + 1}`}
             className="h-full w-full object-cover transition-transform duration-300 hover:scale-105 cursor-pointer"
             onClick={openGallery}
+            onLoad={() => setImageLoading(false)}
+            onError={() => setImageLoading(false)}
           />
           
           {hasMultiplePhotos && (
