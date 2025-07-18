@@ -921,8 +921,10 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
           />
         </div>
 
-        <div className="space-y-2">
-          <Label>Photos</Label>
+        {/* Only show photos section for non-wishlist restaurants */}
+        {!formData.isWishlist && (
+          <div className="space-y-2">
+            <Label>Photos</Label>
           
           {isProcessingPhotos && (
             <div className="space-y-2">
@@ -1062,10 +1064,10 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
               />
             </label>
           </div>
-        </div>
-      </div>
+          </div>
+        )}
 
-      <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
@@ -1080,8 +1082,9 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
         }>
           Save Restaurant
         </Button>
+        </div>
       </div>
-    </form>
+      </form>
     </>
   );
 }
