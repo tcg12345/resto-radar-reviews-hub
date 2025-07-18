@@ -1,3 +1,4 @@
+import React from 'react';
 import { MichelinStarIcon } from './MichelinStarIcon';
 
 interface MichelinStarsProps {
@@ -7,12 +8,12 @@ interface MichelinStarsProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-export function MichelinStars({ 
+export const MichelinStars = React.memo(({ 
   stars, 
   onStarsChange, 
   readonly = false, 
   size = 'md' 
-}: MichelinStarsProps) {
+}: MichelinStarsProps) => {
   const sizeClasses = {
     sm: 'h-4 w-4',
     md: 'h-5 w-5',
@@ -75,4 +76,6 @@ export function MichelinStars({
       )}
     </div>
   );
-}
+});
+
+MichelinStars.displayName = 'MichelinStars';
