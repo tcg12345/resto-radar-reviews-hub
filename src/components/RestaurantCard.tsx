@@ -78,7 +78,7 @@ export function RestaurantCard({ restaurant, onEdit, onDelete }: RestaurantCardP
       <CardHeader className="pb-2">
         <div className="flex flex-col gap-2">
           <CardTitle className="text-xl font-bold break-words">{restaurant.name}</CardTitle>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-2">
             {restaurant.rating !== undefined && (
               <StarRating rating={restaurant.rating} readonly size="sm" />
             )}
