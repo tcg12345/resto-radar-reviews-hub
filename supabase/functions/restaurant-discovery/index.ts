@@ -54,7 +54,7 @@ Consider these factors:
 - Ambiance preferences (casual, fine dining, family-friendly, etc.)
 - Special occasions or requirements
 
-Generate 8-12 diverse, realistic restaurant recommendations that match the query. For each restaurant, provide accurate details including:
+Generate 25-50 diverse, realistic restaurant recommendations that match the query. For each restaurant, provide accurate details including:
 - Name (use real restaurant names when possible, or realistic sounding names)
 - Address (realistic for the requested location)
 - Cuisine type
@@ -91,7 +91,7 @@ IMPORTANT: Return ONLY a valid JSON array of restaurant objects. No markdown, no
           { role: 'user', content: userPrompt }
         ],
         temperature: 0.8,
-        max_tokens: 4000,
+        max_tokens: 8000,
       }),
     });
 
@@ -189,18 +189,59 @@ IMPORTANT: Return ONLY a valid JSON array of restaurant objects. No markdown, no
     }
 
     // Enhance results with additional features
-    const enhancedRestaurants = restaurants.map((restaurant: any) => ({
-      ...restaurant,
-      id: crypto.randomUUID(),
-      reservationUrl: restaurant.reservationUrl || `https://resy.com/cities/new-york-ny/${encodeURIComponent(restaurant.name.toLowerCase().replace(/\s+/g, '-'))}`,
-      images: [
-        `https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop&auto=format`,
-        `https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop&auto=format`,
-        `https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?w=400&h=300&fit=crop&auto=format`
-      ].slice(0, Math.floor(Math.random() * 3) + 1),
-      isOpen: Math.random() > 0.2, // 80% chance of being open
-      nextAvailableSlot: new Date(Date.now() + Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-    }));
+    const enhancedRestaurants = restaurants.map((restaurant: any) => {
+      // Generate restaurant-specific images based on cuisine and name
+      const cuisineImages = {
+        'Italian': ['photo-1565299624946-b28f40a0ca4b', 'photo-1621996346565-e3dbc353d2e5', 'photo-1571997478779-2adcbbe9ab2f'],
+        'Japanese': ['photo-1579584425555-c3ce17fd4351', 'photo-1546833999-b9f581a1996d', 'photo-1582450871972-ab5ca834ec5f'],
+        'French': ['photo-1414235077428-338989a2e8c0', 'photo-1600891964092-4316c288032e', 'photo-1551218808-94e220e084d2'],
+        'Chinese': ['photo-1525755662778-989d0524087e', 'photo-1563379091339-03246963d96c', 'photo-1576664162-2f7dfe218c5d'],
+        'Mexican': ['photo-1565299585323-38174c4a6fb7', 'photo-1551024506-0bccd828d307', 'photo-1625813506062-0aeb1d7a094b'],
+        'Thai': ['photo-1559847844-5315695dadae', 'photo-1596040013181-5e9b81206aac', 'photo-1569718212165-3a8278d5f624'],
+        'Indian': ['photo-1585937421612-70a008356fbe', 'photo-1565557623262-b51c2513a641', 'photo-1574653339825-58cb7d5a59b8'],
+        'Mediterranean': ['photo-1563379091339-03246963d96c', 'photo-1582450871972-ab5ca834ec5f', 'photo-1551218808-94e220e084d2'],
+        'American': ['photo-1568901346375-23c9450c58cd', 'photo-1571091718767-18b5b1457add', 'photo-1598300042247-d088f8ab3a91'],
+        'Pizza': ['photo-1565299624946-b28f40a0ca4b', 'photo-1513104890138-7c749659a591', 'photo-1574071318508-1cdbab80d002'],
+        'Steakhouse': ['photo-1546833999-b9f581a1996d', 'photo-1598300042247-d088f8ab3a91', 'photo-1544025162-d76694265947'],
+        'Seafood': ['photo-1563379091339-03246963d96c', 'photo-1559847844-5315695dadae', 'photo-1590736969955-71cc94901144']
+      };
+
+      const defaultImages = ['photo-1517248135467-4c7edcad34c4', 'photo-1555396273-367ea4eb4db5', 'photo-1424847651672-bf20a4b0982b'];
+      const cuisineKey = Object.keys(cuisineImages).find(key => 
+        restaurant.cuisine?.toLowerCase().includes(key.toLowerCase())
+      );
+      const imagePool = cuisineImages[cuisineKey] || defaultImages;
+      
+      // Generate 1-3 images per restaurant
+      const numImages = Math.floor(Math.random() * 3) + 1;
+      const selectedImages = [];
+      for (let i = 0; i < numImages; i++) {
+        const imageId = imagePool[i % imagePool.length];
+        selectedImages.push(`https://images.unsplash.com/${imageId}?w=400&h=300&fit=crop&auto=format`);
+      }
+
+      return {
+        ...restaurant,
+        id: crypto.randomUUID(),
+        // Fix property mapping for different response structures
+        cuisine: restaurant.cuisine || restaurant.cuisine_type || restaurant.cuisineType || 'International',
+        priceRange: restaurant.priceRange || restaurant.price_range || 2,
+        website: restaurant.website || restaurant.website_url || restaurant.websiteUrl,
+        reservationUrl: restaurant.reservationUrl || restaurant.reservation_url || 
+          `https://www.opentable.com/r/${encodeURIComponent(restaurant.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''))}`,
+        phoneNumber: restaurant.phoneNumber || restaurant.phone_number || restaurant.phone,
+        openingHours: restaurant.openingHours || restaurant.opening_hours,
+        location: {
+          lat: restaurant.location?.lat || restaurant.coordinates?.lat || restaurant.latitude || 40.7128,
+          lng: restaurant.location?.lng || restaurant.coordinates?.lng || restaurant.longitude || -74.0060,
+          city: restaurant.location?.city || restaurant.city || 'New York',
+          country: restaurant.location?.country || restaurant.country || 'United States'
+        },
+        images: selectedImages,
+        isOpen: Math.random() > 0.2, // 80% chance of being open
+        nextAvailableSlot: new Date(Date.now() + Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+      };
+    });
 
     console.log('Generated restaurant recommendations:', enhancedRestaurants.length);
 
