@@ -41,7 +41,7 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [tokenInput, setTokenInput] = useState('');
   const [showTokenInput, setShowTokenInput] = useState(false);
-  const [mapStyle, setMapStyle] = useState<MapStyle>('streets');
+  const [mapStyle, setMapStyle] = useState<MapStyle>('satellite');
   const { token, saveToken, isLoading } = useMapboxToken();
 
   // Filter restaurants by search term and ensure they have coordinates

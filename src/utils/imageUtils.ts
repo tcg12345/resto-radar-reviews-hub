@@ -10,9 +10,9 @@ export interface ImageCompressionOptions {
 }
 
 const DEFAULT_OPTIONS: Required<ImageCompressionOptions> = {
-  maxWidth: 1200,
-  maxHeight: 1200,
-  quality: 0.8,
+  maxWidth: 800,
+  maxHeight: 800,
+  quality: 0.6,
   format: 'jpeg'
 };
 
@@ -97,8 +97,8 @@ export const processImagesInParallel = async (
     }
   };
   
-  // Process in batches to avoid overwhelming the browser
-  const batchSize = 5;
+  // Process in smaller batches to avoid overwhelming the browser
+  const batchSize = 2; // Reduced batch size for better performance
   const results: string[] = [];
   
   for (let i = 0; i < files.length; i += batchSize) {
@@ -108,6 +108,11 @@ export const processImagesInParallel = async (
     try {
       const batchResults = await Promise.all(batchPromises);
       results.push(...batchResults);
+      
+      // Small delay between batches to prevent UI blocking
+      if (i + batchSize < files.length) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
     } catch (error) {
       console.error('Error in batch processing:', error);
       throw error;
@@ -122,9 +127,9 @@ export const processImagesInParallel = async (
  */
 export const createThumbnail = async (file: File): Promise<string> => {
   return compressImage(file, {
-    maxWidth: 150,
-    maxHeight: 150,
-    quality: 0.7,
+    maxWidth: 120,
+    maxHeight: 120,
+    quality: 0.5,
     format: 'jpeg'
   });
 };

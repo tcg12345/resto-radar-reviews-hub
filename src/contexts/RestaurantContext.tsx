@@ -118,9 +118,9 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
     const { processImagesInParallel } = await import('@/utils/imageUtils');
     
     return processImagesInParallel(photos, {
-      maxWidth: 1200,
-      maxHeight: 1200,
-      quality: 0.8,
+      maxWidth: 800,
+      maxHeight: 800,
+      quality: 0.6,
       format: 'jpeg'
     }, onProgress);
   }, []);

@@ -28,6 +28,7 @@ import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { LazyImage } from '@/components/LazyImage';
 import { createThumbnail } from '@/utils/imageUtils';
+import { toast } from 'sonner';
 
 interface RestaurantFormProps {
   initialData?: Restaurant;
@@ -129,28 +130,52 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     if (!e.target.files) return;
     
     const newFiles = Array.from(e.target.files);
+    const maxPhotos = 50; // Set a reasonable limit
+    
+    if (formData.photos.length + newFiles.length > maxPhotos) {
+      toast.error(`Maximum ${maxPhotos} photos allowed`);
+      return;
+    }
+    
+    if (newFiles.length > 10) {
+      toast.warning('Processing large number of photos. This may take a moment...');
+    }
+    
     setIsProcessingPhotos(true);
     setPhotosToProcess(newFiles.length);
     setPhotoProgress(0);
     
     try {
-      // Create thumbnails for quick preview
-      const thumbnails = await Promise.all(
-        newFiles.map(async (file, index) => {
-          const thumbnail = await createThumbnail(file);
-          setPhotoProgress(((index + 1) / newFiles.length) * 100);
-          return thumbnail;
-        })
-      );
+      // Process in smaller batches to prevent UI blocking
+      const batchSize = 3;
+      const newPreviews: string[] = [];
+      
+      for (let i = 0; i < newFiles.length; i += batchSize) {
+        const batch = newFiles.slice(i, i + batchSize);
+        const batchPreviews = await Promise.all(
+          batch.map(file => createThumbnail(file))
+        );
+        newPreviews.push(...batchPreviews);
+        
+        setPhotoProgress(Math.round(((i + batch.length) / newFiles.length) * 100));
+        
+        // Small delay to prevent UI blocking
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
       
       setFormData(prev => ({
         ...prev,
         photos: [...prev.photos, ...newFiles],
       }));
       
-      setPreviewImages(prev => [...prev, ...thumbnails]);
+      setPreviewImages(prev => [...prev, ...newPreviews]);
+      
+      if (newFiles.length > 5) {
+        toast.success(`${newFiles.length} photos added successfully!`);
+      }
     } catch (error) {
       console.error('Error processing photos:', error);
+      toast.error('Failed to process some photos');
     } finally {
       setIsProcessingPhotos(false);
       setPhotoProgress(0);
