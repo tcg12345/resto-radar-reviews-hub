@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Check, ChevronDown, X } from 'lucide-react';
+import { Plus, Check, ChevronDown, X, Sliders } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RestaurantCard } from '@/components/RestaurantCard';
@@ -35,7 +35,7 @@ export function RatedRestaurantsPage({
   const [filterCuisines, setFilterCuisines] = useState<string[]>([]);
   const [filterPrices, setFilterPrices] = useState<string[]>([]);
   const [filterMichelins, setFilterMichelins] = useState<string[]>([]);
-  const [ratingRange, setRatingRange] = useState<[number, number]>([0, 5]);
+  const [ratingRange, setRatingRange] = useState<[number, number]>([0, 10]);
 
   const ratedRestaurants = restaurants.filter((r) => !r.isWishlist);
 
@@ -71,7 +71,7 @@ export function RatedRestaurantsPage({
     setFilterCuisines([]);
     setFilterPrices([]);
     setFilterMichelins([]);
-    setRatingRange([0, 5]);
+    setRatingRange([0, 10]);
   };
 
   // Calculate counts for each filter option based on current filters
@@ -255,7 +255,7 @@ export function RatedRestaurantsPage({
 
         <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:ml-auto">
           {/* Clear Filters Button */}
-          {(filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0 || ratingRange[0] > 0 || ratingRange[1] < 5) && (
+          {(filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0 || ratingRange[0] > 0 || ratingRange[1] < 10) && (
             <Button variant="outline" size="sm" onClick={clearFilters}>
               <X className="mr-2 h-4 w-4" />
               Clear Filters
@@ -374,20 +374,14 @@ export function RatedRestaurantsPage({
           </div>
 
           {/* Rating Range Filter */}
-          <div className="w-[180px]">
+          <div className="w-[60px]">
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-between">
-                  <span>
-                    {ratingRange[0] === 0 && ratingRange[1] === 5 
-                      ? 'Rating' 
-                      : `${ratingRange[0]}-${ratingRange[1]}`
-                    }
-                  </span>
-                  <ChevronDown className="ml-2 h-4 w-4" />
+                <Button variant="outline" className="w-full justify-center p-2">
+                  <Sliders className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-[220px] p-0">
+              <PopoverContent className="w-[280px] p-0">
                 <div className="p-4">
                   <div className="space-y-4">
                     <div>
@@ -397,9 +391,9 @@ export function RatedRestaurantsPage({
                         <Slider
                           value={ratingRange}
                           onValueChange={(value) => setRatingRange(value as [number, number])}
-                          max={5}
+                          max={10}
                           min={0}
-                          step={0.5}
+                          step={0.1}
                           className="flex-1"
                         />
                         <span className="text-sm text-muted-foreground">{ratingRange[1]}</span>
@@ -431,7 +425,7 @@ export function RatedRestaurantsPage({
         <div className="rounded-lg border border-dashed bg-muted/50 p-8 text-center">
           <h3 className="mb-2 text-lg font-medium">No rated restaurants yet</h3>
           <p className="mb-4 text-muted-foreground">
-            {searchTerm || filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0 || ratingRange[0] > 0 || ratingRange[1] < 5
+            {searchTerm || filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0 || ratingRange[0] > 0 || ratingRange[1] < 10
               ? "No restaurants match your search criteria."
               : "Start adding restaurants you've visited!"}
           </p>
