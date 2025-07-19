@@ -27,12 +27,19 @@ import {
   ChevronDown,
   ChevronUp,
   Heart,
-  Eye
+  Eye,
+  Bot,
+  Sparkles,
+  Mic,
+  MicOff,
+  Wand2
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { RestaurantMapView } from '@/components/RestaurantMapView';
 import { RestaurantDetailsModal } from '@/components/RestaurantDetailsModal';
+import { AISearchAssistant } from '@/components/AISearchAssistant';
+import { AIReviewSummary } from '@/components/AIReviewSummary';
 import { toast } from 'sonner';
 
 interface SearchRestaurant {
@@ -78,6 +85,9 @@ export default function RestaurantSearchPage() {
   const [selectedRestaurant, setSelectedRestaurant] = useState<SearchRestaurant | null>(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [detailsRestaurant, setDetailsRestaurant] = useState<SearchRestaurant | null>(null);
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
+  const [isVoiceSearch, setIsVoiceSearch] = useState(false);
+  const [isEnhancing, setIsEnhancing] = useState(false);
   
   const [filters, setFilters] = useState<SearchFilters>({
     priceRanges: [],
@@ -123,6 +133,99 @@ export default function RestaurantSearchPage() {
       console.error('Error saving to wishlist:', error);
       toast.error('Failed to save to wishlist. Please try again.');
     }
+  };
+
+  const enhanceSearchWithAI = async () => {
+    if (!searchQuery.trim()) return;
+
+    setIsEnhancing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-search-enhancer', {
+        body: {
+          query: searchQuery,
+          location: searchLocation,
+          userPreferences: {}
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.enhancedQuery !== searchQuery) {
+        setSearchQuery(data.enhancedQuery);
+        toast.success('✨ Enhanced your search with AI insights!');
+      }
+
+      // Apply suggested filters automatically
+      if (data.suggestedPriceRange && data.suggestedPriceRange.length < 4) {
+        setFilters(prev => ({
+          ...prev,
+          priceRanges: data.suggestedPriceRange
+        }));
+      }
+
+      if (data.mealType !== 'any') {
+        // Could add meal type filter in the future
+      }
+
+      setTimeout(() => {
+        handleSearch();
+      }, 500);
+
+    } catch (error) {
+      console.error('Error enhancing search:', error);
+      handleSearch(); // Fallback to regular search
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
+
+  const startVoiceSearch = () => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        setIsVoiceSearch(true);
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setSearchQuery(transcript);
+        setIsVoiceSearch(false);
+        
+        // Auto-enhance and search
+        setTimeout(() => {
+          enhanceSearchWithAI();
+        }, 500);
+      };
+
+      recognition.onerror = () => {
+        setIsVoiceSearch(false);
+        toast.error('Voice search failed. Please try again.');
+      };
+
+      recognition.onend = () => {
+        setIsVoiceSearch(false);
+      };
+
+      recognition.start();
+    } else {
+      toast.error('Voice search not supported in this browser');
+    }
+  };
+
+  const handleAISearchSuggestion = (query: string, location?: string) => {
+    setSearchQuery(query);
+    if (location) setSearchLocation(location);
+    setShowAIAssistant(false);
+    
+    setTimeout(() => {
+      enhanceSearchWithAI();
+    }, 500);
   };
 
   const handleSearch = useCallback(async () => {
@@ -243,15 +346,43 @@ export default function RestaurantSearchPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="md:col-span-2">
-                <Input
-                  placeholder="e.g., Italian restaurants, sushi, The French Laundry..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  className="text-base"
-                />
+                <div className="relative">
+                  <Input
+                    placeholder="e.g., Italian restaurants, sushi, romantic dinner..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && enhanceSearchWithAI()}
+                    className="text-base pr-20"
+                  />
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`h-7 w-7 p-0 ${isVoiceSearch ? 'text-red-500' : 'text-muted-foreground'}`}
+                      onClick={startVoiceSearch}
+                      disabled={isVoiceSearch}
+                    >
+                      {isVoiceSearch ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0 text-primary"
+                      onClick={enhanceSearchWithAI}
+                      disabled={!searchQuery.trim() || isEnhancing}
+                    >
+                      <Wand2 className={`h-4 w-4 ${isEnhancing ? 'animate-spin' : ''}`} />
+                    </Button>
+                  </div>
+                </div>
+                {isVoiceSearch && (
+                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                    Listening... Speak now
+                  </p>
+                )}
               </div>
               <div>
                 <Input
@@ -264,12 +395,31 @@ export default function RestaurantSearchPage() {
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
               <Button 
+                onClick={enhanceSearchWithAI} 
+                disabled={!searchQuery.trim() || isEnhancing}
+                className="flex-1 sm:flex-initial"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                {isEnhancing ? 'Enhancing...' : 'Smart Search'}
+              </Button>
+
+              <Button 
                 onClick={handleSearch} 
                 disabled={!searchQuery.trim() || isLoading}
+                variant="outline"
                 className="flex-1 sm:flex-initial"
               >
                 <Search className="h-4 w-4 mr-2" />
                 {isLoading ? 'Searching...' : 'Search'}
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() => setShowAIAssistant(!showAIAssistant)}
+                className="flex-1 sm:flex-initial"
+              >
+                <Bot className="h-4 w-4 mr-2" />
+                AI Assistant
               </Button>
               
               <Button
@@ -294,6 +444,14 @@ export default function RestaurantSearchPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* AI Assistant */}
+        {showAIAssistant && (
+          <AISearchAssistant
+            onSearchSuggestion={handleAISearchSuggestion}
+            onClose={() => setShowAIAssistant(false)}
+          />
+        )}
 
         {/* Filters */}
         <Collapsible open={showFilters} onOpenChange={setShowFilters}>
@@ -471,87 +629,95 @@ export default function RestaurantSearchPage() {
 
             {/* Results Grid */}
             {!showMap ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredRestaurants.map((restaurant) => (
-                  <Card key={restaurant.id} className="group hover:shadow-lg transition-all duration-200 border-muted/50 hover:border-primary/30">
-                    {/* Restaurant Image */}
-                    <div className="aspect-[4/3] overflow-hidden bg-muted">
-                      <img
-                        src={restaurant.photos?.[0] || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop'}
-                        alt={restaurant.name}
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {filteredRestaurants.map((restaurant) => (
+                        <div key={restaurant.id} className="space-y-4">
+                          <Card className="group hover:shadow-lg transition-all duration-200 border-muted/50 hover:border-primary/30">
+                            {/* Restaurant Image */}
+                            <div className="aspect-[4/3] overflow-hidden bg-muted">
+                              <img
+                                src={restaurant.photos?.[0] || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop'}
+                                alt={restaurant.name}
+                                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                              />
+                            </div>
+
+                            <CardHeader className="pb-2">
+                              <div className="space-y-2">
+                                <CardTitle className="text-lg font-bold line-clamp-1">
+                                  {restaurant.name}
+                                </CardTitle>
+                                
+                                {/* Rating and Status */}
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-1">
+                                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                    <span className="font-semibold">{restaurant.rating}</span>
+                                    {restaurant.reviewCount && (
+                                      <span className="text-xs text-muted-foreground">
+                                        ({restaurant.reviewCount.toLocaleString()})
+                                      </span>
+                                    )}
+                                  </div>
+                                  
+                                  <div className="flex items-center gap-2">
+                                    {restaurant.isOpen !== undefined && (
+                                      <Badge variant={restaurant.isOpen ? "default" : "secondary"}>
+                                        {restaurant.isOpen ? "Open" : "Closed"}
+                                      </Badge>
+                                    )}
+                                    <span className="text-lg font-bold text-green-600">
+                                      {getPriceDisplay(restaurant.priceRange)}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Cuisine and Location */}
+                                <div className="space-y-1">
+                                  {restaurant.cuisine && (
+                                    <Badge variant="outline" className="text-xs">
+                                      {restaurant.cuisine}
+                                    </Badge>
+                                  )}
+                                  <p className="text-sm text-muted-foreground flex items-center gap-1">
+                                    <MapPin className="h-3 w-3" />
+                                    {restaurant.address}
+                                  </p>
+                                </div>
+                              </div>
+                            </CardHeader>
+
+                            <CardContent className="space-y-3">
+                              {/* Action Buttons */}
+                              <div className="grid grid-cols-2 gap-2">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleViewDetails(restaurant)}
+                                >
+                                  <Eye className="h-3 w-3 mr-1" />
+                                  Details
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleSaveToWishlist(restaurant)}
+                                >
+                                  <Heart className="h-3 w-3 mr-1" />
+                                  Save
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+
+                          {/* AI Review Summary */}
+                          <AIReviewSummary
+                            restaurantName={restaurant.name}
+                            placeId={restaurant.id}
+                          />
+                        </div>
+                      ))}
                     </div>
-
-                    <CardHeader className="pb-2">
-                      <div className="space-y-2">
-                        <CardTitle className="text-lg font-bold line-clamp-1">
-                          {restaurant.name}
-                        </CardTitle>
-                        
-                        {/* Rating and Status */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1">
-                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <span className="font-semibold">{restaurant.rating}</span>
-                            {restaurant.reviewCount && (
-                              <span className="text-xs text-muted-foreground">
-                                ({restaurant.reviewCount.toLocaleString()})
-                              </span>
-                            )}
-                          </div>
-                          
-                          <div className="flex items-center gap-2">
-                            {restaurant.isOpen !== undefined && (
-                              <Badge variant={restaurant.isOpen ? "default" : "secondary"}>
-                                {restaurant.isOpen ? "Open" : "Closed"}
-                              </Badge>
-                            )}
-                            <span className="text-lg font-bold text-green-600">
-                              {getPriceDisplay(restaurant.priceRange)}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Cuisine and Location */}
-                        <div className="space-y-1">
-                          {restaurant.cuisine && (
-                            <Badge variant="outline" className="text-xs">
-                              {restaurant.cuisine}
-                            </Badge>
-                          )}
-                          <p className="text-sm text-muted-foreground flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            {restaurant.address}
-                          </p>
-                        </div>
-                      </div>
-                    </CardHeader>
-
-                    <CardContent className="space-y-3">
-                      {/* Action Buttons */}
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleViewDetails(restaurant)}
-                        >
-                          <Eye className="h-3 w-3 mr-1" />
-                          Details
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleSaveToWishlist(restaurant)}
-                        >
-                          <Heart className="h-3 w-3 mr-1" />
-                          Save
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
             ) : (
               /* Map View */
               <RestaurantMapView
