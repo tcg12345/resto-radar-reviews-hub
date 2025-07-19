@@ -115,9 +115,9 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
 
   return (
     <div className="relative h-[calc(100vh-64px)]">
-      {/* Filter Panel - moved further right to avoid overlapping with filter button */}
+      {/* Filter Panel - positioned lower to avoid overlapping with search bar */}
       {showFilters && (
-        <Card className="absolute top-16 left-4 z-10 w-80 max-h-[calc(100vh-140px)] overflow-y-auto shadow-lg border-2">
+        <Card className="absolute top-24 left-4 z-10 w-80 max-h-[calc(100vh-160px)] overflow-y-auto shadow-lg border-2">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
