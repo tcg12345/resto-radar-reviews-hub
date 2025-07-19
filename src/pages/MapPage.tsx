@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MapView } from '@/components/MapView';
 import { Restaurant, RestaurantFormData } from '@/types/restaurant';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -33,6 +33,51 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
   const [ratingRange, setRatingRange] = useState<[number, number]>([0, 10]);
   const [tempRatingRange, setTempRatingRange] = useState<[number, number]>([0, 10]);
   const [filterType, setFilterType] = useState<'all' | 'rated' | 'wishlist'>('all');
+  
+  // Drag functionality for filter box
+  const [filterPosition, setFilterPosition] = useState({ x: 16, y: 64 }); // bottom-16 left-4 in pixels
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
+  // Drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setDragStart({
+      x: e.clientX - filterPosition.x,
+      y: e.clientY - filterPosition.y
+    });
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging) return;
+    
+    const newX = e.clientX - dragStart.x;
+    const newY = e.clientY - dragStart.y;
+    
+    // Keep filter box within viewport bounds
+    const maxX = window.innerWidth - 320; // 320px is the width of the filter box
+    const maxY = window.innerHeight - 200; // minimum height to keep it visible
+    
+    setFilterPosition({
+      x: Math.max(0, Math.min(newX, maxX)),
+      y: Math.max(0, Math.min(newY, maxY))
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, dragStart]);
   
   const handleRestaurantSelect = (id: string) => {
     setSelectedRestaurantId(id);
@@ -138,12 +183,22 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
 
   return (
     <div className="relative h-[calc(100vh-64px)]">
-      {/* Filter Panel - positioned just above the filter button */}
+      {/* Filter Panel - draggable positioned filter box */}
       {showFilters && (
-        <Card className="absolute bottom-16 left-4 z-10 w-80 max-h-[calc(100vh-160px)] overflow-y-auto shadow-lg border-2">
-          <CardHeader className="pb-4">
+        <Card 
+          className="absolute z-10 w-80 max-h-[calc(100vh-160px)] overflow-y-auto shadow-lg border-2 select-none"
+          style={{ 
+            left: `${filterPosition.x}px`, 
+            top: `${filterPosition.y}px`,
+            cursor: isDragging ? 'grabbing' : 'grab'
+          }}
+        >
+          <CardHeader 
+            className="pb-4 cursor-grab active:cursor-grabbing"
+            onMouseDown={handleMouseDown}
+          >
             <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 pointer-events-none">
                 <Filter className="h-5 w-5" />
                 Filters
               </CardTitle>
@@ -151,7 +206,8 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowFilters(false)}
-                className="h-8 w-8"
+                className="h-8 w-8 pointer-events-auto"
+                onMouseDown={(e) => e.stopPropagation()}
               >
                 <X className="h-4 w-4" />
               </Button>
