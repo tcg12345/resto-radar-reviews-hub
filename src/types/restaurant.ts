@@ -12,6 +12,8 @@ export interface Restaurant {
   country?: string;
   cuisine: string;
   rating?: number;
+  reviewCount?: number;
+  googleMapsUrl?: string;
   categoryRatings?: CategoryRating;
   useWeightedRating?: boolean;
   priceRange?: number; // 1-4 dollar signs

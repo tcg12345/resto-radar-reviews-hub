@@ -74,10 +74,10 @@ Wednesday: Closed
 Be concise and only show the hours. If not available, say "Hours not available."`;
           query = `Current operating hours for ${restaurantContext}`;
         } else if (questionLower.includes('founded') || questionLower.includes('founder') || questionLower.includes('owner') || questionLower.includes('chef') || questionLower.includes('when opened') || questionLower.includes('who')) {
-          systemPrompt = 'Give a very brief, direct answer (1-2 sentences maximum). Be concise and to the point.';
+          systemPrompt = 'Give only the essential facts in 1 sentence. Be extremely brief and direct.';
           query = `About ${restaurantContext}: ${additionalContext || 'general information'}`;
         } else {
-          systemPrompt = `Answer specifically about ${restaurantContext}. Be concise, direct, and factual. Max 100 words.`;
+          systemPrompt = `Answer specifically about ${restaurantContext}. Be extremely concise and direct. Maximum 2 sentences.`;
           query = `About ${restaurantContext}: ${additionalContext || 'general information'}`;
         }
         break;

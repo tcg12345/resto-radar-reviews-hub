@@ -171,7 +171,26 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
           <CardTitle className="text-xl font-bold break-words">{restaurant.name}</CardTitle>
           <div className="flex flex-col gap-2">
             {restaurant.rating !== undefined && (
-              <StarRating rating={restaurant.rating} readonly size="sm" />
+              <div className="flex items-center gap-2">
+                {restaurant.googleMapsUrl ? (
+                  <a 
+                    href={restaurant.googleMapsUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="hover:opacity-80 transition-opacity"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <StarRating rating={restaurant.rating} readonly size="sm" />
+                  </a>
+                ) : (
+                  <StarRating rating={restaurant.rating} readonly size="sm" />
+                )}
+                {restaurant.reviewCount && restaurant.reviewCount > 0 && (
+                  <span className="text-xs text-muted-foreground">
+                    ({restaurant.reviewCount.toLocaleString()} reviews)
+                  </span>
+                )}
+              </div>
             )}
             {restaurant.michelinStars && (
               <MichelinStars stars={restaurant.michelinStars} readonly size="sm" />
@@ -247,7 +266,25 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
                 {restaurant.rating !== undefined && (
                   <div>
                     <h4 className="font-semibold mb-2">Rating</h4>
-                    <StarRating rating={restaurant.rating} readonly size="sm" />
+                    <div className="flex items-center gap-2">
+                      {restaurant.googleMapsUrl ? (
+                        <a 
+                          href={restaurant.googleMapsUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="hover:opacity-80 transition-opacity"
+                        >
+                          <StarRating rating={restaurant.rating} readonly size="sm" />
+                        </a>
+                      ) : (
+                        <StarRating rating={restaurant.rating} readonly size="sm" />
+                      )}
+                      {restaurant.reviewCount && restaurant.reviewCount > 0 && (
+                        <span className="text-xs text-muted-foreground">
+                          ({restaurant.reviewCount.toLocaleString()} reviews)
+                        </span>
+                      )}
+                    </div>
                   </div>
                 )}
                 {restaurant.priceRange && (

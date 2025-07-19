@@ -15,7 +15,8 @@ interface RestaurantSearchResult {
   cuisine: string;
   priceRange: number;
   rating: number;
-  description: string;
+  reviewCount?: number;
+  googleMapsUrl?: string;
   website?: string;
   reservationUrl?: string;
   phoneNumber?: string;
@@ -82,8 +83,15 @@ const mapPlaceTypeToCuisine = (types: string[], name: string): string => {
   if (lowerName.includes('mediterranean')) return 'Mediterranean';
   if (lowerName.includes('steakhouse') || lowerName.includes('steak')) return 'Steakhouse';
   if (lowerName.includes('cafe') || lowerName.includes('coffee')) return 'Cafe';
+  if (lowerName.includes('burger')) return 'American';
+  if (lowerName.includes('deli')) return 'Deli';
+  if (lowerName.includes('grill')) return 'Grill';
+  if (lowerName.includes('bar')) return 'Bar & Grill';
+  if (lowerName.includes('seafood')) return 'Seafood';
+  if (lowerName.includes('ramen') || lowerName.includes('noodle')) return 'Asian';
   
-  return 'Restaurant';
+  // Default to a generic cuisine type instead of "Restaurant"
+  return 'American';
 };
 
 serve(async (req) => {
@@ -261,22 +269,9 @@ serve(async (req) => {
         if (types.includes('wheelchair_accessible_entrance')) features.push('Accessible');
         if (priceRange >= 3) features.push('Upscale Dining');
         
-        // Generate more dynamic and unique description
-        const getUniqueDescription = (name: string, cuisine: string, rating: number, city: string, priceRange: number, michelinStars?: number): string => {
-          const priceDescriptor = priceRange >= 4 ? 'upscale' : priceRange >= 3 ? 'refined' : priceRange >= 2 ? 'casual' : 'affordable';
-          const ratingDescriptor = rating >= 4.5 ? 'exceptional' : rating >= 4.0 ? 'highly-rated' : rating >= 3.5 ? 'well-regarded' : 'local';
-          
-          // Create varied description templates
-          const templates = [
-            `${ratingDescriptor} ${cuisine.toLowerCase()} spot offering ${priceDescriptor} dining in ${city}`,
-            `${priceDescriptor} ${cuisine.toLowerCase()} restaurant known for its ${rating >= 4.0 ? 'excellent' : 'good'} food and service`,
-            `Popular ${cuisine.toLowerCase()} establishment in ${city}${rating ? ` with ${rating}★ rating` : ''}`,
-            `${cuisine} dining experience in ${city}${michelinStars ? ` featuring Michelin-starred cuisine` : ''}`,
-          ];
-          
-          const baseDescription = templates[Math.floor(Math.random() * templates.length)];
-          return michelinStars ? `${baseDescription} (${michelinStars} Michelin star${michelinStars > 1 ? 's' : ''})` : baseDescription;
-        };
+        // Get review count and Google Maps URL from place details
+        const reviewCount = placeDetails?.user_ratings_total || 0;
+        const googleMapsUrl = `https://www.google.com/maps/place/?q=place_id:${place.place_id}`;
         
         // Create restaurant object with detailed info
         const restaurant: RestaurantSearchResult = {
@@ -286,7 +281,8 @@ serve(async (req) => {
           cuisine,
           priceRange,
           rating: placeDetails?.rating ?? place.rating ? Math.round((placeDetails?.rating ?? place.rating) * 10) / 10 : 4.0,
-          description: getUniqueDescription(place.name, cuisine, placeDetails?.rating ?? place.rating ?? 4.0, city, priceRange, michelinStars),
+          reviewCount,
+          googleMapsUrl,
           website: placeDetails?.website || null,
           reservationUrl: null, // Will be set correctly below
           phoneNumber: placeDetails?.formatted_phone_number || null,
