@@ -148,9 +148,9 @@ serve(async (req) => {
 
     console.log('Google Places API key found, proceeding with search');
 
-    // Default to a location if none provided
-    const searchLocation = location || 'New York, NY';
-    console.log('Search location:', searchLocation);
+    // Default to worldwide search if no location provided
+    const searchLocation = location || '';
+    console.log('Search location:', searchLocation || 'Worldwide search');
 
     // Parse the search query to extract cuisine type
     const queryLower = query.toLowerCase();
@@ -169,10 +169,10 @@ serve(async (req) => {
       }
     }
 
-    // Build search query
-    const searchQuery = cuisineType ? 
-      `${cuisineType} restaurants in ${searchLocation}` : 
-      `restaurants in ${searchLocation}`;
+    // Build search query - make it global if no location specified
+    const searchQuery = searchLocation ? 
+      (cuisineType ? `${cuisineType} restaurants in ${searchLocation}` : `restaurants in ${searchLocation}`) :
+      (cuisineType ? `best ${cuisineType} restaurants worldwide` : `best restaurants worldwide`);
     
     console.log('Google Places search query:', searchQuery);
 
@@ -184,8 +184,8 @@ serve(async (req) => {
       enhancedQuery = `fine dining ${searchQuery}`;
     }
 
-    // Search for restaurants using Google Places Text Search with higher result limit
-    const placesUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(enhancedQuery)}&type=restaurant&radius=50000&key=${googlePlacesApiKey}`;
+    // Search for restaurants using Google Places Text Search with much higher result limit
+    const placesUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(enhancedQuery)}&type=restaurant&radius=500000&key=${googlePlacesApiKey}`;
     
     console.log('Making request to Google Places API...');
     
@@ -221,7 +221,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({
         restaurants: [],
         searchQuery: query,
-        location: searchLocation,
+        location: searchLocation || 'Worldwide',
         totalResults: 0,
         source: 'google_places',
         message: 'No restaurants found for your search criteria. Try a different location or cuisine type.'
@@ -230,14 +230,14 @@ serve(async (req) => {
       });
     }
 
-    // Determine optimal number of results based on query
-    let maxResults = 20; // Default
+    // Determine optimal number of results based on query - allow for much larger result sets
+    let maxResults = 50; // Default - much higher
     if (queryLower.includes('michelin') || queryLower.includes('fine dining')) {
-      maxResults = Math.min(10, placesData.results.length); // Fewer for specific high-end queries
+      maxResults = Math.min(25, placesData.results.length); // Still selective but more results
     } else if (queryLower.includes('pizza') || queryLower.includes('coffee') || queryLower.includes('cafe')) {
-      maxResults = Math.min(30, placesData.results.length); // More for common food types
+      maxResults = Math.min(100, placesData.results.length); // Much more for common food types
     } else {
-      maxResults = Math.min(25, placesData.results.length); // Standard amount
+      maxResults = Math.min(75, placesData.results.length); // Higher standard amount
     }
     
     console.log(`Processing ${maxResults} restaurants for query: ${query}`);
@@ -279,8 +279,8 @@ serve(async (req) => {
         const addressParts = (placeDetails?.formatted_address || place.formatted_address)?.split(', ') || [];
         const city = addressParts.length >= 2 ? 
           addressParts[addressParts.length - 3] || addressParts[addressParts.length - 2] : 
-          searchLocation.split(',')[0];
-        const country = addressParts[addressParts.length - 1] || 'Unknown';
+          (searchLocation ? searchLocation.split(',')[0] : 'Unknown Location');
+        const country = addressParts[addressParts.length - 1] || 'Unknown Country';
         
           // Get cuisine type using AI only for top results to save time
           const cuisine = globalIndex < 10 ? await determineCuisineWithAI(
@@ -293,12 +293,12 @@ serve(async (req) => {
         const priceRange = (placeDetails?.price_level ?? place.price_level) ? 
           Math.min(Math.max(placeDetails?.price_level ?? place.price_level, 1), 4) : 2;
         
-        // Format opening hours
-        let openingHours = 'Hours vary - please call ahead';
+        // Format opening hours - remove "vary" text since it's not helpful
+        let openingHours = 'Call for hours';
         if (placeDetails?.opening_hours?.weekday_text) {
           const today = new Date().getDay();
           const dayIndex = today === 0 ? 6 : today - 1; // Convert to Monday=0 format
-          openingHours = placeDetails.opening_hours.weekday_text[dayIndex] || 'Hours vary - please call ahead';
+          openingHours = placeDetails.opening_hours.weekday_text[dayIndex] || 'Call for hours';
         } else if (placeDetails?.opening_hours?.open_now !== undefined) {
           openingHours = placeDetails.opening_hours.open_now ? 'Currently open' : 'Currently closed';
         }
@@ -373,7 +373,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       restaurants,
       searchQuery: query,
-      location: searchLocation,
+      location: searchLocation || 'Worldwide',
       totalResults: restaurants.length,
       source: 'google_places'
     }), {

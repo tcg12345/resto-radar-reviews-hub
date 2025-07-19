@@ -176,9 +176,9 @@ export function DiscoverResultsGrid({
             Found {restaurants.length} restaurant{restaurants.length !== 1 ? 's' : ''}
           </h2>
           <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <span>Average rating: {averageRating.toFixed(1)}</span>
+            <span>Total reviews: {restaurants.reduce((sum, r) => sum + (r.reviewCount || 0), 0).toLocaleString()}</span>
             <span>•</span>
-            <span>{openCount} currently open</span>
+            <span>{new Set(restaurants.map(r => r.location?.city).filter(Boolean)).size} unique locations</span>
             {michelinCount > 0 && (
               <>
                 <span>•</span>

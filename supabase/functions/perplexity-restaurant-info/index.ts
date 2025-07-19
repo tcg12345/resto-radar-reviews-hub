@@ -149,8 +149,8 @@ Monday: 11:45 AM–2:15 PM, 5:30–9:45 PM
 Tuesday: 5:30–10:45 PM  
 Wednesday: Closed
 
-Only show hours. If unclear, say "Hours not clearly available - check website."` :
-`Use bullet points (•) with one key fact per line. Maximum 4 points. No formatting symbols. Be direct and factual.`}`
+Only show hours. If unclear, say "Hours not clearly available - call restaurant."` :
+`Use bullet points (•) with one key fact per line. Maximum 4 points. No asterisks, no bold text, no formatting symbols. Be direct and factual.`}`
           },
           {
             role: 'user',

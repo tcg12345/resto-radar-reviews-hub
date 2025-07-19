@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { 
   Star, 
   MapPin, 
@@ -17,7 +18,8 @@ import {
   Wifi,
   CreditCard,
   ChefHat,
-  Sparkles
+  Sparkles,
+  ChevronDown
 } from 'lucide-react';
 import { PerplexityRestaurantInfo } from '@/components/PerplexityRestaurantInfo';
 
@@ -74,6 +76,7 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist 
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
   const [showPerplexityInfo, setShowPerplexityInfo] = useState(false);
+  const [isMoreInfoOpen, setIsMoreInfoOpen] = useState(false);
 
   const getPriceDisplay = (range: number) => '$'.repeat(Math.min(range, 4));
   
@@ -145,7 +148,7 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist 
             {restaurant.name}
           </CardTitle>
           
-          {/* Rating and Price */}
+          {/* Rating */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {restaurant.googleMapsUrl ? (
@@ -176,15 +179,16 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist 
                 </div>
               )}
             </div>
-            
-            <div className="flex items-center gap-2">
-              <span className="text-green-600 font-bold text-lg">
-                {getPriceDisplay(restaurant.priceRange)}
-              </span>
-              <Badge variant="outline" className="text-xs font-medium">
-                {restaurant.cuisine}
-              </Badge>
-            </div>
+          </div>
+
+          {/* Price and Cuisine */}
+          <div className="flex items-center gap-2">
+            <span className="text-green-600 font-bold text-lg">
+              {getPriceDisplay(restaurant.priceRange)}
+            </span>
+            <Badge variant="outline" className="text-xs font-medium">
+              {restaurant.cuisine}
+            </Badge>
           </div>
 
           {/* Location */}
@@ -234,28 +238,75 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist 
         </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-2 pt-2">
-          {restaurant.website && (
+        <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-2">
             <Button
               variant="outline"
               size="sm"
               className="h-8 text-xs"
-              onClick={() => window.open(restaurant.website, '_blank')}
+              onClick={() => {
+                const website = restaurant.website || restaurant.googleMapsUrl || `https://www.google.com/search?q=${encodeURIComponent(restaurant.name + ' ' + restaurant.address)}`;
+                window.open(website, '_blank');
+              }}
             >
               <Globe className="h-3 w-3 mr-1" />
               Website
             </Button>
-          )}
+            
+            <Collapsible open={isMoreInfoOpen} onOpenChange={setIsMoreInfoOpen}>
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs w-full justify-between"
+                >
+                  <div className="flex items-center">
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    More Info
+                  </div>
+                  <ChevronDown className={`h-3 w-3 transition-transform ${isMoreInfoOpen ? 'rotate-180' : ''}`} />
+                </Button>
+              </CollapsibleTrigger>
+            </Collapsible>
+          </div>
           
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 text-xs"
-            onClick={() => setShowPerplexityInfo(true)}
-          >
-            <Sparkles className="h-3 w-3 mr-1" />
-            More Info
-          </Button>
+          <Collapsible open={isMoreInfoOpen} onOpenChange={setIsMoreInfoOpen}>
+            <CollapsibleContent className="space-y-2">
+              <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs w-full justify-start"
+                  onClick={() => setShowPerplexityInfo(true)}
+                >
+                  <Sparkles className="h-3 w-3 mr-2" />
+                  Get Current Information
+                </Button>
+                
+                {restaurant.phoneNumber && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-xs w-full justify-start"
+                    onClick={() => window.open(`tel:${restaurant.phoneNumber}`, '_self')}
+                  >
+                    <Phone className="h-3 w-3 mr-2" />
+                    Call Restaurant
+                  </Button>
+                )}
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs w-full justify-start"
+                  onClick={() => window.open(restaurant.googleMapsUrl || `https://www.google.com/maps/search/${encodeURIComponent(restaurant.name + ' ' + restaurant.address)}`, '_blank')}
+                >
+                  <MapPin className="h-3 w-3 mr-2" />
+                  View on Map
+                </Button>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         </div>
       </CardContent>
 
