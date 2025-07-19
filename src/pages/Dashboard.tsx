@@ -10,7 +10,7 @@ import { AIChatbot } from '@/components/AIChatbot';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState<'home' | 'rated' | 'wishlist' | 'map' | 'discover' | 'search'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'rated' | 'wishlist' | 'map' | 'search'>('home');
   const [shouldOpenAddDialog, setShouldOpenAddDialog] = useState(false);
   const { restaurants, addRestaurant, updateRestaurant, deleteRestaurant } = useRestaurants();
   const navigate = useNavigate();
@@ -25,7 +25,7 @@ export default function Dashboard() {
   }, [location.state]);
 
   // Handle navigation when search tab is clicked
-  const handleTabChange = (tab: 'home' | 'rated' | 'wishlist' | 'map' | 'discover' | 'search') => {
+  const handleTabChange = (tab: 'home' | 'rated' | 'wishlist' | 'map' | 'search') => {
     if (tab === 'search') {
       navigate('/search');
     } else {
@@ -42,8 +42,6 @@ export default function Dashboard() {
     switch (activeTab) {
       case 'home':
         return <HomePage onNavigate={setActiveTab} onOpenAddRestaurant={handleOpenAddRestaurant} />;
-      case 'discover':
-        return <DiscoverPage />;
       case 'rated':
         return (
           <RatedRestaurantsPage

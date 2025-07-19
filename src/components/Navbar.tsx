@@ -7,8 +7,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { GrubbyLogo } from '@/components/GrubbyLogo';
 
 interface NavbarProps {
-  activeTab: 'home' | 'rated' | 'wishlist' | 'map' | 'discover' | 'search';
-  onTabChange: (tab: 'home' | 'rated' | 'wishlist' | 'map' | 'discover' | 'search') => void;
+  activeTab: 'home' | 'rated' | 'wishlist' | 'map' | 'search';
+  onTabChange: (tab: 'home' | 'rated' | 'wishlist' | 'map' | 'search') => void;
 }
 
 export function Navbar({ activeTab, onTabChange }: NavbarProps) {
@@ -18,8 +18,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
 
   const tabs = [
     { id: 'home' as const, label: 'Home', icon: Home },
-    { id: 'discover' as const, label: 'Discover', icon: Search },
-    { id: 'search' as const, label: 'Search', icon: Utensils },
+    { id: 'search' as const, label: 'Search & Discover', icon: Search },
     { id: 'rated' as const, label: 'My Ratings', icon: Star },
     { id: 'wishlist' as const, label: 'Wishlist', icon: Heart },
     { id: 'map' as const, label: 'Map View', icon: MapPin },
