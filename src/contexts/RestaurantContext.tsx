@@ -26,6 +26,7 @@ interface DbRestaurant {
   updated_at: string;
   user_id: string;
   opening_hours: string | null;
+  website: string | null;
 }
 
 interface RestaurantContextType {
@@ -66,6 +67,7 @@ const mapDbRestaurantToRestaurant = (dbRestaurant: DbRestaurant): Restaurant => 
   updatedAt: dbRestaurant.updated_at,
   userId: dbRestaurant.user_id,
   openingHours: dbRestaurant.opening_hours ?? undefined,
+  website: dbRestaurant.website ?? undefined,
 });
 
 export function RestaurantProvider({ children }: RestaurantProviderProps) {
@@ -84,7 +86,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
           // User is authenticated, fetch their restaurants
           const { data, error } = await supabase
             .from('restaurants')
-            .select('id, name, address, city, country, cuisine, rating, notes, date_visited, is_wishlist, latitude, longitude, category_ratings, use_weighted_rating, price_range, michelin_stars, created_at, updated_at, user_id, opening_hours')
+            .select('id, name, address, city, country, cuisine, rating, notes, date_visited, is_wishlist, latitude, longitude, category_ratings, use_weighted_rating, price_range, michelin_stars, created_at, updated_at, user_id, opening_hours, website')
             .eq('user_id', session.user.id)
             .order('created_at', { ascending: false });
 

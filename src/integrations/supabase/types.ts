@@ -67,6 +67,7 @@ export type Database = {
           updated_at: string | null
           use_weighted_rating: boolean | null
           user_id: string
+          website: string | null
         }
         Insert: {
           address: string
@@ -90,6 +91,7 @@ export type Database = {
           updated_at?: string | null
           use_weighted_rating?: boolean | null
           user_id: string
+          website?: string | null
         }
         Update: {
           address?: string
@@ -113,6 +115,7 @@ export type Database = {
           updated_at?: string | null
           use_weighted_rating?: boolean | null
           user_id?: string
+          website?: string | null
         }
         Relationships: []
       }
