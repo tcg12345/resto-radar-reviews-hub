@@ -306,13 +306,43 @@ serve(async (req) => {
           const country = addressParts[addressParts.length - 1] || '';
           
           if (country === 'USA' || country === 'United States') {
-            // For US restaurants: City, State format
-            const state = addressParts[addressParts.length - 2] || '';
+            // For US restaurants: City, State format (remove zip codes)
+            const stateAndZip = addressParts[addressParts.length - 2] || '';
+            const state = stateAndZip.replace(/\s+\d{5}(-\d{4})?$/, '').trim(); // Remove zip codes
             const city = addressParts[addressParts.length - 3] || addressParts[0] || '';
             formattedLocation = `${city}, ${state}`;
           } else {
             // For international restaurants: City, Country format
-            const city = addressParts[addressParts.length - 3] || addressParts[addressParts.length - 2] || addressParts[0] || '';
+            // Handle districts by looking for major city names
+            let city = addressParts[addressParts.length - 3] || addressParts[addressParts.length - 2] || addressParts[0] || '';
+            
+            // Map districts to main cities for better recognition
+            const districtToCity: { [key: string]: string } = {
+              "L'Eixample": "Barcelona",
+              "Eixample": "Barcelona",
+              "Sant Antoni": "Barcelona", 
+              "El Born": "Barcelona",
+              "Gothic Quarter": "Barcelona",
+              "Gracia": "Barcelona",
+              "Montmartre": "Paris",
+              "Le Marais": "Paris",
+              "Saint-Germain": "Paris",
+              "Shibuya": "Tokyo",
+              "Ginza": "Tokyo",
+              "Shinjuku": "Tokyo",
+              "Harajuku": "Tokyo",
+              "SoHo": "New York",
+              "Tribeca": "New York",
+              "Chelsea": "London",
+              "Mayfair": "London",
+              "Covent Garden": "London"
+            };
+            
+            // Check if the city is actually a district of a larger city
+            if (districtToCity[city]) {
+              city = districtToCity[city];
+            }
+            
             formattedLocation = `${city}, ${country}`;
           }
         }
@@ -341,10 +371,9 @@ serve(async (req) => {
         } else if (place.opening_hours?.weekday_text && place.opening_hours.weekday_text.length > 0) {
           // Fallback to place data
           openingHours = place.opening_hours.weekday_text.join('\n');
-        } else if (placeDetails?.opening_hours?.open_now !== undefined) {
-          openingHours = placeDetails.opening_hours.open_now ? 'Currently open' : 'Currently closed';
-        } else if (place.opening_hours?.open_now !== undefined) {
-          openingHours = place.opening_hours.open_now ? 'Currently open' : 'Currently closed';
+        } else {
+          // Only use open/closed status as absolute fallback when no hours are available
+          openingHours = 'Call for hours';
         }
         
         // Use more accurate Michelin star determination - only assign for truly Michelin starred restaurants

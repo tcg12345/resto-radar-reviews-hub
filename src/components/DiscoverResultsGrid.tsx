@@ -307,37 +307,30 @@ export function DiscoverResultsGrid({
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Price Range</label>
-                <div className="space-y-2 p-3 border rounded-md bg-background/50">
-                  {priceFilters.map((filter) => (
-                    <div key={filter.value} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`price-${filter.value}`}
-                        checked={advancedFilters.priceRanges.includes(filter.value)}
-                        onCheckedChange={(checked) => handlePriceFilterChange(filter.value, checked as boolean)}
-                      />
-                      <label 
-                        htmlFor={`price-${filter.value}`} 
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1 flex items-center justify-between"
-                      >
-                        <span>{filter.label}</span>
-                        <span className="text-xs text-muted-foreground">({filter.count})</span>
-                      </label>
-                    </div>
-                  ))}
-                  {advancedFilters.priceRanges.length > 0 && (
-                    <div className="pt-2 border-t">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setAdvancedFilters(prev => ({ ...prev, priceRanges: [] }))}
-                        className="h-6 px-2 text-xs"
-                      >
-                        Clear all
-                      </Button>
-                    </div>
-                  )}
-                </div>
+                <label className="text-sm font-medium">Price</label>
+                <Select 
+                  value={advancedFilters.priceRanges.length === 0 ? "all" : advancedFilters.priceRanges.join(",")} 
+                  onValueChange={(value) => {
+                    if (value === "all") {
+                      setAdvancedFilters(prev => ({ ...prev, priceRanges: [] }));
+                    } else {
+                      setAdvancedFilters(prev => ({ ...prev, priceRanges: value.split(",").map(Number) }));
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All prices</SelectItem>
+                    <SelectItem value="1">$ (Budget)</SelectItem>
+                    <SelectItem value="2">$$ (Moderate)</SelectItem>
+                    <SelectItem value="3">$$$ (Expensive)</SelectItem>
+                    <SelectItem value="4">$$$$ (Very Expensive)</SelectItem>
+                    <SelectItem value="1,2">$ - $$</SelectItem>
+                    <SelectItem value="3,4">$$$ - $$$$</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
