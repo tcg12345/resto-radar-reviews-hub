@@ -580,23 +580,25 @@ export default function RestaurantSearchPage() {
                   </Button>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center cursor-pointer" onClick={() => handleGoogleSearch(restaurant)}>
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="ml-1 text-sm font-medium hover:underline">{restaurant.rating}</span>
-                  </div>
-                  {restaurant.reviewCount && (
-                    <span 
-                      className="text-sm text-muted-foreground cursor-pointer hover:underline"
-                      onClick={() => handleGoogleSearch(restaurant)}
-                    >
-                      ({restaurant.reviewCount.toLocaleString()})
-                    </span>
-                  )}
-                  <div className="flex ml-auto">
-                    <span className="text-lg font-bold text-green-600">
-                      {getPriceDisplay(restaurant.priceRange)}
-                    </span>
+                <div className="flex items-start justify-between">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center cursor-pointer" onClick={() => handleGoogleSearch(restaurant)}>
+                      <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                      <span className="ml-1 text-base font-medium hover:underline">{restaurant.rating}</span>
+                      {restaurant.reviewCount && (
+                        <span 
+                          className="ml-1 text-sm text-muted-foreground cursor-pointer hover:underline"
+                          onClick={() => handleGoogleSearch(restaurant)}
+                        >
+                          ({restaurant.reviewCount.toLocaleString()})
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex">
+                      <span className="text-lg font-bold text-green-600">
+                        {getPriceDisplay(restaurant.priceRange)}
+                      </span>
+                    </div>
                   </div>
                 </div>
 

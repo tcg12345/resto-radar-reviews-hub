@@ -134,12 +134,41 @@ serve(async (req) => {
             lat: detailedPlace.geometry?.location?.lat || 0,
             lng: detailedPlace.geometry?.location?.lng || 0,
           },
-          cuisine: detailedPlace.types?.find((type: string) => 
-            !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type)
-          )?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Restaurant',
+          cuisine: 'Restaurant', // Will be determined by AI below
           googleMapsUrl: `https://www.google.com/maps/place/?q=place_id:${detailedPlace.place_id}`,
           michelinStars: 0 // Google Places doesn't provide Michelin stars
         };
+
+        // Determine cuisine using AI
+        try {
+          const supabaseUrl = Deno.env.get('SUPABASE_URL');
+          const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+          
+          if (supabaseUrl && supabaseAnonKey) {
+            const cuisineResponse = await fetch(`${supabaseUrl}/functions/v1/determine-cuisine`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${supabaseAnonKey}`,
+              },
+              body: JSON.stringify({
+                restaurantName: restaurant.name,
+                address: restaurant.address,
+                types: detailedPlace.types || []
+              })
+            });
+
+            if (cuisineResponse.ok) {
+              const cuisineData = await cuisineResponse.json();
+              if (cuisineData.cuisine && cuisineData.cuisine !== 'Restaurant') {
+                restaurant.cuisine = cuisineData.cuisine;
+              }
+            }
+          }
+        } catch (error) {
+          console.warn(`Failed to determine cuisine for ${restaurant.name}:`, error);
+        }
+
 
         console.log(`Final restaurant ${detailedPlace.name}:`, {
           hasWebsite: !!restaurant.website,
