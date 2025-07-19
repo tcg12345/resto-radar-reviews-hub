@@ -11,6 +11,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Restaurant {
   id: string;
@@ -27,6 +29,7 @@ interface ReservationWidgetProps {
 }
 
 export function ReservationWidget({ restaurant, className }: ReservationWidgetProps) {
+  const { user } = useAuth();
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [partySize, setPartySize] = useState<string>('');
@@ -53,29 +56,36 @@ export function ReservationWidget({ restaurant, className }: ReservationWidgetPr
       return;
     }
 
+    if (!user) {
+      toast.error('Please sign in to make a reservation');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      // Here you would integrate with your preferred reservation system
-      // For now, we'll create a mock reservation request
-      
-      const reservationData = {
-        restaurant_id: restaurant.id,
-        restaurant_name: restaurant.name,
-        date: selectedDate.toISOString(),
-        time: selectedTime,
-        party_size: parseInt(partySize),
-        customer_name: customerName,
-        customer_email: customerEmail,
-        customer_phone: customerPhone,
-        special_requests: specialRequests,
-        created_at: new Date().toISOString()
-      };
+      // Save reservation to database
+      const { error } = await supabase
+        .from('reservations')
+        .insert({
+          restaurant_id: restaurant.id,
+          restaurant_name: restaurant.name,
+          user_id: user.id,
+          reservation_date: selectedDate.toISOString().split('T')[0], // Format as date
+          reservation_time: selectedTime,
+          party_size: parseInt(partySize),
+          customer_name: customerName,
+          customer_email: customerEmail,
+          customer_phone: customerPhone || null,
+          special_requests: specialRequests || null,
+          status: 'pending'
+        });
 
-      // You could store this in your database or send to a reservation API
-      console.log('Reservation request:', reservationData);
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
       
-      // For demonstration, we'll show a success message
       toast.success('Reservation request sent! The restaurant will contact you to confirm.');
       
       // Reset form
@@ -87,9 +97,9 @@ export function ReservationWidget({ restaurant, className }: ReservationWidgetPr
       setCustomerPhone('');
       setSpecialRequests('');
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting reservation:', error);
-      toast.error('Failed to submit reservation. Please try again.');
+      toast.error('Failed to submit reservation: ' + (error.message || 'Please try again.'));
     } finally {
       setIsSubmitting(false);
     }

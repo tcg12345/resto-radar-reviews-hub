@@ -134,6 +134,60 @@ export type Database = {
         }
         Relationships: []
       }
+      reservations: {
+        Row: {
+          confirmation_notes: string | null
+          created_at: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string | null
+          id: string
+          party_size: number
+          reservation_date: string
+          reservation_time: string
+          restaurant_id: string
+          restaurant_name: string
+          special_requests: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          confirmation_notes?: string | null
+          created_at?: string
+          customer_email: string
+          customer_name: string
+          customer_phone?: string | null
+          id?: string
+          party_size: number
+          reservation_date: string
+          reservation_time: string
+          restaurant_id: string
+          restaurant_name: string
+          special_requests?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          confirmation_notes?: string | null
+          created_at?: string
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string | null
+          id?: string
+          party_size?: number
+          reservation_date?: string
+          reservation_time?: string
+          restaurant_id?: string
+          restaurant_name?: string
+          special_requests?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       restaurants: {
         Row: {
           address: string
