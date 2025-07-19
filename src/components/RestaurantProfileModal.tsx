@@ -258,29 +258,6 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Main Info */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Photos */}
-            {place.photos && place.photos.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="md:col-span-2">
-                  <img 
-                    src={getPhotoUrl(place.photos[0].photo_reference)}
-                    alt={place.name}
-                    className="w-full h-64 object-cover rounded-lg"
-                  />
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-1 gap-2">
-                  {place.photos.slice(1, 3).map((photo, index) => (
-                    <img 
-                      key={index}
-                      src={getPhotoUrl(photo.photo_reference)}
-                      alt={`${place.name} ${index + 2}`}
-                      className="w-full h-32 object-cover rounded-lg"
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* Basic Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
