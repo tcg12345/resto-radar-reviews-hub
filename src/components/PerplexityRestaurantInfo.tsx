@@ -107,86 +107,27 @@ export function PerplexityRestaurantInfo({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Tabs defaultValue="quick" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="quick">Quick Info</TabsTrigger>
-            <TabsTrigger value="custom">Custom Inquiry</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="quick" className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              <Button
-                onClick={() => getRestaurantInfo('current_info')}
-                disabled={isLoading}
-                variant={activeTab === 'current_info' ? 'default' : 'outline'}
-                size="sm"
-              >
-                <RefreshCw className="h-4 w-4 mr-1" />
-                General
-              </Button>
-              <Button
-                onClick={() => getRestaurantInfo('hours')}
-                disabled={isLoading}
-                variant={activeTab === 'hours' ? 'default' : 'outline'}
-                size="sm"
-              >
-                <Clock className="h-4 w-4 mr-1" />
-                Hours
-              </Button>
-              <Button
-                onClick={() => getRestaurantInfo('reviews')}
-                disabled={isLoading}
-                variant={activeTab === 'reviews' ? 'default' : 'outline'}
-                size="sm"
-              >
-                <Star className="h-4 w-4 mr-1" />
-                Reviews
-              </Button>
-              <Button
-                onClick={() => getRestaurantInfo('trending')}
-                disabled={isLoading}
-                variant={activeTab === 'trending' ? 'default' : 'outline'}
-                size="sm"
-              >
-                <TrendingUp className="h-4 w-4 mr-1" />
-                Trending
-              </Button>
-              <Button
-                onClick={() => getRestaurantInfo('verification')}
-                disabled={isLoading}
-                variant={activeTab === 'verification' ? 'default' : 'outline'}
-                size="sm"
-              >
-                <CheckCircle className="h-4 w-4 mr-1" />
-                Verify
-              </Button>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="custom" className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Ask anything about this restaurant..."
-                  value={customQuery}
-                  onChange={(e) => setCustomQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleCustomInquiry()}
-                  className="flex-1"
-                />
-                <Button
-                  onClick={handleCustomInquiry}
-                  disabled={isLoading || !customQuery.trim()}
-                  size="sm"
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Examples: "What's their most popular dish?", "Do they have outdoor seating?", "Is it good for groups?"
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
+        <div className="space-y-3">
+          <div className="flex gap-2">
+            <Input
+              placeholder="Ask anything about this restaurant..."
+              value={customQuery}
+              onChange={(e) => setCustomQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleCustomInquiry()}
+              className="flex-1"
+            />
+            <Button
+              onClick={handleCustomInquiry}
+              disabled={isLoading || !customQuery.trim()}
+              size="sm"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Examples: "What's their most popular dish?", "Do they have outdoor seating?", "Is it good for groups?"
+          </div>
+        </div>
 
         {isLoading && (
           <div className="p-4 text-center">
