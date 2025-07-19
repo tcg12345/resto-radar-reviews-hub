@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { PerplexityRestaurantInfo } from '@/components/PerplexityRestaurantInfo';
 
 interface Restaurant {
   id: string;
@@ -154,6 +155,14 @@ export function RestaurantDetailsModal({
               <span className="text-sm">{restaurant.address}</span>
             </div>
           </div>
+
+          {/* AI-Powered Real-Time Info */}
+          <PerplexityRestaurantInfo 
+            restaurantName={restaurant.name}
+            address={restaurant.address}
+            city={restaurant.address.split(',').pop()?.trim() || ''}
+            cuisine={restaurant.cuisine}
+          />
 
           {/* Opening Hours */}
           {restaurant.openingHours && restaurant.openingHours.length > 0 && (

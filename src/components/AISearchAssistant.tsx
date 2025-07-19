@@ -97,27 +97,63 @@ export function AISearchAssistant({ onSearchSuggestion, onClose }: AISearchAssis
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentMessage = inputMessage;
     setInputMessage('');
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('ai-restaurant-assistant', {
-        body: {
-          message: inputMessage,
-          context: 'restaurant search',
-          userPreferences: {} // Could be enhanced with saved user preferences
+      // Check if user is asking for real-time info
+      const isRealTimeQuery = currentMessage.toLowerCase().includes('current') || 
+                             currentMessage.toLowerCase().includes('hours') || 
+                             currentMessage.toLowerCase().includes('open') ||
+                             currentMessage.toLowerCase().includes('latest') ||
+                             currentMessage.toLowerCase().includes('recent') ||
+                             currentMessage.toLowerCase().includes('now');
+
+      let aiMessage: Message;
+
+      if (isRealTimeQuery) {
+        // Use Perplexity for real-time information
+        const { data: perplexityData, error: perplexityError } = await supabase.functions.invoke('perplexity-restaurant-info', {
+          body: {
+            restaurantName: 'restaurants',
+            city: 'current location',
+            infoType: 'custom',
+            additionalContext: currentMessage
+          }
+        });
+
+        if (!perplexityError && perplexityData) {
+          aiMessage = {
+            id: Date.now().toString() + '-ai-perplexity',
+            type: 'ai',
+            content: `🌐 **Real-time Information (Powered by Perplexity):**\n\n${perplexityData.generatedInfo}`,
+            suggestions: ['Find restaurants near me', 'Current restaurant hours', 'Popular restaurants now'],
+            timestamp: new Date()
+          };
+        } else {
+          throw new Error('Perplexity lookup failed');
         }
-      });
+      } else {
+        // Use OpenAI for general assistance
+        const { data, error } = await supabase.functions.invoke('ai-restaurant-assistant', {
+          body: {
+            message: currentMessage,
+            context: 'restaurant search',
+            userPreferences: {}
+          }
+        });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      const aiMessage: Message = {
-        id: Date.now().toString() + '-ai',
-        type: 'ai',
-        content: data.response,
-        suggestions: data.suggestions || [],
-        timestamp: new Date()
-      };
+        aiMessage = {
+          id: Date.now().toString() + '-ai-openai',
+          type: 'ai',
+          content: `🤖 ${data.response}`,
+          suggestions: data.suggestions || [],
+          timestamp: new Date()
+        };
+      }
 
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
