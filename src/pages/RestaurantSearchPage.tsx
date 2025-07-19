@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { supabase } from '@/integrations/supabase/client';
 import { useRestaurants } from '@/contexts/RestaurantContext';
-import { useDiscover } from '@/contexts/DiscoverContext';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 import { 
   Search, 
   MapPin, 
@@ -123,21 +123,6 @@ export default function RestaurantSearchPage() {
   const [isVoiceSearch, setIsVoiceSearch] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
   
-  // Discover functionality state
-  const {
-    searchQuery: discoverQuery,
-    setSearchQuery: setDiscoverQuery,
-    locationQuery: discoverLocation,
-    setLocationQuery: setDiscoverLocation,
-    restaurants: discoverRestaurants,
-    setRestaurants: setDiscoverRestaurants,
-    hasSearched: discoverHasSearched,
-    setHasSearched: setDiscoverHasSearched,
-    isLoading: discoverIsLoading,
-    setIsLoading: setDiscoverIsLoading,
-  } = useDiscover();
-
-  const [activeTab, setActiveTab] = useState<'search' | 'discover'>('search');
   
   const [filters, setFilters] = useState<SearchFilters>({
     priceRanges: [],
@@ -215,7 +200,9 @@ export default function RestaurantSearchPage() {
     }
   }, []);
 
-  const handleSearch = useCallback(async () => {
+
+  // Enhanced search that combines both regular and AI discovery
+  const handleUnifiedSearch = useCallback(async () => {
     if (!searchQuery.trim()) {
       toast.error('Please enter a search query');
       return;
@@ -226,6 +213,52 @@ export default function RestaurantSearchPage() {
     setRestaurants([]);
 
     try {
+      // Try AI discovery first for natural language queries
+      const isNaturalLanguage = searchQuery.length > 10 && 
+        (searchQuery.includes(' ') && !searchQuery.includes('restaurant')) ||
+        /\b(looking for|want|need|find me|show me|recommend)\b/i.test(searchQuery);
+
+      if (isNaturalLanguage) {
+        // Use AI discovery for natural language queries
+        const { data: discoverData, error: discoverError } = await supabase.functions.invoke('restaurant-discovery', {
+          body: {
+            query: searchQuery,
+            location: searchLocation,
+            filters: {}
+          }
+        });
+
+        if (!discoverError && discoverData?.restaurants?.length > 0) {
+          // Transform discover results to search format
+          const transformedResults: SearchRestaurant[] = discoverData.restaurants.map((restaurant: DiscoverRestaurant) => ({
+            id: restaurant.id || Math.random().toString(36).substr(2, 9),
+            name: restaurant.name,
+            address: restaurant.address,
+            rating: restaurant.rating || 0,
+            reviewCount: restaurant.reviewCount,
+            priceRange: restaurant.priceRange || 2,
+            isOpen: restaurant.isOpen,
+            phoneNumber: restaurant.phoneNumber,
+            website: restaurant.website,
+            openingHours: restaurant.openingHours ? [restaurant.openingHours] : [],
+            photos: restaurant.images || [],
+            location: {
+              lat: restaurant.location?.lat || 0,
+              lng: restaurant.location?.lng || 0,
+            },
+            cuisine: restaurant.cuisine,
+            googleMapsUrl: restaurant.googleMapsUrl,
+            michelinStars: restaurant.michelinStars,
+            features: restaurant.features
+          }));
+
+          setRestaurants(transformedResults);
+          toast.success(`Found ${transformedResults.length} restaurants using AI discovery`);
+          return;
+        }
+      }
+
+      // Fall back to regular search with AI enhancement
       const enhancedSearch = await enhanceSearchQuery(searchQuery, searchLocation);
       
       if (enhancedSearch.interpretation) {
@@ -280,42 +313,6 @@ export default function RestaurantSearchPage() {
       setIsLoading(false);
     }
   }, [searchQuery, searchLocation, enhanceSearchQuery]);
-
-  // Discover functionality
-  const handleDiscoverSearch = useCallback(async () => {
-    if (!discoverQuery.trim()) {
-      toast.error('Please describe what type of restaurant you\'re looking for');
-      return;
-    }
-
-    setDiscoverIsLoading(true);
-    setDiscoverHasSearched(true);
-
-    try {
-      const { data, error } = await supabase.functions.invoke('restaurant-discovery', {
-        body: {
-          query: discoverQuery,
-          location: discoverLocation,
-          filters: {}
-        }
-      });
-
-      if (error) throw error;
-
-      setDiscoverRestaurants(data.restaurants || []);
-      
-      const resultCount = data.restaurants?.length || 0;
-      const michelinCount = data.restaurants?.filter((r: DiscoverRestaurant) => r.michelinStars).length || 0;
-      
-      toast.success(`Found ${resultCount} restaurants${michelinCount > 0 ? `, including ${michelinCount} Michelin starred` : ''}`);
-    } catch (error) {
-      console.error('Discover search error:', error);
-      setDiscoverRestaurants([]);
-      toast.error('Could not search restaurants. Please try again.');
-    } finally {
-      setDiscoverIsLoading(false);
-    }
-  }, [discoverQuery, discoverLocation, setDiscoverRestaurants, setDiscoverHasSearched, setDiscoverIsLoading]);
 
   const handleToggleWishlist = (restaurant: DiscoverRestaurant | SearchRestaurant) => {
     const existingRestaurant = existingRestaurants.find(r => 
@@ -379,11 +376,7 @@ export default function RestaurantSearchPage() {
   };
 
   const handleAISuggestion = (suggestion: string) => {
-    if (activeTab === 'search') {
-      setSearchQuery(suggestion);
-    } else {
-      setDiscoverQuery(suggestion);
-    }
+    setSearchQuery(suggestion);
     setShowAIAssistant(false);
   };
 
@@ -566,157 +559,6 @@ export default function RestaurantSearchPage() {
     );
   };
 
-  const renderDiscoverResults = () => {
-    if (discoverIsLoading) {
-      return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="overflow-hidden">
-              <Skeleton className="h-48 w-full" />
-              <CardContent className="p-4 space-y-3">
-                <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-1/2" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      );
-    }
-
-    if (!discoverHasSearched) {
-      return (
-        <div className="text-center py-12">
-          <Sparkles className="h-12 w-12 mx-auto mb-4 text-primary" />
-          <h3 className="text-lg font-semibold mb-2">AI-Powered Restaurant Discovery</h3>
-          <p className="text-muted-foreground">
-            Describe your perfect dining experience in natural language and let AI find it for you
-          </p>
-        </div>
-      );
-    }
-
-    if (discoverRestaurants.length === 0) {
-      return (
-        <div className="text-center py-12">
-          <MapPin className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-semibold mb-2">No restaurants found</h3>
-          <p className="text-muted-foreground">
-            Try describing your ideal restaurant differently
-          </p>
-        </div>
-      );
-    }
-
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {discoverRestaurants.map((restaurant) => (
-          <Card key={restaurant.id} className="overflow-hidden hover:shadow-lg transition-all duration-200 group">
-            {restaurant.images && restaurant.images.length > 0 && (
-              <div className="relative h-48 overflow-hidden">
-                <img
-                  src={restaurant.images[0]}
-                  alt={restaurant.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                />
-                <div className="absolute top-2 right-2 flex gap-2">
-                  {restaurant.isOpen !== undefined && (
-                    <Badge variant={restaurant.isOpen ? "default" : "secondary"} className="text-xs">
-                      {restaurant.isOpen ? "Open" : "Closed"}
-                    </Badge>
-                  )}
-                  {restaurant.michelinStars && (
-                    <Badge variant="default" className="bg-yellow-600 text-xs">
-                      {restaurant.michelinStars}⭐ Michelin
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            )}
-            
-            <CardContent className="p-4">
-              <div className="space-y-3">
-                <div className="flex items-start justify-between">
-                  <h3 className="font-semibold text-lg leading-tight line-clamp-2">
-                    {restaurant.name}
-                  </h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleToggleWishlist(restaurant)}
-                    className="shrink-0 ml-2"
-                  >
-                    <Heart className="h-4 w-4" />
-                  </Button>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="ml-1 text-sm font-medium">{restaurant.rating}</span>
-                  </div>
-                  {restaurant.reviewCount && (
-                    <span className="text-sm text-muted-foreground">
-                      ({restaurant.reviewCount.toLocaleString()})
-                    </span>
-                  )}
-                  <div className="flex ml-auto">
-                    <span className="text-lg font-bold text-green-600">
-                      {getPriceDisplay(restaurant.priceRange)}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-1">
-                  <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-                  <span className="text-sm text-muted-foreground line-clamp-2">
-                    {restaurant.address}
-                  </span>
-                </div>
-
-                <Badge variant="outline" className="text-xs">
-                  {restaurant.cuisine}
-                </Badge>
-
-                <div className="flex gap-2 pt-2">
-                  {restaurant.website && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => window.open(restaurant.website, '_blank')}
-                    >
-                      <Globe className="h-4 w-4 mr-1" />
-                      Website
-                    </Button>
-                  )}
-                  
-                  {restaurant.phoneNumber && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => window.open(`tel:${restaurant.phoneNumber}`, '_self')}
-                    >
-                      <Phone className="h-4 w-4" />
-                    </Button>
-                  )}
-                  
-                  {restaurant.googleMapsUrl && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => window.open(restaurant.googleMapsUrl, '_blank')}
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -733,59 +575,44 @@ export default function RestaurantSearchPage() {
         {/* Header */}
         <div className="text-center space-y-4">
           <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-primary via-primary to-primary/70 bg-clip-text text-transparent">
-            Discover & Search Restaurants
+            Smart Restaurant Search
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Use AI to discover new restaurants or search with advanced filters
+            Describe what you're craving and let AI find the perfect restaurants for you
           </p>
         </div>
 
-        {/* Tab Navigation */}
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'search' | 'discover')} className="w-full">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
-            <TabsTrigger value="search" className="flex items-center gap-2">
-              <Search className="h-4 w-4" />
-              Advanced Search
-            </TabsTrigger>
-            <TabsTrigger value="discover" className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4" />
-              AI Discover
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Search Tab */}
-          <TabsContent value="search" className="space-y-6">
-            {/* Search Form */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Search className="h-5 w-5" />
-                  Restaurant Search
-                </CardTitle>
-                <CardDescription>
-                  Search for restaurants with detailed filters
-                </CardDescription>
-              </CardHeader>
+        {/* Search Form */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Search className="h-5 w-5" />
+              Smart Restaurant Search
+            </CardTitle>
+            <CardDescription>
+              Search using natural language or keywords - our AI will find the perfect restaurants
+            </CardDescription>
+          </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex gap-4">
                   <div className="flex-1">
                     <Input
-                      placeholder="Search restaurants, cuisines, or dishes..."
+                      placeholder="What are you craving? (e.g., 'romantic Italian with outdoor seating' or 'best sushi')"
                       value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                       onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleUnifiedSearch()}
                     />
                   </div>
                   <div className="w-64">
                     <Input
                       placeholder="Location (optional)"
                       value={searchLocation}
-                      onChange={(e) => setSearchLocation(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                       onChange={(e) => setSearchLocation(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleUnifiedSearch()}
                     />
                   </div>
-                  <Button 
-                    onClick={handleSearch} 
+                   <Button 
+                    onClick={handleUnifiedSearch} 
                     disabled={isLoading || isEnhancing}
                     className="px-8"
                   >
@@ -1006,137 +833,6 @@ export default function RestaurantSearchPage() {
             ) : (
               renderSearchResults()
             )}
-          </TabsContent>
-
-          {/* Discover Tab */}
-          <TabsContent value="discover" className="space-y-6">
-            {/* Quick Stats */}
-            {discoverHasSearched && discoverRestaurants.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200">
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <TrendingUp className="h-8 w-8 text-green-600" />
-                    <div>
-                      <p className="text-sm text-green-600 font-medium">Average Rating</p>
-                      <p className="text-2xl font-bold text-green-700">
-                        {(discoverRestaurants.reduce((sum, r) => sum + r.rating, 0) / discoverRestaurants.length).toFixed(1)}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 border-amber-200">
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <Award className="h-8 w-8 text-amber-600" />
-                    <div>
-                      <p className="text-sm text-amber-600 font-medium">Michelin Starred</p>
-                      <p className="text-2xl font-bold text-amber-700">
-                        {discoverRestaurants.filter(r => r.michelinStars).length}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200">
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <MapPin className="h-8 w-8 text-blue-600" />
-                    <div>
-                      <p className="text-sm text-blue-600 font-medium">Unique Locations</p>
-                      <p className="text-2xl font-bold text-blue-700">
-                        {new Set(discoverRestaurants.map(r => r.location?.city || 'Unknown')).size}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {/* Discover Form */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5" />
-                  AI Restaurant Discovery
-                </CardTitle>
-                <CardDescription>
-                  Describe your perfect dining experience in natural language
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="discover-query" className="text-sm font-medium">
-                      What kind of restaurant are you looking for?
-                    </Label>
-                    <Input
-                      id="discover-query"
-                      placeholder="e.g., romantic Italian restaurant with outdoor seating for a special date night..."
-                      value={discoverQuery}
-                      onChange={(e) => setDiscoverQuery(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleDiscoverSearch()}
-                      className="mt-1"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="discover-location" className="text-sm font-medium">
-                      Location (optional)
-                    </Label>
-                    <Input
-                      id="discover-location"
-                      placeholder="e.g., downtown, near me, specific address..."
-                      value={discoverLocation}
-                      onChange={(e) => setDiscoverLocation(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleDiscoverSearch()}
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
-
-                <Button 
-                  onClick={handleDiscoverSearch} 
-                  disabled={discoverIsLoading}
-                  className="w-full"
-                >
-                  {discoverIsLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Discovering...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-4 w-4 mr-2" />
-                      Discover Restaurants
-                    </>
-                  )}
-                </Button>
-
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowAIAssistant(!showAIAssistant)}
-                    className="flex-1 sm:flex-initial"
-                  >
-                    <Bot className="h-4 w-4 mr-2" />
-                    AI Assistant
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowVoiceAssistant(!showVoiceAssistant)}
-                    className="flex-1 sm:flex-initial"
-                  >
-                    <Mic className="h-4 w-4 mr-2" />
-                    Voice Assistant
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Discover Results */}
-            {renderDiscoverResults()}
-          </TabsContent>
-        </Tabs>
 
         {/* AI Assistant */}
         {showAIAssistant && (
