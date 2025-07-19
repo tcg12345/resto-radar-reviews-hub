@@ -184,39 +184,63 @@ serve(async (req) => {
       enhancedQuery = `fine dining ${searchQuery}`;
     }
 
-    // Search for restaurants using Google Places Text Search with much higher result limit
-    const placesUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(enhancedQuery)}&type=restaurant&radius=500000&key=${googlePlacesApiKey}`;
-    
-    console.log('Making request to Google Places API...');
-    
-    const placesResponse = await fetch(placesUrl);
-    
-    if (!placesResponse.ok) {
-      console.error('Google Places API HTTP error:', placesResponse.status, placesResponse.statusText);
-      throw new Error(`Google Places API HTTP error: ${placesResponse.status}`);
-    }
-    
-    const placesData = await placesResponse.json();
-    
-    console.log('Google Places API response status:', placesData.status);
-    console.log('Found places:', placesData.results?.length || 0);
+    // Search for restaurants using Google Places Text Search with pagination support
+    let allResults: any[] = [];
+    let nextPageToken: string | null = null;
+    let pageCount = 0;
+    const maxPages = 3; // Google allows up to 60 results per query (20 per page * 3 pages)
 
-    if (placesData.status === 'REQUEST_DENIED') {
-      console.error('Google Places API request denied. Check your API key and billing account.');
-      throw new Error('Google Places API request denied. Please check your API key and ensure billing is enabled.');
-    }
+    do {
+      const placesUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(enhancedQuery)}&type=restaurant&radius=500000&key=${googlePlacesApiKey}${nextPageToken ? `&pagetoken=${nextPageToken}` : ''}`;
+      
+      console.log(`Making request to Google Places API (page ${pageCount + 1})...`);
+      
+      const placesResponse = await fetch(placesUrl);
+      
+      if (!placesResponse.ok) {
+        console.error('Google Places API HTTP error:', placesResponse.status, placesResponse.statusText);
+        throw new Error(`Google Places API HTTP error: ${placesResponse.status}`);
+      }
+      
+      const placesData = await placesResponse.json();
+    
+      console.log('Google Places API response status:', placesData.status);
+      console.log('Found places on page:', placesData.results?.length || 0);
 
-    if (placesData.status === 'OVER_QUERY_LIMIT') {
-      console.error('Google Places API quota exceeded');
-      throw new Error('Google Places API quota exceeded. Please try again later.');
-    }
+      if (placesData.status === 'REQUEST_DENIED') {
+        console.error('Google Places API request denied. Check your API key and billing account.');
+        throw new Error('Google Places API request denied. Please check your API key and ensure billing is enabled.');
+      }
 
-    if (placesData.status !== 'OK') {
-      console.error('Google Places API error:', placesData.status, placesData.error_message);
-      throw new Error(`Google Places API error: ${placesData.status} - ${placesData.error_message || 'Unknown error'}`);
-    }
+      if (placesData.status === 'OVER_QUERY_LIMIT') {
+        console.error('Google Places API quota exceeded');
+        throw new Error('Google Places API quota exceeded. Please try again later.');
+      }
 
-    if (!placesData.results || placesData.results.length === 0) {
+      if (placesData.status !== 'OK' && placesData.status !== 'ZERO_RESULTS') {
+        console.error('Google Places API error:', placesData.status, placesData.error_message);
+        throw new Error(`Google Places API error: ${placesData.status} - ${placesData.error_message || 'Unknown error'}`);
+      }
+
+      if (placesData.results && placesData.results.length > 0) {
+        allResults.push(...placesData.results);
+        console.log(`Total results so far: ${allResults.length}`);
+      }
+
+      nextPageToken = placesData.next_page_token || null;
+      pageCount++;
+
+      // Google requires a short delay between paginated requests
+      if (nextPageToken && pageCount < maxPages) {
+        console.log('Waiting for next page token to become valid...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+
+    } while (nextPageToken && pageCount < maxPages);
+
+    console.log(`Final total results from all pages: ${allResults.length}`);
+
+    if (!allResults || allResults.length === 0) {
       console.log('No restaurants found for the search criteria');
       return new Response(JSON.stringify({
         restaurants: [],
@@ -230,15 +254,8 @@ serve(async (req) => {
       });
     }
 
-    // Determine optimal number of results based on query - allow for much larger result sets
-    let maxResults = 100; // Default - much higher than 20
-    if (queryLower.includes('michelin') || queryLower.includes('fine dining')) {
-      maxResults = Math.min(50, placesData.results.length); // More selective but still more than 20
-    } else if (queryLower.includes('pizza') || queryLower.includes('coffee') || queryLower.includes('cafe')) {
-      maxResults = Math.min(150, placesData.results.length); // Even more for common food types
-    } else {
-      maxResults = Math.min(120, placesData.results.length); // Much higher standard amount
-    }
+    // Use all results from pagination - no artificial limits
+    const maxResults = allResults.length; // Use all available results from Google Places API
     
     console.log(`Processing ${maxResults} restaurants for query: ${query}`);
     
@@ -248,7 +265,7 @@ serve(async (req) => {
     const batchSize = 5;
     const batches = [];
     for (let i = 0; i < maxResults; i += batchSize) {
-      batches.push(placesData.results.slice(i, Math.min(i + batchSize, maxResults)));
+      batches.push(allResults.slice(i, Math.min(i + batchSize, maxResults)));
     }
     
     // Process batches concurrently for speed

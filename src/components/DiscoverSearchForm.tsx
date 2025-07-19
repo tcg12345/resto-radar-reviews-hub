@@ -15,18 +15,197 @@ interface SearchFormProps {
 }
 
 const EXAMPLE_QUERIES = [
+  // Fine Dining & Michelin
   "Michelin starred restaurants in NYC",
-  "Family-friendly pizza with outdoor seating", 
+  "Two-star Michelin restaurant for special occasion",
+  "Fine dining with tasting menu",
+  "Award-winning chef restaurants",
+  "Luxury dining with wine pairing",
+  "Celebrity chef steakhouse",
+  "High-end French cuisine",
+  "Molecular gastronomy experience",
+  "James Beard Award winners",
+  "Farm-to-table fine dining",
+
+  // Casual & Family
+  "Family-friendly pizza with outdoor seating",
+  "Kid-friendly restaurants with play area",
+  "Casual dining with large portions",
+  "Sports bar with big screens",
+  "Dog-friendly patio dining",
+  "All-you-can-eat buffet",
+  "Quick casual healthy options",
+  "Family restaurant with arcade",
+  "Diner with classic comfort food",
+  "Casual seafood shack",
+
+  // Romantic & Date Night
   "Romantic French bistro for date night",
-  "Vegetarian fine dining downtown",
+  "Intimate wine bar for couples",
+  "Candlelit dinner restaurant",
+  "Rooftop dining with city views",
+  "Cozy fireplace restaurant",
+  "Private dining rooms available",
+  "Romantic Italian trattoria",
+  "Wine cellar dining experience",
+  "Sunset dinner with ocean views",
+  "Quiet restaurant for conversation",
+
+  // Cuisine Types - Asian
   "Best sushi for business dinner",
-  "Brunch spot with bottomless mimosas",
+  "Authentic ramen shop",
+  "Korean BBQ with tabletop grills",
+  "Thai restaurant with spice levels",
+  "Chinese dim sum brunch",
+  "Vietnamese pho house",
+  "Japanese izakaya experience",
+  "Indian curry house",
+  "Filipino comfort food",
+  "Mongolian hot pot restaurant",
+
+  // Cuisine Types - European
   "Authentic Italian trattoria",
+  "German beer garden with pretzels",
+  "Spanish tapas bar",
+  "Greek restaurant with live music",
+  "British pub with fish and chips",
+  "French cafe with pastries",
+  "Scandinavian Nordic cuisine",
+  "Eastern European pierogi house",
+  "Turkish Mediterranean grill",
+  "Portuguese seafood restaurant",
+
+  // Cuisine Types - American & More
+  "Classic American steakhouse",
+  "Southern BBQ joint",
+  "Tex-Mex with margaritas",
+  "New Orleans Cajun cuisine",
+  "Chicago deep dish pizza",
+  "California fresh cuisine",
+  "Hawaiian plate lunch",
+  "Soul food restaurant",
+  "Native American cuisine",
+  "Fusion food truck favorites",
+
+  // Dietary Restrictions
+  "Vegetarian fine dining downtown",
+  "Vegan restaurant with creative dishes",
+  "Gluten-free pasta restaurant",
+  "Keto-friendly steakhouse",
+  "Raw food cafe",
+  "Organic farm-to-table",
+  "Halal Mediterranean grill",
+  "Kosher deli with pastrami",
+  "Dairy-free ice cream shop",
+  "Plant-based burger joint",
+
+  // Breakfast & Brunch
+  "Brunch spot with bottomless mimosas",
+  "24-hour breakfast diner",
+  "Pancake house with unique flavors",
+  "Bagel shop with fresh lox",
+  "French toast specialist",
+  "Healthy smoothie bowl cafe",
+  "Classic eggs benedict brunch",
+  "Waffle house with toppings bar",
+  "Breakfast burrito food truck",
+  "Coffee shop with homemade pastries",
+
+  // Atmosphere & Vibes
   "Cozy cafe with live music",
-  "Rooftop bar with city views",
-  "Farm-to-table American cuisine",
-  "Spicy Korean BBQ joint",
-  "Classic steakhouse with wine list"
+  "Industrial chic restaurant",
+  "Bohemian wine bar",
+  "Trendy gastropub",
+  "Historic restaurant with character",
+  "Modern minimalist dining",
+  "Rustic farmhouse restaurant",
+  "Speakeasy with craft cocktails",
+  "Beach-themed seafood house",
+  "Art gallery with dining",
+
+  // Special Occasions
+  "Birthday dinner restaurant",
+  "Anniversary celebration venue",
+  "Graduation party restaurant",
+  "Wedding rehearsal dinner spot",
+  "Holiday brunch restaurant",
+  "Corporate event dining",
+  "First date restaurant",
+  "Proposal dinner location",
+  "Family reunion restaurant",
+  "Bachelor party steakhouse",
+
+  // Drinks & Nightlife
+  "Craft cocktail lounge",
+  "Wine bar with cheese plates",
+  "Brewery with food menu",
+  "Sake bar with small plates",
+  "Tequila bar with tacos",
+  "Whiskey bar with cigars",
+  "Champagne bar for celebrations",
+  "Beer garden with bratwurst",
+  "Rooftop bar with skyline views",
+  "Dive bar with comfort food",
+
+  // Time-Specific
+  "Late night eats after midnight",
+  "Early morning coffee and breakfast",
+  "Lunch spot with quick service",
+  "Happy hour with appetizer deals",
+  "Sunday brunch with live jazz",
+  "Weekday lunch specials",
+  "Saturday night dinner reservations",
+  "Afternoon tea service",
+  "Pre-theater dinner",
+  "Post-workout healthy meals",
+
+  // Price Points
+  "Cheap eats under $15",
+  "Mid-range family restaurant",
+  "Upscale dining experience",
+  "All-you-can-eat value meal",
+  "Student budget friendly",
+  "Date night splurge restaurant",
+  "Business lunch expense account",
+  "Happy hour drink specials",
+  "Prix fixe menu deals",
+  "BYOB restaurant to save money",
+
+  // Unique Experiences
+  "Dinner theater restaurant",
+  "Cooking class with meal",
+  "Chef's table experience",
+  "Wine tasting dinner",
+  "Murder mystery dinner",
+  "Hibachi grill with show",
+  "Fondue restaurant for sharing",
+  "Hot pot social dining",
+  "Tableside guacamole preparation",
+  "Interactive dining experience",
+
+  // Seasonal & Weather
+  "Outdoor patio summer dining",
+  "Cozy fireplace winter restaurant",
+  "Fall harvest menu restaurant",
+  "Spring garden terrace dining",
+  "Christmas dinner restaurant",
+  "Valentine's Day romantic spot",
+  "New Year's Eve celebration",
+  "Summer seafood shack",
+  "Autumn wine harvest dinner",
+  "Holiday themed restaurant",
+
+  // Health & Wellness
+  "Organic locally sourced restaurant",
+  "Low-calorie healthy options",
+  "Superfood smoothie bar",
+  "Paleo-friendly restaurant",
+  "Mediterranean diet restaurant",
+  "Anti-inflammatory menu options",
+  "Juice bar with acai bowls",
+  "Whole foods plant-based",
+  "Clean eating restaurant",
+  "Wellness-focused cafe"
 ];
 
 export function DiscoverSearchForm({
@@ -44,7 +223,7 @@ export function DiscoverSearchForm({
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentExampleIndex((prev) => (prev + 1) % Math.min(6, EXAMPLE_QUERIES.length));
-    }, 3000);
+    }, 5500);
 
     return () => clearInterval(interval);
   }, []);
