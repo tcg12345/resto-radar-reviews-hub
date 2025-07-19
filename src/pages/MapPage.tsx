@@ -10,7 +10,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Filter, X, Star, DollarSign, MapPin } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Slider } from '@/components/ui/slider';
+import { Label } from '@/components/ui/label';
+import { Filter, X, Star, DollarSign, MapPin, ChevronDown } from 'lucide-react';
 
 interface MapPageProps {
   restaurants: Restaurant[];
@@ -24,12 +28,11 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | undefined>(undefined);
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState({
-    cuisine: 'all',
-    priceRange: 'all',
-    rating: 'all',
-    type: 'all' // 'all', 'rated', 'wishlist'
-  });
+  const [filterCuisines, setFilterCuisines] = useState<string[]>([]);
+  const [filterPrices, setFilterPrices] = useState<string[]>([]);
+  const [ratingRange, setRatingRange] = useState<[number, number]>([0, 10]);
+  const [tempRatingRange, setTempRatingRange] = useState<[number, number]>([0, 10]);
+  const [filterType, setFilterType] = useState<'all' | 'rated' | 'wishlist'>('all');
   
   const handleRestaurantSelect = (id: string) => {
     setSelectedRestaurantId(id);
@@ -65,19 +68,42 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
     }
   };
 
+  // Multi-select helper functions
+  const toggleCuisine = (cuisine: string) => {
+    setFilterCuisines(prev => 
+      prev.includes(cuisine) 
+        ? prev.filter(c => c !== cuisine)
+        : [...prev, cuisine]
+    );
+  };
+
+  const togglePrice = (price: string) => {
+    setFilterPrices(prev => 
+      prev.includes(price) 
+        ? prev.filter(p => p !== price)
+        : [...prev, price]
+    );
+  };
+
   const clearFilters = () => {
-    setFilters({
-      cuisine: 'all',
-      priceRange: 'all',
-      rating: 'all',
-      type: 'all'
-    });
+    setFilterCuisines([]);
+    setFilterPrices([]);
+    setRatingRange([0, 10]);
+    setTempRatingRange([0, 10]);
+    setFilterType('all');
+  };
+
+  const applyRatingFilter = () => {
+    setRatingRange(tempRatingRange);
   };
 
   const getActiveFilterCount = () => {
-    return Object.entries(filters).filter(([key, value]) => 
-      key !== 'type' && value !== 'all' && value !== ''
-    ).length + (filters.type !== 'all' ? 1 : 0);
+    let count = 0;
+    if (filterCuisines.length > 0) count++;
+    if (filterPrices.length > 0) count++;
+    if (ratingRange[0] > 0 || ratingRange[1] < 10) count++;
+    if (filterType !== 'all') count++;
+    return count;
   };
   
   // Find the restaurant for the map dialog
@@ -86,20 +112,17 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
   // Apply filters
   const filteredRestaurants = restaurants.filter(restaurant => {
     // Type filter
-    if (filters.type === 'rated' && restaurant.isWishlist) return false;
-    if (filters.type === 'wishlist' && !restaurant.isWishlist) return false;
+    if (filterType === 'rated' && restaurant.isWishlist) return false;
+    if (filterType === 'wishlist' && !restaurant.isWishlist) return false;
     
-    // Cuisine filter
-    if (filters.cuisine && filters.cuisine !== 'all' && restaurant.cuisine !== filters.cuisine) return false;
+    // Cuisine filter (multi-select)
+    if (filterCuisines.length > 0 && !filterCuisines.includes(restaurant.cuisine)) return false;
     
-    // Price range filter
-    if (filters.priceRange && filters.priceRange !== 'all' && restaurant.priceRange?.toString() !== filters.priceRange) return false;
+    // Price range filter (multi-select)
+    if (filterPrices.length > 0 && (!restaurant.priceRange || !filterPrices.includes(restaurant.priceRange.toString()))) return false;
     
-    // Rating filter
-    if (filters.rating && filters.rating !== 'all') {
-      const minRating = parseFloat(filters.rating);
-      if (!restaurant.rating || restaurant.rating < minRating) return false;
-    }
+    // Rating filter (range)
+    if (restaurant.rating && (restaurant.rating < ratingRange[0] || restaurant.rating > ratingRange[1])) return false;
     
     return true;
   });
@@ -137,7 +160,7 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Type</label>
-              <Select value={filters.type} onValueChange={(value) => setFilters(prev => ({ ...prev, type: value }))}>
+              <Select value={filterType} onValueChange={(value: 'all' | 'rated' | 'wishlist') => setFilterType(value)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -149,54 +172,105 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
               </Select>
             </div>
 
+            {/* Cuisine Filter - Multi-select */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Cuisine</label>
-              <Select value={filters.cuisine} onValueChange={(value) => setFilters(prev => ({ ...prev, cuisine: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Any cuisine" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Any cuisine</SelectItem>
-                  {uniqueCuisines.map(cuisine => (
-                    <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between">
+                    <span>
+                      {filterCuisines.length === 0 
+                        ? 'Any cuisine' 
+                        : filterCuisines.length === 1 
+                          ? filterCuisines[0]
+                          : `${filterCuisines.length} cuisines`
+                      }
+                    </span>
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[300px] p-0">
+                  <div className="p-2">
+                    <div className="space-y-2">
+                      {uniqueCuisines.map((cuisine) => (
+                        <div key={cuisine} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`cuisine-${cuisine}`}
+                            checked={filterCuisines.includes(cuisine)}
+                            onCheckedChange={() => toggleCuisine(cuisine)}
+                          />
+                          <label htmlFor={`cuisine-${cuisine}`} className="text-sm cursor-pointer flex-1">
+                            {cuisine}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
 
+            {/* Price Filter - Multi-select */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Price Range</label>
-              <Select value={filters.priceRange} onValueChange={(value) => setFilters(prev => ({ ...prev, priceRange: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Any price" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Any price</SelectItem>
-                  {uniquePriceRanges.map(range => (
-                    <SelectItem key={range} value={range.toString()}>
-                      <div className="flex items-center gap-2">
-                        <DollarSign className="h-3 w-3" />
-                        {'$'.repeat(range)}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between">
+                    <span>
+                      {filterPrices.length === 0 
+                        ? 'Any price' 
+                        : filterPrices.length === 1 
+                          ? filterPrices[0] === '1' ? '$' : filterPrices[0] === '2' ? '$$' : filterPrices[0] === '3' ? '$$$' : '$$$$'
+                          : `${filterPrices.length} prices`
+                      }
+                    </span>
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[300px] p-0">
+                  <div className="p-2">
+                    <div className="space-y-2">
+                      {uniquePriceRanges.map((price) => (
+                        <div key={price} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`price-${price}`}
+                            checked={filterPrices.includes(price.toString())}
+                            onCheckedChange={() => togglePrice(price.toString())}
+                          />
+                          <label htmlFor={`price-${price}`} className="text-sm cursor-pointer flex-1">
+                            <div className="flex items-center gap-2">
+                              <DollarSign className="h-3 w-3" />
+                              {'$'.repeat(price)}
+                            </div>
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
 
+            {/* Rating Range Slider */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Minimum Rating</label>
-              <Select value={filters.rating} onValueChange={(value) => setFilters(prev => ({ ...prev, rating: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Any rating" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Any rating</SelectItem>
-                  <SelectItem value="7">7+ stars</SelectItem>
-                  <SelectItem value="8">8+ stars</SelectItem>
-                  <SelectItem value="9">9+ stars</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label className="text-sm font-medium">Rating Range</Label>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-muted-foreground w-8">{tempRatingRange[0]}</span>
+                  <Slider
+                    value={tempRatingRange}
+                    onValueChange={(value) => setTempRatingRange(value as [number, number])}
+                    max={10}
+                    min={0}
+                    step={0.1}
+                    className="flex-1"
+                  />
+                  <span className="text-sm text-muted-foreground w-8">{tempRatingRange[1]}</span>
+                </div>
+                <Button onClick={applyRatingFilter} size="sm" className="w-full">
+                  Apply Rating
+                </Button>
+              </div>
             </div>
 
             <div className="flex gap-2">
@@ -204,7 +278,7 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
                 Clear All
               </Button>
               <Button onClick={() => setShowFilters(false)} className="flex-1">
-                Apply
+                Close
               </Button>
             </div>
 
