@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -95,45 +96,49 @@ export default function RestaurantSearchPage() {
     setHasSearched(true);
 
     try {
-      // TODO: Implement Google Places API search
-      // For now, simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mock data for demonstration
-      const mockRestaurants: Restaurant[] = [
-        {
-          id: '1',
-          name: 'The French Laundry',
-          address: '6640 Washington St, Yountville, CA 94599',
-          rating: 4.6,
-          reviewCount: 2847,
-          priceRange: 4,
-          isOpen: false,
-          phoneNumber: '+1 707-944-2380',
-          website: 'https://www.thomaskeller.com/tfl',
-          location: { lat: 38.4024, lng: -122.3617 },
-          cuisine: 'French',
-          photos: ['https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&h=300&fit=crop']
-        },
-        {
-          id: '2',
-          name: 'Osteria Francescana',
-          address: 'Via Stella, 22, 41121 Modena MO, Italy',
-          rating: 4.8,
-          reviewCount: 1523,
-          priceRange: 4,
-          isOpen: true,
-          phoneNumber: '+39 059 210118',
-          website: 'https://www.osteriafrancescana.it/',
-          location: { lat: 44.6471, lng: 10.9269 },
-          cuisine: 'Italian',
-          photos: ['https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop']
+      // Call the restaurant-discovery Supabase function
+      const { data, error } = await supabase.functions.invoke('restaurant-discovery', {
+        body: {
+          query: searchQuery,
+          location: searchLocation || 'worldwide',
+          filters: {}
         }
-      ];
+      });
 
-      setRestaurants(mockRestaurants);
+      if (error) {
+        console.error('Error calling restaurant-discovery function:', error);
+        throw error;
+      }
+
+      if (data?.restaurants) {
+        // Transform the response to match our Restaurant interface
+        const transformedRestaurants: Restaurant[] = data.restaurants.map((restaurant: any) => ({
+          id: restaurant.id,
+          name: restaurant.name,
+          address: restaurant.address,
+          rating: restaurant.rating,
+          reviewCount: restaurant.reviewCount,
+          priceRange: restaurant.priceRange,
+          isOpen: restaurant.isOpen,
+          phoneNumber: restaurant.phoneNumber,
+          website: restaurant.website,
+          openingHours: restaurant.openingHours,
+          photos: restaurant.images || [],
+          location: {
+            lat: restaurant.location.lat,
+            lng: restaurant.location.lng
+          },
+          cuisine: restaurant.cuisine,
+          googleMapsUrl: restaurant.googleMapsUrl
+        }));
+
+        setRestaurants(transformedRestaurants);
+      } else {
+        setRestaurants([]);
+      }
     } catch (error) {
       console.error('Error searching restaurants:', error);
+      setRestaurants([]);
     } finally {
       setIsLoading(false);
     }
