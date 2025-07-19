@@ -190,22 +190,26 @@ serve(async (req) => {
       enhancedQuery = `upscale fine dining ${searchQuery}`;
     }
 
-    // Search for restaurants using Google Places Text Search with pagination support
+    // Search for restaurants using multiple strategies to get 100+ results
     let allResults: any[] = [];
+    const maxResults = 120; // Target for 100+ results
+
+    // Strategy 1: Text Search with pagination (up to 60 results)
     let nextPageToken: string | null = null;
     let pageCount = 0;
-    const maxPages = 5; // Increase to 5 pages for up to 100 results (20 per page * 5 pages)
+    const maxPages = 3; // Google officially supports up to 3 pages
 
+    console.log('Starting Text Search strategy...');
     do {
       const placesUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(enhancedQuery)}&type=restaurant&radius=500000&key=${googlePlacesApiKey}${nextPageToken ? `&pagetoken=${nextPageToken}` : ''}`;
       
-      console.log(`Making request to Google Places API (page ${pageCount + 1})...`);
+      console.log(`Making Text Search request (page ${pageCount + 1})...`);
       
       const placesResponse = await fetch(placesUrl);
       
       if (!placesResponse.ok) {
         console.error('Google Places API HTTP error:', placesResponse.status, placesResponse.statusText);
-        throw new Error(`Google Places API HTTP error: ${placesResponse.status}`);
+        break;
       }
       
       const placesData = await placesResponse.json();
@@ -213,19 +217,14 @@ serve(async (req) => {
       console.log('Google Places API response status:', placesData.status);
       console.log('Found places on page:', placesData.results?.length || 0);
 
-      if (placesData.status === 'REQUEST_DENIED') {
-        console.error('Google Places API request denied. Check your API key and billing account.');
-        throw new Error('Google Places API request denied. Please check your API key and ensure billing is enabled.');
-      }
-
-      if (placesData.status === 'OVER_QUERY_LIMIT') {
-        console.error('Google Places API quota exceeded');
-        throw new Error('Google Places API quota exceeded. Please try again later.');
+      if (placesData.status === 'REQUEST_DENIED' || placesData.status === 'OVER_QUERY_LIMIT') {
+        console.error('Google Places API error:', placesData.status);
+        break;
       }
 
       if (placesData.status !== 'OK' && placesData.status !== 'ZERO_RESULTS') {
         console.error('Google Places API error:', placesData.status, placesData.error_message);
-        throw new Error(`Google Places API error: ${placesData.status} - ${placesData.error_message || 'Unknown error'}`);
+        break;
       }
 
       if (placesData.results && placesData.results.length > 0) {
@@ -242,7 +241,106 @@ serve(async (req) => {
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
 
-    } while (nextPageToken && pageCount < maxPages);
+    } while (nextPageToken && pageCount < maxPages && allResults.length < maxResults);
+
+    // Strategy 2: Nearby Search if we have location and need more results
+    if (allResults.length < maxResults && searchLocation) {
+      console.log('Starting Nearby Search strategy...');
+      
+      // First geocode the location
+      let lat, lng;
+      try {
+        const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(searchLocation)}&key=${googlePlacesApiKey}`;
+        const geocodeResponse = await fetch(geocodeUrl);
+        const geocodeData = await geocodeResponse.json();
+        
+        if (geocodeData.results && geocodeData.results.length > 0) {
+          lat = geocodeData.results[0].geometry.location.lat;
+          lng = geocodeData.results[0].geometry.location.lng;
+          console.log(`Geocoded ${searchLocation} to ${lat}, ${lng}`);
+        }
+      } catch (error) {
+        console.warn('Geocoding failed for nearby search:', error);
+      }
+
+      if (lat && lng) {
+        // Use nearby search with different radius values to get more results
+        const radiusValues = [10000, 25000, 50000]; // 10km, 25km, 50km
+        
+        for (const radius of radiusValues) {
+          if (allResults.length >= maxResults) break;
+          
+          console.log(`Nearby search with ${radius}m radius...`);
+          nextPageToken = null;
+          pageCount = 0;
+          
+          do {
+            const nearbyUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=restaurant&key=${googlePlacesApiKey}${nextPageToken ? `&pagetoken=${nextPageToken}` : ''}`;
+            
+            const nearbyResponse = await fetch(nearbyUrl);
+            if (!nearbyResponse.ok) break;
+            
+            const nearbyData = await nearbyResponse.json();
+            if (nearbyData.status !== 'OK' && nearbyData.status !== 'ZERO_RESULTS') break;
+            
+            if (nearbyData.results && nearbyData.results.length > 0) {
+              // Filter out duplicates based on place_id
+              const existingIds = new Set(allResults.map(r => r.place_id));
+              const newResults = nearbyData.results.filter(r => !existingIds.has(r.place_id));
+              
+              allResults.push(...newResults);
+              console.log(`Added ${newResults.length} new nearby results. Total: ${allResults.length}`);
+            }
+            
+            nextPageToken = nearbyData.next_page_token || null;
+            pageCount++;
+            
+            if (nextPageToken && pageCount < maxPages && allResults.length < maxResults) {
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+            
+          } while (nextPageToken && pageCount < maxPages && allResults.length < maxResults);
+        }
+      }
+    }
+
+    // Strategy 3: Additional query variations if still need more results
+    if (allResults.length < maxResults && cuisineType) {
+      console.log('Starting query variation strategy...');
+      
+      const queryVariations = [
+        `top ${cuisineType} restaurants ${searchLocation}`,
+        `best rated ${cuisineType} ${searchLocation}`,
+        `popular ${cuisineType} dining ${searchLocation}`,
+        `${cuisineType} food ${searchLocation}`
+      ];
+      
+      for (const variation of queryVariations) {
+        if (allResults.length >= maxResults) break;
+        
+        console.log(`Trying variation: ${variation}`);
+        const variationUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(variation)}&type=restaurant&key=${googlePlacesApiKey}`;
+        
+        try {
+          const variationResponse = await fetch(variationUrl);
+          if (!variationResponse.ok) continue;
+          
+          const variationData = await variationResponse.json();
+          if (variationData.status !== 'OK') continue;
+          
+          if (variationData.results && variationData.results.length > 0) {
+            // Filter out duplicates
+            const existingIds = new Set(allResults.map(r => r.place_id));
+            const newResults = variationData.results.filter(r => !existingIds.has(r.place_id));
+            
+            allResults.push(...newResults.slice(0, 20)); // Limit to 20 per variation
+            console.log(`Added ${newResults.length} results from variation. Total: ${allResults.length}`);
+          }
+        } catch (error) {
+          console.warn(`Error with variation ${variation}:`, error);
+        }
+      }
+    }
 
     console.log(`Final total results from all pages: ${allResults.length}`);
 
