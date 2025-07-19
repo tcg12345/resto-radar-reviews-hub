@@ -39,6 +39,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { RestaurantMapView } from '@/components/RestaurantMapView';
 import { RestaurantDetailsModal } from '@/components/RestaurantDetailsModal';
 import { AISearchAssistant } from '@/components/AISearchAssistant';
+import { RealtimeVoiceAssistant } from '@/components/RealtimeVoiceAssistant';
 import { AIReviewSummary } from '@/components/AIReviewSummary';
 import { toast } from 'sonner';
 
@@ -86,6 +87,7 @@ export default function RestaurantSearchPage() {
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [detailsRestaurant, setDetailsRestaurant] = useState<SearchRestaurant | null>(null);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
+  const [showVoiceAssistant, setShowVoiceAssistant] = useState(false);
   const [isVoiceSearch, setIsVoiceSearch] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
   
@@ -421,6 +423,15 @@ export default function RestaurantSearchPage() {
                 <Bot className="h-4 w-4 mr-2" />
                 AI Assistant
               </Button>
+
+              <Button
+                variant="outline"
+                onClick={() => setShowVoiceAssistant(!showVoiceAssistant)}
+                className="flex-1 sm:flex-initial"
+              >
+                <Mic className="h-4 w-4 mr-2" />
+                Voice Assistant
+              </Button>
               
               <Button
                 variant="outline"
@@ -450,6 +461,13 @@ export default function RestaurantSearchPage() {
           <AISearchAssistant
             onSearchSuggestion={handleAISearchSuggestion}
             onClose={() => setShowAIAssistant(false)}
+          />
+        )}
+
+        {/* Voice Assistant */}
+        {showVoiceAssistant && (
+          <RealtimeVoiceAssistant
+            onClose={() => setShowVoiceAssistant(false)}
           />
         )}
 
