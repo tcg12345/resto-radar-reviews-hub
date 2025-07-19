@@ -128,6 +128,7 @@ export default function RestaurantSearchPage() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [locationSuggestions, setLocationSuggestions] = useState<any[]>([]);
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+  const [suggestionTimeout, setSuggestionTimeout] = useState<NodeJS.Timeout | null>(null);
   
   
   const [filters, setFilters] = useState<SearchFilters>({
@@ -144,26 +145,38 @@ export default function RestaurantSearchPage() {
     'Thai', 'Mediterranean', 'American', 'Korean', 'Vietnamese', 'Greek'
   ];
 
-  // Generate search suggestions based on query
-  const generateSearchSuggestions = useCallback((query: string) => {
+  // Generate AI-powered search suggestions
+  const generateSearchSuggestions = useCallback(async (query: string) => {
     if (query.length < 2) {
       setSearchSuggestions([]);
       return;
     }
 
-    const suggestions = [
-      `${query} near me`,
-      `best ${query} restaurants`,
-      `${query} with outdoor seating`,
-      `romantic ${query} restaurants`,
-      `family-friendly ${query}`,
-      `${query} open late`,
-      `upscale ${query} restaurants`,
-      `cheap ${query} food`
-    ].filter(suggestion => suggestion.toLowerCase() !== query.toLowerCase());
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-search-completion', {
+        body: { 
+          query: query.trim(),
+          location: searchLocation || profile?.address || 'New York'
+        }
+      });
 
-    setSearchSuggestions(suggestions.slice(0, 5));
-  }, []);
+      if (error) throw error;
+
+      setSearchSuggestions(data.suggestions || []);
+    } catch (error) {
+      console.error('Error getting AI search suggestions:', error);
+      // Fallback to simple suggestions
+      const fallbackSuggestions = [
+        `${query} restaurants`,
+        `best ${query}`,
+        `${query} near me`,
+        `${query} delivery`,
+        `${query} with outdoor seating`
+      ].filter(suggestion => suggestion.toLowerCase() !== query.toLowerCase());
+      
+      setSearchSuggestions(fallbackSuggestions.slice(0, 5));
+    }
+  }, [searchLocation, profile?.address]);
 
   // Generate location suggestions
   const generateLocationSuggestions = useCallback(async (input: string) => {
@@ -199,6 +212,15 @@ export default function RestaurantSearchPage() {
       setSearchLocation(profile.address);
     }
   }, [location.state, profile?.address]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (suggestionTimeout) {
+        clearTimeout(suggestionTimeout);
+      }
+    };
+  }, [suggestionTimeout]);
 
   // Get current day hours
   const getCurrentDayHours = useCallback((openingHours: string[]) => {
@@ -467,10 +489,7 @@ export default function RestaurantSearchPage() {
   const handleSuggestionClick = (suggestion: string) => {
     setSearchQuery(suggestion);
     setShowSuggestions(false);
-    // Trigger search automatically when suggestion is clicked
-    setTimeout(() => {
-      handleUnifiedSearch();
-    }, 100);
+    // Don't auto-search when clicking suggestions - let user decide when to search
   };
 
   const handleLocationSuggestionClick = (suggestion: any) => {
@@ -731,7 +750,17 @@ export default function RestaurantSearchPage() {
                       value={searchQuery}
                       onChange={(e) => {
                         setSearchQuery(e.target.value);
-                        generateSearchSuggestions(e.target.value);
+                        
+                        // Debounce AI suggestions
+                        if (suggestionTimeout) {
+                          clearTimeout(suggestionTimeout);
+                        }
+                        
+                        const timeout = setTimeout(() => {
+                          generateSearchSuggestions(e.target.value);
+                        }, 300);
+                        
+                        setSuggestionTimeout(timeout);
                         setShowSuggestions(e.target.value.length > 1);
                       }}
                       onKeyDown={(e) => {
