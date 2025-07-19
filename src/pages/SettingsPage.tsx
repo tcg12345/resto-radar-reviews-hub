@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Save, Eye, EyeOff, User, Mail, Phone, MapPin, Settings as SettingsIcon, Shield, Key, Moon, Sun, Map, Satellite } from 'lucide-react';
+import { ArrowLeft, Save, Eye, EyeOff, User, Mail, Phone, MapPin, Settings as SettingsIcon, Shield, Key, Moon, Sun, Map, Satellite, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useDefaultReviewSource, type ReviewSource } from '@/hooks/useDefaultReviewSource';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -20,6 +23,7 @@ interface SettingsPageProps {
 export default function SettingsPage({ onBack }: SettingsPageProps) {
   const { user, profile, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { defaultSource, updateDefaultSource, isLoading: isLoadingReviewSource } = useDefaultReviewSource();
   const [defaultMapStyle, setDefaultMapStyle] = useLocalStorage<'streets' | 'satellite' | 'hybrid'>('defaultMapStyle', 'satellite');
   
   // Profile form state
@@ -133,6 +137,11 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
     } finally {
       setIsChangingPassword(false);
     }
+  };
+
+  const handleReviewSourceChange = async (source: ReviewSource) => {
+    await updateDefaultSource(source);
+    toast.success(`Default review source set to ${source === 'google' ? 'Google' : 'Yelp'}`);
   };
 
   const handleSignOut = async () => {
@@ -375,6 +384,77 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                       <Satellite className="h-4 w-4" />
                       Hybrid
                     </Button>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Review Source Settings */}
+                <div className="space-y-4">
+                  <div className="space-y-0.5">
+                    <Label className="flex items-center gap-2">
+                      <Star className="h-4 w-4" />
+                      Default Review Source
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Choose your preferred review source for restaurant ratings in search results
+                    </p>
+                  </div>
+                  
+                  <Select 
+                    value={defaultSource} 
+                    onValueChange={handleReviewSourceChange}
+                    disabled={isLoadingReviewSource}
+                  >
+                    <SelectTrigger className="w-full max-w-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="google">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                          <span>Google Reviews</span>
+                          <Badge variant="outline" className="text-xs">Default</Badge>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="yelp">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                          <span>Yelp Reviews</span>
+                          <Badge variant="outline" className="text-xs">More Reviews</Badge>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <div className="p-4 bg-muted rounded-lg">
+                    <h4 className="font-medium mb-2">Review Source Comparison</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                          <span className="font-medium">Google Reviews</span>
+                        </div>
+                        <ul className="space-y-1 text-muted-foreground">
+                          <li>• Integrated with Google Maps</li>
+                          <li>• Usually 3-5 reviews per restaurant</li>
+                          <li>• Verified by Google accounts</li>
+                          <li>• Often shorter, quick reviews</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                          <span className="font-medium">Yelp Reviews</span>
+                        </div>
+                        <ul className="space-y-1 text-muted-foreground">
+                          <li>• Dedicated restaurant platform</li>
+                          <li>• More detailed reviews (10-20+)</li>
+                          <li>• Photos and detailed experiences</li>
+                          <li>• Active foodie community</li>
+                        </ul>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </CardContent>

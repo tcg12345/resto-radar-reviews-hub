@@ -92,7 +92,7 @@ serve(async (req) => {
 
     // Get detailed business info and reviews
     const businessUrl = `https://api.yelp.com/v3/businesses/${business.id}`;
-    const reviewsUrl = `https://api.yelp.com/v3/businesses/${business.id}/reviews`;
+    const reviewsUrl = `https://api.yelp.com/v3/businesses/${business.id}/reviews?limit=20&sort_by=date_desc`;
 
     const [businessResponse, reviewsResponse] = await Promise.all([
       fetch(businessUrl, {

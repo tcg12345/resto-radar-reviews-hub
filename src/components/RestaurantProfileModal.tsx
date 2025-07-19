@@ -8,7 +8,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StarRating } from '@/components/StarRating';
+import { DisplayStarRating } from '@/components/DisplayStarRating';
 import { 
   Star, 
   MapPin, 
@@ -25,6 +27,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { GlobalSearchMap } from '@/components/GlobalSearchMap';
+import { cn } from '@/lib/utils';
 
 interface PlaceDetails {
   place_id: string;
@@ -594,29 +597,31 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
               </Card>
             )}
 
-            {/* Customer Reviews */}
+            {/* Customer Reviews with Tabs */}
             {(place.reviews && place.reviews.length > 0) || (yelpReviews && yelpReviews.length > 0) ? (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <MessageSquare className="h-5 w-5" />
-                      Customer Reviews
-                      {isLoadingYelpReviews && (
-                        <Badge variant="secondary" className="animate-pulse">Loading Yelp...</Badge>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Select value={activeReviewSource} onValueChange={(value: 'google' | 'yelp' | 'all') => setActiveReviewSource(value)}>
-                        <SelectTrigger className="w-28">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Sources</SelectItem>
-                          <SelectItem value="google">Google ({place.reviews?.length || 0})</SelectItem>
-                          <SelectItem value="yelp">Yelp ({yelpReviews.length})</SelectItem>
-                        </SelectContent>
-                      </Select>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5" />
+                    Customer Reviews
+                    {isLoadingYelpReviews && (
+                      <Badge variant="secondary" className="animate-pulse">Loading Yelp...</Badge>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Tabs defaultValue="all" className="w-full">
+                    <div className="flex justify-between items-center mb-4">
+                      <TabsList className="grid w-auto grid-cols-3">
+                        <TabsTrigger value="all">All ({getSortedReviews().length})</TabsTrigger>
+                        <TabsTrigger value="google" className="text-yellow-600">
+                          Google ({place.reviews?.length || 0})
+                        </TabsTrigger>
+                        <TabsTrigger value="yelp" className="text-red-600">
+                          Yelp ({yelpReviews.length})
+                        </TabsTrigger>
+                      </TabsList>
+                      
                       <Select value={reviewSortBy} onValueChange={(value: 'recent' | 'helpful' | 'rating') => setReviewSortBy(value)}>
                         <SelectTrigger className="w-32">
                           <Filter className="h-4 w-4 mr-2" />
@@ -629,83 +634,168 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                         </SelectContent>
                       </Select>
                     </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {getSortedReviews().slice(0, showAllReviews ? getSortedReviews().length : 5).map((review) => (
-                    <div key={review.id} className="border-b last:border-b-0 pb-4 last:pb-0">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          {review.user_image && (
-                            <img 
-                              src={review.user_image} 
-                              alt={review.author_name}
-                              className="w-6 h-6 rounded-full"
-                            />
-                          )}
-                          <span className="font-semibold">{review.author_name}</span>
-                          <div className="flex">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <Star
-                                key={star}
-                                className={`h-4 w-4 ${
-                                  star <= review.rating
-                                    ? 'text-yellow-500 fill-current'
-                                    : 'text-gray-300'
-                                }`}
+
+                    <TabsContent value="all" className="space-y-4">
+                      {getAllReviews().sort((a, b) => {
+                        switch (reviewSortBy) {
+                          case 'recent': return b.timestamp - a.timestamp;
+                          case 'helpful': return b.rating - a.rating;
+                          case 'rating': return b.rating - a.rating;
+                          default: return 0;
+                        }
+                      }).slice(0, showAllReviews ? getAllReviews().length : 5).map((review) => (
+                        <div key={review.id} className="border-b last:border-b-0 pb-4 last:pb-0">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              {review.user_image && (
+                                <img 
+                                  src={review.user_image} 
+                                  alt={review.author_name}
+                                  className="w-6 h-6 rounded-full"
+                                />
+                              )}
+                              <span className="font-semibold">{review.author_name}</span>
+                              <DisplayStarRating 
+                                rating={review.rating} 
+                                size="sm" 
+                                source={review.source}
                               />
-                            ))}
+                              <Badge 
+                                variant={review.source === 'google' ? 'default' : 'secondary'} 
+                                className={cn(
+                                  "text-xs",
+                                  review.source === 'google' ? 'border-yellow-500' : 'border-red-500'
+                                )}
+                              >
+                                {review.source === 'google' ? 'Google' : 'Yelp'}
+                              </Badge>
+                            </div>
+                            <span className="text-sm text-muted-foreground">
+                              {new Date(review.timestamp).toLocaleDateString()}
+                            </span>
                           </div>
-                          <Badge 
-                            variant={review.source === 'google' ? 'default' : 'secondary'} 
-                            className="text-xs"
-                          >
-                            {review.source === 'google' ? 'Google' : 'Yelp'}
-                          </Badge>
+                          <p className="text-sm text-muted-foreground mb-2">{review.text}</p>
+                          {review.url && (
+                            <a 
+                              href={review.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-xs text-primary hover:underline"
+                            >
+                              View on {review.source === 'google' ? 'Google' : 'Yelp'}
+                            </a>
+                          )}
                         </div>
-                        <span className="text-sm text-muted-foreground">
-                          {new Date(review.timestamp).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-2">{review.text}</p>
-                      {review.url && (
-                        <a 
-                          href={review.url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-xs text-primary hover:underline"
-                        >
-                          View on {review.source === 'google' ? 'Google' : 'Yelp'}
-                        </a>
+                      ))}
+                    </TabsContent>
+
+                    <TabsContent value="google" className="space-y-4">
+                      {place.reviews?.sort((a, b) => {
+                        switch (reviewSortBy) {
+                          case 'recent': return b.time - a.time;
+                          case 'helpful': return b.rating - a.rating;
+                          case 'rating': return b.rating - a.rating;
+                          default: return 0;
+                        }
+                      }).slice(0, showAllReviews ? place.reviews.length : 5).map((review, index) => (
+                        <div key={index} className="border-b last:border-b-0 pb-4 last:pb-0">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold">{review.author_name}</span>
+                              <DisplayStarRating 
+                                rating={review.rating} 
+                                size="sm" 
+                                source="google"
+                              />
+                            </div>
+                            <span className="text-sm text-muted-foreground">
+                              {new Date(review.time * 1000).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground">{review.text}</p>
+                        </div>
+                      )) || <p className="text-muted-foreground text-center py-4">No Google reviews available</p>}
+                    </TabsContent>
+
+                    <TabsContent value="yelp" className="space-y-4">
+                      {yelpReviews.sort((a, b) => {
+                        switch (reviewSortBy) {
+                          case 'recent': return new Date(b.time_created).getTime() - new Date(a.time_created).getTime();
+                          case 'helpful': return b.rating - a.rating;
+                          case 'rating': return b.rating - a.rating;
+                          default: return 0;
+                        }
+                      }).slice(0, showAllReviews ? yelpReviews.length : 5).map((review) => (
+                        <div key={review.id} className="border-b last:border-b-0 pb-4 last:pb-0">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              {review.user?.image_url && (
+                                <img 
+                                  src={review.user.image_url} 
+                                  alt={review.user.name}
+                                  className="w-6 h-6 rounded-full"
+                                />
+                              )}
+                              <span className="font-semibold">{review.user?.name || 'Yelp User'}</span>
+                              <DisplayStarRating 
+                                rating={review.rating} 
+                                size="sm" 
+                                source="yelp"
+                              />
+                            </div>
+                            <span className="text-sm text-muted-foreground">
+                              {new Date(review.time_created).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-2">{review.text}</p>
+                          {review.url && (
+                            <a 
+                              href={review.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-xs text-red-600 hover:underline"
+                            >
+                              View on Yelp
+                            </a>
+                          )}
+                        </div>
+                      ))}
+                      {yelpReviews.length === 0 && (
+                        <p className="text-muted-foreground text-center py-4">No Yelp reviews available</p>
                       )}
-                    </div>
-                  ))}
-                  
-                  {/* Show More/Less Reviews Button */}
-                  {getSortedReviews().length > 5 && (
-                    <div className="pt-4 border-t">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowAllReviews(!showAllReviews)}
-                        className="w-full"
-                      >
-                        {showAllReviews ? 'Show Less Reviews' : `Show All ${getSortedReviews().length} Reviews`}
-                      </Button>
-                    </div>
-                  )}
-                  
-                  {/* Review Sources Summary */}
-                  <div className="pt-2 text-xs text-muted-foreground text-center space-y-1">
-                    <div>
-                      Showing reviews from: Google ({place.reviews?.length || 0}) • Yelp ({yelpReviews.length})
-                    </div>
-                    {yelpBusiness && (
-                      <div>
-                        Yelp Rating: {yelpBusiness.rating}/5 ({yelpBusiness.review_count} total reviews)
+                    </TabsContent>
+
+                    {/* Show More/Less Reviews Button */}
+                    {getAllReviews().length > 5 && (
+                      <div className="pt-4 border-t">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowAllReviews(!showAllReviews)}
+                          className="w-full"
+                        >
+                          {showAllReviews ? 'Show Less Reviews' : `Show All ${getAllReviews().length} Reviews`}
+                        </Button>
                       </div>
                     )}
-                  </div>
+                    
+                    {/* Review Sources Summary */}
+                    <div className="pt-2 text-xs text-muted-foreground text-center space-y-1">
+                      <div className="flex justify-center items-center gap-4">
+                        <div className="flex items-center gap-1">
+                          <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                          <span>Google: {place.reviews?.length || 0} reviews</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                          <span>Yelp: {yelpReviews.length} reviews</span>
+                          {yelpBusiness && (
+                            <span>({yelpBusiness.rating}/5 avg)</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </Tabs>
                 </CardContent>
               </Card>
             ) : (
