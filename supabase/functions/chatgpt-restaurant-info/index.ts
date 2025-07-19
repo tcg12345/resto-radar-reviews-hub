@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const claudeApiKey = Deno.env.get('CLAUDE_API_KEY');
+const perplexityApiKey = Deno.env.get('PERPLEXITY_API_KEY');
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 
 const corsHeaders = {
@@ -17,47 +17,55 @@ interface RestaurantInfoRequest {
   customInquiry: string;
 }
 
-async function getRestaurantInfoWithClaude(restaurantContext: string, customInquiry: string): Promise<string> {
-  if (!claudeApiKey) {
-    throw new Error('Claude API key not configured');
+async function getRestaurantInfoWithPerplexity(restaurantContext: string, customInquiry: string): Promise<string> {
+  if (!perplexityApiKey) {
+    throw new Error('Perplexity API key not configured');
   }
 
-  console.log('Trying Claude API for restaurant info');
+  console.log('Using Perplexity API for restaurant info');
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
+  const response = await fetch('https://api.perplexity.ai/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${claudeApiKey}`,
+      'Authorization': `Bearer ${perplexityApiKey}`,
       'Content-Type': 'application/json',
-      'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 300,
-      system: `You are a helpful restaurant information assistant. Answer questions about restaurants based on general knowledge. Be concise and informative. If you don't have specific current information, say so and provide general guidance. Use bullet points (•) for multiple facts. Keep responses under 4 bullet points.`,
+      model: 'llama-3.1-sonar-small-128k-online',
       messages: [
+        {
+          role: 'system',
+          content: 'You are a helpful restaurant information assistant. Search for current information about restaurants and answer questions based on real-time data. Be concise and informative. Use bullet points (•) for multiple facts. Keep responses under 4 bullet points.'
+        },
         {
           role: 'user',
           content: `Question about ${restaurantContext}: ${customInquiry}`
         }
       ],
-      temperature: 0.3,
+      temperature: 0.2,
+      top_p: 0.9,
+      max_tokens: 300,
+      return_images: false,
+      return_related_questions: false,
+      search_recency_filter: 'month',
+      frequency_penalty: 1,
+      presence_penalty: 0
     }),
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Claude API error:', response.status, errorText);
-    throw new Error(`Claude API error: ${response.status}`);
+    console.error('Perplexity API error:', response.status, errorText);
+    throw new Error(`Perplexity API error: ${response.status}`);
   }
 
   const data = await response.json();
 
-  if (!data.content || !data.content[0] || !data.content[0].text) {
-    throw new Error('Invalid response format from Claude API');
+  if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+    throw new Error('Invalid response format from Perplexity API');
   }
 
-  return data.content[0].text;
+  return data.choices[0].message.content;
 }
 
 async function getRestaurantInfoWithOpenAI(restaurantContext: string, customInquiry: string): Promise<string> {
@@ -126,11 +134,11 @@ serve(async (req) => {
     let generatedInfo: string;
 
     try {
-      // Try Claude first
-      generatedInfo = await getRestaurantInfoWithClaude(restaurantContext, customInquiry);
-      console.log('Successfully got info with Claude');
-    } catch (claudeError) {
-      console.error('Claude failed, trying OpenAI:', claudeError.message);
+      // Try Perplexity first for real-time restaurant information
+      generatedInfo = await getRestaurantInfoWithPerplexity(restaurantContext, customInquiry);
+      console.log('Successfully got info with Perplexity');
+    } catch (perplexityError) {
+      console.error('Perplexity failed, trying OpenAI:', perplexityError.message);
       
       try {
         // Fallback to OpenAI
