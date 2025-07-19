@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
-import { Filter, X, Star, DollarSign, MapPin, ChevronDown } from 'lucide-react';
+import { Filter, X, Star, DollarSign, MapPin, ChevronDown, GripVertical } from 'lucide-react';
 
 interface MapPageProps {
   restaurants: Restaurant[];
@@ -35,7 +35,7 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
   const [filterType, setFilterType] = useState<'all' | 'rated' | 'wishlist'>('all');
   
   // Drag functionality for filter box
-  const [filterPosition, setFilterPosition] = useState({ x: 16, y: 64 }); // bottom-16 left-4 in pixels
+  const [filterPosition, setFilterPosition] = useState({ x: 16, y: window.innerHeight - 400 }); // Initially positioned above filter button
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
@@ -199,6 +199,7 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
           >
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2 pointer-events-none">
+                <GripVertical className="h-4 w-4 text-muted-foreground" />
                 <Filter className="h-5 w-5" />
                 Filters
               </CardTitle>
