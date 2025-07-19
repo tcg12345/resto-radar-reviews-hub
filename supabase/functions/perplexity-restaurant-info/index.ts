@@ -2,6 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const perplexityApiKey = Deno.env.get('PERPLEXITY_API_KEY');
+const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -30,6 +31,11 @@ serve(async (req) => {
       throw new Error('Perplexity API key is not configured. Please add PERPLEXITY_API_KEY to your Supabase secrets.');
     }
 
+    if (!openAIApiKey) {
+      console.error('OpenAI API key is not configured');
+      throw new Error('OpenAI API key is not configured. Please add OPENAI_API_KEY to your Supabase secrets.');
+    }
+
     const { restaurantName, address, city, infoType, additionalContext }: RestaurantInfoRequest = await req.json();
     
     console.log('Processing restaurant info request:', { restaurantName, address, city, infoType });
@@ -42,51 +48,36 @@ serve(async (req) => {
     
     switch (infoType) {
       case 'current_info':
-        systemPrompt = 'Provide only key facts in 3-4 bullet points. Format: • Fact 1 • Fact 2 • Fact 3. Max 80 words total.';
-        query = `Key current facts about ${restaurantContext}: operating status, phone/website, main specialties, any recent updates.`;
+        systemPrompt = 'Get comprehensive current information about this restaurant. Include everything you can find: status, contact info, specialties, recent news, awards, changes, etc.';
+        query = `Comprehensive current information about ${restaurantContext}: operating status, contact details, specialties, recent updates, awards, news, changes, anything current and relevant.`;
         break;
       case 'reviews':
-        systemPrompt = 'Summarize in 3 bullet points: • Overall sentiment • Top praised items • Recent concerns (if any). Max 60 words.';
-        query = `Recent 2024 review summary for ${restaurantContext}.`;
+        systemPrompt = 'Get detailed recent review information about this restaurant from multiple sources.';
+        query = `Detailed recent review analysis for ${restaurantContext}: customer feedback, ratings, what people say about food, service, atmosphere, recent experiences.`;
         break;
       case 'trending':
-        systemPrompt = 'Answer in 2-3 bullet points. • Current status • Recent mentions. Max 50 words.';
-        query = `Is ${restaurantContext} trending? Any recent awards, media mentions, or buzz in 2024?`;
+        systemPrompt = 'Get comprehensive information about current trends, mentions, buzz, and popularity.';
+        query = `Is ${restaurantContext} trending? Any recent awards, media mentions, social media buzz, popularity, waiting times, reservations difficulty in 2024?`;
         break;
       case 'verification':
-        systemPrompt = 'Verify in bullet format: • Status: Open/Closed • Address: [current] • Phone: [number] • Hours: [brief]. Max 60 words.';
-        query = `Verify current details for ${restaurantContext}.`;
+        systemPrompt = 'Get comprehensive verification details for this restaurant.';
+        query = `Verify and get all current details for ${restaurantContext}: address, phone, hours, website, social media, current status.`;
         break;
       case 'hours':
-        systemPrompt = 'List current hours in format: • Mon-Fri: [hours] • Sat: [hours] • Sun: [hours] OR daily breakdown. Max 40 words.';
-        query = `Current hours for ${restaurantContext}.`;
+        systemPrompt = 'Get comprehensive current operating hours and schedule information.';
+        query = `Complete current operating hours and schedule for ${restaurantContext}: daily hours, special hours, holidays, seasonal changes.`;
         break;
       case 'custom':
-        // Detect question type for appropriate formatting
-        const questionLower = (additionalContext || '').toLowerCase();
-        
-        if (questionLower.includes('hour') || questionLower.includes('open') || questionLower.includes('close') || questionLower.includes('time')) {
-          systemPrompt = `Format hours like this:
-Monday: 11:45 AM–2:15 PM, 5:30–9:45 PM
-Tuesday: 5:30–10:45 PM
-Wednesday: Closed
-
-Be concise and only show the hours. If not available, say "Hours not available."`;
-          query = `Current operating hours for ${restaurantContext}`;
-        } else if (questionLower.includes('founded') || questionLower.includes('founder') || questionLower.includes('owner') || questionLower.includes('chef') || questionLower.includes('when opened') || questionLower.includes('who')) {
-          systemPrompt = 'Give only the essential facts in 1 sentence. Be extremely brief and direct.';
-          query = `About ${restaurantContext}: ${additionalContext || 'general information'}`;
-        } else {
-          systemPrompt = `Answer specifically about ${restaurantContext}. Be extremely concise and direct. Maximum 2 sentences.`;
-          query = `About ${restaurantContext}: ${additionalContext || 'general information'}`;
-        }
+        // For custom queries, get comprehensive information first
+        systemPrompt = `Get comprehensive, detailed information about ${restaurantContext} related to this specific question: "${additionalContext}". Include all relevant details you can find.`;
+        query = `Detailed information about ${restaurantContext}: ${additionalContext || 'general information'}`;
         break;
       default:
-        systemPrompt = 'Provide clear, concise information in bullet points.';
-        query = `Information about ${restaurantContext}`;
+        systemPrompt = 'Get comprehensive information about this restaurant.';
+        query = `Comprehensive information about ${restaurantContext}`;
     }
 
-    if (additionalContext) {
+    if (additionalContext && infoType !== 'custom') {
       query += ` ${additionalContext}`;
     }
 
@@ -136,22 +127,99 @@ Be concise and only show the hours. If not available, say "Hours not available."
       throw new Error('Invalid response format from Perplexity API');
     }
 
-    const generatedInfo = data.choices[0].message.content;
+    const rawPerplexityInfo = data.choices[0].message.content;
     
-    // Clean up the response: remove markdown formatting and source citations
-    const cleanedInfo = generatedInfo
-      .replace(/\*\*([^*]+)\*\*/g, '$1')  // Remove bold markdown **text**
-      .replace(/\*([^*]+)\*/g, '$1')      // Remove italic markdown *text*
-      .replace(/\[(\d+)\]/g, '')          // Remove source citations [1], [2], etc.
-      .replace(/\[\d+\]\[\d+\]/g, '')     // Remove multiple citations [1][2]
-      .replace(/\s+/g, ' ')               // Clean up extra whitespace
-      .trim();
+    console.log('Raw Perplexity response received, now formatting with ChatGPT...');
+
+    // Now use ChatGPT to format the Perplexity information into a clear, concise, visually appealing response
+    const formatResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4.1-2025-04-14',
+        messages: [
+          {
+            role: 'system',
+            content: `You are an expert at formatting restaurant information in a clear, concise, and visually appealing way. 
+
+Your task is to take the raw information provided and format it perfectly for the specific question type.
+
+${infoType === 'custom' && (additionalContext || '').toLowerCase().includes('hour') ? 
+`Format hours EXACTLY like this:
+**Monday:** 11:45 AM–2:15 PM, 5:30–9:45 PM
+**Tuesday:** 5:30–10:45 PM  
+**Wednesday:** Closed
+
+Only show hours, nothing else. If no hours available, say "Hours not available."` :
+
+infoType === 'custom' && ((additionalContext || '').toLowerCase().includes('founder') || (additionalContext || '').toLowerCase().includes('founded') || (additionalContext || '').toLowerCase().includes('owner') || (additionalContext || '').toLowerCase().includes('chef') || (additionalContext || '').toLowerCase().includes('who')) ?
+`Give only the essential fact in 1-2 sentences maximum. Be direct and concise.` :
+
+`Format the information in clean, easy-to-read bullet points using this structure:
+• **Key Point:** Clear, concise information
+• **Another Point:** Brief, relevant detail
+
+Rules:
+- Maximum 4 bullet points
+- Each point should be 1 line maximum
+- Use bold for categories/labels
+- Be concise but informative
+- Focus on the most important/relevant information
+- Remove any redundant information
+- Make it scannable and easy to read`}
+
+Question context: ${additionalContext || infoType}
+Restaurant: ${restaurantName}`
+          },
+          {
+            role: 'user',
+            content: `Format this restaurant information clearly and concisely:
+
+${rawPerplexityInfo}
+
+Make it visually appealing and easy to scan.`
+          }
+        ],
+        temperature: 0.1,
+        max_tokens: 300,
+      }),
+    });
+
+    if (!formatResponse.ok) {
+      console.error('OpenAI formatting error:', formatResponse.status);
+      // Fallback to original Perplexity response if ChatGPT fails
+      const cleanedInfo = rawPerplexityInfo
+        .replace(/\*\*([^*]+)\*\*/g, '$1')
+        .replace(/\*([^*]+)\*/g, '$1')
+        .replace(/\[(\d+)\]/g, '')
+        .replace(/\[\d+\]\[\d+\]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      
+      return new Response(JSON.stringify({
+        restaurantName,
+        infoType,
+        generatedInfo: cleanedInfo,
+        lastUpdated: new Date().toISOString(),
+        sources: data.citations || [],
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const formatData = await formatResponse.json();
+    const formattedInfo = formatData.choices[0].message.content;
+    
+    console.log('Successfully formatted with ChatGPT');
 
     // Parse the response to extract structured information
     const structuredInfo = {
       restaurantName,
       infoType,
-      generatedInfo: cleanedInfo,
+      generatedInfo: formattedInfo,
       lastUpdated: new Date().toISOString(),
       sources: data.citations || [],
     };
