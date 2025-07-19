@@ -178,8 +178,8 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
     // Price range filter (multi-select)
     if (filterPrices.length > 0 && (!restaurant.priceRange || !filterPrices.includes(restaurant.priceRange.toString()))) return false;
     
-    // Rating filter (range) - only apply to rated restaurants, exclude wishlist items
-    if ((ratingRange[0] > 0 || ratingRange[1] < 10) && !restaurant.isWishlist && restaurant.rating) {
+    // Rating filter (range) - only apply to non-wishlist restaurants with ratings
+    if (!restaurant.isWishlist && restaurant.rating && (ratingRange[0] > 0 || ratingRange[1] < 10)) {
       if (restaurant.rating < ratingRange[0] || restaurant.rating > ratingRange[1]) return false;
     }
     
