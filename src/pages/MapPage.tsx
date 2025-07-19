@@ -37,7 +37,7 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
   // Drag functionality for filter box - calculate position dynamically when opened
   const getInitialPosition = () => {
     const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 800;
-    return { x: 16, y: Math.max(16, viewportHeight - 550) }; // 550px accounts for filter box height + button + margin
+    return { x: 16, y: Math.max(16, viewportHeight - 700) }; // Increased offset to position box higher
   };
   
   const [filterPosition, setFilterPosition] = useState(getInitialPosition());
