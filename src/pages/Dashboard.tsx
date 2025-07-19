@@ -91,7 +91,7 @@ export default function Dashboard() {
         {renderContent()}
       </main>
       
-      {activeTab !== 'settings' && <AIChatbot />}
+      {activeTab !== 'settings' && activeTab !== 'map' && <AIChatbot />}
     </div>
   );
 }
