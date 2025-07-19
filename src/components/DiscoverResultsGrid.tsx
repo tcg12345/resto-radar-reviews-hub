@@ -14,6 +14,7 @@ import {
   Filter,
   X
 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { DiscoverResultCard } from '@/components/DiscoverResultCard';
 
@@ -57,6 +58,12 @@ interface FilterState {
   minRating: number;
   priceRanges: number[];
   openingTime: string;
+}
+
+interface PriceFilter {
+  value: number;
+  label: string;
+  count: number;
 }
 
 export function DiscoverResultsGrid({
@@ -194,6 +201,23 @@ export function DiscoverResultsGrid({
   const openCount = restaurants.filter(r => r.isOpen).length;
   const averageRating = restaurants.reduce((sum, r) => sum + r.rating, 0) / restaurants.length;
 
+  // Calculate price range counts for multi-select filter
+  const priceFilters: PriceFilter[] = [
+    { value: 1, label: '$ Budget', count: restaurants.filter(r => r.priceRange === 1).length },
+    { value: 2, label: '$$ Moderate', count: restaurants.filter(r => r.priceRange === 2).length },
+    { value: 3, label: '$$$ Expensive', count: restaurants.filter(r => r.priceRange === 3).length },
+    { value: 4, label: '$$$$ Very Expensive', count: restaurants.filter(r => r.priceRange === 4).length },
+  ].filter(filter => filter.count > 0);
+
+  const handlePriceFilterChange = (priceValue: number, checked: boolean) => {
+    setAdvancedFilters(prev => ({
+      ...prev,
+      priceRanges: checked 
+        ? [...prev.priceRanges, priceValue]
+        : prev.priceRanges.filter(p => p !== priceValue)
+    }));
+  };
+
   return (
     <div className="space-y-6">
       {/* Results Header */}
@@ -284,29 +308,36 @@ export function DiscoverResultsGrid({
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Price Range</label>
-                <Select 
-                  value={advancedFilters.priceRanges.length === 0 ? "all" : advancedFilters.priceRanges.join(",")} 
-                  onValueChange={(value) => {
-                    if (value === "all") {
-                      setAdvancedFilters(prev => ({ ...prev, priceRanges: [] }));
-                    } else {
-                      setAdvancedFilters(prev => ({ ...prev, priceRanges: value.split(",").map(Number) }));
-                    }
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All prices</SelectItem>
-                    <SelectItem value="1">$ (Budget)</SelectItem>
-                    <SelectItem value="2">$$ (Moderate)</SelectItem>
-                    <SelectItem value="3">$$$ (Expensive)</SelectItem>
-                    <SelectItem value="4">$$$$ (Very Expensive)</SelectItem>
-                    <SelectItem value="1,2">$ - $$</SelectItem>
-                    <SelectItem value="3,4">$$$ - $$$$</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="space-y-2 p-3 border rounded-md bg-background/50">
+                  {priceFilters.map((filter) => (
+                    <div key={filter.value} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`price-${filter.value}`}
+                        checked={advancedFilters.priceRanges.includes(filter.value)}
+                        onCheckedChange={(checked) => handlePriceFilterChange(filter.value, checked as boolean)}
+                      />
+                      <label 
+                        htmlFor={`price-${filter.value}`} 
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1 flex items-center justify-between"
+                      >
+                        <span>{filter.label}</span>
+                        <span className="text-xs text-muted-foreground">({filter.count})</span>
+                      </label>
+                    </div>
+                  ))}
+                  {advancedFilters.priceRanges.length > 0 && (
+                    <div className="pt-2 border-t">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setAdvancedFilters(prev => ({ ...prev, priceRanges: [] }))}
+                        className="h-6 px-2 text-xs"
+                      >
+                        Clear all
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-2">

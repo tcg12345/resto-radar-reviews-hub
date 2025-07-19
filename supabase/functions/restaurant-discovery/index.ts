@@ -176,12 +176,18 @@ serve(async (req) => {
     
     console.log('Google Places search query:', searchQuery);
 
-    // Build more specific search query for better results
+    // Build more specific search query for better results with enhanced relevance filtering
     let enhancedQuery = searchQuery;
     if (queryLower.includes('michelin')) {
       enhancedQuery = `michelin star ${searchQuery}`;
     } else if (queryLower.includes('fine dining')) {
       enhancedQuery = `fine dining ${searchQuery}`;
+    } else if (queryLower.includes('celebrity chef')) {
+      enhancedQuery = `celebrity chef ${searchQuery}`;
+    } else if (queryLower.includes('james beard')) {
+      enhancedQuery = `james beard award ${searchQuery}`;
+    } else if (queryLower.includes('high end') || queryLower.includes('upscale')) {
+      enhancedQuery = `upscale fine dining ${searchQuery}`;
     }
 
     // Search for restaurants using Google Places Text Search with pagination support
@@ -292,8 +298,25 @@ serve(async (req) => {
             }
           }
         
-        // Extract city from address
+        // Extract city and format location properly
         const addressParts = (placeDetails?.formatted_address || place.formatted_address)?.split(', ') || [];
+        let formattedLocation = 'Unknown Location';
+        
+        if (addressParts.length >= 2) {
+          const country = addressParts[addressParts.length - 1] || '';
+          
+          if (country === 'USA' || country === 'United States') {
+            // For US restaurants: City, State format
+            const state = addressParts[addressParts.length - 2] || '';
+            const city = addressParts[addressParts.length - 3] || addressParts[0] || '';
+            formattedLocation = `${city}, ${state}`;
+          } else {
+            // For international restaurants: City, Country format
+            const city = addressParts[addressParts.length - 3] || addressParts[addressParts.length - 2] || addressParts[0] || '';
+            formattedLocation = `${city}, ${country}`;
+          }
+        }
+        
         const city = addressParts.length >= 2 ? 
           addressParts[addressParts.length - 3] || addressParts[addressParts.length - 2] : 
           (searchLocation ? searchLocation.split(',')[0] : 'Unknown Location');
@@ -379,7 +402,7 @@ serve(async (req) => {
             location: {
               lat: placeDetails?.geometry?.location?.lat || place.geometry?.location?.lat || 0,
               lng: placeDetails?.geometry?.location?.lng || place.geometry?.location?.lng || 0,
-              city: city.replace(/[0-9]/g, '').trim(),
+              city: formattedLocation,
               country
             },
             images: (placeDetails?.photos || place.photos) ? 
