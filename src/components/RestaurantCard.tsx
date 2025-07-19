@@ -11,7 +11,7 @@ import {
   CardTitle 
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { StarRating } from '@/components/StarRating';
 import { PriceRange } from '@/components/PriceRange';
 import { MichelinStars } from '@/components/MichelinStars';
@@ -277,6 +277,9 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>{restaurant.name}</DialogTitle>
+              <DialogDescription>
+                Restaurant details and information
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">

@@ -84,6 +84,14 @@ serve(async (req) => {
       const today = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
       let currentDayHours;
       
+      console.log(`Processing ${place.name}:`, {
+        hasOpeningHours: !!place.opening_hours,
+        hasWeekdayText: !!place.opening_hours?.weekday_text,
+        weekdayTextLength: place.opening_hours?.weekday_text?.length || 0,
+        hasWebsite: !!place.website,
+        website: place.website
+      });
+      
       if (place.opening_hours?.weekday_text) {
         const todayHours = place.opening_hours.weekday_text[today === 0 ? 6 : today - 1]; // Adjust for Sunday
         if (todayHours) {
@@ -92,7 +100,7 @@ serve(async (req) => {
         }
       }
 
-      return {
+      const restaurant = {
         id: place.place_id,
         name: place.name,
         address: place.formatted_address,
@@ -117,6 +125,15 @@ serve(async (req) => {
         googleMapsUrl: `https://www.google.com/maps/place/?q=place_id:${place.place_id}`,
         michelinStars: 0 // Google Places doesn't provide Michelin stars
       };
+
+      console.log(`Restaurant ${place.name} processed:`, {
+        hasWebsite: !!restaurant.website,
+        website: restaurant.website,
+        hasOpeningHours: restaurant.openingHours.length > 0,
+        currentDayHours: restaurant.currentDayHours
+      });
+
+      return restaurant;
     }) || [];
 
     console.log(`Found ${restaurants.length} restaurants`);
