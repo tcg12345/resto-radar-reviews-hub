@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { supabase } from '@/integrations/supabase/client';
 import { useRestaurants } from '@/contexts/RestaurantContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -107,6 +108,7 @@ interface SearchFilters {
 export default function RestaurantSearchPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { profile } = useAuth();
   const { addRestaurant, restaurants: existingRestaurants, deleteRestaurant } = useRestaurants();
   
   // Search page state
@@ -267,6 +269,9 @@ export default function RestaurantSearchPage() {
     setHasSearched(true);
     setRestaurants([]);
 
+    // Use user's address as default location if no location specified
+    const defaultLocation = searchLocation || profile?.address || 'current location';
+
     try {
       // Try AI discovery first for natural language queries
       const isNaturalLanguage = searchQuery.length > 10 && 
@@ -278,7 +283,7 @@ export default function RestaurantSearchPage() {
         const { data: discoverData, error: discoverError } = await supabase.functions.invoke('restaurant-discovery', {
           body: {
             query: searchQuery,
-            location: searchLocation,
+            location: defaultLocation,
             filters: {}
           }
         });
@@ -314,7 +319,7 @@ export default function RestaurantSearchPage() {
       }
 
       // Fall back to regular search with AI enhancement
-      const enhancedSearch = await enhanceSearchQuery(searchQuery, searchLocation);
+      const enhancedSearch = await enhanceSearchQuery(searchQuery, defaultLocation);
       
       if (enhancedSearch.interpretation) {
         toast.success(`AI interpreted: ${enhancedSearch.interpretation}`);
@@ -323,7 +328,7 @@ export default function RestaurantSearchPage() {
       const { data, error } = await supabase.functions.invoke('restaurant-lookup', {
         body: {
           query: enhancedSearch.enhancedQuery,
-          location: searchLocation || 'current location',
+          location: defaultLocation,
           radius: 10000,
           limit: 20
         }
@@ -375,7 +380,7 @@ export default function RestaurantSearchPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [searchQuery, searchLocation, enhanceSearchQuery]);
+  }, [searchQuery, searchLocation, profile?.address, enhanceSearchQuery, getCurrentDayHours]);
 
   const handleToggleWishlist = (restaurant: DiscoverRestaurant | SearchRestaurant) => {
     const existingRestaurant = existingRestaurants.find(r => 
