@@ -178,9 +178,12 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
     // Price range filter (multi-select)
     if (filterPrices.length > 0 && (!restaurant.priceRange || !filterPrices.includes(restaurant.priceRange.toString()))) return false;
     
-    // Rating filter (range) - only apply to non-wishlist restaurants with ratings
-    if (!restaurant.isWishlist && restaurant.rating && (ratingRange[0] > 0 || ratingRange[1] < 10)) {
-      if (restaurant.rating < ratingRange[0] || restaurant.rating > ratingRange[1]) return false;
+    // Rating filter (range) - hide wishlist items when any rating filter is applied
+    if (ratingRange[0] > 0 || ratingRange[1] < 10) {
+      // Hide all wishlist items when rating filter is active
+      if (restaurant.isWishlist) return false;
+      // Apply rating filter to non-wishlist restaurants with ratings
+      if (restaurant.rating && (restaurant.rating < ratingRange[0] || restaurant.rating > ratingRange[1])) return false;
     }
     
     return true;
