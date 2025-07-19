@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { 
   Star, 
   MapPin, 
@@ -77,12 +78,40 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist 
   const [imageError, setImageError] = useState(false);
   const [showPerplexityInfo, setShowPerplexityInfo] = useState(false);
   const [isMoreInfoOpen, setIsMoreInfoOpen] = useState(false);
+  const [showFullWeekHours, setShowFullWeekHours] = useState(false);
 
   const getPriceDisplay = (range: number) => '$'.repeat(Math.min(range, 4));
   
   const handleImageError = () => {
     setImageError(true);
     setImageLoading(false);
+  };
+
+  const getCurrentDayHours = (hours: string) => {
+    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+    if (hours.includes('Call for hours') || hours.includes('Hours vary')) {
+      return 'Call for hours';
+    }
+    // Extract today's hours if format includes daily breakdown
+    const lines = hours.split('\n');
+    const todayLine = lines.find(line => line.toLowerCase().includes(today.toLowerCase()));
+    return todayLine || hours.split('\n')[0] || hours;
+  };
+
+  const getFormattedWeekHours = (hours: string) => {
+    if (hours.includes('Call for hours') || hours.includes('Hours vary')) {
+      return ['Monday: Call for hours', 'Tuesday: Call for hours', 'Wednesday: Call for hours', 
+              'Thursday: Call for hours', 'Friday: Call for hours', 'Saturday: Call for hours', 'Sunday: Call for hours'];
+    }
+    return hours.split('\n').filter(line => line.trim());
+  };
+
+  // Close custom inquiry when more info is collapsed
+  const handleMoreInfoToggle = (open: boolean) => {
+    setIsMoreInfoOpen(open);
+    if (!open) {
+      setShowPerplexityInfo(false);
+    }
   };
 
   const fallbackImage = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=240&fit=crop&auto=format';
@@ -232,7 +261,27 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist 
           {restaurant.openingHours && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="h-3.5 w-3.5" />
-              <span className="truncate">{restaurant.openingHours}</span>
+              <div className="flex-1">
+                <span className="truncate">{getCurrentDayHours(restaurant.openingHours)}</span>
+                <DropdownMenu open={showFullWeekHours} onOpenChange={setShowFullWeekHours}>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-5 w-5 p-0 ml-1 hover:bg-muted"
+                    >
+                      <ChevronDown className={`h-3 w-3 transition-transform ${showFullWeekHours ? 'rotate-180' : ''}`} />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-56">
+                    {getFormattedWeekHours(restaurant.openingHours).map((dayHours, index) => (
+                      <DropdownMenuItem key={index} className="text-xs">
+                        {dayHours}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           )}
         </div>
@@ -253,7 +302,7 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist 
               Website
             </Button>
             
-            <Collapsible open={isMoreInfoOpen} onOpenChange={setIsMoreInfoOpen}>
+            <Collapsible open={isMoreInfoOpen} onOpenChange={handleMoreInfoToggle}>
               <CollapsibleTrigger asChild>
                 <Button
                   variant="outline"
@@ -270,7 +319,7 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist 
             </Collapsible>
           </div>
           
-          <Collapsible open={isMoreInfoOpen} onOpenChange={setIsMoreInfoOpen}>
+          <Collapsible open={isMoreInfoOpen} onOpenChange={handleMoreInfoToggle}>
             <CollapsibleContent className="space-y-2">
               <div className="bg-muted/50 rounded-lg p-3 space-y-2">
                   <Button

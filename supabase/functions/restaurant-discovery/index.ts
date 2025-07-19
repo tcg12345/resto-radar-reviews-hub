@@ -293,12 +293,11 @@ serve(async (req) => {
         const priceRange = (placeDetails?.price_level ?? place.price_level) ? 
           Math.min(Math.max(placeDetails?.price_level ?? place.price_level, 1), 4) : 2;
         
-        // Format opening hours - remove "vary" text since it's not helpful
+        // Format opening hours with full week information
         let openingHours = 'Call for hours';
-        if (placeDetails?.opening_hours?.weekday_text) {
-          const today = new Date().getDay();
-          const dayIndex = today === 0 ? 6 : today - 1; // Convert to Monday=0 format
-          openingHours = placeDetails.opening_hours.weekday_text[dayIndex] || 'Call for hours';
+        if (placeDetails?.opening_hours?.weekday_text && placeDetails.opening_hours.weekday_text.length > 0) {
+          // Get full week hours
+          openingHours = placeDetails.opening_hours.weekday_text.join('\n');
         } else if (placeDetails?.opening_hours?.open_now !== undefined) {
           openingHours = placeDetails.opening_hours.open_now ? 'Currently open' : 'Currently closed';
         }

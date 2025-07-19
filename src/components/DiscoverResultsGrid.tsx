@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { 
   AlertCircle, 
   Star, 
@@ -52,6 +53,13 @@ interface DiscoverResultsGridProps {
 type SortOption = 'rating' | 'price-low' | 'price-high' | 'michelin' | 'reviews';
 type FilterOption = 'all' | 'michelin' | 'open' | 'budget' | 'upscale';
 
+interface FilterState {
+  minRating: number;
+  maxPrice: number;
+  minPrice: number;
+  openingTime: string;
+}
+
 export function DiscoverResultsGrid({
   restaurants,
   onToggleWishlist,
@@ -63,6 +71,12 @@ export function DiscoverResultsGrid({
   const [sortBy, setSortBy] = useState<SortOption>('rating');
   const [filterBy, setFilterBy] = useState<FilterOption>('all');
   const [showFilters, setShowFilters] = useState(false);
+  const [advancedFilters, setAdvancedFilters] = useState<FilterState>({
+    minRating: 0,
+    maxPrice: 4,
+    minPrice: 1,
+    openingTime: 'any'
+  });
 
   // Check if restaurant is in wishlist
   const isInWishlist = (restaurant: RestaurantResult) => {
@@ -76,6 +90,7 @@ export function DiscoverResultsGrid({
   const filteredRestaurants = useMemo(() => {
     let filtered = [...restaurants];
 
+    // Apply category filters
     switch (filterBy) {
       case 'michelin':
         filtered = filtered.filter(r => r.michelinStars && r.michelinStars > 0);
@@ -93,8 +108,22 @@ export function DiscoverResultsGrid({
         break;
     }
 
+    // Apply advanced filters
+    filtered = filtered.filter(r => {
+      if (r.rating < advancedFilters.minRating) return false;
+      if (r.priceRange < advancedFilters.minPrice || r.priceRange > advancedFilters.maxPrice) return false;
+      
+      // Opening time filter (simplified - could be enhanced with actual time parsing)
+      if (advancedFilters.openingTime !== 'any') {
+        if (advancedFilters.openingTime === 'early' && !r.isOpen) return false;
+        if (advancedFilters.openingTime === 'late' && !r.isOpen) return false;
+      }
+      
+      return true;
+    });
+
     return filtered;
-  }, [restaurants, filterBy]);
+  }, [restaurants, filterBy, advancedFilters]);
 
   // Sort restaurants
   const sortedRestaurants = useMemo(() => {
@@ -230,6 +259,102 @@ export function DiscoverResultsGrid({
             </Select>
           </div>
         </div>
+      </div>
+
+      {/* Advanced Filters */}
+      <div className={`${showFilters ? 'block' : 'hidden'} lg:block`}>
+        <Card className="border-dashed">
+          <CardContent className="p-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Min Rating</label>
+                <Select 
+                  value={advancedFilters.minRating.toString()} 
+                  onValueChange={(value) => setAdvancedFilters(prev => ({ ...prev, minRating: Number(value) }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">Any rating</SelectItem>
+                    <SelectItem value="3">3.0+ stars</SelectItem>
+                    <SelectItem value="4">4.0+ stars</SelectItem>
+                    <SelectItem value="4.5">4.5+ stars</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Price Range</label>
+                <div className="flex items-center gap-2">
+                  <Select 
+                    value={advancedFilters.minPrice.toString()} 
+                    onValueChange={(value) => setAdvancedFilters(prev => ({ ...prev, minPrice: Number(value) }))}
+                  >
+                    <SelectTrigger className="w-20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">$</SelectItem>
+                      <SelectItem value="2">$$</SelectItem>
+                      <SelectItem value="3">$$$</SelectItem>
+                      <SelectItem value="4">$$$$</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <span className="text-sm text-muted-foreground">to</span>
+                  <Select 
+                    value={advancedFilters.maxPrice.toString()} 
+                    onValueChange={(value) => setAdvancedFilters(prev => ({ ...prev, maxPrice: Number(value) }))}
+                  >
+                    <SelectTrigger className="w-20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">$</SelectItem>
+                      <SelectItem value="2">$$</SelectItem>
+                      <SelectItem value="3">$$$</SelectItem>
+                      <SelectItem value="4">$$$$</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Opening Time</label>
+                <Select 
+                  value={advancedFilters.openingTime} 
+                  onValueChange={(value) => setAdvancedFilters(prev => ({ ...prev, openingTime: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any time</SelectItem>
+                    <SelectItem value="early">Open early (before 9 AM)</SelectItem>
+                    <SelectItem value="late">Open late (after 10 PM)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Actions</label>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setAdvancedFilters({
+                    minRating: 0,
+                    maxPrice: 4,
+                    minPrice: 1,
+                    openingTime: 'any'
+                  })}
+                  className="w-full"
+                >
+                  Reset Filters
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Active Filters */}
