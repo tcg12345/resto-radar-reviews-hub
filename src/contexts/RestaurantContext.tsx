@@ -24,6 +24,7 @@ interface DbRestaurant {
   michelin_stars: number | null;
   created_at: string;
   updated_at: string;
+  user_id: string;
 }
 
 interface RestaurantContextType {
@@ -62,6 +63,7 @@ const mapDbRestaurantToRestaurant = (dbRestaurant: DbRestaurant): Restaurant => 
   michelinStars: dbRestaurant.michelin_stars ?? undefined,
   createdAt: dbRestaurant.created_at,
   updatedAt: dbRestaurant.updated_at,
+  userId: dbRestaurant.user_id,
 });
 
 export function RestaurantProvider({ children }: RestaurantProviderProps) {
@@ -87,7 +89,8 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
           if (error) throw error;
           setRestaurants((data || []).map(restaurant => mapDbRestaurantToRestaurant({
             ...restaurant,
-            photos: [] // Photos will be loaded separately when needed
+            photos: [], // Photos will be loaded separately when needed
+            user_id: session.user.id
           })));
         } else {
           // User is not authenticated, show empty list

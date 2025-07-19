@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Check, ChevronDown, X, Sliders, MapPin, Settings } from 'lucide-react';
+import { Plus, Check, ChevronDown, X, Sliders } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RestaurantCard } from '@/components/RestaurantCard';
@@ -265,14 +265,10 @@ export function RatedRestaurantsPage({
         <div className="flex gap-2">
           {onNavigateToMap && (
             <Button variant="outline" onClick={onNavigateToMap}>
-              <MapPin className="mr-2 h-4 w-4" />
+              <div className="flex items-center justify-center w-4 h-4 mr-2 text-sm font-bold bg-primary text-primary-foreground rounded">
+                M
+              </div>
               Map View
-            </Button>
-          )}
-          {onOpenSettings && (
-            <Button variant="outline" onClick={onOpenSettings}>
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
             </Button>
           )}
           <Button onClick={() => setIsAddDialogOpen(true)}>

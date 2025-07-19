@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RestaurantCard } from '@/components/RestaurantCard';
@@ -142,12 +142,21 @@ export function WishlistPage({
             ) : (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredRestaurants.map((restaurant) => (
-                  <RestaurantCard
-                    key={restaurant.id}
-                    restaurant={restaurant}
-                    onEdit={handleOpenEditDialog}
-                    onDelete={handleOpenDeleteDialog}
-                  />
+                  <div key={restaurant.id} className="relative">
+                    <RestaurantCard
+                      restaurant={restaurant}
+                      onEdit={handleOpenEditDialog}
+                      onDelete={handleOpenDeleteDialog}
+                    />
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      className="absolute top-3 right-3 h-8 w-8 bg-red-500 hover:bg-red-600 text-white"
+                      onClick={() => handleOpenDeleteDialog(restaurant.id)}
+                    >
+                      <Heart className="h-4 w-4 fill-current" />
+                    </Button>
+                  </div>
                 ))}
               </div>
             )}

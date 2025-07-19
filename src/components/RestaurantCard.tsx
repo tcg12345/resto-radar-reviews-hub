@@ -63,6 +63,20 @@ function LocationDisplay({ restaurant }: { restaurant: Restaurant }) {
   return <span>{locationText}</span>;
 }
 
+// Helper function to get current day's hours
+const getCurrentDayHours = (hours: string) => {
+  if (!hours) return 'Hours not available';
+  
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+  if (hours.includes('Call for hours') || hours.includes('Hours vary')) {
+    return 'Call for hours';
+  }
+  // Extract today's hours if format includes daily breakdown
+  const lines = hours.split('\n');
+  const todayLine = lines.find(line => line.toLowerCase().includes(today.toLowerCase()));
+  return todayLine || hours.split('\n')[0] || hours;
+};
+
 export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssistant = false }: RestaurantCardProps) {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
@@ -223,6 +237,16 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
       
       <CardContent className="pb-2">
         <div className="flex flex-wrap gap-2">
+          {/* Current day hours display */}
+          {restaurant.openingHours && (
+            <div className="w-full mb-2">
+              <div className="flex items-center text-sm text-muted-foreground">
+                <Clock className="mr-1 h-3.5 w-3.5" />
+                <span>{getCurrentDayHours(restaurant.openingHours)}</span>
+              </div>
+            </div>
+          )}
+          
           {restaurant.dateVisited && (
             <div className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
               <Clock className="mr-1 h-3 w-3" />
@@ -330,6 +354,12 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
                   <span className="inline-flex items-center rounded-full bg-accent/10 px-2.5 py-1 text-xs font-medium text-accent">
                     Wishlist
                   </span>
+                </div>
+              )}
+              
+              {restaurant.openingHours && (
+                <div>
+                  <OpeningHoursDisplay hours={restaurant.openingHours.split('\n')} />
                 </div>
               )}
               

@@ -14,6 +14,9 @@ export interface Restaurant {
   rating?: number;
   reviewCount?: number;
   googleMapsUrl?: string;
+  website?: string;
+  phoneNumber?: string;
+  openingHours?: string;
   categoryRatings?: CategoryRating;
   useWeightedRating?: boolean;
   priceRange?: number; // 1-4 dollar signs
@@ -26,6 +29,7 @@ export interface Restaurant {
   isWishlist: boolean;
   createdAt: string;
   updatedAt: string;
+  userId: string;
 }
 
 export interface RestaurantFormData {
