@@ -51,8 +51,8 @@ interface DiscoverResultsGridProps {
   hasSearched: boolean;
 }
 
-type SortOption = 'rating' | 'price-low' | 'price-high' | 'michelin' | 'reviews';
-type FilterOption = 'all' | 'michelin' | 'open' | 'budget' | 'upscale';
+type SortOption = 'rating' | 'price-low' | 'price-high' | 'reviews';
+type FilterOption = 'all' | 'open' | 'budget' | 'upscale';
 
 interface FilterState {
   minRating: number;
@@ -97,9 +97,7 @@ export function DiscoverResultsGrid({
 
     // Apply category filters
     switch (filterBy) {
-      case 'michelin':
-        filtered = filtered.filter(r => r.michelinStars && r.michelinStars > 0);
-        break;
+      // Remove michelin filter case
       case 'open':
         filtered = filtered.filter(r => r.isOpen);
         break;
@@ -141,8 +139,7 @@ export function DiscoverResultsGrid({
         return sorted.sort((a, b) => a.priceRange - b.priceRange);
       case 'price-high':
         return sorted.sort((a, b) => b.priceRange - a.priceRange);
-      case 'michelin':
-        return sorted.sort((a, b) => (b.michelinStars || 0) - (a.michelinStars || 0));
+      // Remove michelin sorting case
       case 'reviews':
         return sorted.sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0));
       default:
@@ -197,26 +194,8 @@ export function DiscoverResultsGrid({
     return null;
   }
 
-  const michelinCount = restaurants.filter(r => r.michelinStars && r.michelinStars > 0).length;
   const openCount = restaurants.filter(r => r.isOpen).length;
   const averageRating = restaurants.reduce((sum, r) => sum + r.rating, 0) / restaurants.length;
-
-  // Calculate price range counts for multi-select filter
-  const priceFilters: PriceFilter[] = [
-    { value: 1, label: '$ Budget', count: restaurants.filter(r => r.priceRange === 1).length },
-    { value: 2, label: '$$ Moderate', count: restaurants.filter(r => r.priceRange === 2).length },
-    { value: 3, label: '$$$ Expensive', count: restaurants.filter(r => r.priceRange === 3).length },
-    { value: 4, label: '$$$$ Very Expensive', count: restaurants.filter(r => r.priceRange === 4).length },
-  ].filter(filter => filter.count > 0);
-
-  const handlePriceFilterChange = (priceValue: number, checked: boolean) => {
-    setAdvancedFilters(prev => ({
-      ...prev,
-      priceRanges: checked 
-        ? [...prev.priceRanges, priceValue]
-        : prev.priceRanges.filter(p => p !== priceValue)
-    }));
-  };
 
   return (
     <div className="space-y-6">
@@ -230,15 +209,6 @@ export function DiscoverResultsGrid({
             <span>Total reviews: {restaurants.reduce((sum, r) => sum + (r.reviewCount || 0), 0).toLocaleString()}</span>
             <span>•</span>
             <span>{new Set(restaurants.map(r => r.location?.city).filter(Boolean)).size} unique locations</span>
-            {michelinCount > 0 && (
-              <>
-                <span>•</span>
-                <span className="flex items-center gap-1">
-                  <Award className="h-3 w-3 text-amber-500" />
-                  {michelinCount} Michelin starred
-                </span>
-              </>
-            )}
           </div>
         </div>
 
@@ -260,7 +230,6 @@ export function DiscoverResultsGrid({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All restaurants</SelectItem>
-                <SelectItem value="michelin">Michelin starred</SelectItem>
                 <SelectItem value="open">Open now</SelectItem>
                 <SelectItem value="budget">Budget friendly</SelectItem>
                 <SelectItem value="upscale">Upscale dining</SelectItem>
@@ -273,7 +242,6 @@ export function DiscoverResultsGrid({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="rating">Highest rated</SelectItem>
-                <SelectItem value="michelin">Michelin stars</SelectItem>
                 <SelectItem value="reviews">Most reviewed</SelectItem>
                 <SelectItem value="price-low">Price: Low to High</SelectItem>
                 <SelectItem value="price-high">Price: High to Low</SelectItem>
@@ -375,7 +343,6 @@ export function DiscoverResultsGrid({
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Active filter:</span>
           <Badge variant="secondary" className="gap-1">
-            {filterBy === 'michelin' && 'Michelin starred'}
             {filterBy === 'open' && 'Open now'}
             {filterBy === 'budget' && 'Budget friendly'}
             {filterBy === 'upscale' && 'Upscale dining'}

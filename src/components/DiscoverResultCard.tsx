@@ -159,15 +159,7 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist 
           </Button>
         </div>
 
-        {/* Michelin Stars Overlay */}
-        {restaurant.michelinStars && (
-          <div className="absolute bottom-3 left-3">
-            <Badge className="bg-amber-500 hover:bg-amber-600 text-white shadow-lg">
-              <Award className="h-3 w-3 mr-1" />
-              {restaurant.michelinStars} Michelin Star{restaurant.michelinStars > 1 ? 's' : ''}
-            </Badge>
-          </div>
-        )}
+        {/* Remove Michelin Stars Overlay */}
       </div>
 
       {/* Content */}
