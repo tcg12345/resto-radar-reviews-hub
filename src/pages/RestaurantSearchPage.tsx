@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useCallback, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { supabase } from '@/integrations/supabase/client';
 import { useRestaurants } from '@/contexts/RestaurantContext';
@@ -44,7 +44,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { RestaurantMapView } from '@/components/RestaurantMapView';
 import { RestaurantDetailsModal } from '@/components/RestaurantDetailsModal';
 import { AISearchAssistant } from '@/components/AISearchAssistant';
-import { RealtimeVoiceAssistant } from '@/components/RealtimeVoiceAssistant';
+import { AIChatbot } from '@/components/AIChatbot';
 import { AIReviewSummary } from '@/components/AIReviewSummary';
 import { toast } from 'sonner';
 
@@ -59,6 +59,7 @@ interface SearchRestaurant {
   phoneNumber?: string;
   website?: string;
   openingHours?: string[];
+  currentDayHours?: string;
   photos: string[];
   location: {
     lat: number;
@@ -105,6 +106,7 @@ interface SearchFilters {
 
 export default function RestaurantSearchPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { addRestaurant, restaurants: existingRestaurants, deleteRestaurant } = useRestaurants();
   
   // Search page state
@@ -119,9 +121,9 @@ export default function RestaurantSearchPage() {
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [detailsRestaurant, setDetailsRestaurant] = useState<SearchRestaurant | null>(null);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
-  const [showVoiceAssistant, setShowVoiceAssistant] = useState(false);
-  const [isVoiceSearch, setIsVoiceSearch] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
+  const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   
   
   const [filters, setFilters] = useState<SearchFilters>({
@@ -137,6 +139,59 @@ export default function RestaurantSearchPage() {
     'Italian', 'Chinese', 'Japanese', 'Mexican', 'Indian', 'French', 
     'Thai', 'Mediterranean', 'American', 'Korean', 'Vietnamese', 'Greek'
   ];
+
+  // Generate search suggestions based on query
+  const generateSearchSuggestions = useCallback((query: string) => {
+    if (query.length < 2) {
+      setSearchSuggestions([]);
+      return;
+    }
+
+    const suggestions = [
+      `${query} near me`,
+      `best ${query} restaurants`,
+      `${query} with outdoor seating`,
+      `romantic ${query} restaurants`,
+      `family-friendly ${query}`,
+      `${query} open late`,
+      `upscale ${query} restaurants`,
+      `cheap ${query} food`
+    ].filter(suggestion => suggestion.toLowerCase() !== query.toLowerCase());
+
+    setSearchSuggestions(suggestions.slice(0, 5));
+  }, []);
+
+  // Restore search state from navigation
+  useEffect(() => {
+    const state = location.state as any;
+    if (state?.searchQuery) {
+      setSearchQuery(state.searchQuery);
+    }
+    if (state?.searchLocation) {
+      setSearchLocation(state.searchLocation);
+    }
+  }, [location.state]);
+
+  // Get current day hours
+  const getCurrentDayHours = useCallback((openingHours: string[]) => {
+    if (!openingHours || openingHours.length === 0) return undefined;
+    
+    const today = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const currentDay = dayNames[today];
+    
+    const todayHours = openingHours.find(hours => 
+      hours.toLowerCase().includes(currentDay.toLowerCase())
+    );
+    
+    if (todayHours) {
+      // Extract just the time part (e.g., "11:45 AM–2:15 PM, 5:30–9:45 PM")
+      const timeMatch = todayHours.match(/(\d{1,2}:\d{2}\s*[AP]M[^,]*(?:,\s*\d{1,2}:\d{2}\s*[AP]M[^,]*)*)/i);
+      return timeMatch ? timeMatch[1] : todayHours;
+    }
+    
+    return undefined;
+  }, []);
 
   const activeFiltersCount = 
     filters.priceRanges.length + 
@@ -274,41 +329,49 @@ export default function RestaurantSearchPage() {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Restaurant lookup error:', error);
+        throw error;
+      }
 
-      const transformedResults: SearchRestaurant[] = (data.restaurants || []).map((restaurant: any) => ({
-        id: restaurant.place_id || restaurant.id || Math.random().toString(36).substr(2, 9),
-        name: restaurant.name,
-        address: restaurant.formatted_address || restaurant.address,
-        rating: restaurant.rating || 0,
-        reviewCount: restaurant.user_ratings_total || restaurant.reviewCount,
-        priceRange: restaurant.price_level || restaurant.priceRange || 2,
-        isOpen: restaurant.opening_hours?.open_now,
-        phoneNumber: restaurant.formatted_phone_number || restaurant.phoneNumber,
-        website: restaurant.website,
-        openingHours: restaurant.opening_hours?.weekday_text || restaurant.openingHours,
-        photos: restaurant.photos?.map((photo: any) => 
-          typeof photo === 'string' ? photo : photo.photo_reference || photo.url
-        ).filter(Boolean) || [],
-        location: {
-          lat: restaurant.geometry?.location?.lat || restaurant.location?.lat || 0,
-          lng: restaurant.geometry?.location?.lng || restaurant.location?.lng || 0,
-        },
-        cuisine: restaurant.types?.find((type: string) => 
-          cuisineOptions.some(cuisine => 
-            type.toLowerCase().includes(cuisine.toLowerCase()) || 
-            cuisine.toLowerCase().includes(type.toLowerCase())
-          )
-        ) || restaurant.cuisine,
-        googleMapsUrl: restaurant.url || restaurant.googleMapsUrl
-      }));
+      const transformedResults: SearchRestaurant[] = (data.restaurants || []).map((restaurant: any) => {
+        const openingHours = restaurant.opening_hours?.weekday_text || restaurant.openingHours;
+        return {
+          id: restaurant.place_id || restaurant.id || Math.random().toString(36).substr(2, 9),
+          name: restaurant.name,
+          address: restaurant.formatted_address || restaurant.address,
+          rating: restaurant.rating || 0,
+          reviewCount: restaurant.user_ratings_total || restaurant.reviewCount,
+          priceRange: restaurant.price_level || restaurant.priceRange || 2,
+          isOpen: restaurant.opening_hours?.open_now,
+          phoneNumber: restaurant.formatted_phone_number || restaurant.phoneNumber,
+          website: restaurant.website,
+          openingHours: openingHours,
+          currentDayHours: getCurrentDayHours(openingHours),
+          photos: restaurant.photos?.map((photo: any) => 
+            typeof photo === 'string' ? photo : photo.photo_reference || photo.url
+          ).filter(Boolean) || [],
+          location: {
+            lat: restaurant.geometry?.location?.lat || restaurant.location?.lat || 0,
+            lng: restaurant.geometry?.location?.lng || restaurant.location?.lng || 0,
+          },
+          cuisine: restaurant.types?.find((type: string) => 
+            cuisineOptions.some(cuisine => 
+              type.toLowerCase().includes(cuisine.toLowerCase()) || 
+              cuisine.toLowerCase().includes(type.toLowerCase())
+            )
+          ) || restaurant.cuisine,
+          googleMapsUrl: restaurant.url || restaurant.googleMapsUrl
+        };
+      });
 
       setRestaurants(transformedResults);
       
       toast.success(`Found ${transformedResults.length} restaurants`);
     } catch (error) {
       console.error('Search error:', error);
-      toast.error('Failed to search restaurants. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      toast.error(`Search failed: ${errorMessage}. Please try again.`);
     } finally {
       setIsLoading(false);
     }
@@ -380,9 +443,18 @@ export default function RestaurantSearchPage() {
     setShowAIAssistant(false);
   };
 
-  const startVoiceSearch = () => {
-    setIsVoiceSearch(true);
-    setShowVoiceAssistant(true);
+  const handleSuggestionClick = (suggestion: string) => {
+    setSearchQuery(suggestion);
+    setShowSuggestions(false);
+    // Trigger search automatically when suggestion is clicked
+    setTimeout(() => {
+      handleUnifiedSearch();
+    }, 100);
+  };
+
+  const handleGoogleSearch = (restaurant: SearchRestaurant) => {
+    const searchQuery = encodeURIComponent(`${restaurant.name} ${restaurant.address}`);
+    window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
   };
 
   const getPriceDisplay = (range: number) => '$'.repeat(Math.min(range, 4));
@@ -491,12 +563,15 @@ export default function RestaurantSearchPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center">
+                  <div className="flex items-center cursor-pointer" onClick={() => handleGoogleSearch(restaurant)}>
                     <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="ml-1 text-sm font-medium">{restaurant.rating}</span>
+                    <span className="ml-1 text-sm font-medium hover:underline">{restaurant.rating}</span>
                   </div>
                   {restaurant.reviewCount && (
-                    <span className="text-sm text-muted-foreground">
+                    <span 
+                      className="text-sm text-muted-foreground cursor-pointer hover:underline"
+                      onClick={() => handleGoogleSearch(restaurant)}
+                    >
                       ({restaurant.reviewCount.toLocaleString()})
                     </span>
                   )}
@@ -506,6 +581,13 @@ export default function RestaurantSearchPage() {
                     </span>
                   </div>
                 </div>
+
+                {restaurant.currentDayHours && (
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <Clock className="h-3 w-3" />
+                    <span>Today: {restaurant.currentDayHours}</span>
+                  </div>
+                )}
 
                 <div className="flex items-start gap-1">
                   <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
@@ -595,13 +677,41 @@ export default function RestaurantSearchPage() {
           </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex gap-4">
-                  <div className="flex-1">
+                  <div className="flex-1 relative">
                     <Input
                       placeholder="What are you craving? (e.g., 'romantic Italian with outdoor seating' or 'best sushi')"
                       value={searchQuery}
-                       onChange={(e) => setSearchQuery(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleUnifiedSearch()}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        generateSearchSuggestions(e.target.value);
+                        setShowSuggestions(e.target.value.length > 1);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleUnifiedSearch();
+                          setShowSuggestions(false);
+                        } else if (e.key === 'Escape') {
+                          setShowSuggestions(false);
+                        }
+                      }}
+                      onFocus={() => searchQuery.length > 1 && setShowSuggestions(true)}
+                      onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                     />
+                    
+                    {/* Search Suggestions */}
+                    {showSuggestions && searchSuggestions.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 z-10 bg-card border border-border rounded-md shadow-lg mt-1 max-h-48 overflow-y-auto">
+                        {searchSuggestions.map((suggestion, index) => (
+                          <div
+                            key={index}
+                            className="px-3 py-2 hover:bg-muted cursor-pointer text-sm"
+                            onClick={() => handleSuggestionClick(suggestion)}
+                          >
+                            {suggestion}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div className="w-64">
                     <Input
@@ -612,7 +722,10 @@ export default function RestaurantSearchPage() {
                     />
                   </div>
                    <Button 
-                    onClick={handleUnifiedSearch} 
+                    onClick={() => {
+                      handleUnifiedSearch();
+                      setShowSuggestions(false);
+                    }} 
                     disabled={isLoading || isEnhancing}
                     className="px-8"
                   >
@@ -639,15 +752,6 @@ export default function RestaurantSearchPage() {
                   >
                     <Bot className="h-4 w-4 mr-2" />
                     AI Assistant
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowVoiceAssistant(!showVoiceAssistant)}
-                    className="flex-1 sm:flex-initial"
-                  >
-                    <Mic className="h-4 w-4 mr-2" />
-                    Voice Assistant
                   </Button>
                   
                   <Button
@@ -842,12 +946,8 @@ export default function RestaurantSearchPage() {
           />
         )}
 
-        {/* Voice Assistant */}
-        {showVoiceAssistant && (
-          <RealtimeVoiceAssistant
-            onClose={() => setShowVoiceAssistant(false)}
-          />
-        )}
+        {/* AI Chatbot (replacing voice assistant) */}
+        <AIChatbot />
 
         {/* Restaurant Details Modal */}
         <RestaurantDetailsModal

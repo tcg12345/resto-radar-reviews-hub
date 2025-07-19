@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { PerplexityRestaurantInfo } from '@/components/PerplexityRestaurantInfo';
+import { OpeningHoursDisplay } from '@/components/OpeningHoursDisplay';
 
 interface Restaurant {
   id: string;
@@ -121,12 +122,24 @@ export function RestaurantDetailsModal({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                <span className="text-lg font-semibold">{restaurant.rating}</span>
+                <a 
+                  href={`https://www.google.com/search?q=${encodeURIComponent(`${restaurant.name} ${restaurant.address}`)}`}
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                >
+                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                  <span className="text-lg font-semibold hover:underline">{restaurant.rating}</span>
+                </a>
                 {restaurant.reviewCount && (
-                  <span className="text-sm text-muted-foreground">
+                  <a 
+                    href={`https://www.google.com/search?q=${encodeURIComponent(`${restaurant.name} ${restaurant.address}`)}`}
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-sm text-muted-foreground hover:underline"
+                  >
                     ({restaurant.reviewCount.toLocaleString()} reviews)
-                  </span>
+                  </a>
                 )}
               </div>
               <div className="flex items-center gap-2">
@@ -168,17 +181,7 @@ export function RestaurantDetailsModal({
           {restaurant.openingHours && restaurant.openingHours.length > 0 && (
             <Card>
               <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Clock className="h-4 w-4" />
-                  <h3 className="font-semibold">Opening Hours</h3>
-                </div>
-                <div className="space-y-1">
-                  {restaurant.openingHours.map((hours, index) => (
-                    <div key={index} className="text-sm text-muted-foreground">
-                      {hours}
-                    </div>
-                  ))}
-                </div>
+                <OpeningHoursDisplay hours={restaurant.openingHours} />
               </CardContent>
             </Card>
           )}

@@ -14,6 +14,7 @@ export default function AuthPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [address, setAddress] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -79,6 +80,7 @@ export default function AuthPage() {
             // Additional user metadata that will be stored in profiles
             email: email,
             name: name,
+            address: address,
           }
         }
       });
@@ -161,17 +163,28 @@ export default function AuthPage() {
           <TabsContent value="signup">
             <form onSubmit={handleSignUp}>
               <CardContent className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-name">Name</Label>
-                  <Input
-                    id="signup-name"
-                    type="text"
-                    placeholder="Your full name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-name">Name</Label>
+                    <Input
+                      id="signup-name"
+                      type="text"
+                      placeholder="Your full name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-address">Address (Optional)</Label>
+                    <Input
+                      id="signup-address"
+                      type="text"
+                      placeholder="Your address for location-based search"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">Used as default location when no specific location is provided in search</p>
+                  </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
                   <Input

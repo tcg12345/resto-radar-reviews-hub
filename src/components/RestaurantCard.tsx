@@ -17,6 +17,7 @@ import { PriceRange } from '@/components/PriceRange';
 import { MichelinStars } from '@/components/MichelinStars';
 import { WeightedRating } from '@/components/WeightedRating';
 import { PhotoGallery } from '@/components/PhotoGallery';
+import { OpeningHoursDisplay } from '@/components/OpeningHoursDisplay';
 import { AIReviewAssistant } from '@/components/AIReviewAssistant';
 import { Restaurant } from '@/types/restaurant';
 import { useRestaurants } from '@/contexts/RestaurantContext';
@@ -172,24 +173,30 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
           <div className="flex flex-col gap-2">
             {restaurant.rating !== undefined && (
               <div className="flex items-center gap-2">
-                {restaurant.googleMapsUrl ? (
-                  <a 
-                    href={restaurant.googleMapsUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="hover:opacity-80 transition-opacity"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <StarRating rating={restaurant.rating} readonly size="sm" />
-                  </a>
-                ) : (
-                  <StarRating rating={restaurant.rating} readonly size="sm" />
-                )}
-                {restaurant.reviewCount && restaurant.reviewCount > 0 && (
-                  <span className="text-xs text-muted-foreground">
-                    ({restaurant.reviewCount.toLocaleString()} reviews)
-                  </span>
-                )}
+                      {restaurant.googleMapsUrl ? (
+                        <a 
+                          href={`https://www.google.com/search?q=${encodeURIComponent(`${restaurant.name} ${restaurant.address}`)}`}
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="hover:opacity-80 transition-opacity"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <StarRating rating={restaurant.rating} readonly size="sm" />
+                        </a>
+                      ) : (
+                        <StarRating rating={restaurant.rating} readonly size="sm" />
+                      )}
+                      {restaurant.reviewCount && restaurant.reviewCount > 0 && (
+                        <a 
+                          href={`https://www.google.com/search?q=${encodeURIComponent(`${restaurant.name} ${restaurant.address}`)}`}
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-xs text-muted-foreground hover:underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          ({restaurant.reviewCount.toLocaleString()} reviews)
+                        </a>
+                      )}
               </div>
             )}
             {restaurant.michelinStars && (
@@ -269,7 +276,7 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
                     <div className="flex items-center gap-2">
                       {restaurant.googleMapsUrl ? (
                         <a 
-                          href={restaurant.googleMapsUrl} 
+                          href={`https://www.google.com/search?q=${encodeURIComponent(`${restaurant.name} ${restaurant.address}`)}`}
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="hover:opacity-80 transition-opacity"
@@ -280,9 +287,14 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
                         <StarRating rating={restaurant.rating} readonly size="sm" />
                       )}
                       {restaurant.reviewCount && restaurant.reviewCount > 0 && (
-                        <span className="text-xs text-muted-foreground">
+                        <a 
+                          href={`https://www.google.com/search?q=${encodeURIComponent(`${restaurant.name} ${restaurant.address}`)}`}
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-xs text-muted-foreground hover:underline"
+                        >
                           ({restaurant.reviewCount.toLocaleString()} reviews)
-                        </span>
+                        </a>
                       )}
                     </div>
                   </div>
