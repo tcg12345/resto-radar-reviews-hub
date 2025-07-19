@@ -121,12 +121,21 @@ serve(async (req) => {
     }
 
     const generatedInfo = data.choices[0].message.content;
+    
+    // Clean up the response: remove markdown formatting and source citations
+    const cleanedInfo = generatedInfo
+      .replace(/\*\*([^*]+)\*\*/g, '$1')  // Remove bold markdown **text**
+      .replace(/\*([^*]+)\*/g, '$1')      // Remove italic markdown *text*
+      .replace(/\[(\d+)\]/g, '')          // Remove source citations [1], [2], etc.
+      .replace(/\[\d+\]\[\d+\]/g, '')     // Remove multiple citations [1][2]
+      .replace(/\s+/g, ' ')               // Clean up extra whitespace
+      .trim();
 
     // Parse the response to extract structured information
     const structuredInfo = {
       restaurantName,
       infoType,
-      generatedInfo,
+      generatedInfo: cleanedInfo,
       lastUpdated: new Date().toISOString(),
       sources: data.citations || [],
     };

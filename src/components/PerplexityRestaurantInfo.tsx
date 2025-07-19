@@ -209,7 +209,7 @@ export function PerplexityRestaurantInfo({
               )}
             </div>
             <div className="p-4 bg-muted/50 rounded-lg border">
-              <div className="text-sm whitespace-pre-wrap leading-relaxed font-mono">
+              <div className="text-sm whitespace-pre-wrap leading-relaxed font-normal text-foreground">
                 {currentInfo}
               </div>
             </div>

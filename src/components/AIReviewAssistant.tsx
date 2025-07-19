@@ -276,7 +276,7 @@ export function AIReviewAssistant({
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-sm leading-relaxed whitespace-pre-wrap font-mono">
+                  <div className="text-sm leading-relaxed whitespace-pre-wrap font-normal text-foreground">
                     {currentInfo}
                   </div>
                 </CardContent>
