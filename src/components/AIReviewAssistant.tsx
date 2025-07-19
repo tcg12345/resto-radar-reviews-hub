@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Sparkles, Wand2, BarChart3, Loader2, Copy, Check } from 'lucide-react';
+import { Sparkles, Wand2, BarChart3, Loader2, Copy, Check, Globe, Clock, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -32,11 +33,37 @@ export function AIReviewAssistant({
   onReviewUpdate,
 }: AIReviewAssistantProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [isGettingInfo, setIsGettingInfo] = useState(false);
   const [experience, setExperience] = useState('');
   const [generatedReview, setGeneratedReview] = useState('');
   const [analysis, setAnalysis] = useState('');
+  const [currentInfo, setCurrentInfo] = useState('');
   const [activeAction, setActiveAction] = useState<'generate' | 'improve' | 'analyze' | null>(null);
   const [copied, setCopied] = useState(false);
+  const [activeTab, setActiveTab] = useState('assistant');
+
+  const getCurrentInfo = async (infoType: string) => {
+    setIsGettingInfo(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('perplexity-restaurant-info', {
+        body: {
+          restaurantName,
+          infoType,
+          additionalContext: `This is a ${cuisine} restaurant${rating ? ` with a ${rating} star rating` : ''}.`
+        }
+      });
+
+      if (error) throw error;
+
+      setCurrentInfo(data.generatedInfo);
+      toast.success(`Got current ${infoType.replace('_', ' ')} for ${restaurantName}`);
+    } catch (error) {
+      console.error('Error getting current info:', error);
+      toast.error('Failed to get current restaurant information');
+    } finally {
+      setIsGettingInfo(false);
+    }
+  };
 
   const callAIAssistant = async (action: 'generate' | 'improve' | 'analyze') => {
     setIsLoading(true);
@@ -55,6 +82,7 @@ export function AIReviewAssistant({
           experience: action === 'generate' ? experience : undefined,
           existingReview: action === 'improve' || action === 'analyze' ? currentReview : undefined,
           aspects,
+          currentInfo: currentInfo || undefined, // Include current info from Perplexity
         }
       });
 
@@ -132,10 +160,78 @@ export function AIReviewAssistant({
           AI Review Assistant
         </CardTitle>
         <CardDescription>
-          Get help writing detailed, helpful restaurant reviews
+          Get current restaurant info and AI-powered help writing detailed reviews
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="info">Current Info</TabsTrigger>
+            <TabsTrigger value="assistant">Review Assistant</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="info" className="space-y-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              <Button
+                onClick={() => getCurrentInfo('current_info')}
+                disabled={isGettingInfo}
+                variant="outline"
+                size="sm"
+              >
+                <Globe className="h-4 w-4 mr-1" />
+                General
+              </Button>
+              <Button
+                onClick={() => getCurrentInfo('hours')}
+                disabled={isGettingInfo}
+                variant="outline"
+                size="sm"
+              >
+                <Clock className="h-4 w-4 mr-1" />
+                Hours
+              </Button>
+              <Button
+                onClick={() => getCurrentInfo('reviews')}
+                disabled={isGettingInfo}
+                variant="outline"
+                size="sm"
+              >
+                <Sparkles className="h-4 w-4 mr-1" />
+                Reviews
+              </Button>
+              <Button
+                onClick={() => getCurrentInfo('trending')}
+                disabled={isGettingInfo}
+                variant="outline"
+                size="sm"
+              >
+                <TrendingUp className="h-4 w-4 mr-1" />
+                Trending
+              </Button>
+            </div>
+
+            {isGettingInfo && (
+              <div className="p-4 text-center">
+                <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">Getting current information...</p>
+              </div>
+            )}
+
+            {currentInfo && !isGettingInfo && (
+              <Card className="border-primary/20 bg-primary/5">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">Current Restaurant Information</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                    {currentInfo}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="assistant" className="space-y-4">
         {/* Experience Input for Generation */}
         <div className="space-y-2">
           <label className="text-sm font-medium">Describe your experience (optional):</label>
@@ -261,6 +357,8 @@ export function AIReviewAssistant({
             </ul>
           </CardContent>
         </Card>
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );

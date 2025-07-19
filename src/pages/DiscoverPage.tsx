@@ -31,6 +31,7 @@ import { useToast } from '@/hooks/use-toast';
 import { LazyImage } from '@/components/LazyImage';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 import { useDiscover } from '@/contexts/DiscoverContext';
+import { PerplexityRestaurantInfo } from '@/components/PerplexityRestaurantInfo';
 
 interface RestaurantResult {
   id: string;
@@ -331,6 +332,7 @@ function RestaurantImageCard({ restaurant, onToggleWishlist, existingRestaurants
   existingRestaurants: any[];
 }) {
   const [imageLoading, setImageLoading] = useState(true);
+  const [showPerplexityInfo, setShowPerplexityInfo] = useState(false);
   
   // Check if restaurant is in wishlist
   const isInWishlist = existingRestaurants.some(r => 
@@ -495,9 +497,32 @@ function RestaurantImageCard({ restaurant, onToggleWishlist, existingRestaurants
                  Call to Reserve
                </Button>
              )}
-         </div>
-       </div>
-       </CardContent>
-     </Card>
-  );
+          </div>
+
+          {/* Current Info Button */}
+          <Button
+            onClick={() => setShowPerplexityInfo(!showPerplexityInfo)}
+            variant="outline"
+            size="sm"
+            className="w-full mt-2"
+          >
+            <Globe className="h-4 w-4 mr-1" />
+            {showPerplexityInfo ? 'Hide Current Info' : 'Get Current Info'}
+          </Button>
+
+          {/* Perplexity Info Section */}
+          {showPerplexityInfo && (
+            <div className="mt-4">
+              <PerplexityRestaurantInfo
+                restaurantName={restaurant.name}
+                address={restaurant.address}
+                city={restaurant.location?.city || restaurant.city}
+                cuisine={restaurant.cuisine}
+              />
+            </div>
+          )}
+        </div>
+        </CardContent>
+      </Card>
+   );
 }
