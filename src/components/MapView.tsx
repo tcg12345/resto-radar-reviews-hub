@@ -23,7 +23,15 @@ const MAP_STYLES = {
   hybrid: 'mapbox://styles/mapbox/satellite-streets-v12'
 };
 
-// Simple black and white marker - no color needed
+// Helper function to determine marker color based on rating and wishlist status
+const getMarkerColor = (rating?: number, isWishlist?: boolean): string => {
+  if (isWishlist) return '9333ea'; // purple for wishlist items
+  if (!rating) return 'e91e63'; // red for no rating
+  if (rating <= 5) return 'e91e63'; // red for 0-5 stars
+  if (rating <= 7.5) return '2196f3'; // blue for 5.01-7.5 stars
+  if (rating <= 9) return '4caf50'; // green for 7.51-9 stars
+  return 'ffd700'; // gold for 9+ stars
+};
 
 export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -145,21 +153,20 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
     // Add new markers
     filteredRestaurants.forEach(restaurant => {
       if (restaurant.latitude && restaurant.longitude) {
-        // Create marker element with simple black and white design
+        // Create marker element
         const el = document.createElement('div');
         el.className = 'marker';
-        el.style.width = '30px';
-        el.style.height = '40px';
-        el.style.cursor = 'pointer';
+        el.style.width = '24px';
+        el.style.height = '24px';
         
-        // Simple black and white 2D map marker
-        const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="40" viewBox="0 0 24 32" fill="none">
-          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="black" stroke="white" stroke-width="2"/>
-          <circle cx="12" cy="9" r="3" fill="white"/>
-        </svg>`;
+        // Use heart icon for wishlist items, location pin for others
+        const iconSvg = restaurant.isWishlist
+          ? `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%23${getMarkerColor(restaurant.rating, restaurant.isWishlist)}" stroke="%23ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`
+          : `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%23${getMarkerColor(restaurant.rating, restaurant.isWishlist)}" stroke="%23ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>`;
         
         el.style.backgroundImage = `url('data:image/svg+xml;utf8,${iconSvg}')`;
         el.style.backgroundSize = '100%';
+        el.style.cursor = 'pointer';
 
         // Create and add marker
         const marker = new mapboxgl.Marker(el)
