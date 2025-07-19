@@ -262,15 +262,15 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
         </div>
       </CardContent>
       
-      <CardFooter className="flex justify-end gap-2 pt-0 pb-3">
+      <CardFooter className="flex justify-end gap-1.5 pt-0 pb-3">
         <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
           <DialogTrigger asChild>
             <Button 
               size="sm" 
               variant="outline"
-              className="h-8 flex-shrink-0"
+              className="h-7 px-2 text-xs"
             >
-              <Eye className="mr-1 h-3.5 w-3.5" />
+              <Eye className="mr-1 h-3 w-3" />
               Details
             </Button>
           </DialogTrigger>
@@ -391,10 +391,10 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
           <Button 
             size="sm" 
             variant="outline"
-            className="h-8 flex-shrink-0"
+            className="h-7 px-2 text-xs"
             onClick={() => setIsAIReviewOpen(true)}
           >
-            <Bot className="mr-1 h-3.5 w-3.5" />
+            <Bot className="mr-1 h-3 w-3" />
             AI Review
           </Button>
         )}
@@ -403,10 +403,10 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
           <Button 
             size="sm" 
             variant="outline"
-            className="h-8 flex-shrink-0"
+            className="h-7 px-2 text-xs"
             onClick={() => onEdit(restaurant.id)}
           >
-            <Edit2 className="mr-1 h-3.5 w-3.5" />
+            <Edit2 className="mr-1 h-3 w-3" />
             Edit
           </Button>
         )}
@@ -415,10 +415,10 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
           <Button 
             size="sm" 
             variant="outline" 
-            className="h-8 text-destructive hover:bg-destructive/10 flex-shrink-0"
+            className="h-7 px-2 text-xs text-destructive hover:bg-destructive/10"
             onClick={() => onDelete(restaurant.id)}
           >
-            <Trash2 className="mr-1 h-3.5 w-3.5" />
+            <Trash2 className="mr-1 h-3 w-3" />
             Delete
           </Button>
         )}
