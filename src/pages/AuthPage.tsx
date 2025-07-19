@@ -8,16 +8,20 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export default function AuthPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [street, setStreet] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [zipCode, setZipCode] = useState('');
+  const [isPublic, setIsPublic] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -58,8 +62,8 @@ export default function AuthPage() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password || !name) {
-      toast.error('Please enter email, password, and name');
+    if (!email || !password || !name || !username || !phoneNumber) {
+      toast.error('Please enter email, password, name, username, and phone number');
       return;
     }
     
@@ -86,7 +90,10 @@ export default function AuthPage() {
             // Additional user metadata that will be stored in profiles
             email: email,
             name: name,
+            username: username,
+            phone_number: phoneNumber,
             address: fullAddress,
+            is_public: isPublic,
           }
         }
       });
@@ -181,6 +188,28 @@ export default function AuthPage() {
                     />
                   </div>
                   <div className="space-y-2">
+                    <Label htmlFor="signup-username">Username</Label>
+                    <Input
+                      id="signup-username"
+                      type="text"
+                      placeholder="Choose a unique username"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-phone">Phone Number</Label>
+                    <Input
+                      id="signup-phone"
+                      type="tel"
+                      placeholder="+1 (555) 123-4567"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
                     <Label htmlFor="signup-street">Street Address</Label>
                     <Input
                       id="signup-street"
@@ -256,6 +285,16 @@ export default function AuthPage() {
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground">Password must be at least 6 characters</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="signup-public"
+                    checked={isPublic}
+                    onCheckedChange={(checked) => setIsPublic(checked as boolean)}
+                  />
+                  <Label htmlFor="signup-public" className="text-sm">
+                    Make my account public (others can see my ratings without being friends)
+                  </Label>
                 </div>
               </CardContent>
               <CardFooter>

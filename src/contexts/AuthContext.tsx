@@ -6,8 +6,12 @@ interface Profile {
   id: string;
   email: string;
   name: string | null;
+  username: string | null;
+  phone_number: string | null;
   address: string | null;
   avatar_url: string | null;
+  is_public: boolean | null;
+  allow_friend_requests: boolean | null;
   created_at: string;
   updated_at: string;
 }
@@ -37,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .single();
       
       if (error) throw error;
-      setProfile(data);
+      setProfile(data as Profile);
     } catch (error) {
       console.error('Error fetching profile:', error);
       setProfile(null);
