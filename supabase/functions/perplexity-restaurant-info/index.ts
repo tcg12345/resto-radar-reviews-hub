@@ -139,53 +139,26 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
-            content: `You are an expert at formatting restaurant information in a clear, concise, and visually appealing way. 
-
-Your task is to take the raw information provided and format it perfectly for the specific question type.
-
-${infoType === 'custom' && (additionalContext || '').toLowerCase().includes('hour') ? 
-`Format hours EXACTLY like this (no asterisks or bold):
+            content: `Format restaurant information clearly and concisely. ${infoType === 'custom' && (additionalContext || '').toLowerCase().includes('hour') ? 
+`Format hours EXACTLY like this:
 Monday: 11:45 AM–2:15 PM, 5:30–9:45 PM
 Tuesday: 5:30–10:45 PM  
 Wednesday: Closed
 
-Only show hours, nothing else. If no clear hours are found in the information, say "Hours not clearly available - check their website or call directly."` :
-
-infoType === 'custom' && ((additionalContext || '').toLowerCase().includes('founder') || (additionalContext || '').toLowerCase().includes('founded') || (additionalContext || '').toLowerCase().includes('owner') || (additionalContext || '').toLowerCase().includes('chef') || (additionalContext || '').toLowerCase().includes('who')) ?
-`Give only the essential fact in 1-2 sentences maximum. Be direct and concise. NO asterisks or bold formatting.` :
-
-`Format the information in clean, easy-to-read bullet points using this structure (NO asterisks):
-• Key Point: Clear, concise information
-• Another Point: Brief, relevant detail
-
-Rules:
-- Maximum 4 bullet points
-- Each point should be 1 line maximum  
-- NO asterisks (*) or bold formatting
-- Be concise but informative
-- Focus on the most important/relevant information
-- Remove any redundant information
-- Make it scannable and easy to read
-- Use plain text only`}
-
-Question context: ${additionalContext || infoType}
-Restaurant: ${restaurantName}`
+Only show hours. If unclear, say "Hours not clearly available - check website."` :
+`Use bullet points (•) with one key fact per line. Maximum 4 points. No formatting symbols. Be direct and factual.`}`
           },
           {
             role: 'user',
-            content: `Format this restaurant information clearly and concisely:
-
-${rawPerplexityInfo}
-
-Make it visually appealing and easy to scan.`
+            content: rawPerplexityInfo
           }
         ],
         temperature: 0.1,
-        max_tokens: 300,
+        max_tokens: 200,
       }),
     });
 

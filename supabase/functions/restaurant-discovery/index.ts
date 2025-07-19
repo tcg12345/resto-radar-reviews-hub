@@ -230,35 +230,50 @@ serve(async (req) => {
       });
     }
 
-    // Process more results (up to 50 instead of 20)
+    // Determine optimal number of results based on query
+    let maxResults = 20; // Default
+    if (queryLower.includes('michelin') || queryLower.includes('fine dining')) {
+      maxResults = Math.min(10, placesData.results.length); // Fewer for specific high-end queries
+    } else if (queryLower.includes('pizza') || queryLower.includes('coffee') || queryLower.includes('cafe')) {
+      maxResults = Math.min(30, placesData.results.length); // More for common food types
+    } else {
+      maxResults = Math.min(25, placesData.results.length); // Standard amount
+    }
+    
+    console.log(`Processing ${maxResults} restaurants for query: ${query}`);
+    
     const restaurants: RestaurantSearchResult[] = [];
-    const maxResults = Math.min(50, placesData.results.length);
     
-    // Collect all place IDs for details API batch request
-    const placeIds = placesData.results.slice(0, maxResults).map((place: any) => place.place_id);
+    // Process restaurants in smaller batches for faster initial response
+    const batchSize = 5;
+    const batches = [];
+    for (let i = 0; i < maxResults; i += batchSize) {
+      batches.push(placesData.results.slice(i, Math.min(i + batchSize, maxResults)));
+    }
     
-    for (let i = 0; i < maxResults; i++) {
-      const place = placesData.results[i];
-      
-      try {
-        console.log(`Processing place ${i + 1}: ${place.name}`);
-        
-        // Get detailed information for this place
-        let placeDetails = null;
-        if (place.place_id) {
-          try {
-            const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,formatted_address,formatted_phone_number,website,opening_hours,price_level,rating,user_ratings_total,types,photos,geometry&key=${googlePlacesApiKey}`;
-            const detailsResponse = await fetch(detailsUrl);
-            if (detailsResponse.ok) {
-              const detailsData = await detailsResponse.json();
-              if (detailsData.status === 'OK') {
-                placeDetails = detailsData.result;
+    // Process batches concurrently for speed
+    for (const batch of batches) {
+      const batchPromises = batch.map(async (place: any, batchIndex: number) => {
+        try {
+          const globalIndex = batches.indexOf(batch) * batchSize + batchIndex;
+          console.log(`Processing place ${globalIndex + 1}: ${place.name}`);
+          
+          // Only get detailed info for top 15 results to speed up processing
+          let placeDetails = null;
+          if (place.place_id && globalIndex < 15) {
+            try {
+              const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=formatted_address,formatted_phone_number,website,opening_hours,price_level,rating,user_ratings_total,types,photos,geometry&key=${googlePlacesApiKey}`;
+              const detailsResponse = await fetch(detailsUrl);
+              if (detailsResponse.ok) {
+                const detailsData = await detailsResponse.json();
+                if (detailsData.status === 'OK') {
+                  placeDetails = detailsData.result;
+                }
               }
+            } catch (error) {
+              console.error(`Error fetching details for ${place.name}:`, error);
             }
-          } catch (error) {
-            console.error(`Error fetching details for ${place.name}:`, error);
           }
-        }
         
         // Extract city from address
         const addressParts = (placeDetails?.formatted_address || place.formatted_address)?.split(', ') || [];
@@ -267,12 +282,12 @@ serve(async (req) => {
           searchLocation.split(',')[0];
         const country = addressParts[addressParts.length - 1] || 'Unknown';
         
-        // Get cuisine type using AI for better accuracy
-        const cuisine = await determineCuisineWithAI(
-          place.name, 
-          placeDetails?.formatted_address || place.formatted_address || '', 
-          placeDetails?.types || place.types || []
-        );
+          // Get cuisine type using AI only for top results to save time
+          const cuisine = globalIndex < 10 ? await determineCuisineWithAI(
+            place.name, 
+            placeDetails?.formatted_address || place.formatted_address || '', 
+            placeDetails?.types || place.types || []
+          ) : mapPlaceTypeToCuisine(placeDetails?.types || place.types || [], place.name);
         
         // Map price level (Google uses 0-4, we use 1-4)
         const priceRange = (placeDetails?.price_level ?? place.price_level) ? 
@@ -311,47 +326,46 @@ serve(async (req) => {
         // Get review count and Google Maps URL from place details
         const reviewCount = placeDetails?.user_ratings_total || 0;
         const googleMapsUrl = `https://www.google.com/maps/place/?q=place_id:${place.place_id}`;
-        
-        // Create restaurant object with detailed info
-        const restaurant: RestaurantSearchResult = {
-          id: place.place_id || `place_${i}`,
-          name: place.name || 'Unknown Restaurant',
-          address: placeDetails?.formatted_address || place.formatted_address || 'Address not available',
-          cuisine,
-          priceRange,
-          rating: placeDetails?.rating ?? place.rating ? Math.round((placeDetails?.rating ?? place.rating) * 10) / 10 : 4.0,
-          reviewCount,
-          googleMapsUrl,
-          website: placeDetails?.website || null,
-          reservationUrl: null, // Will be set correctly below
-          phoneNumber: placeDetails?.formatted_phone_number || null,
-          openingHours,
-          features,
-          michelinStars,
-          location: {
-            lat: placeDetails?.geometry?.location?.lat || place.geometry?.location?.lat || 0,
-            lng: placeDetails?.geometry?.location?.lng || place.geometry?.location?.lng || 0,
-            city: city.replace(/[0-9]/g, '').trim(),
-            country
-          },
-          images: (placeDetails?.photos || place.photos) ? 
-            [`https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${(placeDetails?.photos || place.photos)[0].photo_reference}&key=${googlePlacesApiKey}`] : 
-            [],
-          isOpen: placeDetails?.opening_hours?.open_now ?? place.opening_hours?.open_now ?? true
-        };
-        
-        // Don't use fake OpenTable URLs - leave null if no real reservation system
-        if (priceRange >= 3 && restaurant.website) {
-          // Only suggest reservations for higher-end places with websites
-          restaurant.reservationUrl = null; // Let users visit the website for reservations
+          
+          // Create restaurant object with available info
+          const restaurant: RestaurantSearchResult = {
+            id: place.place_id || `place_${globalIndex}`,
+            name: place.name || 'Unknown Restaurant',
+            address: placeDetails?.formatted_address || place.formatted_address || 'Address not available',
+            cuisine,
+            priceRange,
+            rating: placeDetails?.rating ?? place.rating ? Math.round((placeDetails?.rating ?? place.rating) * 10) / 10 : 4.0,
+            reviewCount,
+            googleMapsUrl,
+            website: placeDetails?.website || null,
+            reservationUrl: null,
+            phoneNumber: placeDetails?.formatted_phone_number || null,
+            openingHours,
+            features,
+            michelinStars,
+            location: {
+              lat: placeDetails?.geometry?.location?.lat || place.geometry?.location?.lat || 0,
+              lng: placeDetails?.geometry?.location?.lng || place.geometry?.location?.lng || 0,
+              city: city.replace(/[0-9]/g, '').trim(),
+              country
+            },
+            images: (placeDetails?.photos || place.photos) ? 
+              [`https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${(placeDetails?.photos || place.photos)[0].photo_reference}&key=${googlePlacesApiKey}`] : 
+              [],
+            isOpen: placeDetails?.opening_hours?.open_now ?? place.opening_hours?.open_now ?? true
+          };
+          
+          return restaurant;
+          
+        } catch (error) {
+          console.error(`Error processing place ${place.name}:`, error);
+          return null;
         }
-        
-        restaurants.push(restaurant);
-        
-      } catch (error) {
-        console.error(`Error processing place ${place.name}:`, error);
-        continue;
-      }
+      });
+      
+      // Wait for batch to complete and add valid restaurants
+      const batchResults = await Promise.all(batchPromises);
+      restaurants.push(...batchResults.filter(r => r !== null));
     }
     
     console.log('Successfully processed restaurants:', restaurants.length);
