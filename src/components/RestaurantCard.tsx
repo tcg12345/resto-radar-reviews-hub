@@ -262,7 +262,7 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
         </div>
       </CardContent>
       
-      <CardFooter className="flex flex-wrap justify-end gap-2 pt-0">
+      <CardFooter className="flex justify-end gap-2 pt-0 pb-3">
         <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
           <DialogTrigger asChild>
             <Button 

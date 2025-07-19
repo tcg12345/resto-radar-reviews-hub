@@ -601,6 +601,20 @@ export default function RestaurantSearchPage() {
                   </div>
                 )}
 
+                {restaurant.website && (
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <Globe className="h-3 w-3" />
+                    <a 
+                      href={restaurant.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:underline truncate"
+                    >
+                      {restaurant.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                    </a>
+                  </div>
+                )}
+
                 <div className="flex items-start gap-1">
                   <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
                   <span className="text-sm text-muted-foreground line-clamp-2">
