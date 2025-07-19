@@ -256,9 +256,27 @@ serve(async (req) => {
         if (types.includes('takeout')) features.push('Takeout Available');
         if (types.includes('delivery')) features.push('Delivery');
         if (types.includes('reservations')) features.push('Reservations');
-        if (priceRange >= 3) features.push('Fine Dining');
         if (types.includes('bar')) features.push('Full Bar');
         if (openingHours.toLowerCase().includes('open')) features.push('Currently Open');
+        if (types.includes('wheelchair_accessible_entrance')) features.push('Accessible');
+        if (priceRange >= 3) features.push('Upscale Dining');
+        
+        // Generate more dynamic and unique description
+        const getUniqueDescription = (name: string, cuisine: string, rating: number, city: string, priceRange: number, michelinStars?: number): string => {
+          const priceDescriptor = priceRange >= 4 ? 'upscale' : priceRange >= 3 ? 'refined' : priceRange >= 2 ? 'casual' : 'affordable';
+          const ratingDescriptor = rating >= 4.5 ? 'exceptional' : rating >= 4.0 ? 'highly-rated' : rating >= 3.5 ? 'well-regarded' : 'local';
+          
+          // Create varied description templates
+          const templates = [
+            `${ratingDescriptor} ${cuisine.toLowerCase()} spot offering ${priceDescriptor} dining in ${city}`,
+            `${priceDescriptor} ${cuisine.toLowerCase()} restaurant known for its ${rating >= 4.0 ? 'excellent' : 'good'} food and service`,
+            `Popular ${cuisine.toLowerCase()} establishment in ${city}${rating ? ` with ${rating}★ rating` : ''}`,
+            `${cuisine} dining experience in ${city}${michelinStars ? ` featuring Michelin-starred cuisine` : ''}`,
+          ];
+          
+          const baseDescription = templates[Math.floor(Math.random() * templates.length)];
+          return michelinStars ? `${baseDescription} (${michelinStars} Michelin star${michelinStars > 1 ? 's' : ''})` : baseDescription;
+        };
         
         // Create restaurant object with detailed info
         const restaurant: RestaurantSearchResult = {
@@ -268,7 +286,7 @@ serve(async (req) => {
           cuisine,
           priceRange,
           rating: placeDetails?.rating ?? place.rating ? Math.round((placeDetails?.rating ?? place.rating) * 10) / 10 : 4.0,
-          description: `A ${cuisine.toLowerCase()} restaurant in ${city}. ${(placeDetails?.rating ?? place.rating) ? `Rated ${(placeDetails?.rating ?? place.rating)} stars` : 'Popular local spot'}${michelinStars ? ` with ${michelinStars} Michelin star${michelinStars > 1 ? 's' : ''}` : ''}.`,
+          description: getUniqueDescription(place.name, cuisine, placeDetails?.rating ?? place.rating ?? 4.0, city, priceRange, michelinStars),
           website: placeDetails?.website || null,
           reservationUrl: null, // Will be set correctly below
           phoneNumber: placeDetails?.formatted_phone_number || null,

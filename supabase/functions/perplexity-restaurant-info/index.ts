@@ -38,39 +38,36 @@ serve(async (req) => {
     let query = '';
     let systemPrompt = '';
     const location = city ? `in ${city}` : (address ? `at ${address}` : '');
+    const restaurantContext = `${restaurantName}${location}${address ? ` (${address})` : ''}`;
     
     switch (infoType) {
       case 'current_info':
-        systemPrompt = 'You are a concise restaurant information assistant. Provide clear, bullet-pointed information. Use format: • Point 1 • Point 2, etc. Keep responses under 150 words.';
-        query = `Current key information about ${restaurantName} restaurant ${location}:
-        • Current operating status
-        • Contact info (phone, website)
-        • Notable features or specialties
-        • Recent changes or updates`;
+        systemPrompt = 'Provide only key facts in 3-4 bullet points. Format: • Fact 1 • Fact 2 • Fact 3. Max 80 words total.';
+        query = `Key current facts about ${restaurantContext}: operating status, phone/website, main specialties, any recent updates.`;
         break;
       case 'reviews':
-        systemPrompt = 'You are a review summarizer. Provide a concise summary of recent reviews. Use format: Overall: [rating/sentiment] • Highlights: [3-4 key points] • Recent feedback: [1-2 current observations]';
-        query = `Recent review summary for ${restaurantName} restaurant ${location}. Focus on 2024 feedback about food quality, service, and overall experience.`;
+        systemPrompt = 'Summarize in 3 bullet points: • Overall sentiment • Top praised items • Recent concerns (if any). Max 60 words.';
+        query = `Recent 2024 review summary for ${restaurantContext}.`;
         break;
       case 'trending':
-        systemPrompt = 'You are a trending food news assistant. Provide brief, factual updates. Use format: • Current status • Recent mentions • Notable developments. Keep under 100 words.';
-        query = `Current trending status for ${restaurantName} restaurant ${location}. Any recent awards, media mentions, or buzz in 2024?`;
+        systemPrompt = 'Answer in 2-3 bullet points. • Current status • Recent mentions. Max 50 words.';
+        query = `Is ${restaurantContext} trending? Any recent awards, media mentions, or buzz in 2024?`;
         break;
       case 'verification':
-        systemPrompt = 'You are a restaurant verification assistant. Provide factual verification in clear format: • Status: [Open/Closed] • Address: [current address] • Phone: [number] • Hours: [brief schedule] • Website: [URL if available]';
-        query = `Verify current operational details for ${restaurantName} restaurant ${location}. Confirm if open, correct address, phone, and hours.`;
+        systemPrompt = 'Verify in bullet format: • Status: Open/Closed • Address: [current] • Phone: [number] • Hours: [brief]. Max 60 words.';
+        query = `Verify current details for ${restaurantContext}.`;
         break;
       case 'hours':
-        systemPrompt = 'You are a restaurant hours assistant. Provide current hours in clear format: • Monday: [hours] • Tuesday: [hours] etc. If hours vary or are unclear, state that clearly.';
-        query = `Current operating hours for ${restaurantName} restaurant ${location}. Provide specific daily hours.`;
+        systemPrompt = 'List current hours in format: • Mon-Fri: [hours] • Sat: [hours] • Sun: [hours] OR daily breakdown. Max 40 words.';
+        query = `Current hours for ${restaurantContext}.`;
         break;
       case 'custom':
-        systemPrompt = 'You are a helpful restaurant information assistant. Provide clear, concise answers. Use bullet points when appropriate. Keep responses focused and under 200 words.';
-        query = additionalContext || `Information about ${restaurantName} restaurant ${location}`;
+        systemPrompt = `Answer specifically about ${restaurantContext}. Be concise, direct, and factual. Max 100 words.`;
+        query = `About ${restaurantContext}: ${additionalContext || 'general information'}`;
         break;
       default:
-        systemPrompt = 'You are a helpful restaurant information assistant. Provide clear, concise answers using bullet points where appropriate.';
-        query = `Information about ${restaurantName} restaurant ${location}`;
+        systemPrompt = 'Provide clear, concise information in bullet points.';
+        query = `Information about ${restaurantContext}`;
     }
 
     if (additionalContext) {
