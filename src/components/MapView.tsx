@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { StarRating } from '@/components/StarRating';
 import { Label } from '@/components/ui/label';
 import { useMapboxToken } from '@/hooks/useMapboxToken';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 
 interface MapViewProps {
   restaurants: Restaurant[];
@@ -42,8 +43,16 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [tokenInput, setTokenInput] = useState('');
   const [showTokenInput, setShowTokenInput] = useState(false);
-  const [mapStyle, setMapStyle] = useState<MapStyle>('satellite');
+  
+  // Use default map style from settings, fallback to satellite
+  const [defaultMapStyle] = useLocalStorage<MapStyle>('defaultMapStyle', 'satellite');
+  const [mapStyle, setMapStyle] = useState<MapStyle>(defaultMapStyle);
   const { token, saveToken, isLoading } = useMapboxToken();
+
+  // Update map style when default setting changes
+  useEffect(() => {
+    setMapStyle(defaultMapStyle);
+  }, [defaultMapStyle]);
 
   // Filter restaurants by search term and ensure they have coordinates
   const filteredRestaurants = restaurants.filter(restaurant => {

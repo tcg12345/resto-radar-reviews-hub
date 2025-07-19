@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   LogOut, 
   Moon, 
@@ -18,10 +19,13 @@ import {
   Bell,
   Globe,
   Eye,
-  ArrowLeft
+  ArrowLeft,
+  Map,
+  Satellite
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -40,6 +44,9 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
   const [notifications, setNotifications] = useState(true);
   const [autoLocation, setAutoLocation] = useState(false);
   const [showUserEmail, setShowUserEmail] = useState(false);
+  
+  // Default map style setting
+  const [defaultMapStyle, setDefaultMapStyle] = useLocalStorage<'streets' | 'satellite' | 'hybrid'>('defaultMapStyle', 'satellite');
 
   useEffect(() => {
     if (profile) {
@@ -248,6 +255,39 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                 checked={autoLocation}
                 onCheckedChange={setAutoLocation}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Default Map Style</Label>
+              <Select value={defaultMapStyle} onValueChange={(value) => setDefaultMapStyle(value as 'streets' | 'satellite' | 'hybrid')}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="streets">
+                    <div className="flex items-center gap-2">
+                      <Map className="h-4 w-4" />
+                      Streets
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="satellite">
+                    <div className="flex items-center gap-2">
+                      <Satellite className="h-4 w-4" />
+                      Satellite
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="hybrid">
+                    <div className="flex items-center gap-2">
+                      <Satellite className="h-4 w-4 mr-1" />
+                      <Map className="h-3 w-3" />
+                      Hybrid
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-sm text-muted-foreground">
+                Choose the default map view that opens when you visit the Map tab
+              </p>
             </div>
           </CardContent>
         </Card>
