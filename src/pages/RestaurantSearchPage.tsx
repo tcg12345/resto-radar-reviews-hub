@@ -372,6 +372,12 @@ export default function RestaurantSearchPage() {
         currentDayHours: getCurrentDayHours(restaurant.openingHours || []),
       }));
 
+      console.log('Transformed restaurants with hours:', transformedResults.map(r => ({
+        name: r.name,
+        openingHours: r.openingHours,
+        currentDayHours: r.currentDayHours
+      })));
+
       setRestaurants(transformedResults);
       
       toast.success(`Found ${transformedResults.length} restaurants`);
