@@ -82,7 +82,9 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
   };
 
   const getPhotoUrl = (photoReference: string) => {
-    return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${photoReference}&key=${import.meta.env.VITE_GOOGLE_PLACES_API_KEY}`;
+    // Since we're using Supabase secrets, we'll use a simplified approach
+    // The photos array will be populated by the Google Places API response
+    return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${photoReference}&key=GOOGLE_API_KEY_PLACEHOLDER`;
   };
 
   const handlePhotoUpload = async (files: FileList) => {
@@ -122,36 +124,49 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
 
     setIsAddingToWishlist(true);
     try {
+      console.log('Adding to wishlist:', place);
+      console.log('User ID:', user.id);
+      
+      const restaurantData = {
+        id: place.place_id,
+        name: place.name,
+        address: place.formatted_address,
+        city: place.formatted_address.split(',').slice(-2, -1)[0]?.trim() || '',
+        country: place.formatted_address.split(',').slice(-1)[0]?.trim() || '',
+        cuisine: place.types.filter(type => 
+          !['establishment', 'point_of_interest', 'food'].includes(type)
+        )[0] || 'restaurant',
+        rating: place.rating || null,
+        phone_number: place.formatted_phone_number || null,
+        website: place.website || null,
+        opening_hours: place.opening_hours?.weekday_text?.join('\n') || null,
+        price_range: place.price_level || null,
+        latitude: place.geometry.location.lat,
+        longitude: place.geometry.location.lng,
+        photos: place.photos?.slice(0, 5).map(photo => 
+          `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo.photo_reference}&key=PLACEHOLDER`
+        ) || [],
+        notes: `Added from Global Search`,
+        is_wishlist: true,
+        user_id: user.id,
+      };
+
+      console.log('Restaurant data to insert:', restaurantData);
+
       const { error } = await supabase
         .from('restaurants')
-        .upsert({
-          id: place.place_id,
-          name: place.name,
-          address: place.formatted_address,
-          city: place.formatted_address.split(',').slice(-2, -1)[0]?.trim() || '',
-          country: place.formatted_address.split(',').slice(-1)[0]?.trim() || '',
-          cuisine: place.types.filter(type => 
-            !['establishment', 'point_of_interest', 'food'].includes(type)
-          )[0] || 'restaurant',
-          rating: place.rating,
-          phone_number: place.formatted_phone_number,
-          website: place.website,
-          opening_hours: place.opening_hours?.weekday_text?.join('\n'),
-          price_range: place.price_level,
-          latitude: place.geometry.location.lat,
-          longitude: place.geometry.location.lng,
-          photos: place.photos?.slice(0, 5).map(photo => getPhotoUrl(photo.photo_reference)) || [],
-          notes: `Added from Global Search`,
-          is_wishlist: true,
-          user_id: user.id,
-        });
+        .upsert(restaurantData);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
+      console.log('Successfully added to wishlist');
       toast.success('Added to wishlist!');
     } catch (error) {
       console.error('Error adding to wishlist:', error);
-      toast.error('Failed to add to wishlist');
+      toast.error(`Failed to add to wishlist: ${error.message}`);
     } finally {
       setIsAddingToWishlist(false);
     }
