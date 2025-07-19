@@ -265,10 +265,9 @@ export function RatedRestaurantsPage({
         <div className="flex gap-2">
           {onNavigateToMap && (
             <Button variant="outline" onClick={onNavigateToMap}>
-              <div className="flex items-center justify-center w-4 h-4 mr-2 text-sm font-bold bg-primary text-primary-foreground rounded">
-                M
+              <div className="flex items-center justify-center w-5 h-5 mr-2 text-sm font-bold bg-primary text-primary-foreground rounded-full">
+                📍
               </div>
-              Map View
             </Button>
           )}
           <Button onClick={() => setIsAddDialogOpen(true)}>

@@ -238,14 +238,17 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
       <CardContent className="pb-2">
         <div className="flex flex-wrap gap-2">
           {/* Current day hours display */}
-          {restaurant.openingHours && (
-            <div className="w-full mb-2">
-              <div className="flex items-center text-sm text-muted-foreground">
-                <Clock className="mr-1 h-3.5 w-3.5" />
-                <span>{getCurrentDayHours(restaurant.openingHours)}</span>
+          {restaurant.openingHours && (() => {
+            console.log('Restaurant data:', restaurant.name, 'openingHours:', restaurant.openingHours);
+            return (
+              <div className="w-full mb-2">
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <Clock className="mr-1 h-3.5 w-3.5" />
+                  <span>{getCurrentDayHours(restaurant.openingHours)}</span>
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
           
           {restaurant.dateVisited && (
             <div className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">

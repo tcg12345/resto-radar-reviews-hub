@@ -59,11 +59,11 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
           {user ? (
             <Button
               variant="ghost"
-              size="icon"
+              size="lg"
               onClick={() => onTabChange('settings')}
-              className="h-10 w-10"
+              className="h-12 w-12"
             >
-              <Settings className="h-5 w-5" />
+              <Settings className="h-6 w-6" />
               <span className="sr-only">Settings</span>
             </Button>
           ) : (
