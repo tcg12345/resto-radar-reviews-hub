@@ -1,14 +1,36 @@
-import { useState } from 'react';
-import { Search, UserPlus, Users, Clock, Send } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { 
+  Search, 
+  UserPlus, 
+  Users, 
+  Clock, 
+  Send, 
+  Star, 
+  MapPin, 
+  Calendar, 
+  Eye, 
+  Phone,
+  Activity,
+  Settings2,
+  User,
+  Check,
+  X
+} from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
 import { useFriends } from '@/hooks/useFriends';
+import { useFriendRestaurants } from '@/hooks/useFriendRestaurants';
 import { useAuth } from '@/contexts/AuthContext';
-import { EnhancedFriendsPage } from '@/components/EnhancedFriendsPage';
+import { StarRating } from '@/components/StarRating';
+import { MichelinStars } from '@/components/MichelinStars';
+import { PriceRange } from '@/components/PriceRange';
+import { ContactPermission } from '@/components/ContactPermission';
 
 interface SearchResult {
   id: string;
@@ -16,6 +38,202 @@ interface SearchResult {
   name: string | null;
   avatar_url: string | null;
   is_public: boolean;
+}
+
+interface FriendProfileModalProps {
+  friend: any;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+function FriendProfileModal({ friend, isOpen, onClose }: FriendProfileModalProps) {
+  const { fetchFriendRestaurants } = useFriendRestaurants();
+  const [restaurants, setRestaurants] = useState<any[]>([]);
+  const [wishlist, setWishlist] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && friend) {
+      loadFriendData();
+    }
+  }, [isOpen, friend]);
+
+  const loadFriendData = async () => {
+    if (!friend) return;
+    
+    setIsLoading(true);
+    try {
+      const [restaurantData, wishlistData] = await Promise.all([
+        fetchFriendRestaurants(friend.id, false),
+        fetchFriendRestaurants(friend.id, true)
+      ]);
+      
+      setRestaurants(restaurantData.filter(r => !r.is_wishlist));
+      setWishlist(wishlistData.filter(r => r.is_wishlist));
+    } catch (error) {
+      console.error('Error loading friend data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!friend) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader className="space-y-4">
+          <div className="flex items-center gap-4">
+            <Avatar className="h-16 w-16">
+              <AvatarImage src={friend.avatar_url || ''} />
+              <AvatarFallback className="text-2xl">
+                {friend.username?.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <DialogTitle className="text-2xl font-bold">@{friend.username}</DialogTitle>
+              {friend.name && (
+                <p className="text-lg text-muted-foreground">{friend.name}</p>
+              )}
+              <div className="flex items-center gap-3 mt-2">
+                <Badge variant={friend.is_public ? "default" : "secondary"} className="text-sm">
+                  {friend.is_public ? 'Public Profile' : 'Private Profile'}
+                </Badge>
+                <Badge variant="outline" className="text-sm">
+                  <Star className="h-3 w-3 mr-1" />
+                  Score: {friend.score}
+                </Badge>
+              </div>
+            </div>
+          </div>
+        </DialogHeader>
+
+        <Separator />
+
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center space-y-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="text-muted-foreground">Loading {friend.username}'s restaurants...</p>
+            </div>
+          </div>
+        ) : (
+          <Tabs defaultValue="restaurants" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="restaurants" className="flex items-center gap-2">
+                <Star className="h-4 w-4" />
+                Rated ({restaurants.length})
+              </TabsTrigger>
+              <TabsTrigger value="wishlist" className="flex items-center gap-2">
+                <Eye className="h-4 w-4" />
+                Wishlist ({wishlist.length})
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="restaurants" className="mt-6 space-y-4">
+              {restaurants.length === 0 ? (
+                <Card>
+                  <CardContent className="py-12 text-center">
+                    <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-lg text-muted-foreground">No rated restaurants yet</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {friend.username} hasn't rated any restaurants
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-4">
+                  {restaurants.map((restaurant) => (
+                    <Card key={restaurant.id} className="overflow-hidden">
+                      <CardContent className="p-6">
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="flex-1">
+                            <h3 className="font-bold text-xl mb-1">{restaurant.name}</h3>
+                            <p className="text-muted-foreground mb-2">{restaurant.cuisine}</p>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                              <MapPin className="h-4 w-4" />
+                              <span>{restaurant.address}, {restaurant.city}</span>
+                            </div>
+                            {restaurant.date_visited && (
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Calendar className="h-4 w-4" />
+                                <span>Visited: {new Date(restaurant.date_visited).toLocaleDateString()}</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-right space-y-3">
+                            {restaurant.rating && (
+                              <div className="flex items-center gap-2">
+                                <StarRating rating={restaurant.rating} readonly size="sm" />
+                                <span className="font-bold text-lg">{restaurant.rating.toFixed(1)}</span>
+                              </div>
+                            )}
+                            <div className="flex items-center gap-2 justify-end">
+                              {restaurant.priceRange && <PriceRange priceRange={restaurant.priceRange} />}
+                              {restaurant.michelinStars && <MichelinStars stars={restaurant.michelinStars} />}
+                            </div>
+                          </div>
+                        </div>
+                        {restaurant.notes && (
+                          <div className="mt-4 p-4 bg-muted rounded-lg">
+                            <p className="text-sm leading-relaxed">{restaurant.notes}</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="wishlist" className="mt-6 space-y-4">
+              {wishlist.length === 0 ? (
+                <Card>
+                  <CardContent className="py-12 text-center">
+                    <Eye className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-lg text-muted-foreground">No wishlist items yet</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {friend.username} hasn't added any restaurants to their wishlist
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-4">
+                  {wishlist.map((restaurant) => (
+                    <Card key={restaurant.id} className="overflow-hidden">
+                      <CardContent className="p-6">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h3 className="font-bold text-xl mb-1">{restaurant.name}</h3>
+                            <p className="text-muted-foreground mb-2">{restaurant.cuisine}</p>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <MapPin className="h-4 w-4" />
+                              <span>{restaurant.address}, {restaurant.city}</span>
+                            </div>
+                          </div>
+                          <div className="text-right space-y-2">
+                            <div className="flex items-center gap-2 justify-end">
+                              {restaurant.priceRange && <PriceRange priceRange={restaurant.priceRange} />}
+                              {restaurant.michelinStars && <MichelinStars stars={restaurant.michelinStars} />}
+                            </div>
+                          </div>
+                        </div>
+                        {restaurant.notes && (
+                          <div className="mt-4 p-4 bg-muted rounded-lg">
+                            <p className="text-sm leading-relaxed">{restaurant.notes}</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 export function FriendsPage() {
@@ -30,11 +248,18 @@ export function FriendsPage() {
     removeFriend, 
     searchUsers 
   } = useFriends();
+  const { friendRestaurants, fetchAllFriendsRestaurants } = useFriendRestaurants();
   
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [activeView, setActiveView] = useState<'activity' | 'manage'>('activity');
+  const [selectedFriend, setSelectedFriend] = useState<any>(null);
+  const [showContactPermission, setShowContactPermission] = useState(false);
+  const [contacts, setContacts] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchAllFriendsRestaurants();
+  }, []);
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
@@ -61,103 +286,251 @@ export function FriendsPage() {
            pendingRequests.some(request => request.sender_id === userId);
   };
 
+  const handleContactPermission = (contactList: any[]) => {
+    setContacts(contactList);
+    setShowContactPermission(false);
+  };
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (activeView === 'activity') {
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Friends</h1>
-          <Button onClick={() => setActiveView('manage')} variant="outline">
-            Manage Friends
-          </Button>
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="text-lg text-muted-foreground">Loading your friends...</p>
         </div>
-        <EnhancedFriendsPage />
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Users className="h-8 w-8" />
-          <h1 className="text-3xl font-bold">Manage Friends</h1>
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-primary/10 rounded-full">
+            <Users className="h-8 w-8 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold">Friends</h1>
+            <p className="text-muted-foreground">Connect with others and discover great restaurants</p>
+          </div>
         </div>
-        <Button onClick={() => setActiveView('activity')} variant="outline">
-          View Activity
+        <Button 
+          onClick={() => setShowContactPermission(true)}
+          variant="outline"
+          className="flex items-center gap-2"
+        >
+          <Phone className="h-4 w-4" />
+          Find from Contacts
         </Button>
       </div>
 
-      <Tabs defaultValue="friends" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="activity" className="w-full">
+        <TabsList className="grid w-full grid-cols-5 h-12">
+          <TabsTrigger value="activity" className="flex items-center gap-2">
+            <Activity className="h-4 w-4" />
+            <span className="hidden sm:inline">Activity</span>
+          </TabsTrigger>
           <TabsTrigger value="friends" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
-            Friends ({friends.length})
+            <span className="hidden sm:inline">Friends ({friends.length})</span>
+            <span className="sm:hidden">({friends.length})</span>
           </TabsTrigger>
           <TabsTrigger value="search" className="flex items-center gap-2">
             <Search className="h-4 w-4" />
-            Search
+            <span className="hidden sm:inline">Search</span>
           </TabsTrigger>
           <TabsTrigger value="received" className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
-            Received ({pendingRequests.length})
+            <span className="hidden sm:inline">Requests ({pendingRequests.length})</span>
+            <span className="sm:hidden">({pendingRequests.length})</span>
           </TabsTrigger>
           <TabsTrigger value="sent" className="flex items-center gap-2">
             <Send className="h-4 w-4" />
-            Sent ({sentRequests.length})
+            <span className="hidden sm:inline">Sent ({sentRequests.length})</span>
+            <span className="sm:hidden">({sentRequests.length})</span>
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="friends" className="space-y-4">
+        {/* Activity Tab */}
+        <TabsContent value="activity" className="mt-8">
+          <div className="grid gap-8 lg:grid-cols-3">
+            {/* Friends List Sidebar */}
+            <div className="lg:col-span-1">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Your Friends ({friends.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 max-h-[600px] overflow-y-auto">
+                  {friends.length === 0 ? (
+                    <div className="text-center py-8">
+                      <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground">No friends yet</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Search for people to connect with!
+                      </p>
+                    </div>
+                  ) : (
+                    friends.map((friend) => (
+                      <div 
+                        key={friend.id} 
+                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-all duration-200 hover:shadow-sm"
+                        onClick={() => setSelectedFriend(friend)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={friend.avatar_url || ''} />
+                            <AvatarFallback>
+                              {friend.username?.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium">@{friend.username}</div>
+                            {friend.name && (
+                              <div className="text-sm text-muted-foreground">{friend.name}</div>
+                            )}
+                            <div className="text-xs text-muted-foreground">
+                              Score: {friend.score}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={friend.is_public ? "default" : "secondary"} className="text-xs">
+                            {friend.is_public ? 'Public' : 'Private'}
+                          </Badge>
+                          <Eye className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Activity Feed */}
+            <div className="lg:col-span-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="h-5 w-5" />
+                    Recent Friend Activity
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {friendRestaurants.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Activity className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-lg text-muted-foreground mb-2">No recent activity</p>
+                      <p className="text-sm text-muted-foreground">
+                        When your friends rate restaurants, their activity will appear here
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4 max-h-[600px] overflow-y-auto">
+                      {friendRestaurants.slice(0, 10).map((restaurant) => (
+                        <div key={`${restaurant.id}-${restaurant.userId}`} className="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/30 transition-colors">
+                          <Avatar className="h-10 w-10 mt-1">
+                            <AvatarFallback>
+                              {restaurant.friend_username?.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
+                              <span className="font-medium">@{restaurant.friend_username}</span>
+                              <span className="text-muted-foreground text-sm">rated</span>
+                              <div className="flex items-center gap-1">
+                                <StarRating rating={restaurant.rating || 0} readonly size="sm" />
+                                <span className="font-semibold">{restaurant.rating?.toFixed(1)}</span>
+                              </div>
+                            </div>
+                            <h4 className="font-semibold text-lg mb-1">{restaurant.name}</h4>
+                            <p className="text-sm text-muted-foreground mb-2">{restaurant.cuisine} • {restaurant.city}</p>
+                            <div className="flex items-center gap-3 flex-wrap">
+                              {restaurant.priceRange && <PriceRange priceRange={restaurant.priceRange} />}
+                              {restaurant.michelinStars && <MichelinStars stars={restaurant.michelinStars} />}
+                              <span className="text-xs text-muted-foreground">
+                                {new Date(restaurant.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Friends Tab */}
+        <TabsContent value="friends" className="mt-8">
           <Card>
             <CardHeader>
-              <CardTitle>Your Friends</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Your Friends ({friends.length})
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {friends.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">
-                  No friends yet. Start by searching for people to connect with!
-                </p>
+                <div className="text-center py-12">
+                  <Users className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-lg text-muted-foreground mb-2">No friends yet</p>
+                  <p className="text-sm text-muted-foreground">
+                    Start by searching for people to connect with!
+                  </p>
+                </div>
               ) : (
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {friends.map((friend) => (
-                    <div key={friend.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Avatar>
+                    <div key={friend.id} className="flex flex-col p-6 border rounded-lg hover:shadow-md transition-all duration-200">
+                      <div className="flex items-center gap-4 mb-4">
+                        <Avatar className="h-12 w-12">
                           <AvatarImage src={friend.avatar_url || ''} />
-                          <AvatarFallback>
+                          <AvatarFallback className="text-lg">
                             {friend.username?.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <div className="font-semibold">@{friend.username}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-lg truncate">@{friend.username}</div>
                           {friend.name && (
-                            <div className="text-sm text-muted-foreground">{friend.name}</div>
+                            <div className="text-sm text-muted-foreground truncate">{friend.name}</div>
                           )}
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant={friend.is_public ? "default" : "secondary"}>
-                              {friend.is_public ? 'Public' : 'Private'}
-                            </Badge>
-                            <Badge variant="outline">
-                              Score: {friend.score}
-                            </Badge>
-                          </div>
                         </div>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeFriend(friend.id)}
-                      >
-                        Remove
-                      </Button>
+                      <div className="flex items-center justify-between gap-2 mb-4">
+                        <div className="flex items-center gap-2">
+                          <Badge variant={friend.is_public ? "default" : "secondary"}>
+                            {friend.is_public ? 'Public' : 'Private'}
+                          </Badge>
+                          <Badge variant="outline">
+                            <Star className="h-3 w-3 mr-1" />
+                            {friend.score}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => setSelectedFriend(friend)}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          View Profile
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeFriend(friend.id)}
+                        >
+                          Remove
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -166,60 +539,69 @@ export function FriendsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="search" className="space-y-4">
+        {/* Search Tab */}
+        <TabsContent value="search" className="mt-8">
           <Card>
             <CardHeader>
-              <CardTitle>Find Friends</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Search className="h-5 w-5" />
+                Find Friends
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
                 <Input
                   placeholder="Search by username or name..."
                   value={searchQuery}
                   onChange={(e) => handleSearch(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 h-12 text-lg"
                 />
               </div>
               
               {isSearching && (
-                <div className="flex items-center justify-center py-4">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                <div className="flex items-center justify-center py-8">
+                  <div className="text-center space-y-2">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                    <p className="text-muted-foreground">Searching for users...</p>
+                  </div>
                 </div>
               )}
 
               {searchResults.length > 0 && (
-                <div className="space-y-3">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {searchResults.map((result) => (
-                    <div key={result.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Avatar>
+                    <div key={result.id} className="flex flex-col p-6 border rounded-lg hover:shadow-md transition-all duration-200">
+                      <div className="flex items-center gap-4 mb-4">
+                        <Avatar className="h-12 w-12">
                           <AvatarImage src={result.avatar_url || ''} />
-                          <AvatarFallback>
+                          <AvatarFallback className="text-lg">
                             {result.username?.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <div className="font-semibold">@{result.username}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-lg truncate">@{result.username}</div>
                           {result.name && (
-                            <div className="text-sm text-muted-foreground">{result.name}</div>
+                            <div className="text-sm text-muted-foreground truncate">{result.name}</div>
                           )}
-                          <Badge variant={result.is_public ? "default" : "secondary"}>
-                            {result.is_public ? 'Public' : 'Private'}
-                          </Badge>
                         </div>
                       </div>
+                      <div className="mb-4">
+                        <Badge variant={result.is_public ? "default" : "secondary"}>
+                          {result.is_public ? 'Public Profile' : 'Private Profile'}
+                        </Badge>
+                      </div>
                       <Button
-                        size="sm"
+                        className="w-full"
                         disabled={isAlreadyFriend(result.id) || hasPendingRequest(result.id)}
                         onClick={() => sendFriendRequest(result.id)}
                       >
                         <UserPlus className="h-4 w-4 mr-2" />
                         {isAlreadyFriend(result.id) 
-                          ? 'Friends' 
+                          ? 'Already Friends' 
                           : hasPendingRequest(result.id) 
-                          ? 'Pending' 
-                          : 'Add Friend'
+                          ? 'Request Pending' 
+                          : 'Send Friend Request'
                         }
                       </Button>
                     </div>
@@ -228,41 +610,53 @@ export function FriendsPage() {
               )}
 
               {searchQuery.length >= 2 && !isSearching && searchResults.length === 0 && (
-                <p className="text-muted-foreground text-center py-4">
-                  No users found matching "{searchQuery}"
-                </p>
+                <div className="text-center py-12">
+                  <Search className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-lg text-muted-foreground mb-2">No users found</p>
+                  <p className="text-sm text-muted-foreground">
+                    No users found matching "{searchQuery}"
+                  </p>
+                </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="received" className="space-y-4">
+        {/* Received Requests Tab */}
+        <TabsContent value="received" className="mt-8">
           <Card>
             <CardHeader>
-              <CardTitle>Friend Requests Received</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Friend Requests Received ({pendingRequests.length})
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {pendingRequests.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">
-                  No pending friend requests
-                </p>
+                <div className="text-center py-12">
+                  <Clock className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-lg text-muted-foreground mb-2">No pending requests</p>
+                  <p className="text-sm text-muted-foreground">
+                    When someone sends you a friend request, it will appear here
+                  </p>
+                </div>
               ) : (
-                <div className="space-y-3">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {pendingRequests.map((request) => (
-                    <div key={request.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Avatar>
+                    <div key={request.id} className="flex flex-col p-6 border rounded-lg hover:shadow-md transition-all duration-200">
+                      <div className="flex items-center gap-4 mb-4">
+                        <Avatar className="h-12 w-12">
                           <AvatarImage src={request.sender?.avatar_url || ''} />
-                          <AvatarFallback>
+                          <AvatarFallback className="text-lg">
                             {request.sender?.username?.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <div className="font-semibold">@{request.sender?.username}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-lg truncate">@{request.sender?.username}</div>
                           {request.sender?.name && (
-                            <div className="text-sm text-muted-foreground">{request.sender.name}</div>
+                            <div className="text-sm text-muted-foreground truncate">{request.sender.name}</div>
                           )}
-                          <div className="text-xs text-muted-foreground">
+                          <div className="text-xs text-muted-foreground mt-1">
                             {new Date(request.created_at).toLocaleDateString()}
                           </div>
                         </div>
@@ -270,15 +664,19 @@ export function FriendsPage() {
                       <div className="flex gap-2">
                         <Button
                           size="sm"
+                          className="flex-1"
                           onClick={() => respondToFriendRequest(request.id, true)}
                         >
+                          <Check className="h-4 w-4 mr-2" />
                           Accept
                         </Button>
                         <Button
                           size="sm"
                           variant="outline"
+                          className="flex-1"
                           onClick={() => respondToFriendRequest(request.id, false)}
                         >
+                          <X className="h-4 w-4 mr-2" />
                           Decline
                         </Button>
                       </div>
@@ -290,38 +688,51 @@ export function FriendsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="sent" className="space-y-4">
+        {/* Sent Requests Tab */}
+        <TabsContent value="sent" className="mt-8">
           <Card>
             <CardHeader>
-              <CardTitle>Friend Requests Sent</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Send className="h-5 w-5" />
+                Friend Requests Sent ({sentRequests.length})
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {sentRequests.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">
-                  No sent friend requests
-                </p>
+                <div className="text-center py-12">
+                  <Send className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-lg text-muted-foreground mb-2">No sent requests</p>
+                  <p className="text-sm text-muted-foreground">
+                    Friend requests you send will appear here
+                  </p>
+                </div>
               ) : (
-                <div className="space-y-3">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {sentRequests.map((request) => (
-                    <div key={request.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Avatar>
+                    <div key={request.id} className="flex flex-col p-6 border rounded-lg">
+                      <div className="flex items-center gap-4 mb-4">
+                        <Avatar className="h-12 w-12">
                           <AvatarImage src={request.receiver?.avatar_url || ''} />
-                          <AvatarFallback>
+                          <AvatarFallback className="text-lg">
                             {request.receiver?.username?.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <div className="font-semibold">@{request.receiver?.username}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-lg truncate">@{request.receiver?.username}</div>
                           {request.receiver?.name && (
-                            <div className="text-sm text-muted-foreground">{request.receiver.name}</div>
+                            <div className="text-sm text-muted-foreground truncate">{request.receiver.name}</div>
                           )}
-                          <div className="text-xs text-muted-foreground">
+                          <div className="text-xs text-muted-foreground mt-1">
                             Sent {new Date(request.created_at).toLocaleDateString()}
                           </div>
                         </div>
                       </div>
-                      <Badge variant="secondary">Pending</Badge>
+                      <div className="flex justify-center">
+                        <Badge variant="secondary" className="px-4 py-2">
+                          <Clock className="h-3 w-3 mr-2" />
+                          Pending
+                        </Badge>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -330,6 +741,23 @@ export function FriendsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Contact Permission Dialog */}
+      <Dialog open={showContactPermission} onOpenChange={setShowContactPermission}>
+        <DialogContent>
+          <ContactPermission
+            onPermissionGranted={handleContactPermission}
+            onPermissionDenied={() => setShowContactPermission(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Friend Profile Modal */}
+      <FriendProfileModal
+        friend={selectedFriend}
+        isOpen={!!selectedFriend}
+        onClose={() => setSelectedFriend(null)}
+      />
     </div>
   );
 }
