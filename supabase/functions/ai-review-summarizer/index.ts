@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const claudeApiKey = Deno.env.get('CLAUDE_API_KEY');
 const googlePlacesApiKey = Deno.env.get('GOOGLE_PLACES_API_KEY');
 
 const corsHeaders = {
@@ -18,7 +18,7 @@ serve(async (req) => {
   try {
     const { placeId, restaurantName } = await req.json();
 
-    if (!openAIApiKey || !googlePlacesApiKey) {
+    if (!claudeApiKey || !googlePlacesApiKey) {
       throw new Error('Required API keys not configured');
     }
 
@@ -68,29 +68,30 @@ Return your analysis in this exact JSON structure:
 
 Be objective and balanced in your analysis.`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${claudeApiKey}`,
         'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 500,
+        system: systemPrompt,
         messages: [
-          { role: 'system', content: systemPrompt },
           { role: 'user', content: `Reviews to analyze:\n\n${reviewTexts}` }
         ],
         temperature: 0.3,
-        max_tokens: 500,
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.statusText}`);
+      throw new Error(`Claude API error: ${response.statusText}`);
     }
 
     const data = await response.json();
-    const analysisText = data.choices[0].message.content;
+    const analysisText = data.content[0]?.text;
 
     try {
       const analysis = JSON.parse(analysisText);

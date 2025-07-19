@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const claudeApiKey = Deno.env.get('CLAUDE_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -17,9 +17,9 @@ serve(async (req) => {
   try {
     console.log('Determine cuisine function called');
 
-    if (!openAIApiKey) {
-      console.error('OpenAI API key is not configured');
-      throw new Error('OpenAI API key is not configured');
+    if (!claudeApiKey) {
+      console.error('Claude API key is not configured');
+      throw new Error('Claude API key is not configured');
     }
 
     const { restaurantName, address, types } = await req.json();
@@ -67,32 +67,33 @@ Google Places Types: ${types?.join(', ') || 'Not provided'}
 
 What cuisine type is this restaurant?`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${claudeApiKey}`,
         'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
+        model: 'claude-3-5-haiku-20241022',
+        max_tokens: 50,
+        system: systemPrompt,
         messages: [
-          { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
         temperature: 0.1,
-        max_tokens: 50,
       }),
     });
 
     if (!response.ok) {
-      console.error('OpenAI API error:', response.status, response.statusText);
+      console.error('Claude API error:', response.status, response.statusText);
       const errorText = await response.text();
       console.error('Error details:', errorText);
-      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+      throw new Error(`Claude API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
-    const determinedCuisine = data.choices[0].message.content.trim();
+    const determinedCuisine = data.content[0]?.text?.trim();
 
     console.log('Determined cuisine:', determinedCuisine);
 

@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const claudeApiKey = Deno.env.get('CLAUDE_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -17,7 +17,7 @@ interface RestaurantInfoRequest {
 }
 
 serve(async (req) => {
-  console.log('ChatGPT restaurant info function called');
+  console.log('Claude restaurant info function called');
   
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -25,9 +25,9 @@ serve(async (req) => {
   }
 
   try {
-    if (!openAIApiKey) {
-      console.error('OpenAI API key is not configured');
-      throw new Error('OpenAI API key is not configured. Please add OPENAI_API_KEY to your Supabase secrets.');
+    if (!claudeApiKey) {
+      console.error('Claude API key is not configured');
+      throw new Error('Claude API key is not configured. Please add CLAUDE_API_KEY to your Supabase secrets.');
     }
 
     const { restaurantName, address, city, cuisine, customInquiry }: RestaurantInfoRequest = await req.json();
@@ -37,48 +37,46 @@ serve(async (req) => {
     const location = city ? `in ${city}` : (address ? `at ${address}` : '');
     const restaurantContext = `${restaurantName}${location}${address ? ` (${address})` : ''}${cuisine ? `, a ${cuisine} restaurant` : ''}`;
     
-    console.log('ChatGPT query for:', restaurantContext);
+    console.log('Claude query for:', restaurantContext);
 
-    // Use ChatGPT to answer the custom inquiry about the restaurant
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Use Claude to answer the custom inquiry about the restaurant
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${claudeApiKey}`,
         'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 300,
+        system: `You are a helpful restaurant information assistant. Answer questions about restaurants based on general knowledge. Be concise and informative. If you don't have specific current information, say so and provide general guidance. Use bullet points (•) for multiple facts. Keep responses under 4 bullet points.`,
         messages: [
-          {
-            role: 'system',
-            content: `You are a helpful restaurant information assistant. Answer questions about restaurants based on general knowledge. Be concise and informative. If you don't have specific current information, say so and provide general guidance. Use bullet points (•) for multiple facts. Keep responses under 4 bullet points.`
-          },
           {
             role: 'user',
             content: `Question about ${restaurantContext}: ${customInquiry}`
           }
         ],
         temperature: 0.3,
-        max_tokens: 300,
       }),
     });
 
     if (!response.ok) {
-      console.error('OpenAI API error:', response.status, response.statusText);
+      console.error('Claude API error:', response.status, response.statusText);
       const errorText = await response.text();
       console.error('Error details:', errorText);
-      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+      throw new Error(`Claude API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
-    console.log('OpenAI API response received');
+    console.log('Claude API response received');
 
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      console.error('Invalid response format from OpenAI API');
-      throw new Error('Invalid response format from OpenAI API');
+    if (!data.content || !data.content[0] || !data.content[0].text) {
+      console.error('Invalid response format from Claude API');
+      throw new Error('Invalid response format from Claude API');
     }
 
-    const generatedInfo = data.choices[0].message.content;
+    const generatedInfo = data.content[0].text;
     
     console.log('Successfully generated restaurant info');
 
@@ -88,7 +86,7 @@ serve(async (req) => {
       infoType: 'custom',
       generatedInfo,
       lastUpdated: new Date().toISOString(),
-      sources: ['ChatGPT General Knowledge'],
+      sources: ['Claude AI General Knowledge'],
     };
 
     return new Response(JSON.stringify(structuredInfo), {
@@ -96,7 +94,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Error in chatgpt-restaurant-info function:', error);
+    console.error('Error in claude-restaurant-info function:', error);
     return new Response(JSON.stringify({ 
       error: 'Failed to get restaurant information',
       details: error.message,

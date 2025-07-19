@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const claudeApiKey = Deno.env.get('CLAUDE_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -17,8 +17,8 @@ serve(async (req) => {
   try {
     const { message, context, userPreferences } = await req.json();
 
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
+    if (!claudeApiKey) {
+      throw new Error('Claude API key not configured');
     }
 
     const systemPrompt = `You are an expert restaurant discovery assistant. Your role is to help users find the perfect restaurant based on their needs, preferences, and context.
@@ -38,48 +38,47 @@ Guidelines:
 
 Keep responses concise but informative. Always end with a suggestion for what the user should search for or a question to help narrow down their preferences.`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${claudeApiKey}`,
         'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 300,
+        system: systemPrompt,
         messages: [
-          { role: 'system', content: systemPrompt },
           { role: 'user', content: message }
         ],
         temperature: 0.7,
-        max_tokens: 300,
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.statusText}`);
+      throw new Error(`Claude API error: ${response.statusText}`);
     }
 
     const data = await response.json();
-    const aiResponse = data.choices[0].message.content;
+    const aiResponse = data.content[0]?.text;
 
     // Also generate suggested search queries
-    const suggestionsResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const suggestionsResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${claudeApiKey}`,
         'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'claude-3-5-haiku-20241022',
+        max_tokens: 100,
+        system: 'Generate 3 specific restaurant search queries based on the user\'s message. Return only a JSON array of strings, no other text.',
         messages: [
-          { 
-            role: 'system', 
-            content: 'Generate 3 specific restaurant search queries based on the user\'s message. Return only a JSON array of strings, no other text.' 
-          },
           { role: 'user', content: `User said: "${message}". Generate search queries they could use.` }
         ],
         temperature: 0.5,
-        max_tokens: 100,
       }),
     });
 
@@ -87,7 +86,7 @@ Keep responses concise but informative. Always end with a suggestion for what th
     if (suggestionsResponse.ok) {
       const suggestionsData = await suggestionsResponse.json();
       try {
-        suggestions = JSON.parse(suggestionsData.choices[0].message.content);
+        suggestions = JSON.parse(suggestionsData.content[0]?.text || '[]');
       } catch {
         suggestions = [];
       }

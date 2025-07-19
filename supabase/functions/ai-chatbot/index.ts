@@ -15,9 +15,9 @@ serve(async (req) => {
   try {
     const { message, userRestaurants = [] } = await req.json();
     
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openaiApiKey) {
-      throw new Error('OpenAI API key not configured');
+    const claudeApiKey = Deno.env.get('CLAUDE_API_KEY');
+    if (!claudeApiKey) {
+      throw new Error('Claude API key not configured');
     }
 
     // Create context about user's restaurants
@@ -46,42 +46,39 @@ Guidelines:
 
 ${restaurantContext}`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
+        'Authorization': `Bearer ${claudeApiKey}`,
         'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 1000,
+        system: systemPrompt,
         messages: [
-          { role: 'system', content: systemPrompt },
           { role: 'user', content: message }
         ],
         temperature: 0.7,
-        max_tokens: 1000,
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('OpenAI API error:', errorData);
-      throw new Error(`OpenAI API error: ${response.status}`);
+      console.error('Claude API error:', errorData);
+      throw new Error(`Claude API error: ${response.status}`);
     }
 
     const data = await response.json();
-    let aiResponse = data.choices[0]?.message?.content;
+    let aiResponse = data.content[0]?.text;
 
     if (!aiResponse) {
       throw new Error('No response from AI');
     }
 
-    // Clean up asterisks and markdown formatting
-    aiResponse = aiResponse
-      .replace(/\*\*([^*]+)\*\*/g, '$1')  // Remove bold markdown
-      .replace(/\*([^*]+)\*/g, '$1')      // Remove italic markdown
-      .replace(/\*/g, '')                 // Remove any remaining asterisks
-      .trim();
+    // Clean up formatting
+    aiResponse = aiResponse.trim();
 
     if (!aiResponse) {
       throw new Error('No response from AI');

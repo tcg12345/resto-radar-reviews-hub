@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const claudeApiKey = Deno.env.get('CLAUDE_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -35,8 +35,8 @@ serve(async (req) => {
     
     console.log('Processing review assistant request:', requestData);
 
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key is not configured');
+    if (!claudeApiKey) {
+      throw new Error('Claude API key is not configured');
     }
 
     let systemPrompt = '';
@@ -114,42 +114,42 @@ Provide:
         break;
     }
 
-    console.log('Making OpenAI API call...');
+    console.log('Making Claude API call...');
     
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${claudeApiKey}`,
         'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 1000,
+        system: systemPrompt,
         messages: [
-          { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
         temperature: 0.7,
-        max_tokens: 1000,
       }),
     });
 
-    console.log('OpenAI response status:', response.status);
+    console.log('Claude response status:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI API error:', response.status, errorText);
-      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+      console.error('Claude API error:', response.status, errorText);
+      throw new Error(`Claude API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
-    let result = data.choices[0].message.content;
+    let result = data.content[0]?.text;
 
-    // Clean up asterisks and markdown formatting
-    result = result
-      .replace(/\*\*([^*]+)\*\*/g, '$1')  // Remove bold markdown
-      .replace(/\*([^*]+)\*/g, '$1')      // Remove italic markdown
-      .replace(/\*/g, '')                 // Remove any remaining asterisks
-      .trim();
+    if (!result) {
+      throw new Error('No response from Claude');
+    }
+
+    result = result.trim();
 
     console.log('AI review assistant completed successfully');
 

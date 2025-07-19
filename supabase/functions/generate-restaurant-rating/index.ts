@@ -23,9 +23,9 @@ serve(async (req) => {
   }
 
   try {
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not found');
+    const claudeApiKey = Deno.env.get('CLAUDE_API_KEY');
+    if (!claudeApiKey) {
+      throw new Error('Claude API key not found');
     }
 
     const { restaurantName, cuisine }: RatingRequest = await req.json();
@@ -50,42 +50,43 @@ Respond in JSON format:
   "reasoning": "Brief explanation of the rating based on food quality, service, atmosphere, and reputation"
 }`;
 
-    console.log('Sending request to OpenAI for restaurant rating');
+    console.log('Sending request to Claude for restaurant rating');
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${claudeApiKey}`,
         'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 500,
+        system: 'You are a restaurant expert who provides accurate, fair ratings based on real restaurant quality factors.',
         messages: [
-          { role: 'system', content: 'You are a restaurant expert who provides accurate, fair ratings based on real restaurant quality factors.' },
           { role: 'user', content: prompt }
         ],
         temperature: 0.3,
-        max_tokens: 500,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI API error:', errorText);
-      throw new Error(`OpenAI API error: ${response.status}`);
+      console.error('Claude API error:', errorText);
+      throw new Error(`Claude API error: ${response.status}`);
     }
 
     const data = await response.json();
-    const generatedText = data.choices[0].message.content;
+    const generatedText = data.content[0]?.text;
 
-    console.log('OpenAI response:', generatedText);
+    console.log('Claude response:', generatedText);
 
     // Parse the JSON response
     let ratingData: RatingResponse;
     try {
       ratingData = JSON.parse(generatedText);
     } catch (parseError) {
-      console.error('Failed to parse OpenAI response:', parseError);
+      console.error('Failed to parse Claude response:', parseError);
       throw new Error('Failed to parse rating response');
     }
 
