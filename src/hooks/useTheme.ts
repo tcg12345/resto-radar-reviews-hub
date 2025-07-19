@@ -5,10 +5,9 @@ export function useTheme() {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('theme');
       if (stored) return stored as 'light' | 'dark';
-      // Default to dark mode instead of following system preference
-      return 'dark';
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
-    return 'dark'; // Default to dark mode on server side too
+    return 'light';
   });
 
   useEffect(() => {
