@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Moon, Sun, MapPin, Star, Heart, LogOut, LogIn, Home, Search, Utensils } from 'lucide-react';
+import { MapPin, Star, Heart, Home, Search, Settings } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/hooks/useTheme';
@@ -8,12 +8,11 @@ import { GrubbyLogo } from '@/components/GrubbyLogo';
 
 interface NavbarProps {
   activeTab: 'home' | 'rated' | 'wishlist' | 'map' | 'search';
-  onTabChange: (tab: 'home' | 'rated' | 'wishlist' | 'map' | 'search') => void;
+  onTabChange: (tab: 'home' | 'rated' | 'wishlist' | 'map' | 'search' | 'settings') => void;
 }
 
 export function Navbar({ activeTab, onTabChange }: NavbarProps) {
-  const { theme, toggleTheme } = useTheme();
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const tabs = [
@@ -23,15 +22,6 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
     { id: 'wishlist' as const, label: 'Wishlist', icon: Heart },
     { id: 'map' as const, label: 'Map View', icon: MapPin },
   ];
-  
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      navigate('/'); // Navigate to home page to show landing page
-    } catch (error) {
-      console.error('Error during sign out:', error);
-    }
-  };
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -66,29 +56,15 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
         </div>
 
         <div className="flex items-center space-x-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleTheme}
-            className="h-10 w-10"
-          >
-            {theme === 'light' ? (
-              <Moon className="h-5 w-5" />
-            ) : (
-              <Sun className="h-5 w-5" />
-            )}
-            <span className="sr-only">Toggle theme</span>
-          </Button>
-
           {user ? (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleSignOut}
-              className="flex items-center gap-2"
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onTabChange('settings')}
+              className="h-10 w-10"
             >
-              <LogOut className="h-4 w-4" />
-              Sign Out
+              <Settings className="h-5 w-5" />
+              <span className="sr-only">Settings</span>
             </Button>
           ) : (
             <Button 
@@ -97,7 +73,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
               onClick={() => navigate('/auth')}
               className="flex items-center gap-2"
             >
-              <LogIn className="h-4 w-4" />
+              <Settings className="h-4 w-4" />
               Sign In
             </Button>
           )}
