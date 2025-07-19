@@ -79,62 +79,78 @@ serve(async (req) => {
       throw new Error(`Google Places API error: ${placesData.status}`);
     }
 
-    const restaurants = placesData.results?.slice(0, limit).map((place: any) => {
-      // Determine current day opening hours
-      const today = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
-      let currentDayHours;
-      
-      console.log(`Processing ${place.name}:`, {
-        hasOpeningHours: !!place.opening_hours,
-        hasWeekdayText: !!place.opening_hours?.weekday_text,
-        weekdayTextLength: place.opening_hours?.weekday_text?.length || 0,
-        hasWebsite: !!place.website,
-        website: place.website
-      });
-      
-      if (place.opening_hours?.weekday_text) {
-        const todayHours = place.opening_hours.weekday_text[today === 0 ? 6 : today - 1]; // Adjust for Sunday
-        if (todayHours) {
-          const timeMatch = todayHours.match(/:\s*(.+)/);
-          currentDayHours = timeMatch ? timeMatch[1].trim() : todayHours;
+    const restaurants = await Promise.all(
+      placesData.results?.slice(0, limit).map(async (place: any) => {
+        // Get detailed information for each restaurant
+        let detailedPlace = place;
+        
+        try {
+          const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,formatted_address,rating,user_ratings_total,price_level,opening_hours,formatted_phone_number,website,geometry,types,photos&key=${googlePlacesApiKey}`;
+          
+          const detailsResponse = await fetch(detailsUrl);
+          if (detailsResponse.ok) {
+            const detailsData = await detailsResponse.json();
+            if (detailsData.status === 'OK' && detailsData.result) {
+              detailedPlace = { ...place, ...detailsData.result };
+              console.log(`Got details for ${place.name}:`, {
+                hasOpeningHours: !!detailsData.result.opening_hours,
+                hasWeekdayText: !!detailsData.result.opening_hours?.weekday_text,
+                hasWebsite: !!detailsData.result.website
+              });
+            }
+          }
+        } catch (error) {
+          console.warn(`Failed to get details for ${place.name}:`, error);
         }
-      }
 
-      const restaurant = {
-        id: place.place_id,
-        name: place.name,
-        address: place.formatted_address,
-        rating: place.rating || 0,
-        reviewCount: place.user_ratings_total,
-        priceRange: place.price_level || 2,
-        isOpen: place.opening_hours?.open_now,
-        phoneNumber: place.formatted_phone_number,
-        website: place.website,
-        openingHours: place.opening_hours?.weekday_text || [],
-        currentDayHours,
-        photos: place.photos?.map((photo: any) => 
-          `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo.photo_reference}&key=${googlePlacesApiKey}`
-        ) || [],
-        location: {
-          lat: place.geometry?.location?.lat || 0,
-          lng: place.geometry?.location?.lng || 0,
-        },
-        cuisine: place.types?.find((type: string) => 
-          !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type)
-        )?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Restaurant',
-        googleMapsUrl: `https://www.google.com/maps/place/?q=place_id:${place.place_id}`,
-        michelinStars: 0 // Google Places doesn't provide Michelin stars
-      };
+        // Determine current day opening hours
+        const today = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
+        let currentDayHours;
+        
+        if (detailedPlace.opening_hours?.weekday_text) {
+          const todayHours = detailedPlace.opening_hours.weekday_text[today === 0 ? 6 : today - 1]; // Adjust for Sunday
+          if (todayHours) {
+            const timeMatch = todayHours.match(/:\s*(.+)/);
+            currentDayHours = timeMatch ? timeMatch[1].trim() : todayHours;
+          }
+        }
 
-      console.log(`Restaurant ${place.name} processed:`, {
-        hasWebsite: !!restaurant.website,
-        website: restaurant.website,
-        hasOpeningHours: restaurant.openingHours.length > 0,
-        currentDayHours: restaurant.currentDayHours
-      });
+        const restaurant = {
+          id: detailedPlace.place_id,
+          name: detailedPlace.name,
+          address: detailedPlace.formatted_address,
+          rating: detailedPlace.rating || 0,
+          reviewCount: detailedPlace.user_ratings_total,
+          priceRange: detailedPlace.price_level || 2,
+          isOpen: detailedPlace.opening_hours?.open_now,
+          phoneNumber: detailedPlace.formatted_phone_number,
+          website: detailedPlace.website,
+          openingHours: detailedPlace.opening_hours?.weekday_text || [],
+          currentDayHours,
+          photos: detailedPlace.photos?.map((photo: any) => 
+            `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo.photo_reference}&key=${googlePlacesApiKey}`
+          ) || [],
+          location: {
+            lat: detailedPlace.geometry?.location?.lat || 0,
+            lng: detailedPlace.geometry?.location?.lng || 0,
+          },
+          cuisine: detailedPlace.types?.find((type: string) => 
+            !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type)
+          )?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Restaurant',
+          googleMapsUrl: `https://www.google.com/maps/place/?q=place_id:${detailedPlace.place_id}`,
+          michelinStars: 0 // Google Places doesn't provide Michelin stars
+        };
 
-      return restaurant;
-    }) || [];
+        console.log(`Final restaurant ${detailedPlace.name}:`, {
+          hasWebsite: !!restaurant.website,
+          website: restaurant.website,
+          hasOpeningHours: restaurant.openingHours.length > 0,
+          currentDayHours: restaurant.currentDayHours
+        });
+
+        return restaurant;
+      }) || []
+    );
 
     console.log(`Found ${restaurants.length} restaurants`);
 
