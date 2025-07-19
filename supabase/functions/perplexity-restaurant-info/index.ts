@@ -62,8 +62,24 @@ serve(async (req) => {
         query = `Current hours for ${restaurantContext}.`;
         break;
       case 'custom':
-        systemPrompt = `Answer specifically about ${restaurantContext}. Be concise, direct, and factual. Max 100 words.`;
-        query = `About ${restaurantContext}: ${additionalContext || 'general information'}`;
+        // Detect question type for appropriate formatting
+        const questionLower = (additionalContext || '').toLowerCase();
+        
+        if (questionLower.includes('hour') || questionLower.includes('open') || questionLower.includes('close') || questionLower.includes('time')) {
+          systemPrompt = `Format hours like this:
+Monday: 11:45 AM–2:15 PM, 5:30–9:45 PM
+Tuesday: 5:30–10:45 PM
+Wednesday: Closed
+
+Be concise and only show the hours. If not available, say "Hours not available."`;
+          query = `Current operating hours for ${restaurantContext}`;
+        } else if (questionLower.includes('founded') || questionLower.includes('founder') || questionLower.includes('owner') || questionLower.includes('chef') || questionLower.includes('when opened') || questionLower.includes('who')) {
+          systemPrompt = 'Give a very brief, direct answer (1-2 sentences maximum). Be concise and to the point.';
+          query = `About ${restaurantContext}: ${additionalContext || 'general information'}`;
+        } else {
+          systemPrompt = `Answer specifically about ${restaurantContext}. Be concise, direct, and factual. Max 100 words.`;
+          query = `About ${restaurantContext}: ${additionalContext || 'general information'}`;
+        }
         break;
       default:
         systemPrompt = 'Provide clear, concise information in bullet points.';
