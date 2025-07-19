@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { Capacitor } from '@capacitor/core';
 
 interface ContactPermissionProps {
   onPermissionGranted: (contacts: any[]) => void;
@@ -14,27 +15,63 @@ export function ContactPermission({ onPermissionGranted, onPermissionDenied }: C
     setIsRequesting(true);
     
     try {
-      // Check if we're in a secure context (HTTPS or localhost)
-      if (!window.isSecureContext) {
-        toast.error('Contact access requires HTTPS. This feature will work when deployed.');
-        onPermissionDenied();
-        return;
-      }
-
-      // Check if navigator.contacts is available (Chrome/Edge only currently)
-      if ('contacts' in navigator && 'ContactsManager' in window) {
+      // Check if we're running on mobile via Capacitor
+      if (Capacitor.isNativePlatform()) {
         try {
-          const contacts = await (navigator as any).contacts.select(['name', 'tel'], { multiple: true });
-          onPermissionGranted(contacts);
-          toast.success('Contact access granted!');
+          // Dynamic import for Capacitor Contacts plugin
+          const { Contacts } = await import('@capacitor-community/contacts');
+          
+          // Request permission and get contacts
+          const permission = await Contacts.requestPermissions();
+          
+          if (permission.contacts === 'granted') {
+            const result = await Contacts.getContacts({
+              projection: {
+                name: true,
+                phones: true,
+              }
+            });
+            
+            // Format contacts for our use
+            const formattedContacts = result.contacts.map(contact => ({
+              name: contact.name?.display || 'Unknown',
+              tel: contact.phones?.[0]?.number || ''
+            })).filter(contact => contact.tel);
+            
+            onPermissionGranted(formattedContacts);
+            toast.success(`Found ${formattedContacts.length} contacts!`);
+          } else {
+            toast.error('Contact permission denied');
+            onPermissionDenied();
+          }
         } catch (error) {
-          console.log('Contact access denied or cancelled:', error);
+          console.error('Capacitor contacts error:', error);
+          toast.error('Unable to access contacts on mobile');
           onPermissionDenied();
         }
       } else {
-        // Fallback: Show manual phone number input
-        toast.info('Contact API not available. You can still search by username or enter phone numbers manually.');
-        onPermissionDenied();
+        // Web browser - use Contact Picker API
+        if (!window.isSecureContext) {
+          toast.error('Contact access requires HTTPS. This feature will work when deployed.');
+          onPermissionDenied();
+          return;
+        }
+
+        // Check if navigator.contacts is available (Chrome/Edge only currently)
+        if ('contacts' in navigator && 'ContactsManager' in window) {
+          try {
+            const contacts = await (navigator as any).contacts.select(['name', 'tel'], { multiple: true });
+            onPermissionGranted(contacts);
+            toast.success(`Found ${contacts.length} contacts!`);
+          } catch (error) {
+            console.log('Contact access denied or cancelled:', error);
+            onPermissionDenied();
+          }
+        } else {
+          // Fallback: Show helpful message
+          toast.info('Contact API not available in this browser. Try using Chrome/Edge or the mobile app for full contact access.');
+          onPermissionDenied();
+        }
       }
     } catch (error) {
       console.error('Error requesting contact access:', error);
