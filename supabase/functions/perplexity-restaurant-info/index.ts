@@ -166,11 +166,12 @@ Only show hours. If unclear, say "Hours not clearly available - call restaurant.
       console.error('OpenAI formatting error:', formatResponse.status);
       // Fallback to original Perplexity response if ChatGPT fails
       const cleanedInfo = rawPerplexityInfo
-        .replace(/\*\*([^*]+)\*\*/g, '$1')
-        .replace(/\*([^*]+)\*/g, '$1')
-        .replace(/\[(\d+)\]/g, '')
-        .replace(/\[\d+\]\[\d+\]/g, '')
-        .replace(/\s+/g, ' ')
+        .replace(/\*\*([^*]+)\*\*/g, '$1')  // Remove bold markdown
+        .replace(/\*([^*]+)\*/g, '$1')      // Remove italic markdown
+        .replace(/\[(\d+)\]/g, '')          // Remove citation numbers
+        .replace(/\*/g, '')                 // Remove any remaining asterisks
+        .replace(/\[\d+\]\[\d+\]/g, '')     // Remove citation patterns
+        .replace(/\s+/g, ' ')               // Normalize spaces
         .trim();
       
       return new Response(JSON.stringify({

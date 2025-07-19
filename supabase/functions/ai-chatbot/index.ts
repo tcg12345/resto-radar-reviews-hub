@@ -70,7 +70,18 @@ ${restaurantContext}`;
     }
 
     const data = await response.json();
-    const aiResponse = data.choices[0]?.message?.content;
+    let aiResponse = data.choices[0]?.message?.content;
+
+    if (!aiResponse) {
+      throw new Error('No response from AI');
+    }
+
+    // Clean up asterisks and markdown formatting
+    aiResponse = aiResponse
+      .replace(/\*\*([^*]+)\*\*/g, '$1')  // Remove bold markdown
+      .replace(/\*([^*]+)\*/g, '$1')      // Remove italic markdown
+      .replace(/\*/g, '')                 // Remove any remaining asterisks
+      .trim();
 
     if (!aiResponse) {
       throw new Error('No response from AI');

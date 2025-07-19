@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Check, ChevronDown, X, Sliders } from 'lucide-react';
+import { Plus, Check, ChevronDown, X, Sliders, MapPin, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RestaurantCard } from '@/components/RestaurantCard';
@@ -20,6 +20,8 @@ interface RatedRestaurantsPageProps {
   onDeleteRestaurant: (id: string) => void;
   shouldOpenAddDialog?: boolean;
   onAddDialogClose?: () => void;
+  onNavigateToMap?: () => void;
+  onOpenSettings?: () => void;
 }
 
 export function RatedRestaurantsPage({
@@ -29,6 +31,8 @@ export function RatedRestaurantsPage({
   onDeleteRestaurant,
   shouldOpenAddDialog = false,
   onAddDialogClose,
+  onNavigateToMap,
+  onOpenSettings,
 }: RatedRestaurantsPageProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -258,10 +262,24 @@ export function RatedRestaurantsPage({
     <div className="container py-6">
       <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <h2 className="text-3xl font-bold tracking-tight">Rated Restaurants</h2>
-        <Button onClick={() => setIsAddDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Restaurant
-        </Button>
+        <div className="flex gap-2">
+          {onNavigateToMap && (
+            <Button variant="outline" onClick={onNavigateToMap}>
+              <MapPin className="mr-2 h-4 w-4" />
+              Map View
+            </Button>
+          )}
+          {onOpenSettings && (
+            <Button variant="outline" onClick={onOpenSettings}>
+              <Settings className="mr-2 h-4 w-4" />
+              Settings
+            </Button>
+          )}
+          <Button onClick={() => setIsAddDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Restaurant
+          </Button>
+        </div>
       </div>
 
       <div className="mb-6 flex flex-col items-start gap-4 sm:flex-row sm:items-center">

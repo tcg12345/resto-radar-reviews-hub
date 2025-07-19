@@ -142,7 +142,14 @@ Provide:
     }
 
     const data = await response.json();
-    const result = data.choices[0].message.content;
+    let result = data.choices[0].message.content;
+
+    // Clean up asterisks and markdown formatting
+    result = result
+      .replace(/\*\*([^*]+)\*\*/g, '$1')  // Remove bold markdown
+      .replace(/\*([^*]+)\*/g, '$1')      // Remove italic markdown
+      .replace(/\*/g, '')                 // Remove any remaining asterisks
+      .trim();
 
     console.log('AI review assistant completed successfully');
 

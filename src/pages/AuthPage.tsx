@@ -14,7 +14,10 @@ export default function AuthPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [address, setAddress] = useState('');
+  const [street, setStreet] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [zipCode, setZipCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -71,6 +74,9 @@ export default function AuthPage() {
       // Generate redirect URL using the current origin
       const redirectUrl = `${window.location.origin}/`;
       
+      // Combine address components
+      const fullAddress = [street, city, state, zipCode].filter(Boolean).join(', ');
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -80,7 +86,7 @@ export default function AuthPage() {
             // Additional user metadata that will be stored in profiles
             email: email,
             name: name,
-            address: address,
+            address: fullAddress,
           }
         }
       });
@@ -175,15 +181,47 @@ export default function AuthPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-address">Address (Optional)</Label>
+                    <Label htmlFor="signup-street">Street Address</Label>
                     <Input
-                      id="signup-address"
+                      id="signup-street"
                       type="text"
-                      placeholder="Your address for location-based search"
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
+                      placeholder="123 Main Street"
+                      value={street}
+                      onChange={(e) => setStreet(e.target.value)}
                     />
-                    <p className="text-xs text-muted-foreground">Used as default location when no specific location is provided in search</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-city">City</Label>
+                      <Input
+                        id="signup-city"
+                        type="text"
+                        placeholder="New York"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-state">State</Label>
+                      <Input
+                        id="signup-state"
+                        type="text"
+                        placeholder="NY"
+                        value={state}
+                        onChange={(e) => setState(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-zip">ZIP Code</Label>
+                    <Input
+                      id="signup-zip"
+                      type="text"
+                      placeholder="10001"
+                      value={zipCode}
+                      onChange={(e) => setZipCode(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">Address fields are optional but help provide better location-based search results</p>
                   </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
