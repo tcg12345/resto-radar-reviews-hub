@@ -9,6 +9,8 @@ interface DiscoverContextType {
   setRestaurants: (restaurants: any[]) => void;
   hasSearched: boolean;
   setHasSearched: (searched: boolean) => void;
+  isLoading: boolean;
+  setIsLoading: (loading: boolean) => void;
 }
 
 const DiscoverContext = createContext<DiscoverContextType | undefined>(undefined);
@@ -22,6 +24,7 @@ export function DiscoverProvider({ children }: DiscoverProviderProps) {
   const [locationQuery, setLocationQuery] = useState('');
   const [restaurants, setRestaurants] = useState<any[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const value = {
     searchQuery,
@@ -32,6 +35,8 @@ export function DiscoverProvider({ children }: DiscoverProviderProps) {
     setRestaurants,
     hasSearched,
     setHasSearched,
+    isLoading,
+    setIsLoading,
   };
 
   return <DiscoverContext.Provider value={value}>{children}</DiscoverContext.Provider>;

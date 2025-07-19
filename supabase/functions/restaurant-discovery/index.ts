@@ -303,13 +303,25 @@ serve(async (req) => {
           openingHours = placeDetails.opening_hours.open_now ? 'Currently open' : 'Currently closed';
         }
         
-        // Determine Michelin stars more accurately based on name and rating
+        // Use more accurate Michelin star determination - only assign for truly Michelin starred restaurants
         let michelinStars = undefined;
         const lowerName = place.name.toLowerCase();
-        if (queryLower.includes('michelin') || lowerName.includes('le bernardin') || lowerName.includes('eleven madison') || 
-            lowerName.includes('per se') || lowerName.includes('chef\'s table') || lowerName.includes('masa') ||
-            (priceRange >= 4 && (placeDetails?.rating ?? place.rating) >= 4.7)) {
-          michelinStars = Math.floor(Math.random() * 3) + 1;
+        
+        // Only assign stars to restaurants that are actually Michelin starred (known establishments)
+        if (lowerName.includes('le bernardin') || lowerName.includes('eleven madison park') ||
+            lowerName.includes('per se') || lowerName.includes('daniel') || lowerName.includes('jean-georges') ||
+            lowerName.includes('gramercy tavern') || lowerName.includes('atera') || lowerName.includes('gabriel kreuther') ||
+            lowerName.includes('le cinq') || lowerName.includes('l\'ambroisie') || lowerName.includes('guy savoy') ||
+            lowerName.includes('robuchon') || lowerName.includes('alain ducasse') || lowerName.includes('masa') ||
+            lowerName.includes('chef\'s table') || lowerName.includes('restaurant kei')) {
+          // Assign realistic Michelin stars for known establishments
+          if (lowerName.includes('le bernardin') || lowerName.includes('eleven madison') || lowerName.includes('per se')) {
+            michelinStars = 3;
+          } else if (lowerName.includes('daniel') || lowerName.includes('jean-georges') || lowerName.includes('atera')) {
+            michelinStars = 2;
+          } else {
+            michelinStars = 1;
+          }
         }
         
         // Create better features based on place types

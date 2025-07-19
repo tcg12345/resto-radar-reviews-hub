@@ -273,15 +273,15 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist 
           <Collapsible open={isMoreInfoOpen} onOpenChange={setIsMoreInfoOpen}>
             <CollapsibleContent className="space-y-2">
               <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 text-xs w-full justify-start"
-                  onClick={() => setShowPerplexityInfo(true)}
-                >
-                  <Sparkles className="h-3 w-3 mr-2" />
-                  Get Current Information
-                </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-xs w-full justify-start"
+                    onClick={() => setShowPerplexityInfo(true)}
+                  >
+                    <Sparkles className="h-3 w-3 mr-2" />
+                    Custom Inquiry
+                  </Button>
                 
                 {restaurant.phoneNumber && (
                   <Button

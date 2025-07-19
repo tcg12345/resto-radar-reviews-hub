@@ -31,13 +31,13 @@ export function PerplexityRestaurantInfo({
   const getRestaurantInfo = async (infoType: string, customQuestion?: string) => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('perplexity-restaurant-info', {
+      const { data, error } = await supabase.functions.invoke('chatgpt-restaurant-info', {
         body: {
           restaurantName,
           address,
           city,
-          infoType,
-          additionalContext: customQuestion || (cuisine ? `This is a ${cuisine} restaurant.` : '')
+          cuisine,
+          customInquiry: customQuestion || 'General information about this restaurant'
         }
       });
 
@@ -99,11 +99,11 @@ export function PerplexityRestaurantInfo({
     <Card className="border-primary/20">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Globe className="h-5 w-5 text-primary" />
-          Current Restaurant Information
+          <MessageSquare className="h-5 w-5 text-primary" />
+          Ask About: {restaurantName}
         </CardTitle>
         <CardDescription>
-          Get up-to-date information about {restaurantName} using real-time web search
+          Ask any question about this restaurant using AI
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -132,7 +132,7 @@ export function PerplexityRestaurantInfo({
         {isLoading && (
           <div className="p-4 text-center">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
-            <p className="text-sm text-muted-foreground">Getting current information...</p>
+            <p className="text-sm text-muted-foreground">Getting answer...</p>
           </div>
         )}
 
@@ -144,8 +144,8 @@ export function PerplexityRestaurantInfo({
                 {formatInfoType(activeTab)}
               </Badge>
               {lastUpdated && (
-                <span className="text-xs text-muted-foreground">
-                  Updated: {new Date(lastUpdated).toLocaleString()}
+               <span className="text-xs text-muted-foreground">
+                  Response: {new Date(lastUpdated).toLocaleString()}
                 </span>
               )}
             </div>
@@ -160,7 +160,7 @@ export function PerplexityRestaurantInfo({
         {!currentInfo && !isLoading && (
           <div className="p-4 text-center text-muted-foreground">
             <Globe className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p>Get current information or ask a custom question about this restaurant</p>
+            <p>Ask any question about this restaurant</p>
           </div>
         )}
       </CardContent>

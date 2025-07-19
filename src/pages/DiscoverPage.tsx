@@ -42,6 +42,8 @@ export function DiscoverPage() {
     setRestaurants,
     hasSearched,
     setHasSearched,
+    isLoading,
+    setIsLoading,
   } = useDiscover();
   
   const { addRestaurant, restaurants: existingRestaurants, deleteRestaurant } = useRestaurants();
@@ -57,6 +59,7 @@ export function DiscoverPage() {
       return;
     }
 
+    setIsLoading(true);
     setHasSearched(true);
 
     try {
@@ -89,8 +92,10 @@ export function DiscoverPage() {
         description: "Could not search restaurants. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
-  }, [searchQuery, locationQuery, toast, setRestaurants, setHasSearched]);
+  }, [searchQuery, locationQuery, toast, setRestaurants, setHasSearched, setIsLoading]);
 
   const handleToggleWishlist = (restaurant: RestaurantResult) => {
     const existingRestaurant = existingRestaurants.find(r => 
@@ -192,7 +197,7 @@ export function DiscoverPage() {
           locationQuery={locationQuery}
           setLocationQuery={setLocationQuery}
           onSearch={handleSearch}
-          isLoading={false}
+          isLoading={isLoading}
         />
 
         {/* Results */}
@@ -201,7 +206,7 @@ export function DiscoverPage() {
           onToggleWishlist={handleToggleWishlist}
           existingRestaurants={existingRestaurants}
           searchQuery={searchQuery}
-          isLoading={false}
+          isLoading={isLoading}
           hasSearched={hasSearched}
         />
       </div>
