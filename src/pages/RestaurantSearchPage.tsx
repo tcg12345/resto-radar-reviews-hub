@@ -1047,10 +1047,10 @@ export default function RestaurantSearchPage() {
             {/* Results */}
             {showMap && hasSearched && filteredRestaurants.length > 0 ? (
               <div className="relative h-[600px] rounded-lg overflow-hidden">
-                {/* Compact filters for map view */}
+                {/* Compact filters for map view - positioned at bottom-left to avoid search bar */}
                 {activeFiltersCount > 0 && (
-                  <div className="absolute top-4 left-4 z-10">
-                    <Card className="w-auto shadow-lg">
+                  <div className="absolute bottom-4 left-4 z-10">
+                    <Card className="w-auto shadow-lg bg-background/95 backdrop-blur">
                       <CardContent className="p-3">
                         <div className="flex items-center gap-2 text-sm">
                           <Filter className="h-4 w-4" />
