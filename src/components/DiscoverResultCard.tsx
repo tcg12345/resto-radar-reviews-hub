@@ -231,24 +231,6 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist 
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* Features */}
-        <div className="flex flex-wrap gap-1">
-          {restaurant.features.slice(0, 4).map((feature, index) => {
-            const FeatureIcon = getFeatureIcon(feature);
-            return (
-              <Badge key={index} variant="secondary" className="text-xs h-6">
-                <FeatureIcon className="h-3 w-3 mr-1" />
-                {feature}
-              </Badge>
-            );
-          })}
-          {restaurant.features.length > 4 && (
-            <Badge variant="secondary" className="text-xs h-6">
-              +{restaurant.features.length - 4} more
-            </Badge>
-          )}
-        </div>
-
         {/* Quick Info */}
         <div className="space-y-2">
           {restaurant.phoneNumber && (
