@@ -119,11 +119,19 @@ export default function GlobalSearchPage() {
         searchLocation = `${userLocation.lat},${userLocation.lng}`;
       }
 
+      // Construct a more specific search query
+      let specificQuery = searchQuery.trim();
+      if (locationQuery.trim()) {
+        // When location is specified, make query more specific to that location
+        specificQuery = `${searchQuery} in ${locationQuery}`;
+      }
+
       const { data, error } = await supabase.functions.invoke('google-places-search', {
         body: {
-          query: searchQuery,
+          query: specificQuery,
           type: 'search',
           location: searchLocation,
+          radius: locationQuery.trim() ? 10000 : 50000, // Smaller radius when location specified
         }
       });
 

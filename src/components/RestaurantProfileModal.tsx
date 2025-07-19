@@ -590,10 +590,15 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                         onClick={() => setShowAllReviews(!showAllReviews)}
                         className="w-full"
                       >
-                        {showAllReviews ? 'Show Less Reviews' : `Show All ${getSortedReviews().length} Reviews`}
+                        {showAllReviews ? 'Show Less Reviews' : `Show All ${getSortedReviews().length} Google Reviews`}
                       </Button>
                     </div>
                   )}
+                  
+                  {/* Note about Google Reviews */}
+                  <div className="pt-2 text-xs text-muted-foreground text-center">
+                    Showing all available Google Reviews (up to {getSortedReviews().length} reviews)
+                  </div>
                 </CardContent>
               </Card>
             )}

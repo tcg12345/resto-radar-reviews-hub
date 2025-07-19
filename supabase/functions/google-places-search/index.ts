@@ -75,6 +75,8 @@ serve(async (req) => {
         if (location) {
           params.append('location', location);
           params.append('radius', radius.toString());
+          // Add location bias to prioritize results in the specified location
+          params.append('locationbias', `circle:${radius}@${location}`);
         }
         break;
 
@@ -87,6 +89,7 @@ serve(async (req) => {
           place_id: placeId,
           fields: 'place_id,name,formatted_address,formatted_phone_number,website,rating,user_ratings_total,price_level,opening_hours,photos,geometry,types,reviews',
           key: apiKey,
+          reviews_sort: 'newest', // Get the most recent reviews first
         });
         break;
 
