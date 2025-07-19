@@ -136,28 +136,46 @@ export function DiscoverPage() {
     }
   }, [searchQuery, locationQuery, filters, toast]);
 
-  const handleAddToWishlist = (restaurant: RestaurantResult) => {
-    const newRestaurant = {
-      name: restaurant.name,
-      address: restaurant.address,
-      city: restaurant.location?.city || restaurant.city || 'Unknown',
-      cuisine: restaurant.cuisine,
-      priceRange: restaurant.priceRange,
-      rating: 0,
-      notes: restaurant.description,
-      isWishlist: true,
-      latitude: restaurant.location?.lat || restaurant.lat,
-      longitude: restaurant.location?.lng || restaurant.lng,
-      website: restaurant.website,
-      phoneNumber: restaurant.phoneNumber,
-      photos: [] as File[], // Add required photos property
-    };
+  const { restaurants: existingRestaurants, deleteRestaurant } = useRestaurants();
 
-    addRestaurant(newRestaurant);
-    toast({
-      title: "Added to wishlist!",
-      description: `${restaurant.name} has been added to your wishlist`,
-    });
+  const handleToggleWishlist = (restaurant: RestaurantResult) => {
+    // Check if restaurant is already in wishlist
+    const existingRestaurant = existingRestaurants.find(r => 
+      r.name.toLowerCase() === restaurant.name.toLowerCase() && 
+      r.address === restaurant.address
+    );
+
+    if (existingRestaurant) {
+      // Remove from wishlist
+      deleteRestaurant(existingRestaurant.id);
+      toast({
+        title: "Removed from wishlist",
+        description: `${restaurant.name} has been removed from your wishlist`,
+      });
+    } else {
+      // Add to wishlist
+      const newRestaurant = {
+        name: restaurant.name,
+        address: restaurant.address,
+        city: restaurant.location?.city || restaurant.city || 'Unknown',
+        cuisine: restaurant.cuisine,
+        priceRange: restaurant.priceRange,
+        rating: 0,
+        notes: restaurant.description,
+        isWishlist: true,
+        latitude: restaurant.location?.lat || restaurant.lat,
+        longitude: restaurant.location?.lng || restaurant.lng,
+        website: restaurant.website,
+        phoneNumber: restaurant.phoneNumber,
+        photos: [] as File[], // Add required photos property
+      };
+
+      addRestaurant(newRestaurant);
+      toast({
+        title: "Added to wishlist!",
+        description: `${restaurant.name} has been added to your wishlist`,
+      });
+    }
   };
 
   console.log('DiscoverPage rendering with:', { 
@@ -297,7 +315,7 @@ export function DiscoverPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {restaurants.map((restaurant) => (
-              <RestaurantImageCard key={restaurant.id} restaurant={restaurant} onAddToWishlist={handleAddToWishlist} />
+              <RestaurantImageCard key={restaurant.id} restaurant={restaurant} onToggleWishlist={handleToggleWishlist} existingRestaurants={existingRestaurants} />
             ))}
           </div>
         </div>
@@ -307,8 +325,18 @@ export function DiscoverPage() {
 }
 
 // Restaurant card component with image loading placeholder
-function RestaurantImageCard({ restaurant, onAddToWishlist }: { restaurant: RestaurantResult; onAddToWishlist: (restaurant: RestaurantResult) => void }) {
+function RestaurantImageCard({ restaurant, onToggleWishlist, existingRestaurants }: { 
+  restaurant: RestaurantResult; 
+  onToggleWishlist: (restaurant: RestaurantResult) => void;
+  existingRestaurants: any[];
+}) {
   const [imageLoading, setImageLoading] = useState(true);
+  
+  // Check if restaurant is in wishlist
+  const isInWishlist = existingRestaurants.some(r => 
+    r.name.toLowerCase() === restaurant.name.toLowerCase() && 
+    r.address === restaurant.address
+  );
   
   const getPriceRangeDisplay = (range: number) => {
     return '$'.repeat(range);
@@ -352,16 +380,20 @@ function RestaurantImageCard({ restaurant, onAddToWishlist }: { restaurant: Rest
                {restaurant.isOpen ? "Open Now" : "Closed"}
              </Badge>
          </div>
-         <div className="absolute top-3 right-3">
-           <Button
-             size="icon"
-             variant="secondary"
-             className="h-8 w-8 bg-white/90 hover:bg-white"
-             onClick={() => onAddToWishlist(restaurant)}
-           >
-             <Heart className="h-4 w-4" />
-           </Button>
-         </div>
+          <div className="absolute top-3 right-3">
+            <Button
+              size="icon"
+              variant="secondary"
+              className={`h-8 w-8 transition-colors ${
+                isInWishlist 
+                  ? 'bg-red-500 hover:bg-red-600 text-white' 
+                  : 'bg-white/90 hover:bg-white text-gray-700 dark:bg-gray-800/90 dark:hover:bg-gray-800 dark:text-white'
+              }`}
+              onClick={() => onToggleWishlist(restaurant)}
+            >
+              <Heart className={`h-4 w-4 ${isInWishlist ? 'fill-current' : ''}`} />
+            </Button>
+          </div>
        </div>
      </CardHeader>
 
@@ -449,20 +481,20 @@ function RestaurantImageCard({ restaurant, onAddToWishlist }: { restaurant: Rest
              </Button>
            )}
            
-            {restaurant.reservationUrl ? (
-              <Button size="sm" className="flex-1" asChild>
-                <a href={restaurant.reservationUrl} target="_blank" rel="noopener noreferrer">
-                  <Calendar className="h-4 w-4 mr-1" />
-                  Reserve
-                  <ExternalLink className="h-3 w-3 ml-1" />
-                </a>
-              </Button>
-            ) : (
-              <Button size="sm" variant="outline" className="flex-1" disabled>
-                <Calendar className="h-4 w-4 mr-1" />
-                {restaurant.reservationNote || "No reservations"}
-              </Button>
-            )}
+             {restaurant.website ? (
+               <Button size="sm" className="flex-1" asChild>
+                 <a href={restaurant.website} target="_blank" rel="noopener noreferrer">
+                   <Calendar className="h-4 w-4 mr-1" />
+                   Reserve
+                   <ExternalLink className="h-3 w-3 ml-1" />
+                 </a>
+               </Button>
+             ) : (
+               <Button size="sm" variant="outline" className="flex-1" disabled>
+                 <Calendar className="h-4 w-4 mr-1" />
+                 Call to Reserve
+               </Button>
+             )}
          </div>
        </div>
        </CardContent>
