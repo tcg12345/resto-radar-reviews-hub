@@ -9,10 +9,18 @@ export function useDefaultReviewSource() {
   const [defaultSource, setDefaultSource] = useState<ReviewSource>('google');
   const [isLoading, setIsLoading] = useState(true);
 
+  // Load from localStorage as fallback
+  useEffect(() => {
+    const stored = localStorage.getItem('defaultReviewSource') as ReviewSource;
+    if (stored && (stored === 'google' || stored === 'yelp')) {
+      setDefaultSource(stored);
+    }
+    setIsLoading(false);
+  }, []);
+
   useEffect(() => {
     const loadDefaultSource = async () => {
       if (!user) {
-        setIsLoading(false);
         return;
       }
 
@@ -25,12 +33,14 @@ export function useDefaultReviewSource() {
           .single();
 
         if (!error && data) {
-          setDefaultSource(data.value as ReviewSource);
+          const source = data.value as ReviewSource;
+          setDefaultSource(source);
+          localStorage.setItem('defaultReviewSource', source);
+        } else if (error && error.code !== 'PGRST116') {
+          console.error('Error loading default review source:', error);
         }
       } catch (error) {
         console.error('Error loading default review source:', error);
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -38,6 +48,11 @@ export function useDefaultReviewSource() {
   }, [user]);
 
   const updateDefaultSource = async (source: ReviewSource) => {
+    // Update local state and localStorage immediately
+    setDefaultSource(source);
+    localStorage.setItem('defaultReviewSource', source);
+
+    // Try to update database if user is logged in
     if (!user) return;
 
     try {
@@ -54,8 +69,9 @@ export function useDefaultReviewSource() {
           }
         );
 
-      if (!error) {
-        setDefaultSource(source);
+      if (error) {
+        console.error('Error updating default review source in database:', error);
+        // Keep localStorage setting even if database fails
       }
     } catch (error) {
       console.error('Error updating default review source:', error);
@@ -65,6 +81,6 @@ export function useDefaultReviewSource() {
   return {
     defaultSource,
     updateDefaultSource,
-    isLoading,
+    isLoading: false, // Don't block UI on database issues
   };
 }

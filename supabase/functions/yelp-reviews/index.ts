@@ -114,11 +114,17 @@ serve(async (req) => {
 
     if (businessResponse.ok) {
       businessDetails = await businessResponse.json();
+      console.log('Business details loaded:', businessDetails.name, businessDetails.review_count);
+    } else {
+      console.error('Business details failed:', businessResponse.status, await businessResponse.text());
     }
 
     if (reviewsResponse.ok) {
       const reviewsData = await reviewsResponse.json();
       reviews = reviewsData.reviews || [];
+      console.log('Reviews response:', reviewsData);
+    } else {
+      console.error('Reviews request failed:', reviewsResponse.status, await reviewsResponse.text());
     }
 
     console.log(`Found ${reviews.length} reviews for ${businessDetails.name}`);
@@ -126,7 +132,13 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         business: businessDetails,
-        reviews: reviews
+        reviews: reviews,
+        debug: {
+          searchResults: searchData.businesses?.length || 0,
+          selectedBusiness: business.name,
+          businessResponseOk: businessResponse.ok,
+          reviewsResponseOk: reviewsResponse.ok
+        }
       }),
       { 
         status: 200, 
