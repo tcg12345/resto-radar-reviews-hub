@@ -231,13 +231,13 @@ serve(async (req) => {
     }
 
     // Determine optimal number of results based on query - allow for much larger result sets
-    let maxResults = 50; // Default - much higher
+    let maxResults = 100; // Default - much higher than 20
     if (queryLower.includes('michelin') || queryLower.includes('fine dining')) {
-      maxResults = Math.min(25, placesData.results.length); // Still selective but more results
+      maxResults = Math.min(50, placesData.results.length); // More selective but still more than 20
     } else if (queryLower.includes('pizza') || queryLower.includes('coffee') || queryLower.includes('cafe')) {
-      maxResults = Math.min(100, placesData.results.length); // Much more for common food types
+      maxResults = Math.min(150, placesData.results.length); // Even more for common food types
     } else {
-      maxResults = Math.min(75, placesData.results.length); // Higher standard amount
+      maxResults = Math.min(120, placesData.results.length); // Much higher standard amount
     }
     
     console.log(`Processing ${maxResults} restaurants for query: ${query}`);
@@ -335,7 +335,7 @@ serve(async (req) => {
         if (priceRange >= 3) features.push('Upscale Dining');
         
         // Get review count and Google Maps URL from place details
-        const reviewCount = placeDetails?.user_ratings_total || 0;
+        const reviewCount = placeDetails?.user_ratings_total ?? place.user_ratings_total ?? 0;
         const googleMapsUrl = `https://www.google.com/maps/place/?q=place_id:${place.place_id}`;
           
           // Create restaurant object with available info

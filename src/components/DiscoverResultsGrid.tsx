@@ -55,8 +55,7 @@ type FilterOption = 'all' | 'michelin' | 'open' | 'budget' | 'upscale';
 
 interface FilterState {
   minRating: number;
-  maxPrice: number;
-  minPrice: number;
+  priceRanges: number[];
   openingTime: string;
 }
 
@@ -73,8 +72,7 @@ export function DiscoverResultsGrid({
   const [showFilters, setShowFilters] = useState(false);
   const [advancedFilters, setAdvancedFilters] = useState<FilterState>({
     minRating: 0,
-    maxPrice: 4,
-    minPrice: 1,
+    priceRanges: [],
     openingTime: 'any'
   });
 
@@ -111,7 +109,7 @@ export function DiscoverResultsGrid({
     // Apply advanced filters
     filtered = filtered.filter(r => {
       if (r.rating < advancedFilters.minRating) return false;
-      if (r.priceRange < advancedFilters.minPrice || r.priceRange > advancedFilters.maxPrice) return false;
+      if (advancedFilters.priceRanges.length > 0 && !advancedFilters.priceRanges.includes(r.priceRange)) return false;
       
       // Opening time filter (simplified - could be enhanced with actual time parsing)
       if (advancedFilters.openingTime !== 'any') {
@@ -286,36 +284,30 @@ export function DiscoverResultsGrid({
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Price Range</label>
-                <div className="flex items-center gap-2">
-                  <Select 
-                    value={advancedFilters.minPrice.toString()} 
-                    onValueChange={(value) => setAdvancedFilters(prev => ({ ...prev, minPrice: Number(value) }))}
-                  >
-                    <SelectTrigger className="w-20">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">$</SelectItem>
-                      <SelectItem value="2">$$</SelectItem>
-                      <SelectItem value="3">$$$</SelectItem>
-                      <SelectItem value="4">$$$$</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <span className="text-sm text-muted-foreground">to</span>
-                  <Select 
-                    value={advancedFilters.maxPrice.toString()} 
-                    onValueChange={(value) => setAdvancedFilters(prev => ({ ...prev, maxPrice: Number(value) }))}
-                  >
-                    <SelectTrigger className="w-20">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">$</SelectItem>
-                      <SelectItem value="2">$$</SelectItem>
-                      <SelectItem value="3">$$$</SelectItem>
-                      <SelectItem value="4">$$$$</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="space-y-2">
+                  {[1, 2, 3, 4].map((price) => (
+                    <label key={price} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={advancedFilters.priceRanges.includes(price)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setAdvancedFilters(prev => ({
+                              ...prev,
+                              priceRanges: [...prev.priceRanges, price]
+                            }));
+                          } else {
+                            setAdvancedFilters(prev => ({
+                              ...prev,
+                              priceRanges: prev.priceRanges.filter(p => p !== price)
+                            }));
+                          }
+                        }}
+                        className="rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                      <span className="text-sm">{'$'.repeat(price)}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
 
@@ -343,8 +335,7 @@ export function DiscoverResultsGrid({
                   size="sm"
                   onClick={() => setAdvancedFilters({
                     minRating: 0,
-                    maxPrice: 4,
-                    minPrice: 1,
+                    priceRanges: [],
                     openingTime: 'any'
                   })}
                   className="w-full"

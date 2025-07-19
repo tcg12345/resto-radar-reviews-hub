@@ -259,29 +259,33 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist 
           )}
           
           {restaurant.openingHours && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="h-3.5 w-3.5" />
-              <div className="flex-1">
-                <span className="truncate">{getCurrentDayHours(restaurant.openingHours)}</span>
-                <DropdownMenu open={showFullWeekHours} onOpenChange={setShowFullWeekHours}>
-                  <DropdownMenuTrigger asChild>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Clock className="h-3.5 w-3.5" />
+                <span className="flex-1 truncate">{getCurrentDayHours(restaurant.openingHours)}</span>
+                <Collapsible open={showFullWeekHours} onOpenChange={setShowFullWeekHours}>
+                  <CollapsibleTrigger asChild>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-5 w-5 p-0 ml-1 hover:bg-muted"
+                      className="h-5 w-5 p-0 hover:bg-muted"
                     >
                       <ChevronDown className={`h-3 w-3 transition-transform ${showFullWeekHours ? 'rotate-180' : ''}`} />
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-56">
-                    {getFormattedWeekHours(restaurant.openingHours).map((dayHours, index) => (
-                      <DropdownMenuItem key={index} className="text-xs">
-                        {dayHours}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                  </CollapsibleTrigger>
+                </Collapsible>
               </div>
+              <Collapsible open={showFullWeekHours} onOpenChange={setShowFullWeekHours}>
+                <CollapsibleContent className="ml-6">
+                  <div className="bg-muted/30 rounded-md p-2 space-y-1 max-w-48">
+                    {getFormattedWeekHours(restaurant.openingHours).map((dayHours, index) => (
+                      <div key={index} className="text-xs text-muted-foreground whitespace-nowrap">
+                        {dayHours}
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
             </div>
           )}
         </div>
