@@ -187,16 +187,6 @@ export default function GlobalSearchPage() {
               {searchResults.map((place) => (
                 <Card key={place.place_id} className="cursor-pointer hover:shadow-lg transition-shadow">
                   <CardContent className="p-4" onClick={() => handlePlaceClick(place)}>
-                    {place.photos && place.photos[0] && (
-                      <div className="mb-4 aspect-video bg-muted rounded-lg overflow-hidden">
-                        <img 
-                          src={getPhotoUrl(place.photos[0].photo_reference)}
-                          alt={place.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-                    
                     <h3 className="font-semibold text-lg mb-2">{place.name}</h3>
                     
                     <div className="flex items-center gap-2 mb-2">
