@@ -78,11 +78,16 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
   const [aiCuisine, setAiCuisine] = useState<string>('');
   const [aiCategories, setAiCategories] = useState<string[]>([]);
   const [isLoadingAiAnalysis, setIsLoadingAiAnalysis] = useState(false);
+  const [yelpReviews, setYelpReviews] = useState<any[]>([]);
+  const [yelpBusiness, setYelpBusiness] = useState<any>(null);
+  const [isLoadingYelpReviews, setIsLoadingYelpReviews] = useState(false);
+  const [activeReviewSource, setActiveReviewSource] = useState<'google' | 'yelp' | 'all'>('all');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Analyze restaurant with AI on component mount
+  // Analyze restaurant with AI and fetch Yelp reviews on component mount
   useState(() => {
-    const analyzeRestaurant = async () => {
+    const initializeData = async () => {
+      // Analyze restaurant with AI
       setIsLoadingAiAnalysis(true);
       try {
         const { data, error } = await supabase.functions.invoke('ai-restaurant-analysis', {
@@ -103,9 +108,34 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
       } finally {
         setIsLoadingAiAnalysis(false);
       }
+
+      // Fetch Yelp reviews
+      setIsLoadingYelpReviews(true);
+      try {
+        const { data: yelpData, error: yelpError } = await supabase.functions.invoke('yelp-reviews', {
+          body: {
+            restaurantName: place.name,
+            address: place.formatted_address,
+            latitude: place.geometry.location.lat,
+            longitude: place.geometry.location.lng
+          }
+        });
+
+        if (!yelpError && yelpData.business) {
+          setYelpBusiness(yelpData.business);
+          setYelpReviews(yelpData.reviews || []);
+          console.log(`Loaded ${yelpData.reviews?.length || 0} Yelp reviews for ${place.name}`);
+        } else {
+          console.log('No Yelp data found for restaurant');
+        }
+      } catch (error) {
+        console.error('Error fetching Yelp reviews:', error);
+      } finally {
+        setIsLoadingYelpReviews(false);
+      }
     };
 
-    analyzeRestaurant();
+    initializeData();
   });
 
   const getPriceDisplay = (priceLevel?: number) => {
@@ -278,15 +308,47 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
     window.open(url, '_blank');
   };
 
+  const getAllReviews = () => {
+    const allReviews = [];
+
+    // Add Google reviews with source identifier
+    if (activeReviewSource === 'google' || activeReviewSource === 'all') {
+      const googleReviews = place.reviews?.map(review => ({
+        ...review,
+        source: 'google' as const,
+        id: `google-${review.time}`,
+        // Convert time to consistent format
+        timestamp: review.time * 1000,
+      })) || [];
+      allReviews.push(...googleReviews);
+    }
+
+    // Add Yelp reviews with source identifier
+    if (activeReviewSource === 'yelp' || activeReviewSource === 'all') {
+      const yelpReviewsFormatted = yelpReviews.map(review => ({
+        author_name: review.user?.name || 'Yelp User',
+        rating: review.rating,
+        text: review.text,
+        source: 'yelp' as const,
+        id: review.id,
+        timestamp: new Date(review.time_created).getTime(),
+        url: review.url,
+        user_image: review.user?.image_url,
+      }));
+      allReviews.push(...yelpReviewsFormatted);
+    }
+
+    return allReviews;
+  };
+
   const getSortedReviews = () => {
-    if (!place.reviews) return [];
+    const reviews = getAllReviews();
     
-    const reviews = [...place.reviews];
     switch (reviewSortBy) {
       case 'recent':
-        return reviews.sort((a, b) => b.time - a.time);
+        return reviews.sort((a, b) => b.timestamp - a.timestamp);
       case 'helpful':
-        // For Google reviews, we'll sort by rating as a proxy for helpfulness
+        // For mixed reviews, sort by rating as a proxy for helpfulness
         return reviews.sort((a, b) => b.rating - a.rating);
       case 'rating':
         return reviews.sort((a, b) => b.rating - a.rating);
@@ -532,33 +594,55 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
               </Card>
             )}
 
-            {/* Google Reviews */}
-            {place.reviews && place.reviews.length > 0 && (
+            {/* Customer Reviews */}
+            {(place.reviews && place.reviews.length > 0) || (yelpReviews && yelpReviews.length > 0) ? (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <MessageSquare className="h-5 w-5" />
                       Customer Reviews
+                      {isLoadingYelpReviews && (
+                        <Badge variant="secondary" className="animate-pulse">Loading Yelp...</Badge>
+                      )}
                     </div>
-                    <Select value={reviewSortBy} onValueChange={(value: 'recent' | 'helpful' | 'rating') => setReviewSortBy(value)}>
-                      <SelectTrigger className="w-32">
-                        <Filter className="h-4 w-4 mr-2" />
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="recent">Most Recent</SelectItem>
-                        <SelectItem value="helpful">Most Helpful</SelectItem>
-                        <SelectItem value="rating">Highest Rated</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center gap-2">
+                      <Select value={activeReviewSource} onValueChange={(value: 'google' | 'yelp' | 'all') => setActiveReviewSource(value)}>
+                        <SelectTrigger className="w-28">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Sources</SelectItem>
+                          <SelectItem value="google">Google ({place.reviews?.length || 0})</SelectItem>
+                          <SelectItem value="yelp">Yelp ({yelpReviews.length})</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Select value={reviewSortBy} onValueChange={(value: 'recent' | 'helpful' | 'rating') => setReviewSortBy(value)}>
+                        <SelectTrigger className="w-32">
+                          <Filter className="h-4 w-4 mr-2" />
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="recent">Most Recent</SelectItem>
+                          <SelectItem value="helpful">Most Helpful</SelectItem>
+                          <SelectItem value="rating">Highest Rated</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {getSortedReviews().slice(0, showAllReviews ? getSortedReviews().length : 3).map((review, index) => (
-                    <div key={index} className="border-b last:border-b-0 pb-4 last:pb-0">
+                  {getSortedReviews().slice(0, showAllReviews ? getSortedReviews().length : 5).map((review) => (
+                    <div key={review.id} className="border-b last:border-b-0 pb-4 last:pb-0">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
+                          {review.user_image && (
+                            <img 
+                              src={review.user_image} 
+                              alt={review.author_name}
+                              className="w-6 h-6 rounded-full"
+                            />
+                          )}
                           <span className="font-semibold">{review.author_name}</span>
                           <div className="flex">
                             {[1, 2, 3, 4, 5].map((star) => (
@@ -572,17 +656,33 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                               />
                             ))}
                           </div>
+                          <Badge 
+                            variant={review.source === 'google' ? 'default' : 'secondary'} 
+                            className="text-xs"
+                          >
+                            {review.source === 'google' ? 'Google' : 'Yelp'}
+                          </Badge>
                         </div>
                         <span className="text-sm text-muted-foreground">
-                          {new Date(review.time * 1000).toLocaleDateString()}
+                          {new Date(review.timestamp).toLocaleDateString()}
                         </span>
                       </div>
-                      <p className="text-sm text-muted-foreground">{review.text}</p>
+                      <p className="text-sm text-muted-foreground mb-2">{review.text}</p>
+                      {review.url && (
+                        <a 
+                          href={review.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary hover:underline"
+                        >
+                          View on {review.source === 'google' ? 'Google' : 'Yelp'}
+                        </a>
+                      )}
                     </div>
                   ))}
                   
                   {/* Show More/Less Reviews Button */}
-                  {getSortedReviews().length > 3 && (
+                  {getSortedReviews().length > 5 && (
                     <div className="pt-4 border-t">
                       <Button
                         variant="outline"
@@ -590,15 +690,29 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                         onClick={() => setShowAllReviews(!showAllReviews)}
                         className="w-full"
                       >
-                        {showAllReviews ? 'Show Less Reviews' : `Show All ${getSortedReviews().length} Google Reviews`}
+                        {showAllReviews ? 'Show Less Reviews' : `Show All ${getSortedReviews().length} Reviews`}
                       </Button>
                     </div>
                   )}
                   
-                  {/* Note about Google Reviews */}
-                  <div className="pt-2 text-xs text-muted-foreground text-center">
-                    Showing all available Google Reviews (up to {getSortedReviews().length} reviews)
+                  {/* Review Sources Summary */}
+                  <div className="pt-2 text-xs text-muted-foreground text-center space-y-1">
+                    <div>
+                      Showing reviews from: Google ({place.reviews?.length || 0}) • Yelp ({yelpReviews.length})
+                    </div>
+                    {yelpBusiness && (
+                      <div>
+                        Yelp Rating: {yelpBusiness.rating}/5 ({yelpBusiness.review_count} total reviews)
+                      </div>
+                    )}
                   </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <MessageSquare className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-muted-foreground">No reviews available yet</p>
                 </CardContent>
               </Card>
             )}
