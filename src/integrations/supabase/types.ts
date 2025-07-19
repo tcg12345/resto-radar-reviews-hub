@@ -60,6 +60,7 @@ export type Database = {
           michelin_stars: number | null
           name: string
           notes: string | null
+          opening_hours: string | null
           photos: string[] | null
           price_range: number | null
           rating: number | null
@@ -82,6 +83,7 @@ export type Database = {
           michelin_stars?: number | null
           name: string
           notes?: string | null
+          opening_hours?: string | null
           photos?: string[] | null
           price_range?: number | null
           rating?: number | null
@@ -104,6 +106,7 @@ export type Database = {
           michelin_stars?: number | null
           name?: string
           notes?: string | null
+          opening_hours?: string | null
           photos?: string[] | null
           price_range?: number | null
           rating?: number | null
