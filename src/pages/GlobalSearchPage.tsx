@@ -6,8 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { GlobalSearchMap } from '@/components/GlobalSearchMap';
+import { PersonalizedRecommendations } from '@/components/PersonalizedRecommendations';
 import { RestaurantProfileModal } from '@/components/RestaurantProfileModal';
 
 interface GooglePlaceResult {
@@ -50,6 +52,7 @@ interface PlaceDetails extends GooglePlaceResult {
 }
 
 export default function GlobalSearchPage() {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<GooglePlaceResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -142,6 +145,13 @@ export default function GlobalSearchPage() {
           Discover restaurants worldwide with real-time search and detailed information
         </p>
       </div>
+
+      {/* Personalized Recommendations - Show when no search results */}
+      {searchResults.length === 0 && !isLoading && (
+        <div className="mb-8">
+          <PersonalizedRecommendations />
+        </div>
+      )}
 
       {/* Search Section */}
       <Card className="mb-8">
