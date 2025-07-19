@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { supabase } from '@/integrations/supabase/client';
+import { useRestaurants } from '@/contexts/RestaurantContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,13 +25,17 @@ import {
   Globe,
   ExternalLink,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Heart,
+  Eye
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { RestaurantMapView } from '@/components/RestaurantMapView';
+import { RestaurantDetailsModal } from '@/components/RestaurantDetailsModal';
+import { toast } from 'sonner';
 
-interface Restaurant {
+interface SearchRestaurant {
   id: string;
   name: string;
   address: string;
@@ -40,8 +45,8 @@ interface Restaurant {
   isOpen?: boolean;
   phoneNumber?: string;
   website?: string;
-  openingHours?: string;
-  photos?: string[];
+  openingHours?: string[];
+  photos: string[];
   location: {
     lat: number;
     lng: number;
@@ -61,7 +66,28 @@ interface SearchFilters {
 
 export default function RestaurantSearchPage() {
   const navigate = useNavigate();
+  const { addRestaurant } = useRestaurants();
   
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchLocation, setSearchLocation] = useState('');
+  const [restaurants, setRestaurants] = useState<SearchRestaurant[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [showMap, setShowMap] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedRestaurant, setSelectedRestaurant] = useState<SearchRestaurant | null>(null);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [detailsRestaurant, setDetailsRestaurant] = useState<SearchRestaurant | null>(null);
+  
+  const [filters, setFilters] = useState<SearchFilters>({
+    priceRanges: [],
+    minRating: 0,
+    openNow: false,
+    hasPhone: false,
+    hasWebsite: false,
+    cuisineTypes: []
+  });
+
   // Handle navigation between tabs
   const handleTabChange = (tab: 'home' | 'rated' | 'wishlist' | 'map' | 'discover' | 'search') => {
     if (tab === 'search') {
@@ -72,22 +98,32 @@ export default function RestaurantSearchPage() {
       navigate('/', { state: { activeTab: tab } });
     }
   };
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchLocation, setSearchLocation] = useState('');
-  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
-  const [showMap, setShowMap] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
-  const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
-  const [filters, setFilters] = useState<SearchFilters>({
-    priceRanges: [],
-    minRating: 0,
-    openNow: false,
-    hasPhone: false,
-    hasWebsite: false,
-    cuisineTypes: []
-  });
+
+  const handleViewDetails = (restaurant: SearchRestaurant) => {
+    setDetailsRestaurant(restaurant);
+    setDetailsModalOpen(true);
+  };
+
+  const handleSaveToWishlist = async (restaurant: SearchRestaurant) => {
+    try {
+      await addRestaurant({
+        name: restaurant.name,
+        address: restaurant.address,
+        city: searchLocation || 'Unknown',
+        cuisine: restaurant.cuisine || 'Unknown',
+        rating: restaurant.rating,
+        priceRange: restaurant.priceRange,
+        photos: [], // No photos for now
+        notes: `Found via search. Original address: ${restaurant.address}`,
+        isWishlist: true,
+        useWeightedRating: false,
+      });
+      toast.success(`${restaurant.name} saved to your wishlist!`);
+    } catch (error) {
+      console.error('Error saving to wishlist:', error);
+      toast.error('Failed to save to wishlist. Please try again.');
+    }
+  };
 
   const handleSearch = useCallback(async () => {
     if (!searchQuery.trim()) return;
@@ -112,7 +148,7 @@ export default function RestaurantSearchPage() {
 
       if (data?.restaurants) {
         // Transform the response to match our Restaurant interface
-        const transformedRestaurants: Restaurant[] = data.restaurants.map((restaurant: any) => ({
+        const transformedRestaurants: SearchRestaurant[] = data.restaurants.map((restaurant: any) => ({
           id: restaurant.id,
           name: restaurant.name,
           address: restaurant.address,
@@ -433,41 +469,6 @@ export default function RestaurantSearchPage() {
               </div>
             </div>
 
-            {/* Active Filters */}
-            {activeFiltersCount > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {filters.priceRanges.map(price => (
-                  <Badge key={price} variant="secondary" className="gap-1">
-                    {getPriceDisplay(price)}
-                    <button
-                      onClick={() => setFilters(prev => ({
-                        ...prev,
-                        priceRanges: prev.priceRanges.filter(p => p !== price)
-                      }))}
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                ))}
-                {filters.minRating > 0 && (
-                  <Badge variant="secondary" className="gap-1">
-                    {filters.minRating}+ stars
-                    <button onClick={() => setFilters(prev => ({ ...prev, minRating: 0 }))}>
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                )}
-                {filters.openNow && (
-                  <Badge variant="secondary" className="gap-1">
-                    Open now
-                    <button onClick={() => setFilters(prev => ({ ...prev, openNow: false }))}>
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                )}
-              </div>
-            )}
-
             {/* Results Grid */}
             {!showMap ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -501,9 +502,11 @@ export default function RestaurantSearchPage() {
                           </div>
                           
                           <div className="flex items-center gap-2">
-                            <Badge variant={restaurant.isOpen ? "default" : "secondary"}>
-                              {restaurant.isOpen ? "Open" : "Closed"}
-                            </Badge>
+                            {restaurant.isOpen !== undefined && (
+                              <Badge variant={restaurant.isOpen ? "default" : "secondary"}>
+                                {restaurant.isOpen ? "Open" : "Closed"}
+                              </Badge>
+                            )}
                             <span className="text-lg font-bold text-green-600">
                               {getPriceDisplay(restaurant.priceRange)}
                             </span>
@@ -526,33 +529,23 @@ export default function RestaurantSearchPage() {
                     </CardHeader>
 
                     <CardContent className="space-y-3">
-                      {/* Contact Info */}
-                      {(restaurant.phoneNumber || restaurant.website) && (
-                        <div className="flex flex-wrap gap-2 text-sm">
-                          {restaurant.phoneNumber && (
-                            <Button variant="outline" size="sm" className="h-7 text-xs">
-                              <Phone className="h-3 w-3 mr-1" />
-                              Call
-                            </Button>
-                          )}
-                          {restaurant.website && (
-                            <Button variant="outline" size="sm" className="h-7 text-xs">
-                              <Globe className="h-3 w-3 mr-1" />
-                              Website
-                            </Button>
-                          )}
-                        </div>
-                      )}
-
                       {/* Action Buttons */}
                       <div className="grid grid-cols-2 gap-2">
-                        <Button variant="outline" size="sm">
-                          <MapPin className="h-3 w-3 mr-1" />
-                          View on Map
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleViewDetails(restaurant)}
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          Details
                         </Button>
-                        <Button variant="outline" size="sm">
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          More Info
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleSaveToWishlist(restaurant)}
+                        >
+                          <Heart className="h-3 w-3 mr-1" />
+                          Save
                         </Button>
                       </div>
                     </CardContent>
@@ -562,15 +555,26 @@ export default function RestaurantSearchPage() {
             ) : (
               /* Map View */
               <RestaurantMapView
-                restaurants={filteredRestaurants}
-                selectedRestaurant={selectedRestaurant}
-                onRestaurantSelect={setSelectedRestaurant}
+                restaurants={filteredRestaurants as any}
+                selectedRestaurant={selectedRestaurant as any}
+                onRestaurantSelect={(restaurant) => {
+                  const searchRestaurant = filteredRestaurants.find(r => r.id === restaurant.id);
+                  if (searchRestaurant) setSelectedRestaurant(searchRestaurant);
+                }}
               />
             )}
           </div>
         )}
       </div>
       </div>
+
+      {/* Restaurant Details Modal */}
+      <RestaurantDetailsModal
+        restaurant={detailsRestaurant}
+        isOpen={detailsModalOpen}
+        onClose={() => setDetailsModalOpen(false)}
+        onSaveToWishlist={handleSaveToWishlist}
+      />
     </div>
   );
 }

@@ -1,8 +1,11 @@
 import { useEffect, useRef } from 'react';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Star, Phone, Globe, ExternalLink } from 'lucide-react';
+import { useMapboxToken } from '@/hooks/useMapboxToken';
 
 interface Restaurant {
   id: string;
@@ -30,14 +33,95 @@ interface RestaurantMapViewProps {
 
 export function RestaurantMapView({ restaurants, selectedRestaurant, onRestaurantSelect }: RestaurantMapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<any>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
+  const markers = useRef<mapboxgl.Marker[]>([]);
+  const { token, isLoading: tokenLoading } = useMapboxToken();
 
   const getPriceDisplay = (range: number) => '$'.repeat(Math.min(range, 4));
 
+  // Initialize map
   useEffect(() => {
-    // Map integration will be implemented here when Mapbox is set up
-    // For now, show a placeholder
-  }, [restaurants]);
+    if (!mapContainer.current || !token || tokenLoading) return;
+
+    mapboxgl.accessToken = token;
+
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [-74.006, 40.7128], // Default to NYC
+      zoom: 12,
+    });
+
+    // Add navigation controls
+    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+    return () => {
+      map.current?.remove();
+    };
+  }, [token, tokenLoading]);
+
+  // Add restaurant markers
+  useEffect(() => {
+    if (!map.current || !restaurants.length) return;
+
+    // Clear existing markers
+    markers.current.forEach(marker => marker.remove());
+    markers.current = [];
+
+    const validRestaurants = restaurants.filter(
+      restaurant => restaurant.location?.lat && restaurant.location?.lng
+    );
+
+    if (validRestaurants.length === 0) return;
+
+    // Add markers for each restaurant
+    validRestaurants.forEach((restaurant) => {
+      const marker = new mapboxgl.Marker({
+        color: selectedRestaurant?.id === restaurant.id ? '#ff6b6b' : '#4285f4',
+      })
+        .setLngLat([restaurant.location.lng, restaurant.location.lat])
+        .setPopup(
+          new mapboxgl.Popup({ offset: 25 }).setHTML(
+            `<div class="p-2">
+              <h3 class="font-semibold">${restaurant.name}</h3>
+              <p class="text-sm text-gray-600">${restaurant.cuisine}</p>
+              <div class="flex items-center gap-1 mt-1">
+                <span class="text-yellow-500">⭐</span>
+                <span class="text-sm">${restaurant.rating}</span>
+                <span class="text-sm text-green-600 ml-2">${getPriceDisplay(restaurant.priceRange)}</span>
+              </div>
+            </div>`
+          )
+        )
+        .addTo(map.current);
+
+      marker.getElement().addEventListener('click', () => {
+        onRestaurantSelect?.(restaurant);
+      });
+
+      markers.current.push(marker);
+    });
+
+    // Fit map to show all restaurants
+    if (validRestaurants.length > 0) {
+      const bounds = new mapboxgl.LngLatBounds();
+      validRestaurants.forEach(restaurant => {
+        bounds.extend([restaurant.location.lng, restaurant.location.lat]);
+      });
+      map.current.fitBounds(bounds, { padding: 50 });
+    }
+  }, [restaurants, selectedRestaurant, onRestaurantSelect]);
+
+  // Update marker colors when selection changes
+  useEffect(() => {
+    markers.current.forEach((marker, index) => {
+      const restaurant = restaurants.filter(r => r.location?.lat && r.location?.lng)[index];
+      if (restaurant) {
+        const color = selectedRestaurant?.id === restaurant.id ? '#ff6b6b' : '#4285f4';
+        marker.getElement().style.filter = `hue-rotate(${color === '#ff6b6b' ? '0deg' : '200deg'})`;
+      }
+    });
+  }, [selectedRestaurant, restaurants]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-96">
@@ -45,23 +129,32 @@ export function RestaurantMapView({ restaurants, selectedRestaurant, onRestauran
       <div className="lg:col-span-2">
         <Card className="h-full">
           <CardContent className="h-full p-0">
-            <div 
-              ref={mapContainer} 
-              className="h-full w-full rounded-lg bg-muted flex items-center justify-center"
-            >
-              <div className="text-center space-y-4">
-                <MapPin className="h-16 w-16 mx-auto text-muted-foreground" />
-                <div>
-                  <h3 className="text-lg font-semibold">Interactive Map</h3>
-                  <p className="text-muted-foreground">
-                    Restaurant locations will be displayed here when Mapbox is configured
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Showing {restaurants.length} restaurant{restaurants.length !== 1 ? 's' : ''}
-                  </p>
+            {tokenLoading ? (
+              <div className="h-full w-full rounded-lg bg-muted flex items-center justify-center">
+                <div className="text-center space-y-4">
+                  <MapPin className="h-16 w-16 mx-auto text-muted-foreground animate-pulse" />
+                  <div>
+                    <h3 className="text-lg font-semibold">Loading Map...</h3>
+                    <p className="text-muted-foreground">Setting up Mapbox integration</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : !token ? (
+              <div className="h-full w-full rounded-lg bg-muted flex items-center justify-center">
+                <div className="text-center space-y-4">
+                  <MapPin className="h-16 w-16 mx-auto text-muted-foreground" />
+                  <div>
+                    <h3 className="text-lg font-semibold">Map Unavailable</h3>
+                    <p className="text-muted-foreground">Mapbox token not configured</p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div 
+                ref={mapContainer} 
+                className="h-full w-full rounded-lg"
+              />
+            )}
           </CardContent>
         </Card>
       </div>
