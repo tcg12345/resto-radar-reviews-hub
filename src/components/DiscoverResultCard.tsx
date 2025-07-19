@@ -5,8 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { DisplayStarRating } from '@/components/DisplayStarRating';
-import { useDefaultReviewSource } from '@/hooks/useDefaultReviewSource';
 import { 
   Star, 
   MapPin, 
@@ -77,10 +75,6 @@ const getFeatureIcon = (feature: string) => {
 export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist }: DiscoverResultCardProps) {
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
-  const { defaultSource } = useDefaultReviewSource();
-  
-  console.log('DiscoverResultCard defaultSource:', defaultSource, 'for restaurant:', restaurant.name);
-  
   const [isMoreInfoOpen, setIsMoreInfoOpen] = useState(false);
   const [showFullWeekHours, setShowFullWeekHours] = useState(false);
 
@@ -89,6 +83,11 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist 
   const handleImageError = () => {
     setImageError(true);
     setImageLoading(false);
+  };
+
+  const handleRatingClick = () => {
+    const searchQuery = `${restaurant.name} ${restaurant.address || restaurant.location?.city || ''} reviews`;
+    window.open(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, '_blank');
   };
 
   const getCurrentDayHours = (hours: string) => {
@@ -158,8 +157,6 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist 
             <Heart className={`h-5 w-5 ${isInWishlist ? 'fill-current' : ''}`} />
           </Button>
         </div>
-
-        {/* Remove Michelin Stars Overlay */}
       </div>
 
       {/* Content */}
@@ -169,44 +166,21 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist 
             {restaurant.name}
           </CardTitle>
           
-          {/* Rating */}
+          {/* Rating - Clickable */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {restaurant.googleMapsUrl ? (
-                <a 
-                  href={restaurant.googleMapsUrl} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 hover:opacity-80 transition-opacity"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <DisplayStarRating 
-                    rating={restaurant.rating} 
-                    size="sm" 
-                    source={defaultSource}
-                    showValue={true}
-                  />
-                  {restaurant.reviewCount && (
-                    <span className="text-xs text-muted-foreground ml-1">
-                      ({restaurant.reviewCount.toLocaleString()})
-                    </span>
-                  )}
-                </a>
-              ) : (
-                <div className="flex items-center gap-1">
-                  <DisplayStarRating 
-                    rating={restaurant.rating} 
-                    size="sm" 
-                    source={defaultSource}
-                    showValue={true}
-                  />
-                  {restaurant.reviewCount && (
-                    <span className="text-xs text-muted-foreground ml-1">
-                      ({restaurant.reviewCount.toLocaleString()})
-                    </span>
-                  )}
-                </div>
-              )}
+              <button 
+                onClick={handleRatingClick}
+                className="flex items-center gap-1 hover:opacity-80 transition-opacity cursor-pointer"
+              >
+                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                <span className="font-semibold">{restaurant.rating}</span>
+                {restaurant.reviewCount && (
+                  <span className="text-xs text-muted-foreground">
+                    ({restaurant.reviewCount.toLocaleString()})
+                  </span>
+                )}
+              </button>
             </div>
           </div>
 

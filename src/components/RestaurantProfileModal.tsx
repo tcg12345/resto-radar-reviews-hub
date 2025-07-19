@@ -8,9 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StarRating } from '@/components/StarRating';
-import { DisplayStarRating } from '@/components/DisplayStarRating';
 import { 
   Star, 
   MapPin, 
@@ -21,13 +19,13 @@ import {
   Heart,
   MessageSquare,
   Camera,
-  Filter
+  Filter,
+  ExternalLink
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { GlobalSearchMap } from '@/components/GlobalSearchMap';
-import { cn } from '@/lib/utils';
 
 interface PlaceDetails {
   place_id: string;
@@ -81,16 +79,11 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
   const [aiCuisine, setAiCuisine] = useState<string>('');
   const [aiCategories, setAiCategories] = useState<string[]>([]);
   const [isLoadingAiAnalysis, setIsLoadingAiAnalysis] = useState(false);
-  const [yelpReviews, setYelpReviews] = useState<any[]>([]);
-  const [yelpBusiness, setYelpBusiness] = useState<any>(null);
-  const [isLoadingYelpReviews, setIsLoadingYelpReviews] = useState(false);
-  const [activeReviewSource, setActiveReviewSource] = useState<'google' | 'yelp' | 'all'>('all');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Analyze restaurant with AI and fetch Yelp reviews on component mount
+  // Analyze restaurant with AI on component mount
   useState(() => {
-    const initializeData = async () => {
-      // Analyze restaurant with AI
+    const analyzeRestaurant = async () => {
       setIsLoadingAiAnalysis(true);
       try {
         const { data, error } = await supabase.functions.invoke('ai-restaurant-analysis', {
@@ -111,34 +104,9 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
       } finally {
         setIsLoadingAiAnalysis(false);
       }
-
-      // Fetch Yelp reviews
-      setIsLoadingYelpReviews(true);
-      try {
-        const { data: yelpData, error: yelpError } = await supabase.functions.invoke('yelp-reviews', {
-          body: {
-            restaurantName: place.name,
-            address: place.formatted_address,
-            latitude: place.geometry.location.lat,
-            longitude: place.geometry.location.lng
-          }
-        });
-
-        if (!yelpError && yelpData.business) {
-          setYelpBusiness(yelpData.business);
-          setYelpReviews(yelpData.reviews || []);
-          console.log(`Loaded ${yelpData.reviews?.length || 0} Yelp reviews for ${place.name}`);
-        } else {
-          console.log('No Yelp data found for restaurant');
-        }
-      } catch (error) {
-        console.error('Error fetching Yelp reviews:', error);
-      } finally {
-        setIsLoadingYelpReviews(false);
-      }
     };
 
-    initializeData();
+    analyzeRestaurant();
   });
 
   const getPriceDisplay = (priceLevel?: number) => {
@@ -146,21 +114,39 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
     return '$'.repeat(priceLevel);
   };
 
-  const getPhotoUrl = (photoReference: string) => {
-    // Since we're using Supabase secrets, we'll use a simplified approach
-    // The photos array will be populated by the Google Places API response
-    return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${photoReference}&key=GOOGLE_API_KEY_PLACEHOLDER`;
+  const handleRatingClick = () => {
+    const searchQuery = `${place.name} ${place.formatted_address} reviews`;
+    window.open(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, '_blank');
+  };
+
+  const handleViewMoreReviews = () => {
+    const searchQuery = `${place.name} ${place.formatted_address} reviews site:google.com`;
+    window.open(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, '_blank');
+  };
+
+  const getSortedReviews = () => {
+    if (!place.reviews) return [];
+    
+    const reviews = [...place.reviews];
+    switch (reviewSortBy) {
+      case 'recent':
+        return reviews.sort((a, b) => b.time - a.time);
+      case 'helpful':
+        return reviews.sort((a, b) => b.rating - a.rating);
+      case 'rating':
+        return reviews.sort((a, b) => b.rating - a.rating);
+      default:
+        return reviews;
+    }
   };
 
   const handlePhotoUpload = async (files: FileList) => {
     setUploadingPhotos(true);
     const uploadedUrls: string[] = [];
-    const selectedFiles = Array.from(files).slice(0, 5); // Limit to 5 photos
+    const selectedFiles = Array.from(files).slice(0, 5);
     
     try {
       for (const file of selectedFiles) {
-        // For now, we'll create object URLs for preview
-        // In a real app, you'd upload to Supabase Storage or Cloudinary
         const url = URL.createObjectURL(file);
         uploadedUrls.push(url);
       }
@@ -189,18 +175,15 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
 
     setIsAddingToWishlist(true);
     try {
-      console.log('Adding to wishlist:', place);
-      console.log('User ID:', user.id);
-      
       const restaurantData = {
         id: place.place_id,
         name: place.name,
         address: place.formatted_address,
         city: place.formatted_address.split(',').slice(-2, -1)[0]?.trim() || '',
         country: place.formatted_address.split(',').slice(-1)[0]?.trim() || '',
-          cuisine: aiCuisine || place.types.filter(type => 
-            !['establishment', 'point_of_interest', 'food'].includes(type)
-          )[0] || 'restaurant',
+        cuisine: aiCuisine || place.types.filter(type => 
+          !['establishment', 'point_of_interest', 'food'].includes(type)
+        )[0] || 'restaurant',
         rating: place.rating || null,
         phone_number: place.formatted_phone_number || null,
         website: place.website || null,
@@ -216,18 +199,12 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
         user_id: user.id,
       };
 
-      console.log('Restaurant data to insert:', restaurantData);
-
       const { error } = await supabase
         .from('restaurants')
         .upsert(restaurantData);
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log('Successfully added to wishlist');
       toast.success('Added to wishlist!');
     } catch (error) {
       console.error('Error adding to wishlist:', error);
@@ -268,7 +245,9 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
           price_range: place.price_level,
           latitude: place.geometry.location.lat,
           longitude: place.geometry.location.lng,
-          photos: place.photos?.slice(0, 5).map(photo => getPhotoUrl(photo.photo_reference)) || [],
+          photos: place.photos?.slice(0, 5).map(photo => 
+            `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo.photo_reference}&key=PLACEHOLDER`
+          ) || [],
           notes: userReview || `Rated ${userRating} stars`,
           is_wishlist: false,
           user_id: user.id,
@@ -309,55 +288,6 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
   const handleGetDirections = () => {
     const url = `https://www.google.com/maps/dir/?api=1&destination=${place.geometry.location.lat},${place.geometry.location.lng}`;
     window.open(url, '_blank');
-  };
-
-  const getAllReviews = () => {
-    const allReviews = [];
-
-    // Add Google reviews with source identifier
-    if (activeReviewSource === 'google' || activeReviewSource === 'all') {
-      const googleReviews = place.reviews?.map(review => ({
-        ...review,
-        source: 'google' as const,
-        id: `google-${review.time}`,
-        // Convert time to consistent format
-        timestamp: review.time * 1000,
-      })) || [];
-      allReviews.push(...googleReviews);
-    }
-
-    // Add Yelp reviews with source identifier
-    if (activeReviewSource === 'yelp' || activeReviewSource === 'all') {
-      const yelpReviewsFormatted = yelpReviews.map(review => ({
-        author_name: review.user?.name || 'Yelp User',
-        rating: review.rating,
-        text: review.text,
-        source: 'yelp' as const,
-        id: review.id,
-        timestamp: new Date(review.time_created).getTime(),
-        url: review.url,
-        user_image: review.user?.image_url,
-      }));
-      allReviews.push(...yelpReviewsFormatted);
-    }
-
-    return allReviews;
-  };
-
-  const getSortedReviews = () => {
-    const reviews = getAllReviews();
-    
-    switch (reviewSortBy) {
-      case 'recent':
-        return reviews.sort((a, b) => b.timestamp - a.timestamp);
-      case 'helpful':
-        // For mixed reviews, sort by rating as a proxy for helpfulness
-        return reviews.sort((a, b) => b.rating - a.rating);
-      case 'rating':
-        return reviews.sort((a, b) => b.rating - a.rating);
-      default:
-        return reviews;
-    }
   };
 
   return (
@@ -426,7 +356,10 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                 <CardContent className="space-y-4">
                   {place.rating && (
                     <div>
-                      <div className="flex items-center gap-2 mb-2">
+                      <button 
+                        onClick={handleRatingClick}
+                        className="flex items-center gap-2 mb-2 hover:opacity-80 transition-opacity cursor-pointer"
+                      >
                         <span className="text-2xl font-bold">{place.rating}</span>
                         <div className="flex">
                           {[1, 2, 3, 4, 5].map((star) => (
@@ -440,7 +373,7 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                             />
                           ))}
                         </div>
-                      </div>
+                      </button>
                       {place.user_ratings_total && (
                         <p className="text-sm text-muted-foreground">
                           Based on {place.user_ratings_total} reviews
@@ -597,31 +530,25 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
               </Card>
             )}
 
-            {/* Customer Reviews with Tabs */}
-            {(place.reviews && place.reviews.length > 0) || (yelpReviews && yelpReviews.length > 0) ? (
+            {/* Google Reviews */}
+            {place.reviews && place.reviews.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MessageSquare className="h-5 w-5" />
-                    Customer Reviews
-                    {isLoadingYelpReviews && (
-                      <Badge variant="secondary" className="animate-pulse">Loading Yelp...</Badge>
-                    )}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Tabs defaultValue="all" className="w-full">
-                    <div className="flex justify-between items-center mb-4">
-                      <TabsList className="grid w-auto grid-cols-3">
-                        <TabsTrigger value="all">All ({getSortedReviews().length})</TabsTrigger>
-                        <TabsTrigger value="google" className="text-yellow-600">
-                          Google ({place.reviews?.length || 0})
-                        </TabsTrigger>
-                        <TabsTrigger value="yelp" className="text-red-600">
-                          Yelp ({yelpReviews.length})
-                        </TabsTrigger>
-                      </TabsList>
-                      
+                  <CardTitle className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="h-5 w-5" />
+                      Google Reviews
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleViewMoreReviews}
+                        className="flex items-center gap-1"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        View More Reviews
+                      </Button>
                       <Select value={reviewSortBy} onValueChange={(value: 'recent' | 'helpful' | 'rating') => setReviewSortBy(value)}>
                         <SelectTrigger className="w-32">
                           <Filter className="h-4 w-4 mr-2" />
@@ -634,175 +561,53 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                         </SelectContent>
                       </Select>
                     </div>
-
-                    <TabsContent value="all" className="space-y-4">
-                      {getAllReviews().sort((a, b) => {
-                        switch (reviewSortBy) {
-                          case 'recent': return b.timestamp - a.timestamp;
-                          case 'helpful': return b.rating - a.rating;
-                          case 'rating': return b.rating - a.rating;
-                          default: return 0;
-                        }
-                      }).slice(0, showAllReviews ? getAllReviews().length : 5).map((review) => (
-                        <div key={review.id} className="border-b last:border-b-0 pb-4 last:pb-0">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              {review.user_image && (
-                                <img 
-                                  src={review.user_image} 
-                                  alt={review.author_name}
-                                  className="w-6 h-6 rounded-full"
-                                />
-                              )}
-                              <span className="font-semibold">{review.author_name}</span>
-                              <DisplayStarRating 
-                                rating={review.rating} 
-                                size="sm" 
-                                source={review.source}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {getSortedReviews().slice(0, showAllReviews ? getSortedReviews().length : 3).map((review, index) => (
+                    <div key={index} className="border-b last:border-b-0 pb-4 last:pb-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold">{review.author_name}</span>
+                          <div className="flex">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star
+                                key={star}
+                                className={`h-4 w-4 ${
+                                  star <= review.rating
+                                    ? 'text-yellow-500 fill-current'
+                                    : 'text-gray-300'
+                                }`}
                               />
-                              <Badge 
-                                variant={review.source === 'google' ? 'default' : 'secondary'} 
-                                className={cn(
-                                  "text-xs",
-                                  review.source === 'google' ? 'border-yellow-500' : 'border-red-500'
-                                )}
-                              >
-                                {review.source === 'google' ? 'Google' : 'Yelp'}
-                              </Badge>
-                            </div>
-                            <span className="text-sm text-muted-foreground">
-                              {new Date(review.timestamp).toLocaleDateString()}
-                            </span>
+                            ))}
                           </div>
-                          <p className="text-sm text-muted-foreground mb-2">{review.text}</p>
-                          {review.url && (
-                            <a 
-                              href={review.url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-xs text-primary hover:underline"
-                            >
-                              View on {review.source === 'google' ? 'Google' : 'Yelp'}
-                            </a>
-                          )}
                         </div>
-                      ))}
-                    </TabsContent>
-
-                    <TabsContent value="google" className="space-y-4">
-                      {place.reviews?.sort((a, b) => {
-                        switch (reviewSortBy) {
-                          case 'recent': return b.time - a.time;
-                          case 'helpful': return b.rating - a.rating;
-                          case 'rating': return b.rating - a.rating;
-                          default: return 0;
-                        }
-                      }).slice(0, showAllReviews ? place.reviews.length : 5).map((review, index) => (
-                        <div key={index} className="border-b last:border-b-0 pb-4 last:pb-0">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold">{review.author_name}</span>
-                              <DisplayStarRating 
-                                rating={review.rating} 
-                                size="sm" 
-                                source="google"
-                              />
-                            </div>
-                            <span className="text-sm text-muted-foreground">
-                              {new Date(review.time * 1000).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <p className="text-sm text-muted-foreground">{review.text}</p>
-                        </div>
-                      )) || <p className="text-muted-foreground text-center py-4">No Google reviews available</p>}
-                    </TabsContent>
-
-                    <TabsContent value="yelp" className="space-y-4">
-                      {yelpReviews.sort((a, b) => {
-                        switch (reviewSortBy) {
-                          case 'recent': return new Date(b.time_created).getTime() - new Date(a.time_created).getTime();
-                          case 'helpful': return b.rating - a.rating;
-                          case 'rating': return b.rating - a.rating;
-                          default: return 0;
-                        }
-                      }).slice(0, showAllReviews ? yelpReviews.length : 5).map((review) => (
-                        <div key={review.id} className="border-b last:border-b-0 pb-4 last:pb-0">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              {review.user?.image_url && (
-                                <img 
-                                  src={review.user.image_url} 
-                                  alt={review.user.name}
-                                  className="w-6 h-6 rounded-full"
-                                />
-                              )}
-                              <span className="font-semibold">{review.user?.name || 'Yelp User'}</span>
-                              <DisplayStarRating 
-                                rating={review.rating} 
-                                size="sm" 
-                                source="yelp"
-                              />
-                            </div>
-                            <span className="text-sm text-muted-foreground">
-                              {new Date(review.time_created).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-2">{review.text}</p>
-                          {review.url && (
-                            <a 
-                              href={review.url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-xs text-red-600 hover:underline"
-                            >
-                              View on Yelp
-                            </a>
-                          )}
-                        </div>
-                      ))}
-                      {yelpReviews.length === 0 && (
-                        <p className="text-muted-foreground text-center py-4">No Yelp reviews available</p>
-                      )}
-                    </TabsContent>
-
-                    {/* Show More/Less Reviews Button */}
-                    {getAllReviews().length > 5 && (
-                      <div className="pt-4 border-t">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setShowAllReviews(!showAllReviews)}
-                          className="w-full"
-                        >
-                          {showAllReviews ? 'Show Less Reviews' : `Show All ${getAllReviews().length} Reviews`}
-                        </Button>
+                        <span className="text-sm text-muted-foreground">
+                          {new Date(review.time * 1000).toLocaleDateString()}
+                        </span>
                       </div>
-                    )}
-                    
-                    {/* Review Sources Summary */}
-                    <div className="pt-2 text-xs text-muted-foreground text-center space-y-1">
-                      <div className="flex justify-center items-center gap-4">
-                        <div className="flex items-center gap-1">
-                          <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                          <span>Google: {place.reviews?.length || 0} reviews</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                          <span>Yelp: {yelpReviews.length} reviews</span>
-                          {yelpBusiness && (
-                            <span>({yelpBusiness.rating}/5 avg)</span>
-                          )}
-                        </div>
-                      </div>
+                      <p className="text-sm text-muted-foreground">{review.text}</p>
                     </div>
-                  </Tabs>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card>
-                <CardContent className="text-center py-8">
-                  <MessageSquare className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                  <p className="text-muted-foreground">No reviews available yet</p>
+                  ))}
+                  
+                  {/* Show More/Less Reviews Button */}
+                  {getSortedReviews().length > 3 && (
+                    <div className="pt-4 border-t">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowAllReviews(!showAllReviews)}
+                        className="w-full"
+                      >
+                        {showAllReviews ? 'Show Less Reviews' : `Show All ${getSortedReviews().length} Google Reviews`}
+                      </Button>
+                    </div>
+                  )}
+                  
+                  {/* Note about Google Reviews */}
+                  <div className="pt-2 text-xs text-muted-foreground text-center">
+                    Showing all available Google Reviews (up to {getSortedReviews().length} reviews)
+                  </div>
                 </CardContent>
               </Card>
             )}
