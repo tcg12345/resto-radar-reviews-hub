@@ -25,7 +25,7 @@ serve(async (req) => {
       throw new Error('Google Places API key not found');
     }
 
-    const { query, location, radius = 10000, limit = 20 }: RestaurantSearchRequest = await req.json();
+    const { query, location, radius = 10000, limit = 100 }: RestaurantSearchRequest = await req.json();
 
     if (!query || query.trim().length === 0) {
       throw new Error('Search query is required');
@@ -54,36 +54,66 @@ serve(async (req) => {
       }
     }
 
-    // Build the search query for Places API
+    // Build the search query for Places API and support pagination for more results
     const searchQuery = location && location !== 'current location' 
       ? `${query} restaurants in ${location}` 
       : `${query} restaurant`;
     
-    let placesUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(searchQuery)}&type=restaurant&key=${googlePlacesApiKey}`;
-    
-    // Always try to use location+radius for better location filtering
-    if (lat && lng) {
-      placesUrl += `&location=${lat},${lng}&radius=${radius}`;
-      console.log(`Using coordinates: ${lat}, ${lng} with ${radius}m radius`);
-    }
+    // Get all results with pagination support
+    let allResults: any[] = [];
+    let nextPageToken: string | null = null;
+    let pageCount = 0;
+    const maxPages = 3; // Google allows up to 60 results per query (20 per page * 3 pages)
 
-    console.log('Places API URL:', placesUrl);
+    do {
+      let placesUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(searchQuery)}&type=restaurant&key=${googlePlacesApiKey}`;
+      
+      // Always try to use location+radius for better location filtering
+      if (lat && lng) {
+        placesUrl += `&location=${lat},${lng}&radius=${radius}`;
+        console.log(`Using coordinates: ${lat}, ${lng} with ${radius}m radius`);
+      }
 
-    const placesResponse = await fetch(placesUrl);
-    
-    if (!placesResponse.ok) {
-      throw new Error(`Google Places API error: ${placesResponse.status}`);
-    }
+      // Add page token for subsequent requests
+      if (nextPageToken) {
+        placesUrl += `&pagetoken=${nextPageToken}`;
+      }
 
-    const placesData = await placesResponse.json();
+      console.log(`Places API URL (page ${pageCount + 1}):`, placesUrl);
 
-    if (placesData.status !== 'OK' && placesData.status !== 'ZERO_RESULTS') {
-      console.error('Places API error:', placesData);
-      throw new Error(`Google Places API error: ${placesData.status}`);
-    }
+      const placesResponse = await fetch(placesUrl);
+      
+      if (!placesResponse.ok) {
+        throw new Error(`Google Places API error: ${placesResponse.status}`);
+      }
+
+      const placesData = await placesResponse.json();
+
+      if (placesData.status !== 'OK' && placesData.status !== 'ZERO_RESULTS') {
+        console.error('Places API error:', placesData);
+        throw new Error(`Google Places API error: ${placesData.status}`);
+      }
+
+      if (placesData.results && placesData.results.length > 0) {
+        allResults.push(...placesData.results);
+        console.log(`Total results so far: ${allResults.length}`);
+      }
+
+      nextPageToken = placesData.next_page_token || null;
+      pageCount++;
+
+      // Google requires a short delay between paginated requests
+      if (nextPageToken && pageCount < maxPages) {
+        console.log('Waiting for next page token to become valid...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+
+    } while (nextPageToken && pageCount < maxPages && allResults.length < limit);
+
+    console.log(`Final total results: ${allResults.length}`);
 
     const restaurants = await Promise.all(
-      placesData.results?.slice(0, limit).map(async (place: any) => {
+      allResults.slice(0, limit).map(async (place: any) => {
         // Get detailed information for each restaurant
         let detailedPlace = place;
         

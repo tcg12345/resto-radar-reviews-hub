@@ -194,7 +194,7 @@ serve(async (req) => {
     let allResults: any[] = [];
     let nextPageToken: string | null = null;
     let pageCount = 0;
-    const maxPages = 3; // Google allows up to 60 results per query (20 per page * 3 pages)
+    const maxPages = 5; // Increase to 5 pages for up to 100 results (20 per page * 5 pages)
 
     do {
       const placesUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(enhancedQuery)}&type=restaurant&radius=500000&key=${googlePlacesApiKey}${nextPageToken ? `&pagetoken=${nextPageToken}` : ''}`;
@@ -283,7 +283,7 @@ serve(async (req) => {
           
           // Get detailed place information including hours
           let placeDetails = null;
-          if (place.place_id && globalIndex < 25) {
+          if (place.place_id && globalIndex < 50) { // Increase detail fetch limit
             try {
               const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=formatted_address,formatted_phone_number,website,opening_hours,price_level,rating,user_ratings_total,types,photos,geometry&key=${googlePlacesApiKey}`;
               const detailsResponse = await fetch(detailsUrl);
@@ -352,8 +352,8 @@ serve(async (req) => {
           (searchLocation ? searchLocation.split(',')[0] : 'Unknown Location');
         const country = addressParts[addressParts.length - 1] || 'Unknown Country';
         
-          // Get cuisine type using AI only for top results to save time
-          const cuisine = globalIndex < 10 ? await determineCuisineWithAI(
+          // Get cuisine type using AI for more results to improve quality
+          const cuisine = globalIndex < 25 ? await determineCuisineWithAI(
             place.name, 
             placeDetails?.formatted_address || place.formatted_address || '', 
             placeDetails?.types || place.types || []

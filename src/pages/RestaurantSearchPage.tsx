@@ -401,7 +401,7 @@ export default function RestaurantSearchPage() {
           query: enhancedSearch.enhancedQuery,
           location: defaultLocation,
           radius: 10000,
-          limit: 20
+          limit: 100 // Increased from 20 to 100 for more results
         }
       });
       if (error) {
