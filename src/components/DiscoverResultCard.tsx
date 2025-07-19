@@ -79,6 +79,8 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist 
   const [imageError, setImageError] = useState(false);
   const { defaultSource } = useDefaultReviewSource();
   
+  console.log('DiscoverResultCard defaultSource:', defaultSource, 'for restaurant:', restaurant.name);
+  
   const [isMoreInfoOpen, setIsMoreInfoOpen] = useState(false);
   const [showFullWeekHours, setShowFullWeekHours] = useState(false);
 

@@ -12,8 +12,10 @@ export function useDefaultReviewSource() {
   // Load from localStorage as fallback
   useEffect(() => {
     const stored = localStorage.getItem('defaultReviewSource') as ReviewSource;
+    console.log('Loading from localStorage:', stored);
     if (stored && (stored === 'google' || stored === 'yelp')) {
       setDefaultSource(stored);
+      console.log('Set defaultSource from localStorage:', stored);
     }
     setIsLoading(false);
   }, []);
@@ -36,6 +38,7 @@ export function useDefaultReviewSource() {
           const source = data.value as ReviewSource;
           setDefaultSource(source);
           localStorage.setItem('defaultReviewSource', source);
+          console.log('Loaded defaultSource from database:', source);
         } else if (error && error.code !== 'PGRST116') {
           console.error('Error loading default review source:', error);
         }
@@ -48,9 +51,12 @@ export function useDefaultReviewSource() {
   }, [user]);
 
   const updateDefaultSource = async (source: ReviewSource) => {
+    console.log('Updating defaultSource to:', source);
+    
     // Update local state and localStorage immediately
     setDefaultSource(source);
     localStorage.setItem('defaultReviewSource', source);
+    console.log('Updated localStorage and state to:', source);
 
     // Try to update database if user is logged in
     if (!user) return;
@@ -71,12 +77,15 @@ export function useDefaultReviewSource() {
 
       if (error) {
         console.error('Error updating default review source in database:', error);
-        // Keep localStorage setting even if database fails
+      } else {
+        console.log('Successfully updated database with:', source);
       }
     } catch (error) {
       console.error('Error updating default review source:', error);
     }
   };
+
+  console.log('Current defaultSource in hook:', defaultSource);
 
   return {
     defaultSource,

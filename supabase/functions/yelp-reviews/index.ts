@@ -51,6 +51,10 @@ serve(async (req) => {
 
     const searchUrl = `https://api.yelp.com/v3/businesses/search?${searchParams.toString()}`;
     
+    console.log('Yelp search URL:', searchUrl);
+    console.log('API Key present:', !!yelpApiKey);
+    console.log('API Key length:', yelpApiKey?.length || 0);
+    
     const searchResponse = await fetch(searchUrl, {
       headers: {
         'Authorization': `Bearer ${yelpApiKey}`,
@@ -58,10 +62,18 @@ serve(async (req) => {
       },
     });
 
+    console.log('Search response status:', searchResponse.status);
+    console.log('Search response headers:', Object.fromEntries(searchResponse.headers.entries()));
+
     if (!searchResponse.ok) {
-      console.error('Yelp search failed:', searchResponse.status, await searchResponse.text());
+      const errorText = await searchResponse.text();
+      console.error('Yelp search failed:', searchResponse.status, errorText);
       return new Response(
-        JSON.stringify({ error: 'Failed to search Yelp businesses' }),
+        JSON.stringify({ 
+          error: 'Failed to search Yelp businesses',
+          status: searchResponse.status,
+          details: errorText
+        }),
         { 
           status: searchResponse.status, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

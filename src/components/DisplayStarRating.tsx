@@ -18,6 +18,8 @@ export function DisplayStarRating({
   source = 'google',
   className 
 }: DisplayStarRatingProps) {
+  console.log('DisplayStarRating rendered with source:', source, 'rating:', rating);
+  
   const starSizes = {
     sm: 'h-3 w-3',
     md: 'h-4 w-4',
