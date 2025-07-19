@@ -369,14 +369,22 @@ export default function RestaurantSearchPage() {
       const transformedResults: SearchRestaurant[] = (data.restaurants || []).map((restaurant: any) => ({
         ...restaurant,
         id: restaurant.id || Math.random().toString(36).substr(2, 9),
-        currentDayHours: getCurrentDayHours(restaurant.openingHours || []),
+        // Use the currentDayHours from backend if available, otherwise calculate from openingHours
+        currentDayHours: restaurant.currentDayHours || getCurrentDayHours(restaurant.openingHours || []),
       }));
 
       console.log('Transformed restaurants with hours:', transformedResults.map(r => ({
         name: r.name,
         openingHours: r.openingHours,
-        currentDayHours: r.currentDayHours
+        currentDayHours: r.currentDayHours,
+        openingHoursType: typeof r.openingHours,
+        openingHoursLength: r.openingHours?.length
       })));
+      
+      // Additional debug for first restaurant
+      if (transformedResults.length > 0) {
+        console.log('First restaurant full data:', transformedResults[0]);
+      }
 
       setRestaurants(transformedResults);
       

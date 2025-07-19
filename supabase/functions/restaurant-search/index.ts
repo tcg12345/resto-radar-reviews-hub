@@ -174,7 +174,10 @@ serve(async (req) => {
           hasWebsite: !!restaurant.website,
           website: restaurant.website,
           hasOpeningHours: restaurant.openingHours.length > 0,
-          currentDayHours: restaurant.currentDayHours
+          currentDayHours: restaurant.currentDayHours,
+          openingHoursRaw: detailedPlace.opening_hours?.weekday_text,
+          hasOpeningHoursData: !!detailedPlace.opening_hours,
+          todayIndex: today === 0 ? 6 : today - 1
         });
 
         return restaurant;
