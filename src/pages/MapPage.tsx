@@ -34,8 +34,8 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
   const [tempRatingRange, setTempRatingRange] = useState<[number, number]>([0, 10]);
   const [filterType, setFilterType] = useState<'all' | 'rated' | 'wishlist'>('all');
   
-  // Drag functionality for filter box
-  const [filterPosition, setFilterPosition] = useState({ x: 16, y: window.innerHeight - 400 }); // Initially positioned above filter button
+  // Drag functionality for filter box - initially positioned directly above filter button
+  const [filterPosition, setFilterPosition] = useState({ x: 16, y: window.innerHeight - 500 }); // Aligned above the filter button
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
