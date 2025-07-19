@@ -14,33 +14,123 @@ export type Database = {
   }
   public: {
     Tables: {
+      friend_requests: {
+        Row: {
+          created_at: string
+          id: string
+          receiver_id: string
+          sender_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          receiver_id: string
+          sender_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          receiver_id?: string
+          sender_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friend_requests_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friend_requests_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      friends: {
+        Row: {
+          created_at: string
+          id: string
+          user1_id: string
+          user2_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user1_id: string
+          user2_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user1_id?: string
+          user2_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friends_user1_id_fkey"
+            columns: ["user1_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friends_user2_id_fkey"
+            columns: ["user2_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           address: string | null
+          allow_friend_requests: boolean | null
           avatar_url: string | null
           created_at: string | null
           email: string | null
           id: string
+          is_public: boolean | null
           name: string | null
+          phone_number: string | null
           updated_at: string | null
+          username: string | null
         }
         Insert: {
           address?: string | null
+          allow_friend_requests?: boolean | null
           avatar_url?: string | null
           created_at?: string | null
           email?: string | null
           id: string
+          is_public?: boolean | null
           name?: string | null
+          phone_number?: string | null
           updated_at?: string | null
+          username?: string | null
         }
         Update: {
           address?: string | null
+          allow_friend_requests?: boolean | null
           avatar_url?: string | null
           created_at?: string | null
           email?: string | null
           id?: string
+          is_public?: boolean | null
           name?: string | null
+          phone_number?: string | null
           updated_at?: string | null
+          username?: string | null
         }
         Relationships: []
       }
@@ -151,7 +241,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      accept_friend_request: {
+        Args: { request_id: string }
+        Returns: undefined
+      }
+      get_user_score: {
+        Args: { user_id: string }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never

@@ -87,8 +87,6 @@ export default function AuthPage() {
         options: {
           emailRedirectTo: redirectUrl,
           data: {
-            // Additional user metadata that will be stored in profiles
-            email: email,
             name: name,
             username: username,
             phone_number: phoneNumber,
