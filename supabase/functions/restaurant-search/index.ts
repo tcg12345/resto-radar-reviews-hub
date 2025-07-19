@@ -112,8 +112,8 @@ serve(async (req) => {
           lng: place.geometry?.location?.lng || 0,
         },
         cuisine: place.types?.find((type: string) => 
-          ['restaurant', 'food', 'establishment'].indexOf(type) === -1
-        )?.replace(/_/g, ' ') || 'Restaurant',
+          !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type)
+        )?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Restaurant',
         googleMapsUrl: `https://www.google.com/maps/place/?q=place_id:${place.place_id}`,
         michelinStars: 0 // Google Places doesn't provide Michelin stars
       };

@@ -186,7 +186,7 @@ export default function RestaurantSearchPage() {
     }
   }, []);
 
-  // Restore search state from navigation
+  // Restore search state from navigation and set user's address as default
   useEffect(() => {
     const state = location.state as any;
     if (state?.searchQuery) {
@@ -194,8 +194,11 @@ export default function RestaurantSearchPage() {
     }
     if (state?.searchLocation) {
       setSearchLocation(state.searchLocation);
+    } else if (profile?.address && !searchLocation) {
+      // Set user's address as default if no location is set
+      setSearchLocation(profile.address);
     }
-  }, [location.state]);
+  }, [location.state, profile?.address]);
 
   // Get current day hours
   const getCurrentDayHours = useCallback((openingHours: string[]) => {
@@ -329,7 +332,7 @@ export default function RestaurantSearchPage() {
               lat: restaurant.location?.lat || 0,
               lng: restaurant.location?.lng || 0,
             },
-            cuisine: restaurant.cuisine,
+            cuisine: restaurant.cuisine || 'Restaurant',
             googleMapsUrl: restaurant.googleMapsUrl,
             michelinStars: restaurant.michelinStars,
             features: restaurant.features
@@ -366,6 +369,7 @@ export default function RestaurantSearchPage() {
       const transformedResults: SearchRestaurant[] = (data.restaurants || []).map((restaurant: any) => ({
         ...restaurant,
         id: restaurant.id || Math.random().toString(36).substr(2, 9),
+        currentDayHours: getCurrentDayHours(restaurant.openingHours || []),
       }));
 
       setRestaurants(transformedResults);
@@ -656,7 +660,13 @@ export default function RestaurantSearchPage() {
         activeTab="search"
         onTabChange={(tab) => {
           if (tab !== 'search') {
-            navigate('/', { state: { activeTab: tab } });
+          navigate('/', { 
+            state: { 
+              activeTab: tab,
+              searchQuery,
+              searchLocation 
+            } 
+          });
           }
         }}
       />
