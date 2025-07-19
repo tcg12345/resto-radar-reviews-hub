@@ -1046,7 +1046,28 @@ export default function RestaurantSearchPage() {
 
             {/* Results */}
             {showMap && hasSearched && filteredRestaurants.length > 0 ? (
-              <div className="h-[600px] rounded-lg overflow-hidden">
+              <div className="relative h-[600px] rounded-lg overflow-hidden">
+                {/* Compact filters for map view */}
+                {activeFiltersCount > 0 && (
+                  <div className="absolute top-4 left-4 z-10">
+                    <Card className="w-auto shadow-lg">
+                      <CardContent className="p-3">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Filter className="h-4 w-4" />
+                          <span>{activeFiltersCount} filter{activeFiltersCount !== 1 ? 's' : ''} active</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowFilters(!showFilters)}
+                            className="h-6 w-6 p-0"
+                          >
+                            <ChevronDown className={`h-3 w-3 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
                 <RestaurantMapView
                   restaurants={filteredRestaurants.map(r => ({
                     ...r,
