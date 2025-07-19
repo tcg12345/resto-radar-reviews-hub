@@ -215,10 +215,10 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
         </Card>
       )}
 
-      {/* Filter Toggle Button - moved to left to avoid blocking map controls */}
+      {/* Filter Toggle Button - moved to bottom-left to avoid overlapping with search bar */}
       <Button
         onClick={() => setShowFilters(!showFilters)}
-        className="absolute top-4 left-4 z-20 flex items-center gap-2"
+        className="absolute bottom-4 left-4 z-20 flex items-center gap-2"
         variant={showFilters ? "default" : "secondary"}
       >
         <Filter className="h-4 w-4" />

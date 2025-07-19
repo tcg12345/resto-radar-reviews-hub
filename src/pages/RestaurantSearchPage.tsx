@@ -876,16 +876,14 @@ export default function RestaurantSearchPage() {
                     AI Assistant
                   </Button>
                   
-                  {!showMap && (
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowFilters(!showFilters)}
-                      className="flex-1 sm:flex-initial"
-                    >
-                      <Filter className="h-4 w-4 mr-2" />
-                      Filters {activeFiltersCount > 0 && `(${activeFiltersCount})`}
-                    </Button>
-                  )}
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="flex-1 sm:flex-initial"
+                  >
+                    <Filter className="h-4 w-4 mr-2" />
+                    Filters {activeFiltersCount > 0 && `(${activeFiltersCount})`}
+                  </Button>
 
                   {hasSearched && filteredRestaurants.length > 0 && (
                     <Button
