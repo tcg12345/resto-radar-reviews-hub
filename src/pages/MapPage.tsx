@@ -34,10 +34,22 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
   const [tempRatingRange, setTempRatingRange] = useState<[number, number]>([0, 10]);
   const [filterType, setFilterType] = useState<'all' | 'rated' | 'wishlist'>('all');
   
-  // Drag functionality for filter box - initially positioned directly above filter button
-  const [filterPosition, setFilterPosition] = useState({ x: 16, y: window.innerHeight - 500 }); // Aligned above the filter button
+  // Drag functionality for filter box - calculate position dynamically when opened
+  const getInitialPosition = () => {
+    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 800;
+    return { x: 16, y: Math.max(16, viewportHeight - 550) }; // 550px accounts for filter box height + button + margin
+  };
+  
+  const [filterPosition, setFilterPosition] = useState(getInitialPosition());
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
+  // Reset position when filters are opened
+  useEffect(() => {
+    if (showFilters) {
+      setFilterPosition(getInitialPosition());
+    }
+  }, [showFilters]);
 
   // Drag handlers
   const handleMouseDown = (e: React.MouseEvent) => {
