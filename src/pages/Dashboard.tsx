@@ -6,13 +6,14 @@ import { MapPage } from '@/pages/MapPage';
 import { WishlistPage } from '@/pages/WishlistPage';
 import HomePage from '@/pages/HomePage';
 import { DiscoverPage } from '@/pages/DiscoverPage';
+import GlobalSearchPage from '@/pages/GlobalSearchPage';
 import SettingsPage from '@/pages/SettingsPage';
 import { FriendsPage } from '@/pages/FriendsPage';
 import { AIChatbot } from '@/components/AIChatbot';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState<'home' | 'rated' | 'wishlist' | 'map' | 'search' | 'settings' | 'friends'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'rated' | 'wishlist' | 'map' | 'search' | 'global-search' | 'settings' | 'friends'>('home');
   const [shouldOpenAddDialog, setShouldOpenAddDialog] = useState(false);
   const { restaurants, addRestaurant, updateRestaurant, deleteRestaurant } = useRestaurants();
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ export default function Dashboard() {
   }, [location.state]);
 
   // Handle navigation when search tab is clicked
-  const handleTabChange = (tab: 'home' | 'rated' | 'wishlist' | 'map' | 'search' | 'settings' | 'friends') => {
+  const handleTabChange = (tab: 'home' | 'rated' | 'wishlist' | 'map' | 'search' | 'global-search' | 'settings' | 'friends') => {
     if (tab === 'search') {
       navigate('/search');
     } else {
@@ -74,6 +75,8 @@ export default function Dashboard() {
             onDeleteRestaurant={deleteRestaurant}
           />
         );
+      case 'global-search':
+        return <GlobalSearchPage />;
       case 'settings':
         return <SettingsPage onBack={() => setActiveTab('home')} />;
       case 'friends':
