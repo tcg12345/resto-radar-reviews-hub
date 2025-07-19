@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFriends } from '@/hooks/useFriends';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
+import { EnhancedFriendsPage } from '@/components/EnhancedFriendsPage';
 
 interface SearchResult {
   id: string;
@@ -34,6 +34,7 @@ export function FriendsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [activeView, setActiveView] = useState<'activity' | 'manage'>('activity');
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
@@ -68,11 +69,30 @@ export function FriendsPage() {
     );
   }
 
+  if (activeView === 'activity') {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Friends</h1>
+          <Button onClick={() => setActiveView('manage')} variant="outline">
+            Manage Friends
+          </Button>
+        </div>
+        <EnhancedFriendsPage />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <div className="flex items-center gap-3">
-        <Users className="h-8 w-8" />
-        <h1 className="text-3xl font-bold">Friends</h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Users className="h-8 w-8" />
+          <h1 className="text-3xl font-bold">Manage Friends</h1>
+        </div>
+        <Button onClick={() => setActiveView('activity')} variant="outline">
+          View Activity
+        </Button>
       </div>
 
       <Tabs defaultValue="friends" className="w-full">
