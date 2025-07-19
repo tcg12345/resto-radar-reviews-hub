@@ -126,6 +126,8 @@ export default function RestaurantSearchPage() {
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [locationSuggestions, setLocationSuggestions] = useState<any[]>([]);
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
   
   
   const [filters, setFilters] = useState<SearchFilters>({
@@ -161,6 +163,27 @@ export default function RestaurantSearchPage() {
     ].filter(suggestion => suggestion.toLowerCase() !== query.toLowerCase());
 
     setSearchSuggestions(suggestions.slice(0, 5));
+  }, []);
+
+  // Generate location suggestions
+  const generateLocationSuggestions = useCallback(async (input: string) => {
+    if (input.length < 2) {
+      setLocationSuggestions([]);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('location-suggestions', {
+        body: { input, limit: 5 }
+      });
+
+      if (error) throw error;
+
+      setLocationSuggestions(data.suggestions || []);
+    } catch (error) {
+      console.error('Error getting location suggestions:', error);
+      setLocationSuggestions([]);
+    }
   }, []);
 
   // Restore search state from navigation
@@ -325,7 +348,8 @@ export default function RestaurantSearchPage() {
         toast.success(`AI interpreted: ${enhancedSearch.interpretation}`);
       }
 
-      const { data, error } = await supabase.functions.invoke('restaurant-lookup', {
+      // Use the new restaurant-search function instead of restaurant-lookup
+      const { data, error } = await supabase.functions.invoke('restaurant-search', {
         body: {
           query: enhancedSearch.enhancedQuery,
           location: defaultLocation,
@@ -333,42 +357,16 @@ export default function RestaurantSearchPage() {
           limit: 20
         }
       });
-
       if (error) {
-        console.error('Restaurant lookup error:', error);
+        console.error('Restaurant search error:', error);
         throw error;
       }
 
-      const transformedResults: SearchRestaurant[] = (data.restaurants || []).map((restaurant: any) => {
-        const openingHours = restaurant.opening_hours?.weekday_text || restaurant.openingHours;
-        return {
-          id: restaurant.place_id || restaurant.id || Math.random().toString(36).substr(2, 9),
-          name: restaurant.name,
-          address: restaurant.formatted_address || restaurant.address,
-          rating: restaurant.rating || 0,
-          reviewCount: restaurant.user_ratings_total || restaurant.reviewCount,
-          priceRange: restaurant.price_level || restaurant.priceRange || 2,
-          isOpen: restaurant.opening_hours?.open_now,
-          phoneNumber: restaurant.formatted_phone_number || restaurant.phoneNumber,
-          website: restaurant.website,
-          openingHours: openingHours,
-          currentDayHours: getCurrentDayHours(openingHours),
-          photos: restaurant.photos?.map((photo: any) => 
-            typeof photo === 'string' ? photo : photo.photo_reference || photo.url
-          ).filter(Boolean) || [],
-          location: {
-            lat: restaurant.geometry?.location?.lat || restaurant.location?.lat || 0,
-            lng: restaurant.geometry?.location?.lng || restaurant.location?.lng || 0,
-          },
-          cuisine: restaurant.types?.find((type: string) => 
-            cuisineOptions.some(cuisine => 
-              type.toLowerCase().includes(cuisine.toLowerCase()) || 
-              cuisine.toLowerCase().includes(type.toLowerCase())
-            )
-          ) || restaurant.cuisine,
-          googleMapsUrl: restaurant.url || restaurant.googleMapsUrl
-        };
-      });
+      // The restaurant-search function returns restaurants directly
+      const transformedResults: SearchRestaurant[] = (data.restaurants || []).map((restaurant: any) => ({
+        ...restaurant,
+        id: restaurant.id || Math.random().toString(36).substr(2, 9),
+      }));
 
       setRestaurants(transformedResults);
       
@@ -455,6 +453,11 @@ export default function RestaurantSearchPage() {
     setTimeout(() => {
       handleUnifiedSearch();
     }, 100);
+  };
+
+  const handleLocationSuggestionClick = (suggestion: any) => {
+    setSearchLocation(suggestion.description);
+    setShowLocationSuggestions(false);
   };
 
   const handleGoogleSearch = (restaurant: SearchRestaurant) => {
@@ -718,13 +721,44 @@ export default function RestaurantSearchPage() {
                       </div>
                     )}
                   </div>
-                  <div className="w-64">
+                  <div className="w-64 relative">
                     <Input
                       placeholder="Location (optional)"
                       value={searchLocation}
-                       onChange={(e) => setSearchLocation(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleUnifiedSearch()}
+                      onChange={(e) => {
+                        setSearchLocation(e.target.value);
+                        generateLocationSuggestions(e.target.value);
+                        setShowLocationSuggestions(e.target.value.length > 1);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleUnifiedSearch();
+                          setShowLocationSuggestions(false);
+                        } else if (e.key === 'Escape') {
+                          setShowLocationSuggestions(false);
+                        }
+                      }}
+                      onFocus={() => searchLocation.length > 1 && setShowLocationSuggestions(true)}
+                      onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 150)}
                     />
+                    
+                    {/* Location Suggestions */}
+                    {showLocationSuggestions && locationSuggestions.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 z-10 bg-card border border-border rounded-md shadow-lg mt-1 max-h-48 overflow-y-auto">
+                        {locationSuggestions.map((suggestion, index) => (
+                          <div
+                            key={index}
+                            className="px-3 py-2 hover:bg-muted cursor-pointer"
+                            onClick={() => handleLocationSuggestionClick(suggestion)}
+                          >
+                            <div className="font-medium text-sm">{suggestion.mainText}</div>
+                            {suggestion.secondaryText && (
+                              <div className="text-xs text-muted-foreground">{suggestion.secondaryText}</div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                    <Button 
                     onClick={() => {
