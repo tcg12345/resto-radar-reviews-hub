@@ -1046,7 +1046,30 @@ export default function RestaurantSearchPage() {
 
             {/* Results */}
             {showMap && hasSearched && filteredRestaurants.length > 0 ? (
-              <div className="relative">
+              <div className="space-y-4">
+                {/* Filters for map view - positioned above map to avoid overlap */}
+                {activeFiltersCount > 0 && (
+                  <Card className="bg-muted/50">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Filter className="h-4 w-4" />
+                          <span className="font-medium">{activeFiltersCount} filter{activeFiltersCount !== 1 ? 's' : ''} active</span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowFilters(!showFilters)}
+                          className="h-8"
+                        >
+                          <span className="mr-2">Manage Filters</span>
+                          <ChevronDown className={`h-3 w-3 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+                
                 <div className="h-[600px] rounded-lg overflow-hidden">
                   <RestaurantMapView
                     restaurants={filteredRestaurants.map(r => ({
@@ -1057,27 +1080,6 @@ export default function RestaurantSearchPage() {
                     onRestaurantSelect={handleMapRestaurantSelect}
                   />
                 </div>
-                {/* Compact filters positioned outside map container to avoid any overlap */}
-                {activeFiltersCount > 0 && (
-                  <div className="absolute bottom-4 right-4 z-20">
-                    <Card className="w-auto shadow-lg bg-background/95 backdrop-blur border">
-                      <CardContent className="p-3">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Filter className="h-4 w-4" />
-                          <span>{activeFiltersCount} filter{activeFiltersCount !== 1 ? 's' : ''} active</span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setShowFilters(!showFilters)}
-                            className="h-6 w-6 p-0"
-                          >
-                            <ChevronDown className={`h-3 w-3 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
               </div>
             ) : (
               renderSearchResults()
