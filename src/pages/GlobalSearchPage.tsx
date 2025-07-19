@@ -263,25 +263,6 @@ export default function GlobalSearchPage() {
               </Button>
             </div>
           </div>
-          
-          {/* Quick Location Shortcuts */}
-          <div className="mt-4 space-y-3">
-            <p className="text-sm font-medium text-muted-foreground">
-              Popular locations:
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {['New York, NY', 'Los Angeles, CA', 'Chicago, IL', 'San Francisco, CA', 'Miami, FL', 'London, UK', 'Paris, France', 'Tokyo, Japan'].map((location) => (
-                <Badge
-                  key={location}
-                  variant="outline"
-                  className="cursor-pointer hover:bg-accent transition-colors px-3 py-1 text-xs"
-                  onClick={() => setLocationQuery(location)}
-                >
-                  {location}
-                </Badge>
-              ))}
-            </div>
-          </div>
         </CardContent>
       </Card>
 

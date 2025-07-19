@@ -74,7 +74,39 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
   const [reviewSortBy, setReviewSortBy] = useState<'recent' | 'helpful' | 'rating'>('recent');
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
+  const [showAllReviews, setShowAllReviews] = useState(false);
+  const [aiCuisine, setAiCuisine] = useState<string>('');
+  const [aiCategories, setAiCategories] = useState<string[]>([]);
+  const [isLoadingAiAnalysis, setIsLoadingAiAnalysis] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Analyze restaurant with AI on component mount
+  useState(() => {
+    const analyzeRestaurant = async () => {
+      setIsLoadingAiAnalysis(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('ai-restaurant-analysis', {
+          body: {
+            name: place.name,
+            types: place.types,
+            address: place.formatted_address,
+            description: place.reviews?.[0]?.text || undefined
+          }
+        });
+
+        if (!error && data.success) {
+          setAiCuisine(data.cuisine);
+          setAiCategories(data.categories);
+        }
+      } catch (error) {
+        console.error('Error analyzing restaurant:', error);
+      } finally {
+        setIsLoadingAiAnalysis(false);
+      }
+    };
+
+    analyzeRestaurant();
+  });
 
   const getPriceDisplay = (priceLevel?: number) => {
     if (!priceLevel) return 'Price not available';
@@ -133,9 +165,9 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
         address: place.formatted_address,
         city: place.formatted_address.split(',').slice(-2, -1)[0]?.trim() || '',
         country: place.formatted_address.split(',').slice(-1)[0]?.trim() || '',
-        cuisine: place.types.filter(type => 
-          !['establishment', 'point_of_interest', 'food'].includes(type)
-        )[0] || 'restaurant',
+          cuisine: aiCuisine || place.types.filter(type => 
+            !['establishment', 'point_of_interest', 'food'].includes(type)
+          )[0] || 'restaurant',
         rating: place.rating || null,
         phone_number: place.formatted_phone_number || null,
         website: place.website || null,
@@ -193,7 +225,7 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
           address: place.formatted_address,
           city: place.formatted_address.split(',').slice(-2, -1)[0]?.trim() || '',
           country: place.formatted_address.split(',').slice(-1)[0]?.trim() || '',
-          cuisine: place.types.filter(type => 
+          cuisine: aiCuisine || place.types.filter(type => 
             !['establishment', 'point_of_interest', 'food'].includes(type)
           )[0] || 'restaurant',
           rating: userRating,
@@ -302,18 +334,18 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                     </div>
                   )}
 
-                  <div className="flex gap-2 pt-2">
-                    <Button size="sm" onClick={handleCallRestaurant} disabled={!place.formatted_phone_number}>
-                      <Phone className="h-4 w-4 mr-2" />
-                      Call
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    <Button size="sm" onClick={handleCallRestaurant} disabled={!place.formatted_phone_number} className="flex-1 min-w-0">
+                      <Phone className="h-4 w-4 mr-2 flex-shrink-0" />
+                      <span className="truncate">Call</span>
                     </Button>
-                    <Button size="sm" variant="outline" onClick={handleVisitWebsite} disabled={!place.website}>
-                      <Globe className="h-4 w-4 mr-2" />
-                      Website
+                    <Button size="sm" variant="outline" onClick={handleVisitWebsite} disabled={!place.website} className="flex-1 min-w-0">
+                      <Globe className="h-4 w-4 mr-2 flex-shrink-0" />
+                      <span className="truncate">Website</span>
                     </Button>
-                    <Button size="sm" variant="outline" onClick={handleGetDirections}>
-                      <Navigation className="h-4 w-4 mr-2" />
-                      Directions
+                    <Button size="sm" variant="outline" onClick={handleGetDirections} className="flex-1 min-w-0">
+                      <Navigation className="h-4 w-4 mr-2 flex-shrink-0" />
+                      <span className="truncate">Directions</span>
                     </Button>
                   </div>
                 </CardContent>
@@ -367,14 +399,15 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                     </div>
                   )}
 
-                  <div className="flex gap-2 pt-2">
+                  <div className="flex flex-wrap gap-2 pt-2">
                     <Button 
                       size="sm" 
                       onClick={handleAddToWishlist}
                       disabled={isAddingToWishlist || !user}
+                      className="flex-1 min-w-0"
                     >
-                      <Heart className="h-4 w-4 mr-2" />
-                      Add to Wishlist
+                      <Heart className="h-4 w-4 mr-2 flex-shrink-0" />
+                      <span className="truncate">Add to Wishlist</span>
                     </Button>
                   </div>
                 </CardContent>
@@ -522,7 +555,7 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {getSortedReviews().slice(0, 5).map((review, index) => (
+                  {getSortedReviews().slice(0, showAllReviews ? getSortedReviews().length : 3).map((review, index) => (
                     <div key={index} className="border-b last:border-b-0 pb-4 last:pb-0">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
@@ -547,6 +580,20 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                       <p className="text-sm text-muted-foreground">{review.text}</p>
                     </div>
                   ))}
+                  
+                  {/* Show More/Less Reviews Button */}
+                  {getSortedReviews().length > 3 && (
+                    <div className="pt-4 border-t">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowAllReviews(!showAllReviews)}
+                        className="w-full"
+                      >
+                        {showAllReviews ? 'Show Less Reviews' : `Show All ${getSortedReviews().length} Reviews`}
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
@@ -578,15 +625,29 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
             {/* Categories */}
             <Card className="mt-4">
               <CardHeader>
-                <CardTitle>Categories</CardTitle>
+                <CardTitle>
+                  {aiCuisine && (
+                    <div className="mb-2">
+                      <Badge variant="secondary" className="text-sm">
+                        {aiCuisine}
+                      </Badge>
+                    </div>
+                  )}
+                  Categories
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {place.types.map((type) => (
+                  {(aiCategories.length > 0 ? aiCategories : place.types).map((type) => (
                     <Badge key={type} variant="outline">
                       {type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                     </Badge>
                   ))}
+                  {isLoadingAiAnalysis && (
+                    <Badge variant="outline" className="animate-pulse">
+                      Analyzing...
+                    </Badge>
+                  )}
                 </div>
               </CardContent>
             </Card>
