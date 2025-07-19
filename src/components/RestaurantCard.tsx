@@ -357,6 +357,20 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
                 </div>
               )}
               
+              {restaurant.website && (
+                <div>
+                  <h4 className="font-semibold mb-2">Website</h4>
+                  <a 
+                    href={restaurant.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-primary hover:underline"
+                  >
+                    {restaurant.website}
+                  </a>
+                </div>
+              )}
+              
               {restaurant.openingHours && (
                 <div>
                   <OpeningHoursDisplay hours={restaurant.openingHours.split('\n')} />
