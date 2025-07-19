@@ -3,9 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-
 import { OpeningHoursDisplay } from '@/components/OpeningHoursDisplay';
+import { ReservationWidget } from '@/components/ReservationWidget';
 
 interface Restaurant {
   id: string;
@@ -212,6 +213,18 @@ export function RestaurantDetailsModal({
               View on Maps
             </Button>
           </div>
+
+          <Separator />
+
+          {/* Reservation Widget */}
+          <ReservationWidget 
+            restaurant={{
+              id: restaurant.id,
+              name: restaurant.name,
+              phone_number: restaurant.phoneNumber,
+              website: restaurant.website
+            }}
+          />
         </div>
       </DialogContent>
     </Dialog>
