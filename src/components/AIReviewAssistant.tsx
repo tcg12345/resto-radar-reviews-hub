@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Sparkles, Wand2, BarChart3, Loader2, Copy, Check, Globe, Clock, TrendingUp } from 'lucide-react';
+import { Sparkles, Wand2, BarChart3, Loader2, Copy, Check, Globe, Clock, TrendingUp, Send, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -38,31 +39,47 @@ export function AIReviewAssistant({
   const [generatedReview, setGeneratedReview] = useState('');
   const [analysis, setAnalysis] = useState('');
   const [currentInfo, setCurrentInfo] = useState('');
+  const [customQuery, setCustomQuery] = useState('');
   const [activeAction, setActiveAction] = useState<'generate' | 'improve' | 'analyze' | null>(null);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState('assistant');
 
-  const getCurrentInfo = async (infoType: string) => {
+  const getCurrentInfo = async (infoType: string, customQuestion?: string) => {
     setIsGettingInfo(true);
     try {
       const { data, error } = await supabase.functions.invoke('perplexity-restaurant-info', {
         body: {
           restaurantName,
           infoType,
-          additionalContext: `This is a ${cuisine} restaurant${rating ? ` with a ${rating} star rating` : ''}.`
+          additionalContext: customQuestion || `This is a ${cuisine} restaurant${rating ? ` with a ${rating} star rating` : ''}.`
         }
       });
 
       if (error) throw error;
 
       setCurrentInfo(data.generatedInfo);
-      toast.success(`Got current ${infoType.replace('_', ' ')} for ${restaurantName}`);
+      
+      if (customQuestion) {
+        toast.success(`Got answer: ${customQuestion.slice(0, 50)}...`);
+      } else {
+        toast.success(`Got current ${infoType.replace('_', ' ')} for ${restaurantName}`);
+      }
     } catch (error) {
       console.error('Error getting current info:', error);
       toast.error('Failed to get current restaurant information');
     } finally {
       setIsGettingInfo(false);
     }
+  };
+
+  const handleCustomInquiry = async () => {
+    if (!customQuery.trim()) {
+      toast.error('Please enter a question about the restaurant');
+      return;
+    }
+    
+    await getCurrentInfo('custom', customQuery);
+    setCustomQuery('');
   };
 
   const callAIAssistant = async (action: 'generate' | 'improve' | 'analyze') => {
@@ -171,44 +188,77 @@ export function AIReviewAssistant({
           </TabsList>
           
           <TabsContent value="info" className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              <Button
-                onClick={() => getCurrentInfo('current_info')}
-                disabled={isGettingInfo}
-                variant="outline"
-                size="sm"
-              >
-                <Globe className="h-4 w-4 mr-1" />
-                General
-              </Button>
-              <Button
-                onClick={() => getCurrentInfo('hours')}
-                disabled={isGettingInfo}
-                variant="outline"
-                size="sm"
-              >
-                <Clock className="h-4 w-4 mr-1" />
-                Hours
-              </Button>
-              <Button
-                onClick={() => getCurrentInfo('reviews')}
-                disabled={isGettingInfo}
-                variant="outline"
-                size="sm"
-              >
-                <Sparkles className="h-4 w-4 mr-1" />
-                Reviews
-              </Button>
-              <Button
-                onClick={() => getCurrentInfo('trending')}
-                disabled={isGettingInfo}
-                variant="outline"
-                size="sm"
-              >
-                <TrendingUp className="h-4 w-4 mr-1" />
-                Trending
-              </Button>
-            </div>
+            <Tabs defaultValue="quick" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="quick">Quick Info</TabsTrigger>
+                <TabsTrigger value="custom">Ask Question</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="quick" className="space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  <Button
+                    onClick={() => getCurrentInfo('current_info')}
+                    disabled={isGettingInfo}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Globe className="h-4 w-4 mr-1" />
+                    General
+                  </Button>
+                  <Button
+                    onClick={() => getCurrentInfo('hours')}
+                    disabled={isGettingInfo}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Clock className="h-4 w-4 mr-1" />
+                    Hours
+                  </Button>
+                  <Button
+                    onClick={() => getCurrentInfo('reviews')}
+                    disabled={isGettingInfo}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Sparkles className="h-4 w-4 mr-1" />
+                    Reviews
+                  </Button>
+                  <Button
+                    onClick={() => getCurrentInfo('trending')}
+                    disabled={isGettingInfo}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <TrendingUp className="h-4 w-4 mr-1" />
+                    Trending
+                  </Button>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="custom" className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Ask anything about this restaurant..."
+                      value={customQuery}
+                      onChange={(e) => setCustomQuery(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleCustomInquiry()}
+                      className="flex-1"
+                    />
+                    <Button
+                      onClick={handleCustomInquiry}
+                      disabled={isGettingInfo || !customQuery.trim()}
+                      size="sm"
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Examples: "What's their signature dish?", "Is it good for dates?", "Do they take reservations?"
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
 
             {isGettingInfo && (
               <div className="p-4 text-center">
@@ -220,12 +270,15 @@ export function AIReviewAssistant({
             {currentInfo && !isGettingInfo && (
               <Card className="border-primary/20 bg-primary/5">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">Current Restaurant Information</CardTitle>
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    Current Restaurant Information
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                  <div className="text-sm leading-relaxed whitespace-pre-wrap font-mono">
                     {currentInfo}
-                  </p>
+                  </div>
                 </CardContent>
               </Card>
             )}

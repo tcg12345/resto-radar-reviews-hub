@@ -12,7 +12,7 @@ interface RestaurantInfoRequest {
   restaurantName: string;
   address?: string;
   city?: string;
-  infoType: 'current_info' | 'reviews' | 'trending' | 'verification' | 'hours';
+  infoType: 'current_info' | 'reviews' | 'trending' | 'verification' | 'hours' | 'custom';
   additionalContext?: string;
 }
 
@@ -36,25 +36,40 @@ serve(async (req) => {
 
     // Build the query based on the info type
     let query = '';
+    let systemPrompt = '';
     const location = city ? `in ${city}` : (address ? `at ${address}` : '');
     
     switch (infoType) {
       case 'current_info':
-        query = `Current information about ${restaurantName} restaurant ${location}. Include current hours, menu highlights, recent changes, contact information, and any notable recent news or updates.`;
+        systemPrompt = 'You are a concise restaurant information assistant. Provide clear, bullet-pointed information. Use format: • Point 1 • Point 2, etc. Keep responses under 150 words.';
+        query = `Current key information about ${restaurantName} restaurant ${location}:
+        • Current operating status
+        • Contact info (phone, website)
+        • Notable features or specialties
+        • Recent changes or updates`;
         break;
       case 'reviews':
-        query = `Recent reviews and ratings for ${restaurantName} restaurant ${location}. What are people saying about the food, service, and experience? Include recent feedback from 2024.`;
+        systemPrompt = 'You are a review summarizer. Provide a concise summary of recent reviews. Use format: Overall: [rating/sentiment] • Highlights: [3-4 key points] • Recent feedback: [1-2 current observations]';
+        query = `Recent review summary for ${restaurantName} restaurant ${location}. Focus on 2024 feedback about food quality, service, and overall experience.`;
         break;
       case 'trending':
-        query = `Is ${restaurantName} restaurant ${location} currently trending or popular? Any recent buzz, awards, or mentions in food blogs, social media, or news?`;
+        systemPrompt = 'You are a trending food news assistant. Provide brief, factual updates. Use format: • Current status • Recent mentions • Notable developments. Keep under 100 words.';
+        query = `Current trending status for ${restaurantName} restaurant ${location}. Any recent awards, media mentions, or buzz in 2024?`;
         break;
       case 'verification':
-        query = `Verify current details for ${restaurantName} restaurant ${location}. Confirm if the restaurant is still open, current address, phone number, website, and operating hours.`;
+        systemPrompt = 'You are a restaurant verification assistant. Provide factual verification in clear format: • Status: [Open/Closed] • Address: [current address] • Phone: [number] • Hours: [brief schedule] • Website: [URL if available]';
+        query = `Verify current operational details for ${restaurantName} restaurant ${location}. Confirm if open, correct address, phone, and hours.`;
         break;
       case 'hours':
-        query = `Current operating hours for ${restaurantName} restaurant ${location}. What are the specific hours for each day of the week?`;
+        systemPrompt = 'You are a restaurant hours assistant. Provide current hours in clear format: • Monday: [hours] • Tuesday: [hours] etc. If hours vary or are unclear, state that clearly.';
+        query = `Current operating hours for ${restaurantName} restaurant ${location}. Provide specific daily hours.`;
+        break;
+      case 'custom':
+        systemPrompt = 'You are a helpful restaurant information assistant. Provide clear, concise answers. Use bullet points when appropriate. Keep responses focused and under 200 words.';
+        query = additionalContext || `Information about ${restaurantName} restaurant ${location}`;
         break;
       default:
+        systemPrompt = 'You are a helpful restaurant information assistant. Provide clear, concise answers using bullet points where appropriate.';
         query = `Information about ${restaurantName} restaurant ${location}`;
     }
 
@@ -75,7 +90,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful assistant that provides current, accurate information about restaurants. Be precise and include specific details like hours, contact info, and recent updates when available. Format your response in a clear, structured way.'
+            content: systemPrompt
           },
           {
             role: 'user',
