@@ -258,9 +258,9 @@ serve(async (req) => {
           const globalIndex = batches.indexOf(batch) * batchSize + batchIndex;
           console.log(`Processing place ${globalIndex + 1}: ${place.name}`);
           
-          // Only get detailed info for top 15 results to speed up processing
+          // Get detailed place information including hours
           let placeDetails = null;
-          if (place.place_id && globalIndex < 15) {
+          if (place.place_id && globalIndex < 25) {
             try {
               const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=formatted_address,formatted_phone_number,website,opening_hours,price_level,rating,user_ratings_total,types,photos,geometry&key=${googlePlacesApiKey}`;
               const detailsResponse = await fetch(detailsUrl);
@@ -293,13 +293,18 @@ serve(async (req) => {
         const priceRange = (placeDetails?.price_level ?? place.price_level) ? 
           Math.min(Math.max(placeDetails?.price_level ?? place.price_level, 1), 4) : 2;
         
-        // Format opening hours with full week information
+        // Format opening hours with full week information from Google Places API
         let openingHours = 'Call for hours';
         if (placeDetails?.opening_hours?.weekday_text && placeDetails.opening_hours.weekday_text.length > 0) {
-          // Get full week hours
+          // Get full week hours from Google Places API
           openingHours = placeDetails.opening_hours.weekday_text.join('\n');
+        } else if (place.opening_hours?.weekday_text && place.opening_hours.weekday_text.length > 0) {
+          // Fallback to place data
+          openingHours = place.opening_hours.weekday_text.join('\n');
         } else if (placeDetails?.opening_hours?.open_now !== undefined) {
           openingHours = placeDetails.opening_hours.open_now ? 'Currently open' : 'Currently closed';
+        } else if (place.opening_hours?.open_now !== undefined) {
+          openingHours = place.opening_hours.open_now ? 'Currently open' : 'Currently closed';
         }
         
         // Use more accurate Michelin star determination - only assign for truly Michelin starred restaurants

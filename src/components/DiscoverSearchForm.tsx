@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,11 +16,17 @@ interface SearchFormProps {
 
 const EXAMPLE_QUERIES = [
   "Michelin starred restaurants in NYC",
-  "Family-friendly pizza with outdoor seating",
+  "Family-friendly pizza with outdoor seating", 
   "Romantic French bistro for date night",
   "Vegetarian fine dining downtown",
   "Best sushi for business dinner",
-  "Brunch spot with bottomless mimosas"
+  "Brunch spot with bottomless mimosas",
+  "Authentic Italian trattoria",
+  "Cozy cafe with live music",
+  "Rooftop bar with city views",
+  "Farm-to-table American cuisine",
+  "Spicy Korean BBQ joint",
+  "Classic steakhouse with wine list"
 ];
 
 export function DiscoverSearchForm({
@@ -32,6 +38,16 @@ export function DiscoverSearchForm({
   isLoading
 }: SearchFormProps) {
   const [showFilters, setShowFilters] = useState(false);
+  const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
+
+  // Rotate example queries every 3 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentExampleIndex((prev) => (prev + 1) % Math.min(6, EXAMPLE_QUERIES.length));
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !isLoading) {
@@ -119,11 +135,11 @@ export function DiscoverSearchForm({
             Try these examples:
           </p>
           <div className="flex flex-wrap gap-2">
-            {EXAMPLE_QUERIES.map((example, index) => (
+            {EXAMPLE_QUERIES.slice(currentExampleIndex, currentExampleIndex + 6).map((example, index) => (
               <Badge
-                key={index}
+                key={`${currentExampleIndex}-${index}`}
                 variant="secondary"
-                className="cursor-pointer hover:bg-secondary/80 transition-colors px-3 py-1 text-xs"
+                className="cursor-pointer hover:bg-secondary/80 transition-all duration-300 px-3 py-1 text-xs animate-in fade-in-50"
                 onClick={() => setSearchQuery(example)}
               >
                 {example}

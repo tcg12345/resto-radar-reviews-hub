@@ -284,31 +284,29 @@ export function DiscoverResultsGrid({
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Price Range</label>
-                <div className="space-y-2">
-                  {[1, 2, 3, 4].map((price) => (
-                    <label key={price} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={advancedFilters.priceRanges.includes(price)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setAdvancedFilters(prev => ({
-                              ...prev,
-                              priceRanges: [...prev.priceRanges, price]
-                            }));
-                          } else {
-                            setAdvancedFilters(prev => ({
-                              ...prev,
-                              priceRanges: prev.priceRanges.filter(p => p !== price)
-                            }));
-                          }
-                        }}
-                        className="rounded border-gray-300 text-primary focus:ring-primary"
-                      />
-                      <span className="text-sm">{'$'.repeat(price)}</span>
-                    </label>
-                  ))}
-                </div>
+                <Select 
+                  value={advancedFilters.priceRanges.length === 0 ? "all" : advancedFilters.priceRanges.join(",")} 
+                  onValueChange={(value) => {
+                    if (value === "all") {
+                      setAdvancedFilters(prev => ({ ...prev, priceRanges: [] }));
+                    } else {
+                      setAdvancedFilters(prev => ({ ...prev, priceRanges: value.split(",").map(Number) }));
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All prices</SelectItem>
+                    <SelectItem value="1">$ (Budget)</SelectItem>
+                    <SelectItem value="2">$$ (Moderate)</SelectItem>
+                    <SelectItem value="3">$$$ (Expensive)</SelectItem>
+                    <SelectItem value="4">$$$$ (Very Expensive)</SelectItem>
+                    <SelectItem value="1,2">$ - $$</SelectItem>
+                    <SelectItem value="3,4">$$$ - $$$$</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">

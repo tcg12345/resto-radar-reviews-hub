@@ -279,7 +279,7 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist 
                 <CollapsibleContent className="ml-6">
                   <div className="bg-muted/30 rounded-md p-2 space-y-1 max-w-48">
                     {getFormattedWeekHours(restaurant.openingHours).map((dayHours, index) => (
-                      <div key={index} className="text-xs text-muted-foreground whitespace-nowrap">
+                      <div key={index} className="text-sm text-foreground whitespace-nowrap">
                         {dayHours}
                       </div>
                     ))}
