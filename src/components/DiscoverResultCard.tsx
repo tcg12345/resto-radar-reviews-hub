@@ -19,10 +19,9 @@ import {
   Wifi,
   CreditCard,
   ChefHat,
-  Sparkles,
   ChevronDown
 } from 'lucide-react';
-import { PerplexityRestaurantInfo } from '@/components/PerplexityRestaurantInfo';
+
 
 interface RestaurantResult {
   id: string;
@@ -60,7 +59,7 @@ const FEATURE_ICONS: { [key: string]: any } = {
   vegetarian: ChefHat,
   family: Users,
   card: CreditCard,
-  default: Sparkles
+  default: ChefHat
 };
 
 const getFeatureIcon = (feature: string) => {
@@ -76,7 +75,7 @@ const getFeatureIcon = (feature: string) => {
 export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist }: DiscoverResultCardProps) {
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
-  const [showPerplexityInfo, setShowPerplexityInfo] = useState(false);
+  
   const [isMoreInfoOpen, setIsMoreInfoOpen] = useState(false);
   const [showFullWeekHours, setShowFullWeekHours] = useState(false);
 
@@ -106,12 +105,8 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist 
     return hours.split('\n').filter(line => line.trim());
   };
 
-  // Close custom inquiry when more info is collapsed
   const handleMoreInfoToggle = (open: boolean) => {
     setIsMoreInfoOpen(open);
-    if (!open) {
-      setShowPerplexityInfo(false);
-    }
   };
 
   const fallbackImage = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=240&fit=crop&auto=format';
@@ -288,7 +283,7 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist 
                   className="h-8 text-xs w-full justify-between"
                 >
                   <div className="flex items-center">
-                    <Sparkles className="h-3 w-3 mr-1" />
+                    <ExternalLink className="h-3 w-3 mr-1" />
                     More Info
                   </div>
                   <ChevronDown className={`h-3 w-3 transition-transform ${isMoreInfoOpen ? 'rotate-180' : ''}`} />
@@ -300,15 +295,6 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist 
           <Collapsible open={isMoreInfoOpen} onOpenChange={handleMoreInfoToggle}>
             <CollapsibleContent className="space-y-2">
               <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 text-xs w-full justify-start"
-                    onClick={() => setShowPerplexityInfo(true)}
-                  >
-                    <Sparkles className="h-3 w-3 mr-2" />
-                    Custom Inquiry
-                  </Button>
                 
                 {restaurant.phoneNumber && (
                   <Button
@@ -337,15 +323,6 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist 
         </div>
       </CardContent>
 
-      {/* Perplexity Info Dialog */}
-      {showPerplexityInfo && (
-        <PerplexityRestaurantInfo
-          restaurantName={restaurant.name}
-          address={restaurant.address}
-          city={restaurant.location?.city || ''}
-          cuisine={restaurant.cuisine}
-        />
-      )}
     </Card>
   );
 }
