@@ -178,8 +178,10 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
     // Price range filter (multi-select)
     if (filterPrices.length > 0 && (!restaurant.priceRange || !filterPrices.includes(restaurant.priceRange.toString()))) return false;
     
-    // Rating filter (range)
-    if (restaurant.rating && (restaurant.rating < ratingRange[0] || restaurant.rating > ratingRange[1])) return false;
+    // Rating filter (range) - only apply to rated restaurants, exclude wishlist items
+    if ((ratingRange[0] > 0 || ratingRange[1] < 10) && !restaurant.isWishlist && restaurant.rating) {
+      if (restaurant.rating < ratingRange[0] || restaurant.rating > ratingRange[1]) return false;
+    }
     
     return true;
   });
@@ -324,8 +326,8 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
             <div className="space-y-2">
               <Label className="text-sm font-medium">Rating Range</Label>
               <div className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-muted-foreground w-8">{tempRatingRange[0]}</span>
+                <div className="flex items-center space-x-3">
+                  <span className="text-sm text-muted-foreground min-w-[20px] text-center">{tempRatingRange[0]}</span>
                   <Slider
                     value={tempRatingRange}
                     onValueChange={(value) => setTempRatingRange(value as [number, number])}
@@ -334,7 +336,7 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
                     step={0.1}
                     className="flex-1"
                   />
-                  <span className="text-sm text-muted-foreground w-8">{tempRatingRange[1]}</span>
+                  <span className="text-sm text-muted-foreground min-w-[20px] text-center">{tempRatingRange[1]}</span>
                 </div>
                 <Button onClick={applyRatingFilter} size="sm" className="w-full">
                   Apply Rating
@@ -366,11 +368,6 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
       >
         <Filter className="h-4 w-4" />
         Filters
-        {getActiveFilterCount() > 0 && (
-          <Badge variant="destructive" className="ml-1 h-5 w-5 rounded-full p-0 text-xs">
-            {getActiveFilterCount()}
-          </Badge>
-        )}
       </Button>
 
       <MapView 
