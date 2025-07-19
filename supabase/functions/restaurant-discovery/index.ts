@@ -33,7 +33,34 @@ interface RestaurantSearchResult {
   isOpen?: boolean;
 }
 
-// Map Google Places types to cuisine categories
+// Use ChatGPT to determine cuisine more accurately
+const determineCuisineWithAI = async (restaurantName: string, address: string, types: string[]): Promise<string> => {
+  try {
+    const response = await fetch(`https://ocpmhsquwsdaauflbygf.supabase.co/functions/v1/determine-cuisine`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        restaurantName,
+        address,
+        types
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return data.cuisine || 'American';
+    }
+  } catch (error) {
+    console.error('Error determining cuisine with AI:', error);
+  }
+  
+  // Fallback to original mapping if AI fails
+  return mapPlaceTypeToCuisine(types, restaurantName);
+};
+
+// Map Google Places types to cuisine categories (fallback)
 const mapPlaceTypeToCuisine = (types: string[], name: string): string => {
   const typeMap: { [key: string]: string } = {
     'italian_restaurant': 'Italian',
@@ -212,7 +239,7 @@ serve(async (req) => {
         let placeDetails = null;
         if (place.place_id) {
           try {
-            const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,formatted_address,formatted_phone_number,website,opening_hours,price_level,rating,types,photos,geometry&key=${googlePlacesApiKey}`;
+            const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,formatted_address,formatted_phone_number,website,opening_hours,price_level,rating,user_ratings_total,types,photos,geometry&key=${googlePlacesApiKey}`;
             const detailsResponse = await fetch(detailsUrl);
             if (detailsResponse.ok) {
               const detailsData = await detailsResponse.json();
@@ -232,8 +259,12 @@ serve(async (req) => {
           searchLocation.split(',')[0];
         const country = addressParts[addressParts.length - 1] || 'Unknown';
         
-        // Get cuisine type
-        const cuisine = mapPlaceTypeToCuisine(placeDetails?.types || place.types || [], place.name);
+        // Get cuisine type using AI for better accuracy
+        const cuisine = await determineCuisineWithAI(
+          place.name, 
+          placeDetails?.formatted_address || place.formatted_address || '', 
+          placeDetails?.types || place.types || []
+        );
         
         // Map price level (Google uses 0-4, we use 1-4)
         const priceRange = (placeDetails?.price_level ?? place.price_level) ? 

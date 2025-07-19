@@ -3,6 +3,9 @@ project_id = "ocpmhsquwsdaauflbygf"
 [functions.perplexity-restaurant-info]
 verify_jwt = false
 
+[functions.determine-cuisine]
+verify_jwt = false
+
 [api]
 enabled = true
 port = 54321

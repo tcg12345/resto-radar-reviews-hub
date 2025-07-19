@@ -40,7 +40,8 @@ interface RestaurantResult {
   cuisine: string;
   priceRange: number;
   rating: number;
-  description: string;
+  reviewCount?: number;
+  googleMapsUrl?: string;
   website?: string;
   reservationUrl?: string;
   reservationNote?: string;
@@ -162,7 +163,9 @@ export function DiscoverPage() {
         cuisine: restaurant.cuisine,
         priceRange: restaurant.priceRange,
         rating: 0,
-        notes: restaurant.description,
+        reviewCount: restaurant.reviewCount,
+        googleMapsUrl: restaurant.googleMapsUrl,
+        notes: '',
         isWishlist: true,
         latitude: restaurant.location?.lat || restaurant.lat,
         longitude: restaurant.location?.lng || restaurant.lng,
@@ -424,79 +427,99 @@ function RestaurantImageCard({ restaurant, onToggleWishlist, existingRestaurants
         </div>
        </div>
 
-       <div className="flex items-center gap-2">
-         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-         <span className="font-medium">{restaurant.rating}</span>
-         <span className="text-muted-foreground">•</span>
-         <MapPin className="h-4 w-4 text-muted-foreground" />
-         <span className="text-sm text-muted-foreground truncate">
-           {restaurant.location?.city || restaurant.city || 'Unknown location'}
-         </span>
-       </div>
+        <div className="flex items-center gap-2">
+          {restaurant.googleMapsUrl ? (
+            <a 
+              href={restaurant.googleMapsUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 hover:opacity-80 transition-opacity"
+            >
+              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+              <span className="font-medium">{restaurant.rating}</span>
+              {restaurant.reviewCount && restaurant.reviewCount > 0 && (
+                <span className="text-xs text-muted-foreground">
+                  ({restaurant.reviewCount.toLocaleString()})
+                </span>
+              )}
+            </a>
+          ) : (
+            <>
+              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+              <span className="font-medium">{restaurant.rating}</span>
+              {restaurant.reviewCount && restaurant.reviewCount > 0 && (
+                <span className="text-xs text-muted-foreground">
+                  ({restaurant.reviewCount.toLocaleString()})
+                </span>
+              )}
+            </>
+          )}
+          <span className="text-muted-foreground">•</span>
+          <MapPin className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground truncate">
+            {restaurant.location?.city || restaurant.city || 'Unknown location'}
+          </span>
+        </div>
 
-       <p className="text-sm text-muted-foreground line-clamp-2">
-         {restaurant.description}
-       </p>
+        {/* Features */}
+        <div className="flex flex-wrap gap-1">
+          {restaurant.features.slice(0, 3).map((feature, index) => {
+            const FeatureIcon = getFeatureIcon(feature);
+            return (
+              <Badge key={index} variant="secondary" className="text-xs">
+                <FeatureIcon className="h-3 w-3 mr-1" />
+                {feature}
+              </Badge>
+            );
+          })}
+          {restaurant.features.length > 3 && (
+            <Badge variant="secondary" className="text-xs">
+              +{restaurant.features.length - 3} more
+            </Badge>
+          )}
+        </div>
 
-       {/* Features */}
-       <div className="flex flex-wrap gap-1">
-         {restaurant.features.slice(0, 3).map((feature, index) => {
-           const FeatureIcon = getFeatureIcon(feature);
-           return (
-             <Badge key={index} variant="secondary" className="text-xs">
-               <FeatureIcon className="h-3 w-3 mr-1" />
-               {feature}
-             </Badge>
-           );
-         })}
-         {restaurant.features.length > 3 && (
-           <Badge variant="secondary" className="text-xs">
-             +{restaurant.features.length - 3} more
-           </Badge>
-         )}
-       </div>
-
-       {/* Contact Info */}
-       <div className="space-y-2 pt-2 border-t">
-         {restaurant.phoneNumber && (
-           <div className="flex items-center gap-2 text-sm">
-             <Phone className="h-4 w-4 text-muted-foreground" />
-             <span>{restaurant.phoneNumber}</span>
-           </div>
-         )}
-         
-         {restaurant.openingHours && (
-           <div className="flex items-center gap-2 text-sm">
-             <Clock className="h-4 w-4 text-muted-foreground" />
-             <span className="truncate">{restaurant.openingHours}</span>
-           </div>
-         )}
-         
-         <div className="flex gap-2">
-           {restaurant.website && (
-             <Button size="sm" variant="outline" className="flex-1" asChild>
-               <a href={restaurant.website} target="_blank" rel="noopener noreferrer">
-                 <Globe className="h-4 w-4 mr-1" />
-                 Website
-                 <ExternalLink className="h-3 w-3 ml-1" />
-               </a>
-             </Button>
-           )}
-           
-             {restaurant.website ? (
-               <Button size="sm" className="flex-1" asChild>
-                 <a href={restaurant.website} target="_blank" rel="noopener noreferrer">
-                   <Calendar className="h-4 w-4 mr-1" />
-                   Reserve
-                   <ExternalLink className="h-3 w-3 ml-1" />
-                 </a>
-               </Button>
-             ) : (
-               <Button size="sm" variant="outline" className="flex-1" disabled>
-                 <Calendar className="h-4 w-4 mr-1" />
-                 Call to Reserve
-               </Button>
-             )}
+        {/* Contact Info */}
+        <div className="space-y-2 pt-2 border-t">
+          {restaurant.phoneNumber && (
+            <div className="flex items-center gap-2 text-sm">
+              <Phone className="h-4 w-4 text-muted-foreground" />
+              <span>{restaurant.phoneNumber}</span>
+            </div>
+          )}
+          
+          {restaurant.openingHours && (
+            <div className="flex items-center gap-2 text-sm">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              <span className="truncate">{restaurant.openingHours}</span>
+            </div>
+          )}
+          
+          <div className="flex gap-2">
+            {restaurant.website && (
+              <Button size="sm" variant="outline" className="flex-1" asChild>
+                <a href={restaurant.website} target="_blank" rel="noopener noreferrer">
+                  <Globe className="h-4 w-4 mr-1" />
+                  Website
+                  <ExternalLink className="h-3 w-3 ml-1" />
+                </a>
+              </Button>
+            )}
+            
+            {restaurant.website ? (
+              <Button size="sm" className="flex-1" asChild>
+                <a href={restaurant.website} target="_blank" rel="noopener noreferrer">
+                  <Calendar className="h-4 w-4 mr-1" />
+                  Reserve
+                  <ExternalLink className="h-3 w-3 ml-1" />
+                </a>
+              </Button>
+            ) : (
+              <Button size="sm" variant="outline" className="flex-1" disabled>
+                <Calendar className="h-4 w-4 mr-1" />
+                Call to Reserve
+              </Button>
+            )}
           </div>
 
           {/* Current Info Button */}
@@ -522,7 +545,7 @@ function RestaurantImageCard({ restaurant, onToggleWishlist, existingRestaurants
             </div>
           )}
         </div>
-        </CardContent>
-      </Card>
+      </CardContent>
+    </Card>
    );
 }
