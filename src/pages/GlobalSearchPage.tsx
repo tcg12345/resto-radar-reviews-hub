@@ -55,6 +55,8 @@ export default function GlobalSearchPage() {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [locationQuery, setLocationQuery] = useState('');
+  const [locationSuggestions, setLocationSuggestions] = useState<any[]>([]);
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
   const [searchResults, setSearchResults] = useState<GooglePlaceResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<PlaceDetails | null>(null);
@@ -77,6 +79,32 @@ export default function GlobalSearchPage() {
       );
     }
   }, []);
+
+  // Generate location suggestions
+  const generateLocationSuggestions = async (input: string) => {
+    if (input.length < 2) {
+      setLocationSuggestions([]);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('location-suggestions', {
+        body: { input, limit: 5 }
+      });
+
+      if (error) throw error;
+
+      setLocationSuggestions(data.suggestions || []);
+    } catch (error) {
+      console.error('Error getting location suggestions:', error);
+      setLocationSuggestions([]);
+    }
+  };
+
+  const handleLocationSuggestionClick = (suggestion: any) => {
+    setLocationQuery(suggestion.description);
+    setShowLocationSuggestions(false);
+  };
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
@@ -191,10 +219,41 @@ export default function GlobalSearchPage() {
                 <Input
                   placeholder="City or neighborhood"
                   value={locationQuery}
-                  onChange={(e) => setLocationQuery(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  onChange={(e) => {
+                    setLocationQuery(e.target.value);
+                    generateLocationSuggestions(e.target.value);
+                    setShowLocationSuggestions(e.target.value.length > 1);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSearch();
+                      setShowLocationSuggestions(false);
+                    } else if (e.key === 'Escape') {
+                      setShowLocationSuggestions(false);
+                    }
+                  }}
+                  onFocus={() => locationQuery.length > 1 && setShowLocationSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 150)}
                   className="pl-10 h-12"
                 />
+                
+                {/* Location Suggestions Dropdown */}
+                {showLocationSuggestions && locationSuggestions.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 z-50 bg-card border border-border rounded-md shadow-lg mt-1 max-h-48 overflow-y-auto">
+                    {locationSuggestions.map((suggestion, index) => (
+                      <div
+                        key={index}
+                        className="px-3 py-2 hover:bg-muted cursor-pointer border-b border-border last:border-b-0"
+                        onClick={() => handleLocationSuggestionClick(suggestion)}
+                      >
+                        <div className="font-medium text-sm">{suggestion.mainText}</div>
+                        {suggestion.secondaryText && (
+                          <div className="text-xs text-muted-foreground">{suggestion.secondaryText}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             
