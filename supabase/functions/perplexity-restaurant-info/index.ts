@@ -64,13 +64,13 @@ serve(async (req) => {
         query = `Verify and get all current details for ${restaurantContext}: address, phone, hours, website, social media, current status.`;
         break;
       case 'hours':
-        systemPrompt = 'Get comprehensive current operating hours and schedule information.';
-        query = `Complete current operating hours and schedule for ${restaurantContext}: daily hours, special hours, holidays, seasonal changes.`;
+        systemPrompt = 'Get comprehensive current operating hours and schedule information for this restaurant. Look for detailed hour information from multiple sources including Google, their website, and recent mentions.';
+        query = `Complete detailed operating hours for ${restaurantContext}: exact daily hours, special schedules, current hours today, any recent changes to hours, holiday schedules.`;
         break;
       case 'custom':
         // For custom queries, get comprehensive information first
-        systemPrompt = `Get comprehensive, detailed information about ${restaurantContext} related to this specific question: "${additionalContext}". Include all relevant details you can find.`;
-        query = `Detailed information about ${restaurantContext}: ${additionalContext || 'general information'}`;
+        systemPrompt = `Get comprehensive, detailed, current information about ${restaurantContext} related to this specific question: "${additionalContext}". Search multiple sources including Google, their website, recent reviews, and current information.`;
+        query = `Current detailed information about ${restaurantContext}: ${additionalContext || 'general information'}`;
         break;
       default:
         systemPrompt = 'Get comprehensive information about this restaurant.';
@@ -148,28 +148,29 @@ serve(async (req) => {
 Your task is to take the raw information provided and format it perfectly for the specific question type.
 
 ${infoType === 'custom' && (additionalContext || '').toLowerCase().includes('hour') ? 
-`Format hours EXACTLY like this:
-**Monday:** 11:45 AM–2:15 PM, 5:30–9:45 PM
-**Tuesday:** 5:30–10:45 PM  
-**Wednesday:** Closed
+`Format hours EXACTLY like this (no asterisks or bold):
+Monday: 11:45 AM–2:15 PM, 5:30–9:45 PM
+Tuesday: 5:30–10:45 PM  
+Wednesday: Closed
 
-Only show hours, nothing else. If no hours available, say "Hours not available."` :
+Only show hours, nothing else. If no clear hours are found in the information, say "Hours not clearly available - check their website or call directly."` :
 
 infoType === 'custom' && ((additionalContext || '').toLowerCase().includes('founder') || (additionalContext || '').toLowerCase().includes('founded') || (additionalContext || '').toLowerCase().includes('owner') || (additionalContext || '').toLowerCase().includes('chef') || (additionalContext || '').toLowerCase().includes('who')) ?
-`Give only the essential fact in 1-2 sentences maximum. Be direct and concise.` :
+`Give only the essential fact in 1-2 sentences maximum. Be direct and concise. NO asterisks or bold formatting.` :
 
-`Format the information in clean, easy-to-read bullet points using this structure:
-• **Key Point:** Clear, concise information
-• **Another Point:** Brief, relevant detail
+`Format the information in clean, easy-to-read bullet points using this structure (NO asterisks):
+• Key Point: Clear, concise information
+• Another Point: Brief, relevant detail
 
 Rules:
 - Maximum 4 bullet points
-- Each point should be 1 line maximum
-- Use bold for categories/labels
+- Each point should be 1 line maximum  
+- NO asterisks (*) or bold formatting
 - Be concise but informative
 - Focus on the most important/relevant information
 - Remove any redundant information
-- Make it scannable and easy to read`}
+- Make it scannable and easy to read
+- Use plain text only`}
 
 Question context: ${additionalContext || infoType}
 Restaurant: ${restaurantName}`

@@ -33,8 +33,16 @@ interface RestaurantSearchResult {
   isOpen?: boolean;
 }
 
-// Use ChatGPT to determine cuisine more accurately
+// Use ChatGPT to determine cuisine more accurately (only when simple mapping fails)
 const determineCuisineWithAI = async (restaurantName: string, address: string, types: string[]): Promise<string> => {
+  // First try simple mapping
+  const simpleCuisine = mapPlaceTypeToCuisine(types, restaurantName);
+  
+  // Only use AI if simple mapping returns generic "American" 
+  if (simpleCuisine !== 'American') {
+    return simpleCuisine;
+  }
+  
   try {
     const response = await fetch(`https://ocpmhsquwsdaauflbygf.supabase.co/functions/v1/determine-cuisine`, {
       method: 'POST',
@@ -56,8 +64,8 @@ const determineCuisineWithAI = async (restaurantName: string, address: string, t
     console.error('Error determining cuisine with AI:', error);
   }
   
-  // Fallback to original mapping if AI fails
-  return mapPlaceTypeToCuisine(types, restaurantName);
+  // Fallback to simple mapping
+  return simpleCuisine;
 };
 
 // Map Google Places types to cuisine categories (fallback)
