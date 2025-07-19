@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Save, Eye, EyeOff, User, Mail, Phone, MapPin, Settings as SettingsIcon, Shield, Key } from 'lucide-react';
+import { ArrowLeft, Save, Eye, EyeOff, User, Mail, Phone, MapPin, Settings as SettingsIcon, Shield, Key, Moon, Sun, Map, Satellite } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,8 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/hooks/useTheme';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -17,6 +19,8 @@ interface SettingsPageProps {
 
 export default function SettingsPage({ onBack }: SettingsPageProps) {
   const { user, profile, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const [defaultMapStyle, setDefaultMapStyle] = useLocalStorage<'streets' | 'satellite' | 'hybrid'>('defaultMapStyle', 'satellite');
   
   // Profile form state
   const [name, setName] = useState('');
@@ -167,10 +171,14 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
       {/* Content */}
       <div className="container mx-auto px-4 py-6 max-w-4xl">
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               Profile
+            </TabsTrigger>
+            <TabsTrigger value="preferences" className="flex items-center gap-2">
+              <SettingsIcon className="h-4 w-4" />
+              Preferences
             </TabsTrigger>
             <TabsTrigger value="security" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
@@ -284,6 +292,91 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                   <Save className="h-4 w-4 mr-2" />
                   {isUpdatingProfile ? 'Updating...' : 'Save Changes'}
                 </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Preferences Tab */}
+          <TabsContent value="preferences" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <SettingsIcon className="h-5 w-5" />
+                  App Preferences
+                </CardTitle>
+                <CardDescription>
+                  Customize your app experience
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="theme-toggle">Theme</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Switch between light and dark mode
+                    </p>
+                  </div>
+                  <Button
+                    id="theme-toggle"
+                    variant="outline"
+                    size="sm"
+                    onClick={toggleTheme}
+                    className="flex items-center gap-2"
+                  >
+                    {theme === 'light' ? (
+                      <>
+                        <Sun className="h-4 w-4" />
+                        Light
+                      </>
+                    ) : (
+                      <>
+                        <Moon className="h-4 w-4" />
+                        Dark
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-0.5">
+                    <Label>Default Map View</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Choose your preferred map style for the map view
+                    </p>
+                  </div>
+                  
+                  <div className="flex gap-2 flex-wrap">
+                    <Button
+                      variant={defaultMapStyle === 'streets' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setDefaultMapStyle('streets')}
+                      className="flex items-center gap-2"
+                    >
+                      <Map className="h-4 w-4" />
+                      Streets
+                    </Button>
+                    
+                    <Button
+                      variant={defaultMapStyle === 'satellite' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setDefaultMapStyle('satellite')}
+                      className="flex items-center gap-2"
+                    >
+                      <Satellite className="h-4 w-4" />
+                      Satellite
+                    </Button>
+                    
+                    <Button
+                      variant={defaultMapStyle === 'hybrid' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setDefaultMapStyle('hybrid')}
+                      className="flex items-center gap-2"
+                    >
+                      <Satellite className="h-4 w-4" />
+                      Hybrid
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
