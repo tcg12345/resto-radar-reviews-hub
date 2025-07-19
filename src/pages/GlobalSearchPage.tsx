@@ -54,6 +54,7 @@ interface PlaceDetails extends GooglePlaceResult {
 export default function GlobalSearchPage() {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
+  const [locationQuery, setLocationQuery] = useState('');
   const [searchResults, setSearchResults] = useState<GooglePlaceResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<PlaceDetails | null>(null);
@@ -82,11 +83,19 @@ export default function GlobalSearchPage() {
 
     setIsLoading(true);
     try {
+      // Use locationQuery if provided, otherwise fall back to user location
+      let searchLocation = undefined;
+      if (locationQuery.trim()) {
+        searchLocation = locationQuery;
+      } else if (userLocation) {
+        searchLocation = `${userLocation.lat},${userLocation.lng}`;
+      }
+
       const { data, error } = await supabase.functions.invoke('google-places-search', {
         body: {
           query: searchQuery,
           type: 'search',
-          location: userLocation ? `${userLocation.lat},${userLocation.lng}` : undefined,
+          location: searchLocation,
         }
       });
 
@@ -154,22 +163,65 @@ export default function GlobalSearchPage() {
       )}
 
       {/* Search Section */}
-      <Card className="mb-8">
+      <Card className="mb-8 border-primary/20 bg-gradient-to-br from-background via-background to-primary/5">
         <CardContent className="pt-6">
-          <div className="flex gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Search for restaurants by name, cuisine, or location..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                className="pl-10"
-              />
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+            <div className="lg:col-span-2 space-y-2">
+              <label className="text-sm font-medium text-muted-foreground">
+                Restaurant or cuisine
+              </label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Search for restaurants by name, cuisine, or location..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  className="pl-10 h-12"
+                />
+              </div>
             </div>
-            <Button onClick={handleSearch} disabled={isLoading}>
-              {isLoading ? 'Searching...' : 'Search'}
-            </Button>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-muted-foreground">
+                Location (optional)
+              </label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="City or neighborhood"
+                  value={locationQuery}
+                  onChange={(e) => setLocationQuery(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  className="pl-10 h-12"
+                />
+              </div>
+            </div>
+            
+            <div className="flex items-end">
+              <Button onClick={handleSearch} disabled={isLoading} className="h-12 w-full">
+                {isLoading ? 'Searching...' : 'Search'}
+              </Button>
+            </div>
+          </div>
+          
+          {/* Quick Location Shortcuts */}
+          <div className="mt-4 space-y-3">
+            <p className="text-sm font-medium text-muted-foreground">
+              Popular locations:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {['New York, NY', 'Los Angeles, CA', 'Chicago, IL', 'San Francisco, CA', 'Miami, FL', 'London, UK', 'Paris, France', 'Tokyo, Japan'].map((location) => (
+                <Badge
+                  key={location}
+                  variant="outline"
+                  className="cursor-pointer hover:bg-accent transition-colors px-3 py-1 text-xs"
+                  onClick={() => setLocationQuery(location)}
+                >
+                  {location}
+                </Badge>
+              ))}
+            </div>
           </div>
         </CardContent>
       </Card>
