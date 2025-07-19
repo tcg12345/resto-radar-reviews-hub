@@ -4,6 +4,7 @@ import { Navbar } from '@/components/Navbar';
 import { supabase } from '@/integrations/supabase/client';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { searchCompletionService } from '@/utils/searchCompletions';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -129,6 +130,7 @@ export default function RestaurantSearchPage() {
   const [locationSuggestions, setLocationSuggestions] = useState<any[]>([]);
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
   const [suggestionTimeout, setSuggestionTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [aiSuggestionTimeout, setAiSuggestionTimeout] = useState<NodeJS.Timeout | null>(null);
   
   
   const [filters, setFilters] = useState<SearchFilters>({
@@ -145,38 +147,53 @@ export default function RestaurantSearchPage() {
     'Thai', 'Mediterranean', 'American', 'Korean', 'Vietnamese', 'Greek'
   ];
 
-  // Generate AI-powered search suggestions
+  // Generate hybrid search suggestions - instant local + AI enhancement
   const generateSearchSuggestions = useCallback(async (query: string) => {
     if (query.length < 2) {
       setSearchSuggestions([]);
       return;
     }
 
-    try {
-      const { data, error } = await supabase.functions.invoke('ai-search-completion', {
-        body: { 
-          query: query.trim(),
-          location: searchLocation || profile?.address || 'New York'
-        }
-      });
+    const location = searchLocation || profile?.address || 'New York';
+    
+    // 1. Get instant local completions first
+    const instantSuggestions = searchCompletionService.getInstantCompletions(query, location);
+    setSearchSuggestions(instantSuggestions);
 
-      if (error) throw error;
-
-      setSearchSuggestions(data.suggestions || []);
-    } catch (error) {
-      console.error('Error getting AI search suggestions:', error);
-      // Fallback to simple suggestions
-      const fallbackSuggestions = [
-        `${query} restaurants`,
-        `best ${query}`,
-        `${query} near me`,
-        `${query} delivery`,
-        `${query} with outdoor seating`
-      ].filter(suggestion => suggestion.toLowerCase() !== query.toLowerCase());
-      
-      setSearchSuggestions(fallbackSuggestions.slice(0, 5));
+    // 2. Check cache for AI completions
+    const cachedSuggestions = searchCompletionService.getCachedCompletions(query);
+    if (cachedSuggestions) {
+      setSearchSuggestions(cachedSuggestions);
+      return;
     }
-  }, [searchLocation, profile?.address]);
+
+    // 3. Get AI completions in background (debounced)
+    if (aiSuggestionTimeout) {
+      clearTimeout(aiSuggestionTimeout);
+    }
+    
+    const aiTimeout = setTimeout(async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('ai-search-completion', {
+          body: { 
+            query: query.trim(),
+            location
+          }
+        });
+
+        if (!error && data.suggestions) {
+          // Cache the AI suggestions
+          searchCompletionService.cacheCompletions(query, data.suggestions);
+          setSearchSuggestions(data.suggestions);
+        }
+      } catch (error) {
+        console.error('Error getting AI search suggestions:', error);
+        // Keep the instant suggestions if AI fails
+      }
+    }, 800); // Longer delay for AI enhancement
+    
+    setAiSuggestionTimeout(aiTimeout);
+  }, [searchLocation, profile?.address, aiSuggestionTimeout]);
 
   // Generate location suggestions
   const generateLocationSuggestions = useCallback(async (input: string) => {
@@ -213,14 +230,19 @@ export default function RestaurantSearchPage() {
     }
   }, [location.state, profile?.address]);
 
-  // Cleanup timeout on unmount
+  // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
       if (suggestionTimeout) {
         clearTimeout(suggestionTimeout);
       }
+      if (aiSuggestionTimeout) {
+        clearTimeout(aiSuggestionTimeout);
+      }
+      // Clean old cache entries periodically
+      searchCompletionService.cleanCache();
     };
-  }, [suggestionTimeout]);
+  }, [suggestionTimeout, aiSuggestionTimeout]);
 
   // Get current day hours
   const getCurrentDayHours = useCallback((openingHours: string[]) => {
@@ -751,16 +773,8 @@ export default function RestaurantSearchPage() {
                       onChange={(e) => {
                         setSearchQuery(e.target.value);
                         
-                        // Debounce AI suggestions
-                        if (suggestionTimeout) {
-                          clearTimeout(suggestionTimeout);
-                        }
-                        
-                        const timeout = setTimeout(() => {
-                          generateSearchSuggestions(e.target.value);
-                        }, 300);
-                        
-                        setSuggestionTimeout(timeout);
+                        // Instant suggestions without debounce
+                        generateSearchSuggestions(e.target.value);
                         setShowSuggestions(e.target.value.length > 1);
                       }}
                       onKeyDown={(e) => {
