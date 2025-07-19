@@ -1046,40 +1046,15 @@ export default function RestaurantSearchPage() {
 
             {/* Results */}
             {showMap && hasSearched && filteredRestaurants.length > 0 ? (
-              <div className="space-y-4">
-                {/* Filters for map view - positioned above map to avoid overlap */}
-                {activeFiltersCount > 0 && (
-                  <Card className="bg-muted/50">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Filter className="h-4 w-4" />
-                          <span className="font-medium">{activeFiltersCount} filter{activeFiltersCount !== 1 ? 's' : ''} active</span>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setShowFilters(!showFilters)}
-                          className="h-8"
-                        >
-                          <span className="mr-2">Manage Filters</span>
-                          <ChevronDown className={`h-3 w-3 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-                
-                <div className="h-[600px] rounded-lg overflow-hidden">
-                  <RestaurantMapView
-                    restaurants={filteredRestaurants.map(r => ({
-                      ...r,
-                      city: 'Unknown'
-                    }))}
-                    selectedRestaurant={selectedRestaurant}
-                    onRestaurantSelect={handleMapRestaurantSelect}
-                  />
-                </div>
+              <div className="h-[600px] rounded-lg overflow-hidden">
+                <RestaurantMapView
+                  restaurants={filteredRestaurants.map(r => ({
+                    ...r,
+                    city: 'Unknown'
+                  }))}
+                  selectedRestaurant={selectedRestaurant}
+                  onRestaurantSelect={handleMapRestaurantSelect}
+                />
               </div>
             ) : (
               renderSearchResults()
