@@ -47,13 +47,9 @@ Rules:
 3. Include location context when relevant
 4. Make suggestions specific and actionable
 5. Focus on food types, cuisines, or restaurant characteristics
+6. Return ONLY a JSON array of strings, nothing else
 
-Examples:
-- "bur" → ["burger restaurants", "burrito places", "burmese cuisine", "burger joints with outdoor seating", "best burgers"]
-- "pizza" → ["pizza near me", "best pizza restaurants", "pizza delivery", "wood-fired pizza", "authentic italian pizza"]
-- "rom" → ["romantic restaurants", "roman cuisine", "romantic dinner spots", "romantic italian restaurants", "cozy romantic cafes"]
-
-Return exactly 5 suggestions as a JSON array of strings. Make them natural and varied.`;
+Return format: ["suggestion1", "suggestion2", "suggestion3", "suggestion4", "suggestion5"]`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -64,11 +60,17 @@ Return exactly 5 suggestions as a JSON array of strings. Make them natural and v
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: prompt },
-          { role: 'user', content: `Generate search completions for: "${query}"` }
+          { 
+            role: 'system', 
+            content: prompt 
+          },
+          { 
+            role: 'user', 
+            content: `Generate exactly 5 search completions for: "${query}". Return only a JSON array.` 
+          }
         ],
-        temperature: 0.7,
-        max_tokens: 200,
+        temperature: 0.3,
+        max_tokens: 150,
       }),
     });
 
@@ -81,15 +83,28 @@ Return exactly 5 suggestions as a JSON array of strings. Make them natural and v
     
     let suggestions: string[] = [];
     try {
-      // Try to parse as JSON array
-      suggestions = JSON.parse(content);
+      // Try to parse as JSON array first
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) {
+        suggestions = parsed;
+      } else {
+        // If it's a single string, split it
+        suggestions = [parsed];
+      }
     } catch {
       // If parsing fails, extract suggestions from the text
       const lines = content.split('\n').filter((line: string) => line.trim());
-      suggestions = lines.map((line: string) => 
-        line.replace(/^\d+\.\s*/, '').replace(/^[-*]\s*/, '').replace(/"/g, '').trim()
-      ).filter((s: string) => s.length > 0).slice(0, 5);
+      suggestions = lines
+        .map((line: string) => line.replace(/^\d+\.\s*/, '').replace(/^[-*]\s*/, '').replace(/["\[\]]/g, '').trim())
+        .filter((s: string) => s.length > 0 && !s.includes('```'))
+        .slice(0, 5);
     }
+
+    // Clean up suggestions - remove any remaining JSON artifacts
+    suggestions = suggestions
+      .map(s => s.replace(/["\[\],]/g, '').trim())
+      .filter(s => s.length > 0)
+      .slice(0, 5);
 
     // Ensure we have valid suggestions
     if (!Array.isArray(suggestions) || suggestions.length === 0) {
