@@ -1,9 +1,9 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 import { useDiscover } from '@/contexts/DiscoverContext';
-import { DiscoverSearchForm } from '@/components/DiscoverSearchForm';
+import { DiscoverSearchForm, type SearchType } from '@/components/DiscoverSearchForm';
 import { DiscoverResultsGrid } from '@/components/DiscoverResultsGrid';
 import { Search, TrendingUp, Award, MapPin } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -46,6 +46,8 @@ export function DiscoverPage() {
     setIsLoading,
   } = useDiscover();
   
+  const [searchType, setSearchType] = useState<SearchType>('description');
+  
   const { addRestaurant, restaurants: existingRestaurants, deleteRestaurant } = useRestaurants();
   const { toast } = useToast();
 
@@ -67,6 +69,7 @@ export function DiscoverPage() {
         body: {
           query: searchQuery,
           location: locationQuery,
+          searchType: searchType, // Pass search type to backend
           filters: {}
         }
       });
@@ -196,6 +199,8 @@ export function DiscoverPage() {
           setSearchQuery={setSearchQuery}
           locationQuery={locationQuery}
           setLocationQuery={setLocationQuery}
+          searchType={searchType}
+          setSearchType={setSearchType}
           onSearch={handleSearch}
           isLoading={isLoading}
         />

@@ -3,13 +3,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Sparkles, MapPin, Filter, Loader2 } from 'lucide-react';
+
+export type SearchType = 'name' | 'cuisine' | 'description';
 
 interface SearchFormProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   locationQuery: string;
   setLocationQuery: (location: string) => void;
+  searchType: SearchType;
+  setSearchType: (type: SearchType) => void;
   onSearch: () => void;
   isLoading: boolean;
 }
@@ -213,6 +218,8 @@ export function DiscoverSearchForm({
   setSearchQuery,
   locationQuery,
   setLocationQuery,
+  searchType,
+  setSearchType,
   onSearch,
   isLoading
 }: SearchFormProps) {
@@ -247,14 +254,35 @@ export function DiscoverSearchForm({
       </CardHeader>
       
       <CardContent className="space-y-6">
+        {/* Search Type Selection */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-muted-foreground">
+            Search by:
+          </label>
+          <Select value={searchType} onValueChange={setSearchType}>
+            <SelectTrigger className="w-[200px] h-10 bg-background/50 border-muted-foreground/20">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name">Restaurant Name</SelectItem>
+              <SelectItem value="cuisine">Cuisine Type</SelectItem>
+              <SelectItem value="description">Description/Keywords</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         {/* Main Search Inputs */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 space-y-2">
             <label className="text-sm font-medium text-muted-foreground">
-              What are you looking for?
+              {searchType === 'name' ? 'Restaurant name' : 
+               searchType === 'cuisine' ? 'Cuisine type' : 
+               'What are you looking for?'}
             </label>
             <Input
-              placeholder="e.g., 'Romantic Italian restaurant for anniversary dinner'"
+              placeholder={searchType === 'name' ? 'e.g., "The Cottage", "Joe\'s Pizza"' :
+                         searchType === 'cuisine' ? 'e.g., "Italian", "Chinese", "Mexican"' :
+                         'e.g., "Romantic dinner", "Family-friendly"'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleKeyPress}
