@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DisplayStarRating } from '@/components/DisplayStarRating';
+import { useDefaultReviewSource } from '@/hooks/useDefaultReviewSource';
 import { 
   Star, 
   MapPin, 
@@ -75,6 +77,7 @@ const getFeatureIcon = (feature: string) => {
 export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist }: DiscoverResultCardProps) {
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
+  const { defaultSource } = useDefaultReviewSource();
   
   const [isMoreInfoOpen, setIsMoreInfoOpen] = useState(false);
   const [showFullWeekHours, setShowFullWeekHours] = useState(false);
@@ -175,20 +178,28 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist 
                   className="flex items-center gap-1 hover:opacity-80 transition-opacity"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <span className="font-semibold">{restaurant.rating}</span>
+                  <DisplayStarRating 
+                    rating={restaurant.rating} 
+                    size="sm" 
+                    source={defaultSource}
+                    showValue={true}
+                  />
                   {restaurant.reviewCount && (
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground ml-1">
                       ({restaurant.reviewCount.toLocaleString()})
                     </span>
                   )}
                 </a>
               ) : (
                 <div className="flex items-center gap-1">
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <span className="font-semibold">{restaurant.rating}</span>
+                  <DisplayStarRating 
+                    rating={restaurant.rating} 
+                    size="sm" 
+                    source={defaultSource}
+                    showValue={true}
+                  />
                   {restaurant.reviewCount && (
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground ml-1">
                       ({restaurant.reviewCount.toLocaleString()})
                     </span>
                   )}
