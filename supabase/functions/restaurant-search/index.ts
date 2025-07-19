@@ -55,13 +55,16 @@ serve(async (req) => {
     }
 
     // Build the search query for Places API
-    const searchQuery = `${query} restaurant`;
+    const searchQuery = location && location !== 'current location' 
+      ? `${query} restaurants in ${location}` 
+      : `${query} restaurant`;
+    
     let placesUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(searchQuery)}&type=restaurant&key=${googlePlacesApiKey}`;
     
+    // Always try to use location+radius for better location filtering
     if (lat && lng) {
       placesUrl += `&location=${lat},${lng}&radius=${radius}`;
-    } else if (location && location !== 'current location') {
-      placesUrl += `&region=${encodeURIComponent(location)}`;
+      console.log(`Using coordinates: ${lat}, ${lng} with ${radius}m radius`);
     }
 
     console.log('Places API URL:', placesUrl);

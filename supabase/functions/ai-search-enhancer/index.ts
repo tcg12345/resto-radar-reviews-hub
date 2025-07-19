@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const claudeApiKey = Deno.env.get('CLAUDE_API_KEY');
+const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -17,8 +17,8 @@ serve(async (req) => {
   try {
     const { query, location, userPreferences } = await req.json();
 
-    if (!claudeApiKey) {
-      throw new Error('Claude API key not configured');
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key not configured');
     }
 
     const systemPrompt = `You are an expert at interpreting restaurant search queries and enhancing them for better results.
@@ -46,30 +46,29 @@ Examples:
 
 Be intelligent about interpreting context, mood, and intent.`;
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${claudeApiKey}`,
+        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
-        'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-3-5-haiku-20241022',
-        max_tokens: 400,
-        system: systemPrompt,
+        model: 'gpt-4o-mini',
         messages: [
+          { role: 'system', content: systemPrompt },
           { role: 'user', content: `Search query: "${query}"\nLocation: "${location || 'not specified'}"` }
         ],
         temperature: 0.3,
+        max_tokens: 400,
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`Claude API error: ${response.statusText}`);
+      throw new Error(`OpenAI API error: ${response.statusText}`);
     }
 
     const data = await response.json();
-    const enhancedParamsText = data.content[0]?.text;
+    const enhancedParamsText = data.choices[0].message.content;
 
     try {
       const enhancedParams = JSON.parse(enhancedParamsText);
@@ -79,7 +78,7 @@ Be intelligent about interpreting context, mood, and intent.`;
     } catch (parseError) {
       // Fallback response
       return new Response(JSON.stringify({ 
-        enhancedQuery: query,
+        enhancedQuery: query || "",
         suggestedCuisines: [],
         suggestedPriceRange: [1, 2, 3, 4],
         mealType: "any",
@@ -96,7 +95,7 @@ Be intelligent about interpreting context, mood, and intent.`;
     console.error('Error in AI search enhancer:', error);
     return new Response(JSON.stringify({ 
       error: error.message,
-      enhancedQuery: query || "",
+      enhancedQuery: "",
       suggestedCuisines: [],
       suggestedPriceRange: [1, 2, 3, 4],
       mealType: "any",
