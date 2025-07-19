@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Moon, Sun, MapPin, Star, Heart, LogOut, LogIn, Home, Search } from 'lucide-react';
+import { Moon, Sun, MapPin, Star, Heart, LogOut, LogIn, Home, Search, Utensils } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/hooks/useTheme';
@@ -7,8 +7,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { GrubbyLogo } from '@/components/GrubbyLogo';
 
 interface NavbarProps {
-  activeTab: 'home' | 'rated' | 'wishlist' | 'map' | 'discover';
-  onTabChange: (tab: 'home' | 'rated' | 'wishlist' | 'map' | 'discover') => void;
+  activeTab: 'home' | 'rated' | 'wishlist' | 'map' | 'discover' | 'search';
+  onTabChange: (tab: 'home' | 'rated' | 'wishlist' | 'map' | 'discover' | 'search') => void;
 }
 
 export function Navbar({ activeTab, onTabChange }: NavbarProps) {
@@ -19,6 +19,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
   const tabs = [
     { id: 'home' as const, label: 'Home', icon: Home },
     { id: 'discover' as const, label: 'Discover', icon: Search },
+    { id: 'search' as const, label: 'Search', icon: Utensils },
     { id: 'rated' as const, label: 'My Ratings', icon: Star },
     { id: 'wishlist' as const, label: 'Wishlist', icon: Heart },
     { id: 'map' as const, label: 'Map View', icon: MapPin },

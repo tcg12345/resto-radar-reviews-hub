@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { RatedRestaurantsPage } from '@/pages/RatedRestaurantsPage';
 import { MapPage } from '@/pages/MapPage';
@@ -9,9 +10,28 @@ import { AIChatbot } from '@/components/AIChatbot';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState<'home' | 'rated' | 'wishlist' | 'map' | 'discover'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'rated' | 'wishlist' | 'map' | 'discover' | 'search'>('home');
   const [shouldOpenAddDialog, setShouldOpenAddDialog] = useState(false);
   const { restaurants, addRestaurant, updateRestaurant, deleteRestaurant } = useRestaurants();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  
+  // Handle navigation state from other pages
+  useEffect(() => {
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+    }
+  }, [location.state]);
+
+  // Handle navigation when search tab is clicked
+  const handleTabChange = (tab: 'home' | 'rated' | 'wishlist' | 'map' | 'discover' | 'search') => {
+    if (tab === 'search') {
+      navigate('/search');
+    } else {
+      setActiveTab(tab);
+    }
+  };
 
   const handleOpenAddRestaurant = () => {
     setShouldOpenAddDialog(true);
@@ -59,7 +79,7 @@ export default function Dashboard() {
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar 
         activeTab={activeTab} 
-        onTabChange={setActiveTab} 
+        onTabChange={handleTabChange} 
       />
       
       <main className="flex-1">
