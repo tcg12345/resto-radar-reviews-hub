@@ -155,18 +155,39 @@ export function RestaurantProfileModal({
     }
     setIsAddingToWishlist(true);
     try {
+      // Get Michelin stars using AI
+      let michelinStars = null;
+      try {
+        const { data: aiData } = await supabase.functions.invoke('ai-michelin-detector', {
+          body: {
+            name: place.name,
+            address: place.formatted_address,
+            city: place.formatted_address.split(',').slice(-2, -1)[0]?.trim() || '',
+            country: place.formatted_address.split(',').slice(-1)[0]?.trim() || '',
+            cuisine: aiCuisine || place.types.filter(type => !['establishment', 'point_of_interest', 'food'].includes(type))[0] || 'restaurant',
+            notes: `Added from Global Search`
+          }
+        });
+        if (aiData && aiData.michelinStars !== null) {
+          michelinStars = aiData.michelinStars;
+        }
+      } catch (error) {
+        console.log('Could not determine Michelin stars:', error);
+      }
+
       const restaurantData = {
         name: place.name,
         address: place.formatted_address,
         city: place.formatted_address.split(',').slice(-2, -1)[0]?.trim() || '',
         country: place.formatted_address.split(',').slice(-1)[0]?.trim() || '',
         cuisine: aiCuisine || place.types.filter(type => !['establishment', 'point_of_interest', 'food'].includes(type))[0] || 'restaurant',
-        rating: place.rating || null,
+        rating: null,
         website: place.website || null,
         opening_hours: place.opening_hours?.weekday_text?.join('\n') || null,
         price_range: place.price_level || null,
         latitude: place.geometry.location.lat,
         longitude: place.geometry.location.lng,
+        michelin_stars: michelinStars,
         notes: `Added from Global Search`,
         is_wishlist: true,
         user_id: user.id
@@ -194,6 +215,26 @@ export function RestaurantProfileModal({
     }
     setIsSubmittingReview(true);
     try {
+      // Get Michelin stars using AI
+      let michelinStars = null;
+      try {
+        const { data: aiData } = await supabase.functions.invoke('ai-michelin-detector', {
+          body: {
+            name: place.name,
+            address: place.formatted_address,
+            city: place.formatted_address.split(',').slice(-2, -1)[0]?.trim() || '',
+            country: place.formatted_address.split(',').slice(-1)[0]?.trim() || '',
+            cuisine: aiCuisine || place.types.filter(type => !['establishment', 'point_of_interest', 'food'].includes(type))[0] || 'restaurant',
+            notes: userReview || `Rated ${userRating} stars`
+          }
+        });
+        if (aiData && aiData.michelinStars !== null) {
+          michelinStars = aiData.michelinStars;
+        }
+      } catch (error) {
+        console.log('Could not determine Michelin stars:', error);
+      }
+
       const {
         error
       } = await supabase.from('restaurants').upsert({
@@ -208,6 +249,7 @@ export function RestaurantProfileModal({
         price_range: place.price_level,
         latitude: place.geometry.location.lat,
         longitude: place.geometry.location.lng,
+        michelin_stars: michelinStars,
         notes: userReview || `Rated ${userRating} stars`,
         is_wishlist: false,
         user_id: user.id,
