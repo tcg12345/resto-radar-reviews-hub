@@ -517,48 +517,63 @@ export function FriendsPage() {
                       </p>
                     </div>
                   ) : (
-                    <div className="space-y-4">
-                      <div className="max-h-[600px] overflow-y-auto space-y-4">
-                        {friendRestaurants.map((restaurant: any, index: number) => (
-                          <div key={`${restaurant.id || restaurant.restaurant_id}-${restaurant.userId || restaurant.friend_id}-${index}`} className="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/30 transition-colors mobile-container">
-                            <Avatar className="h-10 w-10 mt-1 flex-shrink-0">
-                              <AvatarFallback>
-                                {restaurant.friend_username?.charAt(0).toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0 overflow-hidden">
-                              <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                <span className="font-medium break-words">@{restaurant.friend_username}</span>
-                                <span className="text-muted-foreground text-sm">rated</span>
-                                <div className="flex items-center gap-1 flex-shrink-0">
-                                  <StarRating rating={restaurant.rating || 0} readonly size="sm" />
-                                  <span className="font-semibold">{restaurant.rating?.toFixed(1)}</span>
+                      <div className="space-y-4">
+                        <div className="max-h-[600px] overflow-y-auto space-y-4">
+                          {friendRestaurants.map((restaurant: any, index: number) => (
+                            <div key={`${restaurant.id || restaurant.restaurant_id}-${restaurant.userId || restaurant.friend_id}-${index}`} className="flex flex-col sm:flex-row gap-4 p-4 border rounded-lg hover:bg-muted/30 transition-colors">
+                              <Avatar className="h-10 w-10 flex-shrink-0 self-start">
+                                <AvatarFallback>
+                                  {restaurant.friend_username?.charAt(0).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0 space-y-3">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-medium break-words">@{restaurant.friend_username}</span>
+                                    <span className="text-muted-foreground text-sm">rated</span>
+                                  </div>
+                                  <div className="flex items-center gap-2 flex-shrink-0">
+                                    <div className="flex items-center gap-1">
+                                      {[1, 2, 3, 4, 5].map((star) => (
+                                        <Star
+                                          key={star}
+                                          className={`h-4 w-4 ${
+                                            star <= (restaurant.rating || 0)
+                                              ? 'fill-yellow-400 text-yellow-400'
+                                              : 'text-gray-300'
+                                          }`}
+                                        />
+                                      ))}
+                                    </div>
+                                    <span className="font-semibold text-base">{restaurant.rating?.toFixed(1)}</span>
+                                  </div>
                                 </div>
+                                <div>
+                                  <h4 className="font-semibold text-lg mb-1 break-words">{restaurant.name || restaurant.restaurant_name}</h4>
+                                  <p className="text-sm text-muted-foreground mb-2 break-words">
+                                    {restaurant.cuisine} 
+                                    {restaurant.city && ` • ${restaurant.city}`}
+                                    {restaurant.address && ` • ${restaurant.address}`}
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-3 flex-wrap">
+                                  {(restaurant.priceRange || restaurant.price_range) && <PriceRange priceRange={restaurant.priceRange || restaurant.price_range} />}
+                                  {(restaurant.michelinStars || restaurant.michelin_stars) && <MichelinStars stars={restaurant.michelinStars || restaurant.michelin_stars} />}
+                                  <span className="text-xs text-muted-foreground">
+                                    {(restaurant.dateVisited || restaurant.date_visited)
+                                      ? new Date(restaurant.dateVisited || restaurant.date_visited).toLocaleDateString()
+                                      : new Date(restaurant.createdAt || restaurant.created_at).toLocaleDateString()
+                                    }
+                                  </span>
+                                </div>
+                                {restaurant.notes && (
+                                  <p className="text-sm p-2 bg-muted/50 rounded text-muted-foreground italic break-words">
+                                    "{restaurant.notes}"
+                                  </p>
+                                )}
                               </div>
-                              <h4 className="font-semibold text-lg mb-1 break-words">{restaurant.name || restaurant.restaurant_name}</h4>
-                              <p className="text-sm text-muted-foreground mb-2 break-words">
-                                {restaurant.cuisine} 
-                                {restaurant.city && ` • ${restaurant.city}`}
-                                {restaurant.address && ` • ${restaurant.address}`}
-                              </p>
-                              <div className="flex items-center gap-3 flex-wrap">
-                                {(restaurant.priceRange || restaurant.price_range) && <PriceRange priceRange={restaurant.priceRange || restaurant.price_range} />}
-                                {(restaurant.michelinStars || restaurant.michelin_stars) && <MichelinStars stars={restaurant.michelinStars || restaurant.michelin_stars} />}
-                                <span className="text-xs text-muted-foreground">
-                                  {(restaurant.dateVisited || restaurant.date_visited)
-                                    ? new Date(restaurant.dateVisited || restaurant.date_visited).toLocaleDateString()
-                                    : new Date(restaurant.createdAt || restaurant.created_at).toLocaleDateString()
-                                  }
-                                </span>
-                              </div>
-                              {restaurant.notes && (
-                                <p className="text-sm mt-2 p-2 bg-muted/50 rounded text-muted-foreground italic break-words">
-                                  "{restaurant.notes}"
-                                </p>
-                              )}
                             </div>
-                          </div>
-                        ))}
+                          ))}
                       </div>
                       
                       
