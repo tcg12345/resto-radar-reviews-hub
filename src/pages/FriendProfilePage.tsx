@@ -302,9 +302,9 @@ export default function FriendProfilePage() {
                     </CardHeader>
                      <CardContent>
                        <div className="space-y-2">
-                         {['8-10', '6-8', '4-6', '2-4', '0-2'].map(range => {
-                           const count = stats.ratingDistribution[range] || 0;
-                           const percentage = stats.totalRated > 0 ? (count / stats.totalRated) * 100 : 0;
+                        {['8-10', '6-8', '4-6', '2-4', '0-2'].map(range => {
+                          const count = (stats.ratingDistribution && stats.ratingDistribution[range]) || 0;
+                          const percentage = stats.totalRated > 0 ? (count / stats.totalRated) * 100 : 0;
                            return (
                              <div key={range} className="flex items-center gap-2">
                                <span className="text-sm w-12">{range}⭐</span>
@@ -518,9 +518,9 @@ export default function FriendProfilePage() {
                 </CardHeader>
                  <CardContent>
                    <div className="space-y-3">
-                     {['8-10', '6-8', '4-6', '2-4', '0-2'].map(range => {
-                       const count = stats.ratingDistribution[range] || 0;
-                       const percentage = stats.totalRated > 0 ? (count / stats.totalRated) * 100 : 0;
+                      {['8-10', '6-8', '4-6', '2-4', '0-2'].map(range => {
+                        const count = (stats.ratingDistribution && stats.ratingDistribution[range]) || 0;
+                        const percentage = stats.totalRated > 0 ? (count / stats.totalRated) * 100 : 0;
                        return (
                          <div key={range} className="flex items-center gap-3">
                            <span className="text-sm w-12">{range}⭐</span>
