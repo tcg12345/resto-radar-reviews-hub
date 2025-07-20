@@ -5,15 +5,14 @@ import { Restaurant } from '@/types/restaurant';
  * Uses Google Maps "Reserve a Table" integration or falls back to search
  */
 export function generateReservationUrl(restaurant: Restaurant): string | null {
+  console.log('Generating reservation URL for:', restaurant.name);
+  console.log('Restaurant reservable:', restaurant.reservable);
+  console.log('Restaurant reservationUrl:', restaurant.reservationUrl);
+  console.log('Restaurant website:', restaurant.website);
+  
   // If restaurant already has a reservation URL, use it
   if (restaurant.reservationUrl) {
     return restaurant.reservationUrl;
-  }
-
-  // If restaurant is marked as reservable, generate Google Maps reservation link
-  if (restaurant.reservable) {
-    const restaurantQuery = encodeURIComponent(`${restaurant.name} ${restaurant.address}`);
-    return `https://www.google.com/maps/search/${restaurantQuery}`;
   }
 
   // For known reservation platforms, try to generate direct links
@@ -29,13 +28,18 @@ export function generateReservationUrl(restaurant: Restaurant): string | null {
     if (website.includes('resy.com')) {
       return restaurant.website;
     }
-    
-    // Restaurant website might have reservation capability
-    if (restaurant.reservable !== false) {
-      // Generate Google Maps link with reservation focus
-      const restaurantQuery = encodeURIComponent(`${restaurant.name} ${restaurant.address} reservation`);
-      return `https://www.google.com/maps/search/${restaurantQuery}`;
-    }
+  }
+
+  // If restaurant is marked as reservable, generate Google Maps reservation link
+  if (restaurant.reservable === true) {
+    const restaurantQuery = encodeURIComponent(`${restaurant.name} ${restaurant.address}`);
+    return `https://www.google.com/maps/search/${restaurantQuery}`;
+  }
+
+  // For restaurants that might support reservations (based on detection logic), generate Google Maps link
+  if (detectReservationCapability(restaurant)) {
+    const restaurantQuery = encodeURIComponent(`${restaurant.name} ${restaurant.address} reservation`);
+    return `https://www.google.com/maps/search/${restaurantQuery}`;
   }
 
   return null;
