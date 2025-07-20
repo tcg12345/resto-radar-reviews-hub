@@ -7,7 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { OpeningHoursDisplay } from '@/components/OpeningHoursDisplay';
 import { ReservationWidget } from '@/components/ReservationWidget';
-import { ReservationButton } from '@/components/ReservationButton';
+
 
 interface Restaurant {
   id: string;
@@ -157,12 +157,6 @@ export function RestaurantDetailsModal({
 
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-2">
-            <ReservationButton 
-              restaurant={restaurant as any} 
-              variant="default" 
-              size="default" 
-            />
-            
             {restaurant.phoneNumber && (
               <Button
                 variant="outline"

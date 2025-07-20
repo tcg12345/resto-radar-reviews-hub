@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { ReservationButton } from '@/components/ReservationButton';
+
 import { 
   Star, 
   MapPin, 
@@ -20,7 +20,8 @@ import {
   Wifi,
   CreditCard,
   ChefHat,
-  ChevronDown
+  ChevronDown,
+  Eye
 } from 'lucide-react';
 
 
@@ -54,6 +55,7 @@ interface DiscoverResultCardProps {
   restaurant: RestaurantResult;
   onToggleWishlist: (restaurant: RestaurantResult) => void;
   isInWishlist: boolean;
+  onViewDetails?: (restaurant: RestaurantResult) => void;
 }
 
 const FEATURE_ICONS: { [key: string]: any } = {
@@ -75,7 +77,7 @@ const getFeatureIcon = (feature: string) => {
   return FEATURE_ICONS.default;
 };
 
-export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist }: DiscoverResultCardProps) {
+export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist, onViewDetails }: DiscoverResultCardProps) {
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
   const [isMoreInfoOpen, setIsMoreInfoOpen] = useState(false);
@@ -252,20 +254,15 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist 
         {/* Action Buttons */}
         <div className="space-y-2">
           <div className="grid grid-cols-2 gap-2">
-            <ReservationButton 
-              restaurant={{
-                ...restaurant,
-                city: restaurant.location?.city || '',
-                photos: restaurant.images || [],
-                isWishlist: false,
-                createdAt: '',
-                updatedAt: '',
-                userId: ''
-              } as any}
-              variant="outline" 
-              size="sm" 
-              className="h-8 text-xs"
-            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onViewDetails?.(restaurant)}
+              className="col-span-2 h-8 text-xs"
+            >
+              <Eye className="mr-2 h-4 w-4" />
+              View Details
+            </Button>
             
             <Button
               variant="outline"

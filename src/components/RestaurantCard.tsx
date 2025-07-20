@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { MapPin, Clock, Tag, Edit2, Trash2, Eye, Bot } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ReservationButton } from '@/components/ReservationButton';
+
 import { 
   Card,
   CardContent,
@@ -391,7 +391,7 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
           </DialogContent>
         </Dialog>
         
-        <ReservationButton restaurant={restaurant} />
+        
         
         {showAIReviewAssistant && !restaurant.isWishlist && (
           <Button 
