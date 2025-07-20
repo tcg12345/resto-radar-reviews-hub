@@ -173,6 +173,9 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
       return;
     }
 
+    console.log('User object:', user);
+    console.log('Place object:', place);
+
     setIsAddingToWishlist(true);
     try {
       const restaurantData = {
@@ -207,7 +210,7 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
       toast.success('Added to wishlist!');
     } catch (error) {
       console.error('Error adding to wishlist:', error);
-      toast.error(`Failed to add to wishlist: ${error.message}`);
+      toast.error(`Failed to add to wishlist: ${error?.message || JSON.stringify(error)}`);
     } finally {
       setIsAddingToWishlist(false);
     }
