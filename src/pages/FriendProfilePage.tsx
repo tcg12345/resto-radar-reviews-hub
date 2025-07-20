@@ -552,17 +552,38 @@ export default function FriendProfilePage() {
               <div className="grid gap-4">
                 {filteredRestaurants.slice(0, displayedRestaurants).map((restaurant) => (
                    <Card key={restaurant.id} className="overflow-hidden">
-                     <CardContent className="p-4">
-                       <div className="space-y-4">
-                         {/* Header with name and rating */}
-                         <div className="flex items-start justify-between gap-4">
-                           <div className="flex-1 min-w-0">
-                             <h3 className="font-bold text-lg break-words leading-tight">{restaurant.name}</h3>
-                             <p className="text-muted-foreground text-sm">{restaurant.cuisine}</p>
+                     <CardContent className="p-6">
+                       <div className="grid lg:grid-cols-4 gap-6">
+                         {/* Left: Restaurant Info */}
+                         <div className="lg:col-span-2 space-y-3">
+                           <div>
+                             <h3 className="font-bold text-xl mb-1 leading-tight">{restaurant.name}</h3>
+                             <div className="flex items-center gap-3">
+                               <Badge variant="secondary" className="text-sm">{restaurant.cuisine}</Badge>
+                               {restaurant.price_range && <PriceRange priceRange={restaurant.price_range} />}
+                               {restaurant.michelin_stars && <MichelinStars stars={restaurant.michelin_stars} />}
+                             </div>
                            </div>
-                           {restaurant.rating && (
-                             <div className="flex items-center gap-2 flex-shrink-0">
-                               <div className="flex items-center">
+                           
+                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                             <MapPin className="h-4 w-4 flex-shrink-0" />
+                             <span className="break-words">{restaurant.address}, {restaurant.city}</span>
+                           </div>
+                           
+                           {restaurant.date_visited && (
+                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                               <Calendar className="h-4 w-4 flex-shrink-0" />
+                               <span>Visited: {new Date(restaurant.date_visited).toLocaleDateString()}</span>
+                             </div>
+                           )}
+                         </div>
+
+                         {/* Right: Rating */}
+                         {restaurant.rating && (
+                           <div className="lg:col-span-2 flex flex-col items-center lg:items-end justify-center bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg p-4">
+                             <div className="text-center lg:text-right">
+                               <div className="text-3xl font-bold text-primary mb-2">{restaurant.rating.toFixed(1)}</div>
+                               <div className="flex items-center justify-center lg:justify-end mb-1">
                                  {[...Array(10)].map((_, index) => {
                                    const starValue = index + 1;
                                    const isFilled = starValue <= restaurant.rating;
@@ -578,40 +599,18 @@ export default function FriendProfilePage() {
                                    );
                                  })}
                                </div>
-                               <span className="font-bold text-lg">{restaurant.rating.toFixed(1)}</span>
+                               <div className="text-xs text-muted-foreground">out of 10</div>
                              </div>
-                           )}
-                         </div>
-                         
-                         {/* Address */}
-                         <div className="flex items-start gap-2">
-                           <MapPin className="h-4 w-4 flex-shrink-0 mt-0.5 text-muted-foreground" />
-                           <span className="text-sm text-muted-foreground break-words">
-                             {restaurant.address}, {restaurant.city}
-                           </span>
-                         </div>
-                         
-                         {/* Date visited */}
-                         {restaurant.date_visited && (
-                           <div className="flex items-center gap-2">
-                             <Calendar className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                             <span className="text-sm text-muted-foreground">
-                               Visited: {new Date(restaurant.date_visited).toLocaleDateString()}
-                             </span>
                            </div>
                          )}
-                         
-                         {/* Price and Michelin */}
-                         <div className="flex items-center gap-4">
-                           {restaurant.price_range && <PriceRange priceRange={restaurant.price_range} />}
-                           {restaurant.michelin_stars && <MichelinStars stars={restaurant.michelin_stars} />}
-                         </div>
                        </div>
-                      {restaurant.notes && (
-                        <div className="mt-4 p-4 bg-muted rounded-lg">
-                          <p className="text-sm leading-relaxed">{restaurant.notes}</p>
-                        </div>
-                      )}
+
+                       {restaurant.notes && (
+                         <div className="mt-6 p-4 bg-muted/50 rounded-lg border-l-4 border-primary">
+                           <div className="text-sm font-medium text-muted-foreground mb-1">Notes</div>
+                           <p className="text-sm leading-relaxed">{restaurant.notes}</p>
+                         </div>
+                       )}
                     </CardContent>
                   </Card>
                 ))}
