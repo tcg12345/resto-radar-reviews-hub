@@ -267,6 +267,9 @@ export default function UnifiedSearchPage() {
   };
 
   const handleSearch = async () => {
+    // Hide live results when official search is triggered
+    setShowLiveResults(false);
+    
     if (!searchQuery.trim()) return;
 
     setIsLoading(true);
@@ -434,18 +437,14 @@ export default function UnifiedSearchPage() {
                           className="pl-12 pr-4 h-14 bg-transparent border-none text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none"
                         />
                         
-                        {/* Live Search Results Dropdown - Portal-style positioning */}
+                        {/* Live Search Results Dropdown - Positioned below search bar */}
                         {showLiveResults && (liveSearchResults.length > 0 || isLiveSearching) && (
                           <div 
-                            className="fixed bg-card border border-border rounded-xl shadow-2xl animate-fade-in"
+                            className="absolute top-full left-0 right-0 bg-card border border-border rounded-xl shadow-2xl animate-fade-in"
                             style={{ 
-                              position: 'fixed',
+                              position: 'absolute',
                               zIndex: 99999,
-                              top: '280px', // Adjust based on your layout
-                              left: '50%',
-                              transform: 'translateX(-50%)',
-                              width: 'min(90vw, 600px)',
-                              maxHeight: '400px'
+                              marginTop: '8px'
                             }}
                           >
                             <div className="max-h-96 overflow-y-auto bg-card">
