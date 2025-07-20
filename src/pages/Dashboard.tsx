@@ -6,7 +6,7 @@ import { RatedRestaurantsPage } from '@/pages/RatedRestaurantsPage';
 import { MapPage } from '@/pages/MapPage';
 import { WishlistPage } from '@/pages/WishlistPage';
 import HomePage from '@/pages/HomePage';
-import { UnifiedSearchPage } from '@/pages/UnifiedSearchPage';
+import UnifiedSearchPage from '@/pages/UnifiedSearchPage';
 import SettingsPage from '@/pages/SettingsPage';
 import { FriendsPage } from '@/pages/FriendsPage';
 import { AIChatbot } from '@/components/AIChatbot';
