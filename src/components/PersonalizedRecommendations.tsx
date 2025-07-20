@@ -49,9 +49,7 @@ export function PersonalizedRecommendations() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user) {
-      generateRecommendations();
-    }
+    // Don't automatically load recommendations - wait for user to click button
   }, [user]);
 
   const generateRecommendations = async () => {
@@ -167,20 +165,21 @@ export function PersonalizedRecommendations() {
     );
   }
 
-  if (!preferences && !error) {
+  if (!recommendations.length && !isLoading && !error) {
     return (
       <Card>
         <CardContent className="p-6 text-center">
           <Lightbulb className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-semibold mb-2">Rate Restaurants to Get Recommendations</h3>
+          <h3 className="text-lg font-semibold mb-2">Get AI-Powered Restaurant Recommendations</h3>
           <p className="text-muted-foreground mb-4">
-            Start rating restaurants to receive personalized recommendations tailored to your taste!
+            Get personalized recommendations based on your rated restaurants and dining preferences!
           </p>
           <Button 
             onClick={generateRecommendations}
             disabled={isLoading}
+            size="lg"
           >
-            {isLoading ? 'Checking for recommendations...' : 'Check for Recommendations'}
+            {isLoading ? 'Analyzing your preferences...' : 'Generate Recommendations'}
           </Button>
         </CardContent>
       </Card>
@@ -219,11 +218,11 @@ export function PersonalizedRecommendations() {
             </div>
           )}
 
-          {isLoading ? (
+          {isLoading && (
             <div className="space-y-4">
-              <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
-                <span>Analyzing your dining preferences...</span>
+              <div className="flex items-center justify-center gap-3 text-primary py-6">
+                <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full"></div>
+                <span className="font-medium">Analyzing your dining preferences...</span>
               </div>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {[...Array(6)].map((_, i) => (
@@ -231,7 +230,9 @@ export function PersonalizedRecommendations() {
                 ))}
               </div>
             </div>
-          ) : recommendations.length > 0 ? (
+          )}
+
+          {!isLoading && recommendations.length > 0 && (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {recommendations.map((place) => (
                 <Card key={place.place_id} className="cursor-pointer hover:shadow-lg transition-shadow">
@@ -312,7 +313,9 @@ export function PersonalizedRecommendations() {
                 </Card>
               ))}
             </div>
-          ) : (
+          )}
+
+          {!isLoading && !error && recommendations.length === 0 && (
             <div className="text-center py-8">
               <p className="text-muted-foreground mb-4">
                 {error || 'No recommendations found. Try rating more restaurants or check back later.'}

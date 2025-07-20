@@ -76,13 +76,15 @@ serve(async (req) => {
         Location: ${r.city}, Notes: ${r.notes || 'None'}`
     ).join('\n')}
 
-    Based on this data, identify the user's preferences.
+    Based on this data, identify the user's preferences. 
+
+    IMPORTANT: For preferredLocations, include ALL unique cities where the user has rated restaurants (minimum 5-8 cities if available). This ensures diverse geographical recommendations.
 
     Respond ONLY with a valid JSON object (no markdown, no code blocks):
     {
       "favoriteCuisines": ["cuisine1", "cuisine2", "cuisine3"],
       "preferredPriceRange": 2,
-      "preferredLocations": ["city1", "city2"],
+      "preferredLocations": ["all_cities_where_user_dined"],
       "searchKeywords": ["keyword1", "keyword2", "keyword3"],
       "reasoning": "Brief explanation of preferences identified"
     }
@@ -134,12 +136,14 @@ serve(async (req) => {
 
     const allCandidates: GooglePlaceResult[] = [];
 
-    // Prioritize searches in user's preferred locations
-    const searchLocations = preferences.preferredLocations.slice(0, 3); // Top 3 cities where user has dined
+    // Use ALL of the user's preferred locations for maximum diversity
+    const searchLocations = preferences.preferredLocations || [];
+    console.log(`Searching in ${searchLocations.length} locations:`, searchLocations);
 
     for (const location of searchLocations) {
       for (const query of searchQueries.slice(0, 2)) { // Limit queries per location
         try {
+          // Search for restaurants in each city where the user has dined
           const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query + ' ' + location)}&key=${googlePlacesApiKey}`;
           
           console.log(`Searching: ${query} in ${location}`);
@@ -147,7 +151,8 @@ serve(async (req) => {
           const searchData = await searchResponse.json();
 
           if (searchData.status === 'OK' && searchData.results) {
-            allCandidates.push(...searchData.results.slice(0, 3)); // Limit per search
+            // Get 2-3 results per location to ensure diversity
+            allCandidates.push(...searchData.results.slice(0, 2));
           }
         } catch (error) {
           console.error(`Error searching for ${query} in ${location}:`, error);
