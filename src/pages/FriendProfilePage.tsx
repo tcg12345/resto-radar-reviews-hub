@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, 
@@ -10,7 +10,10 @@ import {
   Award,
   Target,
   ChefHat,
-  BarChart3
+  BarChart3,
+  Filter,
+  SortAsc,
+  SortDesc
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,6 +21,8 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { StarRating } from '@/components/StarRating';
 import { MichelinStars } from '@/components/MichelinStars';
 import { PriceRange } from '@/components/PriceRange';
@@ -46,6 +51,12 @@ export default function FriendProfilePage() {
   const [displayedWishlist, setDisplayedWishlist] = useState(10);
   const [backgroundLoadingComplete, setBackgroundLoadingComplete] = useState(false);
   const [continueBackgroundLoading, setContinueBackgroundLoading] = useState(false);
+  
+  // Filter and sort states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [cuisineFilter, setCuisineFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('newest');
+  const [ratingFilter, setRatingFilter] = useState('all');
 
   useEffect(() => {
     if (friendId && friends.length > 0) {
@@ -97,17 +108,17 @@ export default function FriendProfilePage() {
         recentActivity: Array.isArray(result.recent_restaurants) ? result.recent_restaurants.slice(0, 5) : [] // Limit to 5 for UI
       });
 
-      // Load first 10 restaurants separately for the restaurants tab
-      const initialRestaurants = await fetchFriendRestaurants(friendData.id, false, 10);
+      // Load first 10 restaurants separately for instant display
+      const initialRestaurants = await loadRestaurantsDirectly(friendData.id, 10);
       setRestaurants(initialRestaurants);
-      setAllRestaurants(initialRestaurants); // Will be updated in background
+      setAllRestaurants(initialRestaurants);
 
       // Reset pagination
       setDisplayedRestaurants(Math.min(10, initialRestaurants.length));
       setDisplayedWishlist(10);
 
       console.log('Initial profile data loaded instantly');
-      setIsLoading(false); // Mark initial load as complete
+      setIsLoading(false);
 
       // PHASE 2: Background loading of remaining data
       loadRemainingDataInBackground(friendData.id);
@@ -118,23 +129,44 @@ export default function FriendProfilePage() {
     }
   };
 
-  // Background loading function - continuously loads data in batches
+  // Direct database load function for instant results
+  const loadRestaurantsDirectly = async (friendId: string, limit: number, isWishlist: boolean = false) => {
+    try {
+      const { data, error } = await supabase
+        .from('restaurants')
+        .select('*')
+        .eq('user_id', friendId)
+        .eq('is_wishlist', isWishlist)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error loading restaurants directly:', error);
+      return [];
+    }
+  };
+
+  // Background loading function - loads ALL data efficiently
   const loadRemainingDataInBackground = async (friendId: string) => {
     try {
       console.log('Starting efficient background load...');
       
-      // Initial background load - get first batch
-      const [nextRestaurantsBatch, wishlistData] = await Promise.all([
-        fetchFriendRestaurants(friendId, false, 50),
-        fetchFriendRestaurants(friendId, true, 30)
+      // Load ALL restaurants and wishlist items in one go for complete caching
+      const [allRestaurantData, allWishlistData] = await Promise.all([
+        loadRestaurantsDirectly(friendId, 1000), // Load up to 1000 restaurants
+        loadRestaurantsDirectly(friendId, 1000, true) // Load up to 1000 wishlist items
       ]);
 
-      setAllRestaurants(nextRestaurantsBatch);
-      setAllWishlist(wishlistData);
-      setWishlist(wishlistData.slice(0, 10));
+      // Update complete caches
+      setAllRestaurants(allRestaurantData);
+      setAllWishlist(allWishlistData);
+      setWishlist(allWishlistData.slice(0, 10));
       
-      const ratingDistribution = calculateRatingDistribution(nextRestaurantsBatch);
-      const topCuisines = calculateTopCuisines(nextRestaurantsBatch);
+      // Update stats with complete data
+      const ratingDistribution = calculateRatingDistribution(allRestaurantData);
+      const topCuisines = calculateTopCuisines(allRestaurantData);
       
       setStats(prev => ({
         ...prev,
@@ -143,43 +175,9 @@ export default function FriendProfilePage() {
       }));
       
       setBackgroundLoadingComplete(true);
-      setContinueBackgroundLoading(true);
-      console.log('Initial background loading complete - cached 50 restaurants and 30 wishlist items');
-      
-      // Continue loading more in background
-      continuousBackgroundLoad(friendId, 50, 30);
+      console.log(`Background loading complete - cached ${allRestaurantData.length} restaurants and ${allWishlistData.length} wishlist items`);
     } catch (error) {
       console.error('Error in background loading:', error);
-    }
-  };
-  
-  // Continuously load more data in the background
-  const continuousBackgroundLoad = async (friendId: string, currentRestaurantCount: number, currentWishlistCount: number) => {
-    try {
-      // Load more restaurants if we have exactly what we requested (meaning there might be more)
-      if (currentRestaurantCount >= 50) {
-        setTimeout(async () => {
-          const moreRestaurants = await fetchFriendRestaurants(friendId, false, currentRestaurantCount + 50);
-          if (moreRestaurants.length > currentRestaurantCount) {
-            setAllRestaurants(moreRestaurants);
-            console.log(`Loaded ${moreRestaurants.length} total restaurants in background`);
-            continuousBackgroundLoad(friendId, moreRestaurants.length, currentWishlistCount);
-          }
-        }, 2000);
-      }
-      
-      // Load more wishlist items if we have exactly what we requested
-      if (currentWishlistCount >= 30) {
-        setTimeout(async () => {
-          const moreWishlist = await fetchFriendRestaurants(friendId, true, currentWishlistCount + 30);
-          if (moreWishlist.length > currentWishlistCount) {
-            setAllWishlist(moreWishlist);
-            console.log(`Loaded ${moreWishlist.length} total wishlist items in background`);
-          }
-        }, 3000);
-      }
-    } catch (error) {
-      console.error('Error in continuous background loading:', error);
     }
   };
 
@@ -197,64 +195,21 @@ export default function FriendProfilePage() {
       .slice(0, 5);
   };
 
-  const loadMoreRestaurants = async () => {
-    if (!friend) return;
+  // Cache-first load more with instant response
+  const loadMoreRestaurants = () => {
+    if (!friend || displayedRestaurants >= allRestaurants.length) return;
     
-    // Always try to show from cache first for instant loading
-    if (displayedRestaurants < allRestaurants.length) {
-      const newDisplayCount = Math.min(displayedRestaurants + 10, allRestaurants.length);
-      setRestaurants(allRestaurants.slice(0, newDisplayCount));
-      setDisplayedRestaurants(newDisplayCount);
-      return;
-    }
-    
-    // If we need more data than cached, load it in small increments
-    setIsLoadingMoreRestaurants(true);
-    try {
-      const newLimit = allRestaurants.length + 20; // Load 20 more beyond what we have
-      const newRestaurants = await fetchFriendRestaurants(friend.id, false, newLimit);
-      
-      if (newRestaurants.length > allRestaurants.length) {
-        setAllRestaurants(newRestaurants);
-        const newDisplayCount = Math.min(displayedRestaurants + 10, newRestaurants.length);
-        setRestaurants(newRestaurants.slice(0, newDisplayCount));
-        setDisplayedRestaurants(newDisplayCount);
-      }
-    } catch (error) {
-      console.error('Error loading more restaurants:', error);
-    } finally {
-      setIsLoadingMoreRestaurants(false);
-    }
+    // Always instant from cache
+    const newDisplayCount = Math.min(displayedRestaurants + 10, allRestaurants.length);
+    setDisplayedRestaurants(newDisplayCount);
   };
 
-  const loadMoreWishlist = async () => {
-    if (!friend) return;
+  const loadMoreWishlist = () => {
+    if (!friend || displayedWishlist >= allWishlist.length) return;
     
-    // Always try to show from cache first for instant loading
-    if (displayedWishlist < allWishlist.length) {
-      const newDisplayCount = Math.min(displayedWishlist + 10, allWishlist.length);
-      setWishlist(allWishlist.slice(0, newDisplayCount));
-      setDisplayedWishlist(newDisplayCount);
-      return;
-    }
-    
-    // If we need more data than cached, load it
-    setIsLoadingMoreWishlist(true);
-    try {
-      const newLimit = allWishlist.length + 20; // Load 20 more beyond what we have
-      const newWishlistData = await fetchFriendRestaurants(friend.id, true, newLimit);
-      
-      if (newWishlistData.length > allWishlist.length) {
-        setAllWishlist(newWishlistData);
-        const newDisplayCount = Math.min(displayedWishlist + 10, newWishlistData.length);
-        setWishlist(newWishlistData.slice(0, newDisplayCount));
-        setDisplayedWishlist(newDisplayCount);
-      }
-    } catch (error) {
-      console.error('Error loading more wishlist items:', error);
-    } finally {
-      setIsLoadingMoreWishlist(false);
-    }
+    // Always instant from cache
+    const newDisplayCount = Math.min(displayedWishlist + 10, allWishlist.length);
+    setDisplayedWishlist(newDisplayCount);
   };
 
   const calculateRatingDistribution = (ratedRestaurants: any[]) => {
@@ -278,6 +233,53 @@ export default function FriendProfilePage() {
     
     return ratingDistribution;
   };
+  
+  // Filtered and sorted restaurants with memoization for performance
+  const filteredRestaurants = useMemo(() => {
+    let filtered = allRestaurants.filter(restaurant => {
+      const matchesSearch = restaurant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          restaurant.cuisine.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (restaurant.address && restaurant.address.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+      const matchesCuisine = cuisineFilter === 'all' || restaurant.cuisine === cuisineFilter;
+      
+      const matchesRating = ratingFilter === 'all' || 
+                           (ratingFilter === 'high' && restaurant.rating >= 8) ||
+                           (ratingFilter === 'medium' && restaurant.rating >= 6 && restaurant.rating < 8) ||
+                           (ratingFilter === 'low' && restaurant.rating < 6);
+      
+      return matchesSearch && matchesCuisine && matchesRating;
+    });
+
+    // Sort filtered results
+    switch (sortBy) {
+      case 'rating-high':
+        filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        break;
+      case 'rating-low':
+        filtered.sort((a, b) => (a.rating || 0) - (b.rating || 0));
+        break;
+      case 'name':
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'cuisine':
+        filtered.sort((a, b) => a.cuisine.localeCompare(b.cuisine));
+        break;
+      case 'oldest':
+        filtered.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+        break;
+      default: // newest
+        filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
+
+    return filtered;
+  }, [allRestaurants, searchTerm, cuisineFilter, sortBy, ratingFilter]);
+
+  // Get unique cuisines for filter dropdown
+  const availableCuisines = useMemo(() => {
+    const cuisines = [...new Set(allRestaurants.map(r => r.cuisine))].filter(Boolean);
+    return cuisines.sort();
+  }, [allRestaurants]);
 
   if (isLoading || !friend) {
     return (
@@ -473,7 +475,70 @@ export default function FriendProfilePage() {
 
           {/* Restaurants Tab */}
           <TabsContent value="restaurants" className="mt-8">
-            {restaurants.length === 0 ? (
+            {/* Filter and Sort Controls */}
+            <Card className="mb-6">
+              <CardContent className="p-6">
+                <div className="grid gap-4 md:grid-cols-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Search</label>
+                    <Input
+                      placeholder="Search restaurants..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Cuisine</label>
+                    <Select value={cuisineFilter} onValueChange={setCuisineFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All cuisines" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Cuisines</SelectItem>
+                        {availableCuisines.map(cuisine => (
+                          <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Rating</label>
+                    <Select value={ratingFilter} onValueChange={setRatingFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All ratings" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Ratings</SelectItem>
+                        <SelectItem value="high">8.0+ ⭐</SelectItem>
+                        <SelectItem value="medium">6.0-7.9 ⭐</SelectItem>
+                        <SelectItem value="low">Below 6.0 ⭐</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Sort By</label>
+                    <Select value={sortBy} onValueChange={setSortBy}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sort by..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="newest">Newest First</SelectItem>
+                        <SelectItem value="oldest">Oldest First</SelectItem>
+                        <SelectItem value="rating-high">Rating (High to Low)</SelectItem>
+                        <SelectItem value="rating-low">Rating (Low to High)</SelectItem>
+                        <SelectItem value="name">Name (A-Z)</SelectItem>
+                        <SelectItem value="cuisine">Cuisine (A-Z)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {filteredRestaurants.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
                   <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -485,7 +550,7 @@ export default function FriendProfilePage() {
               </Card>
             ) : (
               <div className="grid gap-4">
-                {restaurants.slice(0, displayedRestaurants).map((restaurant) => (
+                {filteredRestaurants.slice(0, displayedRestaurants).map((restaurant) => (
                   <Card key={restaurant.id} className="overflow-hidden">
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start mb-4">
@@ -524,25 +589,15 @@ export default function FriendProfilePage() {
                     </CardContent>
                   </Card>
                 ))}
-                {(backgroundLoadingComplete ? displayedRestaurants < allRestaurants.length : displayedRestaurants < stats.totalRated) && (
+                {displayedRestaurants < filteredRestaurants.length && (
                   <div className="text-center mt-6">
                     <Button 
                       variant="outline" 
                       onClick={loadMoreRestaurants}
-                      disabled={isLoadingMoreRestaurants}
                       className="flex items-center gap-2"
                     >
-                      {isLoadingMoreRestaurants ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                          Loading...
-                        </>
-                      ) : (
-                        <>
-                          Load More ({backgroundLoadingComplete ? allRestaurants.length - displayedRestaurants : stats.totalRated - displayedRestaurants} remaining)
-                          {backgroundLoadingComplete && <span className="text-green-500 ml-1">✓</span>}
-                        </>
-                      )}
+                      Load More ({filteredRestaurants.length - displayedRestaurants} remaining)
+                      {backgroundLoadingComplete && <span className="text-green-500 ml-1">✓</span>}
                     </Button>
                   </div>
                 )}
@@ -596,20 +651,10 @@ export default function FriendProfilePage() {
                     <Button 
                       variant="outline" 
                       onClick={loadMoreWishlist}
-                      disabled={isLoadingMoreWishlist}
                       className="flex items-center gap-2"
                     >
-                      {isLoadingMoreWishlist ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                          Loading...
-                        </>
-                      ) : (
-                        <>
-                          Load More ({allWishlist.length - displayedWishlist} remaining)
-                          {backgroundLoadingComplete && <span className="text-green-500 ml-1">✓</span>}
-                        </>
-                      )}
+                      Load More ({allWishlist.length - displayedWishlist} remaining)
+                      {backgroundLoadingComplete && <span className="text-green-500 ml-1">✓</span>}
                     </Button>
                   </div>
                 )}
