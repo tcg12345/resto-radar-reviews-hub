@@ -329,11 +329,10 @@ export default function AuthPage() {
                     {isLoading ? 'Signing in...' : 'Sign In'}
                   </Button>
                   
-                  <div className="relative">
-                    <Separator />
-                    <span className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-background via-card to-background px-4 py-1 text-xs font-medium text-primary/80 border border-border/30 rounded-full shadow-sm">
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">
                       New to Grubby?
-                    </span>
+                    </p>
                   </div>
                   
                   <Button
@@ -539,11 +538,10 @@ export default function AuthPage() {
                     {isLoading ? 'Creating Account...' : 'Create Account'}
                   </Button>
                   
-                  <div className="relative">
-                    <Separator />
-                    <span className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-background via-card to-background px-4 py-1 text-xs font-medium text-primary/80 border border-border/30 rounded-full shadow-sm">
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">
                       Already have an account?
-                    </span>
+                    </p>
                   </div>
                   
                   <Button
