@@ -114,7 +114,7 @@ export function useFriendRestaurants() {
     }
   };
 
-  const fetchAllFriendsRestaurants = async (page: number = 0, pageSize: number = 20) => {
+  const fetchAllFriendsRestaurants = async (page: number = 0, pageSize: number = 10) => {
     if (!user?.id) {
       console.log('No authenticated user');
       return { activities: [], hasMore: false };
@@ -122,42 +122,53 @@ export function useFriendRestaurants() {
 
     setIsLoading(true);
     try {
-      // Use the new cached edge function for ultra-fast loading
-      const { data: result, error } = await supabase.functions.invoke('friend-activity-cache', {
-        body: {
-          action: 'get_activity',
-          page,
-          page_size: pageSize
-        }
-      });
+      // Use direct database function for much faster loading
+      const { data: activities, error } = await supabase
+        .rpc('get_friends_recent_activity', {
+          requesting_user_id: user.id,
+          activity_limit: pageSize
+        });
 
       if (error) {
-        console.error('Error fetching cached friend activity:', error);
+        console.error('Error fetching friend activity:', error);
         setFriendRestaurants([]);
         return { activities: [], hasMore: false };
       }
 
-      const activities = result.activities?.map((activity: any) => ({
-        ...activity.activity_data,
-        activity_date: activity.activity_date
-      })) || [];
+      const formattedActivities = (activities || []).map((activity: any) => ({
+        id: activity.restaurant_id,
+        name: activity.restaurant_name,
+        cuisine: activity.cuisine,
+        rating: activity.rating,
+        dateVisited: activity.date_visited,
+        createdAt: activity.created_at,
+        updatedAt: activity.created_at,
+        userId: activity.friend_id,
+        friend_username: activity.friend_username,
+        address: '',
+        city: '',
+        photos: [],
+        isWishlist: false,
+        notes: '',
+        priceRange: null,
+        michelinStars: null
+      }));
 
       if (page === 0) {
         // First page - replace existing data
-        setFriendRestaurants(activities);
+        setFriendRestaurants(formattedActivities);
       } else {
         // Subsequent pages - append to existing data
-        setFriendRestaurants(prev => [...prev, ...activities]);
+        setFriendRestaurants(prev => [...prev, ...formattedActivities]);
       }
 
-      console.log(`Loaded ${activities.length} activities from cache (page ${page})`);
+      console.log(`Loaded ${formattedActivities.length} activities directly from database (page ${page})`);
       return { 
-        activities, 
-        hasMore: result.has_more || false,
-        cacheStatus: result.cache_status 
+        activities: formattedActivities, 
+        hasMore: formattedActivities.length === pageSize
       };
     } catch (error) {
-      console.error('Error fetching cached friend activity:', error);
+      console.error('Error fetching friend activity:', error);
       setFriendRestaurants([]);
       return { activities: [], hasMore: false };
     } finally {

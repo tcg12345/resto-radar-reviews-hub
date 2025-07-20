@@ -70,32 +70,34 @@ function FriendProfileModal({ friend, isOpen, onClose }: FriendProfileModalProps
     setDisplayedWishlist(10);
     
     try {
-      // Use cached profile data for instant loading
-      const { data: result, error } = await supabase.functions.invoke('friend-profile-cache', {
-        body: {
-          action: 'get_profile',
-          user_id: friend.id
-        }
-      });
+      // Use direct database call for much faster loading
+      const { data: userData } = await supabase.auth.getUser();
+      const { data: profileData, error } = await supabase
+        .rpc('get_friend_profile_data', {
+          target_user_id: friend.id,
+          requesting_user_id: userData.user?.id || '',
+          restaurant_limit: 50 // Load more initially for better UX
+        })
+        .single();
 
-      if (error || !result?.profile) {
-        console.error('Error fetching cached profile:', error);
+      if (error) {
+        console.error('Error fetching profile data:', error);
         setIsLoading(false);
         return;
       }
 
-      const profileData = result.profile;
-      if (profileData.error) {
-        console.log('Cannot view this friend\'s profile:', profileData.error);
+      if (!profileData.can_view) {
+        console.log('Cannot view this friend\'s profile');
         setIsLoading(false);
         return;
       }
 
-      const allRestaurants = profileData.restaurants || [];
-      const allWishlist = profileData.wishlist || [];
+      // Transform recent_restaurants into proper restaurant format
+      const restaurants = Array.isArray(profileData.recent_restaurants) ? profileData.recent_restaurants : [];
+      const wishlistItems: any[] = []; // Will load separately if needed
       
-      setRestaurants(allRestaurants);
-      setWishlist(allWishlist);
+      setRestaurants(restaurants);
+      setWishlist(wishlistItems);
     } catch (error) {
       console.error('Error loading friend data:', error);
     } finally {
@@ -311,10 +313,6 @@ export function FriendsPage() {
 
   useEffect(() => {
     loadInitialActivity();
-    // Auto-warm caches when user visits friends tab
-    if (!cacheWarmed) {
-      warmCachesInBackground();
-    }
   }, []);
 
   const loadInitialActivity = async () => {
@@ -332,18 +330,6 @@ export function FriendsPage() {
     setCurrentPage(nextPage);
     setHasMoreActivities(result.hasMore);
     setIsLoadingMore(false);
-  };
-
-  const warmCachesInBackground = async () => {
-    try {
-      // Silently warm caches for better performance
-      supabase.functions.invoke('friend-profile-cache', {
-        body: { action: 'warm_all_caches' }
-      });
-      setCacheWarmed(true);
-    } catch (error) {
-      console.log('Cache warming failed silently:', error);
-    }
   };
 
   const handleRefreshCache = async () => {
