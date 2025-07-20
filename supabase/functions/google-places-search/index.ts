@@ -46,6 +46,7 @@ interface PlaceDetails {
     text: string;
     time: number;
   }>;
+  reservable?: boolean;
 }
 
 serve(async (req) => {
@@ -87,7 +88,7 @@ serve(async (req) => {
         url = 'https://maps.googleapis.com/maps/api/place/details/json';
         params = new URLSearchParams({
           place_id: placeId,
-          fields: 'place_id,name,formatted_address,formatted_phone_number,website,rating,user_ratings_total,price_level,opening_hours,photos,geometry,types,reviews',
+          fields: 'place_id,name,formatted_address,formatted_phone_number,website,rating,user_ratings_total,price_level,opening_hours,photos,geometry,types,reviews,reservable',
           key: apiKey,
           reviews_sort: 'newest', // Get the most recent reviews first
         });

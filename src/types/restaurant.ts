@@ -27,6 +27,8 @@ export interface Restaurant {
   latitude?: number;
   longitude?: number;
   isWishlist: boolean;
+  reservationUrl?: string;
+  reservable?: boolean;
   createdAt: string;
   updatedAt: string;
   userId: string;
