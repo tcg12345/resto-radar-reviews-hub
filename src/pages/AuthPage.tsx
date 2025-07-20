@@ -49,6 +49,17 @@ export default function AuthPage() {
     
     try {
       setIsLoading(true);
+      
+      // Clear localStorage if quota might be exceeded
+      try {
+        const testKey = 'test-quota';
+        localStorage.setItem(testKey, 'test');
+        localStorage.removeItem(testKey);
+      } catch (quotaError) {
+        console.log('Storage quota exceeded, clearing localStorage');
+        localStorage.clear();
+      }
+      
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -60,7 +71,16 @@ export default function AuthPage() {
       navigate('/');
     } catch (error: any) {
       console.error('Error signing in:', error);
-      if (error.message.includes('Invalid login credentials')) {
+      
+      // Handle quota exceeded error specifically
+      if (error.message && error.message.includes('quota')) {
+        try {
+          localStorage.clear();
+          toast.error('Storage was full, cleared and please try signing in again.');
+        } catch (clearError) {
+          toast.error('Storage quota exceeded. Please manually clear your browser storage.');
+        }
+      } else if (error.message.includes('Invalid login credentials')) {
         toast.error('Invalid email or password. Please try again.');
       } else {
         toast.error(error.message || 'Error signing in');
