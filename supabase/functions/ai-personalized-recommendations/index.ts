@@ -68,7 +68,7 @@ serve(async (req) => {
 
     // Step 1: Analyze user preferences with AI
     const analysisPrompt = `
-    Analyze this user's restaurant preferences based on their ratings and provide recommendations:
+    Analyze this user's restaurant preferences based on their ratings and provide recommendations.
 
     RATED RESTAURANTS:
     ${ratedRestaurants.map((r: RatedRestaurant) => 
@@ -76,13 +76,9 @@ serve(async (req) => {
         Location: ${r.city}, Notes: ${r.notes || 'None'}`
     ).join('\n')}
 
-    Based on this data, identify:
-    1. Favorite cuisine types (prioritize highly rated ones)
-    2. Preferred price range 
-    3. Geographic preferences (which cities/areas they like)
-    4. Any patterns in their notes or preferences
+    Based on this data, identify the user's preferences.
 
-    Respond with a JSON object containing:
+    Respond ONLY with a valid JSON object (no markdown, no code blocks):
     {
       "favoriteCuisines": ["cuisine1", "cuisine2", "cuisine3"],
       "preferredPriceRange": 2,
@@ -112,10 +108,21 @@ serve(async (req) => {
     let preferences;
     
     try {
-      preferences = JSON.parse(analysisData.choices[0].message.content);
+      const responseContent = analysisData.choices[0].message.content;
+      console.log('Raw AI response:', responseContent);
+      
+      // Extract JSON from markdown code blocks if present
+      let jsonString = responseContent;
+      const jsonMatch = responseContent.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (jsonMatch) {
+        jsonString = jsonMatch[1];
+      }
+      
+      preferences = JSON.parse(jsonString);
       console.log('AI Analysis Result:', preferences);
     } catch (e) {
       console.error('Failed to parse AI analysis:', e);
+      console.error('Raw response:', analysisData.choices[0].message.content);
       throw new Error('Failed to analyze preferences');
     }
 
@@ -164,11 +171,11 @@ serve(async (req) => {
 
     // Step 3: Use AI to rank and explain recommendations
     const rankingPrompt = `
-    Based on the user's preferences and rating history, rank these restaurant candidates and provide reasoning:
+    Based on the user's preferences, rank these restaurant candidates and provide reasoning.
 
     USER PREFERENCES: ${JSON.stringify(preferences)}
 
-    USER'S HIGHLY RATED RESTAURANTS (for reference):
+    USER'S HIGHLY RATED RESTAURANTS:
     ${ratedRestaurants.filter((r: RatedRestaurant) => r.rating >= 4).map((r: RatedRestaurant) => 
       `- ${r.name} (${r.cuisine}) - ${r.rating}/5`
     ).join('\n')}
@@ -177,16 +184,12 @@ serve(async (req) => {
     ${uniqueCandidates.map((place, index) => 
       `${index + 1}. ${place.name} - ${place.formatted_address}
          Rating: ${place.rating || 'N/A'} (${place.user_ratings_total || 0} reviews)
-         Price: ${'$'.repeat(place.price_level || 2)}
-         Types: ${place.types.join(', ')}`
+         Price: ${'$'.repeat(place.price_level || 2)}`
     ).join('\n\n')}
 
-    Select the top 6 restaurants that best match the user's preferences. For each, provide:
-    1. Why it matches their taste (based on their highly rated restaurants)
-    2. A confidence score (1-10)
-    3. What specifically they might enjoy
+    Select the top 6 restaurants that best match the user's preferences.
 
-    Respond with JSON:
+    Respond ONLY with valid JSON (no markdown, no code blocks):
     {
       "recommendations": [
         {
@@ -219,10 +222,21 @@ serve(async (req) => {
     let rankings;
 
     try {
-      rankings = JSON.parse(rankingData.choices[0].message.content);
+      const responseContent = rankingData.choices[0].message.content;
+      console.log('Raw ranking response:', responseContent);
+      
+      // Extract JSON from markdown code blocks if present
+      let jsonString = responseContent;
+      const jsonMatch = responseContent.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (jsonMatch) {
+        jsonString = jsonMatch[1];
+      }
+      
+      rankings = JSON.parse(jsonString);
       console.log('AI Ranking Result:', rankings);
     } catch (e) {
       console.error('Failed to parse AI rankings:', e);
+      console.error('Raw ranking response:', rankingData.choices[0].message.content);
       throw new Error('Failed to rank recommendations');
     }
 
