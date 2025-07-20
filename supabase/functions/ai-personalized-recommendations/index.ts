@@ -140,28 +140,45 @@ serve(async (req) => {
     // Add randomization factor to prevent same results on each request
     const randomSeed = Math.random();
 
-    // Use ALL of the user's preferred locations for maximum diversity
-    const searchLocations = preferences.preferredLocations || [];
+    // Use top 5 locations for speed optimization
+    const searchLocations = preferences.preferredLocations.slice(0, 5) || [];
     console.log(`Searching in ${searchLocations.length} locations:`, JSON.stringify(searchLocations));
 
+    // Create all search promises to run in parallel for speed
+    const searchPromises = [];
+    
     for (const location of searchLocations) {
       for (const query of searchQueries.slice(0, 2)) { // Limit queries per location
-        try {
-          // Search for restaurants in each city where the user has dined
-          const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query + ' in ' + location)}&key=${googlePlacesApiKey}`;
-          
-          console.log(`Searching: ${query} in ${location}`);
-          const searchResponse = await fetch(searchUrl);
-          const searchData = await searchResponse.json();
+        const searchPromise = (async () => {
+          try {
+            // Search for restaurants in each city where the user has dined
+            const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query + ' in ' + location)}&key=${googlePlacesApiKey}`;
+            
+            console.log(`Searching: ${query} in ${location}`);
+            const searchResponse = await fetch(searchUrl);
+            const searchData = await searchResponse.json();
 
-          if (searchData.status === 'OK' && searchData.results) {
-            // Get 2-3 results per location to ensure diversity
-            candidates.push(...searchData.results.slice(0, 3));
+            if (searchData.status === 'OK' && searchData.results) {
+              // Get only 2 results per location to speed things up
+              return searchData.results.slice(0, 2);
+            }
+            return [];
+          } catch (error) {
+            console.error(`Error searching for ${query} in ${location}:`, error);
+            return [];
           }
-        } catch (error) {
-          console.error(`Error searching for ${query} in ${location}:`, error);
-        }
+        })();
+        
+        searchPromises.push(searchPromise);
       }
+    }
+    
+    // Execute all searches in parallel instead of sequentially
+    const allSearchResults = await Promise.all(searchPromises);
+    
+    // Flatten all results into candidates array
+    for (const results of allSearchResults) {
+      candidates.push(...results);
     }
 
     // Remove duplicates based on place_id and shuffle for variety

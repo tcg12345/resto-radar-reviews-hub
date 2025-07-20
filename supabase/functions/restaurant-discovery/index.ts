@@ -398,17 +398,17 @@ serve(async (req) => {
     }
 
     // Use all results from pagination - no artificial limits
-    const maxResults = allResults.length; // Use all available results from Google Places API
+    const finalResultsCount = allResults.length; // Use all available results from Google Places API
     
-    console.log(`Processing ${maxResults} restaurants for query: ${query}`);
+    console.log(`Processing ${finalResultsCount} restaurants for query: ${query}`);
     
     const restaurants: RestaurantSearchResult[] = [];
     
     // Process restaurants in smaller batches for faster initial response
     const batchSize = 5;
     const batches = [];
-    for (let i = 0; i < maxResults; i += batchSize) {
-      batches.push(allResults.slice(i, Math.min(i + batchSize, maxResults)));
+    for (let i = 0; i < finalResultsCount; i += batchSize) {
+      batches.push(allResults.slice(i, Math.min(i + batchSize, finalResultsCount)));
     }
     
     // Process batches concurrently for speed
