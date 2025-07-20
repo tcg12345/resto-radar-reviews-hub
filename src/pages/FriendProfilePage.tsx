@@ -45,6 +45,7 @@ export default function FriendProfilePage() {
   const [displayedRestaurants, setDisplayedRestaurants] = useState(10);
   const [displayedWishlist, setDisplayedWishlist] = useState(10);
   const [backgroundLoadingComplete, setBackgroundLoadingComplete] = useState(false);
+  const [continueBackgroundLoading, setContinueBackgroundLoading] = useState(false);
 
   useEffect(() => {
     if (friendId && friends.length > 0) {
@@ -117,23 +118,21 @@ export default function FriendProfilePage() {
     }
   };
 
-  // Background loading function - loads data in smaller batches
+  // Background loading function - continuously loads data in batches
   const loadRemainingDataInBackground = async (friendId: string) => {
     try {
       console.log('Starting efficient background load...');
       
-      // Load data in smaller, more manageable chunks
+      // Initial background load - get first batch
       const [nextRestaurantsBatch, wishlistData] = await Promise.all([
-        fetchFriendRestaurants(friendId, false, 50), // Load 50 at a time instead of all
-        fetchFriendRestaurants(friendId, true, 20)   // Limit wishlist to 20 initially
+        fetchFriendRestaurants(friendId, false, 50),
+        fetchFriendRestaurants(friendId, true, 30)
       ]);
 
-      // Update caches with the additional data
       setAllRestaurants(nextRestaurantsBatch);
       setAllWishlist(wishlistData);
-      setWishlist(wishlistData.slice(0, 10)); // Show first 10 wishlist items
+      setWishlist(wishlistData.slice(0, 10));
       
-      // Update stats with the loaded data (not all data)
       const ratingDistribution = calculateRatingDistribution(nextRestaurantsBatch);
       const topCuisines = calculateTopCuisines(nextRestaurantsBatch);
       
@@ -144,9 +143,43 @@ export default function FriendProfilePage() {
       }));
       
       setBackgroundLoadingComplete(true);
-      console.log('Background loading complete - cached 50 restaurants and 20 wishlist items');
+      setContinueBackgroundLoading(true);
+      console.log('Initial background loading complete - cached 50 restaurants and 30 wishlist items');
+      
+      // Continue loading more in background
+      continuousBackgroundLoad(friendId, 50, 30);
     } catch (error) {
       console.error('Error in background loading:', error);
+    }
+  };
+  
+  // Continuously load more data in the background
+  const continuousBackgroundLoad = async (friendId: string, currentRestaurantCount: number, currentWishlistCount: number) => {
+    try {
+      // Load more restaurants if we have exactly what we requested (meaning there might be more)
+      if (currentRestaurantCount >= 50) {
+        setTimeout(async () => {
+          const moreRestaurants = await fetchFriendRestaurants(friendId, false, currentRestaurantCount + 50);
+          if (moreRestaurants.length > currentRestaurantCount) {
+            setAllRestaurants(moreRestaurants);
+            console.log(`Loaded ${moreRestaurants.length} total restaurants in background`);
+            continuousBackgroundLoad(friendId, moreRestaurants.length, currentWishlistCount);
+          }
+        }, 2000);
+      }
+      
+      // Load more wishlist items if we have exactly what we requested
+      if (currentWishlistCount >= 30) {
+        setTimeout(async () => {
+          const moreWishlist = await fetchFriendRestaurants(friendId, true, currentWishlistCount + 30);
+          if (moreWishlist.length > currentWishlistCount) {
+            setAllWishlist(moreWishlist);
+            console.log(`Loaded ${moreWishlist.length} total wishlist items in background`);
+          }
+        }, 3000);
+      }
+    } catch (error) {
+      console.error('Error in continuous background loading:', error);
     }
   };
 
@@ -167,23 +200,26 @@ export default function FriendProfilePage() {
   const loadMoreRestaurants = async () => {
     if (!friend) return;
     
-    // If background loading is complete and we have cached data, show it instantly
-    if (backgroundLoadingComplete && displayedRestaurants < allRestaurants.length) {
+    // Always try to show from cache first for instant loading
+    if (displayedRestaurants < allRestaurants.length) {
       const newDisplayCount = Math.min(displayedRestaurants + 10, allRestaurants.length);
       setRestaurants(allRestaurants.slice(0, newDisplayCount));
       setDisplayedRestaurants(newDisplayCount);
       return;
     }
     
-    // If we need more data than what's cached, load it incrementally
+    // If we need more data than cached, load it in small increments
     setIsLoadingMoreRestaurants(true);
     try {
-      const newLimit = displayedRestaurants + 20; // Load 20 more at a time
+      const newLimit = allRestaurants.length + 20; // Load 20 more beyond what we have
       const newRestaurants = await fetchFriendRestaurants(friend.id, false, newLimit);
       
-      setRestaurants(newRestaurants);
-      setAllRestaurants(newRestaurants); // Update cache
-      setDisplayedRestaurants(Math.min(newLimit, newRestaurants.length));
+      if (newRestaurants.length > allRestaurants.length) {
+        setAllRestaurants(newRestaurants);
+        const newDisplayCount = Math.min(displayedRestaurants + 10, newRestaurants.length);
+        setRestaurants(newRestaurants.slice(0, newDisplayCount));
+        setDisplayedRestaurants(newDisplayCount);
+      }
     } catch (error) {
       console.error('Error loading more restaurants:', error);
     } finally {
@@ -194,25 +230,26 @@ export default function FriendProfilePage() {
   const loadMoreWishlist = async () => {
     if (!friend) return;
     
-    // If background loading is complete, show pre-loaded data instantly
-    if (backgroundLoadingComplete) {
+    // Always try to show from cache first for instant loading
+    if (displayedWishlist < allWishlist.length) {
       const newDisplayCount = Math.min(displayedWishlist + 10, allWishlist.length);
       setWishlist(allWishlist.slice(0, newDisplayCount));
       setDisplayedWishlist(newDisplayCount);
       return;
     }
     
-    // Fallback: load more if background loading isn't complete yet
+    // If we need more data than cached, load it
     setIsLoadingMoreWishlist(true);
     try {
-      const newWishlist = await fetchFriendRestaurants(
-        friend.id, 
-        true, 
-        displayedWishlist + 10
-      );
+      const newLimit = allWishlist.length + 20; // Load 20 more beyond what we have
+      const newWishlistData = await fetchFriendRestaurants(friend.id, true, newLimit);
       
-      setWishlist(newWishlist);
-      setDisplayedWishlist(prev => prev + 10);
+      if (newWishlistData.length > allWishlist.length) {
+        setAllWishlist(newWishlistData);
+        const newDisplayCount = Math.min(displayedWishlist + 10, newWishlistData.length);
+        setWishlist(newWishlistData.slice(0, newDisplayCount));
+        setDisplayedWishlist(newDisplayCount);
+      }
     } catch (error) {
       console.error('Error loading more wishlist items:', error);
     } finally {
