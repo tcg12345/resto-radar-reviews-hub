@@ -7,9 +7,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Restaurant } from '@/types/restaurant';
 import { RestaurantDetailsModal } from '@/components/RestaurantDetailsModal';
+
 interface RecommendationEngine {
   getPersonalizedRecommendations: () => Promise<GooglePlaceResult[]>;
 }
+
 interface AIRecommendation extends GooglePlaceResult {
   ai_reasoning?: string;
   confidence_score?: number;
@@ -19,6 +21,7 @@ interface AIRecommendation extends GooglePlaceResult {
   price_range?: number;
   formatted_phone_number?: string;
 }
+
 interface GooglePlaceResult {
   place_id: string;
   name: string;
@@ -43,10 +46,9 @@ interface GooglePlaceResult {
     weekday_text?: string[];
   };
 }
+
 export function PersonalizedRecommendations() {
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
   const [recommendations, setRecommendations] = useState<AIRecommendation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [preferences, setPreferences] = useState<any>(null);
@@ -54,23 +56,32 @@ export function PersonalizedRecommendations() {
   const [selectedRestaurant, setSelectedRestaurant] = useState<any>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [cuisineCache, setCuisineCache] = useState<Record<string, string>>({});
+
   useEffect(() => {
     // Don't automatically load recommendations - wait for user to click button
   }, [user]);
+
   const generateRecommendations = async () => {
     if (!user) return;
+
     setIsLoading(true);
     setError(null);
+    
     try {
       // Get user's rated restaurants (exclude wishlist items)
-      const {
-        data: ratedRestaurants,
-        error: fetchError
-      } = await supabase.from('restaurants').select('*').eq('user_id', user.id).eq('is_wishlist', false).not('rating', 'is', null);
+      const { data: ratedRestaurants, error: fetchError } = await supabase
+        .from('restaurants')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_wishlist', false)
+        .not('rating', 'is', null);
+
       if (fetchError) {
         throw new Error(`Database error: ${fetchError.message}`);
       }
+
       console.log(`Found ${ratedRestaurants?.length || 0} rated restaurants for analysis`);
+
       if (!ratedRestaurants || ratedRestaurants.length === 0) {
         setError('No rated restaurants found. Start rating some restaurants to get personalized recommendations!');
         setRecommendations([]);
@@ -81,10 +92,7 @@ export function PersonalizedRecommendations() {
       const userLocation = await getCurrentLocation();
 
       // Call AI recommendations function
-      const {
-        data: aiResponse,
-        error: aiError
-      } = await supabase.functions.invoke('ai-personalized-recommendations', {
+      const { data: aiResponse, error: aiError } = await supabase.functions.invoke('ai-personalized-recommendations', {
         body: {
           ratedRestaurants: ratedRestaurants.map(r => ({
             name: r.name,
@@ -100,21 +108,26 @@ export function PersonalizedRecommendations() {
           userLocation
         }
       });
+
       if (aiError) {
         console.error('AI recommendation error:', aiError);
         throw new Error('Failed to generate AI recommendations');
       }
+
       if (aiResponse.error) {
         throw new Error(aiResponse.error);
       }
-      console.log('AI recommendations received:', aiResponse.recommendations?.length || 0);
 
+      console.log('AI recommendations received:', aiResponse.recommendations?.length || 0);
+      
       // Get AI-detected cuisines for the recommendations
       if (aiResponse.recommendations && aiResponse.recommendations.length > 0) {
         await detectCuisines(aiResponse.recommendations);
       }
+      
       setRecommendations(aiResponse.recommendations || []);
       setPreferences(aiResponse.preferences);
+
     } catch (error) {
       console.error('Error generating recommendations:', error);
       setError(error instanceof Error ? error.message : 'Failed to generate recommendations');
@@ -123,17 +136,17 @@ export function PersonalizedRecommendations() {
       setIsLoading(false);
     }
   };
+
   const detectCuisines = async (restaurants: AIRecommendation[]) => {
     try {
       // Check cache first
       const uncachedRestaurants = restaurants.filter(r => !cuisineCache[r.place_id]);
+      
       if (uncachedRestaurants.length === 0) {
         return; // All cuisines already cached
       }
-      const {
-        data: cuisineResponse,
-        error: cuisineError
-      } = await supabase.functions.invoke('ai-cuisine-detector', {
+
+      const { data: cuisineResponse, error: cuisineError } = await supabase.functions.invoke('ai-cuisine-detector', {
         body: {
           restaurants: uncachedRestaurants.map(r => ({
             place_id: r.place_id,
@@ -143,14 +156,14 @@ export function PersonalizedRecommendations() {
           }))
         }
       });
+
       if (cuisineError) {
         console.error('Cuisine detection error:', cuisineError);
         return;
       }
+
       if (cuisineResponse?.cuisines) {
-        const newCache = {
-          ...cuisineCache
-        };
+        const newCache = { ...cuisineCache };
         cuisineResponse.cuisines.forEach((item: any) => {
           newCache[item.place_id] = item.cuisine;
         });
@@ -160,38 +173,43 @@ export function PersonalizedRecommendations() {
       console.error('Error detecting cuisines:', error);
     }
   };
+
   const getCuisineForPlace = (place: AIRecommendation) => {
     return cuisineCache[place.place_id] || null;
   };
-  const getCurrentLocation = (): Promise<{
-    lat: number;
-    lng: number;
-  } | null> => {
-    return new Promise(resolve => {
+
+  const getCurrentLocation = (): Promise<{ lat: number; lng: number } | null> => {
+    return new Promise((resolve) => {
       if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(position => {
-          resolve({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
-        }, () => resolve(null));
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            resolve({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            });
+          },
+          () => resolve(null)
+        );
       } else {
         resolve(null);
       }
     });
   };
+
   const getPriceDisplay = (priceLevel?: number) => {
     if (!priceLevel) return 'Price not available';
     return '$'.repeat(priceLevel);
   };
+
   const getPhotoUrl = (photoReference: string) => {
     if (!photoReference) return null;
     return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photoReference}&key=${import.meta.env.VITE_GOOGLE_PLACES_API_KEY}`;
   };
+
   const formatAddress = (fullAddress: string) => {
     // Split the address by commas
     const parts = fullAddress.split(', ');
-
+    
     // For US addresses, typically: "Street, City, State ZIP, Country"
     if (parts.length >= 3) {
       const lastPart = parts[parts.length - 1];
@@ -207,32 +225,48 @@ export function PersonalizedRecommendations() {
         return `${city}, ${country}`;
       }
     }
-
+    
     // Fallback to last two parts
     return parts.slice(-2).join(', ');
   };
+
   const getCuisineFromTypes = (types: string[]) => {
     if (!types) return null;
-
+    
     // Filter out generic location/business types that aren't cuisine-specific
-    const excludedTypes = ['restaurant', 'food', 'establishment', 'point_of_interest', 'store', 'premise', 'place_of_worship', 'tourist_attraction', 'lodging', 'shopping_mall', 'gas_station', 'parking', 'atm', 'bank', 'pharmacy', 'hospital', 'school'];
-
+    const excludedTypes = [
+      'restaurant', 'food', 'establishment', 'point_of_interest', 
+      'store', 'premise', 'place_of_worship', 'tourist_attraction',
+      'lodging', 'shopping_mall', 'gas_station', 'parking',
+      'atm', 'bank', 'pharmacy', 'hospital', 'school'
+    ];
+    
     // Look for cuisine-specific types
-    const cuisineType = types.find(type => !excludedTypes.includes(type) && !type.includes('_store') && !type.includes('_dealer') && !type.includes('_repair'));
+    const cuisineType = types.find(type => 
+      !excludedTypes.includes(type) && 
+      !type.includes('_store') && 
+      !type.includes('_dealer') &&
+      !type.includes('_repair')
+    );
+    
     return cuisineType ? cuisineType.replace(/_/g, ' ') : null;
   };
+
   const getCurrentDayHours = (place: AIRecommendation) => {
     if (!place.opening_hours?.weekday_text) return null;
+    
     const today = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
     const dayMap = [6, 0, 1, 2, 3, 4, 5]; // Convert JS day to Google's format (0 = Monday)
     const googleDay = dayMap[today];
+    
     const todayHours = place.opening_hours.weekday_text[googleDay];
     if (!todayHours) return null;
-
+    
     // Extract just the hours part (after the colon)
     const match = todayHours.match(/:\s*(.+)/);
     return match ? match[1].trim() : todayHours;
   };
+
   const handleShowDetails = (place: AIRecommendation) => {
     // Convert Google Places data to Restaurant format for the modal
     const restaurant = {
@@ -246,7 +280,9 @@ export function PersonalizedRecommendations() {
       phoneNumber: place.formatted_phone_number,
       website: place.website,
       openingHours: place.opening_hours?.weekday_text || [],
-      photos: place.photos?.map(photo => `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo.photo_reference}&key=AIzaSyD_replace_with_your_key`).filter(Boolean) || [],
+      photos: place.photos?.map(photo => 
+        `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo.photo_reference}&key=AIzaSyD_replace_with_your_key`
+      ).filter(Boolean) || [],
       location: {
         lat: place.geometry.location.lat,
         lng: place.geometry.location.lng
@@ -254,11 +290,14 @@ export function PersonalizedRecommendations() {
       cuisine: getCuisineForPlace(place),
       googleMapsUrl: place.google_maps_url
     };
+    
     setSelectedRestaurant(restaurant);
     setShowDetailsModal(true);
   };
+
   if (!user) {
-    return <Card>
+    return (
+      <Card>
         <CardContent className="p-6 text-center">
           <Lightbulb className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
           <h3 className="text-lg font-semibold mb-2">Sign in for Personalized Recommendations</h3>
@@ -266,48 +305,81 @@ export function PersonalizedRecommendations() {
             Rate some restaurants to get personalized recommendations based on your preferences!
           </p>
         </CardContent>
-      </Card>;
+      </Card>
+    );
   }
+
   if (!recommendations.length && !isLoading && !error) {
-    return <Card>
-        
-      </Card>;
+    return (
+      <Card>
+        <CardContent className="p-6 text-center">
+          <Lightbulb className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="text-lg font-semibold mb-2">Get AI-Powered Restaurant Recommendations</h3>
+          <p className="text-muted-foreground mb-4">
+            Get personalized recommendations based on your rated restaurants and dining preferences!
+          </p>
+          <Button 
+            onClick={generateRecommendations}
+            disabled={isLoading}
+            size="lg"
+          >
+            {isLoading ? 'Analyzing your preferences...' : 'Generate Recommendations'}
+          </Button>
+        </CardContent>
+      </Card>
+    );
   }
-  return <div className="space-y-6">
+
+  return (
+    <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Lightbulb className="h-5 w-5" />
             AI-Powered Personalized Recommendations
           </CardTitle>
-          {preferences && <p className="text-sm text-muted-foreground">
+          {preferences && (
+            <p className="text-sm text-muted-foreground">
               Based on your {preferences.reasoning || 'dining preferences and ratings'}
-            </p>}
+            </p>
+          )}
         </CardHeader>
         <CardContent>
           <div className="flex gap-2 mb-4">
-            <Button onClick={generateRecommendations} disabled={isLoading} size="sm">
+            <Button 
+              onClick={generateRecommendations} 
+              disabled={isLoading}
+              size="sm"
+            >
               {isLoading ? 'Finding recommendations...' : 'Refresh Recommendations'}
             </Button>
           </div>
 
           
-          {error && <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+          {error && (
+            <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
               <p className="text-destructive text-sm">{error}</p>
-            </div>}
+            </div>
+          )}
 
-          {isLoading && <div className="space-y-4">
+          {isLoading && (
+            <div className="space-y-4">
               <div className="flex items-center justify-center gap-3 text-primary py-6">
                 <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full"></div>
                 <span className="font-medium">Analyzing your dining preferences...</span>
               </div>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {[...Array(6)].map((_, i) => <div key={i} className="h-48 bg-muted animate-pulse rounded-lg" />)}
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="h-48 bg-muted animate-pulse rounded-lg" />
+                ))}
               </div>
-            </div>}
+            </div>
+          )}
 
-          {!isLoading && recommendations.length > 0 && <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {recommendations.map(place => <Card key={place.place_id} className="bg-gray-900 border-gray-800 text-white hover:shadow-xl transition-shadow cursor-pointer">
+          {!isLoading && recommendations.length > 0 && (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {recommendations.map((place) => (
+                <Card key={place.place_id} className="bg-gray-900 border-gray-800 text-white hover:shadow-xl transition-shadow cursor-pointer">
                   <CardContent className="p-4">
                     {/* Header with restaurant name and heart icon */}
                     <div className="flex items-start justify-between mb-3">
@@ -318,13 +390,17 @@ export function PersonalizedRecommendations() {
                     </div>
 
                     {/* Rating */}
-                    {place.rating && <div className="flex items-center gap-2 mb-3">
+                    {place.rating && (
+                      <div className="flex items-center gap-2 mb-3">
                         <Star className="h-4 w-4 text-yellow-500 fill-current" />
                         <span className="text-lg font-semibold text-white">{place.rating}</span>
-                        {place.user_ratings_total && <span className="text-gray-400 text-sm">
+                        {place.user_ratings_total && (
+                          <span className="text-gray-400 text-sm">
                             ({place.user_ratings_total})
-                          </span>}
-                      </div>}
+                          </span>
+                        )}
+                      </div>
+                    )}
 
                     {/* Price Range */}
                     <div className="mb-3">
@@ -334,12 +410,18 @@ export function PersonalizedRecommendations() {
                     </div>
 
                     {/* Opening Hours */}
-                    {(place.opening_hours?.open_now !== undefined || getCurrentDayHours(place)) && <div className="flex items-center gap-2 mb-3">
+                    {(place.opening_hours?.open_now !== undefined || getCurrentDayHours(place)) && (
+                      <div className="flex items-center gap-2 mb-3">
                         <Clock className="h-4 w-4 text-gray-400" />
                         <span className="text-gray-300 text-sm">
-                          {getCurrentDayHours(place) ? `Today: ${getCurrentDayHours(place)}` : `Today: ${place.opening_hours?.open_now ? 'Open' : 'Closed'}`}
+                          {getCurrentDayHours(place) ? (
+                            `Today: ${getCurrentDayHours(place)}`
+                          ) : (
+                            `Today: ${place.opening_hours?.open_now ? 'Open' : 'Closed'}`
+                          )}
                         </span>
-                      </div>}
+                      </div>
+                    )}
 
                     {/* Address */}
                     <div className="flex items-center gap-2 mb-4">
@@ -351,33 +433,59 @@ export function PersonalizedRecommendations() {
 
                     {/* Action Buttons */}
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="flex-1 border-gray-600 text-gray-300 bg-gray-900 hover:bg-gray-800" onClick={() => handleShowDetails(place)}>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1 border-gray-600 text-gray-300 bg-gray-900 hover:bg-gray-800"
+                        onClick={() => handleShowDetails(place)}
+                      >
                         <Eye className="h-4 w-4 mr-1" />
                         Details
                       </Button>
-                      <a href={`tel:${place.formatted_phone_number || ''}`} className="flex items-center justify-center px-3 py-2 border border-gray-600 rounded-md hover:bg-gray-800 transition-colors">
+                      <a 
+                        href={`tel:${place.formatted_phone_number || ''}`}
+                        className="flex items-center justify-center px-3 py-2 border border-gray-600 rounded-md hover:bg-gray-800 transition-colors"
+                      >
                         <Phone className="h-4 w-4 text-gray-300" />
                       </a>
-                      <a href={place.google_maps_url || `https://www.google.com/maps/place/?q=place_id:${place.place_id}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center px-3 py-2 border border-gray-600 rounded-md hover:bg-gray-800 transition-colors">
+                      <a 
+                        href={place.google_maps_url || `https://www.google.com/maps/place/?q=place_id:${place.place_id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center px-3 py-2 border border-gray-600 rounded-md hover:bg-gray-800 transition-colors"
+                      >
                         <Globe className="h-4 w-4 text-gray-300" />
                       </a>
                     </div>
                   </CardContent>
-                </Card>)}
-            </div>}
+                </Card>
+              ))}
+            </div>
+          )}
 
-          {!isLoading && !error && recommendations.length === 0 && <div className="text-center py-8">
+          {!isLoading && !error && recommendations.length === 0 && (
+            <div className="text-center py-8">
               <p className="text-muted-foreground mb-4">
                 {error || 'No recommendations found. Try rating more restaurants or check back later.'}
               </p>
-              <Button onClick={generateRecommendations} disabled={isLoading} variant="outline">
+              <Button 
+                onClick={generateRecommendations} 
+                disabled={isLoading}
+                variant="outline"
+              >
                 {isLoading ? 'Generating recommendations...' : 'Try Again'}
               </Button>
-            </div>}
+            </div>
+          )}
         </CardContent>
       </Card>
 
       {/* Restaurant Details Modal */}
-      <RestaurantDetailsModal restaurant={selectedRestaurant} isOpen={showDetailsModal} onClose={() => setShowDetailsModal(false)} />
-    </div>;
+      <RestaurantDetailsModal
+        restaurant={selectedRestaurant}
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+      />
+    </div>
+  );
 }
