@@ -185,7 +185,6 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
           !['establishment', 'point_of_interest', 'food'].includes(type)
         )[0] || 'restaurant',
         rating: place.rating || null,
-        phone_number: place.formatted_phone_number || null,
         website: place.website || null,
         opening_hours: place.opening_hours?.weekday_text?.join('\n') || null,
         price_range: place.price_level || null,
@@ -239,7 +238,6 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
             !['establishment', 'point_of_interest', 'food'].includes(type)
           )[0] || 'restaurant',
           rating: userRating,
-          phone_number: place.formatted_phone_number,
           website: place.website,
           opening_hours: place.opening_hours?.weekday_text?.join('\n'),
           price_range: place.price_level,
