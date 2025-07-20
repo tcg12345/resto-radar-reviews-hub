@@ -6,6 +6,7 @@ import { Star, MapPin, Lightbulb, Heart, Clock, Globe, Phone, Eye } from 'lucide
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Restaurant } from '@/types/restaurant';
+import { RestaurantDetailsModal } from '@/components/RestaurantDetailsModal';
 
 interface RecommendationEngine {
   getPersonalizedRecommendations: () => Promise<GooglePlaceResult[]>;
@@ -51,6 +52,8 @@ export function PersonalizedRecommendations() {
   const [isLoading, setIsLoading] = useState(false);
   const [preferences, setPreferences] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selectedRestaurant, setSelectedRestaurant] = useState<any>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   useEffect(() => {
     // Don't automatically load recommendations - wait for user to click button
@@ -179,6 +182,34 @@ export function PersonalizedRecommendations() {
     return parts.slice(-2).join(', ');
   };
 
+  const handleShowDetails = (place: AIRecommendation) => {
+    // Convert Google Places data to Restaurant format for the modal
+    const restaurant = {
+      id: place.place_id,
+      name: place.name,
+      address: place.formatted_address,
+      rating: place.rating || 0,
+      reviewCount: place.user_ratings_total,
+      priceRange: place.price_level || place.price_range || 2,
+      isOpen: place.opening_hours?.open_now,
+      phoneNumber: place.formatted_phone_number,
+      website: place.website,
+      openingHours: [], // We don't have detailed hours from Places API basic
+      photos: place.photos?.map(photo => 
+        `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo.photo_reference}&key=${import.meta.env.VITE_GOOGLE_PLACES_API_KEY}`
+      ).filter(Boolean) || [],
+      location: {
+        lat: place.geometry.location.lat,
+        lng: place.geometry.location.lng
+      },
+      cuisine: place.types?.find(type => type !== 'restaurant' && type !== 'food' && type !== 'establishment')?.replace(/_/g, ' '),
+      googleMapsUrl: place.google_maps_url
+    };
+    
+    setSelectedRestaurant(restaurant);
+    setShowDetailsModal(true);
+  };
+
   if (!user) {
     return (
       <Card>
@@ -273,26 +304,6 @@ export function PersonalizedRecommendations() {
                       <Heart className="h-5 w-5 text-gray-400 hover:text-red-500 transition-colors cursor-pointer flex-shrink-0" />
                     </div>
 
-                    {/* AI Reasoning */}
-                    {place.ai_reasoning && (
-                      <div className="bg-blue-900/30 border border-blue-800/50 p-3 rounded-lg mb-3">
-                        <p className="text-blue-200 text-sm">
-                          💡 {place.ai_reasoning}
-                        </p>
-                        {place.confidence_score && (
-                          <div className="flex items-center gap-1 mt-1">
-                            <div className={`w-2 h-2 rounded-full ${
-                              place.confidence_score >= 8 ? 'bg-green-500' : 
-                              place.confidence_score >= 6 ? 'bg-yellow-500' : 'bg-orange-500'
-                            }`} />
-                            <span className="text-xs text-blue-300">
-                              {place.confidence_score}/10 match
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
                     {/* Rating */}
                     {place.rating && (
                       <div className="flex items-center gap-2 mb-3">
@@ -361,6 +372,7 @@ export function PersonalizedRecommendations() {
                         variant="outline" 
                         size="sm" 
                         className="flex-1 border-gray-600 text-gray-300 bg-gray-900 hover:bg-gray-800"
+                        onClick={() => handleShowDetails(place)}
                       >
                         <Eye className="h-4 w-4 mr-1" />
                         Details
@@ -402,6 +414,13 @@ export function PersonalizedRecommendations() {
           )}
         </CardContent>
       </Card>
+
+      {/* Restaurant Details Modal */}
+      <RestaurantDetailsModal
+        restaurant={selectedRestaurant}
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+      />
     </div>
   );
 }
