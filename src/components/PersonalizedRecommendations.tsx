@@ -43,6 +43,7 @@ interface GooglePlaceResult {
   types: string[];
   opening_hours?: {
     open_now: boolean;
+    weekday_text?: string[];
   };
 }
 
@@ -182,6 +183,21 @@ export function PersonalizedRecommendations() {
     return parts.slice(-2).join(', ');
   };
 
+  const getCurrentDayHours = (place: AIRecommendation) => {
+    if (!place.opening_hours?.weekday_text) return null;
+    
+    const today = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const dayMap = [6, 0, 1, 2, 3, 4, 5]; // Convert JS day to Google's format (0 = Monday)
+    const googleDay = dayMap[today];
+    
+    const todayHours = place.opening_hours.weekday_text[googleDay];
+    if (!todayHours) return null;
+    
+    // Extract just the hours part (after the colon)
+    const match = todayHours.match(/:\s*(.+)/);
+    return match ? match[1].trim() : todayHours;
+  };
+
   const handleShowDetails = (place: AIRecommendation) => {
     // Convert Google Places data to Restaurant format for the modal
     const restaurant = {
@@ -194,9 +210,9 @@ export function PersonalizedRecommendations() {
       isOpen: place.opening_hours?.open_now,
       phoneNumber: place.formatted_phone_number,
       website: place.website,
-      openingHours: [], // We don't have detailed hours from Places API basic
+      openingHours: place.opening_hours?.weekday_text || [],
       photos: place.photos?.map(photo => 
-        `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo.photo_reference}&key=${import.meta.env.VITE_GOOGLE_PLACES_API_KEY}`
+        `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo.photo_reference}&key=AIzaSyD_replace_with_your_key`
       ).filter(Boolean) || [],
       location: {
         lat: place.geometry.location.lat,
@@ -325,11 +341,15 @@ export function PersonalizedRecommendations() {
                     </div>
 
                     {/* Opening Hours */}
-                    {place.opening_hours?.open_now !== undefined && (
+                    {(place.opening_hours?.open_now !== undefined || getCurrentDayHours(place)) && (
                       <div className="flex items-center gap-2 mb-3">
                         <Clock className="h-4 w-4 text-gray-400" />
                         <span className="text-gray-300 text-sm">
-                          Today: {place.opening_hours.open_now ? 'Open' : 'Closed'}
+                          {getCurrentDayHours(place) ? (
+                            `Today: ${getCurrentDayHours(place)}`
+                          ) : (
+                            `Today: ${place.opening_hours?.open_now ? 'Open' : 'Closed'}`
+                          )}
                         </span>
                       </div>
                     )}

@@ -42,6 +42,7 @@ interface GooglePlaceResult {
   types: string[];
   opening_hours?: {
     open_now: boolean;
+    weekday_text?: string[];
   };
   ai_reasoning?: string;
   confidence_score?: number;
@@ -134,17 +135,20 @@ serve(async (req) => {
       ...preferences.searchKeywords.slice(0, 2).map((keyword: string) => `${keyword} restaurant`)
     ];
 
-    const allCandidates: GooglePlaceResult[] = [];
+    const candidates = [];
+    
+    // Add randomization factor to prevent same results on each request
+    const randomSeed = Math.random();
 
     // Use ALL of the user's preferred locations for maximum diversity
     const searchLocations = preferences.preferredLocations || [];
-    console.log(`Searching in ${searchLocations.length} locations:`, searchLocations);
+    console.log(`Searching in ${searchLocations.length} locations:`, JSON.stringify(searchLocations));
 
     for (const location of searchLocations) {
       for (const query of searchQueries.slice(0, 2)) { // Limit queries per location
         try {
           // Search for restaurants in each city where the user has dined
-          const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query + ' ' + location)}&key=${googlePlacesApiKey}`;
+          const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query + ' in ' + location)}&key=${googlePlacesApiKey}`;
           
           console.log(`Searching: ${query} in ${location}`);
           const searchResponse = await fetch(searchUrl);
@@ -152,7 +156,7 @@ serve(async (req) => {
 
           if (searchData.status === 'OK' && searchData.results) {
             // Get 2-3 results per location to ensure diversity
-            allCandidates.push(...searchData.results.slice(0, 2));
+            candidates.push(...searchData.results.slice(0, 3));
           }
         } catch (error) {
           console.error(`Error searching for ${query} in ${location}:`, error);
@@ -160,58 +164,57 @@ serve(async (req) => {
       }
     }
 
-    // Remove duplicates and already rated restaurants
-    const ratedRestaurantNames = ratedRestaurants.map((r: RatedRestaurant) => r.name.toLowerCase());
-    const uniqueCandidates = allCandidates
-      .filter((place, index, arr) => 
-        arr.findIndex(p => p.place_id === place.place_id) === index
-      )
-      .filter(place => 
-        !ratedRestaurantNames.includes(place.name.toLowerCase())
-      )
+    // Remove duplicates based on place_id and shuffle for variety
+    const uniqueCandidates = candidates.filter((place, index, self) => 
+      index === self.findIndex(p => p.place_id === place.place_id)
+    );
+    
+    // Add some randomization to prevent same results every time
+    const shuffledCandidates = uniqueCandidates
+      .map((candidate, index) => ({ candidate, index, sort: Math.random() + randomSeed }))
+      .sort((a, b) => a.sort - b.sort)
+      .map(({ candidate }) => candidate)
       .slice(0, 20); // Limit to top 20 for AI analysis
-
-    if (uniqueCandidates.length === 0) {
+    
+    if (shuffledCandidates.length === 0) {
       return new Response(JSON.stringify({
         recommendations: [],
-        message: 'No new restaurants found matching your preferences'
+        preferences: preferences,
+        total_analyzed: ratedRestaurants.length,
+        message: "No suitable recommendations found in your preferred locations"
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+    
+    // Filter out already rated restaurants
+    const ratedRestaurantNames = ratedRestaurants.map((r: RatedRestaurant) => r.name.toLowerCase());
+    const candidatesForRanking = shuffledCandidates.filter(place => 
+      !ratedRestaurantNames.includes(place.name.toLowerCase())
+    );
 
-    // Step 3: Use AI to rank and explain recommendations
-    const rankingPrompt = `
-    Based on the user's preferences, rank these restaurant candidates and provide reasoning.
+    // Step 3: Use AI to rank and provide reasoning for recommendations
+    const rankingPrompt = `Based on the user's dining preferences below, rank these restaurant candidates and provide reasoning for your top 6 recommendations.
 
-    USER PREFERENCES: ${JSON.stringify(preferences)}
+User Preferences:
+${JSON.stringify(preferences, null, 2)}
 
-    USER'S HIGHLY RATED RESTAURANTS:
-    ${ratedRestaurants.filter((r: RatedRestaurant) => r.rating >= 4).map((r: RatedRestaurant) => 
-      `- ${r.name} (${r.cuisine}) - ${r.rating}/5`
-    ).join('\n')}
+Restaurant Candidates:
+${candidatesForRanking.map((place, index) => 
+  `${index}: ${place.name} - ${place.formatted_address} - Rating: ${place.rating || 'N/A'} - Price: ${place.price_level || 'N/A'} - Types: ${place.types?.join(', ') || 'N/A'}`
+).join('\n')}
 
-    RESTAURANT CANDIDATES:
-    ${uniqueCandidates.map((place, index) => 
-      `${index + 1}. ${place.name} - ${place.formatted_address}
-         Rating: ${place.rating || 'N/A'} (${place.user_ratings_total || 0} reviews)
-         Price: ${'$'.repeat(place.price_level || 2)}`
-    ).join('\n\n')}
-
-    Select the top 6 restaurants that best match the user's preferences.
-
-    Respond ONLY with valid JSON (no markdown, no code blocks):
+Return a JSON object with exactly this structure:
+{
+  "recommendations": [
     {
-      "recommendations": [
-        {
-          "index": 0,
-          "reasoning": "explanation",
-          "confidence": 8,
-          "matchFactors": ["factor1", "factor2"]
-        }
-      ]
+      "index": 0,
+      "reasoning": "Why this restaurant matches the user's preferences",
+      "confidence": 8,
+      "matchFactors": ["factor1", "factor2"]
     }
-    `;
+  ]
+}`;
 
     const rankingResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -222,7 +225,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: 'You are an expert restaurant curator who understands dining preferences.' },
+          { role: 'system', content: 'You are an expert restaurant curator. Return only valid JSON.' },
           { role: 'user', content: rankingPrompt }
         ],
         temperature: 0.2,
@@ -255,12 +258,12 @@ serve(async (req) => {
     const finalRecommendations = [];
     
     for (const rec of rankings.recommendations.slice(0, 6)) {
-      const place = uniqueCandidates[rec.index];
+      const place = candidatesForRanking[rec.index];
       if (!place) continue;
       
       // Get detailed place information including website and better photos
       try {
-        const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,formatted_address,rating,user_ratings_total,price_level,photos,geometry,opening_hours,types,website,url&key=${googlePlacesApiKey}`;
+        const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,formatted_address,rating,user_ratings_total,price_level,photos,geometry,opening_hours,types,website,url,formatted_phone_number&key=${googlePlacesApiKey}`;
         const detailsResponse = await fetch(detailsUrl);
         const detailsData = await detailsResponse.json();
         
@@ -279,7 +282,9 @@ serve(async (req) => {
             confidence_score: rec.confidence,
             match_factors: rec.matchFactors,
             website: detailedPlace.website || null,
-            google_maps_url: detailedPlace.url || `https://www.google.com/maps/place/?q=place_id:${place.place_id}`
+            google_maps_url: detailedPlace.url || `https://www.google.com/maps/place/?q=place_id:${place.place_id}`,
+            formatted_phone_number: detailedPlace.formatted_phone_number || null,
+            price_range: detailedPlace.price_level || place.price_level || 2
           });
         } else {
           // Fallback to original data without photos
@@ -290,7 +295,9 @@ serve(async (req) => {
             confidence_score: rec.confidence,
             match_factors: rec.matchFactors,
             website: null,
-            google_maps_url: `https://www.google.com/maps/place/?q=place_id:${place.place_id}`
+            google_maps_url: `https://www.google.com/maps/place/?q=place_id:${place.place_id}`,
+            formatted_phone_number: null,
+            price_range: place.price_level || 2
           });
         }
       } catch (error) {
@@ -302,7 +309,9 @@ serve(async (req) => {
           confidence_score: rec.confidence,
           match_factors: rec.matchFactors,
           website: null,
-          google_maps_url: `https://www.google.com/maps/place/?q=place_id:${place.place_id}`
+          google_maps_url: `https://www.google.com/maps/place/?q=place_id:${place.place_id}`,
+          formatted_phone_number: null,
+          price_range: place.price_level || 2
         });
       }
     }
