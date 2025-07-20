@@ -167,7 +167,6 @@ export function RestaurantProfileModal({
         price_range: place.price_level || null,
         latitude: place.geometry.location.lat,
         longitude: place.geometry.location.lng,
-        photos: place.photos?.slice(0, 5).map(photo => `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo.photo_reference}&key=PLACEHOLDER`) || [],
         notes: `Added from Global Search`,
         is_wishlist: true,
         user_id: user.id
@@ -209,7 +208,6 @@ export function RestaurantProfileModal({
         price_range: place.price_level,
         latitude: place.geometry.location.lat,
         longitude: place.geometry.location.lng,
-        photos: place.photos?.slice(0, 5).map(photo => `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo.photo_reference}&key=PLACEHOLDER`) || [],
         notes: userReview || `Rated ${userRating} stars`,
         is_wishlist: false,
         user_id: user.id,
