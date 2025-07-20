@@ -384,7 +384,7 @@ export function FriendsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="container mx-auto px-4 py-8 max-w-7xl mobile-container">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">
@@ -408,26 +408,26 @@ export function FriendsPage() {
       </div>
 
       <Tabs defaultValue="activity" className="w-full">
-        <TabsList className="grid w-full grid-cols-5 h-12">
-          <TabsTrigger value="activity" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 h-12">
+          <TabsTrigger value="activity" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
             <Activity className="h-4 w-4" />
             <span className="hidden sm:inline">Activity</span>
           </TabsTrigger>
-          <TabsTrigger value="friends" className="flex items-center gap-2">
+          <TabsTrigger value="friends" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
             <Users className="h-4 w-4" />
             <span className="hidden sm:inline">Friends ({friends.length})</span>
             <span className="sm:hidden">({friends.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="search" className="flex items-center gap-2">
+          <TabsTrigger value="search" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
             <Search className="h-4 w-4" />
             <span className="hidden sm:inline">Search</span>
           </TabsTrigger>
-          <TabsTrigger value="received" className="flex items-center gap-2">
+          <TabsTrigger value="received" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
             <Clock className="h-4 w-4" />
             <span className="hidden sm:inline">Requests ({pendingRequests.length})</span>
             <span className="sm:hidden">({pendingRequests.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="sent" className="flex items-center gap-2">
+          <TabsTrigger value="sent" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
             <Send className="h-4 w-4" />
             <span className="hidden sm:inline">Sent ({sentRequests.length})</span>
             <span className="sm:hidden">({sentRequests.length})</span>

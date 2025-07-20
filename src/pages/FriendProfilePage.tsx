@@ -293,10 +293,10 @@ export default function FriendProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background mobile-container">
       {/* Header */}
       <div className="border-b bg-card">
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-4 py-6 mobile-container">
           <div className="flex items-center gap-4 mb-6">
             <Button variant="ghost" size="sm" onClick={() => navigate('/friends')}>
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -304,18 +304,18 @@ export default function FriendProfilePage() {
             </Button>
           </div>
           
-          <div className="flex items-start gap-6">
-            <Avatar className="h-24 w-24">
+          <div className="flex flex-col sm:flex-row items-start gap-6">
+            <Avatar className="h-20 w-20 sm:h-24 sm:w-24 flex-shrink-0">
               <AvatarImage src={friend.avatar_url || ''} />
               <AvatarFallback className="text-3xl">
                 {friend.username?.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold mb-2">@{friend.username}</h1>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2 break-words">@{friend.username}</h1>
               {friend.name && (
-                <p className="text-xl text-muted-foreground mb-4">{friend.name}</p>
+                <p className="text-lg sm:text-xl text-muted-foreground mb-4 break-words">{friend.name}</p>
               )}
               
               <div className="flex flex-wrap items-center gap-3 mb-4">
@@ -335,20 +335,20 @@ export default function FriendProfilePage() {
               </div>
               
               {/* Quick Stats */}
-              <div className="grid grid-cols-3 gap-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">{stats.totalRated}</div>
-                  <div className="text-sm text-muted-foreground">Restaurants Rated</div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+                <div className="text-center p-4 bg-muted/50 rounded-lg">
+                  <div className="text-xl sm:text-2xl font-bold text-primary">{stats.totalRated}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">Restaurants Rated</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">{stats.totalWishlist}</div>
-                  <div className="text-sm text-muted-foreground">Wishlist Items</div>
+                <div className="text-center p-4 bg-muted/50 rounded-lg">
+                  <div className="text-xl sm:text-2xl font-bold text-primary">{stats.totalWishlist}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">Wishlist Items</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">
+                <div className="text-center p-4 bg-muted/50 rounded-lg">
+                  <div className="text-xl sm:text-2xl font-bold text-primary">
                     {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '—'}
                   </div>
-                  <div className="text-sm text-muted-foreground">Avg Rating</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">Avg Rating</div>
                 </div>
               </div>
             </div>
@@ -359,18 +359,18 @@ export default function FriendProfilePage() {
       {/* Content */}
       <div className="container mx-auto px-4 py-8 mobile-container">
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="restaurants">Rated ({stats.totalRated})</TabsTrigger>
-            <TabsTrigger value="wishlist">Wishlist ({stats.totalWishlist})</TabsTrigger>
-            <TabsTrigger value="stats">Statistics</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+            <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
+            <TabsTrigger value="restaurants" className="text-xs sm:text-sm">Rated ({stats.totalRated})</TabsTrigger>
+            <TabsTrigger value="wishlist" className="text-xs sm:text-sm">Wishlist ({stats.totalWishlist})</TabsTrigger>
+            <TabsTrigger value="stats" className="text-xs sm:text-sm">Statistics</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="mt-8">
-            <div className="grid gap-6 lg:grid-cols-3">
+            <div className="grid gap-6 lg:grid-cols-1 xl:grid-cols-3">
               {/* Recent Activity */}
-              <div className="lg:col-span-2">
+              <div className="xl:col-span-2">
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -387,9 +387,9 @@ export default function FriendProfilePage() {
                     ) : (
                       <div className="space-y-4">
                         {stats.recentActivity.map((restaurant: any) => (
-                          <div key={restaurant.id} className="flex items-center gap-4 p-4 border rounded-lg">
-                            <div className="flex-1">
-                              <h4 className="font-medium">{restaurant.name}</h4>
+                          <div key={restaurant.id} className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 border rounded-lg">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium break-words">{restaurant.name}</h4>
                               <p className="text-sm text-muted-foreground">{restaurant.cuisine}</p>
                                <p className="text-xs text-muted-foreground">
                                  {restaurant.date_visited 
@@ -398,7 +398,7 @@ export default function FriendProfilePage() {
                                  }
                                </p>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-shrink-0">
                               <StarRating rating={restaurant.rating} readonly size="sm" />
                               <span className="font-medium">{restaurant.rating?.toFixed(1)}</span>
                             </div>
@@ -552,30 +552,30 @@ export default function FriendProfilePage() {
               <div className="grid gap-4">
                 {filteredRestaurants.slice(0, displayedRestaurants).map((restaurant) => (
                   <Card key={restaurant.id} className="overflow-hidden">
-                    <CardContent className="p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex-1">
-                          <h3 className="font-bold text-xl mb-1">{restaurant.name}</h3>
+                    <CardContent className="p-4 sm:p-6">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 gap-4">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-bold text-lg sm:text-xl mb-1 break-words">{restaurant.name}</h3>
                           <p className="text-muted-foreground mb-2">{restaurant.cuisine}</p>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                            <MapPin className="h-4 w-4" />
-                            <span>{restaurant.address}, {restaurant.city}</span>
+                            <MapPin className="h-4 w-4 flex-shrink-0" />
+                            <span className="break-words">{restaurant.address}, {restaurant.city}</span>
                           </div>
                           {restaurant.date_visited && (
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Calendar className="h-4 w-4" />
+                              <Calendar className="h-4 w-4 flex-shrink-0" />
                               <span>Visited: {new Date(restaurant.date_visited).toLocaleDateString()}</span>
                             </div>
                           )}
                         </div>
-                        <div className="text-right space-y-3">
+                        <div className="flex sm:flex-col items-start sm:items-end gap-3 sm:gap-3 flex-shrink-0">
                           {restaurant.rating && (
                             <div className="flex items-center gap-2">
                               <StarRating rating={restaurant.rating} readonly size="sm" />
                               <span className="font-bold text-lg">{restaurant.rating.toFixed(1)}</span>
                             </div>
                           )}
-                          <div className="flex items-center gap-2 justify-end">
+                          <div className="flex items-center gap-2">
                             {restaurant.price_range && <PriceRange priceRange={restaurant.price_range} />}
                             {restaurant.michelin_stars && <MichelinStars stars={restaurant.michelin_stars} />}
                           </div>
@@ -620,24 +620,22 @@ export default function FriendProfilePage() {
             ) : (
               <div className="grid gap-4">
                 {wishlist.slice(0, displayedWishlist).map((restaurant) => (
-                  <Card key={restaurant.id} className="overflow-hidden">
-                    <CardContent className="p-6">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h3 className="font-bold text-xl mb-1">{restaurant.name}</h3>
-                          <p className="text-muted-foreground mb-2">{restaurant.cuisine}</p>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <MapPin className="h-4 w-4" />
-                            <span>{restaurant.address}, {restaurant.city}</span>
-                          </div>
-                        </div>
-                        <div className="text-right space-y-2">
-                          <div className="flex items-center gap-2 justify-end">
-                            {restaurant.price_range && <PriceRange priceRange={restaurant.price_range} />}
-                            {restaurant.michelin_stars && <MichelinStars stars={restaurant.michelin_stars} />}
-                          </div>
-                        </div>
-                      </div>
+                   <Card key={restaurant.id} className="overflow-hidden">
+                     <CardContent className="p-4 sm:p-6">
+                       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                         <div className="flex-1 min-w-0">
+                           <h3 className="font-bold text-lg sm:text-xl mb-1 break-words">{restaurant.name}</h3>
+                           <p className="text-muted-foreground mb-2">{restaurant.cuisine}</p>
+                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                             <MapPin className="h-4 w-4 flex-shrink-0" />
+                             <span className="break-words">{restaurant.address}, {restaurant.city}</span>
+                           </div>
+                         </div>
+                         <div className="flex items-center gap-2 flex-shrink-0">
+                           {restaurant.price_range && <PriceRange priceRange={restaurant.price_range} />}
+                           {restaurant.michelin_stars && <MichelinStars stars={restaurant.michelin_stars} />}
+                         </div>
+                       </div>
                       {restaurant.notes && (
                         <div className="mt-4 p-4 bg-muted rounded-lg">
                           <p className="text-sm leading-relaxed">{restaurant.notes}</p>
