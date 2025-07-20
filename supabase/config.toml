@@ -27,8 +27,8 @@ port = 54324
 
 [auth]
 enabled = true
-site_url = "http://localhost:5173"
-additional_redirect_urls = ["https://localhost:5173"]
+site_url = "https://preview--resto-radar-reviews-hub.lovable.app"
+additional_redirect_urls = ["https://preview--resto-radar-reviews-hub.lovable.app/**", "http://localhost:3000/**", "http://localhost:5173/**"]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10
