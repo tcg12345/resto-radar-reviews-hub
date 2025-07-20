@@ -156,7 +156,6 @@ export function RestaurantProfileModal({
     setIsAddingToWishlist(true);
     try {
       const restaurantData = {
-        id: place.place_id,
         name: place.name,
         address: place.formatted_address,
         city: place.formatted_address.split(',').slice(-2, -1)[0]?.trim() || '',
@@ -199,7 +198,6 @@ export function RestaurantProfileModal({
       const {
         error
       } = await supabase.from('restaurants').upsert({
-        id: place.place_id,
         name: place.name,
         address: place.formatted_address,
         city: place.formatted_address.split(',').slice(-2, -1)[0]?.trim() || '',
