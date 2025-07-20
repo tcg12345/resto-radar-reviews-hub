@@ -309,28 +309,6 @@ export function PersonalizedRecommendations() {
                         </span>
                       </div>
 
-                      {/* Website and Directions Links */}
-                      <div className="flex gap-3 mb-2">
-                        {place.website && (
-                          <a 
-                            href={place.website} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-xs text-blue-600 hover:text-blue-800 underline"
-                          >
-                            Website
-                          </a>
-                        )}
-                        <a 
-                          href={place.google_maps_url || `https://www.google.com/maps/place/?q=place_id:${place.place_id}`}
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-xs text-blue-600 hover:text-blue-800 underline"
-                        >
-                          Directions
-                        </a>
-                      </div>
-
                       {place.rating && (
                         <div className="flex items-center gap-2">
                           <Star className="h-3 w-3 text-yellow-500 fill-current" />
@@ -344,9 +322,33 @@ export function PersonalizedRecommendations() {
                       )}
 
                       <div className="flex items-center justify-between">
-                        <Badge variant="secondary" className="text-xs">
-                          {getPriceDisplay(place.price_level)}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary" className="text-xs">
+                            {getPriceDisplay(place.price_level)}
+                          </Badge>
+                          
+                          {/* Website and Directions Buttons */}
+                          <div className="flex gap-1">
+                            {place.website && (
+                              <a 
+                                href={place.website} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors hover-scale"
+                              >
+                                Website
+                              </a>
+                            )}
+                            <a 
+                              href={place.google_maps_url || `https://www.google.com/maps/place/?q=place_id:${place.place_id}`}
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors hover-scale"
+                            >
+                              Directions
+                            </a>
+                          </div>
+                        </div>
                         
                         {place.opening_hours?.open_now !== undefined && (
                           <Badge 
