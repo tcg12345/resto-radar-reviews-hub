@@ -153,79 +153,29 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
 
     setIsDeletingAccount(true);
     try {
-      // Delete all user data first
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', user.id);
-
-      if (profileError) {
-        console.error('Error deleting profile:', profileError);
-        // Continue anyway, as the profile might not exist
-      }
-
-      const { error: restaurantsError } = await supabase
-        .from('restaurants')
-        .delete()
-        .eq('user_id', user.id);
-
-      if (restaurantsError) {
-        console.error('Error deleting restaurants:', restaurantsError);
-        // Continue anyway
-      }
-
-      const { error: friendsError } = await supabase
-        .from('friends')
-        .delete()
-        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
-
-      if (friendsError) {
-        console.error('Error deleting friends:', friendsError);
-        // Continue anyway
-      }
-
-      const { error: requestsError } = await supabase
-        .from('friend_requests')
-        .delete()
-        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`);
-
-      if (requestsError) {
-        console.error('Error deleting friend requests:', requestsError);
-        // Continue anyway
-      }
-
-      const { error: reservationsError } = await supabase
-        .from('reservations')
-        .delete()
-        .eq('user_id', user.id);
-
-      if (reservationsError) {
-        console.error('Error deleting reservations:', reservationsError);
-        // Continue anyway
-      }
-
-      const { error: settingsError } = await supabase
-        .from('settings')
-        .delete()
-        .eq('user_id', user.id);
-
-      if (settingsError) {
-        console.error('Error deleting settings:', settingsError);
-        // Continue anyway
-      }
-
-      // Finally delete the auth user
-      const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
+      // Get the current session to include in the request
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (authError) {
-        throw authError;
+      if (!session) {
+        throw new Error('No active session');
+      }
+
+      // Call the edge function to delete the account
+      const { data, error } = await supabase.functions.invoke('delete-user-account', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) {
+        throw error;
       }
 
       toast.success('Account deleted successfully');
       // The auth state will automatically update and redirect the user
     } catch (error: any) {
       console.error('Error deleting account:', error);
-      toast.error('Failed to delete account: ' + error.message);
+      toast.error('Failed to delete account: ' + (error.message || 'Unknown error'));
     } finally {
       setIsDeletingAccount(false);
     }
