@@ -13,6 +13,7 @@ import { Star, MapPin, Phone, Globe, Navigation, Clock, Heart, MessageSquare, Ca
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRestaurants } from '@/contexts/RestaurantContext';
 import { GlobalSearchMap } from '@/components/GlobalSearchMap';
 interface PlaceDetails {
   place_id: string;
@@ -57,6 +58,7 @@ export function RestaurantProfileModal({
   const {
     user
   } = useAuth();
+  const { addRestaurant } = useRestaurants();
   const [userRating, setUserRating] = useState(0);
   const [userReview, setUserReview] = useState('');
   const [reviewPhotos, setReviewPhotos] = useState<File[]>([]);
@@ -202,27 +204,25 @@ export function RestaurantProfileModal({
         }
       }
 
-      const restaurantData = {
+      const restaurantFormData = {
         name: place.name,
         address: place.formatted_address.split(',')[0]?.trim() || place.formatted_address,
         city: city,
         country: country,
         cuisine: aiCuisine || place.types.filter(type => !['establishment', 'point_of_interest', 'food'].includes(type))[0] || 'restaurant',
-        rating: null,
-        website: place.website || null,
-        opening_hours: null,
-        price_range: place.price_level || null,
-        latitude: place.geometry.location.lat,
-        longitude: place.geometry.location.lng,
-        michelin_stars: michelinStars,
+        rating: undefined,
+        categoryRatings: undefined,
+        useWeightedRating: false,
+        priceRange: place.price_level,
+        michelinStars: michelinStars,
         notes: `Added from Global Search`,
-        is_wishlist: true,
-        user_id: user.id
+        dateVisited: '',
+        photos: [], // No photos for wishlist
+        isWishlist: true,
       };
-      const {
-        error
-      } = await supabase.from('restaurants').upsert(restaurantData);
-      if (error) throw error;
+      
+      // Use the context function to add restaurant which will update local state
+      await addRestaurant(restaurantFormData);
       toast.success('Added to wishlist!');
     } catch (error) {
       console.error('Error adding to wishlist:', error);
@@ -283,27 +283,25 @@ export function RestaurantProfileModal({
         }
       }
 
-      const {
-        error
-      } = await supabase.from('restaurants').upsert({
+      const restaurantFormData = {
         name: place.name,
         address: place.formatted_address.split(',')[0]?.trim() || place.formatted_address,
         city: city,
         country: country,
         cuisine: aiCuisine || place.types.filter(type => !['establishment', 'point_of_interest', 'food'].includes(type))[0] || 'restaurant',
         rating: userRating,
-        website: place.website,
-        opening_hours: place.opening_hours?.weekday_text?.join('\n'),
-        price_range: place.price_level,
-        latitude: place.geometry.location.lat,
-        longitude: place.geometry.location.lng,
-        michelin_stars: michelinStars,
+        categoryRatings: undefined,
+        useWeightedRating: false,
+        priceRange: place.price_level,
+        michelinStars: michelinStars,
         notes: userReview || `Rated ${userRating} stars`,
-        is_wishlist: false,
-        user_id: user.id,
-        date_visited: new Date().toISOString()
-      });
-      if (error) throw error;
+        dateVisited: new Date().toISOString(),
+        photos: [], // Handle photos separately if needed
+        isWishlist: false,
+      };
+      
+      // Use the context function to add restaurant which will update local state
+      await addRestaurant(restaurantFormData);
       toast.success('Rating added successfully!');
       setUserRating(0);
       setUserReview('');
