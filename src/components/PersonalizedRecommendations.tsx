@@ -33,8 +33,6 @@ interface GooglePlaceResult {
   opening_hours?: {
     open_now: boolean;
   };
-  recommendation_reason?: string;
-  confidence_score?: number;
 }
 
 export function PersonalizedRecommendations() {
@@ -89,65 +87,55 @@ export function PersonalizedRecommendations() {
   };
 
   const generateRecommendations = async () => {
-    if (!user) return;
+    if (!user || !userPreferences) return;
 
     setIsLoading(true);
     try {
-      // Get user's current location
+      // Get user's location
       const location = await getCurrentLocation();
       
-      // Get user's rated restaurants for AI analysis
-      const { data: userRestaurants, error } = await supabase
-        .from('restaurants')
-        .select('name, cuisine, rating, latitude, longitude, city, address, notes')
-        .eq('user_id', user.id)
-        .not('rating', 'is', null);
+      // Search for restaurants based on user preferences
+      const searchQueries = userPreferences.favoriteCuisines.slice(0, 3).map(cuisine => 
+        `${cuisine} restaurants near me`
+      );
 
-      if (error) throw error;
+      const recommendations: GooglePlaceResult[] = [];
 
-      if (!userRestaurants || userRestaurants.length === 0) {
-        setRecommendations([]);
-        return;
-      }
+      for (const query of searchQueries) {
+        const { data, error } = await supabase.functions.invoke('google-places-search', {
+          body: {
+            query,
+            type: 'search',
+            location: location ? `${location.lat},${location.lng}` : undefined,
+          }
+        });
 
-      console.log(`Generating AI recommendations based on ${userRestaurants.length} rated restaurants`);
+        if (!error && data.status === 'OK') {
+          // Filter results based on user preferences
+          const filteredResults = data.results
+            .filter((place: GooglePlaceResult) => {
+              const hasGoodRating = !place.rating || place.rating >= userPreferences.averageRating - 0.5;
+              const matchesPriceRange = !place.price_level || 
+                Math.abs(place.price_level - userPreferences.preferredPriceRange) <= 1;
+              
+              return hasGoodRating && matchesPriceRange;
+            })
+            .slice(0, 2); // Limit per cuisine
 
-      // Use AI to generate personalized recommendations
-      const { data: aiResponse, error: aiError } = await supabase.functions.invoke('ai-personalized-recommendations', {
-        body: {
-          userRestaurants,
-          userLocation: location,
-          limit: 8
+          recommendations.push(...filteredResults);
         }
-      });
-
-      if (aiError) {
-        console.error('AI recommendation error:', aiError);
-        throw new Error('Failed to generate AI recommendations');
       }
 
-      if (aiResponse?.recommendations) {
-        setRecommendations(aiResponse.recommendations);
-        console.log(`Generated ${aiResponse.recommendations.length} AI-powered recommendations`);
-        
-        // Update user preferences with AI insights
-        if (aiResponse.preferences) {
-          setUserPreferences({
-            favoriteCuisines: aiResponse.preferences.preferredCuisines,
-            averageRating: aiResponse.preferences.ratingThreshold,
-            preferredPriceRange: aiResponse.preferences.pricePreference === 'budget' ? 1 :
-                                aiResponse.preferences.pricePreference === 'moderate' ? 2 :
-                                aiResponse.preferences.pricePreference === 'upscale' ? 3 : 4,
-            location
-          });
-        }
-      } else {
-        setRecommendations([]);
-      }
+      // Remove duplicates and limit to 6 recommendations
+      const uniqueRecommendations = recommendations
+        .filter((place, index, arr) => 
+          arr.findIndex(p => p.place_id === place.place_id) === index
+        )
+        .slice(0, 6);
+
+      setRecommendations(uniqueRecommendations);
     } catch (error) {
       console.error('Error generating recommendations:', error);
-      // Fallback to simple recommendations if AI fails
-      await loadUserPreferences();
     } finally {
       setIsLoading(false);
     }
@@ -269,22 +257,6 @@ export function PersonalizedRecommendations() {
                           <span className="text-xs text-muted-foreground">
                             ({place.user_ratings_total})
                           </span>
-                        )}
-                      </div>
-                    )}
-
-                    {place.recommendation_reason && (
-                      <div className="mb-3 p-2 bg-primary/5 rounded-lg">
-                        <p className="text-xs text-muted-foreground italic">
-                          "{place.recommendation_reason}"
-                        </p>
-                        {place.confidence_score && (
-                          <div className="flex items-center gap-1 mt-1">
-                            <div className="text-xs text-primary font-medium">
-                              {place.confidence_score >= 8 ? 'Highly Recommended' : 
-                               place.confidence_score >= 6 ? 'Good Match' : 'Potential Match'}
-                            </div>
-                          </div>
                         )}
                       </div>
                     )}
