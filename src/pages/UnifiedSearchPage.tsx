@@ -206,104 +206,141 @@ export default function UnifiedSearchPage() {
         </TabsList>
 
         <TabsContent value="global" className="space-y-6">
-          {/* Search Section */}
-          <Card className="border-primary/20 bg-gradient-to-br from-background via-background to-primary/5">
-            <CardContent className="pt-6">
-              <div className="space-y-4">
-                {/* Search Type Selection */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Search by:
-                  </label>
-                  <Select value={searchType} onValueChange={(value) => setSearchType(value as SearchType)}>
-                    <SelectTrigger className="w-[200px] h-10 bg-background/50 border-muted-foreground/20">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="name">Restaurant Name</SelectItem>
-                      <SelectItem value="cuisine">Cuisine Type</SelectItem>
-                      <SelectItem value="description">Description/Keywords</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-                  <div className="lg:col-span-2 space-y-2">
-                    <label className="text-sm font-medium text-muted-foreground">
-                      {searchType === 'name' ? 'Restaurant name' : 
-                       searchType === 'cuisine' ? 'Cuisine type' : 
-                       'Restaurant or cuisine'}
-                    </label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                    <Input
-                      placeholder={searchType === 'name' ? 'e.g., "The Cottage", "Joe\'s Pizza"' :
-                                 searchType === 'cuisine' ? 'e.g., "Italian", "Chinese", "Mexican"' :
-                                 'Search for restaurants by name, cuisine, or location...'}
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                      className="pl-10 h-12"
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Location (optional)
-                  </label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="City or neighborhood"
-                      value={locationQuery}
-                      onChange={(e) => {
-                        setLocationQuery(e.target.value);
-                        generateLocationSuggestions(e.target.value);
-                        setShowLocationSuggestions(e.target.value.length > 1);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          handleSearch();
-                          setShowLocationSuggestions(false);
-                        } else if (e.key === 'Escape') {
-                          setShowLocationSuggestions(false);
-                        }
-                      }}
-                      onFocus={() => locationQuery.length > 1 && setShowLocationSuggestions(true)}
-                      onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 150)}
-                      className="pl-10 h-12"
-                    />
-                    
-                    {/* Location Suggestions Dropdown */}
-                    {showLocationSuggestions && locationSuggestions.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 z-50 bg-card border border-border rounded-md shadow-lg mt-1 max-h-48 overflow-y-auto">
-                        {locationSuggestions.map((suggestion, index) => (
-                          <div
-                            key={index}
-                            className="px-3 py-2 hover:bg-muted cursor-pointer border-b border-border last:border-b-0"
-                            onClick={() => handleLocationSuggestionClick(suggestion)}
-                          >
-                            <div className="font-medium text-sm">{suggestion.mainText}</div>
-                            {suggestion.secondaryText && (
-                              <div className="text-xs text-muted-foreground">{suggestion.secondaryText}</div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="flex items-end">
-                  <Button onClick={handleSearch} disabled={isLoading} className="h-12 w-full">
-                    {isLoading ? 'Searching...' : 'Search'}
-                  </Button>
-                  </div>
+          {/* Modern Search Section */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-background via-background to-primary/10 border border-primary/20 shadow-2xl">
+            {/* Background Pattern */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary-glow/5 opacity-50" />
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-radial from-primary-glow/20 to-transparent rounded-full -translate-y-32 translate-x-32" />
+            
+            <div className="relative p-8">
+              {/* Header Section */}
+              <div className="mb-8 text-center">
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-2">
+                  Discover Your Next Favorite Restaurant
+                </h2>
+                <p className="text-muted-foreground">Search by name, cuisine, or let us help you find something new</p>
+              </div>
+
+              {/* Search Type Selection - Modern Pills */}
+              <div className="mb-8">
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {[
+                    { value: 'description', label: 'Discover', icon: '🔍' },
+                    { value: 'name', label: 'Restaurant Name', icon: '🏪' },
+                    { value: 'cuisine', label: 'Cuisine Type', icon: '🍽️' }
+                  ].map(({ value, label, icon }) => (
+                    <button
+                      key={value}
+                      onClick={() => setSearchType(value as SearchType)}
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
+                        searchType === value 
+                          ? 'bg-primary text-primary-foreground shadow-lg scale-105' 
+                          : 'bg-background/50 hover:bg-background/80 border border-border hover:border-primary/50'
+                      }`}
+                    >
+                      <span>{icon}</span>
+                      <span>{label}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
-            </CardContent>
-          </Card>
+
+              {/* Search Form - Modern Layout */}
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Main Search Input */}
+                  <div className="lg:col-span-2 space-y-2">
+                    <div className="relative group">
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary-glow/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="relative bg-background/80 backdrop-blur-sm rounded-xl border border-border group-hover:border-primary/50 transition-all duration-300">
+                        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 group-hover:text-primary transition-colors duration-300" />
+                        <Input
+                          placeholder={searchType === 'name' ? '🏪 Restaurant name (e.g., "The Cottage", "Joe\'s Pizza")' :
+                                     searchType === 'cuisine' ? '🍽️ Cuisine type (e.g., "Italian", "Chinese", "Mexican")' :
+                                     '🔍 What are you craving? (cuisine, atmosphere, special dishes...)'}
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                          className="pl-12 pr-4 h-14 bg-transparent border-none text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Location Input */}
+                  <div className="space-y-2">
+                    <div className="relative group">
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary-glow/20 to-primary/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="relative bg-background/80 backdrop-blur-sm rounded-xl border border-border group-hover:border-primary/50 transition-all duration-300">
+                        <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
+                        <Input
+                          placeholder="📍 Location (optional)"
+                          value={locationQuery}
+                          onChange={(e) => {
+                            setLocationQuery(e.target.value);
+                            generateLocationSuggestions(e.target.value);
+                            setShowLocationSuggestions(e.target.value.length > 1);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleSearch();
+                              setShowLocationSuggestions(false);
+                            } else if (e.key === 'Escape') {
+                              setShowLocationSuggestions(false);
+                            }
+                          }}
+                          onFocus={() => locationQuery.length > 1 && setShowLocationSuggestions(true)}
+                          onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 150)}
+                          className="pl-12 pr-4 h-14 bg-transparent border-none text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none"
+                        />
+                        
+                        {/* Modern Location Suggestions */}
+                        {showLocationSuggestions && locationSuggestions.length > 0 && (
+                          <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-card/95 backdrop-blur-lg border border-border rounded-xl shadow-2xl overflow-hidden animate-fade-in">
+                            <div className="max-h-48 overflow-y-auto">
+                              {locationSuggestions.map((suggestion, index) => (
+                                <div
+                                  key={index}
+                                  className="px-4 py-3 hover:bg-primary/10 cursor-pointer transition-colors duration-200 border-b border-border/50 last:border-b-0 group"
+                                  onClick={() => handleLocationSuggestionClick(suggestion)}
+                                >
+                                  <div className="font-medium text-sm group-hover:text-primary transition-colors">{suggestion.mainText}</div>
+                                  {suggestion.secondaryText && (
+                                    <div className="text-xs text-muted-foreground mt-1">{suggestion.secondaryText}</div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Search Button - Modern Design */}
+                <div className="flex justify-center">
+                  <Button 
+                    onClick={handleSearch} 
+                    disabled={isLoading} 
+                    className="h-14 px-12 text-lg font-semibold bg-gradient-to-r from-primary to-primary-glow hover:from-primary-glow hover:to-primary shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:transform-none disabled:scale-100"
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                        <span>Searching...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Search className="h-5 w-5" />
+                        <span>Find Restaurants</span>
+                      </div>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Results Section */}
           {searchResults.length > 0 && (
