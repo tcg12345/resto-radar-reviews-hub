@@ -65,9 +65,9 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
               variant="ghost"
               size="lg"
               onClick={() => onTabChange('settings')}
-              className="h-20 w-20"
+              className="h-12 w-12"
             >
-              <Settings className="h-10 w-10" />
+              <Settings className="h-8 w-8" />
               <span className="sr-only">Settings</span>
             </Button>
           ) : (
