@@ -183,6 +183,28 @@ export function PersonalizedRecommendations() {
     return parts.slice(-2).join(', ');
   };
 
+  const getCuisineFromTypes = (types: string[]) => {
+    if (!types) return null;
+    
+    // Filter out generic location/business types that aren't cuisine-specific
+    const excludedTypes = [
+      'restaurant', 'food', 'establishment', 'point_of_interest', 
+      'store', 'premise', 'place_of_worship', 'tourist_attraction',
+      'lodging', 'shopping_mall', 'gas_station', 'parking',
+      'atm', 'bank', 'pharmacy', 'hospital', 'school'
+    ];
+    
+    // Look for cuisine-specific types
+    const cuisineType = types.find(type => 
+      !excludedTypes.includes(type) && 
+      !type.includes('_store') && 
+      !type.includes('_dealer') &&
+      !type.includes('_repair')
+    );
+    
+    return cuisineType ? cuisineType.replace(/_/g, ' ') : null;
+  };
+
   const getCurrentDayHours = (place: AIRecommendation) => {
     if (!place.opening_hours?.weekday_text) return null;
     
@@ -218,7 +240,7 @@ export function PersonalizedRecommendations() {
         lat: place.geometry.location.lat,
         lng: place.geometry.location.lng
       },
-      cuisine: place.types?.find(type => type !== 'restaurant' && type !== 'food' && type !== 'establishment')?.replace(/_/g, ' '),
+      cuisine: getCuisineFromTypes(place.types),
       googleMapsUrl: place.google_maps_url
     };
     
@@ -378,10 +400,10 @@ export function PersonalizedRecommendations() {
                     </div>
 
                     {/* Cuisine Badge */}
-                    {place.types && place.types.find(type => type !== 'restaurant' && type !== 'food' && type !== 'establishment') && (
+                    {getCuisineFromTypes(place.types) && (
                       <div className="mb-4">
                         <Badge variant="outline" className="border-gray-600 text-gray-300 bg-gray-800">
-                          {place.types.find(type => type !== 'restaurant' && type !== 'food' && type !== 'establishment')?.replace(/_/g, ' ')}
+                          {getCuisineFromTypes(place.types)}
                         </Badge>
                       </div>
                     )}
