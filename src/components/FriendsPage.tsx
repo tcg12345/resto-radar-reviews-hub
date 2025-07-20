@@ -31,6 +31,7 @@ import { StarRating } from '@/components/StarRating';
 import { MichelinStars } from '@/components/MichelinStars';
 import { PriceRange } from '@/components/PriceRange';
 import { ContactPermission } from '@/components/ContactPermission';
+import { FriendProfilePopup } from '@/components/FriendProfilePopup';
 
 interface SearchResult {
   id: string;
@@ -378,7 +379,7 @@ export function FriendsPage() {
                       <div 
                         key={friend.id} 
                         className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-all duration-200 hover:shadow-sm"
-                        onClick={() => setSelectedFriend(friend)}
+                         onClick={() => setSelectedFriend(friend)}
                       >
                         <div className="flex items-center gap-3">
                           <Avatar className="h-10 w-10">
@@ -752,12 +753,12 @@ export function FriendsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Friend Profile Modal */}
-      <FriendProfileModal
-        friend={selectedFriend}
-        isOpen={!!selectedFriend}
-        onClose={() => setSelectedFriend(null)}
-      />
+        {/* Friend Profile Popup */}
+        <FriendProfilePopup 
+          friend={selectedFriend}
+          isOpen={!!selectedFriend}
+          onClose={() => setSelectedFriend(null)}
+        />
     </div>
   );
 }

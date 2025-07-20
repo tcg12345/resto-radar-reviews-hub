@@ -12,6 +12,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/AuthPage";
 import DemoPage from "./pages/DemoPage";
+import FriendProfilePage from "./pages/FriendProfilePage";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,9 @@ const App = () => (
                 
                 {/* Demo route - shows demo functionality */}
                 <Route path="/demo" element={<DemoPage />} />
+                
+                {/* Friend profile route */}
+                <Route path="/friends/:friendId" element={<RequireAuth><FriendProfilePage /></RequireAuth>} />
                 
                 {/* Main route - shows landing page or dashboard based on auth */}
                 <Route path="/" element={<Index />} />
