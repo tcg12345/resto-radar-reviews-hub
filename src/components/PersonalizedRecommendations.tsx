@@ -11,6 +11,12 @@ interface RecommendationEngine {
   getPersonalizedRecommendations: () => Promise<GooglePlaceResult[]>;
 }
 
+interface AIRecommendation extends GooglePlaceResult {
+  ai_reasoning?: string;
+  confidence_score?: number;
+  match_factors?: string[];
+}
+
 interface GooglePlaceResult {
   place_id: string;
   name: string;
@@ -37,105 +43,83 @@ interface GooglePlaceResult {
 
 export function PersonalizedRecommendations() {
   const { user } = useAuth();
-  const [recommendations, setRecommendations] = useState<GooglePlaceResult[]>([]);
+  const [recommendations, setRecommendations] = useState<AIRecommendation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [userPreferences, setUserPreferences] = useState<{
-    favoriteCuisines: string[];
-    averageRating: number;
-    preferredPriceRange: number;
-    location?: { lat: number; lng: number };
-  } | null>(null);
+  const [preferences, setPreferences] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
-      loadUserPreferences();
       generateRecommendations();
     }
   }, [user]);
 
-  const loadUserPreferences = async () => {
+  const generateRecommendations = async () => {
     if (!user) return;
 
+    setIsLoading(true);
+    setError(null);
+    
     try {
-      // Get user's rated restaurants to analyze preferences
-      const { data: userRestaurants, error } = await supabase
+      // Get user's rated restaurants (exclude wishlist items)
+      const { data: ratedRestaurants, error: fetchError } = await supabase
         .from('restaurants')
         .select('*')
         .eq('user_id', user.id)
+        .eq('is_wishlist', false)
         .not('rating', 'is', null);
 
-      if (error) throw error;
-
-      if (userRestaurants && userRestaurants.length > 0) {
-        // Analyze user preferences
-        const cuisines = userRestaurants.map(r => r.cuisine);
-        const favoriteCuisines = [...new Set(cuisines)];
-        const averageRating = userRestaurants.reduce((sum, r) => sum + (r.rating || 0), 0) / userRestaurants.length;
-        const averagePriceRange = userRestaurants
-          .filter(r => r.price_range)
-          .reduce((sum, r) => sum + (r.price_range || 0), 0) / userRestaurants.filter(r => r.price_range).length;
-
-        setUserPreferences({
-          favoriteCuisines,
-          averageRating,
-          preferredPriceRange: Math.round(averagePriceRange) || 2,
-        });
+      if (fetchError) {
+        throw new Error(`Database error: ${fetchError.message}`);
       }
-    } catch (error) {
-      console.error('Error loading user preferences:', error);
-    }
-  };
 
-  const generateRecommendations = async () => {
-    if (!user || !userPreferences) return;
+      console.log(`Found ${ratedRestaurants?.length || 0} rated restaurants for analysis`);
 
-    setIsLoading(true);
-    try {
-      // Get user's location
-      const location = await getCurrentLocation();
-      
-      // Search for restaurants based on user preferences
-      const searchQueries = userPreferences.favoriteCuisines.slice(0, 3).map(cuisine => 
-        `${cuisine} restaurants near me`
-      );
+      if (!ratedRestaurants || ratedRestaurants.length === 0) {
+        setError('No rated restaurants found. Start rating some restaurants to get personalized recommendations!');
+        setRecommendations([]);
+        return;
+      }
 
-      const recommendations: GooglePlaceResult[] = [];
+      // Get user's current location
+      const userLocation = await getCurrentLocation();
 
-      for (const query of searchQueries) {
-        const { data, error } = await supabase.functions.invoke('google-places-search', {
-          body: {
-            query,
-            type: 'search',
-            location: location ? `${location.lat},${location.lng}` : undefined,
-          }
-        });
-
-        if (!error && data.status === 'OK') {
-          // Filter results based on user preferences
-          const filteredResults = data.results
-            .filter((place: GooglePlaceResult) => {
-              const hasGoodRating = !place.rating || place.rating >= userPreferences.averageRating - 0.5;
-              const matchesPriceRange = !place.price_level || 
-                Math.abs(place.price_level - userPreferences.preferredPriceRange) <= 1;
-              
-              return hasGoodRating && matchesPriceRange;
-            })
-            .slice(0, 2); // Limit per cuisine
-
-          recommendations.push(...filteredResults);
+      // Call AI recommendations function
+      const { data: aiResponse, error: aiError } = await supabase.functions.invoke('ai-personalized-recommendations', {
+        body: {
+          ratedRestaurants: ratedRestaurants.map(r => ({
+            name: r.name,
+            cuisine: r.cuisine,
+            rating: r.rating,
+            price_range: r.price_range,
+            notes: r.notes,
+            address: r.address,
+            city: r.city,
+            latitude: r.latitude,
+            longitude: r.longitude
+          })),
+          userLocation
         }
+      });
+
+      if (aiError) {
+        console.error('AI recommendation error:', aiError);
+        throw new Error('Failed to generate AI recommendations');
       }
 
-      // Remove duplicates and limit to 6 recommendations
-      const uniqueRecommendations = recommendations
-        .filter((place, index, arr) => 
-          arr.findIndex(p => p.place_id === place.place_id) === index
-        )
-        .slice(0, 6);
+      if (aiResponse.error) {
+        throw new Error(aiResponse.error);
+      }
 
-      setRecommendations(uniqueRecommendations);
+      console.log('AI recommendations received:', aiResponse.recommendations?.length || 0);
+      
+      setRecommendations(aiResponse.recommendations || []);
+      setPreferences(aiResponse.preferences);
+
     } catch (error) {
       console.error('Error generating recommendations:', error);
+      setError(error instanceof Error ? error.message : 'Failed to generate recommendations');
+      setRecommendations([]);
     } finally {
       setIsLoading(false);
     }
@@ -182,7 +166,7 @@ export function PersonalizedRecommendations() {
     );
   }
 
-  if (!userPreferences) {
+  if (!preferences && !error) {
     return (
       <Card>
         <CardContent className="p-6 text-center">
@@ -192,12 +176,7 @@ export function PersonalizedRecommendations() {
             Start rating restaurants to receive personalized recommendations tailored to your taste!
           </p>
           <Button 
-            onClick={() => {
-              loadUserPreferences();
-              if (userPreferences) {
-                generateRecommendations();
-              }
-            }}
+            onClick={generateRecommendations}
             disabled={isLoading}
           >
             {isLoading ? 'Checking for recommendations...' : 'Check for Recommendations'}
@@ -213,11 +192,13 @@ export function PersonalizedRecommendations() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Lightbulb className="h-5 w-5" />
-            Personalized Recommendations
+            AI-Powered Personalized Recommendations
           </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Based on your ratings and preferences: {userPreferences.favoriteCuisines.join(', ')}
-          </p>
+          {preferences && (
+            <p className="text-sm text-muted-foreground">
+              Based on your {preferences.reasoning || 'dining preferences and ratings'}
+            </p>
+          )}
         </CardHeader>
         <CardContent>
           <div className="flex gap-2 mb-4">
@@ -229,6 +210,13 @@ export function PersonalizedRecommendations() {
               {isLoading ? 'Finding recommendations...' : 'Refresh Recommendations'}
             </Button>
           </div>
+
+          
+          {error && (
+            <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <p className="text-destructive text-sm">{error}</p>
+            </div>
+          )}
 
           {isLoading ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -251,40 +239,63 @@ export function PersonalizedRecommendations() {
                       </div>
                     )}
                     
-                    <h3 className="font-semibold text-sm mb-2 line-clamp-1">{place.name}</h3>
-                    
-                    <div className="flex items-center gap-2 mb-2">
-                      <MapPin className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                      <span className="text-xs text-muted-foreground line-clamp-1">
-                        {place.formatted_address}
-                      </span>
-                    </div>
-
-                    {place.rating && (
-                      <div className="flex items-center gap-2 mb-2">
-                        <Star className="h-3 w-3 text-yellow-500 fill-current" />
-                        <span className="text-sm font-medium">{place.rating}</span>
-                        {place.user_ratings_total && (
-                          <span className="text-xs text-muted-foreground">
-                            ({place.user_ratings_total})
-                          </span>
+                    <div className="space-y-3">
+                      <div>
+                        <h3 className="font-semibold text-sm mb-1 line-clamp-1">{place.name}</h3>
+                        {place.confidence_score && (
+                          <div className="flex items-center gap-1 mb-2">
+                            <div className={`w-2 h-2 rounded-full ${
+                              place.confidence_score >= 8 ? 'bg-green-500' : 
+                              place.confidence_score >= 6 ? 'bg-yellow-500' : 'bg-orange-500'
+                            }`} />
+                            <span className="text-xs text-muted-foreground">
+                              {place.confidence_score}/10 match
+                            </span>
+                          </div>
                         )}
                       </div>
-                    )}
 
-                    <div className="flex items-center justify-between">
-                      <Badge variant="secondary" className="text-xs">
-                        {getPriceDisplay(place.price_level)}
-                      </Badge>
-                      
-                      {place.opening_hours?.open_now !== undefined && (
-                        <Badge 
-                          variant={place.opening_hours.open_now ? "default" : "destructive"}
-                          className="text-xs"
-                        >
-                          {place.opening_hours.open_now ? "Open" : "Closed"}
-                        </Badge>
+                      {place.ai_reasoning && (
+                        <div className="bg-blue-50 dark:bg-blue-950/30 p-2 rounded text-xs">
+                          <p className="text-blue-700 dark:text-blue-300 line-clamp-2">
+                            💡 {place.ai_reasoning}
+                          </p>
+                        </div>
                       )}
+                      
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                        <span className="text-xs text-muted-foreground line-clamp-1">
+                          {place.formatted_address}
+                        </span>
+                      </div>
+
+                      {place.rating && (
+                        <div className="flex items-center gap-2">
+                          <Star className="h-3 w-3 text-yellow-500 fill-current" />
+                          <span className="text-sm font-medium">{place.rating}</span>
+                          {place.user_ratings_total && (
+                            <span className="text-xs text-muted-foreground">
+                              ({place.user_ratings_total})
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between">
+                        <Badge variant="secondary" className="text-xs">
+                          {getPriceDisplay(place.price_level)}
+                        </Badge>
+                        
+                        {place.opening_hours?.open_now !== undefined && (
+                          <Badge 
+                            variant={place.opening_hours.open_now ? "default" : "destructive"}
+                            className="text-xs"
+                          >
+                            {place.opening_hours.open_now ? "Open" : "Closed"}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -293,14 +304,14 @@ export function PersonalizedRecommendations() {
           ) : (
             <div className="text-center py-8">
               <p className="text-muted-foreground mb-4">
-                No recommendations found. Try rating more restaurants or expand your search area.
+                {error || 'No recommendations found. Try rating more restaurants or check back later.'}
               </p>
               <Button 
                 onClick={generateRecommendations} 
                 disabled={isLoading}
                 variant="outline"
               >
-                {isLoading ? 'Finding recommendations...' : 'Try Again'}
+                {isLoading ? 'Generating recommendations...' : 'Try Again'}
               </Button>
             </div>
           )}
