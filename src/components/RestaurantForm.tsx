@@ -112,11 +112,42 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
 
   const [previewImages, setPreviewImages] = useState<string[]>(initialData?.photos || []);
 
+  const sanitizeInput = (input: string, maxLength: number = 255) => {
+    return input
+      .trim()
+      .replace(/[<>'"]/g, '') // Remove potential XSS characters
+      .substring(0, maxLength); // Limit length
+  };
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Input validation and sanitization
+    let sanitizedValue = value;
+    
+    switch (name) {
+      case 'name':
+        sanitizedValue = sanitizeInput(value, 100);
+        break;
+      case 'address':
+        sanitizedValue = sanitizeInput(value, 200);
+        break;
+      case 'city':
+        sanitizedValue = sanitizeInput(value, 50);
+        break;
+      case 'cuisine':
+        sanitizedValue = sanitizeInput(value, 50);
+        break;
+      case 'notes':
+        sanitizedValue = sanitizeInput(value, 1000);
+        break;
+      default:
+        sanitizedValue = sanitizeInput(value);
+    }
+    
+    setFormData(prev => ({ ...prev, [name]: sanitizedValue }));
   };
 
   const handleRatingChange = (categoryRatings: CategoryRating, weightedRating: number) => {

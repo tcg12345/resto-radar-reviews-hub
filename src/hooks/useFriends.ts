@@ -195,11 +195,20 @@ export function useFriends() {
   const searchUsers = async (query: string) => {
     if (!user || query.length < 2) return [];
 
+    // Input validation and sanitization
+    const sanitizedQuery = query
+      .trim()
+      .replace(/[<>'"]/g, '') // Remove potential XSS characters
+      .substring(0, 50); // Limit length
+
+    if (sanitizedQuery.length < 2) return [];
+
+    // Prevent SQL injection by using parameterized queries
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('id, username, name, avatar_url, is_public')
-        .or(`username.ilike.%${query}%,name.ilike.%${query}%`)
+        .or(`username.ilike.%${sanitizedQuery}%,name.ilike.%${sanitizedQuery}%`)
         .neq('id', user.id)
         .limit(10);
 

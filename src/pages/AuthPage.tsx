@@ -7,10 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
-import { Eye, EyeOff, Mail, Lock, User, Phone, MapPin, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Phone, MapPin, ArrowLeft, CheckCircle, Shield } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { GrubbyLogo } from '@/components/GrubbyLogo';
+import { validatePassword, getPasswordStrengthLabel, getPasswordStrengthColor } from '@/utils/passwordValidation';
 
 export default function AuthPage() {
   const navigate = useNavigate();
@@ -98,8 +100,10 @@ export default function AuthPage() {
       return;
     }
     
-    if (password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      toast.error('Password does not meet security requirements');
       return;
     }
     
@@ -513,34 +517,58 @@ export default function AuthPage() {
                         </div>
                       </div>
                       
-                      <div className="space-y-2">
-                        <Label htmlFor="signup-password" className="text-sm font-medium">Password *</Label>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            id="signup-password"
-                            type={showPassword ? "text" : "password"}
-                            placeholder="Create a strong password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="pl-10 pr-12 h-11"
-                            minLength={6}
-                            required
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-transparent"
-                            onClick={() => setShowPassword(!showPassword)}
-                          >
-                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </Button>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Password must be at least 6 characters
-                        </p>
-                      </div>
+                       <div className="space-y-2">
+                         <Label htmlFor="signup-password" className="text-sm font-medium">Password *</Label>
+                         <div className="relative">
+                           <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                           <Input
+                             id="signup-password"
+                             type={showPassword ? "text" : "password"}
+                             placeholder="Create a strong password"
+                             value={password}
+                             onChange={(e) => setPassword(e.target.value)}
+                             className="pl-10 pr-12 h-11"
+                             minLength={8}
+                             required
+                           />
+                           <Button
+                             type="button"
+                             variant="ghost"
+                             size="sm"
+                             className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-transparent"
+                             onClick={() => setShowPassword(!showPassword)}
+                           >
+                             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                           </Button>
+                         </div>
+                         
+                         {/* Password Strength Indicator */}
+                         {password && (
+                           <div className="space-y-2">
+                             <div className="flex items-center gap-2">
+                               <Shield className="h-3 w-3" style={{ color: getPasswordStrengthColor(validatePassword(password).score) }} />
+                               <span className="text-xs font-medium" style={{ color: getPasswordStrengthColor(validatePassword(password).score) }}>
+                                 {getPasswordStrengthLabel(validatePassword(password).score)}
+                               </span>
+                             </div>
+                             <Progress 
+                               value={(validatePassword(password).score / 4) * 100} 
+                               className="h-1"
+                               style={{ '--progress-background': getPasswordStrengthColor(validatePassword(password).score) } as React.CSSProperties}
+                             />
+                             {validatePassword(password).feedback.length > 0 && (
+                               <ul className="text-xs text-muted-foreground space-y-1">
+                                 {validatePassword(password).feedback.map((feedback, index) => (
+                                   <li key={index} className="flex items-center gap-1">
+                                     <span className="w-1 h-1 bg-current rounded-full flex-shrink-0" />
+                                     {feedback}
+                                   </li>
+                                 ))}
+                               </ul>
+                             )}
+                           </div>
+                         )}
+                       </div>
                     </div>
                   </div>
                   

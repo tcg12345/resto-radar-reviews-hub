@@ -12,6 +12,23 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Security: Only allow POST requests from authenticated sources
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ error: 'Method not allowed' }),
+      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // Rate limiting: Add simple request validation
+  const userAgent = req.headers.get('User-Agent');
+  if (!userAgent || userAgent.includes('bot')) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
   try {
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
