@@ -305,6 +305,10 @@ export type Database = {
         Args: { request_id: string }
         Returns: undefined
       }
+      check_email_exists: {
+        Args: { email_to_check: string }
+        Returns: boolean
+      }
       get_user_score: {
         Args: { user_id: string }
         Returns: number

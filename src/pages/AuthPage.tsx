@@ -86,6 +86,19 @@ export default function AuthPage() {
     try {
       setIsLoading(true);
       
+      // Check if email already exists using our database function
+      const { data: emailExists, error: checkError } = await supabase
+        .rpc('check_email_exists', { email_to_check: email });
+      
+      if (checkError) {
+        console.error('Error checking email:', checkError);
+      }
+      
+      if (emailExists) {
+        toast.error('An account already exists with this email. Please sign in instead.');
+        return;
+      }
+      
       // Generate redirect URL using the current origin
       const redirectUrl = `${window.location.origin}/`;
       
@@ -108,31 +121,6 @@ export default function AuthPage() {
       });
       
       if (error) throw error;
-      
-      console.log('Signup response data:', data);
-      
-      // Check if this is actually a new user or existing user
-      if (data.user) {
-        const userCreatedAt = new Date(data.user.created_at);
-        const now = new Date();
-        const timeDiffSeconds = (now.getTime() - userCreatedAt.getTime()) / 1000;
-        
-        console.log('User created at:', userCreatedAt);
-        console.log('Current time:', now);
-        console.log('Time difference (seconds):', timeDiffSeconds);
-        
-        // If the user was created more than 10 seconds ago, it's an existing user
-        if (timeDiffSeconds > 10) {
-          toast.error('An account already exists with this email. Please sign in instead.');
-          return;
-        }
-        
-        // Also check if user is already confirmed (definitely existing user)
-        if (data.user.email_confirmed_at) {
-          toast.error('An account already exists with this email. Please sign in instead.');
-          return;
-        }
-      }
       
       toast.success('Account created! Please check your email to verify your account.');
       
