@@ -114,10 +114,30 @@ export default function UnifiedSearchPage() {
         type: 'search'
       };
 
-      // If location is provided, use it for better results
+      // If location is provided, geocode it first for better accuracy
       if (locationQuery && locationQuery.trim()) {
-        searchParams.location = locationQuery;
-        searchParams.radius = 25000; // 25km radius when location specified
+        try {
+          // First geocode the location to get coordinates
+          const { data: geocodeData, error: geocodeError } = await supabase.functions.invoke('geocode', {
+            body: { address: locationQuery }
+          });
+
+          if (geocodeData && geocodeData.results && geocodeData.results.length > 0) {
+            const location = geocodeData.results[0].geometry.location;
+            searchParams.location = `${location.lat},${location.lng}`;
+            searchParams.radius = 15000; // 15km radius for specific location
+            // Add the formatted address to the query for better context
+            searchParams.query = `${searchQuery} in ${geocodeData.results[0].formatted_address}`;
+          } else {
+            // Fallback to text-based location
+            searchParams.location = locationQuery;
+            searchParams.radius = 25000;
+          }
+        } catch (geocodeError) {
+          console.log('Geocoding failed, using text location:', geocodeError);
+          searchParams.location = locationQuery;
+          searchParams.radius = 25000;
+        }
       } else if (userLocation) {
         searchParams.location = `${userLocation.lat},${userLocation.lng}`;
         searchParams.radius = 50000; // 50km radius when using user location
@@ -398,12 +418,12 @@ export default function UnifiedSearchPage() {
                           className="pl-12 pr-4 h-14 bg-transparent border-none text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none"
                         />
                         
-                        {/* Live Search Results Dropdown - Compact Design */}
+                        {/* Live Search Results Dropdown - High z-index and improved positioning */}
                         {showLiveResults && (liveSearchResults.length > 0 || isLiveSearching) && (
-                          <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-card/95 backdrop-blur-lg border border-border rounded-xl shadow-2xl overflow-hidden animate-fade-in">
-                            <div className="max-h-64 overflow-y-auto">
+                          <div className="absolute top-full left-0 right-0 z-[9999] mt-2 bg-card backdrop-blur-lg border border-border rounded-xl shadow-2xl overflow-hidden animate-fade-in" style={{ position: 'absolute', zIndex: 9999 }}>
+                            <div className="max-h-72 overflow-y-auto bg-card">
                               {isLiveSearching && (
-                                <div className="px-3 py-2 text-center text-muted-foreground">
+                                <div className="px-3 py-3 text-center text-muted-foreground bg-card">
                                   <div className="flex items-center justify-center gap-2">
                                     <div className="w-3 h-3 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
                                     <span className="text-xs">Searching...</span>
@@ -414,7 +434,7 @@ export default function UnifiedSearchPage() {
                               {!isLiveSearching && liveSearchResults.map((place, index) => (
                                 <div
                                   key={place.place_id}
-                                  className="px-3 py-2 hover:bg-primary/10 cursor-pointer transition-colors duration-200 border-b border-border/30 last:border-b-0"
+                                  className="px-3 py-3 hover:bg-primary/10 cursor-pointer transition-colors duration-200 border-b border-border/30 last:border-b-0 bg-card"
                                 >
                                   <div className="flex items-center justify-between gap-2">
                                     <div 
