@@ -175,11 +175,38 @@ export function RestaurantProfileModal({
         console.log('Could not determine Michelin stars:', error);
       }
 
+      // Parse address components properly
+      const addressParts = place.formatted_address.split(',').map(part => part.trim());
+      let city = '';
+      let country = '';
+      
+      // For US addresses, typically: "Street, City, State ZIP, USA"
+      // For international: "Street, City, Country" or "Street, City, Postal Code, Country"
+      if (addressParts.length >= 2) {
+        const lastPart = addressParts[addressParts.length - 1];
+        const secondLastPart = addressParts[addressParts.length - 2];
+        
+        // Check if last part looks like a country
+        if (lastPart.match(/^(USA|United States|US)$/i)) {
+          country = 'United States';
+          // For US, city is typically the second part (index 1)
+          city = addressParts[1] || '';
+        } else if (lastPart.length <= 4 && /^\d/.test(lastPart)) {
+          // Last part looks like a postal code, so second-to-last is likely country
+          country = secondLastPart;
+          city = addressParts[addressParts.length - 3] || '';
+        } else {
+          // Last part is likely the country
+          country = lastPart;
+          city = secondLastPart || '';
+        }
+      }
+
       const restaurantData = {
         name: place.name,
         address: place.formatted_address.split(',')[0]?.trim() || place.formatted_address,
-        city: place.formatted_address.split(',').slice(-2, -1)[0]?.trim() || '',
-        country: place.formatted_address.split(',').slice(-1)[0]?.trim() || '',
+        city: city,
+        country: country,
         cuisine: aiCuisine || place.types.filter(type => !['establishment', 'point_of_interest', 'food'].includes(type))[0] || 'restaurant',
         rating: null,
         website: place.website || null,
@@ -235,13 +262,34 @@ export function RestaurantProfileModal({
         console.log('Could not determine Michelin stars:', error);
       }
 
+      // Parse address components properly for ratings too
+      const addressParts = place.formatted_address.split(',').map(part => part.trim());
+      let city = '';
+      let country = '';
+      
+      if (addressParts.length >= 2) {
+        const lastPart = addressParts[addressParts.length - 1];
+        const secondLastPart = addressParts[addressParts.length - 2];
+        
+        if (lastPart.match(/^(USA|United States|US)$/i)) {
+          country = 'United States';
+          city = addressParts[1] || '';
+        } else if (lastPart.length <= 4 && /^\d/.test(lastPart)) {
+          country = secondLastPart;
+          city = addressParts[addressParts.length - 3] || '';
+        } else {
+          country = lastPart;
+          city = secondLastPart || '';
+        }
+      }
+
       const {
         error
       } = await supabase.from('restaurants').upsert({
         name: place.name,
         address: place.formatted_address.split(',')[0]?.trim() || place.formatted_address,
-        city: place.formatted_address.split(',').slice(-2, -1)[0]?.trim() || '',
-        country: place.formatted_address.split(',').slice(-1)[0]?.trim() || '',
+        city: city,
+        country: country,
         cuisine: aiCuisine || place.types.filter(type => !['establishment', 'point_of_interest', 'food'].includes(type))[0] || 'restaurant',
         rating: userRating,
         website: place.website,
