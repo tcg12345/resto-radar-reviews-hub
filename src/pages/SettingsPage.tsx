@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Save, Eye, EyeOff, User, Mail, Phone, MapPin, Settings as SettingsIcon, Shield, Key, Moon, Sun, Map, Satellite } from 'lucide-react';
+import { ArrowLeft, Save, Eye, EyeOff, User, Mail, Phone, MapPin, Settings as SettingsIcon, Shield, Key, Moon, Sun, Map, Satellite, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
@@ -42,6 +43,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
   // Loading states
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   // Load current profile data
   useEffect(() => {
@@ -143,6 +145,89 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
     } catch (error) {
       console.error('Error signing out:', error);
       toast.error('Failed to sign out');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+
+    setIsDeletingAccount(true);
+    try {
+      // Delete all user data first
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', user.id);
+
+      if (profileError) {
+        console.error('Error deleting profile:', profileError);
+        // Continue anyway, as the profile might not exist
+      }
+
+      const { error: restaurantsError } = await supabase
+        .from('restaurants')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (restaurantsError) {
+        console.error('Error deleting restaurants:', restaurantsError);
+        // Continue anyway
+      }
+
+      const { error: friendsError } = await supabase
+        .from('friends')
+        .delete()
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+
+      if (friendsError) {
+        console.error('Error deleting friends:', friendsError);
+        // Continue anyway
+      }
+
+      const { error: requestsError } = await supabase
+        .from('friend_requests')
+        .delete()
+        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`);
+
+      if (requestsError) {
+        console.error('Error deleting friend requests:', requestsError);
+        // Continue anyway
+      }
+
+      const { error: reservationsError } = await supabase
+        .from('reservations')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (reservationsError) {
+        console.error('Error deleting reservations:', reservationsError);
+        // Continue anyway
+      }
+
+      const { error: settingsError } = await supabase
+        .from('settings')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (settingsError) {
+        console.error('Error deleting settings:', settingsError);
+        // Continue anyway
+      }
+
+      // Finally delete the auth user
+      const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
+      
+      if (authError) {
+        throw authError;
+      }
+
+      toast.success('Account deleted successfully');
+      // The auth state will automatically update and redirect the user
+    } catch (error: any) {
+      console.error('Error deleting account:', error);
+      toast.error('Failed to delete account: ' + error.message);
+    } finally {
+      setIsDeletingAccount(false);
     }
   };
 
@@ -556,6 +641,74 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                 >
                   Sign Out
                 </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="border-destructive">
+              <CardHeader>
+                <CardTitle className="text-destructive flex items-center gap-2">
+                  <Trash2 className="h-5 w-5" />
+                  Delete Account
+                </CardTitle>
+                <CardDescription>
+                  Permanently delete your account and all associated data. This action cannot be undone.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+                    <p className="text-sm font-medium text-destructive mb-2">
+                      ⚠️ Warning: This will permanently delete:
+                    </p>
+                    <ul className="text-sm text-muted-foreground space-y-1 ml-4">
+                      <li>• Your profile and account information</li>
+                      <li>• All your restaurant ratings and reviews</li>
+                      <li>• Your wishlist and saved restaurants</li>
+                      <li>• Friend connections and requests</li>
+                      <li>• Reservation history</li>
+                      <li>• All app preferences and settings</li>
+                    </ul>
+                  </div>
+                  
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="destructive"
+                        className="w-full md:w-auto"
+                        disabled={isDeletingAccount}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        {isDeletingAccount ? 'Deleting Account...' : 'Delete My Account'}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="text-destructive">
+                          Are you absolutely sure?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="space-y-2">
+                          <p>
+                            This action cannot be undone. This will permanently delete your account
+                            and remove all your data from our servers.
+                          </p>
+                          <p className="font-medium">
+                            Type "DELETE" in the box below to confirm:
+                          </p>
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleDeleteAccount}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          disabled={isDeletingAccount}
+                        >
+                          {isDeletingAccount ? 'Deleting...' : 'Delete Account'}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
