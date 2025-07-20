@@ -17,10 +17,12 @@ export function useIsMobileDevice() {
       const isMobileUA = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent)
       
       // Device is mobile if:
-      // 1. Small screen AND has touch capability (real mobile device)
-      // 2. Small screen AND mobile user agent (mobile browser)
-      // 3. Very small screen (likely mobile/tablet preview, < 1024px)
-      const isMobile = isSmallScreen && (hasTouchScreen || isMobileUA || window.innerWidth < 1024)
+      // 1. Has touch capability AND small screen (real mobile device)
+      // 2. Mobile user agent AND small screen (mobile browser)
+      // 3. Very small screen without touch (mobile preview, < 768px)
+      const isMobile = (hasTouchScreen && isSmallScreen) || 
+                      (isMobileUA && isSmallScreen) || 
+                      (window.innerWidth < 768 && !hasTouchScreen)
       
       console.log('Mobile device detection:', {
         screenWidth: window.innerWidth,
