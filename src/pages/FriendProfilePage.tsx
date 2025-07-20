@@ -52,21 +52,23 @@ export default function FriendProfilePage() {
   const loadFriendData = async (friendData: any) => {
     setIsLoading(true);
     try {
-      // Load stats data first (small sample for quick loading)
-      const [statsData, wishlistData] = await Promise.all([
-        fetchFriendRestaurants(friendData.id, false, 100), // Limit for stats calculation
-        fetchFriendRestaurants(friendData.id, true)
+      // Load initial data with pagination for better performance
+      const [ratedData, wishlistData] = await Promise.all([
+        fetchFriendRestaurants(friendData.id, false, 20), // Start with 20 restaurants
+        fetchFriendRestaurants(friendData.id, true, 50)   // Load all wishlist items (usually fewer)
       ]);
       
-      const ratedRestaurants = statsData.filter(r => !r.is_wishlist);
+      const ratedRestaurants = ratedData.filter(r => !r.is_wishlist);
       const wishlistItems = wishlistData.filter(r => r.is_wishlist);
       
-      // For restaurants tab, we'll load paginated data when needed
-      setRestaurants(ratedRestaurants.slice(0, 20)); // Show first 20 initially
+      setRestaurants(ratedRestaurants);
       setWishlist(wishlistItems);
       
-      // Calculate detailed stats
-      calculateStats(ratedRestaurants, wishlistItems);
+      // For stats calculation, we need more data - load separately
+      const statsData = await fetchFriendRestaurants(friendData.id, false, 200);
+      const allRated = statsData.filter(r => !r.is_wishlist);
+      
+      calculateStats(allRated, wishlistItems);
     } catch (error) {
       console.error('Error loading friend data:', error);
     } finally {

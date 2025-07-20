@@ -74,6 +74,84 @@ export function useFriendRestaurants() {
     }
   };
 
+  // New optimized function for basic stats only
+  const fetchFriendStats = async (friendId: string) => {
+    if (!user) return null;
+
+    try {
+      // Check access permission first
+      const { data: friendData, error: friendError } = await supabase
+        .from('profiles')
+        .select('is_public, username')
+        .eq('id', friendId)
+        .single();
+
+      if (friendError) throw friendError;
+
+      let canView = friendData.is_public;
+
+      if (!canView) {
+        const { data: friendship, error: friendshipError } = await supabase
+          .from('friends')
+          .select('id')
+          .or(`and(user1_id.eq.${user.id},user2_id.eq.${friendId}),and(user1_id.eq.${friendId},user2_id.eq.${user.id})`)
+          .single();
+
+        canView = !friendshipError && !!friendship;
+      }
+
+      if (!canView) {
+        return null;
+      }
+
+      // Get counts only for basic stats
+      const [ratedQuery, wishlistQuery] = await Promise.all([
+        supabase
+          .from('restaurants')
+          .select('rating, cuisine', { count: 'exact' })
+          .eq('user_id', friendId)
+          .eq('is_wishlist', false)
+          .not('rating', 'is', null),
+        supabase
+          .from('restaurants')
+          .select('id', { count: 'exact' })
+          .eq('user_id', friendId)
+          .eq('is_wishlist', true)
+      ]);
+
+      const ratedCount = ratedQuery.count || 0;
+      const wishlistCount = wishlistQuery.count || 0;
+      const ratedRestaurants = ratedQuery.data || [];
+
+      // Calculate average rating
+      const avgRating = ratedRestaurants.length > 0 
+        ? ratedRestaurants.reduce((sum, r) => sum + (r.rating || 0), 0) / ratedRestaurants.length
+        : 0;
+
+      // Find top cuisine
+      const cuisineCounts: { [key: string]: number } = {};
+      ratedRestaurants.forEach(r => {
+        if (r.cuisine) {
+          cuisineCounts[r.cuisine] = (cuisineCounts[r.cuisine] || 0) + 1;
+        }
+      });
+      
+      const topCuisine = Object.entries(cuisineCounts)
+        .sort(([,a], [,b]) => b - a)[0]?.[0] || '';
+
+      return {
+        ratedCount,
+        wishlistCount,
+        averageRating: avgRating,
+        topCuisine,
+        username: friendData.username || 'Unknown User'
+      };
+    } catch (error) {
+      console.error('Error fetching friend stats:', error);
+      return null;
+    }
+  };
+
   const fetchAllFriendsRestaurants = async () => {
     if (!user) return;
 
@@ -105,7 +183,7 @@ export function useFriendRestaurants() {
 
       if (publicError) throw publicError;
 
-      // Get restaurants from all friends (both public and private since they're friends)
+      // Get restaurants from all friends - limit to 20 for performance
       const { data: restaurants, error: restaurantError } = await supabase
         .from('restaurants')
         .select('*')
@@ -113,7 +191,7 @@ export function useFriendRestaurants() {
         .eq('is_wishlist', false)
         .not('rating', 'is', null)
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(20);
 
       if (restaurantError) throw restaurantError;
 
@@ -156,6 +234,7 @@ export function useFriendRestaurants() {
     friendRestaurants,
     isLoading,
     fetchFriendRestaurants,
+    fetchFriendStats,
     fetchAllFriendsRestaurants
   };
 }

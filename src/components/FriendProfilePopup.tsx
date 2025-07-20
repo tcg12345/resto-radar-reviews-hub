@@ -16,7 +16,7 @@ interface FriendProfilePopupProps {
 
 export function FriendProfilePopup({ friend, isOpen, onClose }: FriendProfilePopupProps) {
   const navigate = useNavigate();
-  const { fetchFriendRestaurants } = useFriendRestaurants();
+  const { fetchFriendStats } = useFriendRestaurants();
   const [stats, setStats] = useState({
     ratedCount: 0,
     wishlistCount: 0,
@@ -36,37 +36,25 @@ export function FriendProfilePopup({ friend, isOpen, onClose }: FriendProfilePop
     
     setStats(prev => ({ ...prev, isLoading: true }));
     try {
-      const [restaurants, wishlist] = await Promise.all([
-        fetchFriendRestaurants(friend.id, false),
-        fetchFriendRestaurants(friend.id, true)
-      ]);
+      const statsData = await fetchFriendStats(friend.id);
       
-      const ratedRestaurants = restaurants.filter(r => !r.is_wishlist && r.rating);
-      const wishlistItems = wishlist.filter(r => r.is_wishlist);
-      
-      // Calculate average rating
-      const avgRating = ratedRestaurants.length > 0 
-        ? ratedRestaurants.reduce((sum, r) => sum + (r.rating || 0), 0) / ratedRestaurants.length
-        : 0;
-      
-      // Find top cuisine
-      const cuisineCounts: { [key: string]: number } = {};
-      ratedRestaurants.forEach(r => {
-        if (r.cuisine) {
-          cuisineCounts[r.cuisine] = (cuisineCounts[r.cuisine] || 0) + 1;
-        }
-      });
-      
-      const topCuisine = Object.entries(cuisineCounts)
-        .sort(([,a], [,b]) => b - a)[0]?.[0] || '';
-      
-      setStats({
-        ratedCount: ratedRestaurants.length,
-        wishlistCount: wishlistItems.length,
-        averageRating: avgRating,
-        topCuisine,
-        isLoading: false
-      });
+      if (statsData) {
+        setStats({
+          ratedCount: statsData.ratedCount,
+          wishlistCount: statsData.wishlistCount,
+          averageRating: statsData.averageRating,
+          topCuisine: statsData.topCuisine,
+          isLoading: false
+        });
+      } else {
+        setStats({
+          ratedCount: 0,
+          wishlistCount: 0,
+          averageRating: 0,
+          topCuisine: '',
+          isLoading: false
+        });
+      }
     } catch (error) {
       console.error('Error loading quick stats:', error);
       setStats(prev => ({ ...prev, isLoading: false }));
