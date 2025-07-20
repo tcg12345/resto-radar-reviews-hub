@@ -55,6 +55,7 @@ export function PersonalizedRecommendations() {
   const [error, setError] = useState<string | null>(null);
   const [selectedRestaurant, setSelectedRestaurant] = useState<any>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [cuisineCache, setCuisineCache] = useState<Record<string, string>>({});
 
   useEffect(() => {
     // Don't automatically load recommendations - wait for user to click button
@@ -119,6 +120,11 @@ export function PersonalizedRecommendations() {
 
       console.log('AI recommendations received:', aiResponse.recommendations?.length || 0);
       
+      // Get AI-detected cuisines for the recommendations
+      if (aiResponse.recommendations && aiResponse.recommendations.length > 0) {
+        await detectCuisines(aiResponse.recommendations);
+      }
+      
       setRecommendations(aiResponse.recommendations || []);
       setPreferences(aiResponse.preferences);
 
@@ -129,6 +135,47 @@ export function PersonalizedRecommendations() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const detectCuisines = async (restaurants: AIRecommendation[]) => {
+    try {
+      // Check cache first
+      const uncachedRestaurants = restaurants.filter(r => !cuisineCache[r.place_id]);
+      
+      if (uncachedRestaurants.length === 0) {
+        return; // All cuisines already cached
+      }
+
+      const { data: cuisineResponse, error: cuisineError } = await supabase.functions.invoke('ai-cuisine-detector', {
+        body: {
+          restaurants: uncachedRestaurants.map(r => ({
+            place_id: r.place_id,
+            name: r.name,
+            formatted_address: r.formatted_address,
+            types: r.types
+          }))
+        }
+      });
+
+      if (cuisineError) {
+        console.error('Cuisine detection error:', cuisineError);
+        return;
+      }
+
+      if (cuisineResponse?.cuisines) {
+        const newCache = { ...cuisineCache };
+        cuisineResponse.cuisines.forEach((item: any) => {
+          newCache[item.place_id] = item.cuisine;
+        });
+        setCuisineCache(newCache);
+      }
+    } catch (error) {
+      console.error('Error detecting cuisines:', error);
+    }
+  };
+
+  const getCuisineForPlace = (place: AIRecommendation) => {
+    return cuisineCache[place.place_id] || null;
   };
 
   const getCurrentLocation = (): Promise<{ lat: number; lng: number } | null> => {
@@ -240,7 +287,7 @@ export function PersonalizedRecommendations() {
         lat: place.geometry.location.lat,
         lng: place.geometry.location.lng
       },
-      cuisine: getCuisineFromTypes(place.types),
+      cuisine: getCuisineForPlace(place),
       googleMapsUrl: place.google_maps_url
     };
     
@@ -400,10 +447,10 @@ export function PersonalizedRecommendations() {
                     </div>
 
                     {/* Cuisine Badge */}
-                    {getCuisineFromTypes(place.types) && (
+                    {getCuisineForPlace(place) && (
                       <div className="mb-4">
                         <Badge variant="outline" className="border-gray-600 text-gray-300 bg-gray-800">
-                          {getCuisineFromTypes(place.types)}
+                          {getCuisineForPlace(place)}
                         </Badge>
                       </div>
                     )}
