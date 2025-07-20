@@ -314,33 +314,27 @@ export default function FriendProfilePage() {
         }
       }
 
-      const wishlistData = {
-        user_id: user.id,
-        name: restaurant.name,
-        address: restaurant.address,
-        city: formattedLocation, // Use formatted location in city field
-        country: restaurant.country,
-        cuisine: restaurant.cuisine,
-        price_range: restaurant.price_range,
-        michelin_stars: restaurant.michelin_stars,
-        notes: restaurant.notes,
-        photos: restaurant.photos,
-        website: restaurant.website,
-        latitude: restaurant.latitude,
-        longitude: restaurant.longitude,
-        reservable: restaurant.reservable,
-        reservation_url: restaurant.reservation_url,
-        opening_hours: restaurant.opening_hours,
-        is_wishlist: true,
-        rating: null, // No rating for wishlist items
-        date_visited: null,
-        use_weighted_rating: false,
-        category_ratings: null
-      };
-
       const { error } = await supabase
         .from('restaurants')
-        .insert([wishlistData]);
+        .insert({
+          user_id: user.id,
+          name: restaurant.name,
+          address: restaurant.address,
+          city: formattedLocation,
+          country: restaurant.country,
+          cuisine: restaurant.cuisine,
+          price_range: restaurant.price_range,
+          michelin_stars: restaurant.michelin_stars,
+          notes: restaurant.notes,
+          photos: restaurant.photos,
+          website: restaurant.website,
+          latitude: restaurant.latitude,
+          longitude: restaurant.longitude,
+          reservable: restaurant.reservable,
+          reservation_url: restaurant.reservation_url,
+          opening_hours: restaurant.opening_hours,
+          is_wishlist: true
+        });
 
       if (error) {
         console.error('Error adding to wishlist:', error);
