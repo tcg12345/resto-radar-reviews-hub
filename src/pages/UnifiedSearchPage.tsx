@@ -113,7 +113,7 @@ export default function UnifiedSearchPage() {
           query: searchQuery,
           location: locationQuery || (userLocation ? `${userLocation.lat},${userLocation.lng}` : ''),
           radius: 10000,
-          type: 'restaurant'
+          type: 'search' // Explicitly set the type to 'search'
         }
       });
 
