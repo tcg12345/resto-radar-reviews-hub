@@ -9,24 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { StarRating } from '@/components/StarRating';
-import { 
-  Star, 
-  MapPin, 
-  Phone, 
-  Globe, 
-  Navigation, 
-  Clock, 
-  Heart,
-  MessageSquare,
-  Camera,
-  Filter,
-  ExternalLink
-} from 'lucide-react';
+import { Star, MapPin, Phone, Globe, Navigation, Clock, Heart, MessageSquare, Camera, Filter, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { GlobalSearchMap } from '@/components/GlobalSearchMap';
-
 interface PlaceDetails {
   place_id: string;
   name: string;
@@ -59,14 +46,17 @@ interface PlaceDetails {
     time: number;
   }>;
 }
-
 interface RestaurantProfileModalProps {
   place: PlaceDetails;
   onClose: () => void;
 }
-
-export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModalProps) {
-  const { user } = useAuth();
+export function RestaurantProfileModal({
+  place,
+  onClose
+}: RestaurantProfileModalProps) {
+  const {
+    user
+  } = useAuth();
   const [userRating, setUserRating] = useState(0);
   const [userReview, setUserReview] = useState('');
   const [reviewPhotos, setReviewPhotos] = useState<File[]>([]);
@@ -86,7 +76,10 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
     const analyzeRestaurant = async () => {
       setIsLoadingAiAnalysis(true);
       try {
-        const { data, error } = await supabase.functions.invoke('ai-restaurant-analysis', {
+        const {
+          data,
+          error
+        } = await supabase.functions.invoke('ai-restaurant-analysis', {
           body: {
             name: place.name,
             types: place.types,
@@ -94,7 +87,6 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
             description: place.reviews?.[0]?.text || undefined
           }
         });
-
         if (!error && data.success) {
           setAiCuisine(data.cuisine);
           setAiCategories(data.categories);
@@ -105,28 +97,22 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
         setIsLoadingAiAnalysis(false);
       }
     };
-
     analyzeRestaurant();
   });
-
   const getPriceDisplay = (priceLevel?: number) => {
     if (!priceLevel) return 'Price not available';
     return '$'.repeat(priceLevel);
   };
-
   const handleRatingClick = () => {
     const searchQuery = `${place.name} ${place.formatted_address} reviews`;
     window.open(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, '_blank');
   };
-
   const handleViewMoreReviews = () => {
     const searchQuery = `${place.name} ${place.formatted_address} reviews site:google.com`;
     window.open(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, '_blank');
   };
-
   const getSortedReviews = () => {
     if (!place.reviews) return [];
-    
     const reviews = [...place.reviews];
     switch (reviewSortBy) {
       case 'recent':
@@ -139,18 +125,15 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
         return reviews;
     }
   };
-
   const handlePhotoUpload = async (files: FileList) => {
     setUploadingPhotos(true);
     const uploadedUrls: string[] = [];
     const selectedFiles = Array.from(files).slice(0, 5);
-    
     try {
       for (const file of selectedFiles) {
         const url = URL.createObjectURL(file);
         uploadedUrls.push(url);
       }
-      
       setReviewPhotoUrls(prev => [...prev, ...uploadedUrls]);
       setReviewPhotos(prev => [...prev, ...selectedFiles]);
       toast.success(`${selectedFiles.length} photo(s) uploaded successfully`);
@@ -161,21 +144,15 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
       setUploadingPhotos(false);
     }
   };
-
   const removePhoto = (index: number) => {
     setReviewPhotoUrls(prev => prev.filter((_, i) => i !== index));
     setReviewPhotos(prev => prev.filter((_, i) => i !== index));
   };
-
   const handleAddToWishlist = async () => {
     if (!user) {
       toast.error('Please sign in to add to wishlist');
       return;
     }
-
-    console.log('User object:', user);
-    console.log('Place object:', place);
-
     setIsAddingToWishlist(true);
     try {
       const restaurantData = {
@@ -184,79 +161,65 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
         address: place.formatted_address,
         city: place.formatted_address.split(',').slice(-2, -1)[0]?.trim() || '',
         country: place.formatted_address.split(',').slice(-1)[0]?.trim() || '',
-        cuisine: aiCuisine || place.types.filter(type => 
-          !['establishment', 'point_of_interest', 'food'].includes(type)
-        )[0] || 'restaurant',
+        cuisine: aiCuisine || place.types.filter(type => !['establishment', 'point_of_interest', 'food'].includes(type))[0] || 'restaurant',
         rating: place.rating || null,
+        phone_number: place.formatted_phone_number || null,
         website: place.website || null,
         opening_hours: place.opening_hours?.weekday_text?.join('\n') || null,
         price_range: place.price_level || null,
         latitude: place.geometry.location.lat,
         longitude: place.geometry.location.lng,
-        photos: place.photos?.slice(0, 5).map(photo => 
-          `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo.photo_reference}&key=PLACEHOLDER`
-        ) || [],
+        photos: place.photos?.slice(0, 5).map(photo => `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo.photo_reference}&key=PLACEHOLDER`) || [],
         notes: `Added from Global Search`,
         is_wishlist: true,
-        user_id: user.id,
+        user_id: user.id
       };
-
-      const { error } = await supabase
-        .from('restaurants')
-        .upsert(restaurantData);
-
+      const {
+        error
+      } = await supabase.from('restaurants').upsert(restaurantData);
       if (error) throw error;
-
       toast.success('Added to wishlist!');
     } catch (error) {
       console.error('Error adding to wishlist:', error);
-      toast.error(`Failed to add to wishlist: ${error?.message || JSON.stringify(error)}`);
+      toast.error(`Failed to add to wishlist: ${error.message}`);
     } finally {
       setIsAddingToWishlist(false);
     }
   };
-
   const handleAddToRatings = async () => {
     if (!user) {
       toast.error('Please sign in to add ratings');
       return;
     }
-
     if (userRating === 0) {
       toast.error('Please select a rating');
       return;
     }
-
     setIsSubmittingReview(true);
     try {
-      const { error } = await supabase
-        .from('restaurants')
-        .upsert({
-          id: place.place_id,
-          name: place.name,
-          address: place.formatted_address,
-          city: place.formatted_address.split(',').slice(-2, -1)[0]?.trim() || '',
-          country: place.formatted_address.split(',').slice(-1)[0]?.trim() || '',
-          cuisine: aiCuisine || place.types.filter(type => 
-            !['establishment', 'point_of_interest', 'food'].includes(type)
-          )[0] || 'restaurant',
-          rating: userRating,
-          website: place.website,
-          opening_hours: place.opening_hours?.weekday_text?.join('\n'),
-          price_range: place.price_level,
-          latitude: place.geometry.location.lat,
-          longitude: place.geometry.location.lng,
-          photos: place.photos?.slice(0, 5).map(photo => 
-            `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo.photo_reference}&key=PLACEHOLDER`
-          ) || [],
-          notes: userReview || `Rated ${userRating} stars`,
-          is_wishlist: false,
-          user_id: user.id,
-          date_visited: new Date().toISOString(),
-        });
-
+      const {
+        error
+      } = await supabase.from('restaurants').upsert({
+        id: place.place_id,
+        name: place.name,
+        address: place.formatted_address,
+        city: place.formatted_address.split(',').slice(-2, -1)[0]?.trim() || '',
+        country: place.formatted_address.split(',').slice(-1)[0]?.trim() || '',
+        cuisine: aiCuisine || place.types.filter(type => !['establishment', 'point_of_interest', 'food'].includes(type))[0] || 'restaurant',
+        rating: userRating,
+        phone_number: place.formatted_phone_number,
+        website: place.website,
+        opening_hours: place.opening_hours?.weekday_text?.join('\n'),
+        price_range: place.price_level,
+        latitude: place.geometry.location.lat,
+        longitude: place.geometry.location.lng,
+        photos: place.photos?.slice(0, 5).map(photo => `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo.photo_reference}&key=PLACEHOLDER`) || [],
+        notes: userReview || `Rated ${userRating} stars`,
+        is_wishlist: false,
+        user_id: user.id,
+        date_visited: new Date().toISOString()
+      });
       if (error) throw error;
-
       toast.success('Rating added successfully!');
       setUserRating(0);
       setUserReview('');
@@ -269,7 +232,6 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
       setIsSubmittingReview(false);
     }
   };
-
   const handleCallRestaurant = () => {
     if (place.formatted_phone_number) {
       window.open(`tel:${place.formatted_phone_number}`);
@@ -277,7 +239,6 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
       toast.error('Phone number not available');
     }
   };
-
   const handleVisitWebsite = () => {
     if (place.website) {
       window.open(place.website, '_blank');
@@ -285,14 +246,11 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
       toast.error('Website not available');
     }
   };
-
   const handleGetDirections = () => {
     const url = `https://www.google.com/maps/dir/?api=1&destination=${place.geometry.location.lat},${place.geometry.location.lng}`;
     window.open(url, '_blank');
   };
-
-  return (
-    <Dialog open={true} onOpenChange={onClose}>
+  return <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">{place.name}</DialogTitle>
@@ -316,19 +274,15 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                     <p>{place.formatted_address}</p>
                   </div>
                   
-                  {place.formatted_phone_number && (
-                    <div>
+                  {place.formatted_phone_number && <div>
                       <p className="text-sm text-muted-foreground">Phone</p>
                       <p>{place.formatted_phone_number}</p>
-                    </div>
-                  )}
+                    </div>}
 
-                  {place.website && (
-                    <div>
+                  {place.website && <div>
                       <p className="text-sm text-muted-foreground">Website</p>
-                      <p className="text-primary truncate">{place.website}</p>
-                    </div>
-                  )}
+                      
+                    </div>}
 
                   <div className="flex flex-wrap gap-2 pt-2">
                     <Button size="sm" onClick={handleCallRestaurant} disabled={!place.formatted_phone_number} className="flex-1 min-w-0">
@@ -355,56 +309,33 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {place.rating && (
-                    <div>
-                      <button 
-                        onClick={handleRatingClick}
-                        className="flex items-center gap-2 mb-2 hover:opacity-80 transition-opacity cursor-pointer"
-                      >
+                  {place.rating && <div>
+                      <button onClick={handleRatingClick} className="flex items-center gap-2 mb-2 hover:opacity-80 transition-opacity cursor-pointer">
                         <span className="text-2xl font-bold">{place.rating}</span>
                         <div className="flex">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <Star
-                              key={star}
-                              className={`h-5 w-5 ${
-                                star <= Math.round(place.rating!)
-                                  ? 'text-yellow-500 fill-current'
-                                  : 'text-gray-300'
-                              }`}
-                            />
-                          ))}
+                          {[1, 2, 3, 4, 5].map(star => <Star key={star} className={`h-5 w-5 ${star <= Math.round(place.rating!) ? 'text-yellow-500 fill-current' : 'text-gray-300'}`} />)}
                         </div>
                       </button>
-                      {place.user_ratings_total && (
-                        <p className="text-sm text-muted-foreground">
+                      {place.user_ratings_total && <p className="text-sm text-muted-foreground">
                           Based on {place.user_ratings_total} reviews
-                        </p>
-                      )}
-                    </div>
-                  )}
+                        </p>}
+                    </div>}
 
                   <div>
                     <p className="text-sm text-muted-foreground">Price Level</p>
                     <p className="font-semibold">{getPriceDisplay(place.price_level)}</p>
                   </div>
 
-                  {place.opening_hours?.open_now !== undefined && (
-                    <div>
+                  {place.opening_hours?.open_now !== undefined && <div>
                       <p className="text-sm text-muted-foreground">Status</p>
                       <Badge variant={place.opening_hours.open_now ? "default" : "destructive"}>
                         <Clock className="h-3 w-3 mr-1" />
                         {place.opening_hours.open_now ? "Open Now" : "Closed"}
                       </Badge>
-                    </div>
-                  )}
+                    </div>}
 
                   <div className="flex flex-wrap gap-2 pt-2">
-                    <Button 
-                      size="sm" 
-                      onClick={handleAddToWishlist}
-                      disabled={isAddingToWishlist || !user}
-                      className="flex-1 min-w-0"
-                    >
+                    <Button size="sm" onClick={handleAddToWishlist} disabled={isAddingToWishlist || !user} className="flex-1 min-w-0">
                       <Heart className="h-4 w-4 mr-2 flex-shrink-0" />
                       <span className="truncate">Add to Wishlist</span>
                     </Button>
@@ -414,8 +345,7 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
             </div>
 
             {/* Opening Hours */}
-            {place.opening_hours?.weekday_text && (
-              <Card>
+            {place.opening_hours?.weekday_text && <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Clock className="h-5 w-5" />
@@ -424,19 +354,15 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {place.opening_hours.weekday_text.map((hours, index) => (
-                      <p key={index} className="text-sm">
+                    {place.opening_hours.weekday_text.map((hours, index) => <p key={index} className="text-sm">
                         {hours}
-                      </p>
-                    ))}
+                      </p>)}
                   </div>
                 </CardContent>
-              </Card>
-            )}
+              </Card>}
 
             {/* User Rating Section */}
-            {user && (
-              <Card>
+            {user && <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Star className="h-5 w-5" />
@@ -451,12 +377,7 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                   
                   <div>
                     <p className="text-sm text-muted-foreground mb-2">Your Review (Optional)</p>
-                    <Textarea
-                      placeholder="Share your experience..."
-                      value={userReview}
-                      onChange={(e) => setUserReview(e.target.value)}
-                      rows={3}
-                    />
+                    <Textarea placeholder="Share your experience..." value={userReview} onChange={e => setUserReview(e.target.value)} rows={3} />
                   </div>
 
                   {/* Photo Upload */}
@@ -466,13 +387,7 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                     </Label>
                     <div className="mt-2 space-y-3">
                       <div className="flex items-center gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => fileInputRef.current?.click()}
-                          disabled={uploadingPhotos || reviewPhotoUrls.length >= 5}
-                        >
+                        <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploadingPhotos || reviewPhotoUrls.length >= 5}>
                           <Camera className="h-4 w-4 mr-2" />
                           {uploadingPhotos ? 'Uploading...' : 'Add Photos'}
                         </Button>
@@ -481,59 +396,33 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                         </span>
                       </div>
                       
-                      <Input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        className="hidden"
-                        onChange={(e) => {
-                          if (e.target.files) {
-                            handlePhotoUpload(e.target.files);
-                          }
-                        }}
-                      />
+                      <Input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={e => {
+                    if (e.target.files) {
+                      handlePhotoUpload(e.target.files);
+                    }
+                  }} />
 
                       {/* Photo Preview */}
-                      {reviewPhotoUrls.length > 0 && (
-                        <div className="grid grid-cols-5 gap-2">
-                          {reviewPhotoUrls.map((url, index) => (
-                            <div key={index} className="relative">
-                              <img
-                                src={url}
-                                alt={`Review photo ${index + 1}`}
-                                className="w-full h-16 object-cover rounded border"
-                              />
-                              <Button
-                                type="button"
-                                variant="destructive"
-                                size="sm"
-                                className="absolute -top-2 -right-2 h-6 w-6 p-0"
-                                onClick={() => removePhoto(index)}
-                              >
+                      {reviewPhotoUrls.length > 0 && <div className="grid grid-cols-5 gap-2">
+                          {reviewPhotoUrls.map((url, index) => <div key={index} className="relative">
+                              <img src={url} alt={`Review photo ${index + 1}`} className="w-full h-16 object-cover rounded border" />
+                              <Button type="button" variant="destructive" size="sm" className="absolute -top-2 -right-2 h-6 w-6 p-0" onClick={() => removePhoto(index)}>
                                 ×
                               </Button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                            </div>)}
+                        </div>}
                     </div>
                   </div>
 
-                  <Button 
-                    onClick={handleAddToRatings}
-                    disabled={isSubmittingReview || userRating === 0}
-                  >
+                  <Button onClick={handleAddToRatings} disabled={isSubmittingReview || userRating === 0}>
                     <MessageSquare className="h-4 w-4 mr-2" />
                     Add to My Ratings
                   </Button>
                 </CardContent>
-              </Card>
-            )}
+              </Card>}
 
             {/* Google Reviews */}
-            {place.reviews && place.reviews.length > 0 && (
-              <Card>
+            {place.reviews && place.reviews.length > 0 && <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -541,12 +430,7 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                       Google Reviews
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleViewMoreReviews}
-                        className="flex items-center gap-1"
-                      >
+                      <Button variant="outline" size="sm" onClick={handleViewMoreReviews} className="flex items-center gap-1">
                         <ExternalLink className="h-4 w-4" />
                         View More Reviews
                       </Button>
@@ -565,22 +449,12 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {getSortedReviews().slice(0, showAllReviews ? getSortedReviews().length : 3).map((review, index) => (
-                    <div key={index} className="border-b last:border-b-0 pb-4 last:pb-0">
+                  {getSortedReviews().slice(0, showAllReviews ? getSortedReviews().length : 3).map((review, index) => <div key={index} className="border-b last:border-b-0 pb-4 last:pb-0">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <span className="font-semibold">{review.author_name}</span>
                           <div className="flex">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <Star
-                                key={star}
-                                className={`h-4 w-4 ${
-                                  star <= review.rating
-                                    ? 'text-yellow-500 fill-current'
-                                    : 'text-gray-300'
-                                }`}
-                              />
-                            ))}
+                            {[1, 2, 3, 4, 5].map(star => <Star key={star} className={`h-4 w-4 ${star <= review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'}`} />)}
                           </div>
                         </div>
                         <span className="text-sm text-muted-foreground">
@@ -588,30 +462,21 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground">{review.text}</p>
-                    </div>
-                  ))}
+                    </div>)}
                   
                   {/* Show More/Less Reviews Button */}
-                  {getSortedReviews().length > 3 && (
-                    <div className="pt-4 border-t">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowAllReviews(!showAllReviews)}
-                        className="w-full"
-                      >
+                  {getSortedReviews().length > 3 && <div className="pt-4 border-t">
+                      <Button variant="outline" size="sm" onClick={() => setShowAllReviews(!showAllReviews)} className="w-full">
                         {showAllReviews ? 'Show Less Reviews' : `Show All ${getSortedReviews().length} Google Reviews`}
                       </Button>
-                    </div>
-                  )}
+                    </div>}
                   
                   {/* Note about Google Reviews */}
                   <div className="pt-2 text-xs text-muted-foreground text-center">
                     Showing all available Google Reviews (up to {getSortedReviews().length} reviews)
                   </div>
                 </CardContent>
-              </Card>
-            )}
+              </Card>}
           </div>
 
           {/* Right Column - Map & Categories */}
@@ -625,14 +490,10 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
               </CardHeader>
               <CardContent>
                 <div className="h-64 rounded-lg overflow-hidden">
-                  <GlobalSearchMap
-                    restaurants={[place]}
-                    onRestaurantClick={() => {}}
-                    center={{
-                      lat: place.geometry.location.lat,
-                      lng: place.geometry.location.lng
-                    }}
-                  />
+                  <GlobalSearchMap restaurants={[place]} onRestaurantClick={() => {}} center={{
+                  lat: place.geometry.location.lat,
+                  lng: place.geometry.location.lng
+                }} />
                 </div>
               </CardContent>
             </Card>
@@ -641,34 +502,27 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
             <Card className="mt-4">
               <CardHeader>
                 <CardTitle>
-                  {aiCuisine && (
-                    <div className="mb-2">
+                  {aiCuisine && <div className="mb-2">
                       <Badge variant="secondary" className="text-sm">
                         {aiCuisine}
                       </Badge>
-                    </div>
-                  )}
+                    </div>}
                   Categories
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {(aiCategories.length > 0 ? aiCategories : place.types).map((type) => (
-                    <Badge key={type} variant="outline">
+                  {(aiCategories.length > 0 ? aiCategories : place.types).map(type => <Badge key={type} variant="outline">
                       {type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                    </Badge>
-                  ))}
-                  {isLoadingAiAnalysis && (
-                    <Badge variant="outline" className="animate-pulse">
+                    </Badge>)}
+                  {isLoadingAiAnalysis && <Badge variant="outline" className="animate-pulse">
                       Analyzing...
-                    </Badge>
-                  )}
+                    </Badge>}
                 </div>
               </CardContent>
             </Card>
           </div>
         </div>
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 }
