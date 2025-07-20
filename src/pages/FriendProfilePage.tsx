@@ -13,7 +13,8 @@ import {
   BarChart3,
   Filter,
   SortAsc,
-  SortDesc
+  SortDesc,
+  Heart
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,6 +31,7 @@ import { useFriendRestaurants } from '@/hooks/useFriendRestaurants';
 import { useFriends } from '@/hooks/useFriends';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export default function FriendProfilePage() {
   const { friendId } = useParams();
@@ -37,6 +39,7 @@ export default function FriendProfilePage() {
   const { user } = useAuth();
   const { friends } = useFriends();
   const { fetchFriendRestaurants } = useFriendRestaurants();
+  const { toast } = useToast();
   
   const [friend, setFriend] = useState<any>(null);
   const [restaurants, setRestaurants] = useState<any[]>([]);
@@ -280,6 +283,87 @@ export default function FriendProfilePage() {
     const cuisines = [...new Set(allRestaurants.map(r => r.cuisine))].filter(Boolean);
     return cuisines.sort();
   }, [allRestaurants]);
+
+  // Add restaurant to current user's wishlist
+  const addToWishlist = async (restaurant: any) => {
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "You need to be signed in to add restaurants to your wishlist.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Format location based on country
+      let formattedLocation = restaurant.city;
+      if (restaurant.country) {
+        if (restaurant.country.toLowerCase() === 'united states' || restaurant.country.toLowerCase() === 'usa') {
+          // For USA, use city, state format (assuming address contains state info)
+          const addressParts = restaurant.address.split(',');
+          const state = addressParts[addressParts.length - 1]?.trim();
+          if (state && state.length <= 3) { // Likely a state abbreviation
+            formattedLocation = `${restaurant.city}, ${state}`;
+          } else {
+            formattedLocation = `${restaurant.city}, ${restaurant.country}`;
+          }
+        } else {
+          // For international, use city, country format
+          formattedLocation = `${restaurant.city}, ${restaurant.country}`;
+        }
+      }
+
+      const wishlistData = {
+        user_id: user.id,
+        name: restaurant.name,
+        address: restaurant.address,
+        city: formattedLocation, // Use formatted location in city field
+        country: restaurant.country,
+        cuisine: restaurant.cuisine,
+        price_range: restaurant.price_range,
+        michelin_stars: restaurant.michelin_stars,
+        notes: restaurant.notes,
+        photos: restaurant.photos,
+        website: restaurant.website,
+        latitude: restaurant.latitude,
+        longitude: restaurant.longitude,
+        reservable: restaurant.reservable,
+        reservation_url: restaurant.reservation_url,
+        opening_hours: restaurant.opening_hours,
+        is_wishlist: true,
+        rating: null, // No rating for wishlist items
+        date_visited: null,
+        use_weighted_rating: false,
+        category_ratings: null
+      };
+
+      const { error } = await supabase
+        .from('restaurants')
+        .insert([wishlistData]);
+
+      if (error) {
+        console.error('Error adding to wishlist:', error);
+        toast({
+          title: "Error",
+          description: "Failed to add restaurant to wishlist. Please try again.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Added to wishlist!",
+          description: `${restaurant.name} has been added to your wishlist.`,
+        });
+      }
+    } catch (error) {
+      console.error('Error adding to wishlist:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add restaurant to wishlist. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (isLoading || !friend) {
     return (
@@ -578,31 +662,47 @@ export default function FriendProfilePage() {
                            )}
                          </div>
 
-                         {/* Right: Rating */}
-                         {restaurant.rating && (
-                           <div className="lg:col-span-2 flex flex-col items-center lg:items-end justify-center bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg p-4">
-                             <div className="text-center lg:text-right">
-                               <div className="text-3xl font-bold text-primary mb-2">{restaurant.rating.toFixed(1)}</div>
-                               <div className="flex items-center justify-center lg:justify-end mb-1">
-                                 {[...Array(10)].map((_, index) => {
-                                   const starValue = index + 1;
-                                   const isFilled = starValue <= restaurant.rating;
-                                   return (
-                                     <Star
-                                       key={index}
-                                       className={`h-3 w-3 ${
-                                         isFilled
-                                           ? 'fill-yellow-400 text-yellow-400'
-                                           : 'fill-gray-200 text-gray-200'
-                                       }`}
-                                     />
-                                   );
-                                 })}
-                               </div>
-                               <div className="text-xs text-muted-foreground">out of 10</div>
-                             </div>
-                           </div>
-                         )}
+                          {/* Right: Rating and Actions */}
+                          <div className="lg:col-span-2 flex flex-col lg:flex-row gap-4">
+                            {/* Rating */}
+                            {restaurant.rating && (
+                              <div className="flex-1 flex flex-col items-center lg:items-end justify-center bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg p-4">
+                                <div className="text-center lg:text-right">
+                                  <div className="text-3xl font-bold text-primary mb-2">{restaurant.rating.toFixed(1)}</div>
+                                  <div className="flex items-center justify-center lg:justify-end mb-1">
+                                    {[...Array(10)].map((_, index) => {
+                                      const starValue = index + 1;
+                                      const isFilled = starValue <= restaurant.rating;
+                                      return (
+                                        <Star
+                                          key={index}
+                                          className={`h-3 w-3 ${
+                                            isFilled
+                                              ? 'fill-yellow-400 text-yellow-400'
+                                              : 'fill-gray-200 text-gray-200'
+                                          }`}
+                                        />
+                                      );
+                                    })}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">out of 10</div>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Add to Wishlist Button */}
+                            <div className="flex items-center justify-center lg:justify-end">
+                              <Button
+                                variant="outline"
+                                size="lg"
+                                onClick={() => addToWishlist(restaurant)}
+                                className="flex items-center gap-2 h-16 px-6"
+                              >
+                                <Heart className="h-5 w-5" />
+                                <span className="hidden sm:inline">Add to Wishlist</span>
+                              </Button>
+                            </div>
+                          </div>
                        </div>
 
                        {restaurant.notes && (
