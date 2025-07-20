@@ -38,6 +38,8 @@ export default function FriendProfilePage() {
   const [wishlist, setWishlist] = useState<any[]>([]);
   const [stats, setStats] = useState<any>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMoreRestaurants, setIsLoadingMoreRestaurants] = useState(false);
+  const [isLoadingMoreWishlist, setIsLoadingMoreWishlist] = useState(false);
   const [displayedRestaurants, setDisplayedRestaurants] = useState(10);
   const [displayedWishlist, setDisplayedWishlist] = useState(10);
 
@@ -59,56 +61,98 @@ export default function FriendProfilePage() {
     try {
       console.log('Loading friend profile data for:', friendData.id);
       
-      // Use the new ultra-fast cached profile system
-      const { data: result, error } = await supabase.functions.invoke('friend-profile-cache', {
-        body: {
-          action: 'get_profile',
-          user_id: friendData.id
-        }
-      });
+      // Use the fast direct database function with a limit of 10 restaurants
+      const { data: result, error } = await supabase
+        .rpc('get_friend_profile_data', { 
+          target_user_id: friendData.id,
+          requesting_user_id: user?.id,
+          restaurant_limit: 10 // Only load first 10 restaurants for quick loading
+        })
+        .single();
 
-      if (error || !result?.profile) {
-        console.error('Error fetching cached profile:', error);
+      if (error || !result) {
+        console.error('Error fetching friend profile:', error);
         setIsLoading(false);
         return;
       }
 
-      const profileData = result.profile;
-      console.log(`Profile loaded in ${result.load_time_ms}ms (${result.cache_status})`);
-
-      if (profileData.error) {
-        console.log('Cannot view this friend\'s profile:', profileData.error);
+      if (!result.can_view) {
+        console.log('Cannot view this friend\'s profile');
         setIsLoading(false);
         return;
       }
 
-      // Extract data from the cached profile
-      const restaurants = profileData.restaurants || [];
-      const wishlist = profileData.wishlist || [];
-      const stats = profileData.stats || {};
-      const recentActivity = profileData.recent_activity || [];
-
-      setRestaurants(restaurants);
-      setWishlist(wishlist);
-      
-      // Use the pre-computed stats and enhanced data
+      // Set basic profile info and stats immediately
       setStats({
-        averageRating: parseFloat(String(stats.avg_rating)) || 0,
-        totalRated: stats.total_rated || 0,
-        totalWishlist: stats.total_wishlist || 0,
-        topCuisines: stats.top_cuisines || [],
-        ratingDistribution: stats.rating_distribution || {},
-        michelinCount: stats.michelin_count || 0,
-        recentActivity: recentActivity.slice(0, 10) // Show top 10 recent
+        averageRating: parseFloat(String(result.avg_rating)) || 0,
+        totalRated: result.rated_count || 0,
+        totalWishlist: result.wishlist_count || 0,
+        topCuisines: [], // Will load separately if needed
+        ratingDistribution: {}, // Will calculate from loaded restaurants
+        michelinCount: result.michelin_count || 0,
+        recentActivity: result.recent_restaurants || []
       });
+
+      // Load first 10 restaurants and wishlist items separately for immediate display
+      const [restaurantsData, wishlistData] = await Promise.all([
+        fetchFriendRestaurants(friendData.id, false, 10),
+        fetchFriendRestaurants(friendData.id, true, 10)
+      ]);
+
+      setRestaurants(restaurantsData);
+      setWishlist(wishlistData);
       
-      // Reset pagination when loading new data
+      // Reset pagination
       setDisplayedRestaurants(10);
       setDisplayedWishlist(10);
+
+      console.log('Profile loaded quickly with initial data');
     } catch (error) {
       console.error('Error loading friend data:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadMoreRestaurants = async () => {
+    if (!friend || isLoadingMoreRestaurants) return;
+    
+    setIsLoadingMoreRestaurants(true);
+    try {
+      // Fetch the next batch of restaurants
+      const newRestaurants = await fetchFriendRestaurants(
+        friend.id, 
+        false, 
+        displayedRestaurants + 10
+      );
+      
+      setRestaurants(newRestaurants);
+      setDisplayedRestaurants(prev => prev + 10);
+    } catch (error) {
+      console.error('Error loading more restaurants:', error);
+    } finally {
+      setIsLoadingMoreRestaurants(false);
+    }
+  };
+
+  const loadMoreWishlist = async () => {
+    if (!friend || isLoadingMoreWishlist) return;
+    
+    setIsLoadingMoreWishlist(true);
+    try {
+      // Fetch the next batch of wishlist items
+      const newWishlist = await fetchFriendRestaurants(
+        friend.id, 
+        true, 
+        displayedWishlist + 10
+      );
+      
+      setWishlist(newWishlist);
+      setDisplayedWishlist(prev => prev + 10);
+    } catch (error) {
+      console.error('Error loading more wishlist items:', error);
+    } finally {
+      setIsLoadingMoreWishlist(false);
     }
   };
 
@@ -379,14 +423,22 @@ export default function FriendProfilePage() {
                     </CardContent>
                   </Card>
                 ))}
-                {restaurants && displayedRestaurants < restaurants.length && (
+                {restaurants && displayedRestaurants < stats.totalRated && (
                   <div className="text-center mt-6">
                     <Button 
                       variant="outline" 
-                      onClick={() => setDisplayedRestaurants(prev => prev + 10)}
+                      onClick={loadMoreRestaurants}
+                      disabled={isLoadingMoreRestaurants}
                       className="flex items-center gap-2"
                     >
-                      Load More ({restaurants.length - displayedRestaurants} remaining)
+                      {isLoadingMoreRestaurants ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                          Loading...
+                        </>
+                      ) : (
+                        `Load More (${Math.max(0, stats.totalRated - displayedRestaurants)} remaining)`
+                      )}
                     </Button>
                   </div>
                 )}
@@ -435,14 +487,22 @@ export default function FriendProfilePage() {
                     </CardContent>
                   </Card>
                 ))}
-                {wishlist && displayedWishlist < wishlist.length && (
+                {wishlist && displayedWishlist < stats.totalWishlist && (
                   <div className="text-center mt-6">
                     <Button 
                       variant="outline" 
-                      onClick={() => setDisplayedWishlist(prev => prev + 10)}
+                      onClick={loadMoreWishlist}
+                      disabled={isLoadingMoreWishlist}
                       className="flex items-center gap-2"
                     >
-                      Load More ({wishlist.length - displayedWishlist} remaining)
+                      {isLoadingMoreWishlist ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                          Loading...
+                        </>
+                      ) : (
+                        `Load More (${Math.max(0, stats.totalWishlist - displayedWishlist)} remaining)`
+                      )}
                     </Button>
                   </div>
                 )}
