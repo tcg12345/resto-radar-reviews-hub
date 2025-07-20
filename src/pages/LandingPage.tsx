@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Star, MapPin, Heart, Users, TrendingUp, Award, ChefHat, Utensils, Moon, Sun } from 'lucide-react';
+import { Star, MapPin, Heart, Users, TrendingUp, Award, ChefHat, Utensils, Moon, Sun, Bot, Mic, Search, Calendar, Camera, Globe } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@/hooks/useTheme';
 import { GrubbyLogo } from '@/components/GrubbyLogo';
@@ -10,48 +10,75 @@ import heroImage from '@/assets/hero-restaurant.jpg';
 
 const features = [
   {
+    icon: Bot,
+    title: 'AI-Powered Discovery',
+    description: 'Smart search with natural language queries and personalized recommendations based on your preferences.',
+    color: 'text-purple-500',
+    gradient: 'from-purple-500 to-purple-600'
+  },
+  {
     icon: Star,
     title: 'Rate & Review',
-    description: 'Keep track of your dining experiences with detailed ratings and personal notes.',
-    color: 'text-yellow-500'
+    description: 'Track your dining experiences with detailed ratings, photos, and personal notes.',
+    color: 'text-yellow-500',
+    gradient: 'from-yellow-500 to-yellow-600'
   },
   {
     icon: MapPin,
-    title: 'Interactive Map',
-    description: 'Visualize all your restaurants on a beautiful map with location details.',
-    color: 'text-blue-500'
+    title: 'Interactive Maps',
+    description: 'Visualize restaurants on beautiful maps with real-time location data and directions.',
+    color: 'text-blue-500',
+    gradient: 'from-blue-500 to-blue-600'
   },
   {
     icon: Heart,
-    title: 'Wishlist',
-    description: 'Save restaurants you want to try and never forget about that perfect spot.',
-    color: 'text-red-500'
+    title: 'Smart Wishlist',
+    description: 'Save restaurants you want to try with AI-powered suggestions and instant wishlist management.',
+    color: 'text-red-500',
+    gradient: 'from-red-500 to-red-600'
+  },
+  {
+    icon: Users,
+    title: 'Friends & Social',
+    description: 'Connect with friends, share your culinary discoveries, and see their recommendations.',
+    color: 'text-indigo-500',
+    gradient: 'from-indigo-500 to-indigo-600'
   },
   {
     icon: Award,
     title: 'Michelin Tracking',
-    description: 'Track Michelin-starred restaurants and build your fine dining collection.',
-    color: 'text-purple-500'
+    description: 'Track Michelin-starred restaurants with AI-powered star detection and fine dining collection.',
+    color: 'text-purple-500',
+    gradient: 'from-purple-500 to-purple-600'
   },
   {
-    icon: TrendingUp,
-    title: 'Smart Filters',
-    description: 'Find restaurants by cuisine, price range, rating, and more with advanced filtering.',
-    color: 'text-green-500'
+    icon: Mic,
+    title: 'Voice Assistant',
+    description: 'Use voice commands to search, add restaurants, and get recommendations hands-free.',
+    color: 'text-green-500',
+    gradient: 'from-green-500 to-green-600'
   },
   {
-    icon: Users,
-    title: 'Personal Collection',
-    description: 'Build your personal restaurant portfolio and track your culinary journey.',
-    color: 'text-indigo-500'
+    icon: Calendar,
+    title: 'Reservations',
+    description: 'Book tables directly through the app with integrated reservation management.',
+    color: 'text-orange-500',
+    gradient: 'from-orange-500 to-orange-600'
+  },
+  {
+    icon: Camera,
+    title: 'Photo Gallery',
+    description: 'Capture and organize photos of your meals with automatic gallery creation.',
+    color: 'text-pink-500',
+    gradient: 'from-pink-500 to-pink-600'
   }
 ];
 
 const stats = [
-  { label: 'Restaurants Tracked', value: '1,000+', icon: Utensils },
-  { label: 'Active Users', value: '50+', icon: Users },
-  { label: 'Cities Covered', value: '100+', icon: MapPin },
-  { label: 'Reviews Written', value: '5,000+', icon: Star }
+  { label: 'AI-Powered Features', value: '10+', icon: Bot },
+  { label: 'Restaurant Discovery', value: 'Smart', icon: Search },
+  { label: 'Global Coverage', value: 'Worldwide', icon: Globe },
+  { label: 'User Experience', value: '5-Star', icon: Star }
 ];
 
 export default function LandingPage() {
@@ -110,25 +137,25 @@ export default function LandingPage() {
             <div className="space-y-8">
               <div className="space-y-4">
                 <Badge variant="secondary" className="text-sm">
-                  ✨ Your Personal Restaurant Companion
+                  ✨ AI-Powered Restaurant Discovery Platform
                 </Badge>
                 <h1 className="text-4xl md:text-6xl font-bold leading-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-                  Track, Rate & 
-                  <span className="bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent"> Discover</span>
+                  Discover, Rate & 
+                  <span className="bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent"> Connect</span>
                   <br />
-                  Amazing Restaurants
+                  Your Culinary World
                 </h1>
                 <p className="text-xl text-muted-foreground max-w-lg">
-                  Build your personal restaurant collection, track your dining experiences, and never forget a great meal again.
+                  The ultimate restaurant discovery platform powered by AI. Find perfect dining spots, connect with friends, and never forget a great meal again.
                 </p>
               </div>
               
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" onClick={handleGetStarted} className="text-lg px-8">
-                  Start Your Journey
+                <Button size="lg" onClick={handleGetStarted} className="text-lg px-8 bg-gradient-to-r from-primary to-primary-glow hover:opacity-90">
+                  Start Discovering Now
                 </Button>
                 <Button variant="outline" size="lg" className="text-lg px-8" onClick={handleViewDemo}>
-                  View Demo
+                  Try Live Demo
                 </Button>
               </div>
 
@@ -183,13 +210,13 @@ export default function LandingPage() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <Badge variant="outline" className="mb-4">
-              Features
+              Powerful Features
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-              Everything You Need to Track Your Dining
+              Everything You Need for Restaurant Discovery
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              From casual dining to Michelin-starred experiences, organize and remember every meal with powerful tools designed for food lovers.
+              From AI-powered search to social sharing, experience the future of restaurant discovery with cutting-edge features designed for food enthusiasts.
             </p>
           </div>
 
@@ -197,22 +224,83 @@ export default function LandingPage() {
             {features.map((feature, index) => (
               <Card 
                 key={index} 
-                className={`relative overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer border-2 ${
-                  activeFeature === index ? 'border-primary shadow-lg' : 'border-transparent'
-                }`}
+                className={`relative overflow-hidden transition-all duration-300 hover:shadow-xl cursor-pointer border group hover:-translate-y-1`}
                 onMouseEnter={() => setActiveFeature(index)}
               >
-                <CardHeader>
-                  <div className={`w-12 h-12 rounded-lg bg-muted flex items-center justify-center mb-4 ${feature.color}`}>
-                    <feature.icon className="h-6 w-6" />
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <CardHeader className="relative z-10">
+                  <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-4 text-white shadow-lg`}>
+                    <feature.icon className="h-7 w-7" />
                   </div>
-                  <CardTitle className="text-xl">{feature.title}</CardTitle>
-                  <CardDescription className="text-base">
+                  <CardTitle className="text-xl group-hover:text-primary transition-colors">{feature.title}</CardTitle>
+                  <CardDescription className="text-base leading-relaxed">
                     {feature.description}
                   </CardDescription>
                 </CardHeader>
               </Card>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* AI Features Highlight */}
+      <section className="py-24 bg-gradient-to-br from-primary/10 via-transparent to-secondary/10">
+        <div className="container mx-auto px-4">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6">
+              <Badge variant="secondary" className="bg-primary/10 text-primary">
+                🤖 AI-Powered Intelligence
+              </Badge>
+              <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+                Smart Discovery Made Simple
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                Our advanced AI understands your preferences and helps you discover restaurants you'll love. From natural language search to personalized recommendations, everything is powered by intelligent algorithms.
+              </p>
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                    <Bot className="h-4 w-4 text-green-600" />
+                  </div>
+                  <span className="text-base">Natural language restaurant search</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                    <TrendingUp className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <span className="text-base">Personalized recommendations based on your tastes</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
+                    <Mic className="h-4 w-4 text-purple-600" />
+                  </div>
+                  <span className="text-base">Voice-activated restaurant assistant</span>
+                </div>
+              </div>
+            </div>
+            <div className="relative">
+              <div className="bg-card border rounded-2xl p-8 shadow-2xl">
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center">
+                      <Bot className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="font-semibold">AI Assistant</div>
+                      <div className="text-sm text-muted-foreground">Ready to help</div>
+                    </div>
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-4">
+                    <div className="text-sm text-muted-foreground mb-2">You:</div>
+                    <div className="text-base">"Find me a cozy Italian restaurant for date night"</div>
+                  </div>
+                  <div className="bg-primary/10 rounded-lg p-4">
+                    <div className="text-sm text-primary mb-2">AI Assistant:</div>
+                    <div className="text-base">I found 3 perfect Italian restaurants for your romantic evening! Here are my top picks based on ambiance and cuisine quality...</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -235,22 +323,33 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-r from-primary to-primary/80">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 bg-gradient-to-r from-white to-gray-100 bg-clip-text text-transparent">
-            Ready to Start Your Culinary Journey?
+      <section className="py-24 bg-gradient-to-r from-primary via-primary to-primary-glow relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary-glow/90" />
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            Ready to Transform Your Dining Experience?
           </h2>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Join thousands of food lovers who are already tracking their favorite restaurants and discovering new culinary adventures.
+            Join the future of restaurant discovery with AI-powered search, personalized recommendations, and a vibrant community of food lovers.
           </p>
-          <Button 
-            size="lg" 
-            variant="secondary" 
-            className="text-lg px-8 py-6"
-            onClick={handleGetStarted}
-          >
-            Get Started Free
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button 
+              size="lg" 
+              variant="secondary" 
+              className="text-lg px-8 py-6 bg-white text-primary hover:bg-white/90"
+              onClick={handleGetStarted}
+            >
+              Get Started Free
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="text-lg px-8 py-6 border-white text-white hover:bg-white/10"
+              onClick={handleViewDemo}
+            >
+              Watch Demo
+            </Button>
+          </div>
         </div>
       </section>
 
@@ -262,7 +361,7 @@ export default function LandingPage() {
               <GrubbyLogo size="sm" />
             </div>
             <div className="text-muted-foreground text-sm">
-              © 2024 Grubby. Track your culinary journey.
+              © 2024 Grubby. Discover your culinary world with AI.
             </div>
           </div>
         </div>
