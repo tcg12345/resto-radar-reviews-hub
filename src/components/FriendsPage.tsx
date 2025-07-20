@@ -382,7 +382,7 @@ export function FriendsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl mobile-container">
+    <div className="w-full px-4 py-8 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">
@@ -406,7 +406,7 @@ export function FriendsPage() {
       </div>
 
       <Tabs defaultValue="activity" className="w-full">
-        <TabsList className="grid w-full grid-cols-5 h-12">
+        <TabsList className="grid w-full grid-cols-5 h-12 mb-6">
           <TabsTrigger value="activity" className="flex flex-col sm:flex-row items-center gap-1 text-xs px-1">
             <Activity className="h-3 w-3 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline text-xs">Activity</span>
