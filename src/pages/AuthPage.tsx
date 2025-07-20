@@ -541,7 +541,7 @@ export default function AuthPage() {
                   
                   <div className="relative">
                     <Separator />
-                    <span className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
+                    <span className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-background via-card to-background px-4 py-1 text-xs font-medium text-primary/80 border border-border/30 rounded-full shadow-sm">
                       Already have an account?
                     </span>
                   </div>
