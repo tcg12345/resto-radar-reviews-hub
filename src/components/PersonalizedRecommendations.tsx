@@ -188,9 +188,20 @@ export function PersonalizedRecommendations() {
         <CardContent className="p-6 text-center">
           <Lightbulb className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
           <h3 className="text-lg font-semibold mb-2">Rate Restaurants to Get Recommendations</h3>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mb-4">
             Start rating restaurants to receive personalized recommendations tailored to your taste!
           </p>
+          <Button 
+            onClick={() => {
+              loadUserPreferences();
+              if (userPreferences) {
+                generateRecommendations();
+              }
+            }}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Checking for recommendations...' : 'Check for Recommendations'}
+          </Button>
         </CardContent>
       </Card>
     );
@@ -281,9 +292,16 @@ export function PersonalizedRecommendations() {
             </div>
           ) : (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground mb-4">
                 No recommendations found. Try rating more restaurants or expand your search area.
               </p>
+              <Button 
+                onClick={generateRecommendations} 
+                disabled={isLoading}
+                variant="outline"
+              >
+                {isLoading ? 'Finding recommendations...' : 'Try Again'}
+              </Button>
             </div>
           )}
         </CardContent>
