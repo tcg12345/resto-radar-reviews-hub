@@ -183,7 +183,7 @@ export function RestaurantProfileModal({
         cuisine: aiCuisine || place.types.filter(type => !['establishment', 'point_of_interest', 'food'].includes(type))[0] || 'restaurant',
         rating: null,
         website: place.website || null,
-        opening_hours: place.opening_hours?.weekday_text?.join('\n') || null,
+        opening_hours: null,
         price_range: place.price_level || null,
         latitude: place.geometry.location.lat,
         longitude: place.geometry.location.lng,
