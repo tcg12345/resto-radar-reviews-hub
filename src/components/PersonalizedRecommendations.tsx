@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Star, MapPin, Lightbulb } from 'lucide-react';
+import { Star, MapPin, Lightbulb, Heart, Clock, Globe, Phone, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Restaurant } from '@/types/restaurant';
@@ -17,6 +17,8 @@ interface AIRecommendation extends GooglePlaceResult {
   match_factors?: string[];
   website?: string;
   google_maps_url?: string;
+  price_range?: number;
+  formatted_phone_number?: string;
 }
 
 interface GooglePlaceResult {
@@ -261,104 +263,122 @@ export function PersonalizedRecommendations() {
           {!isLoading && recommendations.length > 0 && (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {recommendations.map((place) => (
-                <Card key={place.place_id} className="cursor-pointer hover:shadow-lg transition-shadow">
+                <Card key={place.place_id} className="bg-gray-900 border-gray-800 text-white hover:shadow-xl transition-shadow cursor-pointer">
                   <CardContent className="p-4">
-                    {place.photos && place.photos[0] && place.photos[0].photo_reference && (
-                      <div className="mb-3 aspect-video bg-muted rounded-lg overflow-hidden">
-                        <img 
-                          src={getPhotoUrl(place.photos[0].photo_reference)}
-                          alt={place.name}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            // Hide image container if it fails to load
-                            const container = e.currentTarget.parentElement;
-                            if (container) container.style.display = 'none';
-                          }}
-                        />
-                      </div>
-                    )}
-                    
-                    <div className="space-y-3">
-                      <div>
-                        <h3 className="font-semibold text-sm mb-1 line-clamp-1">{place.name}</h3>
+                    {/* Header with restaurant name and heart icon */}
+                    <div className="flex items-start justify-between mb-3">
+                      <h3 className="text-lg font-semibold text-white line-clamp-2 flex-1 mr-2">
+                        {place.name}
+                      </h3>
+                      <Heart className="h-5 w-5 text-gray-400 hover:text-red-500 transition-colors cursor-pointer flex-shrink-0" />
+                    </div>
+
+                    {/* AI Reasoning */}
+                    {place.ai_reasoning && (
+                      <div className="bg-blue-900/30 border border-blue-800/50 p-3 rounded-lg mb-3">
+                        <p className="text-blue-200 text-sm">
+                          💡 {place.ai_reasoning}
+                        </p>
                         {place.confidence_score && (
-                          <div className="flex items-center gap-1 mb-2">
+                          <div className="flex items-center gap-1 mt-1">
                             <div className={`w-2 h-2 rounded-full ${
                               place.confidence_score >= 8 ? 'bg-green-500' : 
                               place.confidence_score >= 6 ? 'bg-yellow-500' : 'bg-orange-500'
                             }`} />
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-xs text-blue-300">
                               {place.confidence_score}/10 match
                             </span>
                           </div>
                         )}
                       </div>
+                    )}
 
-                      {place.ai_reasoning && (
-                        <div className="bg-blue-50 dark:bg-blue-950/30 p-2 rounded text-xs">
-                          <p className="text-blue-700 dark:text-blue-300 line-clamp-2">
-                            💡 {place.ai_reasoning}
-                          </p>
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center gap-2 mb-2">
-                        <MapPin className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                        <span className="text-xs text-muted-foreground line-clamp-1">
-                          {formatAddress(place.formatted_address)}
-                        </span>
-                      </div>
-
-                      {place.rating && (
-                        <div className="flex items-center gap-2">
-                          <Star className="h-3 w-3 text-yellow-500 fill-current" />
-                          <span className="text-sm font-medium">{place.rating}</span>
-                          {place.user_ratings_total && (
-                            <span className="text-xs text-muted-foreground">
-                              ({place.user_ratings_total})
-                            </span>
-                          )}
-                        </div>
-                      )}
-
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className="text-xs">
-                            {getPriceDisplay(place.price_level)}
-                          </Badge>
-                          
-                          {/* Website and Directions Buttons */}
-                          <div className="flex gap-1">
-                            {place.website && (
-                              <a 
-                                href={place.website} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors hover-scale"
-                              >
-                                Website
-                              </a>
-                            )}
-                            <a 
-                              href={place.google_maps_url || `https://www.google.com/maps/place/?q=place_id:${place.place_id}`}
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors hover-scale"
-                            >
-                              Directions
-                            </a>
-                          </div>
-                        </div>
-                        
-                        {place.opening_hours?.open_now !== undefined && (
-                          <Badge 
-                            variant={place.opening_hours.open_now ? "default" : "destructive"}
-                            className="text-xs"
-                          >
-                            {place.opening_hours.open_now ? "Open" : "Closed"}
-                          </Badge>
+                    {/* Rating */}
+                    {place.rating && (
+                      <div className="flex items-center gap-2 mb-3">
+                        <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                        <span className="text-lg font-semibold text-white">{place.rating}</span>
+                        {place.user_ratings_total && (
+                          <span className="text-gray-400 text-sm">
+                            ({place.user_ratings_total})
+                          </span>
                         )}
                       </div>
+                    )}
+
+                    {/* Price Range */}
+                    <div className="mb-3">
+                      <span className="text-green-400 font-semibold text-lg">
+                        {getPriceDisplay(place.price_range || place.price_level)}
+                      </span>
+                    </div>
+
+                    {/* Opening Hours */}
+                    {place.opening_hours?.open_now !== undefined && (
+                      <div className="flex items-center gap-2 mb-3">
+                        <Clock className="h-4 w-4 text-gray-400" />
+                        <span className="text-gray-300 text-sm">
+                          Today: {place.opening_hours.open_now ? 'Open' : 'Closed'}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Website */}
+                    {place.website && (
+                      <div className="flex items-center gap-2 mb-3">
+                        <Globe className="h-4 w-4 text-gray-400" />
+                        <a 
+                          href={place.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-400 hover:text-blue-300 text-sm underline truncate"
+                        >
+                          {place.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                        </a>
+                      </div>
+                    )}
+
+                    {/* Address */}
+                    <div className="flex items-center gap-2 mb-4">
+                      <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                      <span className="text-gray-300 text-sm line-clamp-1">
+                        {formatAddress(place.formatted_address)}
+                      </span>
+                    </div>
+
+                    {/* Cuisine Badge */}
+                    {place.types && place.types.find(type => type !== 'restaurant' && type !== 'food' && type !== 'establishment') && (
+                      <div className="mb-4">
+                        <Badge variant="outline" className="border-gray-600 text-gray-300 bg-gray-800">
+                          {place.types.find(type => type !== 'restaurant' && type !== 'food' && type !== 'establishment')?.replace(/_/g, ' ')}
+                        </Badge>
+                      </div>
+                    )}
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-800"
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        Details
+                      </Button>
+                      <a 
+                        href={`tel:${place.formatted_phone_number || ''}`}
+                        className="flex items-center justify-center px-3 py-2 border border-gray-600 rounded-md hover:bg-gray-800 transition-colors"
+                      >
+                        <Phone className="h-4 w-4 text-gray-300" />
+                      </a>
+                      <a 
+                        href={place.google_maps_url || `https://www.google.com/maps/place/?q=place_id:${place.place_id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center px-3 py-2 border border-gray-600 rounded-md hover:bg-gray-800 transition-colors"
+                      >
+                        <Globe className="h-4 w-4 text-gray-300" />
+                      </a>
                     </div>
                   </CardContent>
                 </Card>
