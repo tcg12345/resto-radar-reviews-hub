@@ -109,14 +109,38 @@ export default function AuthPage() {
       
       if (error) throw error;
       
-      toast.success('Account created! Please check your email to verify your account.');
+      // Check if the user was actually created or if it already exists
+      if (data.user && !data.user.email_confirmed_at && data.user.created_at) {
+        // Check if this is a brand new user (created just now) vs existing user
+        const createdTime = new Date(data.user.created_at).getTime();
+        const now = Date.now();
+        const timeDiff = now - createdTime;
+        
+        if (timeDiff < 5000) { // Created within last 5 seconds
+          toast.success('Account created! Please check your email to verify your account.');
+        } else {
+          // User already exists but tried to sign up again
+          toast.error('This email is already registered. Please sign in instead or check your email for the verification link.');
+        }
+      } else if (data.user && data.user.email_confirmed_at) {
+        // User already exists and is confirmed
+        toast.error('This email is already registered and verified. Please sign in instead.');
+      } else if (!data.user) {
+        // No user returned - likely means existing unconfirmed user
+        toast.error('This email is already registered. Please check your email for the verification link or sign in.');
+      } else {
+        // Default success case
+        toast.success('Account created! Please check your email to verify your account.');
+      }
     } catch (error: any) {
       console.error('Error signing up:', error);
       
-      if (error.message.includes('User already registered')) {
+      if (error.message.includes('User already registered') || error.message.includes('already been registered')) {
         toast.error('This email is already registered. Please sign in instead.');
-      } else if (error.message.includes('Username')) {
+      } else if (error.message.includes('Username') || error.message.includes('username')) {
         toast.error('Username already taken. Please choose a different username.');
+      } else if (error.message.includes('duplicate') || error.message.includes('unique')) {
+        toast.error('This email or username is already taken. Please try different credentials.');
       } else {
         toast.error(error.message || 'Error creating account');
       }
