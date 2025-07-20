@@ -35,13 +35,16 @@ export default function FriendProfilePage() {
   
   const [friend, setFriend] = useState<any>(null);
   const [restaurants, setRestaurants] = useState<any[]>([]);
+  const [allRestaurants, setAllRestaurants] = useState<any[]>([]); // Cache all restaurants
   const [wishlist, setWishlist] = useState<any[]>([]);
+  const [allWishlist, setAllWishlist] = useState<any[]>([]); // Cache all wishlist items
   const [stats, setStats] = useState<any>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMoreRestaurants, setIsLoadingMoreRestaurants] = useState(false);
   const [isLoadingMoreWishlist, setIsLoadingMoreWishlist] = useState(false);
   const [displayedRestaurants, setDisplayedRestaurants] = useState(10);
   const [displayedWishlist, setDisplayedWishlist] = useState(10);
+  const [backgroundLoadingComplete, setBackgroundLoadingComplete] = useState(false);
 
   useEffect(() => {
     if (friendId && friends.length > 0) {
@@ -61,12 +64,12 @@ export default function FriendProfilePage() {
     try {
       console.log('Loading friend profile data for:', friendData.id);
       
-      // Use the fast direct database function with a limit of 10 restaurants
+      // PHASE 1: Super fast initial load with basic stats and first 10 restaurants
       const { data: result, error } = await supabase
         .rpc('get_friend_profile_data', { 
           target_user_id: friendData.id,
           requesting_user_id: user?.id,
-          restaurant_limit: 10 // Only load first 10 restaurants for quick loading
+          restaurant_limit: 10 // Only first 10 for instant display
         })
         .single();
 
@@ -82,44 +85,99 @@ export default function FriendProfilePage() {
         return;
       }
 
-      // Set basic profile info and stats immediately
+      // Set stats immediately from the database function result
       setStats({
         averageRating: parseFloat(String(result.avg_rating)) || 0,
         totalRated: result.rated_count || 0,
         totalWishlist: result.wishlist_count || 0,
-        topCuisines: [], // Will load separately if needed
-        ratingDistribution: {}, // Will calculate from loaded restaurants
+        topCuisines: [],
+        ratingDistribution: {},
         michelinCount: result.michelin_count || 0,
-        recentActivity: result.recent_restaurants || []
+        recentActivity: Array.isArray(result.recent_restaurants) ? result.recent_restaurants : []
       });
 
-      // Load first 10 restaurants and wishlist items separately for immediate display
-      const [restaurantsData, wishlistData] = await Promise.all([
-        fetchFriendRestaurants(friendData.id, false, 10),
-        fetchFriendRestaurants(friendData.id, true, 10)
-      ]);
+      // Display first 10 restaurants immediately from the function result
+      const initialRestaurants = Array.isArray(result.recent_restaurants) ? result.recent_restaurants : [];
+      setRestaurants(initialRestaurants);
+      setAllRestaurants(initialRestaurants);
 
-      setRestaurants(restaurantsData);
-      setWishlist(wishlistData);
-      
       // Reset pagination
-      setDisplayedRestaurants(10);
+      setDisplayedRestaurants(Math.min(10, initialRestaurants.length));
       setDisplayedWishlist(10);
 
-      console.log('Profile loaded quickly with initial data');
+      console.log('Initial profile data loaded instantly');
+      setIsLoading(false); // Mark initial load as complete
+
+      // PHASE 2: Background loading of remaining data
+      loadRemainingDataInBackground(friendData.id);
+
     } catch (error) {
       console.error('Error loading friend data:', error);
-    } finally {
       setIsLoading(false);
     }
   };
 
-  const loadMoreRestaurants = async () => {
-    if (!friend || isLoadingMoreRestaurants) return;
+  // Background loading function - runs after initial display
+  const loadRemainingDataInBackground = async (friendId: string) => {
+    try {
+      console.log('Starting background load of remaining restaurants...');
+      
+      // Load all restaurants and wishlist in background
+      const [allRestaurantsData, allWishlistData] = await Promise.all([
+        fetchFriendRestaurants(friendId, false), // Get ALL restaurants
+        fetchFriendRestaurants(friendId, true)   // Get ALL wishlist
+      ]);
+
+      // Update caches with complete data
+      setAllRestaurants(allRestaurantsData);
+      setAllWishlist(allWishlistData);
+      setWishlist(allWishlistData.slice(0, 10)); // Show first 10 wishlist items
+      
+      // Update stats with complete data
+      const ratingDistribution = calculateRatingDistribution(allRestaurantsData);
+      const topCuisines = calculateTopCuisines(allRestaurantsData);
+      
+      setStats(prev => ({
+        ...prev,
+        ratingDistribution,
+        topCuisines
+      }));
+      
+      setBackgroundLoadingComplete(true);
+      console.log('Background loading complete - all data cached');
+    } catch (error) {
+      console.error('Error in background loading:', error);
+    }
+  };
+
+  const calculateTopCuisines = (restaurantData: any[]) => {
+    const cuisineCount: { [key: string]: number } = {};
+    restaurantData.forEach(r => {
+      if (r.cuisine) {
+        cuisineCount[r.cuisine] = (cuisineCount[r.cuisine] || 0) + 1;
+      }
+    });
     
+    return Object.entries(cuisineCount)
+      .map(([cuisine, count]) => ({ cuisine, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+  };
+
+  const loadMoreRestaurants = async () => {
+    if (!friend) return;
+    
+    // If background loading is complete, show pre-loaded data instantly
+    if (backgroundLoadingComplete) {
+      const newDisplayCount = Math.min(displayedRestaurants + 10, allRestaurants.length);
+      setRestaurants(allRestaurants.slice(0, newDisplayCount));
+      setDisplayedRestaurants(newDisplayCount);
+      return;
+    }
+    
+    // Fallback: load more if background loading isn't complete yet
     setIsLoadingMoreRestaurants(true);
     try {
-      // Fetch the next batch of restaurants
       const newRestaurants = await fetchFriendRestaurants(
         friend.id, 
         false, 
@@ -136,11 +194,19 @@ export default function FriendProfilePage() {
   };
 
   const loadMoreWishlist = async () => {
-    if (!friend || isLoadingMoreWishlist) return;
+    if (!friend) return;
     
+    // If background loading is complete, show pre-loaded data instantly
+    if (backgroundLoadingComplete) {
+      const newDisplayCount = Math.min(displayedWishlist + 10, allWishlist.length);
+      setWishlist(allWishlist.slice(0, newDisplayCount));
+      setDisplayedWishlist(newDisplayCount);
+      return;
+    }
+    
+    // Fallback: load more if background loading isn't complete yet
     setIsLoadingMoreWishlist(true);
     try {
-      // Fetch the next batch of wishlist items
       const newWishlist = await fetchFriendRestaurants(
         friend.id, 
         true, 
@@ -423,7 +489,7 @@ export default function FriendProfilePage() {
                     </CardContent>
                   </Card>
                 ))}
-                {restaurants && displayedRestaurants < stats.totalRated && (
+                {displayedRestaurants < allRestaurants.length && (
                   <div className="text-center mt-6">
                     <Button 
                       variant="outline" 
@@ -437,7 +503,10 @@ export default function FriendProfilePage() {
                           Loading...
                         </>
                       ) : (
-                        `Load More (${Math.max(0, stats.totalRated - displayedRestaurants)} remaining)`
+                        <>
+                          Load More ({allRestaurants.length - displayedRestaurants} remaining)
+                          {backgroundLoadingComplete && <span className="text-green-500 ml-1">✓</span>}
+                        </>
                       )}
                     </Button>
                   </div>
@@ -487,7 +556,7 @@ export default function FriendProfilePage() {
                     </CardContent>
                   </Card>
                 ))}
-                {wishlist && displayedWishlist < stats.totalWishlist && (
+                {displayedWishlist < allWishlist.length && (
                   <div className="text-center mt-6">
                     <Button 
                       variant="outline" 
@@ -501,7 +570,10 @@ export default function FriendProfilePage() {
                           Loading...
                         </>
                       ) : (
-                        `Load More (${Math.max(0, stats.totalWishlist - displayedWishlist)} remaining)`
+                        <>
+                          Load More ({allWishlist.length - displayedWishlist} remaining)
+                          {backgroundLoadingComplete && <span className="text-green-500 ml-1">✓</span>}
+                        </>
                       )}
                     </Button>
                   </div>
