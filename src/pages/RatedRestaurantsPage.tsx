@@ -263,7 +263,7 @@ export function RatedRestaurantsPage({
   };
 
   return (
-    <div className="container py-6">
+    <div className="container py-6 mobile-container px-4 sm:px-6">
       <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Rated Restaurants</h2>
         <div className="flex gap-2">
@@ -292,14 +292,14 @@ export function RatedRestaurantsPage({
         <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:ml-auto">
           {/* Clear Filters Button */}
           {(filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0 || ratingRange[0] > 0 || ratingRange[1] < 10) && (
-            <Button variant="outline" size="sm" onClick={clearFilters}>
+            <Button variant="outline" size="sm" onClick={clearFilters} className="flex-shrink-0">
               <X className="mr-2 h-4 w-4" />
               Clear Filters
             </Button>
           )}
 
           {/* Cuisine Filter */}
-          <div className="w-[180px]">
+          <div className="flex-1 min-w-[140px] max-w-[180px]">
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-between">
@@ -336,7 +336,7 @@ export function RatedRestaurantsPage({
           </div>
 
           {/* Price Filter */}
-          <div className="w-[180px]">
+          <div className="flex-1 min-w-[140px] max-w-[180px]">
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-between">
@@ -373,7 +373,7 @@ export function RatedRestaurantsPage({
           </div>
 
           {/* Michelin Filter */}
-          <div className="w-[180px]">
+          <div className="flex-1 min-w-[140px] max-w-[180px]">
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-between">
@@ -410,7 +410,7 @@ export function RatedRestaurantsPage({
           </div>
 
           {/* Sort & Filter */}
-          <div className="w-[60px]">
+          <div className="flex-shrink-0 w-[60px]">
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-center p-2">

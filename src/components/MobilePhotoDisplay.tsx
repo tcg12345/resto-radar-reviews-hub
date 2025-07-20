@@ -30,7 +30,7 @@ export function MobilePhotoDisplay({ photos, restaurantName }: MobilePhotoDispla
 
       {/* Photo thumbnails */}
       {photos.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto pb-2">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
           {photos.map((photo, index) => (
             <button
               key={index}

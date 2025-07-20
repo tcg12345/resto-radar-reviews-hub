@@ -127,7 +127,7 @@ export function MobileRestaurantCard({
           )}
           
           {showActions && (
-            <div className="flex gap-2 mt-3 pt-3 border-t">
+            <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t">
               {onEdit && (
                 <Button
                   variant="outline"

@@ -267,7 +267,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-4 py-6 max-w-4xl">
+      <div className="container mx-auto px-4 py-6 max-w-4xl mobile-container">
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="profile" className="flex items-center gap-2">

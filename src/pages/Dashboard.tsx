@@ -81,7 +81,7 @@ export default function Dashboard() {
 
   if (isMobile) {
     return (
-      <div className="flex min-h-screen flex-col bg-background">
+      <div className="flex min-h-screen flex-col bg-background mobile-container no-horizontal-scroll">
         <MobileHeader 
           activeTab={activeTab} 
           onTabChange={setActiveTab}
@@ -89,7 +89,7 @@ export default function Dashboard() {
           showSettings={activeTab !== 'settings'}
         />
         
-        <main className="flex-1 pb-16">
+        <main className="flex-1 pb-16 mobile-container">
           {renderContent()}
         </main>
         

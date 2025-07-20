@@ -16,8 +16,8 @@ export function MobileNavbar({ activeTab, onTabChange }: MobileNavbarProps) {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border">
-      <div className="flex items-center justify-around px-2 py-2 safe-area-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border mobile-container">
+      <div className="flex items-center justify-around px-2 py-2 safe-area-bottom w-full max-w-full">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;

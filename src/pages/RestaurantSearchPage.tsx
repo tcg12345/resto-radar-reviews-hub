@@ -742,7 +742,7 @@ export default function RestaurantSearchPage() {
         }}
       />
       
-      <div className="container py-8 space-y-8">
+      <div className="container py-8 space-y-8 mobile-container px-4 sm:px-6">
         {/* Header */}
         <div className="text-center space-y-4">
           <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-primary via-primary to-primary/70 bg-clip-text text-transparent">
