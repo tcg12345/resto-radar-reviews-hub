@@ -95,6 +95,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       setProfile(null);
       
+      // Clear localStorage to prevent accumulation
+      const storageKey = `sb-ocpmhsquwsdaauflbygf-auth-token`;
+      localStorage.removeItem(storageKey);
+      
       // Then sign out from Supabase
       await supabase.auth.signOut();
     } catch (error) {
@@ -103,6 +107,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(null);
       setUser(null);
       setProfile(null);
+      
+      // Force clear localStorage if regular signOut fails
+      try {
+        localStorage.clear();
+      } catch (storageError) {
+        console.error('Error clearing localStorage:', storageError);
+      }
     }
   };
 
