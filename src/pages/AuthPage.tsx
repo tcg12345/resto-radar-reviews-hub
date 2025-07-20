@@ -86,28 +86,6 @@ export default function AuthPage() {
     try {
       setIsLoading(true);
       
-      // Check if user already exists by attempting to sign in with a dummy password
-      // This will tell us if the email is already registered
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password: 'dummy_password_to_check_existence'
-      });
-      
-      // If we get "Invalid login credentials" it could mean either:
-      // 1. User exists but wrong password (what we want to detect)
-      // 2. User doesn't exist
-      // But if we get "Email not confirmed" or "Too many requests", user definitely exists
-      if (signInError) {
-        if (signInError.message.includes('Email not confirmed') || 
-            signInError.message.includes('too_many_requests') ||
-            signInError.message.includes('For security purposes')) {
-          toast.error('An account already exists with this email. Please sign in instead.');
-          return;
-        }
-        // For "Invalid login credentials", we'll proceed with signup attempt
-        // as it's ambiguous whether user exists or not
-      }
-      
       // Generate redirect URL using the current origin
       const redirectUrl = `${window.location.origin}/`;
       
@@ -131,14 +109,26 @@ export default function AuthPage() {
       
       if (error) throw error;
       
-      // Additional check: if user exists but we got success, it's likely a repeated signup
+      console.log('Signup response data:', data);
+      
+      // Check if this is actually a new user or existing user
       if (data.user) {
         const userCreatedAt = new Date(data.user.created_at);
         const now = new Date();
         const timeDiffSeconds = (now.getTime() - userCreatedAt.getTime()) / 1000;
         
-        // If the user was created more than 30 seconds ago, it's likely an existing user
-        if (timeDiffSeconds > 30) {
+        console.log('User created at:', userCreatedAt);
+        console.log('Current time:', now);
+        console.log('Time difference (seconds):', timeDiffSeconds);
+        
+        // If the user was created more than 10 seconds ago, it's an existing user
+        if (timeDiffSeconds > 10) {
+          toast.error('An account already exists with this email. Please sign in instead.');
+          return;
+        }
+        
+        // Also check if user is already confirmed (definitely existing user)
+        if (data.user.email_confirmed_at) {
           toast.error('An account already exists with this email. Please sign in instead.');
           return;
         }
