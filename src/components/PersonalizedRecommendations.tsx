@@ -149,6 +149,7 @@ export function PersonalizedRecommendations() {
   };
 
   const getPhotoUrl = (photoReference: string) => {
+    if (!photoReference) return null;
     return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photoReference}&key=${import.meta.env.VITE_GOOGLE_PLACES_API_KEY}`;
   };
 
@@ -219,22 +220,32 @@ export function PersonalizedRecommendations() {
           )}
 
           {isLoading ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-48 bg-muted animate-pulse rounded-lg" />
-              ))}
+            <div className="space-y-4">
+              <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
+                <span>Analyzing your dining preferences...</span>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="h-48 bg-muted animate-pulse rounded-lg" />
+                ))}
+              </div>
             </div>
           ) : recommendations.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {recommendations.map((place) => (
                 <Card key={place.place_id} className="cursor-pointer hover:shadow-lg transition-shadow">
                   <CardContent className="p-4">
-                    {place.photos && place.photos[0] && (
+                    {place.photos && place.photos[0] && place.photos[0].photo_reference && (
                       <div className="mb-3 aspect-video bg-muted rounded-lg overflow-hidden">
                         <img 
                           src={getPhotoUrl(place.photos[0].photo_reference)}
                           alt={place.name}
                           className="w-full h-full object-cover"
+                          onError={(e) => {
+                            // Hide image if it fails to load
+                            e.currentTarget.parentElement!.style.display = 'none';
+                          }}
                         />
                       </div>
                     )}

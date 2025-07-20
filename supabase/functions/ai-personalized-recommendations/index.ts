@@ -126,7 +126,7 @@ serve(async (req) => {
       throw new Error('Failed to analyze preferences');
     }
 
-    // Step 2: Search for restaurants based on preferences
+    // Step 2: Search for restaurants based on preferences and locations
     const searchQueries = [
       ...preferences.favoriteCuisines.slice(0, 3).map((cuisine: string) => `${cuisine} restaurant`),
       ...preferences.searchKeywords.slice(0, 2).map((keyword: string) => `${keyword} restaurant`)
@@ -134,18 +134,24 @@ serve(async (req) => {
 
     const allCandidates: GooglePlaceResult[] = [];
 
-    for (const query of searchQueries) {
-      try {
-        const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${googlePlacesApiKey}${userLocation ? `&location=${userLocation.lat},${userLocation.lng}&radius=25000` : ''}`;
-        
-        const searchResponse = await fetch(searchUrl);
-        const searchData = await searchResponse.json();
+    // Prioritize searches in user's preferred locations
+    const searchLocations = preferences.preferredLocations.slice(0, 3); // Top 3 cities where user has dined
 
-        if (searchData.status === 'OK' && searchData.results) {
-          allCandidates.push(...searchData.results.slice(0, 10));
+    for (const location of searchLocations) {
+      for (const query of searchQueries.slice(0, 2)) { // Limit queries per location
+        try {
+          const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query + ' ' + location)}&key=${googlePlacesApiKey}`;
+          
+          console.log(`Searching: ${query} in ${location}`);
+          const searchResponse = await fetch(searchUrl);
+          const searchData = await searchResponse.json();
+
+          if (searchData.status === 'OK' && searchData.results) {
+            allCandidates.push(...searchData.results.slice(0, 3)); // Limit per search
+          }
+        } catch (error) {
+          console.error(`Error searching for ${query} in ${location}:`, error);
         }
-      } catch (error) {
-        console.error(`Error searching for ${query}:`, error);
       }
     }
 
@@ -240,21 +246,48 @@ serve(async (req) => {
       throw new Error('Failed to rank recommendations');
     }
 
-    // Step 4: Compile final recommendations
-    const finalRecommendations = rankings.recommendations
-      .map((rec: any) => {
-        const place = uniqueCandidates[rec.index];
-        if (!place) return null;
+    // Step 4: Compile final recommendations with enhanced data
+    const finalRecommendations = [];
+    
+    for (const rec of rankings.recommendations.slice(0, 6)) {
+      const place = uniqueCandidates[rec.index];
+      if (!place) continue;
+      
+      // Get detailed place information including better photos
+      try {
+        const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,formatted_address,rating,user_ratings_total,price_level,photos,geometry,opening_hours,types&key=${googlePlacesApiKey}`;
+        const detailsResponse = await fetch(detailsUrl);
+        const detailsData = await detailsResponse.json();
         
-        return {
+        if (detailsData.status === 'OK' && detailsData.result) {
+          const detailedPlace = detailsData.result;
+          finalRecommendations.push({
+            ...detailedPlace,
+            ai_reasoning: rec.reasoning,
+            confidence_score: rec.confidence,
+            match_factors: rec.matchFactors
+          });
+        } else {
+          // Fallback to original data without photos
+          finalRecommendations.push({
+            ...place,
+            photos: [], // Remove potentially bad photos
+            ai_reasoning: rec.reasoning,
+            confidence_score: rec.confidence,
+            match_factors: rec.matchFactors
+          });
+        }
+      } catch (error) {
+        console.error(`Error getting details for ${place.name}:`, error);
+        finalRecommendations.push({
           ...place,
+          photos: [], // Remove potentially bad photos
           ai_reasoning: rec.reasoning,
           confidence_score: rec.confidence,
           match_factors: rec.matchFactors
-        };
-      })
-      .filter(Boolean)
-      .slice(0, 6);
+        });
+      }
+    }
 
     console.log(`Generated ${finalRecommendations.length} personalized recommendations`);
 
