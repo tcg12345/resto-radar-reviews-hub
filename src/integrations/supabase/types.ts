@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      friend_activity_cache: {
+        Row: {
+          activity_data: Json
+          activity_date: string
+          created_at: string | null
+          friend_id: string
+          id: string
+          restaurant_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          activity_data: Json
+          activity_date: string
+          created_at?: string | null
+          friend_id: string
+          id?: string
+          restaurant_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          activity_data?: Json
+          activity_date?: string
+          created_at?: string | null
+          friend_id?: string
+          id?: string
+          restaurant_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       friend_requests: {
         Row: {
           created_at: string
@@ -309,6 +342,17 @@ export type Database = {
         Args: { email_to_check: string }
         Returns: boolean
       }
+      get_cached_friend_activity: {
+        Args: {
+          requesting_user_id?: string
+          page_size?: number
+          page_offset?: number
+        }
+        Returns: {
+          activity_data: Json
+          activity_date: string
+        }[]
+      }
       get_friend_profile_data: {
         Args: {
           target_user_id: string
@@ -354,6 +398,10 @@ export type Database = {
           avg_rating: number
           top_cuisine: string
         }[]
+      }
+      rebuild_friend_activity_cache: {
+        Args: { target_user_id: string }
+        Returns: undefined
       }
     }
     Enums: {

@@ -32,6 +32,7 @@ import { MichelinStars } from '@/components/MichelinStars';
 import { PriceRange } from '@/components/PriceRange';
 import { ContactPermission } from '@/components/ContactPermission';
 import { FriendProfilePopup } from '@/components/FriendProfilePopup';
+import { toast } from 'sonner';
 
 interface SearchResult {
   id: string;
@@ -249,7 +250,7 @@ export function FriendsPage() {
     removeFriend, 
     searchUsers 
   } = useFriends();
-  const { friendRestaurants, fetchAllFriendsRestaurants } = useFriendRestaurants();
+  const { friendRestaurants, fetchAllFriendsRestaurants, rebuildFriendActivityCache } = useFriendRestaurants();
   
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -257,10 +258,40 @@ export function FriendsPage() {
   const [selectedFriend, setSelectedFriend] = useState<any>(null);
   const [showContactPermission, setShowContactPermission] = useState(false);
   const [contacts, setContacts] = useState<any[]>([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [hasMoreActivities, setHasMoreActivities] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   useEffect(() => {
-    fetchAllFriendsRestaurants();
+    loadInitialActivity();
   }, []);
+
+  const loadInitialActivity = async () => {
+    setCurrentPage(0);
+    const result = await fetchAllFriendsRestaurants(0, 20);
+    setHasMoreActivities(result.hasMore);
+  };
+
+  const loadMoreActivities = async () => {
+    if (isLoadingMore || !hasMoreActivities) return;
+    
+    setIsLoadingMore(true);
+    const nextPage = currentPage + 1;
+    const result = await fetchAllFriendsRestaurants(nextPage, 20);
+    setCurrentPage(nextPage);
+    setHasMoreActivities(result.hasMore);
+    setIsLoadingMore(false);
+  };
+
+  const handleRefreshCache = async () => {
+    const success = await rebuildFriendActivityCache();
+    if (success) {
+      toast.success('Friend activity refreshed!');
+      loadInitialActivity();
+    } else {
+      toast.error('Failed to refresh activity');
+    }
+  };
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
@@ -415,13 +446,24 @@ export function FriendsPage() {
             <div className="lg:col-span-2">
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Activity className="h-5 w-5" />
-                    Recent Friend Activity
+                  <CardTitle className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Activity className="h-5 w-5" />
+                      Recent Friend Activity
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleRefreshCache}
+                      className="flex items-center gap-2"
+                    >
+                      <Settings2 className="h-4 w-4" />
+                      Refresh
+                    </Button>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {friendRestaurants.length === 0 ? (
+                  {friendRestaurants.length === 0 && !isLoading ? (
                     <div className="text-center py-12">
                       <Activity className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                       <p className="text-lg text-muted-foreground mb-2">No recent activity</p>
@@ -430,35 +472,77 @@ export function FriendsPage() {
                       </p>
                     </div>
                   ) : (
-                    <div className="space-y-4 max-h-[600px] overflow-y-auto">
-                      {friendRestaurants.slice(0, 10).map((restaurant) => (
-                        <div key={`${restaurant.id}-${restaurant.userId}`} className="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/30 transition-colors">
-                          <Avatar className="h-10 w-10 mt-1">
-                            <AvatarFallback>
-                              {restaurant.friend_username?.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-2 flex-wrap">
-                              <span className="font-medium">@{restaurant.friend_username}</span>
-                              <span className="text-muted-foreground text-sm">rated</span>
-                              <div className="flex items-center gap-1">
-                                <StarRating rating={restaurant.rating || 0} readonly size="sm" />
-                                <span className="font-semibold">{restaurant.rating?.toFixed(1)}</span>
+                    <div className="space-y-4">
+                      <div className="max-h-[600px] overflow-y-auto space-y-4">
+                        {friendRestaurants.map((restaurant: any, index: number) => (
+                          <div key={`${restaurant.id || restaurant.restaurant_id}-${restaurant.userId || restaurant.friend_id}-${index}`} className="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/30 transition-colors">
+                            <Avatar className="h-10 w-10 mt-1">
+                              <AvatarFallback>
+                                {restaurant.friend_username?.charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                <span className="font-medium">@{restaurant.friend_username}</span>
+                                <span className="text-muted-foreground text-sm">rated</span>
+                                <div className="flex items-center gap-1">
+                                  <StarRating rating={restaurant.rating || 0} readonly size="sm" />
+                                  <span className="font-semibold">{restaurant.rating?.toFixed(1)}</span>
+                                </div>
                               </div>
-                            </div>
-                            <h4 className="font-semibold text-lg mb-1">{restaurant.name}</h4>
-                            <p className="text-sm text-muted-foreground mb-2">{restaurant.cuisine} • {restaurant.city}</p>
-                            <div className="flex items-center gap-3 flex-wrap">
-                              {restaurant.priceRange && <PriceRange priceRange={restaurant.priceRange} />}
-                              {restaurant.michelinStars && <MichelinStars stars={restaurant.michelinStars} />}
-                              <span className="text-xs text-muted-foreground">
-                                {new Date(restaurant.createdAt).toLocaleDateString()}
-                              </span>
+                              <h4 className="font-semibold text-lg mb-1">{restaurant.name || restaurant.restaurant_name}</h4>
+                              <p className="text-sm text-muted-foreground mb-2">
+                                {restaurant.cuisine} 
+                                {restaurant.city && ` • ${restaurant.city}`}
+                                {restaurant.address && ` • ${restaurant.address}`}
+                              </p>
+                              <div className="flex items-center gap-3 flex-wrap">
+                                {(restaurant.priceRange || restaurant.price_range) && <PriceRange priceRange={restaurant.priceRange || restaurant.price_range} />}
+                                {(restaurant.michelinStars || restaurant.michelin_stars) && <MichelinStars stars={restaurant.michelinStars || restaurant.michelin_stars} />}
+                                <span className="text-xs text-muted-foreground">
+                                  {(restaurant.dateVisited || restaurant.date_visited)
+                                    ? new Date(restaurant.dateVisited || restaurant.date_visited).toLocaleDateString()
+                                    : new Date(restaurant.createdAt || restaurant.created_at).toLocaleDateString()
+                                  }
+                                </span>
+                              </div>
+                              {restaurant.notes && (
+                                <p className="text-sm mt-2 p-2 bg-muted/50 rounded text-muted-foreground italic">
+                                  "{restaurant.notes}"
+                                </p>
+                              )}
                             </div>
                           </div>
+                        ))}
+                      </div>
+                      
+                      {/* Load More Button */}
+                      {hasMoreActivities && (
+                        <div className="text-center pt-4">
+                          <Button 
+                            variant="outline" 
+                            onClick={loadMoreActivities}
+                            disabled={isLoadingMore}
+                            className="w-full"
+                          >
+                            {isLoadingMore ? (
+                              <div className="flex items-center gap-2">
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                                Loading more...
+                              </div>
+                            ) : (
+                              'Load More Activity'
+                            )}
+                          </Button>
                         </div>
-                      ))}
+                      )}
+                      
+                      {isLoading && friendRestaurants.length === 0 && (
+                        <div className="text-center py-8">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                          <p className="text-muted-foreground">Loading friend activity...</p>
+                        </div>
+                      )}
                     </div>
                   )}
                 </CardContent>
