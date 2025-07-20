@@ -309,6 +309,39 @@ export type Database = {
         Args: { email_to_check: string }
         Returns: boolean
       }
+      get_friend_profile_data: {
+        Args: {
+          target_user_id: string
+          requesting_user_id?: string
+          restaurant_limit?: number
+        }
+        Returns: {
+          can_view: boolean
+          username: string
+          name: string
+          avatar_url: string
+          is_public: boolean
+          rated_count: number
+          wishlist_count: number
+          avg_rating: number
+          top_cuisine: string
+          michelin_count: number
+          recent_restaurants: Json
+        }[]
+      }
+      get_friends_recent_activity: {
+        Args: { requesting_user_id?: string; activity_limit?: number }
+        Returns: {
+          restaurant_id: string
+          restaurant_name: string
+          cuisine: string
+          rating: number
+          date_visited: string
+          created_at: string
+          friend_id: string
+          friend_username: string
+        }[]
+      }
       get_user_score: {
         Args: { user_id: string }
         Returns: number

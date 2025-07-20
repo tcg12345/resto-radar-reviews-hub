@@ -74,79 +74,39 @@ export function useFriendRestaurants() {
     }
   };
 
-  // Optimized function using SQL aggregations for instant stats
+  // Optimized function using new combined RPC for instant stats
   const fetchFriendStats = async (friendId: string) => {
-    if (!user) return null;
+    if (!user?.id) {
+      console.log('No authenticated user');
+      return null;
+    }
 
     try {
-      // Check access permission first
-      const { data: friendData, error: friendError } = await supabase
-        .from('profiles')
-        .select('is_public, username')
-        .eq('id', friendId)
+      // Use the new optimized combined function for instant profile data
+      const { data: profileData, error: profileError } = await supabase
+        .rpc('get_friend_profile_data', { 
+          target_user_id: friendId,
+          requesting_user_id: user.id,
+          restaurant_limit: 0 // We only want stats, not restaurants
+        })
         .single();
 
-      if (friendError) throw friendError;
-
-      let canView = friendData.is_public;
-
-      if (!canView) {
-        const { data: friendship, error: friendshipError } = await supabase
-          .from('friends')
-          .select('id')
-          .or(`and(user1_id.eq.${user.id},user2_id.eq.${friendId}),and(user1_id.eq.${friendId},user2_id.eq.${user.id})`)
-          .single();
-
-        canView = !friendshipError && !!friendship;
-      }
-
-      if (!canView) {
+      if (profileError || !profileData) {
+        console.error('Error fetching friend profile data:', profileError);
         return null;
       }
 
-      // Use the new optimized database function for instant stats
-      const { data: aggregatedStats, error: statsError } = await supabase
-        .rpc('get_user_stats', { target_user_id: friendId });
-
-      if (statsError) {
-        console.error('Stats RPC error:', statsError);
-        // Fallback to basic counts if RPC fails
-        const [ratedCount, wishlistCount] = await Promise.all([
-          supabase
-            .from('restaurants')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', friendId)
-            .eq('is_wishlist', false)
-            .not('rating', 'is', null),
-          supabase
-            .from('restaurants')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', friendId)
-            .eq('is_wishlist', true)
-        ]);
-
-        return {
-          ratedCount: ratedCount.count || 0,
-          wishlistCount: wishlistCount.count || 0,
-          averageRating: 0,
-          topCuisine: '',
-          username: friendData.username || 'Unknown User'
-        };
+      if (!profileData.can_view) {
+        console.log('User cannot view friend data');
+        return null;
       }
-
-      const stats = aggregatedStats?.[0] || {
-        rated_count: 0,
-        wishlist_count: 0,
-        avg_rating: 0,
-        top_cuisine: ''
-      };
       
       return {
-        ratedCount: stats.rated_count || 0,
-        wishlistCount: stats.wishlist_count || 0,
-        averageRating: parseFloat(String(stats.avg_rating)) || 0,
-        topCuisine: stats.top_cuisine || '',
-        username: friendData.username || 'Unknown User'
+        ratedCount: profileData.rated_count || 0,
+        wishlistCount: profileData.wishlist_count || 0,
+        averageRating: parseFloat(String(profileData.avg_rating)) || 0,
+        topCuisine: profileData.top_cuisine || '',
+        username: profileData.username || 'Unknown User'
       };
     } catch (error) {
       console.error('Error fetching friend stats:', error);
@@ -155,78 +115,54 @@ export function useFriendRestaurants() {
   };
 
   const fetchAllFriendsRestaurants = async () => {
-    if (!user) return;
+    if (!user?.id) {
+      console.log('No authenticated user');
+      return;
+    }
 
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      
-      // Get all friends
-      const { data: friendships, error: friendError } = await supabase
-        .from('friends')
-        .select('user1_id, user2_id')
-        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+      // Use the new optimized function for friends recent activity
+      const { data: recentActivity, error: activityError } = await supabase
+        .rpc('get_friends_recent_activity', { 
+          requesting_user_id: user.id,
+          activity_limit: 50 // Get more activities for a richer feed
+        });
 
-      if (friendError) throw friendError;
-
-      const friendIds = friendships?.map(friendship => 
-        friendship.user1_id === user.id ? friendship.user2_id : friendship.user1_id
-      ) || [];
-
-      if (friendIds.length === 0) {
+      if (activityError) {
+        console.error('Error fetching friends recent activity:', activityError);
         setFriendRestaurants([]);
         return;
       }
 
-      // Get all public friends and their restaurants - limit to 20 for performance
-      const { data: publicFriends, error: publicError } = await supabase
-        .from('profiles')
-        .select('id, username, is_public')
-        .in('id', friendIds);
+      // Transform the activity data to match our expected format
+      const transformedRestaurants = recentActivity?.map(activity => ({
+        id: activity.restaurant_id,
+        name: activity.restaurant_name,
+        address: '', // Not included in activity function for performance
+        city: '',
+        country: '',
+        cuisine: activity.cuisine,
+        rating: activity.rating,
+        reviewCount: 0,
+        priceRange: null,
+        michelinStars: null,
+        photos: [],
+        notes: '',
+        dateVisited: activity.date_visited,
+        latitude: null,
+        longitude: null,
+        isWishlist: false,
+        createdAt: activity.created_at,
+        updatedAt: activity.created_at,
+        userId: activity.friend_id,
+        friend_username: activity.friend_username
+      })) || [];
 
-      if (publicError) throw publicError;
-
-      // Get restaurants from all friends - limit to 20 for performance
-      const { data: restaurants, error: restaurantError } = await supabase
-        .from('restaurants')
-        .select('*')
-        .in('user_id', friendIds)
-        .eq('is_wishlist', false)
-        .not('rating', 'is', null)
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (restaurantError) throw restaurantError;
-
-      const restaurantsWithFriends = (restaurants || []).map(restaurant => {
-        const friend = publicFriends?.find(f => f.id === restaurant.user_id);
-        return {
-          id: restaurant.id,
-          name: restaurant.name,
-          address: restaurant.address,
-          city: restaurant.city,
-          country: restaurant.country,
-          cuisine: restaurant.cuisine,
-          rating: restaurant.rating,
-          reviewCount: 0,
-          priceRange: restaurant.price_range,
-          michelinStars: restaurant.michelin_stars,
-          photos: restaurant.photos || [],
-          notes: restaurant.notes,
-          dateVisited: restaurant.date_visited,
-          latitude: restaurant.latitude,
-          longitude: restaurant.longitude,
-          isWishlist: restaurant.is_wishlist,
-          createdAt: restaurant.created_at || new Date().toISOString(),
-          updatedAt: restaurant.updated_at || new Date().toISOString(),
-          userId: restaurant.user_id,
-          friend_username: friend?.username || 'Unknown User'
-        };
-      });
-
-      setFriendRestaurants(restaurantsWithFriends);
+      setFriendRestaurants(transformedRestaurants);
     } catch (error) {
-      console.error('Error fetching all friend restaurants:', error);
-      toast.error('Failed to load friend restaurants');
+      console.error('Error fetching all friends restaurants:', error);
+      setFriendRestaurants([]);
     } finally {
       setIsLoading(false);
     }

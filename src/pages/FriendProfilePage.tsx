@@ -23,10 +23,13 @@ import { MichelinStars } from '@/components/MichelinStars';
 import { PriceRange } from '@/components/PriceRange';
 import { useFriendRestaurants } from '@/hooks/useFriendRestaurants';
 import { useFriends } from '@/hooks/useFriends';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function FriendProfilePage() {
   const { friendId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { friends } = useFriends();
   const { fetchFriendRestaurants } = useFriendRestaurants();
   
@@ -52,10 +55,37 @@ export default function FriendProfilePage() {
   const loadFriendData = async (friendData: any) => {
     setIsLoading(true);
     try {
-      // Load initial data with pagination for better performance
+      // Use the new optimized combined function to get profile data and stats in one call
+      const profileResponse = await supabase
+        .rpc('get_friend_profile_data', { 
+          target_user_id: friendData.id,
+          requesting_user_id: user?.id,
+          restaurant_limit: 20 // Get recent restaurants for activity
+        })
+        .single();
+
+      if (profileResponse.error || !profileResponse.data) {
+        console.error('Error fetching friend profile:', profileResponse.error);
+        setIsLoading(false);
+        return;
+      }
+
+      const profileData = profileResponse.data;
+
+      if (!profileData.can_view) {
+        console.log('Cannot view this friend\'s profile');
+        setIsLoading(false);
+        return;
+      }
+
+      // Parse recent restaurants from JSON
+      const recentRestaurants = profileData.recent_restaurants ? 
+        (Array.isArray(profileData.recent_restaurants) ? profileData.recent_restaurants : []) : [];
+
+      // Load full restaurant and wishlist data separately for complete tabs
       const [ratedData, wishlistData] = await Promise.all([
-        fetchFriendRestaurants(friendData.id, false, 20), // Start with 20 restaurants
-        fetchFriendRestaurants(friendData.id, true, 50)   // Load all wishlist items (usually fewer)
+        fetchFriendRestaurants(friendData.id, false, 100), // Get more for complete list
+        fetchFriendRestaurants(friendData.id, true, 50)    // Load wishlist items
       ]);
       
       const ratedRestaurants = ratedData.filter(r => !r.is_wishlist);
@@ -64,11 +94,16 @@ export default function FriendProfilePage() {
       setRestaurants(ratedRestaurants);
       setWishlist(wishlistItems);
       
-      // For stats calculation, we need more data - load separately
-      const statsData = await fetchFriendRestaurants(friendData.id, false, 200);
-      const allRated = statsData.filter(r => !r.is_wishlist);
-      
-      calculateStats(allRated, wishlistItems);
+      // Use the optimized stats from the profile data
+      setStats({
+        averageRating: parseFloat(String(profileData.avg_rating)) || 0,
+        totalRated: profileData.rated_count || 0,
+        totalWishlist: profileData.wishlist_count || 0,
+        topCuisines: profileData.top_cuisine ? [{ cuisine: profileData.top_cuisine, count: 1 }] : [],
+        ratingDistribution: calculateRatingDistribution(ratedRestaurants),
+        michelinCount: profileData.michelin_count || 0,
+        recentActivity: recentRestaurants.slice(0, 5) // Show top 5 recent
+      });
     } catch (error) {
       console.error('Error loading friend data:', error);
     } finally {
@@ -76,38 +111,7 @@ export default function FriendProfilePage() {
     }
   };
 
-  const calculateStats = (ratedRestaurants: any[], wishlistItems: any[]) => {
-    const ratedWithScores = ratedRestaurants.filter(r => r.rating);
-    
-    if (ratedWithScores.length === 0) {
-      setStats({
-        averageRating: 0,
-        totalRated: 0,
-        totalWishlist: wishlistItems.length,
-        topCuisines: [],
-        ratingDistribution: {},
-        michelinCount: 0,
-        recentActivity: []
-      });
-      return;
-    }
-
-    // Average rating
-    const avgRating = ratedWithScores.reduce((sum, r) => sum + r.rating, 0) / ratedWithScores.length;
-
-    // Top cuisines
-    const cuisineCounts: { [key: string]: number } = {};
-    ratedRestaurants.forEach(r => {
-      if (r.cuisine) {
-        cuisineCounts[r.cuisine] = (cuisineCounts[r.cuisine] || 0) + 1;
-      }
-    });
-    const topCuisines = Object.entries(cuisineCounts)
-      .sort(([,a], [,b]) => b - a)
-      .slice(0, 5)
-      .map(([cuisine, count]) => ({ cuisine, count }));
-
-    // Rating distribution in ranges
+  const calculateRatingDistribution = (ratedRestaurants: any[]) => {
     const ratingDistribution: { [key: string]: number } = {
       '0-2': 0,
       '2-4': 0,
@@ -115,6 +119,8 @@ export default function FriendProfilePage() {
       '6-8': 0,
       '8-10': 0
     };
+    
+    const ratedWithScores = ratedRestaurants.filter(r => r.rating);
     ratedWithScores.forEach(r => {
       const rating = r.rating;
       if (rating >= 0 && rating < 2) ratingDistribution['0-2']++;
@@ -123,29 +129,8 @@ export default function FriendProfilePage() {
       else if (rating >= 6 && rating < 8) ratingDistribution['6-8']++;
       else if (rating >= 8 && rating <= 10) ratingDistribution['8-10']++;
     });
-
-    // Michelin starred restaurants
-    const michelinCount = ratedRestaurants.filter(r => r.michelin_stars && r.michelin_stars > 0).length;
-
-    // Recent activity (last 5 rated restaurants) - use created_at if date_visited is not available
-    const recentActivity = ratedRestaurants
-      .filter(r => r.date_visited || r.created_at)
-      .sort((a, b) => {
-        const dateA = new Date(a.date_visited || a.created_at);
-        const dateB = new Date(b.date_visited || b.created_at);
-        return dateB.getTime() - dateA.getTime();
-      })
-      .slice(0, 5);
-
-    setStats({
-      averageRating: avgRating,
-      totalRated: ratedRestaurants.length,
-      totalWishlist: wishlistItems.length,
-      topCuisines,
-      ratingDistribution,
-      michelinCount,
-      recentActivity
-    });
+    
+    return ratingDistribution;
   };
 
   if (isLoading || !friend) {
