@@ -87,11 +87,18 @@ export default function LandingPage() {
   const { theme, toggleTheme } = useTheme();
 
   const handleGetStarted = () => {
+    console.log('Get Started clicked, navigating to /auth');
     navigate('/auth');
   };
 
   const handleViewDemo = () => {
+    console.log('View Demo clicked, navigating to /demo');
     navigate('/demo');
+  };
+
+  const handleSignIn = () => {
+    console.log('Sign In clicked, navigating to /auth');
+    navigate('/auth');
   };
 
   return (
@@ -117,7 +124,7 @@ export default function LandingPage() {
                 )}
                 <span className="sr-only">Toggle theme</span>
               </Button>
-              <Button variant="ghost" onClick={() => navigate('/auth')}>
+              <Button variant="ghost" onClick={handleSignIn}>
                 Sign In
               </Button>
               <Button onClick={handleGetStarted}>
