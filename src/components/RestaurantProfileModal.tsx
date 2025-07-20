@@ -177,7 +177,7 @@ export function RestaurantProfileModal({
 
       const restaurantData = {
         name: place.name,
-        address: place.formatted_address,
+        address: place.formatted_address.split(',')[0]?.trim() || place.formatted_address,
         city: place.formatted_address.split(',').slice(-2, -1)[0]?.trim() || '',
         country: place.formatted_address.split(',').slice(-1)[0]?.trim() || '',
         cuisine: aiCuisine || place.types.filter(type => !['establishment', 'point_of_interest', 'food'].includes(type))[0] || 'restaurant',
@@ -239,7 +239,7 @@ export function RestaurantProfileModal({
         error
       } = await supabase.from('restaurants').upsert({
         name: place.name,
-        address: place.formatted_address,
+        address: place.formatted_address.split(',')[0]?.trim() || place.formatted_address,
         city: place.formatted_address.split(',').slice(-2, -1)[0]?.trim() || '',
         country: place.formatted_address.split(',').slice(-1)[0]?.trim() || '',
         cuisine: aiCuisine || place.types.filter(type => !['establishment', 'point_of_interest', 'food'].includes(type))[0] || 'restaurant',
