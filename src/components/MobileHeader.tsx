@@ -47,7 +47,7 @@ export function MobileHeader({
             </Button>
           ) : activeTab === 'home' ? (
             <div className="cursor-pointer" onClick={() => onTabChange('home')}>
-              <GrubbyLogo size="sm" />
+              <GrubbyLogo size="sm" showText={false} />
             </div>
           ) : null}
           
