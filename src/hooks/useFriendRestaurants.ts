@@ -104,12 +104,12 @@ export function useFriendRestaurants() {
         return null;
       }
 
-      // Use SQL aggregations for instant stats - no data transfer needed
-      const { data: aggregatedStats, error: statsError } = await supabase.rpc('get_user_stats', {
-        target_user_id: friendId
-      });
+      // Use the new optimized database function for instant stats
+      const { data: aggregatedStats, error: statsError } = await supabase
+        .rpc('get_user_stats', { target_user_id: friendId });
 
       if (statsError) {
+        console.error('Stats RPC error:', statsError);
         // Fallback to basic counts if RPC fails
         const [ratedCount, wishlistCount] = await Promise.all([
           supabase
@@ -134,12 +134,17 @@ export function useFriendRestaurants() {
         };
       }
 
-      const stats = aggregatedStats[0] || {};
+      const stats = aggregatedStats?.[0] || {
+        rated_count: 0,
+        wishlist_count: 0,
+        avg_rating: 0,
+        top_cuisine: ''
+      };
       
       return {
         ratedCount: stats.rated_count || 0,
         wishlistCount: stats.wishlist_count || 0,
-        averageRating: stats.avg_rating || 0,
+        averageRating: parseFloat(String(stats.avg_rating)) || 0,
         topCuisine: stats.top_cuisine || '',
         username: friendData.username || 'Unknown User'
       };

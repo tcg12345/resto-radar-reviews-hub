@@ -313,6 +313,15 @@ export type Database = {
         Args: { user_id: string }
         Returns: number
       }
+      get_user_stats: {
+        Args: { target_user_id: string }
+        Returns: {
+          rated_count: number
+          wishlist_count: number
+          avg_rating: number
+          top_cuisine: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
