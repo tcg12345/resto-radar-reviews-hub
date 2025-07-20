@@ -108,12 +108,13 @@ export default function AuthPage() {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        phone: phoneNumber, // This will save to the phone field in auth.users
         options: {
           emailRedirectTo: redirectUrl,
           data: {
             name: name,
             username: username,
-            phone_number: phoneNumber,
+            phone_number: phoneNumber, // Also keep in metadata for profiles table
             address: fullAddress,
             is_public: isPublic,
           }
