@@ -208,6 +208,8 @@ export type Database = {
           photos: string[] | null
           price_range: number | null
           rating: number | null
+          reservable: boolean | null
+          reservation_url: string | null
           updated_at: string | null
           use_weighted_rating: boolean | null
           user_id: string
@@ -232,6 +234,8 @@ export type Database = {
           photos?: string[] | null
           price_range?: number | null
           rating?: number | null
+          reservable?: boolean | null
+          reservation_url?: string | null
           updated_at?: string | null
           use_weighted_rating?: boolean | null
           user_id: string
@@ -256,6 +260,8 @@ export type Database = {
           photos?: string[] | null
           price_range?: number | null
           rating?: number | null
+          reservable?: boolean | null
+          reservation_url?: string | null
           updated_at?: string | null
           use_weighted_rating?: boolean | null
           user_id?: string

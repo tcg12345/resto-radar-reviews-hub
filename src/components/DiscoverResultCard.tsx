@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { ReservationButton } from '@/components/ReservationButton';
 import { 
   Star, 
   MapPin, 
@@ -45,6 +46,8 @@ interface RestaurantResult {
   };
   images?: string[];
   isOpen?: boolean;
+  reservable?: boolean;
+  reservationUrl?: string;
 }
 
 interface DiscoverResultCardProps {
@@ -249,6 +252,21 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist 
         {/* Action Buttons */}
         <div className="space-y-2">
           <div className="grid grid-cols-2 gap-2">
+            <ReservationButton 
+              restaurant={{
+                ...restaurant,
+                city: restaurant.location?.city || '',
+                photos: restaurant.images || [],
+                isWishlist: false,
+                createdAt: '',
+                updatedAt: '',
+                userId: ''
+              } as any}
+              variant="outline" 
+              size="sm" 
+              className="h-8 text-xs"
+            />
+            
             <Button
               variant="outline"
               size="sm"
@@ -261,7 +279,9 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist 
               <Globe className="h-3 w-3 mr-1" />
               Website
             </Button>
-            
+          </div>
+          
+          <div className="grid grid-cols-1 gap-2">
             <Collapsible open={isMoreInfoOpen} onOpenChange={handleMoreInfoToggle}>
               <CollapsibleTrigger asChild>
                 <Button
