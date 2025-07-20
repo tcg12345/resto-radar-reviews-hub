@@ -136,7 +136,7 @@ export default function LandingPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
               <div className="space-y-4">
-                <Badge variant="secondary" className="text-sm">
+                <Badge variant="secondary" className="text-sm mt-6">
                   ✨ AI-Powered Restaurant Discovery Platform
                 </Badge>
                 <h1 className="text-4xl md:text-6xl font-bold leading-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
