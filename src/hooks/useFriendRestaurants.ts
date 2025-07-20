@@ -74,7 +74,7 @@ export function useFriendRestaurants() {
     }
   };
 
-  // New optimized function for basic stats only
+  // Optimized function using SQL aggregations for instant stats
   const fetchFriendStats = async (friendId: string) => {
     if (!user) return null;
 
@@ -104,46 +104,43 @@ export function useFriendRestaurants() {
         return null;
       }
 
-      // Get counts only for basic stats
-      const [ratedQuery, wishlistQuery] = await Promise.all([
-        supabase
-          .from('restaurants')
-          .select('rating, cuisine', { count: 'exact' })
-          .eq('user_id', friendId)
-          .eq('is_wishlist', false)
-          .not('rating', 'is', null),
-        supabase
-          .from('restaurants')
-          .select('id', { count: 'exact' })
-          .eq('user_id', friendId)
-          .eq('is_wishlist', true)
-      ]);
-
-      const ratedCount = ratedQuery.count || 0;
-      const wishlistCount = wishlistQuery.count || 0;
-      const ratedRestaurants = ratedQuery.data || [];
-
-      // Calculate average rating
-      const avgRating = ratedRestaurants.length > 0 
-        ? ratedRestaurants.reduce((sum, r) => sum + (r.rating || 0), 0) / ratedRestaurants.length
-        : 0;
-
-      // Find top cuisine
-      const cuisineCounts: { [key: string]: number } = {};
-      ratedRestaurants.forEach(r => {
-        if (r.cuisine) {
-          cuisineCounts[r.cuisine] = (cuisineCounts[r.cuisine] || 0) + 1;
-        }
+      // Use SQL aggregations for instant stats - no data transfer needed
+      const { data: aggregatedStats, error: statsError } = await supabase.rpc('get_user_stats', {
+        target_user_id: friendId
       });
-      
-      const topCuisine = Object.entries(cuisineCounts)
-        .sort(([,a], [,b]) => b - a)[0]?.[0] || '';
 
+      if (statsError) {
+        // Fallback to basic counts if RPC fails
+        const [ratedCount, wishlistCount] = await Promise.all([
+          supabase
+            .from('restaurants')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', friendId)
+            .eq('is_wishlist', false)
+            .not('rating', 'is', null),
+          supabase
+            .from('restaurants')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', friendId)
+            .eq('is_wishlist', true)
+        ]);
+
+        return {
+          ratedCount: ratedCount.count || 0,
+          wishlistCount: wishlistCount.count || 0,
+          averageRating: 0,
+          topCuisine: '',
+          username: friendData.username || 'Unknown User'
+        };
+      }
+
+      const stats = aggregatedStats[0] || {};
+      
       return {
-        ratedCount,
-        wishlistCount,
-        averageRating: avgRating,
-        topCuisine,
+        ratedCount: stats.rated_count || 0,
+        wishlistCount: stats.wishlist_count || 0,
+        averageRating: stats.avg_rating || 0,
+        topCuisine: stats.top_cuisine || '',
         username: friendData.username || 'Unknown User'
       };
     } catch (error) {
@@ -175,7 +172,7 @@ export function useFriendRestaurants() {
         return;
       }
 
-      // Get all public friends and their restaurants
+      // Get all public friends and their restaurants - limit to 20 for performance
       const { data: publicFriends, error: publicError } = await supabase
         .from('profiles')
         .select('id, username, is_public')
