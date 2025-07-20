@@ -109,29 +109,31 @@ export default function AuthPage() {
       
       if (error) throw error;
       
-      // Check if the user was actually created or if it already exists
-      if (data.user && !data.user.email_confirmed_at && data.user.created_at) {
-        // Check if this is a brand new user (created just now) vs existing user
-        const createdTime = new Date(data.user.created_at).getTime();
-        const now = Date.now();
-        const timeDiff = now - createdTime;
-        
-        if (timeDiff < 5000) { // Created within last 5 seconds
-          toast.success('Account created! Please check your email to verify your account.');
+      // Check if this is a repeated signup (user already exists)
+      // When a user already exists, Supabase returns the existing user data
+      // but doesn't create a new user or send a new confirmation email
+      if (data.user && data.user.id) {
+        // If user exists but is not confirmed, and we didn't just create them
+        if (!data.user.email_confirmed_at) {
+          // Additional check: if created_at is more than a few seconds ago, it's likely an existing user
+          const userCreatedAt = new Date(data.user.created_at);
+          const now = new Date();
+          const timeDiffMinutes = (now.getTime() - userCreatedAt.getTime()) / (1000 * 60);
+          
+          if (timeDiffMinutes > 1) {
+            toast.error('This email is already registered but not verified. Please check your email for the verification link or contact support.');
+            return;
+          }
         } else {
-          // User already exists but tried to sign up again
-          toast.error('This email is already registered. Please sign in instead or check your email for the verification link.');
+          // User exists and is already confirmed
+          toast.error('This email is already registered and verified. Please sign in instead.');
+          return;
         }
-      } else if (data.user && data.user.email_confirmed_at) {
-        // User already exists and is confirmed
-        toast.error('This email is already registered and verified. Please sign in instead.');
-      } else if (!data.user) {
-        // No user returned - likely means existing unconfirmed user
-        toast.error('This email is already registered. Please check your email for the verification link or sign in.');
-      } else {
-        // Default success case
-        toast.success('Account created! Please check your email to verify your account.');
       }
+      
+      // If we get here, it's likely a new user
+      toast.success('Account created! Please check your email to verify your account.');
+      
     } catch (error: any) {
       console.error('Error signing up:', error);
       
