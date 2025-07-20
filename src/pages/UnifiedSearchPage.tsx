@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Search, MapPin, Star, Heart, Phone, Globe, Navigation, Clock } from 'lucide-react';
+import { Search, MapPin, Star, Heart, Phone, Globe, Navigation, Clock, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -64,7 +64,10 @@ export default function UnifiedSearchPage() {
   const [locationSuggestions, setLocationSuggestions] = useState<any[]>([]);
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
   const [searchResults, setSearchResults] = useState<GooglePlaceResult[]>([]);
+  const [liveSearchResults, setLiveSearchResults] = useState<GooglePlaceResult[]>([]);
+  const [showLiveResults, setShowLiveResults] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLiveSearching, setIsLiveSearching] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<PlaceDetails | null>(null);
   const [activeTab, setActiveTab] = useState<'global' | 'smart' | 'recommendations'>('global');
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -85,6 +88,104 @@ export default function UnifiedSearchPage() {
       );
     }
   }, []);
+
+  // Live search for restaurants
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchQuery.length > 2) {
+        performLiveSearch();
+      } else {
+        setLiveSearchResults([]);
+        setShowLiveResults(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, locationQuery, searchType]);
+
+  const performLiveSearch = async () => {
+    if (!searchQuery.trim() || searchQuery.length < 3) return;
+
+    setIsLiveSearching(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('google-places-search', {
+        body: {
+          query: searchQuery,
+          location: locationQuery || (userLocation ? `${userLocation.lat},${userLocation.lng}` : ''),
+          radius: 5000,
+          type: 'restaurant'
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.status === 'OK' && data.results) {
+        setLiveSearchResults(data.results.slice(0, 5)); // Limit to 5 results for dropdown
+        setShowLiveResults(true);
+      } else {
+        setLiveSearchResults([]);
+        setShowLiveResults(false);
+      }
+    } catch (error) {
+      console.error('Live search error:', error);
+      setLiveSearchResults([]);
+      setShowLiveResults(false);
+    } finally {
+      setIsLiveSearching(false);
+    }
+  };
+
+  const handleQuickAdd = async (place: GooglePlaceResult) => {
+    if (!user) {
+      toast.error('Please log in to add restaurants');
+      return;
+    }
+
+    try {
+      // Get place details first
+      const { data, error } = await supabase.functions.invoke('google-places-search', {
+        body: {
+          placeId: place.place_id,
+          type: 'details'
+        }
+      });
+
+      if (error) throw error;
+
+      const placeDetails = data.result;
+      
+      // Create a restaurant entry in wishlist mode first
+      const { error: insertError } = await supabase
+        .from('restaurants')
+        .insert({
+          name: place.name,
+          address: place.formatted_address,
+          city: place.formatted_address.split(',')[1]?.trim() || '',
+          cuisine: 'Various', // Will be determined later
+          latitude: place.geometry.location.lat,
+          longitude: place.geometry.location.lng,
+          rating: null, // No rating yet - they will add it
+          is_wishlist: false, // Not wishlist, they're rating it
+          user_id: user.id,
+          website: placeDetails?.website,
+          opening_hours: placeDetails?.opening_hours?.weekday_text?.join('\n'),
+          price_range: place.price_level
+        });
+
+      if (insertError) throw insertError;
+
+      toast.success('Restaurant added! Please rate your experience.');
+      setShowLiveResults(false);
+      
+      // Navigate to ratings page or open rating modal
+      // For now, we'll show the place details to allow rating
+      setSelectedPlace(placeDetails);
+      
+    } catch (error) {
+      console.error('Error adding restaurant:', error);
+      toast.error('Failed to add restaurant');
+    }
+  };
 
   // Generate location suggestions
   const generateLocationSuggestions = async (input: string) => {
@@ -259,10 +360,93 @@ export default function UnifiedSearchPage() {
                                      searchType === 'cuisine' ? '🍽️ Cuisine type (e.g., "Italian", "Chinese", "Mexican")' :
                                      '🔍 What are you craving? (cuisine, atmosphere, special dishes...)'}
                           value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
+                          onChange={(e) => {
+                            setSearchQuery(e.target.value);
+                            if (e.target.value.length > 2) {
+                              setShowLiveResults(true);
+                            } else {
+                              setShowLiveResults(false);
+                            }
+                          }}
                           onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                          onFocus={() => searchQuery.length > 2 && setShowLiveResults(true)}
+                          onBlur={() => setTimeout(() => setShowLiveResults(false), 200)}
                           className="pl-12 pr-4 h-14 bg-transparent border-none text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none"
                         />
+                        
+                        {/* Live Search Results Dropdown */}
+                        {showLiveResults && (liveSearchResults.length > 0 || isLiveSearching) && (
+                          <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-card/95 backdrop-blur-lg border border-border rounded-xl shadow-2xl overflow-hidden animate-fade-in">
+                            <div className="max-h-80 overflow-y-auto">
+                              {isLiveSearching && (
+                                <div className="px-4 py-3 text-center text-muted-foreground">
+                                  <div className="flex items-center justify-center gap-2">
+                                    <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                                    <span className="text-sm">Searching restaurants...</span>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {liveSearchResults.map((place, index) => (
+                                <div
+                                  key={place.place_id}
+                                  className="px-4 py-3 hover:bg-primary/10 cursor-pointer transition-colors duration-200 border-b border-border/50 last:border-b-0 group"
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div 
+                                      className="flex-1 min-w-0"
+                                      onClick={() => handlePlaceClick(place)}
+                                    >
+                                      <div className="font-medium text-sm group-hover:text-primary transition-colors line-clamp-1">
+                                        {place.name}
+                                      </div>
+                                      <div className="text-xs text-muted-foreground mt-1 line-clamp-1">
+                                        {place.formatted_address}
+                                      </div>
+                                      <div className="flex items-center gap-3 mt-2">
+                                        {place.rating && (
+                                          <div className="flex items-center gap-1">
+                                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                            <span className="text-xs font-medium">{place.rating}</span>
+                                            {place.user_ratings_total && (
+                                              <span className="text-xs text-muted-foreground">({place.user_ratings_total})</span>
+                                            )}
+                                          </div>
+                                        )}
+                                        {place.price_level && (
+                                          <div className="text-xs text-muted-foreground">
+                                            {getPriceDisplay(place.price_level)}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="ml-3 flex-shrink-0">
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleQuickAdd(place);
+                                        }}
+                                        className="h-8 px-3 text-xs bg-background/50 hover:bg-primary hover:text-primary-foreground transition-all duration-200"
+                                      >
+                                        <Plus className="h-3 w-3 mr-1" />
+                                        Rate
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                              
+                              {!isLiveSearching && liveSearchResults.length === 0 && searchQuery.length > 2 && (
+                                <div className="px-4 py-3 text-center text-muted-foreground text-sm">
+                                  No restaurants found. Try a different search term.
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
