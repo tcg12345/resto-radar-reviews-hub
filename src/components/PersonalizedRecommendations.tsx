@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Star, MapPin, Lightbulb, Heart, Clock, Globe, Phone, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRestaurants } from '@/contexts/RestaurantContext';
 import { Restaurant } from '@/types/restaurant';
 import { RestaurantDetailsModal } from '@/components/RestaurantDetailsModal';
+import { toast } from 'sonner';
 
 interface RecommendationEngine {
   getPersonalizedRecommendations: () => Promise<GooglePlaceResult[]>;
@@ -49,6 +51,7 @@ interface GooglePlaceResult {
 
 export function PersonalizedRecommendations() {
   const { user } = useAuth();
+  const { addRestaurant } = useRestaurants();
   const [recommendations, setRecommendations] = useState<AIRecommendation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [preferences, setPreferences] = useState<any>(null);
@@ -56,6 +59,7 @@ export function PersonalizedRecommendations() {
   const [selectedRestaurant, setSelectedRestaurant] = useState<any>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [cuisineCache, setCuisineCache] = useState<Record<string, string>>({});
+  const [addingToWishlist, setAddingToWishlist] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     // Don't automatically load recommendations - wait for user to click button
@@ -267,6 +271,83 @@ export function PersonalizedRecommendations() {
     return match ? match[1].trim() : todayHours;
   };
 
+  const handleAddToWishlist = async (place: AIRecommendation) => {
+    if (!user) {
+      toast.error('Please sign in to add to wishlist');
+      return;
+    }
+    
+    setAddingToWishlist(prev => ({ ...prev, [place.place_id]: true }));
+    
+    try {
+      // Get Michelin stars using AI
+      let michelinStars = null;
+      try {
+        const { data: aiData } = await supabase.functions.invoke('ai-michelin-detector', {
+          body: {
+            name: place.name,
+            address: place.formatted_address,
+            city: place.formatted_address.split(',').slice(-2, -1)[0]?.trim() || '',
+            country: place.formatted_address.split(',').slice(-1)[0]?.trim() || '',
+            cuisine: getCuisineForPlace(place) || place.types.filter(type => !['establishment', 'point_of_interest', 'food'].includes(type))[0] || 'restaurant',
+            notes: 'Added from Personalized Recommendations'
+          }
+        });
+        if (aiData && aiData.michelinStars !== null) {
+          michelinStars = aiData.michelinStars;
+        }
+      } catch (error) {
+        console.log('Could not determine Michelin stars:', error);
+      }
+
+      // Parse address components properly
+      const addressParts = place.formatted_address.split(',').map(part => part.trim());
+      let city = '';
+      let country = '';
+      
+      if (addressParts.length >= 2) {
+        const lastPart = addressParts[addressParts.length - 1];
+        const secondLastPart = addressParts[addressParts.length - 2];
+        
+        if (lastPart.match(/^(USA|United States|US)$/i)) {
+          country = 'United States';
+          city = addressParts[1] || '';
+        } else if (lastPart.length <= 4 && /^\d/.test(lastPart)) {
+          country = secondLastPart;
+          city = addressParts[addressParts.length - 3] || '';
+        } else {
+          country = lastPart;
+          city = secondLastPart || '';
+        }
+      }
+
+      const restaurantFormData = {
+        name: place.name,
+        address: place.formatted_address.split(',')[0]?.trim() || place.formatted_address,
+        city: city,
+        country: country,
+        cuisine: getCuisineForPlace(place) || place.types.filter(type => !['establishment', 'point_of_interest', 'food'].includes(type))[0] || 'restaurant',
+        rating: undefined,
+        categoryRatings: undefined,
+        useWeightedRating: false,
+        priceRange: place.price_level || place.price_range,
+        michelinStars: michelinStars,
+        notes: 'Added from Personalized Recommendations',
+        dateVisited: '',
+        photos: [],
+        isWishlist: true,
+      };
+      
+      await addRestaurant(restaurantFormData);
+      toast.success('Added to wishlist!');
+    } catch (error) {
+      console.error('Error adding to wishlist:', error);
+      toast.error(`Failed to add to wishlist: ${error.message}`);
+    } finally {
+      setAddingToWishlist(prev => ({ ...prev, [place.place_id]: false }));
+    }
+  };
+
   const handleShowDetails = (place: AIRecommendation) => {
     // Convert Google Places data to Restaurant format for the modal
     const restaurant = {
@@ -386,7 +467,15 @@ export function PersonalizedRecommendations() {
                       <h3 className="text-lg font-semibold text-white line-clamp-2 flex-1 mr-2">
                         {place.name}
                       </h3>
-                      <Heart className="h-5 w-5 text-gray-400 hover:text-red-500 transition-colors cursor-pointer flex-shrink-0" />
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
+                        onClick={() => handleAddToWishlist(place)}
+                        disabled={addingToWishlist[place.place_id]}
+                      >
+                        <Heart className="h-5 w-5" />
+                      </Button>
                     </div>
 
                     {/* Rating */}

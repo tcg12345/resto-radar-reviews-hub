@@ -5,6 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRestaurants } from '@/contexts/RestaurantContext';
 
 import { 
   Star, 
@@ -78,10 +82,13 @@ const getFeatureIcon = (feature: string) => {
 };
 
 export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist, onViewDetails }: DiscoverResultCardProps) {
+  const { user } = useAuth();
+  const { addRestaurant } = useRestaurants();
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
   const [isMoreInfoOpen, setIsMoreInfoOpen] = useState(false);
   const [showFullWeekHours, setShowFullWeekHours] = useState(false);
+  const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
 
   const getPriceDisplay = (range: number) => '$'.repeat(Math.min(range, 4));
   
@@ -112,6 +119,62 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist,
               'Thursday: Call for hours', 'Friday: Call for hours', 'Saturday: Call for hours', 'Sunday: Call for hours'];
     }
     return hours.split('\n').filter(line => line.trim());
+  };
+
+  const handleAddToWishlist = async () => {
+    if (!user) {
+      toast.error('Please sign in to add to wishlist');
+      return;
+    }
+    
+    setIsAddingToWishlist(true);
+    
+    try {
+      // Get Michelin stars using AI
+      let michelinStars = null;
+      try {
+        const { data: aiData } = await supabase.functions.invoke('ai-michelin-detector', {
+          body: {
+            name: restaurant.name,
+            address: restaurant.address,
+            city: restaurant.location?.city || '',
+            country: restaurant.location?.country || '',
+            cuisine: restaurant.cuisine,
+            notes: 'Added from Smart Discovery'
+          }
+        });
+        if (aiData && aiData.michelinStars !== null) {
+          michelinStars = aiData.michelinStars;
+        }
+      } catch (error) {
+        console.log('Could not determine Michelin stars:', error);
+      }
+
+      const restaurantFormData = {
+        name: restaurant.name,
+        address: restaurant.address,
+        city: restaurant.location?.city || '',
+        country: restaurant.location?.country || '',
+        cuisine: restaurant.cuisine,
+        rating: undefined,
+        categoryRatings: undefined,
+        useWeightedRating: false,
+        priceRange: restaurant.priceRange,
+        michelinStars: michelinStars,
+        notes: 'Added from Smart Discovery',
+        dateVisited: '',
+        photos: [],
+        isWishlist: true,
+      };
+      
+      await addRestaurant(restaurantFormData);
+      toast.success('Added to wishlist!');
+    } catch (error) {
+      console.error('Error adding to wishlist:', error);
+      toast.error(`Failed to add to wishlist: ${error.message}`);
+    } finally {
+      setIsAddingToWishlist(false);
+    }
   };
 
   const handleMoreInfoToggle = (open: boolean) => {
@@ -157,7 +220,8 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist,
                 ? 'bg-red-500 hover:bg-red-600 text-white scale-110' 
                 : 'bg-white/90 hover:bg-white text-gray-700 hover:scale-110'
             }`}
-            onClick={() => onToggleWishlist(restaurant)}
+            onClick={handleAddToWishlist}
+            disabled={isAddingToWishlist}
           >
             <Heart className={`h-5 w-5 ${isInWishlist ? 'fill-current' : ''}`} />
           </Button>
