@@ -69,7 +69,7 @@ export default function FriendProfilePage() {
         .rpc('get_friend_profile_data', { 
           target_user_id: friendData.id,
           requesting_user_id: user?.id,
-          restaurant_limit: 10 // Only first 10 for instant display
+          restaurant_limit: 5 // Only 5 for recent activity - much faster
         })
         .single();
 
@@ -93,13 +93,13 @@ export default function FriendProfilePage() {
         topCuisines: [],
         ratingDistribution: {},
         michelinCount: result.michelin_count || 0,
-        recentActivity: Array.isArray(result.recent_restaurants) ? result.recent_restaurants : []
+        recentActivity: Array.isArray(result.recent_restaurants) ? result.recent_restaurants.slice(0, 5) : [] // Limit to 5 for UI
       });
 
-      // Display first 10 restaurants immediately from the function result
-      const initialRestaurants = Array.isArray(result.recent_restaurants) ? result.recent_restaurants : [];
+      // Load first 10 restaurants separately for the restaurants tab
+      const initialRestaurants = await fetchFriendRestaurants(friendData.id, false, 10);
       setRestaurants(initialRestaurants);
-      setAllRestaurants(initialRestaurants);
+      setAllRestaurants(initialRestaurants); // Will be updated in background
 
       // Reset pagination
       setDisplayedRestaurants(Math.min(10, initialRestaurants.length));
@@ -117,25 +117,25 @@ export default function FriendProfilePage() {
     }
   };
 
-  // Background loading function - runs after initial display
+  // Background loading function - loads data in smaller batches
   const loadRemainingDataInBackground = async (friendId: string) => {
     try {
-      console.log('Starting background load of remaining restaurants...');
+      console.log('Starting efficient background load...');
       
-      // Load all restaurants and wishlist in background
-      const [allRestaurantsData, allWishlistData] = await Promise.all([
-        fetchFriendRestaurants(friendId, false), // Get ALL restaurants
-        fetchFriendRestaurants(friendId, true)   // Get ALL wishlist
+      // Load data in smaller, more manageable chunks
+      const [nextRestaurantsBatch, wishlistData] = await Promise.all([
+        fetchFriendRestaurants(friendId, false, 50), // Load 50 at a time instead of all
+        fetchFriendRestaurants(friendId, true, 20)   // Limit wishlist to 20 initially
       ]);
 
-      // Update caches with complete data
-      setAllRestaurants(allRestaurantsData);
-      setAllWishlist(allWishlistData);
-      setWishlist(allWishlistData.slice(0, 10)); // Show first 10 wishlist items
+      // Update caches with the additional data
+      setAllRestaurants(nextRestaurantsBatch);
+      setAllWishlist(wishlistData);
+      setWishlist(wishlistData.slice(0, 10)); // Show first 10 wishlist items
       
-      // Update stats with complete data
-      const ratingDistribution = calculateRatingDistribution(allRestaurantsData);
-      const topCuisines = calculateTopCuisines(allRestaurantsData);
+      // Update stats with the loaded data (not all data)
+      const ratingDistribution = calculateRatingDistribution(nextRestaurantsBatch);
+      const topCuisines = calculateTopCuisines(nextRestaurantsBatch);
       
       setStats(prev => ({
         ...prev,
@@ -144,7 +144,7 @@ export default function FriendProfilePage() {
       }));
       
       setBackgroundLoadingComplete(true);
-      console.log('Background loading complete - all data cached');
+      console.log('Background loading complete - cached 50 restaurants and 20 wishlist items');
     } catch (error) {
       console.error('Error in background loading:', error);
     }
@@ -167,25 +167,23 @@ export default function FriendProfilePage() {
   const loadMoreRestaurants = async () => {
     if (!friend) return;
     
-    // If background loading is complete, show pre-loaded data instantly
-    if (backgroundLoadingComplete) {
+    // If background loading is complete and we have cached data, show it instantly
+    if (backgroundLoadingComplete && displayedRestaurants < allRestaurants.length) {
       const newDisplayCount = Math.min(displayedRestaurants + 10, allRestaurants.length);
       setRestaurants(allRestaurants.slice(0, newDisplayCount));
       setDisplayedRestaurants(newDisplayCount);
       return;
     }
     
-    // Fallback: load more if background loading isn't complete yet
+    // If we need more data than what's cached, load it incrementally
     setIsLoadingMoreRestaurants(true);
     try {
-      const newRestaurants = await fetchFriendRestaurants(
-        friend.id, 
-        false, 
-        displayedRestaurants + 10
-      );
+      const newLimit = displayedRestaurants + 20; // Load 20 more at a time
+      const newRestaurants = await fetchFriendRestaurants(friend.id, false, newLimit);
       
       setRestaurants(newRestaurants);
-      setDisplayedRestaurants(prev => prev + 10);
+      setAllRestaurants(newRestaurants); // Update cache
+      setDisplayedRestaurants(Math.min(newLimit, newRestaurants.length));
     } catch (error) {
       console.error('Error loading more restaurants:', error);
     } finally {
@@ -489,7 +487,7 @@ export default function FriendProfilePage() {
                     </CardContent>
                   </Card>
                 ))}
-                {displayedRestaurants < allRestaurants.length && (
+                {(backgroundLoadingComplete ? displayedRestaurants < allRestaurants.length : displayedRestaurants < stats.totalRated) && (
                   <div className="text-center mt-6">
                     <Button 
                       variant="outline" 
@@ -504,7 +502,7 @@ export default function FriendProfilePage() {
                         </>
                       ) : (
                         <>
-                          Load More ({allRestaurants.length - displayedRestaurants} remaining)
+                          Load More ({backgroundLoadingComplete ? allRestaurants.length - displayedRestaurants : stats.totalRated - displayedRestaurants} remaining)
                           {backgroundLoadingComplete && <span className="text-green-500 ml-1">✓</span>}
                         </>
                       )}
