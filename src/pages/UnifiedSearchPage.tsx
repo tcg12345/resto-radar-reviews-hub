@@ -206,13 +206,6 @@ export default function UnifiedSearchPage() {
         </TabsList>
 
         <TabsContent value="global" className="space-y-6">
-          {/* Personalized Recommendations - Show when no search results */}
-          {searchResults.length === 0 && !isLoading && (
-            <div className="mb-8">
-              <PersonalizedRecommendations />
-            </div>
-          )}
-
           {/* Search Section */}
           <Card className="border-primary/20 bg-gradient-to-br from-background via-background to-primary/5">
             <CardContent className="pt-6">
