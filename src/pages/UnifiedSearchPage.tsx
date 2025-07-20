@@ -116,36 +116,50 @@ export default function UnifiedSearchPage() {
 
       // If location is provided, geocode it first for better accuracy
       if (locationQuery && locationQuery.trim()) {
+        console.log('Searching with location:', locationQuery);
         try {
           // First geocode the location to get coordinates
           const { data: geocodeData, error: geocodeError } = await supabase.functions.invoke('geocode', {
             body: { address: locationQuery }
           });
 
+          console.log('Geocode response:', geocodeData);
+
           if (geocodeData && geocodeData.results && geocodeData.results.length > 0) {
             const location = geocodeData.results[0].geometry.location;
+            const formattedAddress = geocodeData.results[0].formatted_address;
+            console.log('Using geocoded coordinates:', location, 'for address:', formattedAddress);
+            
             searchParams.location = `${location.lat},${location.lng}`;
-            searchParams.radius = 15000; // 15km radius for specific location
-            // Add the formatted address to the query for better context
-            searchParams.query = `${searchQuery} in ${geocodeData.results[0].formatted_address}`;
+            searchParams.radius = 10000; // 10km radius for specific location
+            // Use nearby search instead of text search for better location accuracy
+            searchParams.type = 'nearby';
+            searchParams.query = searchQuery; // Keep original query for nearby search
           } else {
-            // Fallback to text-based location
-            searchParams.location = locationQuery;
+            console.log('Geocoding failed, using text-based location search');
+            // Fallback: use location in the query text
+            searchParams.query = `${searchQuery} in ${locationQuery}`;
             searchParams.radius = 25000;
           }
         } catch (geocodeError) {
-          console.log('Geocoding failed, using text location:', geocodeError);
-          searchParams.location = locationQuery;
+          console.log('Geocoding error:', geocodeError);
+          // Fallback: include location in query text
+          searchParams.query = `${searchQuery} in ${locationQuery}`;
           searchParams.radius = 25000;
         }
       } else if (userLocation) {
+        console.log('Using user location:', userLocation);
         searchParams.location = `${userLocation.lat},${userLocation.lng}`;
         searchParams.radius = 50000; // 50km radius when using user location
       }
 
+      console.log('Final search params:', searchParams);
+
       const { data, error } = await supabase.functions.invoke('google-places-search', {
         body: searchParams
       });
+
+      console.log('Search response:', data);
 
       if (error) {
         console.error('Live search error:', error);
@@ -156,9 +170,11 @@ export default function UnifiedSearchPage() {
       }
 
       if (data && data.status === 'OK' && data.results && data.results.length > 0) {
+        console.log('Found restaurants:', data.results.map(r => ({ name: r.name, address: r.formatted_address })));
         setLiveSearchResults(data.results.slice(0, 6)); // Show up to 6 results
         setShowLiveResults(true);
       } else {
+        console.log('No results found, status:', data?.status);
         setLiveSearchResults([]);
         setShowLiveResults(false);
       }
@@ -344,8 +360,8 @@ export default function UnifiedSearchPage() {
         </TabsList>
 
         <TabsContent value="global" className="space-y-6">
-          {/* Modern Search Section */}
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-background via-background to-primary/10 border border-primary/20 shadow-2xl">
+          {/* Modern Search Section - Remove overflow hidden */}
+          <div className="relative rounded-2xl bg-gradient-to-br from-background via-background to-primary/10 border border-primary/20 shadow-2xl">
             {/* Background Pattern */}
             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary-glow/5 opacity-50" />
             <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-radial from-primary-glow/20 to-transparent rounded-full -translate-y-32 translate-x-32" />
@@ -387,7 +403,7 @@ export default function UnifiedSearchPage() {
               <div className="space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
                   {/* Main Search Input */}
-                  <div className="lg:col-span-2 space-y-2">
+                  <div className="lg:col-span-2 space-y-2 relative">
                     <div className="relative group">
                       <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary-glow/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       <div className="relative bg-background/80 backdrop-blur-sm rounded-xl border border-border group-hover:border-primary/50 transition-all duration-300">
@@ -418,15 +434,26 @@ export default function UnifiedSearchPage() {
                           className="pl-12 pr-4 h-14 bg-transparent border-none text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none"
                         />
                         
-                        {/* Live Search Results Dropdown - High z-index and improved positioning */}
+                        {/* Live Search Results Dropdown - Portal-style positioning */}
                         {showLiveResults && (liveSearchResults.length > 0 || isLiveSearching) && (
-                          <div className="absolute top-full left-0 right-0 z-[9999] mt-2 bg-card backdrop-blur-lg border border-border rounded-xl shadow-2xl overflow-hidden animate-fade-in" style={{ position: 'absolute', zIndex: 9999 }}>
-                            <div className="max-h-72 overflow-y-auto bg-card">
+                          <div 
+                            className="fixed bg-card border border-border rounded-xl shadow-2xl animate-fade-in"
+                            style={{ 
+                              position: 'fixed',
+                              zIndex: 99999,
+                              top: '280px', // Adjust based on your layout
+                              left: '50%',
+                              transform: 'translateX(-50%)',
+                              width: 'min(90vw, 600px)',
+                              maxHeight: '400px'
+                            }}
+                          >
+                            <div className="max-h-96 overflow-y-auto bg-card">
                               {isLiveSearching && (
-                                <div className="px-3 py-3 text-center text-muted-foreground bg-card">
+                                <div className="px-4 py-4 text-center text-muted-foreground bg-card">
                                   <div className="flex items-center justify-center gap-2">
-                                    <div className="w-3 h-3 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                                    <span className="text-xs">Searching...</span>
+                                    <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                                    <span className="text-sm">Searching restaurants...</span>
                                   </div>
                                 </div>
                               )}
@@ -434,7 +461,7 @@ export default function UnifiedSearchPage() {
                               {!isLiveSearching && liveSearchResults.map((place, index) => (
                                 <div
                                   key={place.place_id}
-                                  className="px-3 py-3 hover:bg-primary/10 cursor-pointer transition-colors duration-200 border-b border-border/30 last:border-b-0 bg-card"
+                                  className="px-4 py-4 hover:bg-primary/10 cursor-pointer transition-colors duration-200 border-b border-border/30 last:border-b-0 bg-card"
                                 >
                                   <div className="flex items-center justify-between gap-2">
                                     <div 
