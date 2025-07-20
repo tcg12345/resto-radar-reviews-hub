@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Sparkles, MapPin, Filter, Loader2 } from 'lucide-react';
+import { Search, Sparkles, MapPin, Loader2 } from 'lucide-react';
 
 export type SearchType = 'name' | 'cuisine' | 'description';
 
@@ -223,7 +223,7 @@ export function DiscoverSearchForm({
   onSearch,
   isLoading
 }: SearchFormProps) {
-  const [showFilters, setShowFilters] = useState(false);
+  
   const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
 
   // Rotate example queries every 3 seconds
@@ -307,7 +307,7 @@ export function DiscoverSearchForm({
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Button */}
         <div className="flex items-center gap-3">
           <Button 
             onClick={onSearch} 
@@ -325,14 +325,6 @@ export function DiscoverSearchForm({
                 Discover Restaurants
               </>
             )}
-          </Button>
-          
-          <Button
-            variant="outline"
-            onClick={() => setShowFilters(!showFilters)}
-            className="h-12 px-4"
-          >
-            <Filter className="h-4 w-4" />
           </Button>
         </div>
 
