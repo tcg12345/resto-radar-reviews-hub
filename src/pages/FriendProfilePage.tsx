@@ -52,15 +52,17 @@ export default function FriendProfilePage() {
   const loadFriendData = async (friendData: any) => {
     setIsLoading(true);
     try {
-      const [restaurantData, wishlistData] = await Promise.all([
-        fetchFriendRestaurants(friendData.id, false),
+      // Load stats data first (small sample for quick loading)
+      const [statsData, wishlistData] = await Promise.all([
+        fetchFriendRestaurants(friendData.id, false, 100), // Limit for stats calculation
         fetchFriendRestaurants(friendData.id, true)
       ]);
       
-      const ratedRestaurants = restaurantData.filter(r => !r.is_wishlist);
+      const ratedRestaurants = statsData.filter(r => !r.is_wishlist);
       const wishlistItems = wishlistData.filter(r => r.is_wishlist);
       
-      setRestaurants(ratedRestaurants);
+      // For restaurants tab, we'll load paginated data when needed
+      setRestaurants(ratedRestaurants.slice(0, 20)); // Show first 20 initially
       setWishlist(wishlistItems);
       
       // Calculate detailed stats
@@ -100,23 +102,37 @@ export default function FriendProfilePage() {
     });
     const topCuisines = Object.entries(cuisineCounts)
       .sort(([,a], [,b]) => b - a)
-      .slice(0, 3)
+      .slice(0, 5)
       .map(([cuisine, count]) => ({ cuisine, count }));
 
-    // Rating distribution
-    const ratingDistribution: { [key: string]: number } = {};
+    // Rating distribution in ranges
+    const ratingDistribution: { [key: string]: number } = {
+      '0-2': 0,
+      '2-4': 0,
+      '4-6': 0,
+      '6-8': 0,
+      '8-10': 0
+    };
     ratedWithScores.forEach(r => {
-      const roundedRating = Math.floor(r.rating);
-      ratingDistribution[roundedRating] = (ratingDistribution[roundedRating] || 0) + 1;
+      const rating = r.rating;
+      if (rating >= 0 && rating < 2) ratingDistribution['0-2']++;
+      else if (rating >= 2 && rating < 4) ratingDistribution['2-4']++;
+      else if (rating >= 4 && rating < 6) ratingDistribution['4-6']++;
+      else if (rating >= 6 && rating < 8) ratingDistribution['6-8']++;
+      else if (rating >= 8 && rating <= 10) ratingDistribution['8-10']++;
     });
 
     // Michelin starred restaurants
     const michelinCount = ratedRestaurants.filter(r => r.michelin_stars && r.michelin_stars > 0).length;
 
-    // Recent activity (last 5 rated restaurants)
+    // Recent activity (last 5 rated restaurants) - use created_at if date_visited is not available
     const recentActivity = ratedRestaurants
-      .filter(r => r.date_visited)
-      .sort((a, b) => new Date(b.date_visited).getTime() - new Date(a.date_visited).getTime())
+      .filter(r => r.date_visited || r.created_at)
+      .sort((a, b) => {
+        const dateA = new Date(a.date_visited || a.created_at);
+        const dateB = new Date(b.date_visited || b.created_at);
+        return dateB.getTime() - dateA.getTime();
+      })
       .slice(0, 5);
 
     setStats({
@@ -240,9 +256,12 @@ export default function FriendProfilePage() {
                             <div className="flex-1">
                               <h4 className="font-medium">{restaurant.name}</h4>
                               <p className="text-sm text-muted-foreground">{restaurant.cuisine}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {new Date(restaurant.date_visited).toLocaleDateString()}
-                              </p>
+                               <p className="text-xs text-muted-foreground">
+                                 {restaurant.date_visited 
+                                   ? new Date(restaurant.date_visited).toLocaleDateString()
+                                   : `Added: ${new Date(restaurant.created_at).toLocaleDateString()}`
+                                 }
+                               </p>
                             </div>
                             <div className="flex items-center gap-2">
                               <StarRating rating={restaurant.rating} readonly size="sm" />
@@ -293,26 +312,26 @@ export default function FriendProfilePage() {
                         Rating Pattern
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        {[5, 4, 3, 2, 1].map(rating => {
-                          const count = stats.ratingDistribution[rating] || 0;
-                          const percentage = (count / stats.totalRated) * 100;
-                          return (
-                            <div key={rating} className="flex items-center gap-2">
-                              <span className="text-sm w-8">{rating}⭐</span>
-                              <div className="flex-1 bg-muted rounded-full h-2">
-                                <div 
-                                  className="bg-primary rounded-full h-2 transition-all duration-300"
-                                  style={{ width: `${percentage}%` }}
-                                />
-                              </div>
-                              <span className="text-xs text-muted-foreground w-8">{count}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </CardContent>
+                     <CardContent>
+                       <div className="space-y-2">
+                         {['8-10', '6-8', '4-6', '2-4', '0-2'].map(range => {
+                           const count = stats.ratingDistribution[range] || 0;
+                           const percentage = stats.totalRated > 0 ? (count / stats.totalRated) * 100 : 0;
+                           return (
+                             <div key={range} className="flex items-center gap-2">
+                               <span className="text-sm w-12">{range}⭐</span>
+                               <div className="flex-1 bg-muted rounded-full h-2">
+                                 <div 
+                                   className="bg-primary rounded-full h-2 transition-all duration-300"
+                                   style={{ width: `${percentage}%` }}
+                                 />
+                               </div>
+                               <span className="text-xs text-muted-foreground w-8">{count}</span>
+                             </div>
+                           );
+                         })}
+                       </div>
+                     </CardContent>
                   </Card>
                 )}
               </div>
@@ -487,26 +506,26 @@ export default function FriendProfilePage() {
                     Rating Distribution
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {[5, 4, 3, 2, 1].map(rating => {
-                      const count = stats.ratingDistribution[rating] || 0;
-                      const percentage = stats.totalRated > 0 ? (count / stats.totalRated) * 100 : 0;
-                      return (
-                        <div key={rating} className="flex items-center gap-3">
-                          <span className="text-sm w-8">{rating}⭐</span>
-                          <div className="flex-1 bg-muted rounded-full h-2">
-                            <div 
-                              className="bg-primary rounded-full h-2"
-                              style={{ width: `${percentage}%` }}
-                            />
-                          </div>
-                          <span className="text-xs text-muted-foreground w-8">{count}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
+                 <CardContent>
+                   <div className="space-y-3">
+                     {['8-10', '6-8', '4-6', '2-4', '0-2'].map(range => {
+                       const count = stats.ratingDistribution[range] || 0;
+                       const percentage = stats.totalRated > 0 ? (count / stats.totalRated) * 100 : 0;
+                       return (
+                         <div key={range} className="flex items-center gap-3">
+                           <span className="text-sm w-12">{range}⭐</span>
+                           <div className="flex-1 bg-muted rounded-full h-2">
+                             <div 
+                               className="bg-primary rounded-full h-2"
+                               style={{ width: `${percentage}%` }}
+                             />
+                           </div>
+                           <span className="text-xs text-muted-foreground w-8">{count}</span>
+                         </div>
+                       );
+                     })}
+                   </div>
+                 </CardContent>
               </Card>
             </div>
           </TabsContent>

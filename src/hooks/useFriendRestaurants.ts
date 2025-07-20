@@ -9,7 +9,7 @@ export function useFriendRestaurants() {
   const [friendRestaurants, setFriendRestaurants] = useState<(Restaurant & { friend_username: string })[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchFriendRestaurants = async (friendId: string, includeWishlist: boolean = false) => {
+  const fetchFriendRestaurants = async (friendId: string, includeWishlist: boolean = false, limit?: number) => {
     if (!user) return [];
 
     try {
@@ -51,7 +51,13 @@ export function useFriendRestaurants() {
         query.eq('is_wishlist', false);
       }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+      let finalQuery = query.order('created_at', { ascending: false });
+      
+      if (limit) {
+        finalQuery = finalQuery.limit(limit);
+      }
+      
+      const { data, error } = await finalQuery;
 
       if (error) throw error;
 
