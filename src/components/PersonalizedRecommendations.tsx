@@ -360,7 +360,7 @@ export function PersonalizedRecommendations() {
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-800"
+                        className="flex-1 border-gray-600 text-gray-300 bg-gray-900 hover:bg-gray-800"
                       >
                         <Eye className="h-4 w-4 mr-1" />
                         Details
