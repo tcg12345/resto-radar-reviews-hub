@@ -86,6 +86,18 @@ export default function AuthPage() {
     try {
       setIsLoading(true);
       
+      // First, check if email already exists by checking profiles table
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('email', email)
+        .maybeSingle();
+      
+      if (existingProfile) {
+        toast.error('An account already exists with this email. Please sign in instead.');
+        return;
+      }
+      
       // Generate redirect URL using the current origin
       const redirectUrl = `${window.location.origin}/`;
       
@@ -109,36 +121,13 @@ export default function AuthPage() {
       
       if (error) throw error;
       
-      // Check if this is a repeated signup (user already exists)
-      // When a user already exists, Supabase returns the existing user data
-      // but doesn't create a new user or send a new confirmation email
-      if (data.user && data.user.id) {
-        // If user exists but is not confirmed, and we didn't just create them
-        if (!data.user.email_confirmed_at) {
-          // Additional check: if created_at is more than a few seconds ago, it's likely an existing user
-          const userCreatedAt = new Date(data.user.created_at);
-          const now = new Date();
-          const timeDiffMinutes = (now.getTime() - userCreatedAt.getTime()) / (1000 * 60);
-          
-          if (timeDiffMinutes > 1) {
-            toast.error('This email is already registered but not verified. Please check your email for the verification link or contact support.');
-            return;
-          }
-        } else {
-          // User exists and is already confirmed
-          toast.error('This email is already registered and verified. Please sign in instead.');
-          return;
-        }
-      }
-      
-      // If we get here, it's likely a new user
       toast.success('Account created! Please check your email to verify your account.');
       
     } catch (error: any) {
       console.error('Error signing up:', error);
       
       if (error.message.includes('User already registered') || error.message.includes('already been registered')) {
-        toast.error('This email is already registered. Please sign in instead.');
+        toast.error('An account already exists with this email. Please sign in instead.');
       } else if (error.message.includes('Username') || error.message.includes('username')) {
         toast.error('Username already taken. Please choose a different username.');
       } else if (error.message.includes('duplicate') || error.message.includes('unique')) {
