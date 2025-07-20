@@ -201,7 +201,7 @@ export default function DemoPage() {
           <div className="container py-6 space-y-8">
             {/* Header */}
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
                 {getGreeting()}, Demo User! 👋
               </h1>
               <p className="text-muted-foreground text-lg">
@@ -302,7 +302,7 @@ export default function DemoPage() {
         return (
           <div className="container py-6 space-y-6">
             <div className="flex items-center justify-between">
-              <h1 className="text-3xl font-bold">My Ratings</h1>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">My Ratings</h1>
               <Badge variant="secondary" className="text-sm">
                 {ratedRestaurants.length} Restaurant{ratedRestaurants.length !== 1 ? 's' : ''}
               </Badge>
@@ -352,7 +352,7 @@ export default function DemoPage() {
         return (
           <div className="container py-6 space-y-6">
             <div className="flex items-center justify-between">
-              <h1 className="text-3xl font-bold">Wishlist</h1>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Wishlist</h1>
               <Badge variant="secondary" className="text-sm">
                 {wishlistRestaurants.length} Restaurant{wishlistRestaurants.length !== 1 ? 's' : ''}
               </Badge>
@@ -407,7 +407,7 @@ export default function DemoPage() {
       case 'map':
         return (
           <div className="container py-6 space-y-6">
-            <h1 className="text-3xl font-bold">Map View</h1>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Map View</h1>
             <Card>
               <CardContent className="p-6">
                 <div className="h-96 bg-muted rounded-lg flex items-center justify-center">

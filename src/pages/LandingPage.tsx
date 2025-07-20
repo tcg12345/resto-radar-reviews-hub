@@ -112,9 +112,9 @@ export default function LandingPage() {
                 <Badge variant="secondary" className="text-sm">
                   ✨ Your Personal Restaurant Companion
                 </Badge>
-                <h1 className="text-4xl md:text-6xl font-bold leading-tight">
+                <h1 className="text-4xl md:text-6xl font-bold leading-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
                   Track, Rate & 
-                  <span className="text-primary"> Discover</span>
+                  <span className="bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent"> Discover</span>
                   <br />
                   Amazing Restaurants
                 </h1>
@@ -185,7 +185,7 @@ export default function LandingPage() {
             <Badge variant="outline" className="mb-4">
               Features
             </Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
               Everything You Need to Track Your Dining
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -237,7 +237,7 @@ export default function LandingPage() {
       {/* CTA Section */}
       <section className="py-24 bg-gradient-to-r from-primary to-primary/80">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 bg-gradient-to-r from-white to-gray-100 bg-clip-text text-transparent">
             Ready to Start Your Culinary Journey?
           </h2>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">

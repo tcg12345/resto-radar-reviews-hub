@@ -197,7 +197,7 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
     <div className="container py-6 space-y-8">
       {/* Header */}
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
           {getGreeting()}, {getFirstName()}! 👋
         </h1>
         <p className="text-muted-foreground text-lg">

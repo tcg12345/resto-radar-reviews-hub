@@ -261,7 +261,7 @@ export function RatedRestaurantsPage({
   return (
     <div className="container py-6">
       <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-        <h2 className="text-3xl font-bold tracking-tight">Rated Restaurants</h2>
+        <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Rated Restaurants</h2>
         <div className="flex gap-2">
           {onNavigateToMap && (
             <Button variant="outline" onClick={onNavigateToMap}>

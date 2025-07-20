@@ -311,7 +311,7 @@ export function FriendsPage() {
             <Users className="h-8 w-8 text-primary" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold">Friends</h1>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Friends</h1>
             <p className="text-muted-foreground">Connect with others and discover great restaurants</p>
           </div>
         </div>

@@ -163,7 +163,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
             </Button>
             <div className="flex items-center gap-2">
               <SettingsIcon className="h-6 w-6" />
-              <h1 className="text-2xl font-bold">Settings</h1>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Settings</h1>
             </div>
           </div>
         </div>
