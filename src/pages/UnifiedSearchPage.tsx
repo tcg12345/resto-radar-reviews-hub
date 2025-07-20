@@ -170,9 +170,29 @@ export default function UnifiedSearchPage() {
       }
 
       if (data && data.status === 'OK' && data.results && data.results.length > 0) {
-        console.log('Found restaurants:', data.results.map(r => ({ name: r.name, address: r.formatted_address })));
-        setLiveSearchResults(data.results.slice(0, 6)); // Show up to 6 results
-        setShowLiveResults(true);
+        let filteredResults = data.results;
+        
+        // If searching by name, filter results to only show exact name matches
+        if (searchType === 'name') {
+          const searchWords = searchQuery.toLowerCase().split(' ').filter(word => word.length > 0);
+          filteredResults = data.results.filter(restaurant => {
+            const restaurantName = restaurant.name.toLowerCase();
+            // Check if restaurant name contains all search words
+            return searchWords.every(word => restaurantName.includes(word));
+          });
+          
+          console.log('Name search - filtered results:', filteredResults.length, 'from', data.results.length);
+        }
+        
+        if (filteredResults.length > 0) {
+          console.log('Found restaurants:', filteredResults.map(r => ({ name: r.name, address: r.formatted_address })));
+          setLiveSearchResults(filteredResults.slice(0, 6)); // Show up to 6 results
+          setShowLiveResults(true);
+        } else {
+          console.log('No matching restaurants found for name search');
+          setLiveSearchResults([]);
+          setShowLiveResults(false);
+        }
       } else {
         console.log('No results found, status:', data?.status);
         setLiveSearchResults([]);
@@ -302,10 +322,37 @@ export default function UnifiedSearchPage() {
       if (error) throw error;
 
       if (data.status === 'OK') {
-        setSearchResults(data.results || []);
+        let filteredResults = data.results || [];
+        
+        // If searching by name, filter results to only show exact name matches
+        if (searchType === 'name') {
+          const searchWords = searchQuery.toLowerCase().split(' ').filter(word => word.length > 0);
+          filteredResults = (data.results || []).filter(restaurant => {
+            const restaurantName = restaurant.name.toLowerCase();
+            // Check if restaurant name contains all search words
+            return searchWords.every(word => restaurantName.includes(word));
+          });
+          
+          console.log('Full search - Name filtering: found', filteredResults.length, 'matches from', (data.results || []).length, 'total results');
+        }
+        
+        if (filteredResults.length > 0) {
+          setSearchResults(filteredResults);
+        } else if (searchType === 'name') {
+          // Show no results for name search if no matches found
+          setSearchResults([]);
+          toast.error(`No restaurants found matching "${searchQuery}"`);
+        } else {
+          setSearchResults([]);
+          toast.error('No restaurants found');
+        }
       } else {
-        toast.error('No results found');
         setSearchResults([]);
+        if (searchType === 'name') {
+          toast.error(`No restaurants found matching "${searchQuery}"`);
+        } else {
+          toast.error('No results found');
+        }
       }
     } catch (error) {
       console.error('Search error:', error);
@@ -522,8 +569,11 @@ export default function UnifiedSearchPage() {
                               ))}
                               
                               {!isLiveSearching && liveSearchResults.length === 0 && searchQuery.length > 2 && (
-                                <div className="px-3 py-2 text-center text-muted-foreground text-xs">
-                                  No restaurants found. Try a different search term.
+                                <div className="px-4 py-4 text-center text-muted-foreground text-sm">
+                                  {searchType === 'name' 
+                                    ? `No restaurants found matching "${searchQuery}"` 
+                                    : 'No restaurants found. Try a different search term.'
+                                  }
                                 </div>
                               )}
                             </div>
