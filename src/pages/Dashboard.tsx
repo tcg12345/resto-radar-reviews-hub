@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
@@ -13,7 +12,7 @@ import SettingsPage from '@/pages/SettingsPage';
 import { FriendsPage } from '@/pages/FriendsPage';
 import { AIChatbot } from '@/components/AIChatbot';
 import { useRestaurants } from '@/contexts/RestaurantContext';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobileDevice } from '@/hooks/use-mobile-device';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<'home' | 'rated' | 'wishlist' | 'map' | 'search' | 'settings' | 'friends'>('home');
@@ -21,9 +20,10 @@ export default function Dashboard() {
   const { restaurants, addRestaurant, updateRestaurant, deleteRestaurant } = useRestaurants();
   const navigate = useNavigate();
   const location = useLocation();
-  const isMobile = useIsMobile();
+  const isMobile = useIsMobileDevice();
 
-  
+  console.log('Dashboard render - isMobile:', isMobile, 'screenWidth:', window.innerWidth);
+
   // Handle navigation state from other pages
   useEffect(() => {
     if (location.state?.activeTab) {
