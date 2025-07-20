@@ -373,6 +373,28 @@ serve(async (req) => {
       });
     }
 
+    // Filter results based on search type for more precise matching
+    if (searchType === 'name') {
+      console.log(`Filtering ${allResults.length} results for exact name match: "${query}"`);
+      
+      // Split query into individual words and normalize them
+      const searchWords = query.toLowerCase().split(/\s+/).filter(word => word.length > 0);
+      
+      // Filter results to only include restaurants that contain ALL search words in their name
+      allResults = allResults.filter(place => {
+        const placeName = place.name.toLowerCase();
+        const containsAllWords = searchWords.every(word => placeName.includes(word));
+        
+        if (!containsAllWords) {
+          console.log(`Filtered out "${place.name}" - doesn't contain all words: ${searchWords.join(', ')}`);
+        }
+        
+        return containsAllWords;
+      });
+      
+      console.log(`After name filtering: ${allResults.length} results remain`);
+    }
+
     // Use all results from pagination - no artificial limits
     const maxResults = allResults.length; // Use all available results from Google Places API
     
