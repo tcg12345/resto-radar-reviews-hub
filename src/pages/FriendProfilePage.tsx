@@ -232,7 +232,7 @@ export default function FriendProfilePage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {stats.recentActivity.length === 0 ? (
+                    {!stats.recentActivity || stats.recentActivity.length === 0 ? (
                       <div className="text-center py-8">
                         <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                         <p className="text-muted-foreground">No recent activity</p>
@@ -274,7 +274,7 @@ export default function FriendProfilePage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {stats.topCuisines.length === 0 ? (
+                    {!stats.topCuisines || stats.topCuisines.length === 0 ? (
                       <p className="text-sm text-muted-foreground">No cuisine data</p>
                     ) : (
                       <div className="space-y-3">
@@ -379,7 +379,7 @@ export default function FriendProfilePage() {
                     </CardContent>
                   </Card>
                 ))}
-                {displayedRestaurants < restaurants.length && (
+                {restaurants && displayedRestaurants < restaurants.length && (
                   <div className="text-center mt-6">
                     <Button 
                       variant="outline" 
@@ -435,7 +435,7 @@ export default function FriendProfilePage() {
                     </CardContent>
                   </Card>
                 ))}
-                {displayedWishlist < wishlist.length && (
+                {wishlist && displayedWishlist < wishlist.length && (
                   <div className="text-center mt-6">
                     <Button 
                       variant="outline" 
@@ -489,9 +489,9 @@ export default function FriendProfilePage() {
                     Cuisine Diversity
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {stats.topCuisines.slice(0, 5).map(({ cuisine, count }: any, index: number) => (
+                 <CardContent>
+                   <div className="space-y-3">
+                     {stats.topCuisines && stats.topCuisines.slice(0, 5).map(({ cuisine, count }: any, index: number) => (
                       <div key={cuisine} className="flex justify-between items-center">
                         <span className="text-sm">{cuisine}</span>
                         <div className="flex items-center gap-2">
