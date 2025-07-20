@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/AuthPage";
 import DemoPage from "./pages/DemoPage";
 import FriendProfilePage from "./pages/FriendProfilePage";
+import { FriendsPage } from "./pages/FriendsPage";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,9 @@ const App = () => (
                 
                 {/* Demo route - shows demo functionality */}
                 <Route path="/demo" element={<DemoPage />} />
+                
+                {/* Friends route */}
+                <Route path="/friends" element={<RequireAuth><FriendsPage /></RequireAuth>} />
                 
                 {/* Friend profile route */}
                 <Route path="/friends/:friendId" element={<RequireAuth><FriendProfilePage /></RequireAuth>} />
