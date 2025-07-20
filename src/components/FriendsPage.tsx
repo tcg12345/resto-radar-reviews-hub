@@ -318,7 +318,7 @@ export function FriendsPage() {
   const loadInitialActivity = async () => {
     setCurrentPage(0);
     const result = await fetchAllFriendsRestaurants(0, 10); // Limit to 10 recent activities
-    setHasMoreActivities(result.hasMore);
+    setHasMoreActivities(false); // No more loading - show exactly 10 items
   };
 
   const loadMoreActivities = async () => {
@@ -566,26 +566,6 @@ export function FriendsPage() {
                         ))}
                       </div>
                       
-                      {/* Load More Button */}
-                      {hasMoreActivities && (
-                        <div className="text-center pt-4">
-                          <Button 
-                            variant="outline" 
-                            onClick={loadMoreActivities}
-                            disabled={isLoadingMore}
-                            className="w-full"
-                          >
-                            {isLoadingMore ? (
-                              <div className="flex items-center gap-2">
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                                Loading more...
-                              </div>
-                            ) : (
-                              'Load More Activity'
-                            )}
-                          </Button>
-                        </div>
-                      )}
                       
                       {isLoading && friendRestaurants.length === 0 && (
                         <div className="text-center py-8">

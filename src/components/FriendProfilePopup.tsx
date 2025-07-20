@@ -36,25 +36,23 @@ export function FriendProfilePopup({ friend, isOpen, onClose }: FriendProfilePop
     
     setStats(prev => ({ ...prev, isLoading: true }));
     try {
-      // Use the new ultra-fast cached stats system
-      const { data: result, error } = await supabase.functions.invoke('friend-profile-cache', {
-        body: {
-          action: 'get_profile_stats',
-          user_id: friend.id
-        }
-      });
+      // Use direct database call for instant loading
+      const { data: userData } = await supabase.auth.getUser();
+      const { data: statsData, error } = await supabase
+        .rpc('get_user_stats', { target_user_id: friend.id })
+        .single();
       
-      if (error || !result?.stats) {
+      if (error) {
         console.error('Error loading quick stats:', error);
         setStats(prev => ({ ...prev, isLoading: false }));
         return;
       }
 
       setStats({
-        ratedCount: result.stats.ratedCount,
-        wishlistCount: result.stats.wishlistCount,
-        averageRating: result.stats.averageRating,
-        topCuisine: result.stats.topCuisine,
+        ratedCount: statsData?.rated_count || 0,
+        wishlistCount: statsData?.wishlist_count || 0,
+        averageRating: parseFloat(String(statsData?.avg_rating)) || 0,
+        topCuisine: statsData?.top_cuisine || '',
         isLoading: false
       });
     } catch (error) {
