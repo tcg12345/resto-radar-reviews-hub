@@ -423,21 +423,6 @@ export function PersonalizedRecommendations() {
                       </div>
                     )}
 
-                    {/* Website */}
-                    {place.website && (
-                      <div className="flex items-center gap-2 mb-3">
-                        <Globe className="h-4 w-4 text-gray-400" />
-                        <a 
-                          href={place.website}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-400 hover:text-blue-300 text-sm underline truncate"
-                        >
-                          {place.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}
-                        </a>
-                      </div>
-                    )}
-
                     {/* Address */}
                     <div className="flex items-center gap-2 mb-4">
                       <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0" />
@@ -445,15 +430,6 @@ export function PersonalizedRecommendations() {
                         {formatAddress(place.formatted_address)}
                       </span>
                     </div>
-
-                    {/* Cuisine Badge */}
-                    {getCuisineForPlace(place) && (
-                      <div className="mb-4">
-                        <Badge variant="outline" className="border-gray-600 text-gray-300 bg-gray-800">
-                          {getCuisineForPlace(place)}
-                        </Badge>
-                      </div>
-                    )}
 
                     {/* Action Buttons */}
                     <div className="flex gap-2">
