@@ -108,13 +108,23 @@ export default function UnifiedSearchPage() {
 
     setIsLiveSearching(true);
     try {
+      // Use location-specific search parameters
+      const searchParams: any = {
+        query: searchQuery,
+        type: 'search'
+      };
+
+      // If location is provided, use it for better results
+      if (locationQuery && locationQuery.trim()) {
+        searchParams.location = locationQuery;
+        searchParams.radius = 25000; // 25km radius when location specified
+      } else if (userLocation) {
+        searchParams.location = `${userLocation.lat},${userLocation.lng}`;
+        searchParams.radius = 50000; // 50km radius when using user location
+      }
+
       const { data, error } = await supabase.functions.invoke('google-places-search', {
-        body: {
-          query: searchQuery,
-          location: locationQuery || (userLocation ? `${userLocation.lat},${userLocation.lng}` : ''),
-          radius: 10000,
-          type: 'search' // Explicitly set the type to 'search'
-        }
+        body: searchParams
       });
 
       if (error) {
@@ -126,7 +136,7 @@ export default function UnifiedSearchPage() {
       }
 
       if (data && data.status === 'OK' && data.results && data.results.length > 0) {
-        setLiveSearchResults(data.results.slice(0, 5)); // Limit to 5 results for dropdown
+        setLiveSearchResults(data.results.slice(0, 6)); // Show up to 6 results
         setShowLiveResults(true);
       } else {
         setLiveSearchResults([]);
@@ -353,9 +363,9 @@ export default function UnifiedSearchPage() {
                 </div>
               </div>
 
-              {/* Search Form - Modern Layout */}
+              {/* Search Form - Modern Layout with Button on Right */}
               <div className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
                   {/* Main Search Input */}
                   <div className="lg:col-span-2 space-y-2">
                     <div className="relative group">
@@ -388,15 +398,15 @@ export default function UnifiedSearchPage() {
                           className="pl-12 pr-4 h-14 bg-transparent border-none text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none"
                         />
                         
-                        {/* Live Search Results Dropdown */}
+                        {/* Live Search Results Dropdown - Compact Design */}
                         {showLiveResults && (liveSearchResults.length > 0 || isLiveSearching) && (
                           <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-card/95 backdrop-blur-lg border border-border rounded-xl shadow-2xl overflow-hidden animate-fade-in">
-                            <div className="max-h-80 overflow-y-auto">
+                            <div className="max-h-64 overflow-y-auto">
                               {isLiveSearching && (
-                                <div className="px-4 py-3 text-center text-muted-foreground">
+                                <div className="px-3 py-2 text-center text-muted-foreground">
                                   <div className="flex items-center justify-center gap-2">
-                                    <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                                    <span className="text-sm">Searching restaurants...</span>
+                                    <div className="w-3 h-3 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                                    <span className="text-xs">Searching...</span>
                                   </div>
                                 </div>
                               )}
@@ -404,9 +414,9 @@ export default function UnifiedSearchPage() {
                               {!isLiveSearching && liveSearchResults.map((place, index) => (
                                 <div
                                   key={place.place_id}
-                                  className="px-4 py-3 hover:bg-primary/10 cursor-pointer transition-colors duration-200 border-b border-border/30 last:border-b-0"
+                                  className="px-3 py-2 hover:bg-primary/10 cursor-pointer transition-colors duration-200 border-b border-border/30 last:border-b-0"
                                 >
-                                  <div className="flex items-start justify-between gap-3">
+                                  <div className="flex items-center justify-between gap-2">
                                     <div 
                                       className="flex-1 min-w-0"
                                       onClick={() => {
@@ -414,32 +424,29 @@ export default function UnifiedSearchPage() {
                                         setShowLiveResults(false);
                                       }}
                                     >
-                                      <div className="flex items-start gap-3">
-                                        <div className="w-2 h-2 rounded-full bg-red-500 mt-2 flex-shrink-0" />
+                                      <div className="flex items-start gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 flex-shrink-0" />
                                         <div className="min-w-0 flex-1">
-                                          <div className="font-semibold text-foreground hover:text-primary transition-colors line-clamp-1">
+                                          <div className="font-medium text-sm hover:text-primary transition-colors line-clamp-1">
                                             {place.name}
                                           </div>
-                                          <div className="text-sm text-muted-foreground mt-1 line-clamp-1">
+                                          <div className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
                                             {place.formatted_address}
                                           </div>
-                                          <div className="flex items-center gap-4 mt-2">
+                                          <div className="flex items-center gap-3 mt-1">
                                             {place.rating && (
                                               <div className="flex items-center gap-1">
-                                                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                                <span className="text-sm font-medium">{place.rating}</span>
-                                                {place.user_ratings_total && (
-                                                  <span className="text-sm text-muted-foreground">({place.user_ratings_total})</span>
-                                                )}
+                                                <Star className="h-2.5 w-2.5 fill-yellow-400 text-yellow-400" />
+                                                <span className="text-xs font-medium">{place.rating}</span>
                                               </div>
                                             )}
                                             {place.price_level && (
-                                              <div className="text-sm text-muted-foreground">
+                                              <div className="text-xs text-muted-foreground">
                                                 {getPriceDisplay(place.price_level)}
                                               </div>
                                             )}
                                             {place.opening_hours?.open_now !== undefined && (
-                                              <div className={`text-xs px-2 py-1 rounded-full ${
+                                              <div className={`text-xs px-1.5 py-0.5 rounded-full text-xs ${
                                                 place.opening_hours.open_now ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                                               }`}>
                                                 {place.opening_hours.open_now ? 'Open' : 'Closed'}
@@ -450,7 +457,7 @@ export default function UnifiedSearchPage() {
                                       </div>
                                     </div>
                                     
-                                    <div className="flex items-center gap-2 flex-shrink-0">
+                                    <div className="flex items-center gap-1 flex-shrink-0">
                                       <Button
                                         size="sm"
                                         variant="outline"
@@ -458,21 +465,18 @@ export default function UnifiedSearchPage() {
                                           e.stopPropagation();
                                           handleQuickAdd(place);
                                         }}
-                                        className="h-8 px-3 text-xs bg-background hover:bg-primary hover:text-primary-foreground transition-all duration-200"
+                                        className="h-6 px-2 text-xs bg-background hover:bg-primary hover:text-primary-foreground transition-all duration-200"
                                       >
-                                        <Plus className="h-3 w-3 mr-1" />
+                                        <Plus className="h-2.5 w-2.5 mr-1" />
                                         Add
                                       </Button>
-                                      <div className="w-6 h-6 rounded-full border-2 border-muted-foreground flex items-center justify-center">
-                                        <Heart className="h-3 w-3" />
-                                      </div>
                                     </div>
                                   </div>
                                 </div>
                               ))}
                               
                               {!isLiveSearching && liveSearchResults.length === 0 && searchQuery.length > 2 && (
-                                <div className="px-4 py-3 text-center text-muted-foreground text-sm">
+                                <div className="px-3 py-2 text-center text-muted-foreground text-xs">
                                   No restaurants found. Try a different search term.
                                 </div>
                               )}
@@ -532,28 +536,41 @@ export default function UnifiedSearchPage() {
                       </div>
                     </div>
                   </div>
+                  
+                  {/* Search Button - Repositioned to the Right */}
+                  <div className="space-y-2">
+                    <div className="h-14 flex items-end">
+                      <Button 
+                        onClick={handleSearch} 
+                        disabled={isLoading} 
+                        className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-primary to-primary-glow hover:from-primary-glow hover:to-primary shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:transform-none disabled:scale-100"
+                      >
+                        {isLoading ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                            <span className="hidden sm:inline">Searching...</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <Search className="h-5 w-5" />
+                            <span className="hidden sm:inline">Find Restaurants</span>
+                            <span className="sm:hidden">Find</span>
+                          </div>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              
-              {/* Search Button - Moved outside and below search inputs */}
-              <div className="flex justify-center mt-6">
-                <Button 
-                  onClick={handleSearch} 
-                  disabled={isLoading} 
-                  className="h-14 px-12 text-lg font-semibold bg-gradient-to-r from-primary to-primary-glow hover:from-primary-glow hover:to-primary shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:transform-none disabled:scale-100"
-                >
-                  {isLoading ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                      <span>Searching...</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <Search className="h-5 w-5" />
-                      <span>Find Restaurants</span>
-                    </div>
-                  )}
-                </Button>
+                
+                {/* Location-based search info */}
+                {(locationQuery || userLocation) && (
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">
+                      {locationQuery ? `Searching near "${locationQuery}"` : 'Searching near your location'}
+                      {!locationQuery && userLocation && ' - specify a location above for more targeted results'}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
