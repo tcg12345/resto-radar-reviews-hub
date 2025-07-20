@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -51,10 +52,13 @@ interface PlaceDetails extends GooglePlaceResult {
   }>;
 }
 
+export type SearchType = 'name' | 'cuisine' | 'description';
+
 export default function GlobalSearchPage() {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [locationQuery, setLocationQuery] = useState('');
+  const [searchType, setSearchType] = useState<SearchType>('description');
   const [locationSuggestions, setLocationSuggestions] = useState<any[]>([]);
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
   const [searchResults, setSearchResults] = useState<GooglePlaceResult[]>([]);
@@ -131,6 +135,7 @@ export default function GlobalSearchPage() {
           query: specificQuery,
           type: 'search',
           location: searchLocation,
+          searchType: searchType,
           radius: locationQuery.trim() ? 10000 : 50000, // Smaller radius when location specified
         }
       });
@@ -201,15 +206,37 @@ export default function GlobalSearchPage() {
       {/* Search Section */}
       <Card className="mb-8 border-primary/20 bg-gradient-to-br from-background via-background to-primary/5">
         <CardContent className="pt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-            <div className="lg:col-span-2 space-y-2">
+          <div className="space-y-4">
+            {/* Search Type Selection */}
+            <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">
-                Restaurant or cuisine
+                Search by:
               </label>
+              <Select value={searchType} onValueChange={(value) => setSearchType(value as SearchType)}>
+                <SelectTrigger className="w-[200px] h-10 bg-background/50 border-muted-foreground/20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">Restaurant Name</SelectItem>
+                  <SelectItem value="cuisine">Cuisine Type</SelectItem>
+                  <SelectItem value="description">Description/Keywords</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+              <div className="lg:col-span-2 space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">
+                  {searchType === 'name' ? 'Restaurant name' : 
+                   searchType === 'cuisine' ? 'Cuisine type' : 
+                   'Restaurant or cuisine'}
+                </label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
-                  placeholder="Search for restaurants by name, cuisine, or location..."
+                  placeholder={searchType === 'name' ? 'e.g., "The Cottage", "Joe\'s Pizza"' :
+                             searchType === 'cuisine' ? 'e.g., "Italian", "Chinese", "Mexican"' :
+                             'Search for restaurants by name, cuisine, or location...'}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
@@ -269,6 +296,7 @@ export default function GlobalSearchPage() {
               <Button onClick={handleSearch} disabled={isLoading} className="h-12 w-full">
                 {isLoading ? 'Searching...' : 'Search'}
               </Button>
+              </div>
             </div>
           </div>
         </CardContent>

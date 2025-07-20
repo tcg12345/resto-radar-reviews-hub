@@ -137,9 +137,9 @@ serve(async (req) => {
   }
 
   try {
-    const { query, location, filters } = await req.json();
+    const { query, location, filters, searchType } = await req.json();
     
-    console.log('Processing restaurant search:', { query, location, filters });
+    console.log('Processing restaurant search:', { query, location, filters, searchType });
 
     if (!googlePlacesApiKey) {
       console.error('Google Places API key is not configured');
@@ -169,10 +169,25 @@ serve(async (req) => {
       }
     }
 
-    // Build search query - make it global if no location specified
-    const searchQuery = searchLocation ? 
-      (cuisineType ? `${cuisineType} restaurants in ${searchLocation}` : `restaurants in ${searchLocation}`) :
-      (cuisineType ? `best ${cuisineType} restaurants worldwide` : `best restaurants worldwide`);
+    // Build search query based on search type
+    let searchQuery = '';
+    
+    if (searchType === 'name') {
+      // For name searches, use exact restaurant name
+      searchQuery = searchLocation ? 
+        `"${query}" restaurant ${searchLocation}` : 
+        `"${query}" restaurant`;
+    } else if (searchType === 'cuisine') {
+      // For cuisine searches, focus on cuisine type
+      searchQuery = searchLocation ? 
+        `${query} restaurants in ${searchLocation}` : 
+        `best ${query} restaurants worldwide`;
+    } else {
+      // Default description/keyword search
+      searchQuery = searchLocation ? 
+        (cuisineType ? `${cuisineType} restaurants in ${searchLocation}` : `restaurants in ${searchLocation}`) :
+        (cuisineType ? `best ${cuisineType} restaurants worldwide` : `best restaurants worldwide`);
+    }
     
     console.log('Google Places search query:', searchQuery);
 
