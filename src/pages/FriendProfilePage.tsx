@@ -55,54 +55,49 @@ export default function FriendProfilePage() {
   const loadFriendData = async (friendData: any) => {
     setIsLoading(true);
     try {
-      // Use the new optimized combined function to get profile data and stats in one call
-      const profileResponse = await supabase
-        .rpc('get_friend_profile_data', { 
-          target_user_id: friendData.id,
-          requesting_user_id: user?.id,
-          restaurant_limit: 20 // Get recent restaurants for activity
-        })
-        .single();
+      console.log('Loading friend profile data for:', friendData.id);
+      
+      // Use the new ultra-fast cached profile system
+      const { data: result, error } = await supabase.functions.invoke('friend-profile-cache', {
+        body: {
+          action: 'get_profile',
+          user_id: friendData.id
+        }
+      });
 
-      if (profileResponse.error || !profileResponse.data) {
-        console.error('Error fetching friend profile:', profileResponse.error);
+      if (error || !result?.profile) {
+        console.error('Error fetching cached profile:', error);
         setIsLoading(false);
         return;
       }
 
-      const profileData = profileResponse.data;
+      const profileData = result.profile;
+      console.log(`Profile loaded in ${result.load_time_ms}ms (${result.cache_status})`);
 
-      if (!profileData.can_view) {
-        console.log('Cannot view this friend\'s profile');
+      if (profileData.error) {
+        console.log('Cannot view this friend\'s profile:', profileData.error);
         setIsLoading(false);
         return;
       }
 
-      // Parse recent restaurants from JSON
-      const recentRestaurants = profileData.recent_restaurants ? 
-        (Array.isArray(profileData.recent_restaurants) ? profileData.recent_restaurants : []) : [];
+      // Extract data from the cached profile
+      const restaurants = profileData.restaurants || [];
+      const wishlist = profileData.wishlist || [];
+      const stats = profileData.stats || {};
+      const recentActivity = profileData.recent_activity || [];
 
-      // Load full restaurant and wishlist data separately for complete tabs
-      const [ratedData, wishlistData] = await Promise.all([
-        fetchFriendRestaurants(friendData.id, false, 100), // Get more for complete list
-        fetchFriendRestaurants(friendData.id, true, 50)    // Load wishlist items
-      ]);
+      setRestaurants(restaurants);
+      setWishlist(wishlist);
       
-      const ratedRestaurants = ratedData.filter(r => !r.is_wishlist);
-      const wishlistItems = wishlistData.filter(r => r.is_wishlist);
-      
-      setRestaurants(ratedRestaurants);
-      setWishlist(wishlistItems);
-      
-      // Use the optimized stats from the profile data
+      // Use the pre-computed stats and enhanced data
       setStats({
-        averageRating: parseFloat(String(profileData.avg_rating)) || 0,
-        totalRated: profileData.rated_count || 0,
-        totalWishlist: profileData.wishlist_count || 0,
-        topCuisines: profileData.top_cuisine ? [{ cuisine: profileData.top_cuisine, count: 1 }] : [],
-        ratingDistribution: calculateRatingDistribution(ratedRestaurants),
-        michelinCount: profileData.michelin_count || 0,
-        recentActivity: recentRestaurants.slice(0, 5) // Show top 5 recent
+        averageRating: parseFloat(String(stats.avg_rating)) || 0,
+        totalRated: stats.total_rated || 0,
+        totalWishlist: stats.total_wishlist || 0,
+        topCuisines: stats.top_cuisines || [],
+        ratingDistribution: stats.rating_distribution || {},
+        michelinCount: stats.michelin_count || 0,
+        recentActivity: recentActivity.slice(0, 5) // Show top 5 recent
       });
     } catch (error) {
       console.error('Error loading friend data:', error);

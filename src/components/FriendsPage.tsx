@@ -33,6 +33,7 @@ import { PriceRange } from '@/components/PriceRange';
 import { ContactPermission } from '@/components/ContactPermission';
 import { FriendProfilePopup } from '@/components/FriendProfilePopup';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SearchResult {
   id: string;
@@ -293,6 +294,31 @@ export function FriendsPage() {
     }
   };
 
+  const handleWarmAllCaches = async () => {
+    try {
+      setIsLoadingMore(true);
+      
+      // Start background cache warming
+      const { error } = await supabase.functions.invoke('cache-warmer');
+      
+      if (error) {
+        toast.error('Failed to start cache warming');
+        console.error('Cache warming error:', error);
+      } else {
+        toast.success('🔥 Cache warming started! Profiles will load instantly soon.');
+        // Refresh current view after a delay
+        setTimeout(() => {
+          loadInitialActivity();
+        }, 2000);
+      }
+    } catch (error) {
+      toast.error('Failed to warm caches');
+      console.error('Cache warming error:', error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
     if (query.length < 2) {
@@ -347,14 +373,31 @@ export function FriendsPage() {
             <p className="text-muted-foreground">Connect with others and discover great restaurants</p>
           </div>
         </div>
-        <Button 
-          onClick={() => setShowContactPermission(true)}
-          variant="outline"
-          className="flex items-center gap-2"
-        >
-          <Phone className="h-4 w-4" />
-          Find from Contacts
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={handleWarmAllCaches}
+            variant="default"
+            size="sm"
+            disabled={isLoadingMore}
+            className="flex items-center gap-2"
+          >
+            {isLoadingMore ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+            ) : (
+              '🔥'
+            )}
+            {isLoadingMore ? 'Warming...' : 'Warm Caches'}
+          </Button>
+          <Button 
+            onClick={() => setShowContactPermission(true)}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <Phone className="h-4 w-4" />
+            Find from Contacts
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="activity" className="w-full">

@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { useFriendRestaurants } from '@/hooks/useFriendRestaurants';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 interface FriendProfilePopupProps {
   friend: any;
@@ -16,7 +17,6 @@ interface FriendProfilePopupProps {
 
 export function FriendProfilePopup({ friend, isOpen, onClose }: FriendProfilePopupProps) {
   const navigate = useNavigate();
-  const { fetchFriendStats } = useFriendRestaurants();
   const [stats, setStats] = useState({
     ratedCount: 0,
     wishlistCount: 0,
@@ -36,25 +36,27 @@ export function FriendProfilePopup({ friend, isOpen, onClose }: FriendProfilePop
     
     setStats(prev => ({ ...prev, isLoading: true }));
     try {
-      const statsData = await fetchFriendStats(friend.id);
+      // Use the new ultra-fast cached stats system
+      const { data: result, error } = await supabase.functions.invoke('friend-profile-cache', {
+        body: {
+          action: 'get_profile_stats',
+          user_id: friend.id
+        }
+      });
       
-      if (statsData) {
-        setStats({
-          ratedCount: statsData.ratedCount,
-          wishlistCount: statsData.wishlistCount,
-          averageRating: statsData.averageRating,
-          topCuisine: statsData.topCuisine,
-          isLoading: false
-        });
-      } else {
-        setStats({
-          ratedCount: 0,
-          wishlistCount: 0,
-          averageRating: 0,
-          topCuisine: '',
-          isLoading: false
-        });
+      if (error || !result?.stats) {
+        console.error('Error loading quick stats:', error);
+        setStats(prev => ({ ...prev, isLoading: false }));
+        return;
       }
+
+      setStats({
+        ratedCount: result.stats.ratedCount,
+        wishlistCount: result.stats.wishlistCount,
+        averageRating: result.stats.averageRating,
+        topCuisine: result.stats.topCuisine,
+        isLoading: false
+      });
     } catch (error) {
       console.error('Error loading quick stats:', error);
       setStats(prev => ({ ...prev, isLoading: false }));

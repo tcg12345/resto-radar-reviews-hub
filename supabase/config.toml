@@ -51,3 +51,6 @@ verify_jwt = false
 
 [edge_functions.delete-user-account]
 verify_jwt = true
+
+[edge_functions.cache-warmer]
+verify_jwt = false

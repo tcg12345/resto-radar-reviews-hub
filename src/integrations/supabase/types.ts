@@ -47,6 +47,36 @@ export type Database = {
         }
         Relationships: []
       }
+      friend_profile_cache: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_updated: string | null
+          profile_data: Json
+          restaurant_count: number
+          user_id: string
+          wishlist_count: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_updated?: string | null
+          profile_data: Json
+          restaurant_count?: number
+          user_id: string
+          wishlist_count?: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_updated?: string | null
+          profile_data?: Json
+          restaurant_count?: number
+          user_id?: string
+          wishlist_count?: number
+        }
+        Relationships: []
+      }
       friend_requests: {
         Row: {
           created_at: string
@@ -338,6 +368,10 @@ export type Database = {
         Args: { request_id: string }
         Returns: undefined
       }
+      build_friend_profile_cache: {
+        Args: { target_user_id: string }
+        Returns: Json
+      }
       check_email_exists: {
         Args: { email_to_check: string }
         Returns: boolean
@@ -352,6 +386,10 @@ export type Database = {
           activity_data: Json
           activity_date: string
         }[]
+      }
+      get_cached_friend_profile: {
+        Args: { target_user_id: string; requesting_user_id?: string }
+        Returns: Json
       }
       get_friend_profile_data: {
         Args: {
