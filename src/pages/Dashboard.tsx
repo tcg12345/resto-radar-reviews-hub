@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
+import { MobileNavbar } from '@/components/MobileNavbar';
+import { MobileHeader } from '@/components/MobileHeader';
 import { RatedRestaurantsPage } from '@/pages/RatedRestaurantsPage';
 import { MapPage } from '@/pages/MapPage';
 import { WishlistPage } from '@/pages/WishlistPage';
@@ -11,6 +13,7 @@ import SettingsPage from '@/pages/SettingsPage';
 import { FriendsPage } from '@/pages/FriendsPage';
 import { AIChatbot } from '@/components/AIChatbot';
 import { useRestaurants } from '@/contexts/RestaurantContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<'home' | 'rated' | 'wishlist' | 'map' | 'search' | 'settings' | 'friends'>('home');
@@ -18,6 +21,7 @@ export default function Dashboard() {
   const { restaurants, addRestaurant, updateRestaurant, deleteRestaurant } = useRestaurants();
   const navigate = useNavigate();
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   
   // Handle navigation state from other pages
@@ -75,6 +79,33 @@ export default function Dashboard() {
     }
   };
 
+  if (isMobile) {
+    return (
+      <div className="flex min-h-screen flex-col bg-background">
+        <MobileHeader 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab}
+          onBack={activeTab === 'settings' ? () => setActiveTab('home') : undefined}
+          showSettings={activeTab !== 'settings'}
+        />
+        
+        <main className="flex-1 pb-16">
+          {renderContent()}
+        </main>
+        
+        {activeTab !== 'settings' && (
+          <MobileNavbar 
+            activeTab={activeTab} 
+            onTabChange={setActiveTab} 
+          />
+        )}
+        
+        {activeTab !== 'settings' && activeTab !== 'map' && <AIChatbot />}
+      </div>
+    );
+  }
+
+  // Desktop version - unchanged
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {activeTab !== 'settings' && (

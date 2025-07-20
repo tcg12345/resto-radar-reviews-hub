@@ -3,6 +3,8 @@ import { Plus, Check, ChevronDown, X, Sliders, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RestaurantCard } from '@/components/RestaurantCard';
+import { MobileRestaurantCard } from '@/components/MobileRestaurantCard';
+import { MobileFAB } from '@/components/MobileFAB';
 import { RestaurantDialog } from '@/components/Dialog/RestaurantDialog';
 import { ConfirmDialog } from '@/components/Dialog/ConfirmDialog';
 import { Restaurant, RestaurantFormData } from '@/types/restaurant';
@@ -12,6 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface RatedRestaurantsPageProps {
   restaurants: Restaurant[];
@@ -34,6 +37,7 @@ export function RatedRestaurantsPage({
   onNavigateToMap,
   onOpenSettings,
 }: RatedRestaurantsPageProps) {
+  const isMobile = useIsMobile();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -546,18 +550,34 @@ export function RatedRestaurantsPage({
             Add Your First Restaurant
           </Button>
         </div>
-      ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredRestaurants.map((restaurant) => (
-                  <RestaurantCard
-                    key={restaurant.id}
-                    restaurant={restaurant}
-                    onEdit={handleOpenEditDialog}
-                    onDelete={handleOpenDeleteDialog}
-                    showAIReviewAssistant={true}
-                  />
-          ))}
-        </div>
+        ) : (
+        isMobile ? (
+          <>
+            <div className="space-y-4">
+              {filteredRestaurants.map((restaurant) => (
+                <MobileRestaurantCard
+                  key={restaurant.id}
+                  restaurant={restaurant}
+                  onEdit={handleOpenEditDialog}
+                  onDelete={handleOpenDeleteDialog}
+                />
+              ))}
+            </div>
+            <MobileFAB onClick={() => setIsAddDialogOpen(true)} label="Add Restaurant" />
+          </>
+        ) : (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredRestaurants.map((restaurant) => (
+              <RestaurantCard
+                key={restaurant.id}
+                restaurant={restaurant}
+                onEdit={handleOpenEditDialog}
+                onDelete={handleOpenDeleteDialog}
+                showAIReviewAssistant={true}
+              />
+            ))}
+          </div>
+        )
       )}
 
       <RestaurantDialog
