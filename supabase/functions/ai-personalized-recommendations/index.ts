@@ -258,38 +258,51 @@ serve(async (req) => {
       const place = uniqueCandidates[rec.index];
       if (!place) continue;
       
-      // Get detailed place information including better photos
+      // Get detailed place information including website and better photos
       try {
-        const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,formatted_address,rating,user_ratings_total,price_level,photos,geometry,opening_hours,types&key=${googlePlacesApiKey}`;
+        const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,formatted_address,rating,user_ratings_total,price_level,photos,geometry,opening_hours,types,website,url&key=${googlePlacesApiKey}`;
         const detailsResponse = await fetch(detailsUrl);
         const detailsData = await detailsResponse.json();
         
         if (detailsData.status === 'OK' && detailsData.result) {
           const detailedPlace = detailsData.result;
+          
+          // Filter out photos that are likely to be maps/icons (small photos or those with certain characteristics)
+          const goodPhotos = detailedPlace.photos?.filter((photo: any) => 
+            photo.width >= 400 && photo.height >= 300
+          ) || [];
+          
           finalRecommendations.push({
             ...detailedPlace,
+            photos: goodPhotos.length > 0 ? goodPhotos.slice(0, 1) : [], // Only use first good photo or none
             ai_reasoning: rec.reasoning,
             confidence_score: rec.confidence,
-            match_factors: rec.matchFactors
+            match_factors: rec.matchFactors,
+            website: detailedPlace.website || null,
+            google_maps_url: detailedPlace.url || `https://www.google.com/maps/place/?q=place_id:${place.place_id}`
           });
         } else {
           // Fallback to original data without photos
           finalRecommendations.push({
             ...place,
-            photos: [], // Remove potentially bad photos
+            photos: [], // Remove all photos to avoid map icons
             ai_reasoning: rec.reasoning,
             confidence_score: rec.confidence,
-            match_factors: rec.matchFactors
+            match_factors: rec.matchFactors,
+            website: null,
+            google_maps_url: `https://www.google.com/maps/place/?q=place_id:${place.place_id}`
           });
         }
       } catch (error) {
         console.error(`Error getting details for ${place.name}:`, error);
         finalRecommendations.push({
           ...place,
-          photos: [], // Remove potentially bad photos
+          photos: [], // Remove all photos on error
           ai_reasoning: rec.reasoning,
           confidence_score: rec.confidence,
-          match_factors: rec.matchFactors
+          match_factors: rec.matchFactors,
+          website: null,
+          google_maps_url: `https://www.google.com/maps/place/?q=place_id:${place.place_id}`
         });
       }
     }

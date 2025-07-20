@@ -15,6 +15,8 @@ interface AIRecommendation extends GooglePlaceResult {
   ai_reasoning?: string;
   confidence_score?: number;
   match_factors?: string[];
+  website?: string;
+  google_maps_url?: string;
 }
 
 interface GooglePlaceResult {
@@ -151,6 +153,30 @@ export function PersonalizedRecommendations() {
     return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photoReference}&key=${import.meta.env.VITE_GOOGLE_PLACES_API_KEY}`;
   };
 
+  const formatAddress = (fullAddress: string) => {
+    // Split the address by commas
+    const parts = fullAddress.split(', ');
+    
+    // For US addresses, typically: "Street, City, State ZIP, Country"
+    if (parts.length >= 3) {
+      const lastPart = parts[parts.length - 1];
+      if (lastPart === 'United States' || lastPart === 'USA') {
+        // US address: return "City, State"
+        const statePart = parts[parts.length - 2];
+        const city = parts[parts.length - 3];
+        return `${city}, ${statePart.split(' ')[0]}`; // Remove ZIP code
+      } else {
+        // International address: return "City, Country"
+        const country = lastPart;
+        const city = parts[parts.length - 2];
+        return `${city}, ${country}`;
+      }
+    }
+    
+    // Fallback to last two parts
+    return parts.slice(-2).join(', ');
+  };
+
   if (!user) {
     return (
       <Card>
@@ -244,8 +270,9 @@ export function PersonalizedRecommendations() {
                           alt={place.name}
                           className="w-full h-full object-cover"
                           onError={(e) => {
-                            // Hide image if it fails to load
-                            e.currentTarget.parentElement!.style.display = 'none';
+                            // Hide image container if it fails to load
+                            const container = e.currentTarget.parentElement;
+                            if (container) container.style.display = 'none';
                           }}
                         />
                       </div>
@@ -275,11 +302,33 @@ export function PersonalizedRecommendations() {
                         </div>
                       )}
                       
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 mb-2">
                         <MapPin className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                         <span className="text-xs text-muted-foreground line-clamp-1">
-                          {place.formatted_address}
+                          {formatAddress(place.formatted_address)}
                         </span>
+                      </div>
+
+                      {/* Website and Directions Links */}
+                      <div className="flex gap-3 mb-2">
+                        {place.website && (
+                          <a 
+                            href={place.website} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-600 hover:text-blue-800 underline"
+                          >
+                            Website
+                          </a>
+                        )}
+                        <a 
+                          href={place.google_maps_url || `https://www.google.com/maps/place/?q=place_id:${place.place_id}`}
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-600 hover:text-blue-800 underline"
+                        >
+                          Directions
+                        </a>
                       </div>
 
                       {place.rating && (
