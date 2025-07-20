@@ -40,6 +40,15 @@
     max-width: 100vw;
     overflow-x: hidden;
     box-sizing: border-box;
+    word-wrap: break-word;
+    word-break: break-word;
+  }
+  
+  /* Additional mobile text fixes */
+  .mobile-text {
+    max-width: 100%;
+    overflow-wrap: break-word;
+    hyphens: auto;
   }
 }
 

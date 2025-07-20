@@ -359,11 +359,11 @@ export default function FriendProfilePage() {
       {/* Content */}
       <div className="container mx-auto px-4 py-8 mobile-container">
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
-            <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
-            <TabsTrigger value="restaurants" className="text-xs sm:text-sm">Rated ({stats.totalRated})</TabsTrigger>
-            <TabsTrigger value="wishlist" className="text-xs sm:text-sm">Wishlist ({stats.totalWishlist})</TabsTrigger>
-            <TabsTrigger value="stats" className="text-xs sm:text-sm">Statistics</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview" className="text-xs px-2">Overview</TabsTrigger>
+            <TabsTrigger value="restaurants" className="text-xs px-1">Rated</TabsTrigger>
+            <TabsTrigger value="wishlist" className="text-xs px-1">Wishlist</TabsTrigger>
+            <TabsTrigger value="stats" className="text-xs px-1">Stats</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}

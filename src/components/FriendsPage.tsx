@@ -173,30 +173,30 @@ function FriendProfileModal({ friend, isOpen, onClose }: FriendProfileModalProps
                 <div className="grid gap-4">
                   {restaurants.slice(0, displayedRestaurants).map((restaurant) => (
                     <Card key={restaurant.id} className="overflow-hidden">
-                      <CardContent className="p-6">
-                        <div className="flex justify-between items-start mb-4">
-                          <div className="flex-1">
-                            <h3 className="font-bold text-xl mb-1">{restaurant.name}</h3>
+                      <CardContent className="p-4 sm:p-6">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 gap-4">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-lg sm:text-xl mb-1 break-words">{restaurant.name}</h3>
                             <p className="text-muted-foreground mb-2">{restaurant.cuisine}</p>
                             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                              <MapPin className="h-4 w-4" />
-                              <span>{restaurant.address}, {restaurant.city}</span>
+                              <MapPin className="h-4 w-4 flex-shrink-0" />
+                              <span className="break-words">{restaurant.address}, {restaurant.city}</span>
                             </div>
                             {restaurant.date_visited && (
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Calendar className="h-4 w-4" />
+                                <Calendar className="h-4 w-4 flex-shrink-0" />
                                 <span>Visited: {new Date(restaurant.date_visited).toLocaleDateString()}</span>
                               </div>
                             )}
                           </div>
-                          <div className="text-right space-y-3">
+                          <div className="flex sm:flex-col items-start sm:items-end gap-3 sm:gap-3 flex-shrink-0">
                             {restaurant.rating && (
                               <div className="flex items-center gap-2">
                                 <StarRating rating={restaurant.rating} readonly size="sm" />
                                 <span className="font-bold text-lg">{restaurant.rating.toFixed(1)}</span>
                               </div>
                             )}
-                            <div className="flex items-center gap-2 justify-end">
+                            <div className="flex items-center gap-2">
                               {restaurant.price_range && <PriceRange priceRange={restaurant.price_range} />}
                               {restaurant.michelin_stars && <MichelinStars stars={restaurant.michelin_stars} />}
                             </div>
@@ -240,26 +240,24 @@ function FriendProfileModal({ friend, isOpen, onClose }: FriendProfileModalProps
                 <div className="grid gap-4">
                   {wishlist.slice(0, displayedWishlist).map((restaurant) => (
                     <Card key={restaurant.id} className="overflow-hidden">
-                      <CardContent className="p-6">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <h3 className="font-bold text-xl mb-1">{restaurant.name}</h3>
+                      <CardContent className="p-4 sm:p-6">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-lg sm:text-xl mb-1 break-words">{restaurant.name}</h3>
                             <p className="text-muted-foreground mb-2">{restaurant.cuisine}</p>
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <MapPin className="h-4 w-4" />
-                              <span>{restaurant.address}, {restaurant.city}</span>
+                              <MapPin className="h-4 w-4 flex-shrink-0" />
+                              <span className="break-words">{restaurant.address}, {restaurant.city}</span>
                             </div>
                           </div>
-                          <div className="text-right space-y-2">
-                            <div className="flex items-center gap-2 justify-end">
-                              {restaurant.price_range && <PriceRange priceRange={restaurant.price_range} />}
-                              {restaurant.michelin_stars && <MichelinStars stars={restaurant.michelin_stars} />}
-                            </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {restaurant.price_range && <PriceRange priceRange={restaurant.price_range} />}
+                            {restaurant.michelin_stars && <MichelinStars stars={restaurant.michelin_stars} />}
                           </div>
                         </div>
                         {restaurant.notes && (
                           <div className="mt-4 p-4 bg-muted rounded-lg">
-                            <p className="text-sm leading-relaxed">{restaurant.notes}</p>
+                            <p className="text-sm leading-relaxed break-words">{restaurant.notes}</p>
                           </div>
                         )}
                       </CardContent>
@@ -408,29 +406,26 @@ export function FriendsPage() {
       </div>
 
       <Tabs defaultValue="activity" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 h-12">
-          <TabsTrigger value="activity" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-            <Activity className="h-4 w-4" />
-            <span className="hidden sm:inline">Activity</span>
+        <TabsList className="grid w-full grid-cols-5 h-12">
+          <TabsTrigger value="activity" className="flex flex-col sm:flex-row items-center gap-1 text-xs px-1">
+            <Activity className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline text-xs">Activity</span>
           </TabsTrigger>
-          <TabsTrigger value="friends" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-            <Users className="h-4 w-4" />
-            <span className="hidden sm:inline">Friends ({friends.length})</span>
-            <span className="sm:hidden">({friends.length})</span>
+          <TabsTrigger value="friends" className="flex flex-col sm:flex-row items-center gap-1 text-xs px-1">
+            <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="text-xs">({friends.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="search" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-            <Search className="h-4 w-4" />
-            <span className="hidden sm:inline">Search</span>
+          <TabsTrigger value="search" className="flex flex-col sm:flex-row items-center gap-1 text-xs px-1">
+            <Search className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline text-xs">Search</span>
           </TabsTrigger>
-          <TabsTrigger value="received" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-            <Clock className="h-4 w-4" />
-            <span className="hidden sm:inline">Requests ({pendingRequests.length})</span>
-            <span className="sm:hidden">({pendingRequests.length})</span>
+          <TabsTrigger value="received" className="flex flex-col sm:flex-row items-center gap-1 text-xs px-1">
+            <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="text-xs">({pendingRequests.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="sent" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-            <Send className="h-4 w-4" />
-            <span className="hidden sm:inline">Sent ({sentRequests.length})</span>
-            <span className="sm:hidden">({sentRequests.length})</span>
+          <TabsTrigger value="sent" className="flex flex-col sm:flex-row items-center gap-1 text-xs px-1">
+            <Send className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="text-xs">({sentRequests.length})</span>
           </TabsTrigger>
         </TabsList>
 
@@ -525,23 +520,23 @@ export function FriendsPage() {
                     <div className="space-y-4">
                       <div className="max-h-[600px] overflow-y-auto space-y-4">
                         {friendRestaurants.map((restaurant: any, index: number) => (
-                          <div key={`${restaurant.id || restaurant.restaurant_id}-${restaurant.userId || restaurant.friend_id}-${index}`} className="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/30 transition-colors">
-                            <Avatar className="h-10 w-10 mt-1">
+                          <div key={`${restaurant.id || restaurant.restaurant_id}-${restaurant.userId || restaurant.friend_id}-${index}`} className="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/30 transition-colors mobile-container">
+                            <Avatar className="h-10 w-10 mt-1 flex-shrink-0">
                               <AvatarFallback>
                                 {restaurant.friend_username?.charAt(0).toUpperCase()}
                               </AvatarFallback>
                             </Avatar>
-                            <div className="flex-1 min-w-0">
+                            <div className="flex-1 min-w-0 overflow-hidden">
                               <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                <span className="font-medium">@{restaurant.friend_username}</span>
+                                <span className="font-medium break-words">@{restaurant.friend_username}</span>
                                 <span className="text-muted-foreground text-sm">rated</span>
-                                <div className="flex items-center gap-1">
+                                <div className="flex items-center gap-1 flex-shrink-0">
                                   <StarRating rating={restaurant.rating || 0} readonly size="sm" />
                                   <span className="font-semibold">{restaurant.rating?.toFixed(1)}</span>
                                 </div>
                               </div>
-                              <h4 className="font-semibold text-lg mb-1">{restaurant.name || restaurant.restaurant_name}</h4>
-                              <p className="text-sm text-muted-foreground mb-2">
+                              <h4 className="font-semibold text-lg mb-1 break-words">{restaurant.name || restaurant.restaurant_name}</h4>
+                              <p className="text-sm text-muted-foreground mb-2 break-words">
                                 {restaurant.cuisine} 
                                 {restaurant.city && ` • ${restaurant.city}`}
                                 {restaurant.address && ` • ${restaurant.address}`}
@@ -557,7 +552,7 @@ export function FriendsPage() {
                                 </span>
                               </div>
                               {restaurant.notes && (
-                                <p className="text-sm mt-2 p-2 bg-muted/50 rounded text-muted-foreground italic">
+                                <p className="text-sm mt-2 p-2 bg-muted/50 rounded text-muted-foreground italic break-words">
                                   "{restaurant.notes}"
                                 </p>
                               )}
