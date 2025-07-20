@@ -153,12 +153,16 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
 
     setIsDeletingAccount(true);
     try {
+      console.log('Starting account deletion process...');
+      
       // Get the current session to include in the request
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
         throw new Error('No active session');
       }
+
+      console.log('Session found, calling delete function...');
 
       // Call the edge function to delete the account
       const { data, error } = await supabase.functions.invoke('delete-user-account', {
@@ -167,14 +171,28 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
         },
       });
 
+      console.log('Function response:', { data, error });
+
       if (error) {
-        throw error;
+        console.error('Function error details:', error);
+        throw new Error(`Function error: ${error.message || JSON.stringify(error)}`);
+      }
+
+      if (data?.error) {
+        console.error('Response error:', data.error);
+        throw new Error(data.error);
       }
 
       toast.success('Account deleted successfully');
+      console.log('Account deletion completed successfully');
       // The auth state will automatically update and redirect the user
     } catch (error: any) {
       console.error('Error deleting account:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
       toast.error('Failed to delete account: ' + (error.message || 'Unknown error'));
     } finally {
       setIsDeletingAccount(false);
