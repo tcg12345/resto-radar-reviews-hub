@@ -53,9 +53,6 @@ serve(async (req) => {
       );
     }
 
-    // Create Supabase client with service role key for admin operations
-    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
-
     // Create regular client to verify user authentication
     const supabaseClient = createClient(supabaseUrl, anonKey, {
       global: {
@@ -92,76 +89,12 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Starting account deletion for user: ${user.id}`);
+    console.log(`Deleting auth user: ${user.id}`);
 
-    // Delete all user data using service role client
-    console.log("Deleting user data from all tables...");
-    
-    const deletionResults = [];
-    
-    // Delete profile
-    try {
-      const { error: profileError } = await supabaseAdmin.from('profiles').delete().eq('id', user.id);
-      deletionResults.push({ table: 'profiles', error: profileError });
-      console.log("Profile deletion:", profileError ? `Error: ${profileError.message}` : "Success");
-    } catch (e) {
-      console.error("Profile deletion failed:", e);
-      deletionResults.push({ table: 'profiles', error: e });
-    }
+    // Create admin client for user deletion
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
-    // Delete restaurants
-    try {
-      const { error: restaurantsError } = await supabaseAdmin.from('restaurants').delete().eq('user_id', user.id);
-      deletionResults.push({ table: 'restaurants', error: restaurantsError });
-      console.log("Restaurants deletion:", restaurantsError ? `Error: ${restaurantsError.message}` : "Success");
-    } catch (e) {
-      console.error("Restaurants deletion failed:", e);
-      deletionResults.push({ table: 'restaurants', error: e });
-    }
-
-    // Delete friends
-    try {
-      const { error: friendsError } = await supabaseAdmin.from('friends').delete().or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
-      deletionResults.push({ table: 'friends', error: friendsError });
-      console.log("Friends deletion:", friendsError ? `Error: ${friendsError.message}` : "Success");
-    } catch (e) {
-      console.error("Friends deletion failed:", e);
-      deletionResults.push({ table: 'friends', error: e });
-    }
-
-    // Delete friend requests
-    try {
-      const { error: requestsError } = await supabaseAdmin.from('friend_requests').delete().or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`);
-      deletionResults.push({ table: 'friend_requests', error: requestsError });
-      console.log("Friend requests deletion:", requestsError ? `Error: ${requestsError.message}` : "Success");
-    } catch (e) {
-      console.error("Friend requests deletion failed:", e);
-      deletionResults.push({ table: 'friend_requests', error: e });
-    }
-
-    // Delete reservations
-    try {
-      const { error: reservationsError } = await supabaseAdmin.from('reservations').delete().eq('user_id', user.id);
-      deletionResults.push({ table: 'reservations', error: reservationsError });
-      console.log("Reservations deletion:", reservationsError ? `Error: ${reservationsError.message}` : "Success");
-    } catch (e) {
-      console.error("Reservations deletion failed:", e);
-      deletionResults.push({ table: 'reservations', error: e });
-    }
-
-    // Delete settings
-    try {
-      const { error: settingsError } = await supabaseAdmin.from('settings').delete().eq('user_id', user.id);
-      deletionResults.push({ table: 'settings', error: settingsError });
-      console.log("Settings deletion:", settingsError ? `Error: ${settingsError.message}` : "Success");
-    } catch (e) {
-      console.error("Settings deletion failed:", e);
-      deletionResults.push({ table: 'settings', error: e });
-    }
-
-    console.log("Data deletion completed, now deleting auth user...");
-
-    // Finally delete the auth user using admin client
+    // Delete the auth user using admin client
     const { error: deleteUserError } = await supabaseAdmin.auth.admin.deleteUser(user.id);
     
     if (deleteUserError) {
@@ -183,8 +116,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: "Account deleted successfully",
-        deletionResults: deletionResults.filter(r => r.error).map(r => ({ table: r.table, error: r.error?.message }))
+        message: "Account deleted successfully"
       }),
       { 
         status: 200, 

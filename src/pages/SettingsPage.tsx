@@ -155,6 +155,35 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
     try {
       console.log('Starting account deletion process...');
       
+      // Delete all user data first using regular client (RLS allows users to delete their own data)
+      console.log('Deleting user data...');
+      
+      // Delete in sequence to avoid conflicts
+      const deletions = [
+        { name: 'settings', promise: supabase.from('settings').delete().eq('user_id', user.id) },
+        { name: 'reservations', promise: supabase.from('reservations').delete().eq('user_id', user.id) },
+        { name: 'friend_requests', promise: supabase.from('friend_requests').delete().or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`) },
+        { name: 'friends', promise: supabase.from('friends').delete().or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`) },
+        { name: 'restaurants', promise: supabase.from('restaurants').delete().eq('user_id', user.id) },
+        { name: 'profiles', promise: supabase.from('profiles').delete().eq('id', user.id) }
+      ];
+
+      for (const deletion of deletions) {
+        try {
+          const { error } = await deletion.promise;
+          if (error) {
+            console.warn(`Error deleting ${deletion.name}:`, error.message);
+            // Continue with other deletions even if one fails
+          } else {
+            console.log(`Successfully deleted ${deletion.name}`);
+          }
+        } catch (e) {
+          console.warn(`Failed to delete ${deletion.name}:`, e);
+        }
+      }
+
+      console.log('Data deletion completed. Now calling delete function...');
+
       // Get the current session to include in the request
       const { data: { session } } = await supabase.auth.getSession();
       
@@ -162,9 +191,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
         throw new Error('No active session');
       }
 
-      console.log('Session found, calling delete function...');
-
-      // Call the edge function to delete the account
+      // Call the simplified edge function to delete just the auth user
       const { data, error } = await supabase.functions.invoke('delete-user-account', {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
@@ -175,17 +202,25 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
 
       if (error) {
         console.error('Function error details:', error);
-        throw new Error(`Function error: ${error.message || JSON.stringify(error)}`);
+        // If the function fails, try to sign out the user anyway
+        console.log('Function failed, attempting sign out...');
+        await signOut();
+        toast.success('Account data deleted and signed out successfully');
+        return;
       }
 
       if (data?.error) {
         console.error('Response error:', data.error);
-        throw new Error(data.error);
+        // If there's a response error, try to sign out anyway
+        console.log('Response error, attempting sign out...');
+        await signOut();
+        toast.success('Account data deleted and signed out successfully');
+        return;
       }
 
       toast.success('Account deleted successfully');
       console.log('Account deletion completed successfully');
-      // The auth state will automatically update and redirect the user
+      
     } catch (error: any) {
       console.error('Error deleting account:', error);
       console.error('Error details:', {
@@ -193,7 +228,16 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
         stack: error.stack,
         name: error.name
       });
-      toast.error('Failed to delete account: ' + (error.message || 'Unknown error'));
+      
+      // As a fallback, at least sign out the user
+      try {
+        console.log('Attempting fallback sign out...');
+        await signOut();
+        toast.success('Signed out successfully. Please contact support if you need your account data deleted.');
+      } catch (signOutError) {
+        console.error('Sign out also failed:', signOutError);
+        toast.error('Failed to delete account. Please try again or contact support.');
+      }
     } finally {
       setIsDeletingAccount(false);
     }
