@@ -91,34 +91,6 @@ export function RestaurantDetailsModal({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Photo Gallery */}
-          {restaurant.photos.length > 0 && (
-            <div className="space-y-2">
-              <div className="grid grid-cols-1 gap-2">
-                <div className="aspect-video overflow-hidden rounded-lg">
-                  <img
-                    src={restaurant.photos[0]}
-                    alt={restaurant.name}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                {restaurant.photos.length > 1 && (
-                  <div className="grid grid-cols-3 gap-2">
-                    {restaurant.photos.slice(1, 4).map((photo, index) => (
-                      <div key={index} className="aspect-square overflow-hidden rounded-lg">
-                        <img
-                          src={photo}
-                          alt={`${restaurant.name} photo ${index + 2}`}
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
           {/* Basic Info */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
