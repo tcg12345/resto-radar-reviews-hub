@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
@@ -5,15 +6,14 @@ import { RatedRestaurantsPage } from '@/pages/RatedRestaurantsPage';
 import { MapPage } from '@/pages/MapPage';
 import { WishlistPage } from '@/pages/WishlistPage';
 import HomePage from '@/pages/HomePage';
-import { DiscoverPage } from '@/pages/DiscoverPage';
-import GlobalSearchPage from '@/pages/GlobalSearchPage';
+import { UnifiedSearchPage } from '@/pages/UnifiedSearchPage';
 import SettingsPage from '@/pages/SettingsPage';
 import { FriendsPage } from '@/pages/FriendsPage';
 import { AIChatbot } from '@/components/AIChatbot';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState<'home' | 'rated' | 'wishlist' | 'map' | 'search' | 'global-search' | 'settings' | 'friends'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'rated' | 'wishlist' | 'map' | 'search' | 'settings' | 'friends'>('home');
   const [shouldOpenAddDialog, setShouldOpenAddDialog] = useState(false);
   const { restaurants, addRestaurant, updateRestaurant, deleteRestaurant } = useRestaurants();
   const navigate = useNavigate();
@@ -26,15 +26,6 @@ export default function Dashboard() {
       setActiveTab(location.state.activeTab);
     }
   }, [location.state]);
-
-  // Handle navigation when search tab is clicked
-  const handleTabChange = (tab: 'home' | 'rated' | 'wishlist' | 'map' | 'search' | 'global-search' | 'settings' | 'friends') => {
-    if (tab === 'search') {
-      navigate('/search');
-    } else {
-      setActiveTab(tab);
-    }
-  };
 
   const handleOpenAddRestaurant = () => {
     setShouldOpenAddDialog(true);
@@ -75,8 +66,8 @@ export default function Dashboard() {
             onDeleteRestaurant={deleteRestaurant}
           />
         );
-      case 'global-search':
-        return <GlobalSearchPage />;
+      case 'search':
+        return <UnifiedSearchPage />;
       case 'settings':
         return <SettingsPage onBack={() => setActiveTab('home')} />;
       case 'friends':
@@ -89,7 +80,7 @@ export default function Dashboard() {
       {activeTab !== 'settings' && (
         <Navbar 
           activeTab={activeTab} 
-          onTabChange={handleTabChange} 
+          onTabChange={setActiveTab} 
         />
       )}
       

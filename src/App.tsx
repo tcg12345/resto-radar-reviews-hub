@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,7 +12,6 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/AuthPage";
 import DemoPage from "./pages/DemoPage";
-import RestaurantSearchPage from "./pages/RestaurantSearchPage";
 
 const queryClient = new QueryClient();
 
@@ -30,9 +30,6 @@ const App = () => (
                 
                 {/* Demo route - shows demo functionality */}
                 <Route path="/demo" element={<DemoPage />} />
-                
-                {/* Restaurant Search route */}
-                <Route path="/search" element={<RestaurantSearchPage />} />
                 
                 {/* Main route - shows landing page or dashboard based on auth */}
                 <Route path="/" element={<Index />} />
