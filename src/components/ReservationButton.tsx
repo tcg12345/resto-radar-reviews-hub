@@ -24,10 +24,17 @@ export function ReservationButton({
   }
 
   const handleReservation = () => {
+    console.log('ReservationButton clicked for restaurant:', restaurant.name);
+    console.log('Restaurant data:', restaurant);
+    
     const reservationUrl = generateReservationUrl(restaurant);
+    console.log('Generated reservation URL:', reservationUrl);
     
     if (reservationUrl) {
+      console.log('Opening reservation URL:', reservationUrl);
       window.open(reservationUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      console.log('No reservation URL could be generated for this restaurant');
     }
   };
 
