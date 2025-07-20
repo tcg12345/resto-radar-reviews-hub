@@ -50,10 +50,11 @@ interface FriendProfileModalProps {
 }
 
 function FriendProfileModal({ friend, isOpen, onClose }: FriendProfileModalProps) {
-  const { fetchFriendRestaurants } = useFriendRestaurants();
   const [restaurants, setRestaurants] = useState<any[]>([]);
   const [wishlist, setWishlist] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [displayedRestaurants, setDisplayedRestaurants] = useState(10);
+  const [displayedWishlist, setDisplayedWishlist] = useState(10);
 
   useEffect(() => {
     if (isOpen && friend) {
@@ -65,14 +66,36 @@ function FriendProfileModal({ friend, isOpen, onClose }: FriendProfileModalProps
     if (!friend) return;
     
     setIsLoading(true);
+    setDisplayedRestaurants(10);
+    setDisplayedWishlist(10);
+    
     try {
-      const [restaurantData, wishlistData] = await Promise.all([
-        fetchFriendRestaurants(friend.id, false),
-        fetchFriendRestaurants(friend.id, true)
-      ]);
+      // Use cached profile data for instant loading
+      const { data: result, error } = await supabase.functions.invoke('friend-profile-cache', {
+        body: {
+          action: 'get_profile',
+          user_id: friend.id
+        }
+      });
+
+      if (error || !result?.profile) {
+        console.error('Error fetching cached profile:', error);
+        setIsLoading(false);
+        return;
+      }
+
+      const profileData = result.profile;
+      if (profileData.error) {
+        console.log('Cannot view this friend\'s profile:', profileData.error);
+        setIsLoading(false);
+        return;
+      }
+
+      const allRestaurants = profileData.restaurants || [];
+      const allWishlist = profileData.wishlist || [];
       
-      setRestaurants(restaurantData.filter(r => !r.is_wishlist));
-      setWishlist(wishlistData.filter(r => r.is_wishlist));
+      setRestaurants(allRestaurants);
+      setWishlist(allWishlist);
     } catch (error) {
       console.error('Error loading friend data:', error);
     } finally {
@@ -146,7 +169,7 @@ function FriendProfileModal({ friend, isOpen, onClose }: FriendProfileModalProps
                 </Card>
               ) : (
                 <div className="grid gap-4">
-                  {restaurants.map((restaurant) => (
+                  {restaurants.slice(0, displayedRestaurants).map((restaurant) => (
                     <Card key={restaurant.id} className="overflow-hidden">
                       <CardContent className="p-6">
                         <div className="flex justify-between items-start mb-4">
@@ -172,8 +195,8 @@ function FriendProfileModal({ friend, isOpen, onClose }: FriendProfileModalProps
                               </div>
                             )}
                             <div className="flex items-center gap-2 justify-end">
-                              {restaurant.priceRange && <PriceRange priceRange={restaurant.priceRange} />}
-                              {restaurant.michelinStars && <MichelinStars stars={restaurant.michelinStars} />}
+                              {restaurant.price_range && <PriceRange priceRange={restaurant.price_range} />}
+                              {restaurant.michelin_stars && <MichelinStars stars={restaurant.michelin_stars} />}
                             </div>
                           </div>
                         </div>
@@ -185,6 +208,17 @@ function FriendProfileModal({ friend, isOpen, onClose }: FriendProfileModalProps
                       </CardContent>
                     </Card>
                   ))}
+                  {displayedRestaurants < restaurants.length && (
+                    <div className="text-center mt-6">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setDisplayedRestaurants(prev => prev + 10)}
+                        className="flex items-center gap-2"
+                      >
+                        Load More ({restaurants.length - displayedRestaurants} remaining)
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
             </TabsContent>
@@ -202,7 +236,7 @@ function FriendProfileModal({ friend, isOpen, onClose }: FriendProfileModalProps
                 </Card>
               ) : (
                 <div className="grid gap-4">
-                  {wishlist.map((restaurant) => (
+                  {wishlist.slice(0, displayedWishlist).map((restaurant) => (
                     <Card key={restaurant.id} className="overflow-hidden">
                       <CardContent className="p-6">
                         <div className="flex justify-between items-start">
@@ -216,8 +250,8 @@ function FriendProfileModal({ friend, isOpen, onClose }: FriendProfileModalProps
                           </div>
                           <div className="text-right space-y-2">
                             <div className="flex items-center gap-2 justify-end">
-                              {restaurant.priceRange && <PriceRange priceRange={restaurant.priceRange} />}
-                              {restaurant.michelinStars && <MichelinStars stars={restaurant.michelinStars} />}
+                              {restaurant.price_range && <PriceRange priceRange={restaurant.price_range} />}
+                              {restaurant.michelin_stars && <MichelinStars stars={restaurant.michelin_stars} />}
                             </div>
                           </div>
                         </div>
@@ -229,6 +263,17 @@ function FriendProfileModal({ friend, isOpen, onClose }: FriendProfileModalProps
                       </CardContent>
                     </Card>
                   ))}
+                  {displayedWishlist < wishlist.length && (
+                    <div className="text-center mt-6">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setDisplayedWishlist(prev => prev + 10)}
+                        className="flex items-center gap-2"
+                      >
+                        Load More ({wishlist.length - displayedWishlist} remaining)
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
             </TabsContent>
@@ -262,14 +307,19 @@ export function FriendsPage() {
   const [currentPage, setCurrentPage] = useState(0);
   const [hasMoreActivities, setHasMoreActivities] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [cacheWarmed, setCacheWarmed] = useState(false);
 
   useEffect(() => {
     loadInitialActivity();
+    // Auto-warm caches when user visits friends tab
+    if (!cacheWarmed) {
+      warmCachesInBackground();
+    }
   }, []);
 
   const loadInitialActivity = async () => {
     setCurrentPage(0);
-    const result = await fetchAllFriendsRestaurants(0, 20);
+    const result = await fetchAllFriendsRestaurants(0, 10); // Limit to 10 recent activities
     setHasMoreActivities(result.hasMore);
   };
 
@@ -278,10 +328,22 @@ export function FriendsPage() {
     
     setIsLoadingMore(true);
     const nextPage = currentPage + 1;
-    const result = await fetchAllFriendsRestaurants(nextPage, 20);
+    const result = await fetchAllFriendsRestaurants(nextPage, 10);
     setCurrentPage(nextPage);
     setHasMoreActivities(result.hasMore);
     setIsLoadingMore(false);
+  };
+
+  const warmCachesInBackground = async () => {
+    try {
+      // Silently warm caches for better performance
+      supabase.functions.invoke('friend-profile-cache', {
+        body: { action: 'warm_all_caches' }
+      });
+      setCacheWarmed(true);
+    } catch (error) {
+      console.log('Cache warming failed silently:', error);
+    }
   };
 
   const handleRefreshCache = async () => {
@@ -291,31 +353,6 @@ export function FriendsPage() {
       loadInitialActivity();
     } else {
       toast.error('Failed to refresh activity');
-    }
-  };
-
-  const handleWarmAllCaches = async () => {
-    try {
-      setIsLoadingMore(true);
-      
-      // Start background cache warming
-      const { error } = await supabase.functions.invoke('cache-warmer');
-      
-      if (error) {
-        toast.error('Failed to start cache warming');
-        console.error('Cache warming error:', error);
-      } else {
-        toast.success('🔥 Cache warming started! Profiles will load instantly soon.');
-        // Refresh current view after a delay
-        setTimeout(() => {
-          loadInitialActivity();
-        }, 2000);
-      }
-    } catch (error) {
-      toast.error('Failed to warm caches');
-      console.error('Cache warming error:', error);
-    } finally {
-      setIsLoadingMore(false);
     }
   };
 
@@ -373,31 +410,15 @@ export function FriendsPage() {
             <p className="text-muted-foreground">Connect with others and discover great restaurants</p>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button 
-            onClick={handleWarmAllCaches}
-            variant="default"
-            size="sm"
-            disabled={isLoadingMore}
-            className="flex items-center gap-2"
-          >
-            {isLoadingMore ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-            ) : (
-              '🔥'
-            )}
-            {isLoadingMore ? 'Warming...' : 'Warm Caches'}
-          </Button>
-          <Button 
-            onClick={() => setShowContactPermission(true)}
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2"
-          >
-            <Phone className="h-4 w-4" />
-            Find from Contacts
-          </Button>
-        </div>
+        <Button 
+          onClick={() => setShowContactPermission(true)}
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-2"
+        >
+          <Phone className="h-4 w-4" />
+          Find from Contacts
+        </Button>
       </div>
 
       <Tabs defaultValue="activity" className="w-full">

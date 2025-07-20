@@ -194,16 +194,11 @@ serve(async (req) => {
         // Start the background task without awaiting
         const backgroundTask = async () => {
           try {
-            // Get all users who have restaurants or friends
+            // Get all users who have restaurants
             const { data: activeUsers, error: usersError } = await supabaseClient
               .from('profiles')
               .select('id')
-              .in('id', [
-                // Users with restaurants
-                supabaseClient.from('restaurants').select('user_id'),
-                // Users with friends
-                supabaseClient.from('friends').select('user1_id, user2_id')
-              ]);
+              .limit(100); // Limit to prevent overwhelming
 
             if (usersError) {
               console.error('Error fetching active users:', usersError);

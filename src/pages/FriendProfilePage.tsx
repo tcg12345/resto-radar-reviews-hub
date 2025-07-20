@@ -38,6 +38,8 @@ export default function FriendProfilePage() {
   const [wishlist, setWishlist] = useState<any[]>([]);
   const [stats, setStats] = useState<any>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [displayedRestaurants, setDisplayedRestaurants] = useState(10);
+  const [displayedWishlist, setDisplayedWishlist] = useState(10);
 
   useEffect(() => {
     if (friendId && friends.length > 0) {
@@ -97,8 +99,12 @@ export default function FriendProfilePage() {
         topCuisines: stats.top_cuisines || [],
         ratingDistribution: stats.rating_distribution || {},
         michelinCount: stats.michelin_count || 0,
-        recentActivity: recentActivity.slice(0, 5) // Show top 5 recent
+        recentActivity: recentActivity.slice(0, 10) // Show top 10 recent
       });
+      
+      // Reset pagination when loading new data
+      setDisplayedRestaurants(10);
+      setDisplayedWishlist(10);
     } catch (error) {
       console.error('Error loading friend data:', error);
     } finally {
@@ -334,7 +340,7 @@ export default function FriendProfilePage() {
               </Card>
             ) : (
               <div className="grid gap-4">
-                {restaurants.map((restaurant) => (
+                {restaurants.slice(0, displayedRestaurants).map((restaurant) => (
                   <Card key={restaurant.id} className="overflow-hidden">
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start mb-4">
@@ -373,6 +379,17 @@ export default function FriendProfilePage() {
                     </CardContent>
                   </Card>
                 ))}
+                {displayedRestaurants < restaurants.length && (
+                  <div className="text-center mt-6">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setDisplayedRestaurants(prev => prev + 10)}
+                      className="flex items-center gap-2"
+                    >
+                      Load More ({restaurants.length - displayedRestaurants} remaining)
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </TabsContent>
@@ -391,7 +408,7 @@ export default function FriendProfilePage() {
               </Card>
             ) : (
               <div className="grid gap-4">
-                {wishlist.map((restaurant) => (
+                {wishlist.slice(0, displayedWishlist).map((restaurant) => (
                   <Card key={restaurant.id} className="overflow-hidden">
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start">
@@ -418,6 +435,17 @@ export default function FriendProfilePage() {
                     </CardContent>
                   </Card>
                 ))}
+                {displayedWishlist < wishlist.length && (
+                  <div className="text-center mt-6">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setDisplayedWishlist(prev => prev + 10)}
+                      className="flex items-center gap-2"
+                    >
+                      Load More ({wishlist.length - displayedWishlist} remaining)
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </TabsContent>
