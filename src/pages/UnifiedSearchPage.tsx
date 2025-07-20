@@ -98,10 +98,10 @@ export default function UnifiedSearchPage() {
         setLiveSearchResults([]);
         setShowLiveResults(false);
       }
-    }, 300);
+    }, 500);
 
     return () => clearTimeout(timer);
-  }, [searchQuery, locationQuery, searchType]);
+  }, [searchQuery, locationQuery]);
 
   const performLiveSearch = async () => {
     if (!searchQuery.trim() || searchQuery.length < 3) return;
@@ -112,14 +112,20 @@ export default function UnifiedSearchPage() {
         body: {
           query: searchQuery,
           location: locationQuery || (userLocation ? `${userLocation.lat},${userLocation.lng}` : ''),
-          radius: 5000,
+          radius: 10000,
           type: 'restaurant'
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Live search error:', error);
+        setLiveSearchResults([]);
+        setShowLiveResults(false);
+        setIsLiveSearching(false);
+        return;
+      }
 
-      if (data.status === 'OK' && data.results) {
+      if (data && data.status === 'OK' && data.results && data.results.length > 0) {
         setLiveSearchResults(data.results.slice(0, 5)); // Limit to 5 results for dropdown
         setShowLiveResults(true);
       } else {
@@ -176,6 +182,7 @@ export default function UnifiedSearchPage() {
 
       toast.success('Restaurant added! Please rate your experience.');
       setShowLiveResults(false);
+      setSearchQuery('');
       
       // Navigate to ratings page or open rating modal
       // For now, we'll show the place details to allow rating
@@ -369,8 +376,15 @@ export default function UnifiedSearchPage() {
                             }
                           }}
                           onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                          onFocus={() => searchQuery.length > 2 && setShowLiveResults(true)}
-                          onBlur={() => setTimeout(() => setShowLiveResults(false), 200)}
+                          onFocus={() => {
+                            if (searchQuery.length > 2) {
+                              setShowLiveResults(true);
+                            }
+                          }}
+                          onBlur={() => {
+                            // Delay hiding to allow clicks on dropdown items
+                            setTimeout(() => setShowLiveResults(false), 300);
+                          }}
                           className="pl-12 pr-4 h-14 bg-transparent border-none text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none"
                         />
                         
@@ -387,41 +401,56 @@ export default function UnifiedSearchPage() {
                                 </div>
                               )}
                               
-                              {liveSearchResults.map((place, index) => (
+                              {!isLiveSearching && liveSearchResults.map((place, index) => (
                                 <div
                                   key={place.place_id}
-                                  className="px-4 py-3 hover:bg-primary/10 cursor-pointer transition-colors duration-200 border-b border-border/50 last:border-b-0 group"
+                                  className="px-4 py-3 hover:bg-primary/10 cursor-pointer transition-colors duration-200 border-b border-border/30 last:border-b-0"
                                 >
-                                  <div className="flex items-center justify-between">
+                                  <div className="flex items-start justify-between gap-3">
                                     <div 
                                       className="flex-1 min-w-0"
-                                      onClick={() => handlePlaceClick(place)}
+                                      onClick={() => {
+                                        handlePlaceClick(place);
+                                        setShowLiveResults(false);
+                                      }}
                                     >
-                                      <div className="font-medium text-sm group-hover:text-primary transition-colors line-clamp-1">
-                                        {place.name}
-                                      </div>
-                                      <div className="text-xs text-muted-foreground mt-1 line-clamp-1">
-                                        {place.formatted_address}
-                                      </div>
-                                      <div className="flex items-center gap-3 mt-2">
-                                        {place.rating && (
-                                          <div className="flex items-center gap-1">
-                                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                            <span className="text-xs font-medium">{place.rating}</span>
-                                            {place.user_ratings_total && (
-                                              <span className="text-xs text-muted-foreground">({place.user_ratings_total})</span>
+                                      <div className="flex items-start gap-3">
+                                        <div className="w-2 h-2 rounded-full bg-red-500 mt-2 flex-shrink-0" />
+                                        <div className="min-w-0 flex-1">
+                                          <div className="font-semibold text-foreground hover:text-primary transition-colors line-clamp-1">
+                                            {place.name}
+                                          </div>
+                                          <div className="text-sm text-muted-foreground mt-1 line-clamp-1">
+                                            {place.formatted_address}
+                                          </div>
+                                          <div className="flex items-center gap-4 mt-2">
+                                            {place.rating && (
+                                              <div className="flex items-center gap-1">
+                                                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                                <span className="text-sm font-medium">{place.rating}</span>
+                                                {place.user_ratings_total && (
+                                                  <span className="text-sm text-muted-foreground">({place.user_ratings_total})</span>
+                                                )}
+                                              </div>
+                                            )}
+                                            {place.price_level && (
+                                              <div className="text-sm text-muted-foreground">
+                                                {getPriceDisplay(place.price_level)}
+                                              </div>
+                                            )}
+                                            {place.opening_hours?.open_now !== undefined && (
+                                              <div className={`text-xs px-2 py-1 rounded-full ${
+                                                place.opening_hours.open_now ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                                              }`}>
+                                                {place.opening_hours.open_now ? 'Open' : 'Closed'}
+                                              </div>
                                             )}
                                           </div>
-                                        )}
-                                        {place.price_level && (
-                                          <div className="text-xs text-muted-foreground">
-                                            {getPriceDisplay(place.price_level)}
-                                          </div>
-                                        )}
+                                        </div>
                                       </div>
                                     </div>
                                     
-                                    <div className="ml-3 flex-shrink-0">
+                                    <div className="flex items-center gap-2 flex-shrink-0">
                                       <Button
                                         size="sm"
                                         variant="outline"
@@ -429,11 +458,14 @@ export default function UnifiedSearchPage() {
                                           e.stopPropagation();
                                           handleQuickAdd(place);
                                         }}
-                                        className="h-8 px-3 text-xs bg-background/50 hover:bg-primary hover:text-primary-foreground transition-all duration-200"
+                                        className="h-8 px-3 text-xs bg-background hover:bg-primary hover:text-primary-foreground transition-all duration-200"
                                       >
                                         <Plus className="h-3 w-3 mr-1" />
-                                        Rate
+                                        Add
                                       </Button>
+                                      <div className="w-6 h-6 rounded-full border-2 border-muted-foreground flex items-center justify-center">
+                                        <Heart className="h-3 w-3" />
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
@@ -501,27 +533,27 @@ export default function UnifiedSearchPage() {
                     </div>
                   </div>
                 </div>
-                
-                {/* Search Button - Modern Design */}
-                <div className="flex justify-center">
-                  <Button 
-                    onClick={handleSearch} 
-                    disabled={isLoading} 
-                    className="h-14 px-12 text-lg font-semibold bg-gradient-to-r from-primary to-primary-glow hover:from-primary-glow hover:to-primary shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:transform-none disabled:scale-100"
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                        <span>Searching...</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <Search className="h-5 w-5" />
-                        <span>Find Restaurants</span>
-                      </div>
-                    )}
-                  </Button>
-                </div>
+              </div>
+              
+              {/* Search Button - Moved outside and below search inputs */}
+              <div className="flex justify-center mt-6">
+                <Button 
+                  onClick={handleSearch} 
+                  disabled={isLoading} 
+                  className="h-14 px-12 text-lg font-semibold bg-gradient-to-r from-primary to-primary-glow hover:from-primary-glow hover:to-primary shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:transform-none disabled:scale-100"
+                >
+                  {isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                      <span>Searching...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Search className="h-5 w-5" />
+                      <span>Find Restaurants</span>
+                    </div>
+                  )}
+                </Button>
               </div>
             </div>
           </div>
