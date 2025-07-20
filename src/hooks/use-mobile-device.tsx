@@ -16,8 +16,8 @@ export function useIsMobileDevice() {
       const userAgent = navigator.userAgent.toLowerCase()
       const isMobileUA = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent)
       
-      // Device is mobile if it has small screen AND (touch capability OR mobile user agent)
-      const isMobile = isSmallScreen && (hasTouchScreen || isMobileUA)
+      // Device is mobile if it has small screen (for mobile preview compatibility)
+      const isMobile = isSmallScreen
       
       console.log('Mobile device detection:', {
         screenWidth: window.innerWidth,
