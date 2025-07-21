@@ -1,5 +1,11 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.52.0';
+
+const supabase = createClient(
+  Deno.env.get('SUPABASE_URL') ?? '',
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+);
 
 const googlePlacesApiKey = Deno.env.get('GOOGLE_PLACES_API_KEY');
 
@@ -93,25 +99,22 @@ const enhanceWithYelpData = async (restaurants: RestaurantSearchResult[], search
       batch.map(async (restaurant) => {
         try {
           // Search for the restaurant on Yelp using name and location
-          const yelpSearchResponse = await fetch(`https://ocpmhsquwsdaauflbygf.supabase.co/functions/v1/yelp-restaurant-data`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+          const { data: yelpData, error: yelpError } = await supabase.functions.invoke('yelp-restaurant-data', {
+            body: {
               action: 'search',
               term: restaurant.name,
               location: restaurant.location.city || searchLocation,
               limit: 1,
               sort_by: 'best_match'
-            }),
+            }
           });
           
-          if (!yelpSearchResponse.ok) {
-            console.warn(`Yelp search failed for ${restaurant.name}`);
+          if (yelpError) {
+            console.warn(`Yelp search failed for ${restaurant.name}:`, yelpError);
             return restaurant; // Return original if Yelp fails
           }
           
-          const yelpData = await yelpSearchResponse.json();
-          const yelpBusinesses = yelpData.businesses || [];
+          const yelpBusinesses = yelpData?.businesses || [];
           
           if (yelpBusinesses.length === 0) {
             console.log(`No Yelp match found for ${restaurant.name}`);
