@@ -61,7 +61,7 @@ Please provide:
 4. Price range (1-4 scale: 1=$ budget, 2=$$ moderate, 3=$$$ expensive, 4=$$$$ luxury)
 5. Reservable - Whether the restaurant accepts reservations (true/false)
 6. Reservation Platform - If reservable, identify the likely platform: "OpenTable", "Resy", "SevenRooms", "Tock", or null if unknown
-7. Direct Booking Link - Find me the direct booking link on either OpenTable, Resy, SevenRooms, or Tock for ${restaurant.name} ${restaurant.city || restaurant.address}. Please search for the EXACT reservation URL, not just the website homepage.
+7. Direct Booking Link - ONLY provide a reservationUrl if you are 100% certain it's a real, working direct booking link. DO NOT generate or guess URLs. If you're not absolutely certain the URL exists and works, set reservationUrl to null.
 8. Brief reasoning for your analysis
 
 Response format (JSON only):
@@ -72,15 +72,16 @@ Response format (JSON only):
   "priceRange": number,
   "reservable": boolean,
   "reservationPlatform": "platform_name_or_null",
-  "reservationUrl": "direct_booking_url_or_null",
+  "reservationUrl": "verified_direct_booking_url_or_null",
   "reasoning": "brief_explanation"
 }
 
 Important: 
 - Only respond with valid JSON
 - For cuisine, ONLY use one of the available options provided
-- For reservationUrl, provide the DIRECT booking link (not homepage) from OpenTable, Resy, SevenRooms, or Tock if you can find it
-- If you cannot find a direct booking link, set reservationUrl to null
+- For reservationUrl, ONLY provide real, verified direct booking links that you know exist
+- If you're not 100% certain a reservation link exists and works, set reservationUrl to null
+- Do NOT generate fake or guessed URLs
 - Be conservative with Michelin stars - only assign them if you're confident`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
