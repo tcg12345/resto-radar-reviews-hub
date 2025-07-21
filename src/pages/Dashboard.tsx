@@ -17,6 +17,7 @@ import { useIsMobileDevice } from '@/hooks/use-mobile-device';
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<'home' | 'rated' | 'wishlist' | 'map' | 'search' | 'settings' | 'friends'>('home');
   const [shouldOpenAddDialog, setShouldOpenAddDialog] = useState(false);
+  const [viewFriendId, setViewFriendId] = useState<string | null>(null);
   const { restaurants, addRestaurant, updateRestaurant, deleteRestaurant } = useRestaurants();
   const navigate = useNavigate();
   const location = useLocation();
@@ -29,7 +30,14 @@ export default function Dashboard() {
     if (location.state?.activeTab) {
       setActiveTab(location.state.activeTab);
     }
-  }, [location.state]);
+    if (location.state?.viewFriendId) {
+      setViewFriendId(location.state.viewFriendId);
+    }
+    // Clear navigation state after using it
+    if (location.state) {
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location.state, navigate]);
 
   const handleOpenAddRestaurant = () => {
     setShouldOpenAddDialog(true);
@@ -76,7 +84,10 @@ export default function Dashboard() {
           <SettingsPage onBack={() => setActiveTab('home')} />
         </div>
         <div className={`${activeTab === 'friends' ? 'block' : 'hidden'}`}>
-          <FriendsPage />
+          <FriendsPage 
+            initialViewFriendId={viewFriendId} 
+            onInitialViewProcessed={() => setViewFriendId(null)}
+          />
         </div>
       </div>
     );

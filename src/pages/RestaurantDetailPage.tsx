@@ -263,8 +263,13 @@ export function RestaurantDetailPage() {
           variant="outline" 
           onClick={() => {
             if (friendId) {
-              // Navigate back to friend's profile if we came from there
-              navigate(`/friend/${friendId}`);
+              // Navigate back to Dashboard with friends tab and specific friend profile active
+              navigate('/', { 
+                state: { 
+                  activeTab: 'friends',
+                  viewFriendId: friendId 
+                } 
+              });
             } else {
               // Fall back to browser back navigation
               navigate(-1);

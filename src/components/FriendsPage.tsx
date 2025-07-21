@@ -300,7 +300,13 @@ function FriendProfileModal({ friend, isOpen, onClose }: FriendProfileModalProps
   );
 }
 
-export function FriendsPage() {
+export function FriendsPage({ 
+  initialViewFriendId, 
+  onInitialViewProcessed 
+}: { 
+  initialViewFriendId?: string | null; 
+  onInitialViewProcessed?: () => void; 
+} = {}) {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -351,6 +357,18 @@ export function FriendsPage() {
   useEffect(() => {
     loadInitialActivity();
   }, []);
+
+  // Handle initial friend view from navigation
+  useEffect(() => {
+    if (initialViewFriendId && friends.length > 0) {
+      const friendToView = friends.find(f => f.id === initialViewFriendId);
+      if (friendToView) {
+        handleViewProfile(friendToView);
+      }
+      // Call callback to clear the initial view state
+      onInitialViewProcessed?.();
+    }
+  }, [initialViewFriendId, friends, onInitialViewProcessed]);
 
   const loadInitialActivity = async () => {
     setCurrentPage(0);
