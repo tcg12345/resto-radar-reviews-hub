@@ -37,11 +37,12 @@ export default function Dashboard() {
   };
 
   const renderContent = () => {
-    switch (activeTab) {
-      case 'home':
-        return <HomePage onNavigate={setActiveTab} onOpenAddRestaurant={handleOpenAddRestaurant} />;
-      case 'rated':
-        return (
+    return (
+      <div className="relative w-full h-full">
+        <div className={`${activeTab === 'home' ? 'block' : 'hidden'}`}>
+          <HomePage onNavigate={setActiveTab} onOpenAddRestaurant={handleOpenAddRestaurant} />
+        </div>
+        <div className={`${activeTab === 'rated' ? 'block' : 'hidden'}`}>
           <RatedRestaurantsPage
             restaurants={restaurants}
             onAddRestaurant={addRestaurant}
@@ -52,31 +53,33 @@ export default function Dashboard() {
             onNavigateToMap={() => setActiveTab('map')}
             onOpenSettings={() => setActiveTab('settings')}
           />
-        );
-      case 'wishlist':
-        return (
+        </div>
+        <div className={`${activeTab === 'wishlist' ? 'block' : 'hidden'}`}>
           <WishlistPage
             restaurants={restaurants}
             onAddRestaurant={addRestaurant}
             onEditRestaurant={updateRestaurant}
             onDeleteRestaurant={deleteRestaurant}
           />
-        );
-      case 'map':
-        return (
+        </div>
+        <div className={`${activeTab === 'map' ? 'block' : 'hidden'}`}>
           <MapPage
             restaurants={restaurants}
             onEditRestaurant={updateRestaurant}
             onDeleteRestaurant={deleteRestaurant}
           />
-        );
-      case 'search':
-        return <UnifiedSearchPage />;
-      case 'settings':
-        return <SettingsPage onBack={() => setActiveTab('home')} />;
-      case 'friends':
-        return <FriendsPage />;
-    }
+        </div>
+        <div className={`${activeTab === 'search' ? 'block' : 'hidden'}`}>
+          <UnifiedSearchPage />
+        </div>
+        <div className={`${activeTab === 'settings' ? 'block' : 'hidden'}`}>
+          <SettingsPage onBack={() => setActiveTab('home')} />
+        </div>
+        <div className={`${activeTab === 'friends' ? 'block' : 'hidden'}`}>
+          <FriendsPage />
+        </div>
+      </div>
+    );
   };
 
   if (isMobile) {
