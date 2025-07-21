@@ -43,11 +43,37 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [tokenInput, setTokenInput] = useState('');
   const [showTokenInput, setShowTokenInput] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   
   // Use default map style from settings, fallback to satellite
   const [defaultMapStyle] = useLocalStorage<MapStyle>('defaultMapStyle', 'satellite');
   const [mapStyle, setMapStyle] = useState<MapStyle>(defaultMapStyle);
   const { token, saveToken, isLoading } = useMapboxToken();
+
+  // Check if map container is visible
+  useEffect(() => {
+    if (!mapContainer.current) return;
+    
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+    
+    observer.observe(mapContainer.current);
+    
+    return () => observer.disconnect();
+  }, []);
+
+  // Resize map when it becomes visible
+  useEffect(() => {
+    if (isVisible && map.current && mapLoaded) {
+      setTimeout(() => {
+        map.current?.resize();
+      }, 100);
+    }
+  }, [isVisible, mapLoaded]);
 
   // Update map style when default setting changes
   useEffect(() => {
