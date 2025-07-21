@@ -370,6 +370,7 @@ export function FriendsPage({
   const [friendWishlistData, setFriendWishlistData] = useState<any[]>([]);
   const [friendStats, setFriendStats] = useState<any>({});
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+  const [isLoadingMoreDetails, setIsLoadingMoreDetails] = useState(false);
   const [displayedRestaurants, setDisplayedRestaurants] = useState(10);
   const [displayedWishlist, setDisplayedWishlist] = useState(10);
   
@@ -671,19 +672,21 @@ export function FriendsPage({
   };
 
   const loadFriendProfile = async (friendData: any) => {
+    const startTime = Date.now();
     console.log(`🚀 Loading profile data for: ${friendData.username}`);
     setIsLoadingProfile(true);
+    
     try {
-      const { data: result, error } = await supabase
-        .rpc('get_friend_profile_data', { 
+      // Phase 1: Load basic profile info quickly (using lightning-fast function)
+      const { data: basicProfile, error: basicError } = await supabase
+        .rpc('get_lightning_fast_friend_profile', { 
           target_user_id: friendData.id,
-          requesting_user_id: user?.id,
-          restaurant_limit: 50
+          requesting_user_id: user?.id
         })
         .single();
 
-      if (error || !result) {
-        console.error('Error fetching friend profile:', error);
+      if (basicError || !basicProfile) {
+        console.error('Error fetching basic friend profile:', basicError);
         toast({
           title: "Error",
           description: "Failed to load friend profile",
@@ -693,7 +696,7 @@ export function FriendsPage({
         return;
       }
 
-      if (!result.can_view) {
+      if (!basicProfile.can_view) {
         toast({
           title: "Access Denied",
           description: "Cannot view this friend's profile",
@@ -703,72 +706,166 @@ export function FriendsPage({
         return;
       }
 
-      setFriendProfile(result);
+      // Show basic profile immediately
+      setFriendProfile({
+        username: basicProfile.username,
+        name: basicProfile.name,
+        avatar_url: basicProfile.avatar_url,
+        is_public: basicProfile.is_public,
+        rated_count: basicProfile.rated_count,
+        wishlist_count: basicProfile.wishlist_count,
+        avg_rating: basicProfile.avg_rating,
+        recent_restaurants: basicProfile.recent_restaurants || []
+      });
+      
       setFriendStats({
-        rated_count: result.rated_count,
-        wishlist_count: result.wishlist_count,
-        avg_rating: result.avg_rating,
-        top_cuisine: result.top_cuisine,
-        michelin_count: result.michelin_count
+        rated_count: basicProfile.rated_count,
+        wishlist_count: basicProfile.wishlist_count,
+        avg_rating: basicProfile.avg_rating,
+        top_cuisine: '', // Will be loaded in background
+        michelin_count: 0 // Will be calculated from loaded data
       });
 
-      const restaurants = Array.isArray(result.recent_restaurants) ? result.recent_restaurants : [];
-      setFriendRestaurantsData(restaurants);
+      // Show the 5 recent restaurants from basic profile
+      const recentRestaurants = Array.isArray(basicProfile.recent_restaurants) ? basicProfile.recent_restaurants : [];
+      setFriendRestaurantsData(recentRestaurants);
+
+      console.log(`⚡ Basic profile loaded in ${Date.now() - startTime}ms for: ${friendData.username}`);
+      setIsLoadingProfile(false);
       
-      // Load additional data in background
-      loadAdditionalFriendData(friendData.id);
+      // Phase 2: Load detailed data in background (non-blocking)
+      setTimeout(() => {
+        loadDetailedFriendData(friendData.id);
+      }, 100); // Small delay to let UI render first
       
     } catch (error) {
       console.error('Error loading friend profile:', error);
       toast({
-        title: "Error",
+        title: "Error", 
         description: "Failed to load friend profile",
         variant: "destructive",
       });
-    } finally {
       setIsLoadingProfile(false);
     }
   };
 
-  const loadAdditionalFriendData = async (friendId: string) => {
+  const loadDetailedFriendData = async (friendId: string) => {
     try {
-      // Load restaurants and wishlist with limited data for better performance
-      const [restaurantsResult, wishlistResult] = await Promise.all([
+      console.log('🔄 Loading detailed friend data in background...');
+      
+      // Load restaurants and wishlist with optimized queries - only essential fields first
+      const [restaurantsResult, wishlistResult, statsResult] = await Promise.all([
+        // Get restaurants with basic info only
         supabase
           .from('restaurants')
           .select(`
             id, name, cuisine, rating, address, city, country, 
-            price_range, michelin_stars, date_visited, created_at,
-            notes, latitude, longitude, website, phone_number, 
-            opening_hours, reservable, reservation_url, is_wishlist
+            price_range, michelin_stars, date_visited, created_at, is_wishlist
           `)
           .eq('user_id', friendId)
           .eq('is_wishlist', false)
           .order('date_visited', { ascending: false, nullsFirst: false })
           .order('created_at', { ascending: false })
-          .limit(50), // Reduced from 100 to 50
+          .limit(30), // Reduced limit for better performance
+          
+        // Get wishlist with basic info only
         supabase
           .from('restaurants')
           .select(`
             id, name, cuisine, address, city, country, 
-            price_range, michelin_stars, created_at, notes,
-            latitude, longitude, website, phone_number, 
-            opening_hours, reservable, reservation_url, is_wishlist
+            price_range, michelin_stars, created_at, is_wishlist
           `)
           .eq('user_id', friendId)
           .eq('is_wishlist', true)
           .order('created_at', { ascending: false })
-          .limit(25) // Reduced from 50 to 25
+          .limit(15), // Reduced limit
+          
+        // Get additional stats
+        supabase
+          .from('restaurants')
+          .select('cuisine, michelin_stars')
+          .eq('user_id', friendId)
+          .eq('is_wishlist', false)
+          .not('rating', 'is', null)
       ]);
 
-      if (restaurantsResult.data) {
+      // Update restaurants data
+      if (restaurantsResult.data && restaurantsResult.data.length > 0) {
         setFriendRestaurantsData(restaurantsResult.data);
+        console.log(`✅ Loaded ${restaurantsResult.data.length} restaurants`);
       }
-      if (wishlistResult.data) {
+      
+      // Update wishlist data  
+      if (wishlistResult.data && wishlistResult.data.length > 0) {
         setFriendWishlistData(wishlistResult.data);
+        console.log(`✅ Loaded ${wishlistResult.data.length} wishlist items`);
+      }
+      
+      // Calculate additional stats
+      if (statsResult.data) {
+        const michelinCount = statsResult.data.filter(r => r.michelin_stars && r.michelin_stars > 0).length;
+        const cuisines = statsResult.data.map(r => r.cuisine).filter(Boolean);
+        const topCuisine = cuisines.length > 0 
+          ? cuisines.reduce((acc, cuisine) => {
+              acc[cuisine] = (acc[cuisine] || 0) + 1;
+              return acc;
+            }, {} as Record<string, number>)
+          : {};
+        
+        const mostPopularCuisine = Object.keys(topCuisine).length > 0
+          ? Object.entries(topCuisine).sort(([,a], [,b]) => b - a)[0][0]
+          : '';
+
+        // Update stats with calculated values
+        setFriendStats(prev => ({
+          ...prev,
+          top_cuisine: mostPopularCuisine,
+          michelin_count: michelinCount
+        }));
+      }
+      
+      console.log('✅ Background data loading completed');
+      
+    } catch (error) {
+      console.error('Error loading detailed friend data:', error);
+      // Don't show error toast for background loading failures
+    }
+  };
+
+  
+  // Function to load more detailed restaurant data on demand
+  const loadMoreRestaurantDetails = async (friendId: string) => {
+    setIsLoadingMoreDetails(true);
+    try {
+      console.log('🔄 Loading more detailed restaurant data...');
+      
+      const { data: detailedRestaurants, error } = await supabase
+        .from('restaurants')
+        .select(`
+          id, name, cuisine, rating, address, city, country, 
+          price_range, michelin_stars, date_visited, created_at,
+          notes, latitude, longitude, website, phone_number, 
+          opening_hours, reservable, reservation_url, is_wishlist
+        `)
+        .eq('user_id', friendId)
+        .eq('is_wishlist', false)
+        .order('date_visited', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) {
+        console.error('Error loading detailed restaurants:', error);
+        return;
+      }
+
+      if (detailedRestaurants && detailedRestaurants.length > 0) {
+        setFriendRestaurantsData(detailedRestaurants);
+        console.log(`✅ Loaded ${detailedRestaurants.length} detailed restaurants`);
       }
     } catch (error) {
-      console.error('Error loading additional friend data:', error);
+      console.error('Error loading more restaurant details:', error);
+    } finally {
+      setIsLoadingMoreDetails(false);
     }
   };
 
