@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
-import { useFriendRestaurants } from '@/hooks/useFriendRestaurants';
+import { useFriendProfiles } from '@/contexts/FriendProfilesContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -18,49 +18,53 @@ interface FriendProfilePopupProps {
 
 export function FriendProfilePopup({ friend, isOpen, onClose, onViewProfile }: FriendProfilePopupProps) {
   const navigate = useNavigate();
+  const { getFriendProfile, refreshProfile } = useFriendProfiles();
+  
+  // Get cached profile data instantly
+  const cachedProfile = friend ? getFriendProfile(friend.id) : null;
+  
   const [stats, setStats] = useState({
-    ratedCount: 0,
-    wishlistCount: 0,
-    averageRating: 0,
+    ratedCount: cachedProfile?.rated_count || 0,
+    wishlistCount: cachedProfile?.wishlist_count || 0,
+    averageRating: cachedProfile?.avg_rating || 0,
     topCuisine: '',
-    isLoading: true
+    isLoading: false
   });
 
   useEffect(() => {
     if (isOpen && friend) {
-      loadQuickStats();
-    }
-  }, [isOpen, friend]);
-
-  const loadQuickStats = async () => {
-    if (!friend) return;
-    
-    setStats(prev => ({ ...prev, isLoading: true }));
-    try {
-      // Use direct database call for instant loading
-      const { data: userData } = await supabase.auth.getUser();
-      const { data: statsData, error } = await supabase
-        .rpc('get_user_stats', { target_user_id: friend.id })
-        .single();
-      
-      if (error) {
-        console.error('Error loading quick stats:', error);
-        setStats(prev => ({ ...prev, isLoading: false }));
-        return;
+      // If we have cached data, use it instantly
+      if (cachedProfile) {
+        console.log('⚡ Using cached friend profile for popup - INSTANT load!');
+        setStats({
+          ratedCount: cachedProfile.rated_count,
+          wishlistCount: cachedProfile.wishlist_count,
+          averageRating: cachedProfile.avg_rating,
+          topCuisine: '',
+          isLoading: false
+        });
+      } else {
+        // Fallback: refresh profile if not in cache
+        console.log('Cache miss - refreshing profile...');
+        setStats(prev => ({ ...prev, isLoading: true }));
+        refreshProfile(friend.id).then(() => {
+          const updatedProfile = getFriendProfile(friend.id);
+          if (updatedProfile) {
+            setStats({
+              ratedCount: updatedProfile.rated_count,
+              wishlistCount: updatedProfile.wishlist_count,
+              averageRating: updatedProfile.avg_rating,
+              topCuisine: '',
+              isLoading: false
+            });
+          } else {
+            setStats(prev => ({ ...prev, isLoading: false }));
+          }
+        });
       }
-
-      setStats({
-        ratedCount: statsData?.rated_count || 0,
-        wishlistCount: statsData?.wishlist_count || 0,
-        averageRating: parseFloat(String(statsData?.avg_rating)) || 0,
-        topCuisine: statsData?.top_cuisine || '',
-        isLoading: false
-      });
-    } catch (error) {
-      console.error('Error loading quick stats:', error);
-      setStats(prev => ({ ...prev, isLoading: false }));
     }
-  };
+  }, [isOpen, friend, cachedProfile, refreshProfile, getFriendProfile]);
+
 
   const handleViewFullProfile = () => {
     onClose();

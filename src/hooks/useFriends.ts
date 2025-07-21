@@ -41,50 +41,25 @@ export function useFriends() {
     if (!user) return;
 
     try {
-      // Get friendships where current user is involved
-      const { data: friendships, error } = await supabase
-        .from('friends')
-        .select('user1_id, user2_id')
-        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+      // Use the new super-fast function with explicit column references
+      const { data: friendsData, error } = await supabase
+        .rpc('get_friends_with_scores', { 
+          requesting_user_id: user.id 
+        });
 
       if (error) throw error;
 
-      // Get friend IDs
-      const friendIds = friendships?.map(friendship => 
-        friendship.user1_id === user.id ? friendship.user2_id : friendship.user1_id
-      ) || [];
+      // Map the data to our expected format
+      const mappedFriends: Friend[] = (friendsData || []).map((friend: any) => ({
+        id: friend.friend_id,
+        username: friend.username || '',
+        name: friend.name,
+        avatar_url: friend.avatar_url,
+        is_public: friend.is_public || false,
+        score: friend.score || 0
+      }));
 
-      if (friendIds.length === 0) {
-        setFriends([]);
-        return;
-      }
-
-      // Get friend profiles
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, username, name, avatar_url, is_public')
-        .in('id', friendIds);
-
-      if (profilesError) throw profilesError;
-
-      // Get scores for each friend
-      const friendsData = await Promise.all(
-        (profiles || []).map(async (profile) => {
-          const { data: scoreData } = await supabase
-            .rpc('get_user_score', { user_id: profile.id });
-
-          return {
-            id: profile.id,
-            username: profile.username || '',
-            name: profile.name,
-            avatar_url: profile.avatar_url,
-            is_public: profile.is_public || false,
-            score: scoreData || 0
-          };
-        })
-      );
-
-      setFriends(friendsData);
+      setFriends(mappedFriends);
     } catch (error) {
       console.error('Error fetching friends:', error);
       toast.error('Failed to load friends');
