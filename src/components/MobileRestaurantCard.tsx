@@ -10,6 +10,7 @@ import { PriceRange } from '@/components/PriceRange';
 import { OpeningHoursDisplay } from '@/components/OpeningHoursDisplay';
 import { MobilePhotoDisplay } from '@/components/MobilePhotoDisplay';
 import { LazyImage } from '@/components/LazyImage';
+import { ReservationButton } from '@/components/ReservationButton';
 import { 
   Sheet, 
   SheetContent, 
@@ -274,6 +275,8 @@ export function MobileRestaurantCard({
             )}
             
             <div className="flex gap-2 pt-4">
+              <ReservationButton restaurant={restaurant} variant="default" size="default" className="flex-1" />
+              
               {restaurant.website && (
                 <Button onClick={handleOpenWebsite} className="flex-1">
                   <ExternalLink className="h-4 w-4 mr-2" />
