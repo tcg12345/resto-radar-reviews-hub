@@ -367,11 +367,12 @@ export function RestaurantDetailPage() {
               </div>
             </div>
 
-            {restaurant.website && (
-              <div className="flex items-start gap-3">
-                <Globe className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <div className="font-medium">Website</div>
+            {/* Website - Always show section with fallback */}
+            <div className="flex items-start gap-3">
+              <Globe className="h-5 w-5 text-muted-foreground mt-0.5" />
+              <div className="flex-1">
+                <div className="font-medium">Website</div>
+                {restaurant.website ? (
                   <a 
                     href={restaurant.website} 
                     target="_blank" 
@@ -381,27 +382,68 @@ export function RestaurantDetailPage() {
                     Visit Website
                     <ExternalLink className="h-3 w-3" />
                   </a>
-                </div>
-              </div>
-            )}
-
-            {restaurant.phone_number && (
-              <div className="flex items-start gap-3">
-                <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <div className="font-medium">Phone</div>
+                ) : (
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">{restaurant.phone_number}</span>
+                    <span className="text-sm text-muted-foreground">Not available</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          const searchQuery = `${restaurant.name} ${restaurant.city} restaurant website`;
+                          const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
+                          window.open(searchUrl, '_blank');
+                        } catch (error) {
+                          console.error('Error opening search:', error);
+                        }
+                      }}
+                      className="h-6 px-2 text-xs"
+                    >
+                      Search Online
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Phone - Always show section with fallback */}
+            <div className="flex items-start gap-3">
+              <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
+              <div className="flex-1">
+                <div className="font-medium">Phone</div>
+                {(restaurant as any).phone_number ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">{(restaurant as any).phone_number}</span>
                     <a
-                      href={`tel:${restaurant.phone_number}`}
+                      href={`tel:${(restaurant as any).phone_number}`}
                       className="text-sm text-blue-600 hover:underline"
                     >
                       Call
                     </a>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Not available</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          const searchQuery = `${restaurant.name} ${restaurant.city} restaurant phone number`;
+                          const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
+                          window.open(searchUrl, '_blank');
+                        } catch (error) {
+                          console.error('Error opening search:', error);
+                        }
+                      }}
+                      className="h-6 px-2 text-xs"
+                    >
+                      Find Phone
+                    </Button>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
 
             {restaurant.latitude && restaurant.longitude && (
               <div className="flex items-start gap-3">
