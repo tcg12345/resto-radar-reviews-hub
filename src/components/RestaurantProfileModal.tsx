@@ -344,7 +344,7 @@ export function RestaurantProfileModal({
   return <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">{place.name}</DialogTitle>
+          <DialogTitle className="text-2xl font-bold sticky top-0 bg-background z-10 py-2">{place.name}</DialogTitle>
         </DialogHeader>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
