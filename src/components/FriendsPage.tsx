@@ -1090,9 +1090,9 @@ export function FriendsPage() {
                             step={0.5}
                             className="w-full"
                           />
-                          <div className="flex justify-between text-xs text-muted-foreground mt-1 px-2">
-                            <span>0</span>
-                            <span>10</span>
+                          <div className="flex justify-between text-sm text-muted-foreground mt-3 px-1">
+                            <span className="flex justify-center w-4">0</span>
+                            <span className="flex justify-center w-4">10</span>
                           </div>
                         </div>
                       </div>
