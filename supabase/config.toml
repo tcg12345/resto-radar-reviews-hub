@@ -54,3 +54,6 @@ verify_jwt = true
 
 [edge_functions.cache-warmer]
 verify_jwt = true
+
+[edge_functions.ai-reservation-finder]
+verify_jwt = false

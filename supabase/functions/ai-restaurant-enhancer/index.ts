@@ -23,7 +23,6 @@ interface AIEnhancedData {
   priceRange: number | null;
   reservable: boolean;
   reservationPlatform: string | null;
-  reservationUrl: string | null;
   reasoning: string;
 }
 
@@ -61,8 +60,7 @@ Please provide:
 4. Price range (1-4 scale: 1=$ budget, 2=$$ moderate, 3=$$$ expensive, 4=$$$$ luxury)
 5. Reservable - Whether the restaurant accepts reservations (true/false)
 6. Reservation Platform - If reservable, identify the likely platform: "OpenTable", "Resy", "SevenRooms", "Tock", or null if unknown
-7. Direct Booking Link - ONLY provide a reservationUrl if you are 100% certain it's a real, working direct booking link. DO NOT generate or guess URLs. If you're not absolutely certain the URL exists and works, set reservationUrl to null.
-8. Brief reasoning for your analysis
+7. Brief reasoning for your analysis
 
 Response format (JSON only):
 {
@@ -72,16 +70,12 @@ Response format (JSON only):
   "priceRange": number,
   "reservable": boolean,
   "reservationPlatform": "platform_name_or_null",
-  "reservationUrl": "verified_direct_booking_url_or_null",
   "reasoning": "brief_explanation"
 }
 
 Important: 
 - Only respond with valid JSON
 - For cuisine, ONLY use one of the available options provided
-- For reservationUrl, ONLY provide real, verified direct booking links that you know exist
-- If you're not 100% certain a reservation link exists and works, set reservationUrl to null
-- Do NOT generate fake or guessed URLs
 - Be conservative with Michelin stars - only assign them if you're confident`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -95,7 +89,7 @@ Important:
         messages: [
           { 
             role: 'system', 
-            content: 'You are a restaurant reservation expert who finds direct booking links on OpenTable, Resy, SevenRooms, and Tock. You have access to current reservation platform data and can find exact booking URLs. Always respond with valid JSON only and provide direct booking links when available.' 
+            content: 'You are a restaurant analysis expert. Analyze restaurants and provide accurate information about cuisine, city, Michelin stars, price range, and reservation capability. Do NOT generate reservation URLs - that will be handled separately.' 
           },
           { role: 'user', content: prompt }
         ],
@@ -129,9 +123,39 @@ Important:
         priceRange: 2,
         reservable: false,
         reservationPlatform: null,
-        reservationUrl: null,
         reasoning: 'Could not determine specific details'
       };
+    }
+
+    // If restaurant is marked as reservable, try to find real reservation link using Perplexity
+    let reservationData = {
+      reservationUrl: null,
+      reservationPlatform: null
+    };
+
+    if (enhancedData.reservable) {
+      console.log('Restaurant is reservable, searching for real reservation link...');
+      try {
+        const reservationResponse = await fetch('https://ocpmhsquwsdaauflbygf.supabase.co/functions/v1/ai-reservation-finder', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
+          },
+          body: JSON.stringify({ restaurant }),
+        });
+
+        if (reservationResponse.ok) {
+          const reservationResult = await reservationResponse.json();
+          if (reservationResult.found) {
+            reservationData.reservationUrl = reservationResult.reservationUrl;
+            reservationData.reservationPlatform = reservationResult.platform;
+            console.log('Found real reservation link:', reservationResult.reservationUrl);
+          }
+        }
+      } catch (reservationError) {
+        console.error('Error finding reservation link:', reservationError);
+      }
     }
 
     // Validate and sanitize the response
@@ -145,8 +169,8 @@ Important:
         ? enhancedData.priceRange 
         : 2,
       reservable: enhancedData.reservable || false,
-      reservationPlatform: enhancedData.reservationPlatform || null,
-      reservationUrl: enhancedData.reservationUrl || null,
+      reservationPlatform: reservationData.reservationPlatform || enhancedData.reservationPlatform || null,
+      reservationUrl: reservationData.reservationUrl || null,
       reasoning: enhancedData.reasoning || 'Analysis completed'
     };
 
