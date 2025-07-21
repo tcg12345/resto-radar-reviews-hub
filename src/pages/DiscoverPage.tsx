@@ -30,6 +30,14 @@ interface RestaurantResult {
   };
   images?: string[];
   isOpen?: boolean;
+  yelpData?: {
+    id: string;
+    url: string;
+    categories: string[];
+    price?: string;
+    photos: string[];
+    transactions: string[];
+  };
 }
 
 export function DiscoverPage() {

@@ -25,7 +25,9 @@ import {
   CreditCard,
   ChefHat,
   ChevronDown,
-  Eye
+  Eye,
+  ShoppingBag,
+  Truck
 } from 'lucide-react';
 
 
@@ -53,6 +55,14 @@ interface RestaurantResult {
   isOpen?: boolean;
   reservable?: boolean;
   reservationUrl?: string;
+  yelpData?: {
+    id: string;
+    url: string;
+    categories: string[];
+    price?: string;
+    photos: string[];
+    transactions: string[];
+  };
 }
 
 interface DiscoverResultCardProps {
@@ -254,14 +264,37 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist,
           </div>
 
           {/* Price and Cuisine */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="text-green-600 font-bold text-lg">
-              {getPriceDisplay(restaurant.priceRange)}
+              {restaurant.yelpData?.price || getPriceDisplay(restaurant.priceRange)}
             </span>
             <Badge variant="outline" className="text-xs font-medium">
               {restaurant.cuisine}
             </Badge>
+            {restaurant.yelpData && (
+              <Badge variant="secondary" className="text-xs bg-red-100 text-red-800 border-red-200">
+                Yelp ✓
+              </Badge>
+            )}
           </div>
+
+          {/* Yelp Services */}
+          {restaurant.yelpData?.transactions && restaurant.yelpData.transactions.length > 0 && (
+            <div className="flex gap-1 flex-wrap">
+              {restaurant.yelpData.transactions.includes('delivery') && (
+                <Badge variant="outline" className="text-xs flex items-center gap-1">
+                  <Truck className="h-3 w-3" />
+                  Delivery
+                </Badge>
+              )}
+              {restaurant.yelpData.transactions.includes('pickup') && (
+                <Badge variant="outline" className="text-xs flex items-center gap-1">
+                  <ShoppingBag className="h-3 w-3" />
+                  Pickup
+                </Badge>
+              )}
+            </div>
+          )}
 
           {/* Location */}
           <CardDescription className="flex items-center text-sm">
@@ -385,6 +418,18 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist,
                   <MapPin className="h-3 w-3 mr-2" />
                   View on Map
                 </Button>
+                
+                {restaurant.yelpData && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-xs w-full justify-start"
+                    onClick={() => window.open(restaurant.yelpData.url, '_blank')}
+                  >
+                    <Star className="h-3 w-3 mr-2" />
+                    View on Yelp
+                  </Button>
+                )}
               </div>
             </CollapsibleContent>
           </Collapsible>

@@ -31,6 +31,14 @@ interface RestaurantSearchResult {
   };
   images?: string[];
   isOpen?: boolean;
+  yelpData?: {
+    id: string;
+    url: string;
+    categories: string[];
+    price?: string;
+    photos: string[];
+    transactions: string[];
+  };
 }
 
 // Use ChatGPT to determine cuisine more accurately (only when simple mapping fails)
@@ -66,6 +74,95 @@ const determineCuisineWithAI = async (restaurantName: string, address: string, t
   
   // Fallback to simple mapping
   return simpleCuisine;
+};
+
+// Enhance Google Places data with Yelp information
+const enhanceWithYelpData = async (restaurants: RestaurantSearchResult[], searchLocation: string): Promise<RestaurantSearchResult[]> => {
+  if (!restaurants.length) return restaurants;
+  
+  console.log(`Starting Yelp enhancement for ${restaurants.length} restaurants`);
+  
+  // Process in smaller batches to avoid overwhelming Yelp API
+  const batchSize = 3;
+  const enhancedRestaurants: RestaurantSearchResult[] = [];
+  
+  for (let i = 0; i < restaurants.length; i += batchSize) {
+    const batch = restaurants.slice(i, i + batchSize);
+    
+    const enhancedBatch = await Promise.all(
+      batch.map(async (restaurant) => {
+        try {
+          // Search for the restaurant on Yelp using name and location
+          const yelpSearchResponse = await fetch(`https://ocpmhsquwsdaauflbygf.supabase.co/functions/v1/yelp-restaurant-data`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'search',
+              term: restaurant.name,
+              location: restaurant.location.city || searchLocation,
+              limit: 1,
+              sort_by: 'best_match'
+            }),
+          });
+          
+          if (!yelpSearchResponse.ok) {
+            console.warn(`Yelp search failed for ${restaurant.name}`);
+            return restaurant; // Return original if Yelp fails
+          }
+          
+          const yelpData = await yelpSearchResponse.json();
+          const yelpBusinesses = yelpData.businesses || [];
+          
+          if (yelpBusinesses.length === 0) {
+            console.log(`No Yelp match found for ${restaurant.name}`);
+            return restaurant;
+          }
+          
+          const yelpBusiness = yelpBusinesses[0];
+          console.log(`Found Yelp match for ${restaurant.name}: ${yelpBusiness.name}`);
+          
+          // Enhance restaurant data with Yelp information
+          return {
+            ...restaurant,
+            // Use higher of Google or Yelp rating
+            rating: Math.max(restaurant.rating, yelpBusiness.rating || 0),
+            // Combine review counts
+            reviewCount: (restaurant.reviewCount || 0) + (yelpBusiness.review_count || 0),
+            // Enhanced features
+            features: [
+              ...restaurant.features,
+              ...(yelpBusiness.transactions?.includes('delivery') ? ['Yelp Delivery'] : []),
+              ...(yelpBusiness.transactions?.includes('pickup') ? ['Pickup Available'] : []),
+              ...(yelpBusiness.price ? [`Price: ${yelpBusiness.price}`] : [])
+            ],
+            // Add Yelp-specific data
+            yelpData: {
+              id: yelpBusiness.id,
+              url: yelpBusiness.url,
+              categories: yelpBusiness.categories?.map((cat: any) => cat.title) || [],
+              price: yelpBusiness.price || null,
+              photos: yelpBusiness.image_url ? [yelpBusiness.image_url] : [],
+              transactions: yelpBusiness.transactions || []
+            }
+          };
+          
+        } catch (error) {
+          console.error(`Error enhancing ${restaurant.name} with Yelp data:`, error);
+          return restaurant; // Return original if enhancement fails
+        }
+      })
+    );
+    
+    enhancedRestaurants.push(...enhancedBatch);
+    
+    // Small delay between batches to respect rate limits
+    if (i + batchSize < restaurants.length) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+  }
+  
+  console.log(`Yelp enhancement completed for ${enhancedRestaurants.length} restaurants`);
+  return enhancedRestaurants;
 };
 
 // Map Google Places types to cuisine categories (fallback)
@@ -574,12 +671,18 @@ serve(async (req) => {
     
     console.log('Successfully processed restaurants:', restaurants.length);
 
+    // Enhance restaurants with Yelp data
+    console.log('Enhancing restaurants with Yelp data...');
+    const enhancedRestaurants = await enhanceWithYelpData(restaurants, searchLocation);
+    
+    console.log(`Enhanced ${enhancedRestaurants.length} restaurants with Yelp data`);
+
     return new Response(JSON.stringify({
-      restaurants,
+      restaurants: enhancedRestaurants,
       searchQuery: query,
       location: searchLocation || 'Worldwide',
-      totalResults: restaurants.length,
-      source: 'google_places'
+      totalResults: enhancedRestaurants.length,
+      source: 'google_places_with_yelp'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
