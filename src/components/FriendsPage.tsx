@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Search, 
   UserPlus, 
@@ -302,6 +303,7 @@ function FriendProfileModal({ friend, isOpen, onClose }: FriendProfileModalProps
 export function FriendsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { 
     friends, 
     pendingRequests, 
@@ -1142,45 +1144,37 @@ export function FriendsPage() {
                 <div className="grid gap-6">
                   {filteredAndSortedRestaurants.slice(0, displayedRestaurants).map((restaurant) => (
                     <Card key={restaurant.id} className="overflow-hidden">
-                      <CardContent className="p-6">
-                        <div className="grid md:grid-cols-3 gap-6">
+                      <CardContent className="p-4">
+                        <div className="flex flex-col sm:flex-row sm:justify-between gap-4">
                           {/* Restaurant Info */}
-                          <div className="md:col-span-2 space-y-4">
-                            <div>
-                              <h3 className="text-xl font-bold mb-2">{restaurant.name}</h3>
-                              <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mb-3">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-xl font-bold mb-2">{restaurant.name}</h3>
+                            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mb-3">
+                              <span className="flex items-center gap-1">
+                                <ChefHat className="h-4 w-4" />
+                                {restaurant.cuisine}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <MapPin className="h-4 w-4" />
+                                {restaurant.city}
+                              </span>
+                              {restaurant.date_visited && (
                                 <span className="flex items-center gap-1">
-                                  <ChefHat className="h-4 w-4" />
-                                  {restaurant.cuisine}
+                                  <Calendar className="h-4 w-4" />
+                                  {new Date(restaurant.date_visited).toLocaleDateString()}
                                 </span>
-                                <span className="flex items-center gap-1">
-                                  <MapPin className="h-4 w-4" />
-                                  {restaurant.city}
-                                </span>
-                                {restaurant.date_visited && (
-                                  <span className="flex items-center gap-1">
-                                    <Calendar className="h-4 w-4" />
-                                    {new Date(restaurant.date_visited).toLocaleDateString()}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="flex flex-wrap items-center gap-3">
-                                {restaurant.price_range && <PriceRange priceRange={restaurant.price_range} />}
-                                {restaurant.michelin_stars > 0 && <MichelinStars stars={restaurant.michelin_stars} />}
-                              </div>
+                              )}
                             </div>
-                            
-                            {restaurant.notes && (
-                              <div className="bg-muted p-4 rounded-lg">
-                                <p className="text-sm leading-relaxed">{restaurant.notes}</p>
-                              </div>
-                            )}
+                            <div className="flex flex-wrap items-center gap-3">
+                              {restaurant.price_range && <PriceRange priceRange={restaurant.price_range} />}
+                              {restaurant.michelin_stars > 0 && <MichelinStars stars={restaurant.michelin_stars} />}
+                            </div>
                           </div>
 
                           {/* Rating and Actions */}
-                          <div className="flex md:flex-col items-start md:items-end gap-4">
-                            <div className="text-center md:text-right">
-                              <div className="flex items-center gap-2 mb-2">
+                          <div className="flex sm:flex-col items-start sm:items-end gap-4">
+                            <div className="text-center sm:text-right">
+                              <div className="flex items-center gap-2 mb-3">
                                 <StarRating rating={restaurant.rating} readonly size="sm" />
                                 <span className="font-bold text-xl">{restaurant.rating?.toFixed(1)}</span>
                               </div>
@@ -1188,11 +1182,14 @@ export function FriendsPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => addToWishlist(restaurant)}
+                              onClick={() => {
+                                // Navigate to restaurant detail page
+                                navigate(`/restaurant/${restaurant.id}?friendId=${viewingFriend?.id}`);
+                              }}
                               className="flex items-center gap-2"
                             >
-                              <Heart className="h-4 w-4" />
-                              Add to Wishlist
+                              <Eye className="h-4 w-4" />
+                              View Details
                             </Button>
                           </div>
                         </div>

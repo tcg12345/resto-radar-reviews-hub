@@ -12,7 +12,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/AuthPage";
 import DemoPage from "./pages/DemoPage";
-
+import { RestaurantDetailPage } from "./pages/RestaurantDetailPage";
 import { FriendsPage } from "./pages/FriendsPage";
 
 const queryClient = new QueryClient();
@@ -35,6 +35,9 @@ const App = () => (
                 
                 {/* Friends route */}
                 <Route path="/friends" element={<RequireAuth><FriendsPage /></RequireAuth>} />
+                
+                {/* Restaurant detail route */}
+                <Route path="/restaurant/:restaurantId" element={<RequireAuth><RestaurantDetailPage /></RequireAuth>} />
                 
                 {/* Main route - shows landing page or dashboard based on auth */}
                 <Route path="/" element={<Index />} />
