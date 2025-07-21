@@ -20,6 +20,7 @@ import { MichelinStars } from '@/components/MichelinStars';
 import { PriceRange } from '@/components/PriceRange';
 import { RestaurantLocationMap } from '@/components/RestaurantLocationMap';
 import { WeeklyOpeningHours } from '@/components/WeeklyOpeningHours';
+import { RestaurantPhotoCarousel } from '@/components/RestaurantPhotoCarousel';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -274,17 +275,10 @@ export function RestaurantDetailPage() {
             <CardTitle>Photos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {restaurant.photos.map((photo, index) => (
-                <div key={index} className="aspect-square overflow-hidden rounded-lg">
-                  <img 
-                    src={photo} 
-                    alt={`${restaurant.name} photo ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ))}
-            </div>
+            <RestaurantPhotoCarousel 
+              photos={restaurant.photos} 
+              restaurantName={restaurant.name} 
+            />
           </CardContent>
         </Card>
       )}
