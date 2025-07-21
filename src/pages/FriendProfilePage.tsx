@@ -79,63 +79,56 @@ export default function FriendProfilePage() {
     const startTime = performance.now();
     
     try {
-      console.log('Loading friend profile data for:', friendData.id);
+      console.log('Loading friend profile with lightning speed for:', friendData.id);
       
-      // LIGHTNING FAST APPROACH: Get minimal data first, then load restaurants directly
-      const [statsResult, initialRestaurants] = await Promise.all([
-        // Get just basic stats - super fast
-        supabase.rpc('get_friend_profile_data', { 
+      // ULTRA-FAST single query with optimized indexes
+      const { data, error } = await supabase
+        .rpc('get_lightning_fast_friend_profile', { 
           target_user_id: friendData.id,
-          requesting_user_id: user?.id,
-          restaurant_limit: 0 // No restaurants, just stats
-        }).single(),
-        // Get first 10 restaurants directly - also very fast
-        supabase
-          .from('restaurants')
-          .select('*')
-          .eq('user_id', friendData.id)
-          .eq('is_wishlist', false)
-          .order('created_at', { ascending: false })
-          .limit(10)
-      ]);
+          requesting_user_id: user?.id
+        })
+        .single();
 
       const loadTime = performance.now() - startTime;
-      console.log(`Fast profile load took ${loadTime.toFixed(2)}ms`);
+      console.log(`Lightning-fast profile loaded in ${loadTime.toFixed(2)}ms`);
 
-      if (statsResult.error || !statsResult.data?.can_view) {
+      if (error || !data?.can_view) {
         console.log('Cannot view this friend\'s profile');
         setIsLoading(false);
         return;
       }
 
-      const stats = statsResult.data;
-
-      // Set stats immediately
+      // Set all data immediately from the single optimized query
       setStats({
-        averageRating: parseFloat(String(stats.avg_rating)) || 0,
-        totalRated: stats.rated_count || 0,
-        totalWishlist: stats.wishlist_count || 0,
+        averageRating: parseFloat(String(data.avg_rating)) || 0,
+        totalRated: Number(data.rated_count) || 0,
+        totalWishlist: Number(data.wishlist_count) || 0,
         topCuisines: [],
         ratingDistribution: {},
-        michelinCount: stats.michelin_count || 0,
-        recentActivity: []
+        michelinCount: 0,
+        recentActivity: Array.isArray(data.recent_restaurants) ? data.recent_restaurants : []
       });
 
-      // Set initial restaurants
-      const restaurants = initialRestaurants.data || [];
+      // Load first batch of restaurants instantly
+      const { data: initialRestaurants } = await supabase
+        .from('restaurants')
+        .select('*')
+        .eq('user_id', friendData.id)
+        .eq('is_wishlist', false)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      const restaurants = initialRestaurants || [];
       setRestaurants(restaurants);
       setAllRestaurants(restaurants);
-
-      // Reset pagination
       setDisplayedRestaurants(Math.min(10, restaurants.length));
-      setDisplayedWishlist(10);
 
-      console.log('Fast profile data loaded - UI ready');
+      console.log('Profile ready for display');
       setIsLoading(false);
 
-      // Optional: Load more data in background for pagination
-      if (stats.rated_count > 10) {
-        loadMoreRestaurantsInBackground(friendData.id, restaurants);
+      // Background load more data if needed
+      if (data.rated_count > 10) {
+        loadAdditionalDataInBackground(friendData.id, restaurants);
       }
 
     } catch (error) {
@@ -144,25 +137,23 @@ export default function FriendProfilePage() {
     }
   };
 
-  // Background loading for pagination - non-blocking
-  const loadMoreRestaurantsInBackground = async (friendId: string, currentRestaurants: any[]) => {
+  // Non-blocking background loading for additional data
+  const loadAdditionalDataInBackground = async (friendId: string, currentRestaurants: any[]) => {
     try {
-      // Load remaining restaurants in background
       const { data: moreRestaurants } = await supabase
         .from('restaurants')
         .select('*')
         .eq('user_id', friendId)
         .eq('is_wishlist', false)
         .order('created_at', { ascending: false })
-        .range(10, 199); // Load up to 190 more (total 200 max)
+        .range(10, 99); // Load up to 90 more restaurants
 
       if (moreRestaurants && moreRestaurants.length > 0) {
-        const allRestaurants = [...currentRestaurants, ...moreRestaurants];
-        setAllRestaurants(allRestaurants);
-        console.log(`Background loaded ${moreRestaurants.length} more restaurants`);
+        setAllRestaurants([...currentRestaurants, ...moreRestaurants]);
+        console.log(`Background loaded ${moreRestaurants.length} additional restaurants`);
       }
     } catch (error) {
-      console.error('Background loading failed:', error);
+      console.error('Background loading error:', error);
     }
   };
 

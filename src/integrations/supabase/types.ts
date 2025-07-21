@@ -427,6 +427,20 @@ export type Database = {
           friend_username: string
         }[]
       }
+      get_lightning_fast_friend_profile: {
+        Args: { target_user_id: string; requesting_user_id?: string }
+        Returns: {
+          can_view: boolean
+          username: string
+          name: string
+          avatar_url: string
+          is_public: boolean
+          rated_count: number
+          wishlist_count: number
+          avg_rating: number
+          recent_restaurants: Json
+        }[]
+      }
       get_user_score: {
         Args: { user_id: string }
         Returns: number
