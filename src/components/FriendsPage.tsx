@@ -939,171 +939,167 @@ export function FriendsPage() {
 
               <TabsContent value="restaurants" className="mt-6">
                 {/* Filters and search for restaurants */}
-                <div className="bg-card/50 p-3 rounded-xl border border-border/50 mb-4 backdrop-blur-sm">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                    {/* Search */}
-                    <div className="relative">
+                <div className="space-y-4 mb-6">
+                  {/* Search Bar */}
+                  <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4 rounded-lg border shadow-sm">
+                    <div className="relative max-w-md">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         placeholder="Search restaurants..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10 h-9 text-sm"
+                        className="pl-10"
                       />
                     </div>
+                  </div>
 
-                    {/* Cuisine Filter - Checkboxes */}
-                    <div>
-                      <Popover>
-                         <PopoverTrigger asChild>
-                           <Button variant="outline" size="sm" className="w-full justify-between h-9 text-sm">
-                             {selectedCuisines.length === 0 ? "All Cuisines" : 
-                              selectedCuisines.length === 1 ? selectedCuisines[0] :
-                              `${selectedCuisines.length} cuisines`}
-                             <Filter className="ml-2 h-3 w-3" />
-                           </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-56 p-3">
-                          <div className="space-y-2">
-                            <div className="font-medium text-sm">Select Cuisines</div>
-                            <div className="max-h-48 overflow-y-auto space-y-2">
-                              {uniqueCuisines.map(cuisine => (
-                                <div key={cuisine} className="flex items-center space-x-2">
-                                  <Checkbox
-                                    id={cuisine}
-                                    checked={selectedCuisines.includes(cuisine)}
-                                    onCheckedChange={(checked) => {
-                                      if (checked) {
-                                        setSelectedCuisines([...selectedCuisines, cuisine]);
-                                      } else {
-                                        setSelectedCuisines(selectedCuisines.filter(c => c !== cuisine));
-                                      }
-                                    }}
-                                  />
-                                  <label htmlFor={cuisine} className="text-sm cursor-pointer">
-                                    {cuisine}
-                                  </label>
-                                </div>
-                              ))}
-                            </div>
-                            {selectedCuisines.length > 0 && (
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => setSelectedCuisines([])}
-                                className="w-full"
-                              >
-                                Clear All
-                              </Button>
-                            )}
-                          </div>
-                        </PopoverContent>
-                      </Popover>
+                  {/* Filters Section */}
+                  <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-6 rounded-lg border shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Filter className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium text-sm">Filters</span>
+                      </div>
+                      {(selectedCuisines.length > 0 || selectedPriceRanges.length > 0 || ratingRange[0] !== 0 || ratingRange[1] !== 10) && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={clearAllFilters}
+                          className="text-xs text-muted-foreground hover:text-foreground"
+                        >
+                          <X className="h-3 w-3 mr-1" />
+                          Clear All
+                        </Button>
+                      )}
                     </div>
 
-                    {/* Price Range Filter - Checkboxes */}
-                    <div>
-                      <Popover>
-                         <PopoverTrigger asChild>
-                           <Button variant="outline" size="sm" className="w-full justify-between h-9 text-sm">
-                             {selectedPriceRanges.length === 0 ? "All Prices" : 
-                              selectedPriceRanges.length === 1 ? `${"$".repeat(selectedPriceRanges[0])}` :
-                              `${selectedPriceRanges.length} price ranges`}
-                             <Filter className="ml-2 h-3 w-3" />
-                           </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-48 p-3">
-                          <div className="space-y-2">
-                            <div className="font-medium text-sm">Select Price Ranges</div>
-                            <div className="space-y-2">
-                              {[1, 2, 3, 4].map(price => (
-                                <div key={price} className="flex items-center space-x-2">
-                                  <Checkbox
-                                    id={`price-${price}`}
-                                    checked={selectedPriceRanges.includes(price)}
-                                    onCheckedChange={(checked) => {
-                                      if (checked) {
-                                        setSelectedPriceRanges([...selectedPriceRanges, price]);
-                                      } else {
-                                        setSelectedPriceRanges(selectedPriceRanges.filter(p => p !== price));
-                                      }
-                                    }}
-                                  />
-                                  <label htmlFor={`price-${price}`} className="text-sm cursor-pointer">
-                                    {"$".repeat(price)}
-                                  </label>
-                                </div>
-                              ))}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {/* Cuisine Filter */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Cuisine</label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full justify-between">
+                              {selectedCuisines.length === 0 ? "All Cuisines" : 
+                               selectedCuisines.length === 1 ? selectedCuisines[0] :
+                               `${selectedCuisines.length} selected`}
+                              <ChefHat className="ml-2 h-4 w-4" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-64 p-4">
+                            <div className="space-y-3">
+                              <div className="font-medium">Select Cuisines</div>
+                              <div className="max-h-48 overflow-y-auto space-y-2">
+                                {uniqueCuisines.map(cuisine => (
+                                  <div key={cuisine} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={cuisine}
+                                      checked={selectedCuisines.includes(cuisine)}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          setSelectedCuisines([...selectedCuisines, cuisine]);
+                                        } else {
+                                          setSelectedCuisines(selectedCuisines.filter(c => c !== cuisine));
+                                        }
+                                      }}
+                                    />
+                                    <label htmlFor={cuisine} className="text-sm cursor-pointer">
+                                      {cuisine}
+                                    </label>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                            {selectedPriceRanges.length > 0 && (
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => setSelectedPriceRanges([])}
-                                className="w-full"
-                              >
-                                Clear All
-                              </Button>
-                            )}
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+
+                      {/* Price Range Filter */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Price Range</label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full justify-between">
+                              {selectedPriceRanges.length === 0 ? "All Prices" : 
+                               selectedPriceRanges.length === 1 ? `${"$".repeat(selectedPriceRanges[0])}` :
+                               `${selectedPriceRanges.length} selected`}
+                              <span className="ml-2">💰</span>
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-48 p-4">
+                            <div className="space-y-3">
+                              <div className="font-medium">Select Price Ranges</div>
+                              <div className="space-y-2">
+                                {[1, 2, 3, 4].map(price => (
+                                  <div key={price} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={`price-${price}`}
+                                      checked={selectedPriceRanges.includes(price)}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          setSelectedPriceRanges([...selectedPriceRanges, price]);
+                                        } else {
+                                          setSelectedPriceRanges(selectedPriceRanges.filter(p => p !== price));
+                                        }
+                                      }}
+                                    />
+                                    <label htmlFor={`price-${price}`} className="text-sm cursor-pointer">
+                                      {"$".repeat(price)}
+                                    </label>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+
+                      {/* Rating Range */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Rating: {ratingRange[0]} - {ratingRange[1]}</label>
+                        <div className="px-2">
+                          <Slider
+                            value={ratingRange}
+                            onValueChange={(value) => setRatingRange([value[0], value[1]])}
+                            max={10}
+                            min={0}
+                            step={0.5}
+                            className="w-full"
+                          />
+                          <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                            <span>0</span>
+                            <span>10</span>
                           </div>
-                        </PopoverContent>
-                      </Popover>
+                        </div>
+                      </div>
                     </div>
+                  </div>
 
-                     {/* Rating Range Slider */}
-                     <div className="space-y-1.5">
-                       <label className="text-xs font-medium text-muted-foreground">Rating: {ratingRange[0]} - {ratingRange[1]}</label>
-                       <Slider
-                         value={ratingRange}
-                         onValueChange={(value) => setRatingRange([value[0], value[1]])}
-                         max={10}
-                         min={0}
-                         step={0.5}
-                         className="w-full"
-                       />
-                       <div className="flex justify-between text-xs text-muted-foreground">
-                         <span>0</span>
-                         <span>10</span>
-                       </div>
-                     </div>
-                   </div>
-
-                   {/* Sort and Results Count */}
-                   <div className="flex justify-between items-center mt-3 pt-3 border-t border-border/50">
-                     <div className="flex items-center gap-3">
-                       <Select value={sortBy} onValueChange={setSortBy}>
-                         <SelectTrigger className="w-40 h-9 text-sm">
-                           <SelectValue placeholder="Sort by" />
-                         </SelectTrigger>
-                         <SelectContent>
-                           <SelectItem value="newest">Newest First</SelectItem>
-                           <SelectItem value="oldest">Oldest First</SelectItem>
-                           <SelectItem value="rating">Highest Rated</SelectItem>
-                           <SelectItem value="name">Name A-Z</SelectItem>
-                           <SelectItem value="cuisine">Cuisine</SelectItem>
-                         </SelectContent>
-                       </Select>
-                       
-                       {/* Clear All Filters Button */}
-                       {(searchTerm || selectedCuisines.length > 0 || selectedPriceRanges.length > 0 || ratingRange[0] !== 0 || ratingRange[1] !== 10) && (
-                         <Button 
-                           variant="ghost" 
-                           size="sm"
-                           onClick={clearAllFilters}
-                           className="flex items-center gap-1.5 h-9 px-3 text-xs text-muted-foreground hover:text-foreground"
-                         >
-                           <X className="h-3 w-3" />
-                           Clear All
-                         </Button>
-                       )}
-                     </div>
-                     
-                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                       <Filter className="h-4 w-4" />
-                       {filteredAndSortedRestaurants.length} of {friendRestaurantsData.length} restaurants
-                     </div>
-                   </div>
-                 </div>
+                  {/* Sort and Results */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">Sort by:</span>
+                        <Select value={sortBy} onValueChange={setSortBy}>
+                          <SelectTrigger className="w-40">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="newest">Newest First</SelectItem>
+                            <SelectItem value="oldest">Oldest First</SelectItem>
+                            <SelectItem value="rating">Highest Rated</SelectItem>
+                            <SelectItem value="name">Name A-Z</SelectItem>
+                            <SelectItem value="cuisine">Cuisine</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span>{filteredAndSortedRestaurants.length} of {friendRestaurantsData.length} restaurants</span>
+                    </div>
+                  </div>
+                </div>
 
                 {/* Restaurants Grid */}
                 <div className="grid gap-6">
