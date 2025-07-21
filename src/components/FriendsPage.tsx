@@ -740,134 +740,268 @@ export function FriendsPage() {
               </Card>
             </div>
 
-            {/* Filters and search */}
-            <div className="bg-card p-4 rounded-lg border mb-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search restaurants..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                <Select value={cuisineFilter} onValueChange={setCuisineFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Cuisines" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Cuisines</SelectItem>
-                    {uniqueCuisines.map(cuisine => (
-                      <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={ratingFilter} onValueChange={setRatingFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Ratings" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Ratings</SelectItem>
-                    <SelectItem value="8">8+ Stars</SelectItem>
-                    <SelectItem value="6-8">6-8 Stars</SelectItem>
-                    <SelectItem value="4-6">4-6 Stars</SelectItem>
-                    <SelectItem value="0-4">Under 4 Stars</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="newest">Newest First</SelectItem>
-                    <SelectItem value="oldest">Oldest First</SelectItem>
-                    <SelectItem value="rating">Highest Rated</SelectItem>
-                    <SelectItem value="name">Name A-Z</SelectItem>
-                    <SelectItem value="cuisine">Cuisine</SelectItem>
-                  </SelectContent>
-                </Select>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Filter className="h-4 w-4" />
-                  {filteredAndSortedRestaurants.length} of {friendRestaurantsData.length}
-                </div>
-              </div>
-            </div>
+            {/* Tabbed Content */}
+            <Tabs defaultValue="restaurants" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="restaurants">Restaurants ({friendStats.rated_count})</TabsTrigger>
+                <TabsTrigger value="wishlist">Wishlist ({friendStats.wishlist_count})</TabsTrigger>
+                <TabsTrigger value="stats">Statistics</TabsTrigger>
+              </TabsList>
 
-            {/* Restaurants Grid */}
-            <div className="grid gap-6">
-              {filteredAndSortedRestaurants.slice(0, displayedRestaurants).map((restaurant) => (
-                <Card key={restaurant.id} className="overflow-hidden">
-                  <CardContent className="p-6">
-                    <div className="grid md:grid-cols-3 gap-6">
-                      {/* Restaurant Info */}
-                      <div className="md:col-span-2 space-y-4">
-                        <div>
-                          <h3 className="text-xl font-bold mb-2">{restaurant.name}</h3>
-                          <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mb-3">
-                            <span className="flex items-center gap-1">
-                              <ChefHat className="h-4 w-4" />
-                              {restaurant.cuisine}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <MapPin className="h-4 w-4" />
-                              {restaurant.city}
-                            </span>
-                            {restaurant.date_visited && (
-                              <span className="flex items-center gap-1">
-                                <Calendar className="h-4 w-4" />
-                                {new Date(restaurant.date_visited).toLocaleDateString()}
-                              </span>
+              <TabsContent value="restaurants" className="mt-6">
+                {/* Filters and search for restaurants */}
+                <div className="bg-card p-4 rounded-lg border mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search restaurants..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                    <Select value={cuisineFilter} onValueChange={setCuisineFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Cuisines" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Cuisines</SelectItem>
+                        {uniqueCuisines.map(cuisine => (
+                          <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={ratingFilter} onValueChange={setRatingFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Ratings" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Ratings</SelectItem>
+                        <SelectItem value="8">8+ Stars</SelectItem>
+                        <SelectItem value="6-8">6-8 Stars</SelectItem>
+                        <SelectItem value="4-6">4-6 Stars</SelectItem>
+                        <SelectItem value="0-4">Under 4 Stars</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={sortBy} onValueChange={setSortBy}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sort by" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="newest">Newest First</SelectItem>
+                        <SelectItem value="oldest">Oldest First</SelectItem>
+                        <SelectItem value="rating">Highest Rated</SelectItem>
+                        <SelectItem value="name">Name A-Z</SelectItem>
+                        <SelectItem value="cuisine">Cuisine</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Filter className="h-4 w-4" />
+                      {filteredAndSortedRestaurants.length} of {friendRestaurantsData.length}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Restaurants Grid */}
+                <div className="grid gap-6">
+                  {filteredAndSortedRestaurants.slice(0, displayedRestaurants).map((restaurant) => (
+                    <Card key={restaurant.id} className="overflow-hidden">
+                      <CardContent className="p-6">
+                        <div className="grid md:grid-cols-3 gap-6">
+                          {/* Restaurant Info */}
+                          <div className="md:col-span-2 space-y-4">
+                            <div>
+                              <h3 className="text-xl font-bold mb-2">{restaurant.name}</h3>
+                              <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mb-3">
+                                <span className="flex items-center gap-1">
+                                  <ChefHat className="h-4 w-4" />
+                                  {restaurant.cuisine}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <MapPin className="h-4 w-4" />
+                                  {restaurant.city}
+                                </span>
+                                {restaurant.date_visited && (
+                                  <span className="flex items-center gap-1">
+                                    <Calendar className="h-4 w-4" />
+                                    {new Date(restaurant.date_visited).toLocaleDateString()}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex flex-wrap items-center gap-3">
+                                {restaurant.price_range && <PriceRange priceRange={restaurant.price_range} />}
+                                {restaurant.michelin_stars > 0 && <MichelinStars stars={restaurant.michelin_stars} />}
+                              </div>
+                            </div>
+                            
+                            {restaurant.notes && (
+                              <div className="bg-muted p-4 rounded-lg">
+                                <p className="text-sm leading-relaxed">{restaurant.notes}</p>
+                              </div>
                             )}
                           </div>
-                          <div className="flex flex-wrap items-center gap-3">
-                            {restaurant.price_range && <PriceRange priceRange={restaurant.price_range} />}
-                            {restaurant.michelin_stars > 0 && <MichelinStars stars={restaurant.michelin_stars} />}
-                          </div>
-                        </div>
-                        
-                        {restaurant.notes && (
-                          <div className="bg-muted p-4 rounded-lg">
-                            <p className="text-sm leading-relaxed">{restaurant.notes}</p>
-                          </div>
-                        )}
-                      </div>
 
-                      {/* Rating and Actions */}
-                      <div className="flex md:flex-col items-start md:items-end gap-4">
-                        <div className="text-center md:text-right">
-                          <div className="flex items-center gap-2 mb-2">
-                            <StarRating rating={restaurant.rating} readonly size="sm" />
-                            <span className="font-bold text-xl">{restaurant.rating?.toFixed(1)}</span>
+                          {/* Rating and Actions */}
+                          <div className="flex md:flex-col items-start md:items-end gap-4">
+                            <div className="text-center md:text-right">
+                              <div className="flex items-center gap-2 mb-2">
+                                <StarRating rating={restaurant.rating} readonly size="sm" />
+                                <span className="font-bold text-xl">{restaurant.rating?.toFixed(1)}</span>
+                              </div>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => addToWishlist(restaurant)}
+                              className="flex items-center gap-2"
+                            >
+                              <Heart className="h-4 w-4" />
+                              Add to Wishlist
+                            </Button>
                           </div>
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => addToWishlist(restaurant)}
-                          className="flex items-center gap-2"
-                        >
-                          <Heart className="h-4 w-4" />
-                          Add to Wishlist
-                        </Button>
-                      </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                  
+                  {displayedRestaurants < filteredAndSortedRestaurants.length && (
+                    <div className="text-center mt-6">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setDisplayedRestaurants(prev => prev + 10)}
+                        className="flex items-center gap-2"
+                      >
+                        Load More ({filteredAndSortedRestaurants.length - displayedRestaurants} remaining)
+                      </Button>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-              
-              {displayedRestaurants < filteredAndSortedRestaurants.length && (
-                <div className="text-center mt-6">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setDisplayedRestaurants(prev => prev + 10)}
-                    className="flex items-center gap-2"
-                  >
-                    Load More ({filteredAndSortedRestaurants.length - displayedRestaurants} remaining)
-                  </Button>
+                  )}
+
+                  {filteredAndSortedRestaurants.length === 0 && (
+                    <div className="text-center py-12">
+                      <p className="text-muted-foreground">No restaurants found matching your filters.</p>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </TabsContent>
+
+              <TabsContent value="wishlist" className="mt-6">
+                {/* Wishlist Items */}
+                <div className="grid gap-6">
+                  {friendWishlistData.slice(0, displayedWishlist).map((restaurant) => (
+                    <Card key={restaurant.id} className="overflow-hidden">
+                      <CardContent className="p-6">
+                        <div className="grid md:grid-cols-3 gap-6">
+                          <div className="md:col-span-2 space-y-4">
+                            <div>
+                              <h3 className="text-xl font-bold mb-2">{restaurant.name}</h3>
+                              <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mb-3">
+                                <span className="flex items-center gap-1">
+                                  <ChefHat className="h-4 w-4" />
+                                  {restaurant.cuisine}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <MapPin className="h-4 w-4" />
+                                  {restaurant.city}
+                                </span>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-3">
+                                {restaurant.price_range && <PriceRange priceRange={restaurant.price_range} />}
+                                {restaurant.michelin_stars > 0 && <MichelinStars stars={restaurant.michelin_stars} />}
+                              </div>
+                            </div>
+                            
+                            {restaurant.notes && (
+                              <div className="bg-muted p-4 rounded-lg">
+                                <p className="text-sm leading-relaxed">{restaurant.notes}</p>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex md:flex-col items-start md:items-end gap-4">
+                            <Badge variant="outline" className="flex items-center gap-1">
+                              <Heart className="h-3 w-3" />
+                              Wishlist
+                            </Badge>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => addToWishlist(restaurant)}
+                              className="flex items-center gap-2"
+                            >
+                              <Heart className="h-4 w-4" />
+                              Add to My Wishlist
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                  
+                  {displayedWishlist < friendWishlistData.length && (
+                    <div className="text-center mt-6">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setDisplayedWishlist(prev => prev + 10)}
+                        className="flex items-center gap-2"
+                      >
+                        Load More ({friendWishlistData.length - displayedWishlist} remaining)
+                      </Button>
+                    </div>
+                  )}
+
+                  {friendWishlistData.length === 0 && (
+                    <div className="text-center py-12">
+                      <p className="text-muted-foreground">No wishlist items to display.</p>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="stats" className="mt-6">
+                {/* Detailed Statistics */}
+                <div className="grid gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <BarChart3 className="h-5 w-5" />
+                        Restaurant Statistics
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-primary">{friendStats.rated_count}</div>
+                          <div className="text-sm text-muted-foreground">Total Rated</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-primary">{friendStats.wishlist_count}</div>
+                          <div className="text-sm text-muted-foreground">Wishlist Items</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-primary">{friendStats.avg_rating?.toFixed(1) || '0.0'}</div>
+                          <div className="text-sm text-muted-foreground">Average Rating</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-primary">{friendStats.michelin_count}</div>
+                          <div className="text-sm text-muted-foreground">Michelin Stars</div>
+                        </div>
+                      </div>
+                      
+                      {friendStats.top_cuisine && (
+                        <div className="text-center">
+                          <div className="text-lg font-semibold">Favorite Cuisine</div>
+                          <Badge variant="secondary" className="mt-2">
+                            <ChefHat className="h-3 w-3 mr-1" />
+                            {friendStats.top_cuisine}
+                          </Badge>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+            </Tabs>
           </>
         ) : (
           <div className="text-center py-12">
