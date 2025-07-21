@@ -21,7 +21,7 @@ export function GrubbyLogo({ size = 'md', showText = true, className = '' }: Gru
         className={`${container} object-contain`}
       />
       {showText && (
-        <span className={`${text} font-bold tracking-tight`}>Grubby</span>
+        <span className={`${text} font-bold tracking-tight -ml-0.5`}>Grubby</span>
       )}
     </div>
   );
