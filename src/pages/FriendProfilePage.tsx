@@ -76,61 +76,93 @@ export default function FriendProfilePage() {
 
   const loadFriendData = async (friendData: any) => {
     setIsLoading(true);
+    const startTime = performance.now();
+    
     try {
       console.log('Loading friend profile data for:', friendData.id);
       
-      // Use cached friend profile for lightning-fast loading
-      const { data: cachedProfile, error } = await supabase
-        .rpc('get_cached_friend_profile', { 
+      // LIGHTNING FAST APPROACH: Get minimal data first, then load restaurants directly
+      const [statsResult, initialRestaurants] = await Promise.all([
+        // Get just basic stats - super fast
+        supabase.rpc('get_friend_profile_data', { 
           target_user_id: friendData.id,
-          requesting_user_id: user?.id
-        });
+          requesting_user_id: user?.id,
+          restaurant_limit: 0 // No restaurants, just stats
+        }).single(),
+        // Get first 10 restaurants directly - also very fast
+        supabase
+          .from('restaurants')
+          .select('*')
+          .eq('user_id', friendData.id)
+          .eq('is_wishlist', false)
+          .order('created_at', { ascending: false })
+          .limit(10)
+      ]);
 
-      if (error) {
-        console.error('Error fetching cached friend profile:', error);
+      const loadTime = performance.now() - startTime;
+      console.log(`Fast profile load took ${loadTime.toFixed(2)}ms`);
+
+      if (statsResult.error || !statsResult.data?.can_view) {
+        console.log('Cannot view this friend\'s profile');
         setIsLoading(false);
         return;
       }
 
-      if (!cachedProfile || (cachedProfile as any).error) {
-        console.log('Cannot view this friend\'s profile or no cached data');
-        setIsLoading(false);
-        return;
-      }
+      const stats = statsResult.data;
 
-      const profile = cachedProfile as any;
-      const profileData = profile.profile || {};
-      const statsData = profile.stats || {};
-      const restaurantsData = profile.restaurants || [];
-      const wishlistData = profile.wishlist || [];
-
-      // Set stats from cached data
+      // Set stats immediately
       setStats({
-        averageRating: statsData.avg_rating || 0,
-        totalRated: statsData.total_rated || 0,
-        totalWishlist: statsData.total_wishlist || 0,
-        topCuisines: statsData.top_cuisines || [],
-        ratingDistribution: statsData.rating_distribution || {},
-        michelinCount: statsData.michelin_count || 0,
-        recentActivity: profile.recent_activity || []
+        averageRating: parseFloat(String(stats.avg_rating)) || 0,
+        totalRated: stats.rated_count || 0,
+        totalWishlist: stats.wishlist_count || 0,
+        topCuisines: [],
+        ratingDistribution: {},
+        michelinCount: stats.michelin_count || 0,
+        recentActivity: []
       });
 
-      // Set restaurants and wishlist data from cache
-      setAllRestaurants(restaurantsData);
-      setAllWishlist(wishlistData);
-      setRestaurants(restaurantsData.slice(0, 10));
-      setWishlist(wishlistData.slice(0, 10));
+      // Set initial restaurants
+      const restaurants = initialRestaurants.data || [];
+      setRestaurants(restaurants);
+      setAllRestaurants(restaurants);
 
       // Reset pagination
-      setDisplayedRestaurants(Math.min(10, restaurantsData.length));
-      setDisplayedWishlist(Math.min(10, wishlistData.length));
+      setDisplayedRestaurants(Math.min(10, restaurants.length));
+      setDisplayedWishlist(10);
 
-      console.log('Profile data loaded from cache');
+      console.log('Fast profile data loaded - UI ready');
       setIsLoading(false);
+
+      // Optional: Load more data in background for pagination
+      if (stats.rated_count > 10) {
+        loadMoreRestaurantsInBackground(friendData.id, restaurants);
+      }
 
     } catch (error) {
       console.error('Error loading friend data:', error);
       setIsLoading(false);
+    }
+  };
+
+  // Background loading for pagination - non-blocking
+  const loadMoreRestaurantsInBackground = async (friendId: string, currentRestaurants: any[]) => {
+    try {
+      // Load remaining restaurants in background
+      const { data: moreRestaurants } = await supabase
+        .from('restaurants')
+        .select('*')
+        .eq('user_id', friendId)
+        .eq('is_wishlist', false)
+        .order('created_at', { ascending: false })
+        .range(10, 199); // Load up to 190 more (total 200 max)
+
+      if (moreRestaurants && moreRestaurants.length > 0) {
+        const allRestaurants = [...currentRestaurants, ...moreRestaurants];
+        setAllRestaurants(allRestaurants);
+        console.log(`Background loaded ${moreRestaurants.length} more restaurants`);
+      }
+    } catch (error) {
+      console.error('Background loading failed:', error);
     }
   };
 
