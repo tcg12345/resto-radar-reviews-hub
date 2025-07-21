@@ -70,6 +70,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [lookupName, setLookupName] = useState('');
   const [lookupCity, setLookupCity] = useState('');
+  const [isAIEnhancing, setIsAIEnhancing] = useState(false);
   const [autoGeneratePhotos, setAutoGeneratePhotos] = useState(false);
   const [isGeneratingPhotos, setIsGeneratingPhotos] = useState(false);
   const [customCuisine, setCustomCuisine] = useState(() => {
@@ -624,7 +625,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
 
   const handleRestaurantSelect = async (placeDetails: any) => {
     try {
-      toast.loading('Auto-filling restaurant details...');
+      toast.loading('Auto-filling restaurant details from Google Places...');
 
       // Extract cuisine type from Google Places types (fallback)
       const getCuisineFromTypes = (types: string[]) => {
@@ -652,6 +653,10 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       // Get AI-enhanced restaurant data
       let aiData = null;
       try {
+        toast.dismiss();
+        toast.loading('Enhancing details with AI...');
+        setIsAIEnhancing(true);
+        
         const { data: aiEnhancement, error: aiError } = await supabase.functions.invoke('ai-restaurant-enhancer', {
           body: {
             restaurant: {
@@ -659,7 +664,8 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
               address: placeDetails.formatted_address,
               city: extractCity(placeDetails.formatted_address),
               country: placeDetails.formatted_address?.split(',').pop()?.trim()
-            }
+            },
+            availableCuisines: cuisineOptions.filter(c => c !== 'Other')
           }
         });
 
@@ -671,6 +677,8 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
         }
       } catch (error) {
         console.warn('AI enhancement error:', error);
+      } finally {
+        setIsAIEnhancing(false);
       }
 
       // Convert Google Photos to URLs (requires API key for photo reference)
@@ -688,7 +696,8 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
         ...prev,
         name: placeDetails.name || prev.name,
         address: placeDetails.formatted_address || prev.address,
-        city: extractCity(placeDetails.formatted_address) || prev.city,
+        // Use AI-determined city first, fallback to extracted city from Google Places
+        city: aiData?.city || extractCity(placeDetails.formatted_address) || prev.city,
         // Use AI-determined cuisine first, fallback to Google Places types, then previous value
         cuisine: aiData?.cuisine || getCuisineFromTypes(placeDetails.types) || prev.cuisine,
         // Use AI-determined price range first, fallback to Google Places price_level, then previous value
@@ -718,7 +727,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       toast.dismiss();
       if (aiData) {
         toast.success(
-          `${placeDetails.name} selected! Enhanced with AI: ${aiData.cuisine}${aiData.michelinStars ? ` (${aiData.michelinStars}★)` : ''} - ${'$'.repeat(aiData.priceRange)}`
+          `${placeDetails.name} selected! AI enhanced: ${aiData.cuisine}${aiData.michelinStars ? ` (${aiData.michelinStars}★)` : ''}, ${aiData.city} - ${'$'.repeat(aiData.priceRange)}`
         );
       } else {
         toast.success(`${placeDetails.name} selected! Details auto-filled from Google Places.`);
@@ -826,7 +835,15 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
         <RestaurantSearchSelect 
           onRestaurantSelect={handleRestaurantSelect}
           placeholder="Search for a restaurant (e.g., 'Le Bernardin New York')"
+          disabled={isAIEnhancing}
         />
+        
+        {isAIEnhancing && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+            <span>AI is analyzing restaurant details...</span>
+          </div>
+        )}
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-6">

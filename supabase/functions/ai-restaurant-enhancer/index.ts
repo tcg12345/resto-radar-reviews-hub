@@ -13,10 +13,12 @@ interface RestaurantInfo {
   address?: string;
   city?: string;
   country?: string;
+  availableCuisines?: string[];
 }
 
 interface AIEnhancedData {
   cuisine: string;
+  city: string;
   michelinStars: number | null;
   priceRange: number | null;
   reasoning: string;
@@ -29,13 +31,17 @@ serve(async (req) => {
   }
 
   try {
-    const { restaurant }: { restaurant: RestaurantInfo } = await req.json();
+    const { restaurant, availableCuisines }: { restaurant: RestaurantInfo, availableCuisines?: string[] } = await req.json();
 
     if (!restaurant?.name) {
       throw new Error('Restaurant name is required');
     }
 
     console.log('Analyzing restaurant:', restaurant);
+
+    const cuisineList = availableCuisines && availableCuisines.length > 0 
+      ? availableCuisines.join(', ') 
+      : 'American, Italian, French, Chinese, Japanese, Indian, Mediterranean, Mexican, Thai, Vietnamese, Korean, Spanish, Greek, Brazilian, Steakhouse, Seafood, Modern, Classic';
 
     const prompt = `Analyze this restaurant and provide accurate information:
 
@@ -45,20 +51,22 @@ ${restaurant.city ? `City: ${restaurant.city}` : ''}
 ${restaurant.country ? `Country: ${restaurant.country}` : ''}
 
 Please provide:
-1. Cuisine type (be specific but use common categories like: American, Italian, French, Chinese, Japanese, Indian, Mediterranean, Mexican, Thai, Vietnamese, Korean, Spanish, Greek, etc.)
-2. Michelin stars (0-3, or null if not a Michelin-starred restaurant)
-3. Price range (1-4 scale: 1=$ budget, 2=$$ moderate, 3=$$$ expensive, 4=$$$$ luxury)
-4. Brief reasoning for your analysis
+1. Cuisine type - Choose the BEST match from these available options: ${cuisineList}
+2. City - Extract and clean the city name from the address (just the city name, no state/country)
+3. Michelin stars (0-3, or null if not a Michelin-starred restaurant)
+4. Price range (1-4 scale: 1=$ budget, 2=$$ moderate, 3=$$$ expensive, 4=$$$$ luxury)
+5. Brief reasoning for your analysis
 
 Response format (JSON only):
 {
-  "cuisine": "cuisine_type",
+  "cuisine": "cuisine_type_from_available_options",
+  "city": "cleaned_city_name",
   "michelinStars": number_or_null,
   "priceRange": number,
   "reasoning": "brief_explanation"
 }
 
-Important: Only respond with valid JSON. Be conservative with Michelin stars - only assign them if you're confident the restaurant has them.`;
+Important: Only respond with valid JSON. For cuisine, ONLY use one of the available options provided. Be conservative with Michelin stars - only assign them if you're confident the restaurant has them.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -100,6 +108,7 @@ Important: Only respond with valid JSON. Be conservative with Michelin stars - o
       // Fallback with defaults
       enhancedData = {
         cuisine: 'American',
+        city: restaurant.city || '',
         michelinStars: null,
         priceRange: 2,
         reasoning: 'Could not determine specific details'
@@ -109,6 +118,7 @@ Important: Only respond with valid JSON. Be conservative with Michelin stars - o
     // Validate and sanitize the response
     const result = {
       cuisine: enhancedData.cuisine || 'American',
+      city: enhancedData.city || restaurant.city || '',
       michelinStars: enhancedData.michelinStars && enhancedData.michelinStars >= 1 && enhancedData.michelinStars <= 3 
         ? enhancedData.michelinStars 
         : null,
@@ -129,6 +139,7 @@ Important: Only respond with valid JSON. Be conservative with Michelin stars - o
     return new Response(JSON.stringify({ 
       error: error.message,
       cuisine: 'American',
+      city: '',
       michelinStars: null,
       priceRange: 2,
       reasoning: 'Error occurred during analysis'
