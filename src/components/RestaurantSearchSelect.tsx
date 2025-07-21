@@ -62,6 +62,7 @@ export function RestaurantSearchSelect({
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [skipSearch, setSkipSearch] = useState(false); // Flag to prevent auto-search
   
   const searchRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -69,6 +70,12 @@ export function RestaurantSearchSelect({
 
   // Debounced search function
   useEffect(() => {
+    // Skip search if it's being set programmatically
+    if (skipSearch) {
+      setSkipSearch(false);
+      return;
+    }
+    
     if (searchQuery.trim().length < 2) {
       setSearchResults([]);
       setShowResults(false);
@@ -144,6 +151,9 @@ export function RestaurantSearchSelect({
       if (data.status === 'OK') {
         const details: PlaceDetails = data.result;
         onRestaurantSelect(details);
+        
+        // Set search query without triggering search
+        setSkipSearch(true);
         setSearchQuery(details.name);
         setShowResults(false);
         toast.success('Restaurant selected successfully!');
@@ -205,7 +215,10 @@ export function RestaurantSearchSelect({
           type="text"
           placeholder={placeholder}
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => {
+            setSkipSearch(false); // Reset flag when user types
+            setSearchQuery(e.target.value);
+          }}
           onKeyDown={handleKeyDown}
           onFocus={() => {
             if (searchResults.length > 0) {
