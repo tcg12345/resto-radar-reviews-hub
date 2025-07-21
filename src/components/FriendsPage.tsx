@@ -751,11 +751,11 @@ export function FriendsPage({
 
   const loadDetailedFriendData = async (friendId: string) => {
     try {
-      console.log('🔄 Loading detailed friend data in background...');
+      console.log('🔄 Loading ALL friend data in background...');
       
-      // Load restaurants and wishlist with optimized queries - only essential fields first
+      // Load ALL restaurants and wishlist with optimized queries - only essential fields first
       const [restaurantsResult, wishlistResult, statsResult] = await Promise.all([
-        // Get restaurants with basic info only
+        // Get ALL restaurants with basic info
         supabase
           .from('restaurants')
           .select(`
@@ -765,10 +765,10 @@ export function FriendsPage({
           .eq('user_id', friendId)
           .eq('is_wishlist', false)
           .order('date_visited', { ascending: false, nullsFirst: false })
-          .order('created_at', { ascending: false })
-          .limit(30), // Reduced limit for better performance
+          .order('created_at', { ascending: false }),
+          // NO LIMIT - load all restaurants
           
-        // Get wishlist with basic info only
+        // Get ALL wishlist with basic info
         supabase
           .from('restaurants')
           .select(`
@@ -777,10 +777,10 @@ export function FriendsPage({
           `)
           .eq('user_id', friendId)
           .eq('is_wishlist', true)
-          .order('created_at', { ascending: false })
-          .limit(15), // Reduced limit
+          .order('created_at', { ascending: false }),
+          // NO LIMIT - load all wishlist items
           
-        // Get additional stats
+        // Get additional stats from all rated restaurants
         supabase
           .from('restaurants')
           .select('cuisine, michelin_stars')
@@ -837,7 +837,7 @@ export function FriendsPage({
   const loadMoreRestaurantDetails = async (friendId: string) => {
     setIsLoadingMoreDetails(true);
     try {
-      console.log('🔄 Loading more detailed restaurant data...');
+      console.log('🔄 Loading ALL detailed restaurant data...');
       
       const { data: detailedRestaurants, error } = await supabase
         .from('restaurants')
@@ -850,8 +850,8 @@ export function FriendsPage({
         .eq('user_id', friendId)
         .eq('is_wishlist', false)
         .order('date_visited', { ascending: false, nullsFirst: false })
-        .order('created_at', { ascending: false })
-        .limit(50);
+        .order('created_at', { ascending: false });
+        // NO LIMIT - load ALL restaurants with full details
 
       if (error) {
         console.error('Error loading detailed restaurants:', error);
