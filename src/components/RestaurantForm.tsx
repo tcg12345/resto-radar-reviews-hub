@@ -111,7 +111,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       phone_number: (initialData as any).phone_number,
       latitude: (initialData as any).latitude,
       longitude: (initialData as any).longitude,
-      openingHours: (initialData as any).opening_hours, // Convert from snake_case to camelCase
+      openingHours: (initialData as any).openingHours, // Use correct camelCase property name
       reservable: (initialData as any).reservable,
       reservation_url: (initialData as any).reservation_url,
     })
@@ -724,7 +724,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       phone_number: formDataWithPlaces.phone_number ?? (initialData as any)?.phone_number ?? null,
       latitude: formDataWithPlaces.latitude ?? (initialData as any)?.latitude ?? null,
       longitude: formDataWithPlaces.longitude ?? (initialData as any)?.longitude ?? null,
-      openingHours: formDataWithPlaces.openingHours ?? (initialData as any)?.opening_hours ?? null, // Always preserve existing opening hours
+      openingHours: formDataWithPlaces.openingHours ?? (initialData as any)?.openingHours ?? null, // Always preserve existing opening hours
       reservable: formDataWithPlaces.reservable ?? (initialData as any)?.reservable ?? null,
       reservation_url: formDataWithPlaces.reservation_url ?? (initialData as any)?.reservation_url ?? null,
       // Use Google Place ID as restaurant ID only for new restaurants from Google Places
