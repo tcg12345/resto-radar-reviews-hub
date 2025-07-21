@@ -719,14 +719,14 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     const submissionData = {
       ...formData,
       removedPhotoIndexes: removedPhotoIndexes,
-      // Always include Google Places fields if they exist in formData (use null coalescing to handle empty strings)
-      ...(formDataWithPlaces.website !== undefined && { website: formDataWithPlaces.website }),
-      ...(formDataWithPlaces.phone_number !== undefined && { phone_number: formDataWithPlaces.phone_number }),
-      ...(formDataWithPlaces.latitude !== undefined && { latitude: formDataWithPlaces.latitude }),
-      ...(formDataWithPlaces.longitude !== undefined && { longitude: formDataWithPlaces.longitude }),
-      ...(formDataWithPlaces.openingHours !== undefined && { openingHours: formDataWithPlaces.openingHours }), // Always include, even if empty
-      ...(formDataWithPlaces.reservable !== undefined && { reservable: formDataWithPlaces.reservable }),
-      ...(formDataWithPlaces.reservation_url !== undefined && { reservation_url: formDataWithPlaces.reservation_url }),
+      // Always include Google Places fields - preserve existing data if not in current form
+      website: formDataWithPlaces.website ?? (initialData as any)?.website ?? null,
+      phone_number: formDataWithPlaces.phone_number ?? (initialData as any)?.phone_number ?? null,
+      latitude: formDataWithPlaces.latitude ?? (initialData as any)?.latitude ?? null,
+      longitude: formDataWithPlaces.longitude ?? (initialData as any)?.longitude ?? null,
+      openingHours: formDataWithPlaces.openingHours ?? (initialData as any)?.opening_hours ?? null, // Always preserve existing opening hours
+      reservable: formDataWithPlaces.reservable ?? (initialData as any)?.reservable ?? null,
+      reservation_url: formDataWithPlaces.reservation_url ?? (initialData as any)?.reservation_url ?? null,
       // Use Google Place ID as restaurant ID only for new restaurants from Google Places
       ...(formDataWithPlaces.googlePlaceId && !initialData && {
         id: formDataWithPlaces.googlePlaceId,
