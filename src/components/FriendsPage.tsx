@@ -741,12 +741,143 @@ export function FriendsPage() {
             </div>
 
             {/* Tabbed Content */}
-            <Tabs defaultValue="restaurants" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+            <Tabs defaultValue="overview" className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="restaurants">Restaurants ({friendStats.rated_count})</TabsTrigger>
                 <TabsTrigger value="wishlist">Wishlist ({friendStats.wishlist_count})</TabsTrigger>
                 <TabsTrigger value="stats">Statistics</TabsTrigger>
               </TabsList>
+
+              {/* Overview Tab */}
+              <TabsContent value="overview" className="mt-6">
+                <div className="grid gap-6 lg:grid-cols-1 xl:grid-cols-3">
+                  {/* Recent Activity */}
+                  <div className="xl:col-span-2">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <TrendingUp className="h-5 w-5" />
+                          Recent Activity
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {!friendRestaurantsData || friendRestaurantsData.length === 0 ? (
+                          <div className="text-center py-8">
+                            <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                            <p className="text-muted-foreground">No recent activity</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            {friendRestaurantsData.slice(0, 5).map((restaurant: any) => (
+                              <div key={restaurant.id} className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 border rounded-lg">
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-medium break-words">{restaurant.name}</h4>
+                                  <p className="text-sm text-muted-foreground">{restaurant.cuisine}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {restaurant.date_visited 
+                                      ? new Date(restaurant.date_visited).toLocaleDateString()
+                                      : `Added: ${new Date(restaurant.created_at).toLocaleDateString()}`
+                                    }
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                  <StarRating rating={restaurant.rating} readonly size="sm" />
+                                  <span className="font-medium">{restaurant.rating?.toFixed(1)}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Stats Sidebar */}
+                  <div className="space-y-6">
+                    {/* Top Cuisines */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          <ChefHat className="h-5 w-5" />
+                          Favorite Cuisines
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {uniqueCuisines.length === 0 ? (
+                          <p className="text-muted-foreground text-sm">No cuisine data available</p>
+                        ) : (
+                          <div className="space-y-3">
+                            {uniqueCuisines.slice(0, 5).map((cuisine, index) => {
+                              const count = friendRestaurantsData.filter(r => r.cuisine === cuisine).length;
+                              const percentage = Math.round((count / friendRestaurantsData.length) * 100);
+                              return (
+                                <div key={cuisine} className="flex items-center justify-between">
+                                  <span className="text-sm font-medium">{cuisine}</span>
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
+                                      <div 
+                                        className="h-full bg-primary rounded-full" 
+                                        style={{ width: `${percentage}%` }}
+                                      />
+                                    </div>
+                                    <span className="text-xs text-muted-foreground w-8">{count}</span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* Rating Distribution */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          <BarChart3 className="h-5 w-5" />
+                          Rating Distribution
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {friendRestaurantsData.length === 0 ? (
+                          <p className="text-muted-foreground text-sm">No rating data available</p>
+                        ) : (
+                          <div className="space-y-3">
+                            {[
+                              { label: '9-10 Stars', min: 9, max: 10, color: 'bg-green-500' },
+                              { label: '7-8 Stars', min: 7, max: 8.9, color: 'bg-blue-500' },
+                              { label: '5-6 Stars', min: 5, max: 6.9, color: 'bg-yellow-500' },
+                              { label: '0-4 Stars', min: 0, max: 4.9, color: 'bg-red-500' }
+                            ].map(range => {
+                              const count = friendRestaurantsData.filter(r => 
+                                r.rating >= range.min && r.rating <= range.max
+                              ).length;
+                              const percentage = friendRestaurantsData.length > 0 
+                                ? Math.round((count / friendRestaurantsData.length) * 100) 
+                                : 0;
+                              return (
+                                <div key={range.label} className="flex items-center justify-between">
+                                  <span className="text-sm font-medium">{range.label}</span>
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
+                                      <div 
+                                        className={`h-full ${range.color} rounded-full`} 
+                                        style={{ width: `${percentage}%` }}
+                                      />
+                                    </div>
+                                    <span className="text-xs text-muted-foreground w-8">{count}</span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </TabsContent>
 
               <TabsContent value="restaurants" className="mt-6">
                 {/* Filters and search for restaurants */}
@@ -888,113 +1019,190 @@ export function FriendsPage() {
               <TabsContent value="wishlist" className="mt-6">
                 {/* Wishlist Items */}
                 <div className="grid gap-6">
-                  {friendWishlistData.slice(0, displayedWishlist).map((restaurant) => (
-                    <Card key={restaurant.id} className="overflow-hidden">
-                      <CardContent className="p-6">
-                        <div className="grid md:grid-cols-3 gap-6">
-                          <div className="md:col-span-2 space-y-4">
-                            <div>
-                              <h3 className="text-xl font-bold mb-2">{restaurant.name}</h3>
-                              <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mb-3">
-                                <span className="flex items-center gap-1">
-                                  <ChefHat className="h-4 w-4" />
-                                  {restaurant.cuisine}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <MapPin className="h-4 w-4" />
-                                  {restaurant.city}
-                                </span>
-                              </div>
-                              <div className="flex flex-wrap items-center gap-3">
-                                {restaurant.price_range && <PriceRange priceRange={restaurant.price_range} />}
-                                {restaurant.michelin_stars > 0 && <MichelinStars stars={restaurant.michelin_stars} />}
-                              </div>
-                            </div>
-                            
-                            {restaurant.notes && (
-                              <div className="bg-muted p-4 rounded-lg">
-                                <p className="text-sm leading-relaxed">{restaurant.notes}</p>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="flex md:flex-col items-start md:items-end gap-4">
-                            <Badge variant="outline" className="flex items-center gap-1">
-                              <Heart className="h-3 w-3" />
-                              Wishlist
-                            </Badge>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => addToWishlist(restaurant)}
-                              className="flex items-center gap-2"
-                            >
-                              <Heart className="h-4 w-4" />
-                              Add to My Wishlist
-                            </Button>
-                          </div>
-                        </div>
+                  {friendWishlistData.length === 0 ? (
+                    <Card>
+                      <CardContent className="py-12 text-center">
+                        <Eye className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <p className="text-lg text-muted-foreground">No wishlist items yet</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {viewingFriend.username} hasn't added any restaurants to their wishlist
+                        </p>
                       </CardContent>
                     </Card>
-                  ))}
-                  
-                  {displayedWishlist < friendWishlistData.length && (
-                    <div className="text-center mt-6">
-                      <Button 
-                        variant="outline" 
-                        onClick={() => setDisplayedWishlist(prev => prev + 10)}
-                        className="flex items-center gap-2"
-                      >
-                        Load More ({friendWishlistData.length - displayedWishlist} remaining)
-                      </Button>
-                    </div>
-                  )}
+                  ) : (
+                    <>
+                      {friendWishlistData.slice(0, displayedWishlist).map((restaurant) => (
+                        <Card key={restaurant.id} className="overflow-hidden">
+                          <CardContent className="p-6">
+                            <div className="grid md:grid-cols-3 gap-6">
+                              <div className="md:col-span-2 space-y-4">
+                                <div>
+                                  <h3 className="text-xl font-bold mb-2">{restaurant.name}</h3>
+                                  <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mb-3">
+                                    <span className="flex items-center gap-1">
+                                      <ChefHat className="h-4 w-4" />
+                                      {restaurant.cuisine}
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                      <MapPin className="h-4 w-4" />
+                                      {restaurant.city}
+                                    </span>
+                                  </div>
+                                  <div className="flex flex-wrap items-center gap-3">
+                                    {restaurant.price_range && <PriceRange priceRange={restaurant.price_range} />}
+                                    {restaurant.michelin_stars > 0 && <MichelinStars stars={restaurant.michelin_stars} />}
+                                  </div>
+                                </div>
+                                
+                                {restaurant.notes && (
+                                  <div className="bg-muted p-4 rounded-lg">
+                                    <p className="text-sm leading-relaxed">{restaurant.notes}</p>
+                                  </div>
+                                )}
+                              </div>
 
-                  {friendWishlistData.length === 0 && (
-                    <div className="text-center py-12">
-                      <p className="text-muted-foreground">No wishlist items to display.</p>
-                    </div>
+                              <div className="flex md:flex-col items-start md:items-end gap-4">
+                                <Badge variant="outline" className="flex items-center gap-1">
+                                  <Heart className="h-3 w-3" />
+                                  Wishlist
+                                </Badge>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => addToWishlist(restaurant)}
+                                  className="flex items-center gap-2"
+                                >
+                                  <Heart className="h-4 w-4" />
+                                  Add to My Wishlist
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                      
+                      {displayedWishlist < friendWishlistData.length && (
+                        <div className="text-center mt-6">
+                          <Button 
+                            variant="outline" 
+                            onClick={() => setDisplayedWishlist(prev => prev + 10)}
+                            className="flex items-center gap-2"
+                          >
+                            Load More ({friendWishlistData.length - displayedWishlist} remaining)
+                          </Button>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </TabsContent>
 
               <TabsContent value="stats" className="mt-6">
                 {/* Detailed Statistics */}
-                <div className="grid gap-6">
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Target className="h-5 w-5" />
+                        Rating Summary
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="flex justify-between">
+                          <span>Average Rating</span>
+                          <span className="font-bold">{friendStats.avg_rating?.toFixed(2) || '—'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Total Rated</span>
+                          <span className="font-bold">{friendStats.rated_count}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Wishlist Items</span>
+                          <span className="font-bold">{friendStats.wishlist_count}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Michelin Stars</span>
+                          <span className="font-bold">{friendStats.michelin_count}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <ChefHat className="h-5 w-5" />
+                        Cuisine Breakdown
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {uniqueCuisines.length === 0 ? (
+                        <p className="text-muted-foreground text-sm">No cuisine data available</p>
+                      ) : (
+                        <div className="space-y-3">
+                          {uniqueCuisines.slice(0, 6).map((cuisine) => {
+                            const count = friendRestaurantsData.filter(r => r.cuisine === cuisine).length;
+                            const percentage = Math.round((count / friendRestaurantsData.length) * 100);
+                            return (
+                              <div key={cuisine} className="flex items-center justify-between">
+                                <span className="text-sm font-medium truncate">{cuisine}</span>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-12 h-2 bg-muted rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-primary rounded-full" 
+                                      style={{ width: `${percentage}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-xs text-muted-foreground w-6">{count}</span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <BarChart3 className="h-5 w-5" />
-                        Restaurant Statistics
+                        Rating Distribution
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-6">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-primary">{friendStats.rated_count}</div>
-                          <div className="text-sm text-muted-foreground">Total Rated</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-primary">{friendStats.wishlist_count}</div>
-                          <div className="text-sm text-muted-foreground">Wishlist Items</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-primary">{friendStats.avg_rating?.toFixed(1) || '0.0'}</div>
-                          <div className="text-sm text-muted-foreground">Average Rating</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-primary">{friendStats.michelin_count}</div>
-                          <div className="text-sm text-muted-foreground">Michelin Stars</div>
-                        </div>
-                      </div>
-                      
-                      {friendStats.top_cuisine && (
-                        <div className="text-center">
-                          <div className="text-lg font-semibold">Favorite Cuisine</div>
-                          <Badge variant="secondary" className="mt-2">
-                            <ChefHat className="h-3 w-3 mr-1" />
-                            {friendStats.top_cuisine}
-                          </Badge>
+                    <CardContent>
+                      {friendRestaurantsData.length === 0 ? (
+                        <p className="text-muted-foreground text-sm">No rating data available</p>
+                      ) : (
+                        <div className="space-y-3">
+                          {[
+                            { label: '9-10', min: 9, max: 10, color: 'bg-green-500' },
+                            { label: '7-8', min: 7, max: 8.9, color: 'bg-blue-500' },
+                            { label: '5-6', min: 5, max: 6.9, color: 'bg-yellow-500' },
+                            { label: '0-4', min: 0, max: 4.9, color: 'bg-red-500' }
+                          ].map(range => {
+                            const count = friendRestaurantsData.filter(r => 
+                              r.rating >= range.min && r.rating <= range.max
+                            ).length;
+                            const percentage = friendRestaurantsData.length > 0 
+                              ? Math.round((count / friendRestaurantsData.length) * 100) 
+                              : 0;
+                            return (
+                              <div key={range.label} className="flex items-center justify-between">
+                                <span className="text-sm font-medium">{range.label}</span>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-12 h-2 bg-muted rounded-full overflow-hidden">
+                                    <div 
+                                      className={`h-full ${range.color} rounded-full`} 
+                                      style={{ width: `${percentage}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-xs text-muted-foreground w-6">{count}</span>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                     </CardContent>
