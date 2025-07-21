@@ -19,7 +19,7 @@ import { StarRating } from '@/components/StarRating';
 import { MichelinStars } from '@/components/MichelinStars';
 import { PriceRange } from '@/components/PriceRange';
 import { RestaurantLocationMap } from '@/components/RestaurantLocationMap';
-import { WeeklyOpeningHours } from '@/components/WeeklyOpeningHours';
+import { OpeningHoursDisplay } from '@/components/OpeningHoursDisplay';
 import { RestaurantPhotoCarousel } from '@/components/RestaurantPhotoCarousel';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -135,9 +135,6 @@ export function RestaurantDetailPage() {
           enhancedRestaurant = await fetchGooglePlacesDetails(restaurantData);
         }
 
-        console.log('Restaurant data fetched:', enhancedRestaurant);
-        console.log('Opening hours value:', enhancedRestaurant.opening_hours);
-        console.log('Opening hours type:', typeof enhancedRestaurant.opening_hours);
         setRestaurant(enhancedRestaurant);
 
         // Fetch friend profile
@@ -491,7 +488,7 @@ export function RestaurantDetailPage() {
               <CardTitle>Opening Hours</CardTitle>
             </CardHeader>
             <CardContent>
-              <WeeklyOpeningHours openingHours={restaurant.opening_hours} />
+              <OpeningHoursDisplay hours={restaurant.opening_hours.split('\n')} />
             </CardContent>
           </Card>
         )}

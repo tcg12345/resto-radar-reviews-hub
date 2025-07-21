@@ -5,8 +5,6 @@ interface WeeklyOpeningHoursProps {
 }
 
 export function WeeklyOpeningHours({ openingHours }: WeeklyOpeningHoursProps) {
-  console.log('WeeklyOpeningHours received openingHours:', openingHours);
-  console.log('WeeklyOpeningHours openingHours type:', typeof openingHours);
   // Parse opening hours string into structured format
   const parseOpeningHours = (hoursText: string) => {
     const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
