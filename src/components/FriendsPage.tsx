@@ -600,13 +600,17 @@ export function FriendsPage() {
 
   // Interactive filter functions for statistics
   const handleRatingRangeClick = (min: number, max: number) => {
+    console.log('Rating range clicked:', min, max);
     setRatingRange([min, max]);
     setActiveTab('restaurants');
+    console.log('Active tab set to restaurants');
   };
 
   const handleCuisineClick = (cuisine: string) => {
+    console.log('Cuisine clicked:', cuisine);
     setSelectedCuisines([cuisine]);
     setActiveTab('restaurants');
+    console.log('Active tab set to restaurants');
   };
 
   // Filter and sort restaurants for friend profile
