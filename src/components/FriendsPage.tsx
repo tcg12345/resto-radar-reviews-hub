@@ -300,7 +300,45 @@ function FriendProfileModal({ friend, isOpen, onClose }: FriendProfileModalProps
   );
 }
 
-export function FriendsPage({ 
+// Utility function to safely store data in sessionStorage with quota handling
+const safeSessionStorage = {
+  setItem: (key: string, value: string) => {
+    try {
+      sessionStorage.setItem(key, value);
+      return true;
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+        console.warn(`SessionStorage quota exceeded for key: ${key}`);
+        // Try to clear some old data and retry
+        try {
+          const keys = Object.keys(sessionStorage);
+          const oldKeys = keys.filter(k => k.startsWith('friendsPage_') && k !== key);
+          if (oldKeys.length > 0) {
+            // Remove oldest cache entry
+            sessionStorage.removeItem(oldKeys[0]);
+            sessionStorage.setItem(key, value);
+            return true;
+          }
+        } catch (retryError) {
+          console.warn('Could not store data even after cleanup:', retryError);
+        }
+      } else {
+        console.error('SessionStorage error:', error);
+      }
+      return false;
+    }
+  },
+  
+  getStorageSize: () => {
+    let total = 0;
+    Object.keys(sessionStorage).forEach(key => {
+      total += sessionStorage.getItem(key)?.length || 0;
+    });
+    return total;
+  }
+};
+
+export function FriendsPage({
   initialViewFriendId, 
   onInitialViewProcessed 
 }: { 
@@ -385,7 +423,13 @@ export function FriendsPage({
       
       console.log('🔄 Restored friend profile state from session storage');
     } catch (error) {
-      console.error('Error loading persisted state:', error);
+      console.error('Error loading persisted state - clearing corrupted cache:', error);
+      // Clear corrupted cache data
+      try {
+        Object.values(STORAGE_KEYS).forEach(key => sessionStorage.removeItem(key));
+      } catch (clearError) {
+        console.error('Error clearing cache:', clearError);
+      }
     } finally {
       // Mark session as restored after attempting to load all data
       setSessionRestored(true);
@@ -407,19 +451,97 @@ export function FriendsPage({
 
   useEffect(() => {
     if (friendProfile) {
-      sessionStorage.setItem(STORAGE_KEYS.friendProfile, JSON.stringify(friendProfile));
+      // Store only essential profile data to avoid quota issues
+      const lightweightProfile = {
+        username: friendProfile.username,
+        name: friendProfile.name,
+        avatar_url: friendProfile.avatar_url,
+        is_public: friendProfile.is_public,
+        rated_count: friendProfile.rated_count,
+        wishlist_count: friendProfile.wishlist_count,
+        avg_rating: friendProfile.avg_rating,
+        top_cuisine: friendProfile.top_cuisine,
+        michelin_count: friendProfile.michelin_count,
+        // Only store first 5 recent restaurants to avoid quota issues
+        recent_restaurants: Array.isArray(friendProfile.recent_restaurants) 
+          ? friendProfile.recent_restaurants.slice(0, 5).map((r: any) => ({
+              id: r.id,
+              name: r.name,
+              cuisine: r.cuisine,
+              rating: r.rating,
+              created_at: r.created_at
+            }))
+          : []
+      };
+      const success = safeSessionStorage.setItem(STORAGE_KEYS.friendProfile, JSON.stringify(lightweightProfile));
+      if (!success) {
+        console.warn('Storage quota exceeded - storing minimal profile data');
+        const minimalProfile = {
+          username: friendProfile.username,
+          name: friendProfile.name,
+          rated_count: friendProfile.rated_count,
+          wishlist_count: friendProfile.wishlist_count
+        };
+        safeSessionStorage.setItem(STORAGE_KEYS.friendProfile, JSON.stringify(minimalProfile));
+      }
     }
   }, [friendProfile]);
 
   useEffect(() => {
     if (friendRestaurantsData.length > 0) {
-      sessionStorage.setItem(STORAGE_KEYS.friendRestaurants, JSON.stringify(friendRestaurantsData));
+      // Store only essential restaurant data to avoid quota issues
+      const lightweightRestaurants = friendRestaurantsData.slice(0, 20).map((r: any) => ({
+        id: r.id,
+        name: r.name,
+        cuisine: r.cuisine,
+        rating: r.rating,
+        address: r.address,
+        city: r.city,
+        country: r.country,
+        price_range: r.price_range,
+        michelin_stars: r.michelin_stars,
+        date_visited: r.date_visited,
+        created_at: r.created_at,
+        // Exclude heavy data like photos, long notes, etc.
+      }));
+      const success = safeSessionStorage.setItem(STORAGE_KEYS.friendRestaurants, JSON.stringify(lightweightRestaurants));
+      if (!success) {
+        console.warn('Storage quota exceeded - storing minimal restaurant data');
+        const minimalRestaurants = friendRestaurantsData.slice(0, 10).map((r: any) => ({
+          id: r.id,
+          name: r.name,
+          cuisine: r.cuisine,
+          rating: r.rating
+        }));
+        safeSessionStorage.setItem(STORAGE_KEYS.friendRestaurants, JSON.stringify(minimalRestaurants));
+      }
     }
   }, [friendRestaurantsData]);
 
   useEffect(() => {
     if (friendWishlistData.length > 0) {
-      sessionStorage.setItem(STORAGE_KEYS.friendWishlist, JSON.stringify(friendWishlistData));
+      // Store only essential wishlist data to avoid quota issues
+      const lightweightWishlist = friendWishlistData.slice(0, 10).map((r: any) => ({
+        id: r.id,
+        name: r.name,
+        cuisine: r.cuisine,
+        address: r.address,
+        city: r.city,
+        country: r.country,
+        price_range: r.price_range,
+        michelin_stars: r.michelin_stars,
+        created_at: r.created_at
+      }));
+      const success = safeSessionStorage.setItem(STORAGE_KEYS.friendWishlist, JSON.stringify(lightweightWishlist));
+      if (!success) {
+        console.warn('Storage quota exceeded - storing minimal wishlist data');
+        const minimalWishlist = friendWishlistData.slice(0, 5).map((r: any) => ({
+          id: r.id,
+          name: r.name,
+          cuisine: r.cuisine
+        }));
+        safeSessionStorage.setItem(STORAGE_KEYS.friendWishlist, JSON.stringify(minimalWishlist));
+      }
     }
   }, [friendWishlistData]);
 
@@ -610,23 +732,33 @@ export function FriendsPage({
 
   const loadAdditionalFriendData = async (friendId: string) => {
     try {
-      // Load restaurants and wishlist separately for better performance
+      // Load restaurants and wishlist with limited data for better performance
       const [restaurantsResult, wishlistResult] = await Promise.all([
         supabase
           .from('restaurants')
-          .select('*')
+          .select(`
+            id, name, cuisine, rating, address, city, country, 
+            price_range, michelin_stars, date_visited, created_at,
+            notes, latitude, longitude, website, phone_number, 
+            opening_hours, reservable, reservation_url, is_wishlist
+          `)
           .eq('user_id', friendId)
           .eq('is_wishlist', false)
           .order('date_visited', { ascending: false, nullsFirst: false })
           .order('created_at', { ascending: false })
-          .limit(100),
+          .limit(50), // Reduced from 100 to 50
         supabase
           .from('restaurants')
-          .select('*')
+          .select(`
+            id, name, cuisine, address, city, country, 
+            price_range, michelin_stars, created_at, notes,
+            latitude, longitude, website, phone_number, 
+            opening_hours, reservable, reservation_url, is_wishlist
+          `)
           .eq('user_id', friendId)
           .eq('is_wishlist', true)
           .order('created_at', { ascending: false })
-          .limit(50)
+          .limit(25) // Reduced from 50 to 25
       ]);
 
       if (restaurantsResult.data) {
