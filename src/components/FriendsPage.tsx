@@ -35,6 +35,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Slider } from '@/components/ui/slider';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useFriends } from '@/hooks/useFriends';
 import { useFriendRestaurants } from '@/hooks/useFriendRestaurants';
 import { useAuth } from '@/contexts/AuthContext';
@@ -326,9 +329,11 @@ export function FriendsPage() {
   
   // Filter and sort states for friend profile
   const [searchTerm, setSearchTerm] = useState('');
-  const [cuisineFilter, setCuisineFilter] = useState('all');
+  const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
+  const [selectedPriceRanges, setSelectedPriceRanges] = useState<number[]>([]);
+  const [ratingRange, setRatingRange] = useState<[number, number]>([0, 10]);
   const [sortBy, setSortBy] = useState('newest');
-  const [ratingFilter, setRatingFilter] = useState('all');
+  const [activeTab, setActiveTab] = useState('overview');
   
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -423,9 +428,11 @@ export function FriendsPage() {
     setFriendRestaurantsData([]);
     setFriendWishlistData([]);
     setSearchTerm('');
-    setCuisineFilter('all');
+    setSelectedCuisines([]);
+    setSelectedPriceRanges([]);
+    setRatingRange([0, 10]);
     setSortBy('newest');
-    setRatingFilter('all');
+    setActiveTab('overview');
   };
 
   const loadFriendProfile = async (friendData: any) => {
@@ -591,6 +598,17 @@ export function FriendsPage() {
     }
   };
 
+  // Interactive filter functions for statistics
+  const handleRatingRangeClick = (min: number, max: number) => {
+    setRatingRange([min, max]);
+    setActiveTab('restaurants');
+  };
+
+  const handleCuisineClick = (cuisine: string) => {
+    setSelectedCuisines([cuisine]);
+    setActiveTab('restaurants');
+  };
+
   // Filter and sort restaurants for friend profile
   const filteredAndSortedRestaurants = useMemo(() => {
     let filtered = friendRestaurantsData;
@@ -605,22 +623,25 @@ export function FriendsPage() {
     }
 
     // Apply cuisine filter
-    if (cuisineFilter !== 'all') {
-      filtered = filtered.filter(restaurant => restaurant.cuisine === cuisineFilter);
+    if (selectedCuisines.length > 0) {
+      filtered = filtered.filter(restaurant => 
+        selectedCuisines.includes(restaurant.cuisine)
+      );
+    }
+
+    // Apply price range filter
+    if (selectedPriceRanges.length > 0) {
+      filtered = filtered.filter(restaurant => 
+        selectedPriceRanges.includes(restaurant.price_range)
+      );
     }
 
     // Apply rating filter
-    if (ratingFilter !== 'all') {
-      const [min, max] = ratingFilter.split('-').map(Number);
-      filtered = filtered.filter(restaurant => {
-        const rating = restaurant.rating;
-        if (max) {
-          return rating >= min && rating <= max;
-        } else {
-          return rating >= min;
-        }
-      });
-    }
+    const [minRating, maxRating] = ratingRange;
+    filtered = filtered.filter(restaurant => {
+      const rating = restaurant.rating || 0;
+      return rating >= minRating && rating <= maxRating;
+    });
 
     // Apply sorting
     const sorted = [...filtered].sort((a, b) => {
@@ -640,7 +661,7 @@ export function FriendsPage() {
     });
 
     return sorted;
-  }, [friendRestaurantsData, searchTerm, cuisineFilter, sortBy, ratingFilter]);
+  }, [friendRestaurantsData, searchTerm, selectedCuisines, selectedPriceRanges, ratingRange, sortBy]);
 
   // Get unique cuisines for filter, sorted by popularity
   const uniqueCuisines = useMemo(() => {
@@ -749,7 +770,7 @@ export function FriendsPage() {
             </div>
 
             {/* Tabbed Content */}
-            <Tabs defaultValue="overview" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="restaurants">Restaurants ({friendStats.rated_count})</TabsTrigger>
@@ -820,7 +841,11 @@ export function FriendsPage() {
                               const count = friendRestaurantsData.filter(r => r.cuisine === cuisine).length;
                               const percentage = Math.round((count / friendRestaurantsData.length) * 100);
                               return (
-                                <div key={cuisine} className="flex items-center justify-between">
+                                <div 
+                                  key={cuisine} 
+                                  className="flex items-center justify-between hover:bg-muted/50 p-2 rounded cursor-pointer transition-colors"
+                                  onClick={() => handleCuisineClick(cuisine)}
+                                >
                                   <span className="text-sm font-medium">{cuisine}</span>
                                   <div className="flex items-center gap-2">
                                     <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
@@ -865,7 +890,11 @@ export function FriendsPage() {
                                 ? Math.round((count / friendRestaurantsData.length) * 100) 
                                 : 0;
                               return (
-                                <div key={range.label} className="flex items-center justify-between">
+                                <div 
+                                  key={range.label} 
+                                  className="flex items-center justify-between hover:bg-muted/50 p-2 rounded cursor-pointer transition-colors"
+                                  onClick={() => handleRatingRangeClick(range.min, range.max)}
+                                >
                                   <span className="text-sm font-medium">{range.label}</span>
                                   <div className="flex items-center gap-2">
                                     <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
@@ -890,7 +919,8 @@ export function FriendsPage() {
               <TabsContent value="restaurants" className="mt-6">
                 {/* Filters and search for restaurants */}
                 <div className="bg-card p-4 rounded-lg border mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {/* Search */}
                     <div className="relative">
                       <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
@@ -900,31 +930,127 @@ export function FriendsPage() {
                         className="pl-10"
                       />
                     </div>
-                    <Select value={cuisineFilter} onValueChange={setCuisineFilter}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="All Cuisines" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Cuisines</SelectItem>
-                        {uniqueCuisines.map(cuisine => (
-                          <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Select value={ratingFilter} onValueChange={setRatingFilter}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="All Ratings" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Ratings</SelectItem>
-                        <SelectItem value="8">8+ Stars</SelectItem>
-                        <SelectItem value="6-8">6-8 Stars</SelectItem>
-                        <SelectItem value="4-6">4-6 Stars</SelectItem>
-                        <SelectItem value="0-4">Under 4 Stars</SelectItem>
-                      </SelectContent>
-                    </Select>
+
+                    {/* Cuisine Filter - Checkboxes */}
+                    <div>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="w-full justify-between">
+                            {selectedCuisines.length === 0 ? "All Cuisines" : 
+                             selectedCuisines.length === 1 ? selectedCuisines[0] :
+                             `${selectedCuisines.length} cuisines`}
+                            <Filter className="ml-2 h-4 w-4" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-56 p-3">
+                          <div className="space-y-2">
+                            <div className="font-medium text-sm">Select Cuisines</div>
+                            <div className="max-h-48 overflow-y-auto space-y-2">
+                              {uniqueCuisines.map(cuisine => (
+                                <div key={cuisine} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={cuisine}
+                                    checked={selectedCuisines.includes(cuisine)}
+                                    onCheckedChange={(checked) => {
+                                      if (checked) {
+                                        setSelectedCuisines([...selectedCuisines, cuisine]);
+                                      } else {
+                                        setSelectedCuisines(selectedCuisines.filter(c => c !== cuisine));
+                                      }
+                                    }}
+                                  />
+                                  <label htmlFor={cuisine} className="text-sm cursor-pointer">
+                                    {cuisine}
+                                  </label>
+                                </div>
+                              ))}
+                            </div>
+                            {selectedCuisines.length > 0 && (
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => setSelectedCuisines([])}
+                                className="w-full"
+                              >
+                                Clear All
+                              </Button>
+                            )}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    {/* Price Range Filter - Checkboxes */}
+                    <div>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="w-full justify-between">
+                            {selectedPriceRanges.length === 0 ? "All Prices" : 
+                             selectedPriceRanges.length === 1 ? `${"$".repeat(selectedPriceRanges[0])}` :
+                             `${selectedPriceRanges.length} price ranges`}
+                            <Filter className="ml-2 h-4 w-4" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-48 p-3">
+                          <div className="space-y-2">
+                            <div className="font-medium text-sm">Select Price Ranges</div>
+                            <div className="space-y-2">
+                              {[1, 2, 3, 4].map(price => (
+                                <div key={price} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={`price-${price}`}
+                                    checked={selectedPriceRanges.includes(price)}
+                                    onCheckedChange={(checked) => {
+                                      if (checked) {
+                                        setSelectedPriceRanges([...selectedPriceRanges, price]);
+                                      } else {
+                                        setSelectedPriceRanges(selectedPriceRanges.filter(p => p !== price));
+                                      }
+                                    }}
+                                  />
+                                  <label htmlFor={`price-${price}`} className="text-sm cursor-pointer">
+                                    {"$".repeat(price)}
+                                  </label>
+                                </div>
+                              ))}
+                            </div>
+                            {selectedPriceRanges.length > 0 && (
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => setSelectedPriceRanges([])}
+                                className="w-full"
+                              >
+                                Clear All
+                              </Button>
+                            )}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    {/* Rating Range Slider */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Rating Range: {ratingRange[0]} - {ratingRange[1]}</label>
+                      <Slider
+                        value={ratingRange}
+                        onValueChange={(value) => setRatingRange([value[0], value[1]])}
+                        max={10}
+                        min={0}
+                        step={0.5}
+                        className="w-full"
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>0</span>
+                        <span>10</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sort and Results Count */}
+                  <div className="flex justify-between items-center mt-4 pt-4 border-t">
                     <Select value={sortBy} onValueChange={setSortBy}>
-                      <SelectTrigger>
+                      <SelectTrigger className="w-48">
                         <SelectValue placeholder="Sort by" />
                       </SelectTrigger>
                       <SelectContent>
@@ -937,7 +1063,7 @@ export function FriendsPage() {
                     </Select>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Filter className="h-4 w-4" />
-                      {filteredAndSortedRestaurants.length} of {friendRestaurantsData.length}
+                      {filteredAndSortedRestaurants.length} of {friendRestaurantsData.length} restaurants
                     </div>
                   </div>
                 </div>
