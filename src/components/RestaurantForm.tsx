@@ -105,6 +105,16 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     dateVisited: initialData?.dateVisited || '',
     photos: [],
     isWishlist: initialData?.isWishlist || defaultWishlist,
+    // Include Google Places data when editing existing restaurants
+    ...(initialData && {
+      website: (initialData as any).website,
+      phone_number: (initialData as any).phone_number,
+      latitude: (initialData as any).latitude,
+      longitude: (initialData as any).longitude,
+      opening_hours: (initialData as any).opening_hours,
+      reservable: (initialData as any).reservable,
+      reservation_url: (initialData as any).reservation_url,
+    })
   });
 
   const [date, setDate] = useState<Date | undefined>(
@@ -703,18 +713,21 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     // Cast formData to any to access Google Places specific fields
     const formDataWithPlaces = formData as any;
     
-    // If restaurant was selected from Google Places, include Google Places data
+    // Always preserve Google Places data if it exists (from either new selection or existing data)
     const submissionData = {
       ...formData,
       removedPhotoIndexes: removedPhotoIndexes,
-      // Pass through Google Places specific fields if they exist
-      ...(formDataWithPlaces.googlePlaceId && {
-        id: formDataWithPlaces.googlePlaceId, // Use Google Place ID as the restaurant ID
-        website: formDataWithPlaces.website,
-        phone_number: formDataWithPlaces.phone_number,
-        latitude: formDataWithPlaces.latitude,
-        longitude: formDataWithPlaces.longitude,
-        opening_hours: formDataWithPlaces.openingHours,
+      // Always include Google Places fields if they exist in formData
+      ...(formDataWithPlaces.website && { website: formDataWithPlaces.website }),
+      ...(formDataWithPlaces.phone_number && { phone_number: formDataWithPlaces.phone_number }),
+      ...(formDataWithPlaces.latitude && { latitude: formDataWithPlaces.latitude }),
+      ...(formDataWithPlaces.longitude && { longitude: formDataWithPlaces.longitude }),
+      ...(formDataWithPlaces.opening_hours && { opening_hours: formDataWithPlaces.opening_hours }),
+      ...(formDataWithPlaces.reservable !== undefined && { reservable: formDataWithPlaces.reservable }),
+      ...(formDataWithPlaces.reservation_url && { reservation_url: formDataWithPlaces.reservation_url }),
+      // Use Google Place ID as restaurant ID only for new restaurants from Google Places
+      ...(formDataWithPlaces.googlePlaceId && !initialData && {
+        id: formDataWithPlaces.googlePlaceId,
       })
     };
     
