@@ -521,11 +521,7 @@ export default function UnifiedSearchPage() {
                         } else {
                           setShowLiveResults(false);
                         }
-                      }} onKeyPress={e => e.key === 'Enter' && handleSearch()} onFocus={() => {
-                        if (searchQuery.length > 2) {
-                          setShowLiveResults(true);
-                        }
-                      }} onBlur={() => {
+                      }} onKeyPress={e => e.key === 'Enter' && handleSearch()} onBlur={() => {
                         // Delay hiding to allow clicks on dropdown items
                         setTimeout(() => setShowLiveResults(false), 300);
                       }} className="pl-12 pr-4 h-14 bg-transparent border-none text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none" />
