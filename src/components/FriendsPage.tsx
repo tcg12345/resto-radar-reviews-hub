@@ -363,12 +363,18 @@ export function FriendsPage({
     if (initialViewFriendId && friends.length > 0) {
       const friendToView = friends.find(f => f.id === initialViewFriendId);
       if (friendToView) {
-        handleViewProfile(friendToView);
+        // Check if we're already viewing this friend to avoid unnecessary reload
+        if (viewingFriend?.id !== friendToView.id || currentView !== 'profile') {
+          handleViewProfile(friendToView);
+        } else {
+          // We're already viewing this friend, just ensure we're in profile view
+          setCurrentView('profile');
+        }
       }
       // Call callback to clear the initial view state
       onInitialViewProcessed?.();
     }
-  }, [initialViewFriendId, friends, onInitialViewProcessed]);
+  }, [initialViewFriendId, friends, onInitialViewProcessed, viewingFriend, currentView]);
 
   const loadInitialActivity = async () => {
     setCurrentPage(0);
@@ -436,6 +442,11 @@ export function FriendsPage({
 
   // Friend profile navigation
   const handleViewProfile = (friend: any) => {
+    // If we're already viewing this friend's profile, don't reload
+    if (viewingFriend?.id === friend.id && currentView === 'profile' && friendProfile) {
+      return; // Already viewing this friend, no need to reload
+    }
+    
     setViewingFriend(friend);
     setCurrentView('profile');
     loadFriendProfile(friend);
