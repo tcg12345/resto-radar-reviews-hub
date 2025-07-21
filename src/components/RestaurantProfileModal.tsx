@@ -343,8 +343,13 @@ export function RestaurantProfileModal({
   };
   return <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] flex flex-col p-0">
-        <DialogHeader className="sticky top-0 bg-background z-50 border-b px-6 py-4 flex-shrink-0">
+        <DialogHeader className="sticky top-0 bg-background z-50 border-b px-6 py-4 flex-shrink-0 flex flex-row items-center justify-between">
           <DialogTitle className="text-2xl font-bold">{place.name}</DialogTitle>
+          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </Button>
         </DialogHeader>
         
         <div className="flex-1 overflow-y-auto px-6 py-6">
