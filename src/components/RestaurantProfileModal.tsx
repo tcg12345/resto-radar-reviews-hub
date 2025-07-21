@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { StarRating } from '@/components/StarRating';
-import { Star, MapPin, Phone, Globe, Navigation, Clock, Heart, MessageSquare, Camera, Filter, ExternalLink, Truck, ShoppingBag } from 'lucide-react';
+import { Star, MapPin, Phone, Globe, Navigation, Clock, Heart, MessageSquare, Camera, Filter, ExternalLink, Truck, ShoppingBag, Menu } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -340,6 +340,17 @@ export function RestaurantProfileModal({
     const url = `https://www.google.com/maps/dir/?api=1&destination=${place.geometry.location.lat},${place.geometry.location.lng}`;
     window.open(url, '_blank');
   };
+  const handleViewMenu = () => {
+    // If restaurant has a website, go there first
+    if (place.website) {
+      window.open(place.website, '_blank');
+    } else {
+      // Fallback to Google search for menu
+      const menuQuery = `${place.name} ${place.formatted_address} menu`;
+      window.open(`https://www.google.com/search?q=${encodeURIComponent(menuQuery)}`, '_blank');
+    }
+  };
+
   return <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -512,15 +523,24 @@ export function RestaurantProfileModal({
                     </div>
                   )}
 
-                  <div className="pt-2">
+                  <div className="flex gap-2 pt-2">
                     <Button 
                       variant="outline" 
                       size="sm" 
                       onClick={() => window.open(place.yelpData!.url, "_blank")}
-                      className="w-full"
+                      className="flex-1"
                     >
                       <ExternalLink className="h-4 w-4 mr-2" />
                       View on Yelp
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleViewMenu}
+                      className="flex-1"
+                    >
+                      <Menu className="h-4 w-4 mr-2" />
+                      View Menu
                     </Button>
                   </div>
                 </CardContent>
