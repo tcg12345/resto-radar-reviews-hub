@@ -621,6 +621,15 @@ export function FriendsPage() {
     console.log('Active tab set to restaurants');
   };
 
+  // Clear all filters function
+  const clearAllFilters = () => {
+    setSearchTerm('');
+    setSelectedCuisines([]);
+    setSelectedPriceRanges([]);
+    setRatingRange([0, 10]);
+    setSortBy('newest');
+  };
+
   // Filter and sort restaurants for friend profile
   const filteredAndSortedRestaurants = useMemo(() => {
     let filtered = friendRestaurantsData;
@@ -1078,6 +1087,20 @@ export function FriendsPage() {
                       {filteredAndSortedRestaurants.length} of {friendRestaurantsData.length} restaurants
                     </div>
                   </div>
+
+                  {/* Clear All Filters Button */}
+                  {(searchTerm || selectedCuisines.length > 0 || selectedPriceRanges.length > 0 || ratingRange[0] !== 0 || ratingRange[1] !== 10) && (
+                    <div className="flex justify-center mt-4 pt-4 border-t">
+                      <Button 
+                        variant="outline" 
+                        onClick={clearAllFilters}
+                        className="flex items-center gap-2"
+                      >
+                        <X className="h-4 w-4" />
+                        Clear All Filters
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Restaurants Grid */}
