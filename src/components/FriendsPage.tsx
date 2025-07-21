@@ -530,6 +530,24 @@ export function FriendsPage() {
     if (!user) return;
 
     try {
+      console.log('Adding restaurant to wishlist:', restaurant);
+      
+      // Validate required fields
+      if (!restaurant.name || !restaurant.address || !restaurant.city || !restaurant.cuisine) {
+        console.error('Missing required fields:', {
+          name: !!restaurant.name,
+          address: !!restaurant.address,
+          city: !!restaurant.city,
+          cuisine: !!restaurant.cuisine
+        });
+        toast({
+          title: "Error",
+          description: "Restaurant data is incomplete. Cannot add to wishlist.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Format location properly
       let formattedLocation = restaurant.city;
       if (restaurant.country) {
@@ -553,30 +571,34 @@ export function FriendsPage() {
         }
       }
 
+      const restaurantData = {
+        user_id: user.id,
+        name: restaurant.name,
+        address: restaurant.address,
+        city: formattedLocation,
+        country: restaurant.country || null,
+        cuisine: restaurant.cuisine,
+        price_range: restaurant.price_range || null,
+        michelin_stars: restaurant.michelin_stars || null,
+        notes: restaurant.notes || null,
+        photos: restaurant.photos || null,
+        website: restaurant.website || null,
+        latitude: restaurant.latitude || null,
+        longitude: restaurant.longitude || null,
+        reservable: restaurant.reservable || false,
+        reservation_url: restaurant.reservation_url || null,
+        opening_hours: restaurant.opening_hours || null,
+        is_wishlist: true
+      };
+
+      console.log('Inserting restaurant data:', restaurantData);
+
       const { error } = await supabase
         .from('restaurants')
-        .insert({
-          user_id: user.id,
-          name: restaurant.name,
-          address: restaurant.address,
-          city: formattedLocation,
-          country: restaurant.country,
-          cuisine: restaurant.cuisine,
-          price_range: restaurant.price_range,
-          michelin_stars: restaurant.michelin_stars,
-          notes: restaurant.notes,
-          photos: restaurant.photos,
-          website: restaurant.website,
-          latitude: restaurant.latitude,
-          longitude: restaurant.longitude,
-          reservable: restaurant.reservable,
-          reservation_url: restaurant.reservation_url,
-          opening_hours: restaurant.opening_hours,
-          is_wishlist: true
-        });
+        .insert(restaurantData);
 
       if (error) {
-        console.error('Error adding to wishlist:', error);
+        console.error('Supabase error adding to wishlist:', error);
         toast({
           title: "Error",
           description: `Failed to add restaurant to wishlist: ${error.message}`,
