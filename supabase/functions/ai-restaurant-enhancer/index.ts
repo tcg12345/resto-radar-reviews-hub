@@ -21,6 +21,9 @@ interface AIEnhancedData {
   city: string;
   michelinStars: number | null;
   priceRange: number | null;
+  reservable: boolean;
+  reservationPlatform: string | null;
+  reservationUrl: string | null;
   reasoning: string;
 }
 
@@ -31,7 +34,7 @@ serve(async (req) => {
   }
 
   try {
-    const { restaurant, availableCuisines }: { restaurant: RestaurantInfo, availableCuisines?: string[] } = await req.json();
+    const { restaurant, availableCuisines, websiteUrl }: { restaurant: RestaurantInfo, availableCuisines?: string[], websiteUrl?: string } = await req.json();
 
     if (!restaurant?.name) {
       throw new Error('Restaurant name is required');
@@ -49,13 +52,17 @@ Restaurant Name: ${restaurant.name}
 ${restaurant.address ? `Address: ${restaurant.address}` : ''}
 ${restaurant.city ? `City: ${restaurant.city}` : ''}
 ${restaurant.country ? `Country: ${restaurant.country}` : ''}
+${websiteUrl ? `Website: ${websiteUrl}` : ''}
 
 Please provide:
 1. Cuisine type - Choose the BEST match from these available options: ${cuisineList}
 2. City - Extract and clean the city name from the address (just the city name, no state/country)
 3. Michelin stars (0-3, or null if not a Michelin-starred restaurant)
 4. Price range (1-4 scale: 1=$ budget, 2=$$ moderate, 3=$$$ expensive, 4=$$$$ luxury)
-5. Brief reasoning for your analysis
+5. Reservable - Whether the restaurant accepts reservations (true/false)
+6. Reservation Platform - If reservable, identify the likely platform: "OpenTable", "Resy", "Yelp", "SevenRooms", "Tock", "Restaurant Website", or null if unknown
+7. Reservation URL - If you can determine a likely reservation URL based on the restaurant name/website, provide it, otherwise null
+8. Brief reasoning for your analysis
 
 Response format (JSON only):
 {
@@ -63,10 +70,16 @@ Response format (JSON only):
   "city": "cleaned_city_name",
   "michelinStars": number_or_null,
   "priceRange": number,
+  "reservable": boolean,
+  "reservationPlatform": "platform_name_or_null",
+  "reservationUrl": "url_or_null",
   "reasoning": "brief_explanation"
 }
 
-Important: Only respond with valid JSON. For cuisine, ONLY use one of the available options provided. Be conservative with Michelin stars - only assign them if you're confident the restaurant has them.`;
+Important: Only respond with valid JSON. For cuisine, ONLY use one of the available options provided. For reservation URLs, only provide if you're confident about the format. Common patterns:
+- OpenTable: https://www.opentable.com/r/restaurant-name-city
+- Resy: https://resy.com/cities/city/restaurant-name
+- Tock: https://www.exploretock.com/restaurant-name
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -111,6 +124,9 @@ Important: Only respond with valid JSON. For cuisine, ONLY use one of the availa
         city: restaurant.city || '',
         michelinStars: null,
         priceRange: 2,
+        reservable: false,
+        reservationPlatform: null,
+        reservationUrl: null,
         reasoning: 'Could not determine specific details'
       };
     }
@@ -125,6 +141,9 @@ Important: Only respond with valid JSON. For cuisine, ONLY use one of the availa
       priceRange: enhancedData.priceRange && enhancedData.priceRange >= 1 && enhancedData.priceRange <= 4 
         ? enhancedData.priceRange 
         : 2,
+      reservable: enhancedData.reservable || false,
+      reservationPlatform: enhancedData.reservationPlatform || null,
+      reservationUrl: enhancedData.reservationUrl || null,
       reasoning: enhancedData.reasoning || 'Analysis completed'
     };
 
@@ -142,6 +161,9 @@ Important: Only respond with valid JSON. For cuisine, ONLY use one of the availa
       city: '',
       michelinStars: null,
       priceRange: 2,
+      reservable: false,
+      reservationPlatform: null,
+      reservationUrl: null,
       reasoning: 'Error occurred during analysis'
     }), {
       status: 500,

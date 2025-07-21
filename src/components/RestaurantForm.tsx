@@ -665,7 +665,8 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
               city: extractCity(placeDetails.formatted_address),
               country: placeDetails.formatted_address?.split(',').pop()?.trim()
             },
-            availableCuisines: cuisineOptions.filter(c => c !== 'Other')
+            availableCuisines: cuisineOptions.filter(c => c !== 'Other'),
+            websiteUrl: placeDetails.website
           }
         });
 
@@ -713,8 +714,9 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
         openingHours: placeDetails.opening_hours?.weekday_text?.join('\n'), // Use camelCase to match context
         googleRating: placeDetails.rating,
         userRatingsTotal: placeDetails.user_ratings_total,
-        reservable: placeDetails.reservable,
-        reservation_url: placeDetails.reservation_url,
+        // Use AI-determined reservation data first, fallback to any Google Places data
+        reservable: aiData?.reservable || placeDetails.reservable || false,
+        reservation_url: aiData?.reservationUrl || placeDetails.reservation_url || null,
       }));
 
       // Convert and set photos
@@ -726,8 +728,9 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       // Show success message with AI enhancement details
       toast.dismiss();
       if (aiData) {
+        const reservationInfo = aiData.reservable ? ` | Reservable via ${aiData.reservationPlatform || 'Website'}` : '';
         toast.success(
-          `${placeDetails.name} selected! AI enhanced: ${aiData.cuisine}${aiData.michelinStars ? ` (${aiData.michelinStars}★)` : ''}, ${aiData.city} - ${'$'.repeat(aiData.priceRange)}`
+          `${placeDetails.name} selected! AI enhanced: ${aiData.cuisine}${aiData.michelinStars ? ` (${aiData.michelinStars}★)` : ''}, ${aiData.city} - ${'$'.repeat(aiData.priceRange)}${reservationInfo}`
         );
       } else {
         toast.success(`${placeDetails.name} selected! Details auto-filled from Google Places.`);
