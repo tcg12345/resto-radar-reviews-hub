@@ -354,6 +354,7 @@ export function FriendsPage({
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [cacheWarmed, setCacheWarmed] = useState(false);
   const [profileLoadedRef, setProfileLoadedRef] = useState<string | null>(null); // Track which profile is loaded
+  const [sessionRestored, setSessionRestored] = useState(false); // Track if session storage has been restored
   
   // Session storage keys for persistence
   const STORAGE_KEYS = {
@@ -385,6 +386,9 @@ export function FriendsPage({
       console.log('🔄 Restored friend profile state from session storage');
     } catch (error) {
       console.error('Error loading persisted state:', error);
+    } finally {
+      // Mark session as restored after attempting to load all data
+      setSessionRestored(true);
     }
   }, []);
 
@@ -431,7 +435,8 @@ export function FriendsPage({
 
   // Handle initial friend view from navigation - only process once per friend
   useEffect(() => {
-    if (initialViewFriendId && friends.length > 0) {
+    // Only process after session storage has been restored and friends are loaded
+    if (initialViewFriendId && friends.length > 0 && sessionRestored) {
       const friendToView = friends.find(f => f.id === initialViewFriendId);
       if (friendToView) {
         console.log(`🎯 Navigation request for friend: ${friendToView.username}`);
@@ -451,7 +456,7 @@ export function FriendsPage({
       // Call callback to clear the initial view state
       onInitialViewProcessed?.();
     }
-  }, [initialViewFriendId, friends, profileLoadedRef, friendProfile, viewingFriend, onInitialViewProcessed]);
+  }, [initialViewFriendId, friends, profileLoadedRef, friendProfile, viewingFriend, sessionRestored, onInitialViewProcessed]);
 
   const loadInitialActivity = async () => {
     setCurrentPage(0);
