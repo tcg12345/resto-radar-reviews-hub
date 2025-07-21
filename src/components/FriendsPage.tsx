@@ -537,13 +537,13 @@ export function FriendsPage() {
     }
 
     try {
-      console.log('Adding restaurant to wishlist:', restaurant);
+      console.log('=== STARTING WISHLIST ADD PROCESS ===');
+      console.log('User ID:', user.id);
+      console.log('Restaurant object:', JSON.stringify(restaurant, null, 2));
       
-      // Wait a bit for data to fully load if needed
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Validate required fields with better error messages
+      // Validate required fields
       if (!restaurant.name) {
+        console.log('ERROR: Missing restaurant name');
         toast({
           title: "Error", 
           description: "Restaurant name is missing. Please try again.",
@@ -553,6 +553,7 @@ export function FriendsPage() {
       }
       
       if (!restaurant.cuisine) {
+        console.log('ERROR: Missing restaurant cuisine');
         toast({
           title: "Error",
           description: "Restaurant cuisine information is missing. Please try again.",
@@ -561,100 +562,61 @@ export function FriendsPage() {
         return;
       }
 
-      // Check if restaurant already exists in user's wishlist
-      const { data: existingRestaurant, error: checkError } = await supabase
-        .from('restaurants')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('name', restaurant.name)
-        .eq('is_wishlist', true)
-        .maybeSingle();
-
-      if (checkError) {
-        console.error('Error checking existing restaurant:', checkError);
-        toast({
-          title: "Error",
-          description: "Failed to check if restaurant already exists",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (existingRestaurant) {
-        toast({
-          title: "Already exists",
-          description: `${restaurant.name} is already in your wishlist!`,
-        });
-        return;
-      }
-
-      // Format location properly
-      let formattedLocation = restaurant.city || '';
-      if (restaurant.country) {
-        if (restaurant.country.toLowerCase() === 'united states' || 
-            restaurant.country.toLowerCase() === 'usa' || 
-            restaurant.country.toLowerCase() === 'us') {
-          // For USA, use "City, State" format if we have state info
-          const addressParts = restaurant.address?.split(',') || [];
-          const statePart = addressParts.find(part => 
-            part.trim().match(/^[A-Z]{2}$/) || // Two letter state code
-            part.trim().match(/^[A-Za-z\s]+$/) // Full state name
-          );
-          if (statePart) {
-            formattedLocation = `${restaurant.city || ''}, ${statePart.trim()}`;
-          } else {
-            formattedLocation = `${restaurant.city || ''}, USA`;
-          }
-        } else {
-          // For international, use "City, Country"
-          formattedLocation = `${restaurant.city || ''}, ${restaurant.country}`;
-        }
-      }
-
-      const restaurantData = {
+      // Simple insert with minimal required fields only
+      const minimalData = {
         user_id: user.id,
-        name: restaurant.name,
-        address: restaurant.address || '',
-        city: formattedLocation || 'Unknown Location',
-        country: restaurant.country || null,
-        cuisine: restaurant.cuisine,
-        price_range: restaurant.price_range || null,
-        michelin_stars: restaurant.michelin_stars || null,
-        notes: restaurant.notes || null,
-        photos: restaurant.photos || null,
-        website: restaurant.website || null,
-        latitude: restaurant.latitude || null,
-        longitude: restaurant.longitude || null,
-        reservable: restaurant.reservable || false,
-        reservation_url: restaurant.reservation_url || null,
-        opening_hours: restaurant.opening_hours || null,
+        name: restaurant.name.toString(),
+        address: (restaurant.address || '').toString(),
+        city: (restaurant.city || 'Unknown').toString(),
+        cuisine: restaurant.cuisine.toString(),
         is_wishlist: true
       };
 
-      console.log('Inserting restaurant data:', restaurantData);
+      console.log('Minimal data to insert:', JSON.stringify(minimalData, null, 2));
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('restaurants')
-        .insert([restaurantData]);
+        .insert(minimalData)
+        .select();
+
+      console.log('Supabase response data:', data);
+      console.log('Supabase response error:', error);
 
       if (error) {
-        console.error('Supabase error adding to wishlist:', error);
+        console.error('=== SUPABASE INSERT ERROR ===');
+        console.error('Error object:', JSON.stringify(error, null, 2));
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
+        console.error('Error details:', error.details);
+        console.error('Error hint:', error.hint);
+        
         toast({
-          title: "Error",
-          description: `Failed to add restaurant to wishlist: ${error.message}`,
+          title: "Database Error",
+          description: `Error: ${error.message}. Code: ${error.code}`,
           variant: "destructive",
         });
       } else {
+        console.log('=== SUCCESS ===');
+        console.log('Inserted data:', data);
         toast({
           title: "Success",
           description: `${restaurant.name} added to your wishlist!`,
         });
       }
     } catch (error) {
-      console.error('Error adding to wishlist:', error);
+      console.error('=== CATCH BLOCK ERROR ===');
+      console.error('Error:', error);
+      console.error('Error type:', typeof error);
+      console.error('Error constructor:', error?.constructor?.name);
+      if (error instanceof Error) {
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      }
+      
       toast({
-        title: "Error",
-        description: `Failed to add restaurant to wishlist: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        title: "Unexpected Error",
+        description: `Failed to add restaurant: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
     }
