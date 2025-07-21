@@ -127,36 +127,7 @@ Important:
       };
     }
 
-    // If restaurant is marked as reservable, try to find real reservation link using Perplexity
-    let reservationData = {
-      reservationUrl: null,
-      reservationPlatform: null
-    };
-
-    if (enhancedData.reservable) {
-      console.log('Restaurant is reservable, searching for real reservation link...');
-      try {
-        const reservationResponse = await fetch('https://ocpmhsquwsdaauflbygf.supabase.co/functions/v1/ai-reservation-finder', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
-          },
-          body: JSON.stringify({ restaurant }),
-        });
-
-        if (reservationResponse.ok) {
-          const reservationResult = await reservationResponse.json();
-          if (reservationResult.found) {
-            reservationData.reservationUrl = reservationResult.reservationUrl;
-            reservationData.reservationPlatform = reservationResult.platform;
-            console.log('Found real reservation link:', reservationResult.reservationUrl);
-          }
-        }
-      } catch (reservationError) {
-        console.error('Error finding reservation link:', reservationError);
-      }
-    }
+    // Use OpenAI's reservation analysis only
 
     // Validate and sanitize the response
     const result = {
@@ -169,8 +140,8 @@ Important:
         ? enhancedData.priceRange 
         : 2,
       reservable: enhancedData.reservable || false,
-      reservationPlatform: reservationData.reservationPlatform || enhancedData.reservationPlatform || null,
-      reservationUrl: reservationData.reservationUrl || null,
+      reservationPlatform: enhancedData.reservationPlatform || null,
+      reservationUrl: null,
       reasoning: enhancedData.reasoning || 'Analysis completed'
     };
 
