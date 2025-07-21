@@ -39,7 +39,9 @@ import {
   MicOff,
   Wand2,
   TrendingUp,
-  Award
+  Award,
+  ShoppingBag,
+  Truck
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -71,6 +73,14 @@ interface SearchRestaurant {
   googleMapsUrl?: string;
   michelinStars?: number;
   features?: string[];
+  yelpData?: {
+    id: string;
+    url: string;
+    categories: string[];
+    price?: string;
+    photos: string[];
+    transactions: string[];
+  };
 }
 
 interface DiscoverRestaurant {
@@ -645,12 +655,33 @@ export default function RestaurantSearchPage() {
                     </div>
                     <div className="flex">
                       <span className="text-lg font-bold text-green-600">
-                        {getPriceDisplay(restaurant.priceRange)}
+                        {restaurant.yelpData?.price || getPriceDisplay(restaurant.priceRange)}
                       </span>
                     </div>
                   </div>
                 </div>
 
+                {/* Yelp Badge and Services */}
+                <div className="flex flex-wrap gap-1">
+                  {restaurant.yelpData && (
+                    <Badge variant="secondary" className="text-xs bg-red-100 text-red-800 border-red-200">
+                      Yelp ✓
+                    </Badge>
+                  )}
+                  {restaurant.yelpData?.transactions?.includes('delivery') && (
+                    <Badge variant="outline" className="text-xs flex items-center gap-1">
+                      <Truck className="h-3 w-3" />
+                      Delivery
+                    </Badge>
+                  )}
+                  {restaurant.yelpData?.transactions?.includes('pickup') && (
+                    <Badge variant="outline" className="text-xs flex items-center gap-1">
+                      <ShoppingBag className="h-3 w-3" />
+                      Pickup
+                    </Badge>
+                  )}
+
+                </div>
                 {restaurant.currentDayHours && (
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">
                     <Clock className="h-3 w-3" />
@@ -714,7 +745,17 @@ export default function RestaurantSearchPage() {
                     >
                       <Globe className="h-4 w-4" />
                     </Button>
-                  )}
+                    )}
+                    
+                    {restaurant.yelpData && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(restaurant.yelpData.url, '_blank')}
+                      >
+                        <Star className="h-4 w-4" />
+                      </Button>
+                    )}
                 </div>
               </div>
             </CardContent>

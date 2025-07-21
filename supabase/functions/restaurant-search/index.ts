@@ -1,5 +1,11 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.52.0';
+
+const supabase = createClient(
+  Deno.env.get('SUPABASE_URL') ?? '',
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+);
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -200,6 +206,47 @@ serve(async (req) => {
           }
         } catch (error) {
           console.warn(`Failed to determine cuisine for ${restaurant.name}:`, error);
+        }
+
+        // Enhance with Yelp data
+        try {
+          const { data: yelpData, error: yelpError } = await supabase.functions.invoke('yelp-restaurant-data', {
+            body: {
+              action: 'search',
+              term: restaurant.name,
+              location: restaurant.address,
+              limit: 1,
+              sort_by: 'best_match'
+            }
+          });
+
+          if (!yelpError && yelpData?.businesses?.length > 0) {
+            const yelpBusiness = yelpData.businesses[0];
+            
+            // Create yelpData object similar to discover function
+            restaurant.yelpData = {
+              id: yelpBusiness.id,
+              url: yelpBusiness.url,
+              categories: yelpBusiness.categories?.map((cat: any) => cat.title) || [],
+              price: yelpBusiness.price || undefined,
+              photos: yelpBusiness.photos || [],
+              transactions: yelpBusiness.transactions || []
+            };
+
+            // Use Yelp rating if available and higher
+            if (yelpBusiness.rating && yelpBusiness.rating > restaurant.rating) {
+              restaurant.rating = yelpBusiness.rating;
+            }
+
+            // Use Yelp review count if available and higher
+            if (yelpBusiness.review_count && yelpBusiness.review_count > (restaurant.reviewCount || 0)) {
+              restaurant.reviewCount = yelpBusiness.review_count;
+            }
+
+            console.log(`Enhanced ${restaurant.name} with Yelp data`);
+          }
+        } catch (error) {
+          console.warn(`Failed to get Yelp data for ${restaurant.name}:`, error);
         }
 
 
