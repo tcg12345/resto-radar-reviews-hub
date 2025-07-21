@@ -1621,15 +1621,29 @@ export function FriendsPage({
                                   <Heart className="h-3 w-3" />
                                   Wishlist
                                 </Badge>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => addToWishlist(restaurant)}
-                                  className="flex items-center gap-2"
-                                >
-                                  <Heart className="h-4 w-4" />
-                                  Add to My Wishlist
-                                </Button>
+                                <div className="flex flex-col gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      // Navigate to restaurant detail page
+                                      navigate(`/restaurant/${restaurant.id}?friendId=${viewingFriend?.id}`);
+                                    }}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                    View Details
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => addToWishlist(restaurant)}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <Heart className="h-4 w-4" />
+                                    Add to My Wishlist
+                                  </Button>
+                                </div>
                               </div>
                             </div>
                           </CardContent>
