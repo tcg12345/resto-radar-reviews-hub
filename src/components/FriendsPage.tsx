@@ -1282,20 +1282,24 @@ export function FriendsPage() {
                           {uniqueCuisines.slice(0, 6).map((cuisine) => {
                             const count = friendRestaurantsData.filter(r => r.cuisine === cuisine).length;
                             const percentage = Math.round((count / friendRestaurantsData.length) * 100);
-                            return (
-                              <div key={cuisine} className="flex items-center justify-between">
-                                <span className="text-sm font-medium truncate">{cuisine}</span>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-12 h-2 bg-muted rounded-full overflow-hidden">
-                                    <div 
-                                      className="h-full bg-primary rounded-full" 
-                                      style={{ width: `${percentage}%` }}
-                                    />
-                                  </div>
-                                  <span className="text-xs text-muted-foreground w-6">{count}</span>
-                                </div>
-                              </div>
-                            );
+                             return (
+                               <div 
+                                 key={cuisine} 
+                                 className="flex items-center justify-between hover:bg-muted/50 p-2 rounded cursor-pointer transition-colors"
+                                 onClick={() => handleCuisineClick(cuisine)}
+                               >
+                                 <span className="text-sm font-medium truncate">{cuisine}</span>
+                                 <div className="flex items-center gap-2">
+                                   <div className="w-12 h-2 bg-muted rounded-full overflow-hidden">
+                                     <div 
+                                       className="h-full bg-primary rounded-full" 
+                                       style={{ width: `${percentage}%` }}
+                                     />
+                                   </div>
+                                   <span className="text-xs text-muted-foreground w-6">{count}</span>
+                                 </div>
+                               </div>
+                             );
                           })}
                         </div>
                       )}
@@ -1326,20 +1330,24 @@ export function FriendsPage() {
                             const percentage = friendRestaurantsData.length > 0 
                               ? Math.round((count / friendRestaurantsData.length) * 100) 
                               : 0;
-                            return (
-                              <div key={range.label} className="flex items-center justify-between">
-                                <span className="text-sm font-medium">{range.label}</span>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-12 h-2 bg-muted rounded-full overflow-hidden">
-                                    <div 
-                                      className={`h-full ${range.color} rounded-full`} 
-                                      style={{ width: `${percentage}%` }}
-                                    />
-                                  </div>
-                                  <span className="text-xs text-muted-foreground w-6">{count}</span>
-                                </div>
-                              </div>
-                            );
+                             return (
+                               <div 
+                                 key={range.label} 
+                                 className="flex items-center justify-between hover:bg-muted/50 p-2 rounded cursor-pointer transition-colors"
+                                 onClick={() => handleRatingRangeClick(range.min, range.max)}
+                               >
+                                 <span className="text-sm font-medium">{range.label}</span>
+                                 <div className="flex items-center gap-2">
+                                   <div className="w-12 h-2 bg-muted rounded-full overflow-hidden">
+                                     <div 
+                                       className={`h-full ${range.color} rounded-full`} 
+                                       style={{ width: `${percentage}%` }}
+                                     />
+                                   </div>
+                                   <span className="text-xs text-muted-foreground w-6">{count}</span>
+                                 </div>
+                               </div>
+                             );
                           })}
                         </div>
                       )}
