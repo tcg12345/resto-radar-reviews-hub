@@ -642,10 +642,18 @@ export function FriendsPage() {
     return sorted;
   }, [friendRestaurantsData, searchTerm, cuisineFilter, sortBy, ratingFilter]);
 
-  // Get unique cuisines for filter
+  // Get unique cuisines for filter, sorted by popularity
   const uniqueCuisines = useMemo(() => {
-    const cuisines = new Set(friendRestaurantsData.map(r => r.cuisine).filter(Boolean));
-    return Array.from(cuisines).sort();
+    const cuisineCounts = friendRestaurantsData.reduce((acc, restaurant) => {
+      if (restaurant.cuisine) {
+        acc[restaurant.cuisine] = (acc[restaurant.cuisine] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+    
+    return Object.entries(cuisineCounts)
+      .sort(([, countA]: [string, number], [, countB]: [string, number]) => countB - countA) // Sort by count descending
+      .map(([cuisine]) => cuisine);
   }, [friendRestaurantsData]);
 
   if (isLoading) {
