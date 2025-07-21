@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { StarRating } from '@/components/StarRating';
-import { Star, MapPin, Phone, Globe, Navigation, Clock, Heart, MessageSquare, Camera, Filter, ExternalLink, Truck, ShoppingBag, Menu } from 'lucide-react';
+import { Star, MapPin, Phone, Globe, Navigation, Clock, Heart, MessageSquare, Camera, Filter, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -341,22 +341,6 @@ export function RestaurantProfileModal({
     const url = `https://www.google.com/maps/dir/?api=1&destination=${place.geometry.location.lat},${place.geometry.location.lng}`;
     window.open(url, '_blank');
   };
-  const handleViewMenu = () => {
-    // First priority: Yelp menu URL from Yelp API
-    if (place.yelpData?.menu_url) {
-      window.open(place.yelpData.menu_url, '_blank');
-    }
-    // Second priority: Restaurant website
-    else if (place.website) {
-      window.open(place.website, '_blank');
-    } 
-    // Fallback: Google search for menu
-    else {
-      const menuQuery = `${place.name} ${place.formatted_address} menu`;
-      window.open(`https://www.google.com/search?q=${encodeURIComponent(menuQuery)}`, '_blank');
-    }
-  };
-
   return <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -404,6 +388,12 @@ export function RestaurantProfileModal({
                       <Navigation className="h-4 w-4 mr-2 flex-shrink-0" />
                       <span className="truncate">Directions</span>
                     </Button>
+                    {place.yelpData && (
+                      <Button size="sm" variant="outline" onClick={() => window.open(place.yelpData!.url, '_blank')} className="flex-1 min-w-0">
+                        <Star className="h-4 w-4 mr-2 flex-shrink-0" />
+                        <span className="truncate">View on Yelp</span>
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -468,90 +458,6 @@ export function RestaurantProfileModal({
                 </CardContent>
               </Card>}
 
-            {/* Yelp Information */}
-            {place.yelpData && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Star className="h-5 w-5 text-red-600" />
-                    Yelp Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Yelp Price Range</p>
-                      <p className="text-lg font-bold text-green-600">
-                        {place.yelpData.price || "Price not available"}
-                      </p>
-                    </div>
-                    <Badge variant="secondary" className="bg-red-100 text-red-800 border-red-200">
-                      Yelp Verified ✓
-                    </Badge>
-                  </div>
-
-                  {place.yelpData.categories && place.yelpData.categories.length > 0 && (
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-2">Yelp Categories</p>
-                      <div className="flex flex-wrap gap-2">
-                        {place.yelpData.categories.map((category, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {category}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {place.yelpData.transactions && place.yelpData.transactions.length > 0 && (
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-2">Available Services</p>
-                      <div className="flex flex-wrap gap-2">
-                        {place.yelpData.transactions.includes("delivery") && (
-                          <Badge variant="outline" className="flex items-center gap-1">
-                            <Truck className="h-3 w-3" />
-                            Delivery
-                          </Badge>
-                        )}
-                        {place.yelpData.transactions.includes("pickup") && (
-                          <Badge variant="outline" className="flex items-center gap-1">
-                            <ShoppingBag className="h-3 w-3" />
-                            Pickup
-                          </Badge>
-                        )}
-                        {place.yelpData.transactions.includes("restaurant_reservation") && (
-                          <Badge variant="outline" className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            Reservations
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex gap-2 pt-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => window.open(place.yelpData!.url, "_blank")}
-                      className="flex-1"
-                    >
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      View on Yelp
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={handleViewMenu}
-                      className="flex-1"
-                    >
-                      <Menu className="h-4 w-4 mr-2" />
-                      View Menu
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
 
             {user && <Card>
                 <CardHeader>
