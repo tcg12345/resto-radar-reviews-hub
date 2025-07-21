@@ -469,61 +469,36 @@ export function FriendsPage({
 
   useEffect(() => {
     if (friendRestaurantsData.length > 0) {
-      // Store only essential restaurant data to avoid quota issues
-      const lightweightRestaurants = friendRestaurantsData.slice(0, 20).map((r: any) => ({
-        id: r.id,
-        name: r.name,
-        cuisine: r.cuisine,
-        rating: r.rating,
-        address: r.address,
-        city: r.city,
-        country: r.country,
-        price_range: r.price_range,
-        michelin_stars: r.michelin_stars,
-        date_visited: r.date_visited,
-        created_at: r.created_at,
-        // Exclude heavy data like photos, long notes, etc.
-      }));
-      const success = safeSessionStorage.setItem(STORAGE_KEYS.friendRestaurants, JSON.stringify(lightweightRestaurants));
+      // Store ALL restaurant data - remove artificial limits
+      const success = safeSessionStorage.setItem(STORAGE_KEYS.friendRestaurants, JSON.stringify(friendRestaurantsData));
       if (!success) {
-        console.warn('Storage quota exceeded - storing minimal restaurant data');
-        const minimalRestaurants = friendRestaurantsData.slice(0, 10).map((r: any) => ({
-          id: r.id,
-          name: r.name,
-          cuisine: r.cuisine,
-          rating: r.rating
-        }));
-        safeSessionStorage.setItem(STORAGE_KEYS.friendRestaurants, JSON.stringify(minimalRestaurants));
+        console.warn('Storage quota exceeded - storing without session cache');
+        // Don't store limited data that will cause confusion
       }
     }
   }, [friendRestaurantsData]);
 
   useEffect(() => {
     if (friendWishlistData.length > 0) {
-      // Store only essential wishlist data to avoid quota issues
-      const lightweightWishlist = friendWishlistData.slice(0, 10).map((r: any) => ({
-        id: r.id,
-        name: r.name,
-        cuisine: r.cuisine,
-        address: r.address,
-        city: r.city,
-        country: r.country,
-        price_range: r.price_range,
-        michelin_stars: r.michelin_stars,
-        created_at: r.created_at
-      }));
-      const success = safeSessionStorage.setItem(STORAGE_KEYS.friendWishlist, JSON.stringify(lightweightWishlist));
+      // Store ALL wishlist data - remove artificial limits
+      const success = safeSessionStorage.setItem(STORAGE_KEYS.friendWishlist, JSON.stringify(friendWishlistData));
       if (!success) {
-        console.warn('Storage quota exceeded - storing minimal wishlist data');
-        const minimalWishlist = friendWishlistData.slice(0, 5).map((r: any) => ({
-          id: r.id,
-          name: r.name,
-          cuisine: r.cuisine
-        }));
-        safeSessionStorage.setItem(STORAGE_KEYS.friendWishlist, JSON.stringify(minimalWishlist));
+        console.warn('Storage quota exceeded - storing without session cache');
+        // Don't store limited data that will cause confusion
       }
     }
   }, [friendWishlistData]);
+
+  // Update stats whenever data changes to keep counts accurate
+  useEffect(() => {
+    if (friendRestaurantsData.length > 0 || friendWishlistData.length > 0) {
+      setFriendStats(prev => ({
+        ...prev,
+        rated_count: friendRestaurantsData.length,
+        wishlist_count: friendWishlistData.length
+      }));
+    }
+  }, [friendRestaurantsData, friendWishlistData]);
 
   useEffect(() => {
     if (profileLoadedRef) {
@@ -1140,8 +1115,8 @@ export function FriendsPage({
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="restaurants">Restaurants ({friendStats.rated_count})</TabsTrigger>
-                <TabsTrigger value="wishlist">Wishlist ({friendStats.wishlist_count})</TabsTrigger>
+                <TabsTrigger value="restaurants">Restaurants ({friendRestaurantsData.length})</TabsTrigger>
+                <TabsTrigger value="wishlist">Wishlist ({friendWishlistData.length})</TabsTrigger>
                 <TabsTrigger value="stats">Statistics</TabsTrigger>
               </TabsList>
 
