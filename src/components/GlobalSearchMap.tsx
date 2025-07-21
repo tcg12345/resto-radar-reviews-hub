@@ -102,7 +102,7 @@ export function GlobalSearchMap({ restaurants, onRestaurantClick, center }: Glob
         setMapLoaded(false);
       }
     };
-  }, [token, isLoading, mapStyle, center]);
+  }, [token, isLoading, mapStyle]);
 
   // Handle map style changes
   const handleStyleChange = (newStyle: MapStyle) => {
