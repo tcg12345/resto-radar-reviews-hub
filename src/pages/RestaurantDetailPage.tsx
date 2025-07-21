@@ -135,6 +135,9 @@ export function RestaurantDetailPage() {
           enhancedRestaurant = await fetchGooglePlacesDetails(restaurantData);
         }
 
+        console.log('Restaurant data fetched:', enhancedRestaurant);
+        console.log('Opening hours value:', enhancedRestaurant.opening_hours);
+        console.log('Opening hours type:', typeof enhancedRestaurant.opening_hours);
         setRestaurant(enhancedRestaurant);
 
         // Fetch friend profile
