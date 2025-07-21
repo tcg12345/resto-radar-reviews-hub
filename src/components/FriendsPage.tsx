@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Search, 
@@ -353,28 +353,105 @@ export function FriendsPage({
   const [hasMoreActivities, setHasMoreActivities] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [cacheWarmed, setCacheWarmed] = useState(false);
+  const [profileLoadedRef, setProfileLoadedRef] = useState<string | null>(null); // Track which profile is loaded
+  
+  // Session storage keys for persistence
+  const STORAGE_KEYS = {
+    currentView: 'friendsPage_currentView',
+    viewingFriend: 'friendsPage_viewingFriend', 
+    friendProfile: 'friendsPage_friendProfile',
+    friendRestaurants: 'friendsPage_friendRestaurants',
+    friendWishlist: 'friendsPage_friendWishlist',
+    profileLoadedRef: 'friendsPage_profileLoadedRef'
+  };
+
+  // Load persisted state on mount
+  useEffect(() => {
+    try {
+      const savedCurrentView = sessionStorage.getItem(STORAGE_KEYS.currentView);
+      const savedViewingFriend = sessionStorage.getItem(STORAGE_KEYS.viewingFriend);
+      const savedFriendProfile = sessionStorage.getItem(STORAGE_KEYS.friendProfile);
+      const savedFriendRestaurants = sessionStorage.getItem(STORAGE_KEYS.friendRestaurants);
+      const savedFriendWishlist = sessionStorage.getItem(STORAGE_KEYS.friendWishlist);
+      const savedProfileLoadedRef = sessionStorage.getItem(STORAGE_KEYS.profileLoadedRef);
+
+      if (savedCurrentView) setCurrentView(savedCurrentView as any);
+      if (savedViewingFriend) setViewingFriend(JSON.parse(savedViewingFriend));
+      if (savedFriendProfile) setFriendProfile(JSON.parse(savedFriendProfile));
+      if (savedFriendRestaurants) setFriendRestaurantsData(JSON.parse(savedFriendRestaurants));
+      if (savedFriendWishlist) setFriendWishlistData(JSON.parse(savedFriendWishlist));
+      if (savedProfileLoadedRef) setProfileLoadedRef(savedProfileLoadedRef);
+      
+      console.log('🔄 Restored friend profile state from session storage');
+    } catch (error) {
+      console.error('Error loading persisted state:', error);
+    }
+  }, []);
+
+  // Persist state changes
+  useEffect(() => {
+    if (currentView !== 'list') {
+      sessionStorage.setItem(STORAGE_KEYS.currentView, currentView);
+    }
+  }, [currentView]);
+
+  useEffect(() => {
+    if (viewingFriend) {
+      sessionStorage.setItem(STORAGE_KEYS.viewingFriend, JSON.stringify(viewingFriend));
+    }
+  }, [viewingFriend]);
+
+  useEffect(() => {
+    if (friendProfile) {
+      sessionStorage.setItem(STORAGE_KEYS.friendProfile, JSON.stringify(friendProfile));
+    }
+  }, [friendProfile]);
+
+  useEffect(() => {
+    if (friendRestaurantsData.length > 0) {
+      sessionStorage.setItem(STORAGE_KEYS.friendRestaurants, JSON.stringify(friendRestaurantsData));
+    }
+  }, [friendRestaurantsData]);
+
+  useEffect(() => {
+    if (friendWishlistData.length > 0) {
+      sessionStorage.setItem(STORAGE_KEYS.friendWishlist, JSON.stringify(friendWishlistData));
+    }
+  }, [friendWishlistData]);
+
+  useEffect(() => {
+    if (profileLoadedRef) {
+      sessionStorage.setItem(STORAGE_KEYS.profileLoadedRef, profileLoadedRef);
+    }
+  }, [profileLoadedRef]);
 
   useEffect(() => {
     loadInitialActivity();
   }, []);
 
-  // Handle initial friend view from navigation
+  // Handle initial friend view from navigation - only process once per friend
   useEffect(() => {
     if (initialViewFriendId && friends.length > 0) {
       const friendToView = friends.find(f => f.id === initialViewFriendId);
       if (friendToView) {
-        // Check if we're already viewing this friend to avoid unnecessary reload
-        if (viewingFriend?.id !== friendToView.id || currentView !== 'profile') {
-          handleViewProfile(friendToView);
-        } else {
-          // We're already viewing this friend, just ensure we're in profile view
+        console.log(`🎯 Navigation request for friend: ${friendToView.username}`);
+        
+        // Check if we already have this friend loaded from session storage
+        if (profileLoadedRef === friendToView.id && friendProfile && viewingFriend?.id === friendToView.id) {
+          console.log(`✅ Friend ${friendToView.username} already loaded from session - no API call needed`);
           setCurrentView('profile');
+        } else {
+          console.log(`🔄 Loading fresh profile for: ${friendToView.username}`);
+          setViewingFriend(friendToView);
+          setCurrentView('profile');
+          loadFriendProfile(friendToView);
+          setProfileLoadedRef(friendToView.id);
         }
       }
       // Call callback to clear the initial view state
       onInitialViewProcessed?.();
     }
-  }, [initialViewFriendId, friends, onInitialViewProcessed, viewingFriend, currentView]);
+  }, [initialViewFriendId, friends, profileLoadedRef, friendProfile, viewingFriend, onInitialViewProcessed]);
 
   const loadInitialActivity = async () => {
     setCurrentPage(0);
@@ -442,31 +519,32 @@ export function FriendsPage({
 
   // Friend profile navigation
   const handleViewProfile = (friend: any) => {
-    // If we're already viewing this friend's profile, don't reload
-    if (viewingFriend?.id === friend.id && currentView === 'profile' && friendProfile) {
-      return; // Already viewing this friend, no need to reload
+    console.log(`🎯 handleViewProfile called for: ${friend.username}`);
+    
+    // If we're already viewing this friend's profile with data loaded, don't reload
+    if (viewingFriend?.id === friend.id && currentView === 'profile' && friendProfile && profileLoadedRef === friend.id) {
+      console.log(`✅ Already viewing ${friend.username} - skipping reload`);
+      return;
     }
     
+    console.log(`🔄 Loading profile for: ${friend.username}`);
     setViewingFriend(friend);
     setCurrentView('profile');
     loadFriendProfile(friend);
+    setProfileLoadedRef(friend.id);
   };
 
   const handleBackToList = () => {
+    console.log(`⬅️ Going back to friends list`);
     setCurrentView('list');
-    setViewingFriend(null);
-    setFriendProfile(null);
-    setFriendRestaurantsData([]);
-    setFriendWishlistData([]);
-    setSearchTerm('');
-    setSelectedCuisines([]);
-    setSelectedPriceRanges([]);
-    setRatingRange([0, 10]);
-    setSortBy('newest');
-    setActiveTab('overview');
+    // Clear session storage when explicitly going back to list
+    sessionStorage.removeItem(STORAGE_KEYS.currentView);
+    // Keep the friend profile data loaded for faster subsequent access
+    // Don't clear viewingFriend, friendProfile, etc. so we can return quickly
   };
 
   const loadFriendProfile = async (friendData: any) => {
+    console.log(`🚀 Loading profile data for: ${friendData.username}`);
     setIsLoadingProfile(true);
     try {
       const { data: result, error } = await supabase
