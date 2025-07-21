@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PlusCircle, Trash2, Calendar, MapPin, Camera, Images, Monitor, Upload, Search, Loader, Sparkles } from 'lucide-react';
+import { PlusCircle, Trash2, Calendar, MapPin, Camera, Images, Monitor, Upload, Search, Loader, Sparkles, Star } from 'lucide-react';
 import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 
 import { Button } from '@/components/ui/button';
@@ -38,6 +38,7 @@ import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { LazyImage } from '@/components/LazyImage';
 import { createThumbnail } from '@/utils/imageUtils';
+import { RestaurantSearchSelect } from '@/components/RestaurantSearchSelect';
 import { toast } from 'sonner';
 
 interface RestaurantFormProps {
@@ -611,6 +612,73 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     }
   };
 
+  const handleRestaurantSelect = (placeDetails: any) => {
+    try {
+      // Extract cuisine type from Google Places types
+      const getCuisineFromTypes = (types: string[]) => {
+        const cuisineTypes = types.filter(type => 
+          !['establishment', 'food', 'point_of_interest', 'restaurant'].includes(type)
+        );
+        const firstType = cuisineTypes[0];
+        if (!firstType) return 'Restaurant';
+        
+        // Format cuisine type (e.g., 'italian_restaurant' -> 'Italian')
+        return firstType
+          .split('_')[0]
+          .charAt(0).toUpperCase() + firstType.split('_')[0].slice(1);
+      };
+
+      // Extract city from formatted address
+      const extractCity = (address: string) => {
+        const parts = address.split(',');
+        if (parts.length >= 2) {
+          return parts[parts.length - 2].trim();
+        }
+        return '';
+      };
+
+      // Convert Google Photos to URLs (requires API key for photo reference)
+      const convertPhotosToUrls = (photos: any[]) => {
+        if (!photos || photos.length === 0) return [];
+        
+        // For now, we'll skip photos as they require the API key to convert photo references to URLs
+        // In a real implementation, you'd use: 
+        // `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo.photo_reference}&key=${API_KEY}`
+        return [];
+      };
+
+      // Auto-fill the form with Google Places data
+      setFormData(prev => ({
+        ...prev,
+        name: placeDetails.name || prev.name,
+        address: placeDetails.formatted_address || prev.address,
+        city: extractCity(placeDetails.formatted_address) || prev.city,
+        cuisine: getCuisineFromTypes(placeDetails.types) || prev.cuisine,
+        priceRange: placeDetails.price_level || prev.priceRange,
+        // Store Google Places specific data that will be used in the database
+        googlePlaceId: placeDetails.place_id,
+        website: placeDetails.website,
+        phoneNumber: placeDetails.formatted_phone_number,
+        latitude: placeDetails.geometry?.location?.lat,
+        longitude: placeDetails.geometry?.location?.lng,
+        openingHours: placeDetails.opening_hours?.weekday_text?.join('\n'),
+        googleRating: placeDetails.rating,
+        userRatingsTotal: placeDetails.user_ratings_total,
+      }));
+
+      // Convert and set photos
+      const photoUrls = convertPhotosToUrls(placeDetails.photos);
+      if (photoUrls.length > 0) {
+        setPreviewImages(prev => [...prev, ...photoUrls]);
+      }
+
+      toast.success(`${placeDetails.name} selected! All details auto-filled from Google Places.`);
+    } catch (error) {
+      console.error('Error processing restaurant selection:', error);
+      toast.error('Failed to auto-fill restaurant details');
+    }
+  };
+
   const handleCustomCuisineSubmit = () => {
     if (customCuisineInput.trim()) {
       setFormData(prev => ({ ...prev, cuisine: customCuisineInput.trim() }));
@@ -631,10 +699,26 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
+    
+    // Cast formData to any to access Google Places specific fields
+    const formDataWithPlaces = formData as any;
+    
+    // If restaurant was selected from Google Places, include Google Places data
+    const submissionData = {
       ...formData,
-      removedPhotoIndexes: removedPhotoIndexes
-    });
+      removedPhotoIndexes: removedPhotoIndexes,
+      // Pass through Google Places specific fields if they exist
+      ...(formDataWithPlaces.googlePlaceId && {
+        id: formDataWithPlaces.googlePlaceId, // Use Google Place ID as the restaurant ID
+        website: formDataWithPlaces.website,
+        phone_number: formDataWithPlaces.phoneNumber,
+        latitude: formDataWithPlaces.latitude,
+        longitude: formDataWithPlaces.longitude,
+        opening_hours: formDataWithPlaces.openingHours,
+      })
+    };
+    
+    onSubmit(submissionData);
   };
 
   return (
@@ -675,92 +759,20 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
         </DialogContent>
       </Dialog>
       
-      {/* Restaurant Lookup Section */}
+      {/* Google Places Restaurant Search */}
       <div className="p-4 border rounded-lg bg-muted/30 space-y-4">
         <div className="flex items-center gap-2">
           <Search className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-semibold">Auto-Fill Restaurant Information</h3>
+          <h3 className="text-lg font-semibold">Search for Restaurant</h3>
         </div>
         <p className="text-sm text-muted-foreground">
-          Enter a restaurant name to automatically fill in details like cuisine, location, and price range.
+          Search for a restaurant using Google Places to automatically fill in all details including website, phone, and more.
         </p>
         
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="space-y-2">
-            <Label htmlFor="lookupName">Restaurant Name</Label>
-            <Input
-              id="lookupName"
-              value={lookupName}
-              onChange={(e) => setLookupName(e.target.value)}
-              placeholder="e.g., Le Bernardin"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleLookupRestaurant();
-                }
-              }}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="lookupCity">City (optional)</Label>
-            <Input
-              id="lookupCity"
-              value={lookupCity}
-              onChange={(e) => setLookupCity(e.target.value)}
-              placeholder="e.g., New York"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleLookupRestaurant();
-                }
-              }}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label>&nbsp;</Label>
-            <Button
-              type="button"
-              onClick={handleLookupRestaurant}
-              disabled={!lookupName.trim() || isLookingUp || isGeneratingPhotos}
-              className="w-full"
-            >
-              {isLookingUp ? (
-                <>
-                  <Loader className="mr-2 h-4 w-4 animate-spin" />
-                  Looking up...
-                </>
-              ) : (
-                <>
-                  <Search className="mr-2 h-4 w-4" />
-                  Look up Restaurant
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-        
-        <div className="flex items-center space-x-2 p-3 bg-muted/50 rounded-lg">
-          <Switch
-            id="autoGenerateRating"
-            checked={autoGeneratePhotos}
-            onCheckedChange={setAutoGeneratePhotos}
-          />
-          <Label htmlFor="autoGenerateRating" className="flex items-center gap-2 cursor-pointer">
-            <Search className="h-4 w-4 text-primary" />
-            Auto-find accurate restaurant rating using AI
-          </Label>
-        </div>
-        
-        {isGeneratingPhotos && (
-          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-center gap-2">
-              <Loader className="h-4 w-4 animate-spin text-blue-600" />
-              <span className="text-sm text-blue-800">Finding accurate rating...</span>
-            </div>
-          </div>
-        )}
+        <RestaurantSearchSelect 
+          onRestaurantSelect={handleRestaurantSelect}
+          placeholder="Search for a restaurant (e.g., 'Le Bernardin New York')"
+        />
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-6">
