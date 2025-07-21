@@ -939,29 +939,29 @@ export function FriendsPage() {
 
               <TabsContent value="restaurants" className="mt-6">
                 {/* Filters and search for restaurants */}
-                <div className="bg-card p-4 rounded-lg border mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-card/50 p-3 rounded-xl border border-border/50 mb-4 backdrop-blur-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                     {/* Search */}
                     <div className="relative">
-                      <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         placeholder="Search restaurants..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
+                        className="pl-10 h-9 text-sm"
                       />
                     </div>
 
                     {/* Cuisine Filter - Checkboxes */}
                     <div>
                       <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" className="w-full justify-between">
-                            {selectedCuisines.length === 0 ? "All Cuisines" : 
-                             selectedCuisines.length === 1 ? selectedCuisines[0] :
-                             `${selectedCuisines.length} cuisines`}
-                            <Filter className="ml-2 h-4 w-4" />
-                          </Button>
+                         <PopoverTrigger asChild>
+                           <Button variant="outline" size="sm" className="w-full justify-between h-9 text-sm">
+                             {selectedCuisines.length === 0 ? "All Cuisines" : 
+                              selectedCuisines.length === 1 ? selectedCuisines[0] :
+                              `${selectedCuisines.length} cuisines`}
+                             <Filter className="ml-2 h-3 w-3" />
+                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-56 p-3">
                           <div className="space-y-2">
@@ -1004,13 +1004,13 @@ export function FriendsPage() {
                     {/* Price Range Filter - Checkboxes */}
                     <div>
                       <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" className="w-full justify-between">
-                            {selectedPriceRanges.length === 0 ? "All Prices" : 
-                             selectedPriceRanges.length === 1 ? `${"$".repeat(selectedPriceRanges[0])}` :
-                             `${selectedPriceRanges.length} price ranges`}
-                            <Filter className="ml-2 h-4 w-4" />
-                          </Button>
+                         <PopoverTrigger asChild>
+                           <Button variant="outline" size="sm" className="w-full justify-between h-9 text-sm">
+                             {selectedPriceRanges.length === 0 ? "All Prices" : 
+                              selectedPriceRanges.length === 1 ? `${"$".repeat(selectedPriceRanges[0])}` :
+                              `${selectedPriceRanges.length} price ranges`}
+                             <Filter className="ml-2 h-3 w-3" />
+                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-48 p-3">
                           <div className="space-y-2">
@@ -1050,29 +1050,29 @@ export function FriendsPage() {
                       </Popover>
                     </div>
 
-                    {/* Rating Range Slider */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Rating Range: {ratingRange[0]} - {ratingRange[1]}</label>
-                      <Slider
-                        value={ratingRange}
-                        onValueChange={(value) => setRatingRange([value[0], value[1]])}
-                        max={10}
-                        min={0}
-                        step={0.5}
-                        className="w-full"
-                      />
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>0</span>
-                        <span>10</span>
-                      </div>
-                    </div>
-                  </div>
+                     {/* Rating Range Slider */}
+                     <div className="space-y-1.5">
+                       <label className="text-xs font-medium text-muted-foreground">Rating: {ratingRange[0]} - {ratingRange[1]}</label>
+                       <Slider
+                         value={ratingRange}
+                         onValueChange={(value) => setRatingRange([value[0], value[1]])}
+                         max={10}
+                         min={0}
+                         step={0.5}
+                         className="w-full"
+                       />
+                       <div className="flex justify-between text-xs text-muted-foreground">
+                         <span>0</span>
+                         <span>10</span>
+                       </div>
+                     </div>
+                   </div>
 
                    {/* Sort and Results Count */}
-                   <div className="flex justify-between items-center mt-4 pt-4 border-t">
-                     <div className="flex items-center gap-4">
+                   <div className="flex justify-between items-center mt-3 pt-3 border-t border-border/50">
+                     <div className="flex items-center gap-3">
                        <Select value={sortBy} onValueChange={setSortBy}>
-                         <SelectTrigger className="w-48">
+                         <SelectTrigger className="w-40 h-9 text-sm">
                            <SelectValue placeholder="Sort by" />
                          </SelectTrigger>
                          <SelectContent>
@@ -1087,12 +1087,12 @@ export function FriendsPage() {
                        {/* Clear All Filters Button */}
                        {(searchTerm || selectedCuisines.length > 0 || selectedPriceRanges.length > 0 || ratingRange[0] !== 0 || ratingRange[1] !== 10) && (
                          <Button 
-                           variant="outline" 
+                           variant="ghost" 
                            size="sm"
                            onClick={clearAllFilters}
-                           className="flex items-center gap-2"
+                           className="flex items-center gap-1.5 h-9 px-3 text-xs text-muted-foreground hover:text-foreground"
                          >
-                           <X className="h-4 w-4" />
+                           <X className="h-3 w-3" />
                            Clear All
                          </Button>
                        )}
