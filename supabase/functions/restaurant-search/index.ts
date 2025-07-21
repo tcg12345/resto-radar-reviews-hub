@@ -210,6 +210,8 @@ serve(async (req) => {
 
         // Enhance with Yelp data
         try {
+          console.log(`Attempting to get Yelp data for ${restaurant.name} at ${restaurant.address}`);
+          
           const { data: yelpData, error: yelpError } = await supabase.functions.invoke('yelp-restaurant-data', {
             body: {
               action: 'search',
@@ -218,6 +220,12 @@ serve(async (req) => {
               limit: 1,
               sort_by: 'best_match'
             }
+          });
+
+          console.log(`Yelp response for ${restaurant.name}:`, { 
+            error: yelpError, 
+            hasData: !!yelpData, 
+            businessCount: yelpData?.businesses?.length || 0 
           });
 
           if (!yelpError && yelpData?.businesses?.length > 0) {
@@ -233,6 +241,13 @@ serve(async (req) => {
               transactions: yelpBusiness.transactions || []
             };
 
+            console.log(`Successfully enhanced ${restaurant.name} with Yelp data:`, {
+              hasYelpData: !!restaurant.yelpData,
+              price: restaurant.yelpData.price,
+              transactions: restaurant.yelpData.transactions,
+              url: restaurant.yelpData.url
+            });
+
             // Use Yelp rating if available and higher
             if (yelpBusiness.rating && yelpBusiness.rating > restaurant.rating) {
               restaurant.rating = yelpBusiness.rating;
@@ -242,8 +257,8 @@ serve(async (req) => {
             if (yelpBusiness.review_count && yelpBusiness.review_count > (restaurant.reviewCount || 0)) {
               restaurant.reviewCount = yelpBusiness.review_count;
             }
-
-            console.log(`Enhanced ${restaurant.name} with Yelp data`);
+          } else {
+            console.log(`No Yelp data found for ${restaurant.name}: ${yelpError?.message || 'No businesses returned'}`);
           }
         } catch (error) {
           console.warn(`Failed to get Yelp data for ${restaurant.name}:`, error);
