@@ -20,7 +20,7 @@ import { WeightedRating } from '@/components/WeightedRating';
 import { PhotoGallery } from '@/components/PhotoGallery';
 import { OpeningHoursDisplay } from '@/components/OpeningHoursDisplay';
 import { AIReviewAssistant } from '@/components/AIReviewAssistant';
-import { ReservationButton } from '@/components/ReservationButton';
+
 import { Restaurant } from '@/types/restaurant';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 import { getStateFromCoordinatesCached } from '@/utils/geocoding';
@@ -407,8 +407,6 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
           </DialogContent>
         </Dialog>
         
-        <ReservationButton restaurant={restaurant} />
-
         {showAIReviewAssistant && !restaurant.isWishlist && (
           <Button 
             size="sm" 
