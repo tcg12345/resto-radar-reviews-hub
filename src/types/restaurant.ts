@@ -17,6 +17,8 @@ export interface Restaurant {
   website?: string;
   phone_number?: string;
   openingHours?: string;
+  reservable?: boolean;
+  reservationUrl?: string;
   categoryRatings?: CategoryRating;
   useWeightedRating?: boolean;
   priceRange?: number; // 1-4 dollar signs
@@ -27,8 +29,6 @@ export interface Restaurant {
   latitude?: number;
   longitude?: number;
   isWishlist: boolean;
-  reservationUrl?: string;
-  reservable?: boolean;
   createdAt: string;
   updatedAt: string;
   userId: string;

@@ -28,6 +28,8 @@ interface DbRestaurant {
   opening_hours: string | null;
   website: string | null;
   phone_number: string | null;
+  reservable: boolean | null;
+  reservation_url: string | null;
 }
 
 interface RestaurantContextType {
@@ -70,6 +72,8 @@ const mapDbRestaurantToRestaurant = (dbRestaurant: DbRestaurant): Restaurant => 
   openingHours: dbRestaurant.opening_hours ?? undefined,
   website: dbRestaurant.website ?? undefined,
   phone_number: dbRestaurant.phone_number ?? undefined,
+  reservable: dbRestaurant.reservable ?? undefined,
+  reservationUrl: dbRestaurant.reservation_url ?? undefined,
 });
 
 export function RestaurantProvider({ children }: RestaurantProviderProps) {
@@ -88,7 +92,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
           // User is authenticated, fetch their restaurants
           const { data, error } = await supabase
             .from('restaurants')
-            .select('id, name, address, city, country, cuisine, rating, notes, date_visited, is_wishlist, latitude, longitude, category_ratings, use_weighted_rating, price_range, michelin_stars, created_at, updated_at, user_id, opening_hours, website, phone_number')
+            .select('id, name, address, city, country, cuisine, rating, notes, date_visited, is_wishlist, latitude, longitude, category_ratings, use_weighted_rating, price_range, michelin_stars, created_at, updated_at, user_id, opening_hours, website, phone_number, reservable, reservation_url')
             .eq('user_id', session.user.id)
             .order('created_at', { ascending: false });
 
@@ -206,6 +210,8 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         website: (data as any).website ?? null,
         phone_number: (data as any).phone_number ?? null,
         opening_hours: (data as any).openingHours ?? null,
+        reservable: (data as any).reservable ?? null,
+        reservation_url: (data as any).reservation_url ?? null,
         user_id: session.user.id,
       };
       
@@ -321,7 +327,9 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
           michelin_stars: data.michelinStars ?? null,
           website: (data as any).website ?? null,
           phone_number: (data as any).phone_number ?? null,
-          opening_hours: (data as any).openingHours ?? null,
+          opening_hours: (data as any).openingHours ?? null, // Use camelCase from form data
+          reservable: (data as any).reservable ?? null,
+          reservation_url: (data as any).reservation_url ?? null,
           // user_id is already set, no need to update it
         })
         .eq('id', id)

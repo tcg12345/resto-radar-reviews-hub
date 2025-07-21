@@ -111,7 +111,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       phone_number: (initialData as any).phone_number,
       latitude: (initialData as any).latitude,
       longitude: (initialData as any).longitude,
-      opening_hours: (initialData as any).opening_hours,
+      openingHours: (initialData as any).opening_hours, // Convert from snake_case to camelCase
       reservable: (initialData as any).reservable,
       reservation_url: (initialData as any).reservation_url,
     })
@@ -671,9 +671,11 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
         phone_number: placeDetails.formatted_phone_number,
         latitude: placeDetails.geometry?.location?.lat,
         longitude: placeDetails.geometry?.location?.lng,
-        openingHours: placeDetails.opening_hours?.weekday_text?.join('\n'),
+        openingHours: placeDetails.opening_hours?.weekday_text?.join('\n'), // Use camelCase to match context
         googleRating: placeDetails.rating,
         userRatingsTotal: placeDetails.user_ratings_total,
+        reservable: placeDetails.reservable,
+        reservation_url: placeDetails.reservation_url,
       }));
 
       // Convert and set photos
@@ -722,7 +724,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       ...(formDataWithPlaces.phone_number && { phone_number: formDataWithPlaces.phone_number }),
       ...(formDataWithPlaces.latitude && { latitude: formDataWithPlaces.latitude }),
       ...(formDataWithPlaces.longitude && { longitude: formDataWithPlaces.longitude }),
-      ...(formDataWithPlaces.opening_hours && { opening_hours: formDataWithPlaces.opening_hours }),
+      ...(formDataWithPlaces.openingHours && { openingHours: formDataWithPlaces.openingHours }), // Use camelCase
       ...(formDataWithPlaces.reservable !== undefined && { reservable: formDataWithPlaces.reservable }),
       ...(formDataWithPlaces.reservation_url && { reservation_url: formDataWithPlaces.reservation_url }),
       // Use Google Place ID as restaurant ID only for new restaurants from Google Places
