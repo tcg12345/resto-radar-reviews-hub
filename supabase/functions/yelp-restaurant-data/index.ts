@@ -74,6 +74,7 @@ interface YelpBusinessDetails extends YelpBusiness {
     url: string;
     use_case_text: string;
   };
+  menu_url?: string; // Add menu URL field
 }
 
 const yelpApiKey = Deno.env.get('YELP_API_KEY');
@@ -160,8 +161,21 @@ async function searchBusinesses(params: YelpBusinessSearchParams) {
   const data = await response.json();
   console.log(`Found ${data.businesses?.length || 0} businesses from Yelp`);
 
+  // Enhance businesses with menu URLs
+  const enhancedBusinesses = await Promise.all(
+    (data.businesses || []).map(async (business: YelpBusiness) => {
+      try {
+        const menuUrl = await extractMenuUrl(business.url);
+        return { ...business, menu_url: menuUrl };
+      } catch (error) {
+        console.warn(`Failed to extract menu URL for ${business.name}:`, error);
+        return business;
+      }
+    })
+  );
+
   return {
-    businesses: data.businesses || [],
+    businesses: enhancedBusinesses,
     total: data.total || 0,
     region: data.region || null
   };
@@ -213,4 +227,86 @@ async function getBusinessReviews(businessId: string) {
     total: data.total || 0,
     possible_languages: data.possible_languages || []
   };
+}
+
+async function extractMenuUrl(yelpBusinessUrl: string): Promise<string | null> {
+  try {
+    console.log(`Extracting menu URL from: ${yelpBusinessUrl}`);
+    
+    const response = await fetch(yelpBusinessUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
+    
+    if (!response.ok) {
+      console.warn(`Failed to fetch Yelp page: ${response.status}`);
+      return null;
+    }
+    
+    const html = await response.text();
+    
+    // Look for menu links in the HTML - Yelp typically uses these patterns
+    const menuPatterns = [
+      // Direct menu link with "Menu" text
+      /<a[^>]*href="([^"]*)"[^>]*>.*?[Mm]enu.*?<\/a>/g,
+      // Menu button/link patterns
+      /<a[^>]*class="[^"]*menu[^"]*"[^>]*href="([^"]*)"/g,
+      // Website link that might contain menu
+      /<a[^>]*href="(https?:\/\/[^"]*)"[^>]*>.*?[Ww]ebsite.*?<\/a>/g,
+      // Order online links (often contain menus)
+      /<a[^>]*href="([^"]*)"[^>]*>.*?[Oo]rder.*?[Oo]nline.*?<\/a>/g
+    ];
+    
+    for (const pattern of menuPatterns) {
+      let match;
+      while ((match = pattern.exec(html)) !== null) {
+        const url = match[1];
+        
+        // Clean up the URL
+        let cleanUrl = url;
+        if (cleanUrl.startsWith('//')) {
+          cleanUrl = 'https:' + cleanUrl;
+        } else if (cleanUrl.startsWith('/')) {
+          cleanUrl = 'https://www.yelp.com' + cleanUrl;
+        }
+        
+        // Skip internal Yelp links that aren't menus
+        if (cleanUrl.includes('yelp.com') && !cleanUrl.includes('menu')) {
+          continue;
+        }
+        
+        // Prefer external links (likely restaurant websites with menus)
+        if (!cleanUrl.includes('yelp.com') && isValidUrl(cleanUrl)) {
+          console.log(`Found external menu URL: ${cleanUrl}`);
+          return cleanUrl;
+        }
+      }
+    }
+    
+    // If no specific menu link found, try to find the restaurant's main website
+    const websitePattern = /<a[^>]*href="(https?:\/\/(?!.*yelp\.com)[^"]*)"[^>]*>.*?[Ww]ebsite.*?<\/a>/g;
+    const websiteMatch = websitePattern.exec(html);
+    
+    if (websiteMatch && isValidUrl(websiteMatch[1])) {
+      console.log(`Found website URL: ${websiteMatch[1]}`);
+      return websiteMatch[1];
+    }
+    
+    console.log('No menu URL found');
+    return null;
+    
+  } catch (error) {
+    console.error('Error extracting menu URL:', error);
+    return null;
+  }
+}
+
+function isValidUrl(string: string): boolean {
+  try {
+    new URL(string);
+    return true;
+  } catch (_) {
+    return false;
+  }
 }

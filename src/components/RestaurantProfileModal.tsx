@@ -53,6 +53,7 @@ interface PlaceDetails {
     price?: string;
     photos: string[];
     transactions: string[];
+    menu_url?: string;
   };
 }
 interface RestaurantProfileModalProps {
@@ -341,11 +342,16 @@ export function RestaurantProfileModal({
     window.open(url, '_blank');
   };
   const handleViewMenu = () => {
-    // If restaurant has a website, go there first
-    if (place.website) {
+    // First priority: Yelp menu URL from Yelp API
+    if (place.yelpData?.menu_url) {
+      window.open(place.yelpData.menu_url, '_blank');
+    }
+    // Second priority: Restaurant website
+    else if (place.website) {
       window.open(place.website, '_blank');
-    } else {
-      // Fallback to Google search for menu
+    } 
+    // Fallback: Google search for menu
+    else {
       const menuQuery = `${place.name} ${place.formatted_address} menu`;
       window.open(`https://www.google.com/search?q=${encodeURIComponent(menuQuery)}`, '_blank');
     }

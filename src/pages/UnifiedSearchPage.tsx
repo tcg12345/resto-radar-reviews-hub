@@ -42,6 +42,7 @@ interface GooglePlaceResult {
     price?: string;
     photos: string[];
     transactions: string[];
+    menu_url?: string;
   };
 }
 interface PlaceDetails extends GooglePlaceResult {
@@ -346,7 +347,8 @@ export default function UnifiedSearchPage() {
               categories: yelpBusiness.categories?.map((cat: any) => cat.title) || [],
               price: yelpBusiness.price || undefined,
               photos: yelpBusiness.photos || [],
-              transactions: yelpBusiness.transactions || []
+              transactions: yelpBusiness.transactions || [],
+              menu_url: yelpBusiness.menu_url || undefined
             };
 
             // Use Yelp rating if available and higher
@@ -405,7 +407,8 @@ export default function UnifiedSearchPage() {
               categories: yelpBusiness.categories?.map((cat: any) => cat.title) || [],
               price: yelpBusiness.price || undefined,
               photos: yelpBusiness.photos || [],
-              transactions: yelpBusiness.transactions || []
+              transactions: yelpBusiness.transactions || [],
+              menu_url: yelpBusiness.menu_url || undefined
             };
           }
         } catch (yelpError) {
