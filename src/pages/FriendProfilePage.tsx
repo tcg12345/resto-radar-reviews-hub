@@ -14,7 +14,8 @@ import {
   Filter,
   SortAsc,
   SortDesc,
-  Heart
+  Heart,
+  RefreshCw
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,6 +31,7 @@ import { PriceRange } from '@/components/PriceRange';
 import { useFriendRestaurants } from '@/hooks/useFriendRestaurants';
 import { useFriends } from '@/hooks/useFriends';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFriendProfiles } from '@/contexts/FriendProfilesContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -38,22 +40,21 @@ export default function FriendProfilePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { friends } = useFriends();
-  const { fetchFriendRestaurants } = useFriendRestaurants();
+  const { getFriendProfile, refreshProfile, isPreloading } = useFriendProfiles();
   const { toast } = useToast();
   
+  // Get profile from cache instantly
+  const profile = friendId ? getFriendProfile(friendId) : null;
   const [friend, setFriend] = useState<any>(null);
   const [restaurants, setRestaurants] = useState<any[]>([]);
-  const [allRestaurants, setAllRestaurants] = useState<any[]>([]); // Cache all restaurants
+  const [allRestaurants, setAllRestaurants] = useState<any[]>([]);
   const [wishlist, setWishlist] = useState<any[]>([]);
-  const [allWishlist, setAllWishlist] = useState<any[]>([]); // Cache all wishlist items
+  const [allWishlist, setAllWishlist] = useState<any[]>([]);
   const [stats, setStats] = useState<any>({});
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMoreRestaurants, setIsLoadingMoreRestaurants] = useState(false);
-  const [isLoadingMoreWishlist, setIsLoadingMoreWishlist] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingFullData, setIsLoadingFullData] = useState(false);
   const [displayedRestaurants, setDisplayedRestaurants] = useState(10);
   const [displayedWishlist, setDisplayedWishlist] = useState(10);
-  const [backgroundLoadingComplete, setBackgroundLoadingComplete] = useState(false);
-  const [continueBackgroundLoading, setContinueBackgroundLoading] = useState(false);
   
   // Filter and sort states
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,99 +63,120 @@ export default function FriendProfilePage() {
   const [ratingFilter, setRatingFilter] = useState('all');
 
   useEffect(() => {
-    if (friendId && friends.length > 0) {
-      const foundFriend = friends.find(f => f.id === friendId);
-      if (foundFriend) {
-        setFriend(foundFriend);
-        loadFriendData(foundFriend);
-      } else {
-        // Friend not found, redirect back
-        navigate('/');
-      }
-    }
-  }, [friendId, friends, navigate]);
+    if (!friendId || !user) return;
 
-  const loadFriendData = async (friendData: any) => {
-    setIsLoading(true);
-    const startTime = performance.now();
-    
-    try {
-      console.log('Loading friend profile with lightning speed for:', friendData.id);
+    // If we have cached profile data, use it instantly
+    if (profile) {
+      console.log('⚡ Using cached friend profile - INSTANT load!');
       
-      // ULTRA-FAST single query with optimized indexes
-      const { data, error } = await supabase
-        .rpc('get_lightning_fast_friend_profile', { 
-          target_user_id: friendData.id,
-          requesting_user_id: user?.id
-        })
-        .single();
-
-      const loadTime = performance.now() - startTime;
-      console.log(`Lightning-fast profile loaded in ${loadTime.toFixed(2)}ms`);
-
-      if (error || !data?.can_view) {
-        console.log('Cannot view this friend\'s profile');
-        setIsLoading(false);
-        return;
-      }
-
-      // Set all data immediately from the single optimized query
+      // Set friend info from cache
+      const foundFriend = friends.find(f => f.id === friendId) || {
+        id: friendId,
+        username: profile.username,
+        name: profile.name,
+        avatar_url: profile.avatar_url,
+        is_public: profile.is_public,
+        score: profile.rated_count
+      };
+      
+      setFriend(foundFriend);
+      
+      // Set stats from cache
       setStats({
-        averageRating: parseFloat(String(data.avg_rating)) || 0,
-        totalRated: Number(data.rated_count) || 0,
-        totalWishlist: Number(data.wishlist_count) || 0,
-        topCuisines: [],
-        ratingDistribution: {},
-        michelinCount: 0,
-        recentActivity: Array.isArray(data.recent_restaurants) ? data.recent_restaurants : []
+        averageRating: profile.avg_rating,
+        totalRated: profile.rated_count,
+        totalWishlist: profile.wishlist_count,
+        recentActivity: profile.recent_restaurants || []
       });
-
-      // Load first batch of restaurants instantly
-      const { data: initialRestaurants } = await supabase
-        .from('restaurants')
-        .select('*')
-        .eq('user_id', friendData.id)
-        .eq('is_wishlist', false)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      const restaurants = initialRestaurants || [];
-      setRestaurants(restaurants);
-      setAllRestaurants(restaurants);
-      setDisplayedRestaurants(Math.min(10, restaurants.length));
-
-      console.log('Profile ready for display');
+      
       setIsLoading(false);
-
-      // Background load more data if needed
-      if (data.rated_count > 10) {
-        loadAdditionalDataInBackground(friendData.id, restaurants);
-      }
-
-    } catch (error) {
-      console.error('Error loading friend data:', error);
-      setIsLoading(false);
+      
+      // Load full restaurant data in background
+      loadFullRestaurantData();
+    } else if (!isPreloading) {
+      // Profile not in cache and not preloading, fetch it
+      console.log('Cache miss - fetching profile...');
+      setIsLoading(true);
+      
+      refreshProfile(friendId).then(() => {
+        const refreshedProfile = getFriendProfile(friendId);
+        if (!refreshedProfile) {
+          toast({
+            title: "Access Denied",
+            description: "You don't have permission to view this profile.",
+            variant: "destructive",
+          });
+          navigate('/friends');
+        }
+      }).catch((error) => {
+        console.error('Error loading friend profile:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load profile. Please try again.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+      });
     }
-  };
+  }, [friendId, user, profile, friends, refreshProfile, getFriendProfile, navigate, toast, isPreloading]);
 
-  // Non-blocking background loading for additional data
-  const loadAdditionalDataInBackground = async (friendId: string, currentRestaurants: any[]) => {
+  const loadFullRestaurantData = async () => {
+    if (!friendId || !user) return;
+    
+    setIsLoadingFullData(true);
     try {
-      const { data: moreRestaurants } = await supabase
+      console.log('Loading full restaurant data in background...');
+      
+      // Load first batch of restaurants
+      const { data: initialRestaurants } = await supabase
         .from('restaurants')
         .select('*')
         .eq('user_id', friendId)
         .eq('is_wishlist', false)
         .order('created_at', { ascending: false })
-        .range(10, 99); // Load up to 90 more restaurants
+        .limit(50);
 
-      if (moreRestaurants && moreRestaurants.length > 0) {
-        setAllRestaurants([...currentRestaurants, ...moreRestaurants]);
-        console.log(`Background loaded ${moreRestaurants.length} additional restaurants`);
-      }
+      const restaurantData = initialRestaurants || [];
+      setRestaurants(restaurantData.slice(0, 10));
+      setAllRestaurants(restaurantData);
+      setDisplayedRestaurants(Math.min(10, restaurantData.length));
+
+      // Load wishlist
+      const { data: wishlistData } = await supabase
+        .from('restaurants')
+        .select('*')
+        .eq('user_id', friendId)
+        .eq('is_wishlist', true)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      const wishlist = wishlistData || [];
+      setWishlist(wishlist.slice(0, 10));
+      setAllWishlist(wishlist);
+      setDisplayedWishlist(Math.min(10, wishlist.length));
+
+      // Update stats with full data
+      setStats(prev => ({
+        ...prev,
+        topCuisines: calculateTopCuisines(restaurantData),
+        ratingDistribution: calculateRatingDistribution(restaurantData),
+        michelinCount: restaurantData.filter(r => r.michelin_stars > 0).length
+      }));
+
+      console.log('✅ Full restaurant data loaded');
     } catch (error) {
-      console.error('Background loading error:', error);
+      console.error('Error loading full restaurant data:', error);
+    } finally {
+      setIsLoadingFullData(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    if (!friendId) return;
+    
+    setIsLoadingFullData(true);
+    await refreshProfile(friendId);
+    await loadFullRestaurantData();
   };
 
 
@@ -333,7 +355,7 @@ export default function FriendProfilePage() {
     }
   };
 
-  if (isLoading || !friend) {
+  if (isLoading || (!profile && isPreloading) || !friend) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -350,10 +372,23 @@ export default function FriendProfilePage() {
       <div className="border-b bg-card">
         <div className="container mx-auto px-4 py-6 mobile-container">
           <div className="flex items-center gap-4 mb-6">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/', { state: { activeTab: 'friends' } })}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Friends
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={() => navigate('/', { state: { activeTab: 'friends' } })}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Friends
+              </Button>
+              {profile && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleRefresh}
+                  disabled={isLoadingFullData}
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${isLoadingFullData ? 'animate-spin' : ''}`} />
+                  Refresh
+                </Button>
+              )}
+            </div>
           </div>
           
           <div className="flex flex-col sm:flex-row items-start gap-6">
@@ -690,7 +725,6 @@ export default function FriendProfilePage() {
                       className="flex items-center gap-2"
                     >
                       Load More ({filteredRestaurants.length - displayedRestaurants} remaining)
-                      {backgroundLoadingComplete && <span className="text-green-500 ml-1">✓</span>}
                     </Button>
                   </div>
                 )}
@@ -745,7 +779,6 @@ export default function FriendProfilePage() {
                       className="flex items-center gap-2"
                     >
                       Load More ({allWishlist.length - displayedWishlist} remaining)
-                      {backgroundLoadingComplete && <span className="text-green-500 ml-1">✓</span>}
                     </Button>
                   </div>
                 )}

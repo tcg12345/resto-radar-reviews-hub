@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { RestaurantProvider } from "./contexts/RestaurantContext";
 import { DiscoverProvider } from "./contexts/DiscoverContext";
+import { FriendProfilesProvider } from "./contexts/FriendProfilesContext";
 import { RequireAuth } from "./components/RequireAuth";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -23,10 +24,11 @@ const App = () => (
       <AuthProvider>
         <RestaurantProvider>
           <DiscoverProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <Routes>
+            <FriendProfilesProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <Routes>
                 {/* Auth route - doesn't need RestaurantProvider */}
                 <Route path="/auth" element={<AuthPage />} />
                 
@@ -44,8 +46,9 @@ const App = () => (
             
                 {/* 404 route */}
                 <Route path="*" element={<NotFound />} />
-              </Routes>
-            </TooltipProvider>
+                </Routes>
+              </TooltipProvider>
+            </FriendProfilesProvider>
           </DiscoverProvider>
         </RestaurantProvider>
       </AuthProvider>
