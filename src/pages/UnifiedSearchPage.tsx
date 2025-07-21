@@ -48,6 +48,7 @@ interface GooglePlaceResult {
     cuisine: string;
     categories: string[];
   };
+  fallbackCuisine?: string;
 }
 interface PlaceDetails extends GooglePlaceResult {
   formatted_phone_number?: string;
@@ -312,11 +313,19 @@ export default function UnifiedSearchPage() {
       if (data.status === 'OK') {
         const results = data.results || [];
         
+        // Add immediate fallback cuisine to all results for faster display
+        const resultsWithFallback = results.map(result => ({
+          ...result,
+          fallbackCuisine: result.types.find(type => 
+            !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type)
+          )?.replace(/_/g, ' ') || 'Restaurant'
+        }));
+        
         // Show results immediately for faster response
-        setSearchResults(results);
+        setSearchResults(resultsWithFallback);
         
         // Enhance with Yelp data in background (non-blocking)
-        enhanceWithYelp(results).then(enhancedResults => {
+        enhanceWithYelp(resultsWithFallback).then(enhancedResults => {
           setSearchResults(enhancedResults);
         }).catch(error => {
           console.warn('Failed to enhance with Yelp data:', error);
@@ -788,18 +797,18 @@ export default function UnifiedSearchPage() {
                         </div>
 
                         <div className="flex flex-wrap gap-1 mb-3" onClick={() => handlePlaceClick(place)}>
-                          {/* Show AI-analyzed categories if available, otherwise fall back to processed types */}
-                          {(place.aiAnalysis?.categories || 
-                            place.types.filter(type => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))
-                                      .slice(0, 3))
-                            .map((category, index) => {
-                              const displayText = typeof category === 'string' ? category : String(category).replace(/_/g, ' ');
-                              return (
-                                <Badge key={index} variant="outline" className="text-xs">
-                                  {displayText}
-                                </Badge>
-                              );
-                            })}
+                          {/* Show single cuisine type - prioritize AI analysis, then fallback cuisine, then first relevant type */}
+                          {(() => {
+                            const cuisine = place.aiAnalysis?.cuisine || 
+                              place.fallbackCuisine || 
+                              place.types.find(type => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 
+                              'Restaurant';
+                            return (
+                              <Badge variant="outline" className="text-xs">
+                                {cuisine}
+                              </Badge>
+                            );
+                          })()}
                         </div>
 
                         <div className="flex gap-2">
