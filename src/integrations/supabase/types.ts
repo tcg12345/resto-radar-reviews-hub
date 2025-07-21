@@ -268,6 +268,7 @@ export type Database = {
           name: string
           notes: string | null
           opening_hours: string | null
+          phone_number: string | null
           photos: string[] | null
           price_range: number | null
           rating: number | null
@@ -294,6 +295,7 @@ export type Database = {
           name: string
           notes?: string | null
           opening_hours?: string | null
+          phone_number?: string | null
           photos?: string[] | null
           price_range?: number | null
           rating?: number | null
@@ -320,6 +322,7 @@ export type Database = {
           name?: string
           notes?: string | null
           opening_hours?: string | null
+          phone_number?: string | null
           photos?: string[] | null
           price_range?: number | null
           rating?: number | null

@@ -198,6 +198,7 @@ export function RestaurantDetailPage() {
         notes: restaurant.notes,
         photos: restaurant.photos,
         website: restaurant.website,
+        phone_number: restaurant.phone_number,
         latitude: restaurant.latitude,
         longitude: restaurant.longitude,
         reservable: restaurant.reservable,

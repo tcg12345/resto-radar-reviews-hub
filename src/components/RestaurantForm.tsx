@@ -658,7 +658,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
         // Store Google Places specific data that will be used in the database
         googlePlaceId: placeDetails.place_id,
         website: placeDetails.website,
-        phoneNumber: placeDetails.formatted_phone_number,
+        phone_number: placeDetails.formatted_phone_number,
         latitude: placeDetails.geometry?.location?.lat,
         longitude: placeDetails.geometry?.location?.lng,
         openingHours: placeDetails.opening_hours?.weekday_text?.join('\n'),
@@ -711,7 +711,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       ...(formDataWithPlaces.googlePlaceId && {
         id: formDataWithPlaces.googlePlaceId, // Use Google Place ID as the restaurant ID
         website: formDataWithPlaces.website,
-        phone_number: formDataWithPlaces.phoneNumber,
+        phone_number: formDataWithPlaces.phone_number,
         latitude: formDataWithPlaces.latitude,
         longitude: formDataWithPlaces.longitude,
         opening_hours: formDataWithPlaces.openingHours,

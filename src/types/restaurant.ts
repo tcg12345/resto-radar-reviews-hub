@@ -15,7 +15,7 @@ export interface Restaurant {
   reviewCount?: number;
   googleMapsUrl?: string;
   website?: string;
-  phoneNumber?: string;
+  phone_number?: string;
   openingHours?: string;
   categoryRatings?: CategoryRating;
   useWeightedRating?: boolean;
@@ -50,4 +50,5 @@ export interface RestaurantFormData {
   dateVisited?: string;
   isWishlist: boolean;
   removedPhotoIndexes?: number[];
+  phone_number?: string;
 }
