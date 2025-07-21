@@ -10,37 +10,51 @@ export function generateReservationUrl(restaurant: Restaurant): string | null {
   console.log('Restaurant reservationUrl:', restaurant.reservationUrl);
   console.log('Restaurant website:', restaurant.website);
   
-  // If restaurant already has a reservation URL, use it
+  // If restaurant already has a reservation URL, use it (this is the direct booking link from AI)
   if (restaurant.reservationUrl) {
+    console.log('Using direct reservation URL from AI:', restaurant.reservationUrl);
     return restaurant.reservationUrl;
   }
 
-  // For known reservation platforms, try to generate direct links
+  // For known reservation platforms, try to use the website if it's a direct booking link
   if (restaurant.website) {
     const website = restaurant.website.toLowerCase();
     
-    // OpenTable direct booking
-    if (website.includes('opentable.com')) {
+    // Check if the website itself is a direct booking link from reservation platforms
+    if (website.includes('opentable.com/r/') || 
+        website.includes('resy.com/cities/') || 
+        website.includes('exploretock.com/') ||
+        website.includes('sevenrooms.com/reservations/')) {
+      console.log('Using website as direct reservation link:', restaurant.website);
       return restaurant.website;
     }
     
-    // Resy direct booking
-    if (website.includes('resy.com')) {
+    // OpenTable direct booking (if homepage, don't use it)
+    if (website.includes('opentable.com') && !website.endsWith('opentable.com/') && !website.endsWith('opentable.com')) {
+      return restaurant.website;
+    }
+    
+    // Resy direct booking (if homepage, don't use it)  
+    if (website.includes('resy.com') && !website.endsWith('resy.com/') && !website.endsWith('resy.com')) {
       return restaurant.website;
     }
   }
 
-  // If restaurant is marked as reservable, generate Google Maps reservation link
+  // If restaurant is marked as reservable but no direct link, generate Google Maps search
   if (restaurant.reservable === true) {
-    const restaurantQuery = encodeURIComponent(`${restaurant.name} ${restaurant.address}`);
+    const restaurantQuery = encodeURIComponent(`${restaurant.name} ${restaurant.address} reservations`);
+    console.log('Falling back to Google Maps for reservations:', restaurantQuery);
     return `https://www.google.com/maps/search/${restaurantQuery}`;
   }
 
-  // For restaurants that might support reservations (based on detection logic), generate Google Maps link
+  // For restaurants that might support reservations (based on detection logic), generate Google Maps search
   if (detectReservationCapability(restaurant)) {
     const restaurantQuery = encodeURIComponent(`${restaurant.name} ${restaurant.address} reservation`);
+    console.log('Using detection logic for reservation search:', restaurantQuery);
     return `https://www.google.com/maps/search/${restaurantQuery}`;
   }
+
+  console.log('No reservation option found for restaurant:', restaurant.name);
 
   return null;
 }

@@ -60,8 +60,8 @@ Please provide:
 3. Michelin stars (0-3, or null if not a Michelin-starred restaurant)
 4. Price range (1-4 scale: 1=$ budget, 2=$$ moderate, 3=$$$ expensive, 4=$$$$ luxury)
 5. Reservable - Whether the restaurant accepts reservations (true/false)
-6. Reservation Platform - If reservable, identify the likely platform: "OpenTable", "Resy", "Yelp", "SevenRooms", "Tock", "Restaurant Website", or null if unknown
-7. Reservation URL - If you can determine a likely reservation URL based on the restaurant name/website, provide it, otherwise null
+6. Reservation Platform - If reservable, identify the likely platform: "OpenTable", "Resy", "SevenRooms", "Tock", or null if unknown
+7. Direct Booking Link - Find me the direct booking link on either OpenTable, Resy, SevenRooms, or Tock for ${restaurant.name} ${restaurant.city || restaurant.address}. Please search for the EXACT reservation URL, not just the website homepage.
 8. Brief reasoning for your analysis
 
 Response format (JSON only):
@@ -72,14 +72,16 @@ Response format (JSON only):
   "priceRange": number,
   "reservable": boolean,
   "reservationPlatform": "platform_name_or_null",
-  "reservationUrl": "url_or_null",
+  "reservationUrl": "direct_booking_url_or_null",
   "reasoning": "brief_explanation"
 }
 
-Important: Only respond with valid JSON. For cuisine, ONLY use one of the available options provided. For reservation URLs, only provide if you're confident about the format. Common patterns:
-- OpenTable: https://www.opentable.com/r/restaurant-name-city
-- Resy: https://resy.com/cities/city/restaurant-name
-- Tock: https://www.exploretock.com/restaurant-name
+Important: 
+- Only respond with valid JSON
+- For cuisine, ONLY use one of the available options provided
+- For reservationUrl, provide the DIRECT booking link (not homepage) from OpenTable, Resy, SevenRooms, or Tock if you can find it
+- If you cannot find a direct booking link, set reservationUrl to null
+- Be conservative with Michelin stars - only assign them if you're confident`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -92,7 +94,7 @@ Important: Only respond with valid JSON. For cuisine, ONLY use one of the availa
         messages: [
           { 
             role: 'system', 
-            content: 'You are a restaurant expert who provides accurate cuisine classifications, Michelin star information, and price range estimates. Always respond with valid JSON only.' 
+            content: 'You are a restaurant reservation expert who finds direct booking links on OpenTable, Resy, SevenRooms, and Tock. You have access to current reservation platform data and can find exact booking URLs. Always respond with valid JSON only and provide direct booking links when available.' 
           },
           { role: 'user', content: prompt }
         ],
