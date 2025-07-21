@@ -602,6 +602,10 @@ export function FriendsPage() {
   const handleRatingRangeClick = (min: number, max: number) => {
     console.log('Rating range clicked:', min, max);
     setRatingRange([min, max]);
+    // Reset other filters when clicking rating statistic
+    setSelectedCuisines([]);
+    setSelectedPriceRanges([]);
+    setSearchTerm('');
     setActiveTab('restaurants');
     console.log('Active tab set to restaurants');
   };
@@ -609,6 +613,10 @@ export function FriendsPage() {
   const handleCuisineClick = (cuisine: string) => {
     console.log('Cuisine clicked:', cuisine);
     setSelectedCuisines([cuisine]);
+    // Reset other filters when clicking cuisine statistic
+    setRatingRange([0, 10]);
+    setSelectedPriceRanges([]);
+    setSearchTerm('');
     setActiveTab('restaurants');
     console.log('Active tab set to restaurants');
   };
