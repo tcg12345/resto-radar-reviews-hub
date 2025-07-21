@@ -137,7 +137,7 @@ export default function FriendProfilePage() {
     try {
       const { data, error } = await supabase
         .from('restaurants')
-        .select('*')
+        .select('id, name, address, city, country, cuisine, rating, notes, date_visited, is_wishlist, latitude, longitude, category_ratings, use_weighted_rating, price_range, michelin_stars, created_at, updated_at, user_id, opening_hours, website, phone_number, photos, reservable, reservation_url')
         .eq('user_id', friendId)
         .eq('is_wishlist', isWishlist)
         .order('created_at', { ascending: false })
