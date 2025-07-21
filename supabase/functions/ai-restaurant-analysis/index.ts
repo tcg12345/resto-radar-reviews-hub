@@ -70,7 +70,10 @@ Respond in this exact JSON format:
     }
 
     const data = await response.json();
-    const analysisText = data.choices[0].message.content;
+    let analysisText = data.choices[0].message.content;
+    
+    // Clean up markdown code blocks if present
+    analysisText = analysisText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
 
     try {
       const analysis = JSON.parse(analysisText);

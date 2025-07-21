@@ -44,6 +44,10 @@ interface GooglePlaceResult {
     transactions: string[];
     menu_url?: string;
   };
+  aiAnalysis?: {
+    cuisine: string;
+    categories: string[];
+  };
 }
 interface PlaceDetails extends GooglePlaceResult {
   formatted_phone_number?: string;
@@ -329,9 +333,9 @@ export default function UnifiedSearchPage() {
     }
   };
 
-  // Function to enhance search results with Yelp data
+  // Function to enhance search results with Yelp data and AI analysis
   const enhanceWithYelp = async (restaurants: GooglePlaceResult[]): Promise<GooglePlaceResult[]> => {
-    // Limit concurrent Yelp requests to prevent API overload
+    // Limit concurrent requests to prevent API overload
     const batchSize = 3;
     const enhancedRestaurants = [...restaurants];
     
@@ -342,9 +346,10 @@ export default function UnifiedSearchPage() {
         try {
           // Add timeout to prevent hanging requests
           const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Yelp request timeout')), 3000)
+            setTimeout(() => reject(new Error('Request timeout')), 3000)
           );
           
+          // Get Yelp data
           const yelpPromise = supabase.functions.invoke('yelp-restaurant-data', {
             body: {
               action: 'search',
@@ -355,36 +360,67 @@ export default function UnifiedSearchPage() {
             }
           });
 
-          const { data: yelpData, error: yelpError } = await Promise.race([yelpPromise, timeoutPromise]) as any;
-
-          if (!yelpError && yelpData?.businesses?.length > 0) {
-            const yelpBusiness = yelpData.businesses[0];
-            
-            enhancedRestaurants[actualIndex] = {
-              ...enhancedRestaurants[actualIndex],
-              yelpData: {
-                id: yelpBusiness.id,
-                url: yelpBusiness.url,
-                categories: yelpBusiness.categories?.map((cat: any) => cat.title) || [],
-                price: yelpBusiness.price || undefined,
-                photos: yelpBusiness.photos || [],
-                transactions: yelpBusiness.transactions || [],
-                menu_url: yelpBusiness.menu_url || undefined
-              }
-            };
-
-            // Use Yelp rating if available and higher
-            if (yelpBusiness.rating && yelpBusiness.rating > (enhancedRestaurants[actualIndex].rating || 0)) {
-              enhancedRestaurants[actualIndex].rating = yelpBusiness.rating;
+          // Get AI cuisine analysis
+          const aiPromise = supabase.functions.invoke('ai-restaurant-analysis', {
+            body: {
+              name: restaurant.name,
+              types: restaurant.types,
+              address: restaurant.formatted_address
             }
+          });
 
-            // Use Yelp review count if available and higher
-            if (yelpBusiness.review_count && yelpBusiness.review_count > (enhancedRestaurants[actualIndex].user_ratings_total || 0)) {
-              enhancedRestaurants[actualIndex].user_ratings_total = yelpBusiness.review_count;
+          const [yelpResult, aiResult] = await Promise.allSettled([
+            Promise.race([yelpPromise, timeoutPromise]),
+            Promise.race([aiPromise, timeoutPromise])
+          ]);
+
+          // Process Yelp data
+          if (yelpResult.status === 'fulfilled') {
+            const { data: yelpData, error: yelpError } = yelpResult.value as any;
+            if (!yelpError && yelpData?.businesses?.length > 0) {
+              const yelpBusiness = yelpData.businesses[0];
+              
+              enhancedRestaurants[actualIndex] = {
+                ...enhancedRestaurants[actualIndex],
+                yelpData: {
+                  id: yelpBusiness.id,
+                  url: yelpBusiness.url,
+                  categories: yelpBusiness.categories?.map((cat: any) => cat.title) || [],
+                  price: yelpBusiness.price || undefined,
+                  photos: yelpBusiness.photos || [],
+                  transactions: yelpBusiness.transactions || [],
+                  menu_url: yelpBusiness.menu_url || undefined
+                }
+              };
+
+              // Use Yelp rating if available and higher
+              if (yelpBusiness.rating && yelpBusiness.rating > (enhancedRestaurants[actualIndex].rating || 0)) {
+                enhancedRestaurants[actualIndex].rating = yelpBusiness.rating;
+              }
+
+              // Use Yelp review count if available and higher
+              if (yelpBusiness.review_count && yelpBusiness.review_count > (enhancedRestaurants[actualIndex].user_ratings_total || 0)) {
+                enhancedRestaurants[actualIndex].user_ratings_total = yelpBusiness.review_count;
+              }
             }
           }
+
+          // Process AI cuisine analysis
+          if (aiResult.status === 'fulfilled') {
+            const { data: aiData, error: aiError } = aiResult.value as any;
+            if (!aiError && aiData?.success) {
+              enhancedRestaurants[actualIndex] = {
+                ...enhancedRestaurants[actualIndex],
+                aiAnalysis: {
+                  cuisine: aiData.cuisine,
+                  categories: aiData.categories || []
+                }
+              };
+            }
+          }
+
         } catch (error) {
-          console.warn(`Failed to get Yelp data for ${restaurant.name}:`, error);
+          console.warn(`Failed to enhance data for ${restaurant.name}:`, error);
         }
       });
       
@@ -752,9 +788,18 @@ export default function UnifiedSearchPage() {
                         </div>
 
                         <div className="flex flex-wrap gap-1 mb-3" onClick={() => handlePlaceClick(place)}>
-                          {place.types.slice(0, 3).map(type => <Badge key={type} variant="outline" className="text-xs">
-                              {type.replace(/_/g, ' ')}
-                            </Badge>)}
+                          {/* Show AI-analyzed categories if available, otherwise fall back to processed types */}
+                          {(place.aiAnalysis?.categories || 
+                            place.types.filter(type => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))
+                                      .slice(0, 3))
+                            .map((category, index) => {
+                              const displayText = typeof category === 'string' ? category : String(category).replace(/_/g, ' ');
+                              return (
+                                <Badge key={index} variant="outline" className="text-xs">
+                                  {displayText}
+                                </Badge>
+                              );
+                            })}
                         </div>
 
                         <div className="flex gap-2">
