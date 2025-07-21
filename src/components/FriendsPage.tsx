@@ -358,7 +358,7 @@ export function FriendsPage({
   const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
   const [selectedPriceRanges, setSelectedPriceRanges] = useState<number[]>([]);
   const [ratingRange, setRatingRange] = useState<[number, number]>([0, 10]);
-  const [sortBy, setSortBy] = useState('newest');
+  const [sortBy, setSortBy] = useState('rating'); // Default to highest rated
   const [activeTab, setActiveTab] = useState('overview');
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -948,7 +948,7 @@ export function FriendsPage({
     setSelectedCuisines([]);
     setSelectedPriceRanges([]);
     setRatingRange([0, 10]);
-    setSortBy('newest');
+    setSortBy('rating'); // Reset to highest rated default
   };
 
   // Filter and sort restaurants for friend profile
