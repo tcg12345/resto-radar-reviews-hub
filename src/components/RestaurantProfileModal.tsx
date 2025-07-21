@@ -342,11 +342,12 @@ export function RestaurantProfileModal({
     window.open(url, '_blank');
   };
   return <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="sticky top-0 bg-background z-10 border-b pb-2">
+      <DialogContent className="max-w-6xl max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="sticky top-0 bg-background z-50 border-b px-6 py-4 flex-shrink-0">
           <DialogTitle className="text-2xl font-bold">{place.name}</DialogTitle>
         </DialogHeader>
-
+        
+        <div className="flex-1 overflow-y-auto px-6 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Main Info */}
           <div className="lg:col-span-2 space-y-6">
@@ -619,6 +620,7 @@ export function RestaurantProfileModal({
               </CardContent>
             </Card>
           </div>
+        </div>
         </div>
       </DialogContent>
     </Dialog>;
