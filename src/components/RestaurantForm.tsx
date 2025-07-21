@@ -622,15 +622,17 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     }
   };
 
-  const handleRestaurantSelect = (placeDetails: any) => {
+  const handleRestaurantSelect = async (placeDetails: any) => {
     try {
-      // Extract cuisine type from Google Places types
+      toast.loading('Auto-filling restaurant details...');
+
+      // Extract cuisine type from Google Places types (fallback)
       const getCuisineFromTypes = (types: string[]) => {
         const cuisineTypes = types.filter(type => 
           !['establishment', 'food', 'point_of_interest', 'restaurant'].includes(type)
         );
         const firstType = cuisineTypes[0];
-        if (!firstType) return 'Restaurant';
+        if (!firstType) return 'American';
         
         // Format cuisine type (e.g., 'italian_restaurant' -> 'Italian')
         return firstType
@@ -647,6 +649,30 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
         return '';
       };
 
+      // Get AI-enhanced restaurant data
+      let aiData = null;
+      try {
+        const { data: aiEnhancement, error: aiError } = await supabase.functions.invoke('ai-restaurant-enhancer', {
+          body: {
+            restaurant: {
+              name: placeDetails.name,
+              address: placeDetails.formatted_address,
+              city: extractCity(placeDetails.formatted_address),
+              country: placeDetails.formatted_address?.split(',').pop()?.trim()
+            }
+          }
+        });
+
+        if (aiError) {
+          console.warn('AI enhancement failed:', aiError);
+        } else {
+          aiData = aiEnhancement;
+          console.log('AI enhancement data:', aiData);
+        }
+      } catch (error) {
+        console.warn('AI enhancement error:', error);
+      }
+
       // Convert Google Photos to URLs (requires API key for photo reference)
       const convertPhotosToUrls = (photos: any[]) => {
         if (!photos || photos.length === 0) return [];
@@ -657,14 +683,18 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
         return [];
       };
 
-      // Auto-fill the form with Google Places data
+      // Auto-fill the form with combined Google Places and AI data
       setFormData(prev => ({
         ...prev,
         name: placeDetails.name || prev.name,
         address: placeDetails.formatted_address || prev.address,
         city: extractCity(placeDetails.formatted_address) || prev.city,
-        cuisine: getCuisineFromTypes(placeDetails.types) || prev.cuisine,
-        priceRange: placeDetails.price_level || prev.priceRange,
+        // Use AI-determined cuisine first, fallback to Google Places types, then previous value
+        cuisine: aiData?.cuisine || getCuisineFromTypes(placeDetails.types) || prev.cuisine,
+        // Use AI-determined price range first, fallback to Google Places price_level, then previous value
+        priceRange: aiData?.priceRange || placeDetails.price_level || prev.priceRange,
+        // Use AI-determined Michelin stars (Google Places doesn't provide this)
+        michelinStars: aiData?.michelinStars || prev.michelinStars,
         // Store Google Places specific data that will be used in the database
         googlePlaceId: placeDetails.place_id,
         website: placeDetails.website,
@@ -684,9 +714,18 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
         setPreviewImages(prev => [...prev, ...photoUrls]);
       }
 
-      toast.success(`${placeDetails.name} selected! All details auto-filled from Google Places.`);
+      // Show success message with AI enhancement details
+      toast.dismiss();
+      if (aiData) {
+        toast.success(
+          `${placeDetails.name} selected! Enhanced with AI: ${aiData.cuisine}${aiData.michelinStars ? ` (${aiData.michelinStars}★)` : ''} - ${'$'.repeat(aiData.priceRange)}`
+        );
+      } else {
+        toast.success(`${placeDetails.name} selected! Details auto-filled from Google Places.`);
+      }
     } catch (error) {
       console.error('Error processing restaurant selection:', error);
+      toast.dismiss();
       toast.error('Failed to auto-fill restaurant details');
     }
   };
