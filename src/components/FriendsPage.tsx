@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   Search, 
   UserPlus, 
@@ -14,7 +14,17 @@ import {
   Settings2,
   User,
   Check,
-  X
+  X,
+  ArrowLeft,
+  TrendingUp,
+  Award,
+  Target,
+  ChefHat,
+  BarChart3,
+  Filter,
+  SortAsc,
+  SortDesc,
+  Heart
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -24,6 +34,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFriends } from '@/hooks/useFriends';
 import { useFriendRestaurants } from '@/hooks/useFriendRestaurants';
 import { useAuth } from '@/contexts/AuthContext';
@@ -34,6 +45,7 @@ import { ContactPermission } from '@/components/ContactPermission';
 import { FriendProfilePopup } from '@/components/FriendProfilePopup';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface SearchResult {
   id: string;
@@ -286,6 +298,7 @@ function FriendProfileModal({ friend, isOpen, onClose }: FriendProfileModalProps
 
 export function FriendsPage() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const { 
     friends, 
     pendingRequests, 
@@ -297,6 +310,25 @@ export function FriendsPage() {
     searchUsers 
   } = useFriends();
   const { friendRestaurants, fetchAllFriendsRestaurants, rebuildFriendActivityCache } = useFriendRestaurants();
+  
+  // Navigation state
+  const [currentView, setCurrentView] = useState<'list' | 'profile'>('list');
+  const [viewingFriend, setViewingFriend] = useState<any>(null);
+  
+  // Friend profile data
+  const [friendProfile, setFriendProfile] = useState<any>(null);
+  const [friendRestaurantsData, setFriendRestaurantsData] = useState<any[]>([]);
+  const [friendWishlistData, setFriendWishlistData] = useState<any[]>([]);
+  const [friendStats, setFriendStats] = useState<any>({});
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+  const [displayedRestaurants, setDisplayedRestaurants] = useState(10);
+  const [displayedWishlist, setDisplayedWishlist] = useState(10);
+  
+  // Filter and sort states for friend profile
+  const [searchTerm, setSearchTerm] = useState('');
+  const [cuisineFilter, setCuisineFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('newest');
+  const [ratingFilter, setRatingFilter] = useState('all');
   
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -333,10 +365,17 @@ export function FriendsPage() {
   const handleRefreshCache = async () => {
     const success = await rebuildFriendActivityCache();
     if (success) {
-      toast.success('Friend activity refreshed!');
+      toast({
+        title: "Success",
+        description: "Friend activity refreshed!",
+      });
       loadInitialActivity();
     } else {
-      toast.error('Failed to refresh activity');
+      toast({
+        title: "Error",
+        description: "Failed to refresh activity",
+        variant: "destructive",
+      });
     }
   };
 
@@ -370,6 +409,245 @@ export function FriendsPage() {
     setShowContactPermission(false);
   };
 
+  // Friend profile navigation
+  const handleViewProfile = (friend: any) => {
+    setViewingFriend(friend);
+    setCurrentView('profile');
+    loadFriendProfile(friend);
+  };
+
+  const handleBackToList = () => {
+    setCurrentView('list');
+    setViewingFriend(null);
+    setFriendProfile(null);
+    setFriendRestaurantsData([]);
+    setFriendWishlistData([]);
+    setSearchTerm('');
+    setCuisineFilter('all');
+    setSortBy('newest');
+    setRatingFilter('all');
+  };
+
+  const loadFriendProfile = async (friendData: any) => {
+    setIsLoadingProfile(true);
+    try {
+      const { data: result, error } = await supabase
+        .rpc('get_friend_profile_data', { 
+          target_user_id: friendData.id,
+          requesting_user_id: user?.id,
+          restaurant_limit: 50
+        })
+        .single();
+
+      if (error || !result) {
+        console.error('Error fetching friend profile:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load friend profile",
+          variant: "destructive",
+        });
+        setIsLoadingProfile(false);
+        return;
+      }
+
+      if (!result.can_view) {
+        toast({
+          title: "Access Denied",
+          description: "Cannot view this friend's profile",
+          variant: "destructive",
+        });
+        setIsLoadingProfile(false);
+        return;
+      }
+
+      setFriendProfile(result);
+      setFriendStats({
+        rated_count: result.rated_count,
+        wishlist_count: result.wishlist_count,
+        avg_rating: result.avg_rating,
+        top_cuisine: result.top_cuisine,
+        michelin_count: result.michelin_count
+      });
+
+      const restaurants = Array.isArray(result.recent_restaurants) ? result.recent_restaurants : [];
+      setFriendRestaurantsData(restaurants);
+      
+      // Load additional data in background
+      loadAdditionalFriendData(friendData.id);
+      
+    } catch (error) {
+      console.error('Error loading friend profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load friend profile",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingProfile(false);
+    }
+  };
+
+  const loadAdditionalFriendData = async (friendId: string) => {
+    try {
+      // Load restaurants and wishlist separately for better performance
+      const [restaurantsResult, wishlistResult] = await Promise.all([
+        supabase
+          .from('restaurants')
+          .select('*')
+          .eq('user_id', friendId)
+          .eq('is_wishlist', false)
+          .order('date_visited', { ascending: false, nullsFirst: false })
+          .order('created_at', { ascending: false })
+          .limit(100),
+        supabase
+          .from('restaurants')
+          .select('*')
+          .eq('user_id', friendId)
+          .eq('is_wishlist', true)
+          .order('created_at', { ascending: false })
+          .limit(50)
+      ]);
+
+      if (restaurantsResult.data) {
+        setFriendRestaurantsData(restaurantsResult.data);
+      }
+      if (wishlistResult.data) {
+        setFriendWishlistData(wishlistResult.data);
+      }
+    } catch (error) {
+      console.error('Error loading additional friend data:', error);
+    }
+  };
+
+  const addToWishlist = async (restaurant: any) => {
+    if (!user) return;
+
+    try {
+      // Format location properly
+      let formattedLocation = restaurant.city;
+      if (restaurant.country) {
+        if (restaurant.country.toLowerCase() === 'united states' || 
+            restaurant.country.toLowerCase() === 'usa' || 
+            restaurant.country.toLowerCase() === 'us') {
+          // For USA, use "City, State" format if we have state info
+          const addressParts = restaurant.address?.split(',') || [];
+          const statePart = addressParts.find(part => 
+            part.trim().match(/^[A-Z]{2}$/) || // Two letter state code
+            part.trim().match(/^[A-Za-z\s]+$/) // Full state name
+          );
+          if (statePart) {
+            formattedLocation = `${restaurant.city}, ${statePart.trim()}`;
+          } else {
+            formattedLocation = `${restaurant.city}, USA`;
+          }
+        } else {
+          // For international, use "City, Country"
+          formattedLocation = `${restaurant.city}, ${restaurant.country}`;
+        }
+      }
+
+      const { error } = await supabase
+        .from('restaurants')
+        .insert({
+          user_id: user.id,
+          name: restaurant.name,
+          address: restaurant.address,
+          city: formattedLocation,
+          country: restaurant.country,
+          cuisine: restaurant.cuisine,
+          price_range: restaurant.price_range,
+          michelin_stars: restaurant.michelin_stars,
+          notes: restaurant.notes,
+          photos: restaurant.photos,
+          website: restaurant.website,
+          latitude: restaurant.latitude,
+          longitude: restaurant.longitude,
+          reservable: restaurant.reservable,
+          reservation_url: restaurant.reservation_url,
+          opening_hours: restaurant.opening_hours,
+          is_wishlist: true
+        });
+
+      if (error) {
+        console.error('Error adding to wishlist:', error);
+        toast({
+          title: "Error",
+          description: "Failed to add restaurant to wishlist",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: `${restaurant.name} added to your wishlist!`,
+        });
+      }
+    } catch (error) {
+      console.error('Error adding to wishlist:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add restaurant to wishlist",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Filter and sort restaurants for friend profile
+  const filteredAndSortedRestaurants = useMemo(() => {
+    let filtered = friendRestaurantsData;
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(restaurant => 
+        restaurant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        restaurant.cuisine?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        restaurant.city?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply cuisine filter
+    if (cuisineFilter !== 'all') {
+      filtered = filtered.filter(restaurant => restaurant.cuisine === cuisineFilter);
+    }
+
+    // Apply rating filter
+    if (ratingFilter !== 'all') {
+      const [min, max] = ratingFilter.split('-').map(Number);
+      filtered = filtered.filter(restaurant => {
+        const rating = restaurant.rating;
+        if (max) {
+          return rating >= min && rating <= max;
+        } else {
+          return rating >= min;
+        }
+      });
+    }
+
+    // Apply sorting
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case 'rating':
+          return (b.rating || 0) - (a.rating || 0);
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'cuisine':
+          return (a.cuisine || '').localeCompare(b.cuisine || '');
+        case 'oldest':
+          return new Date(a.date_visited || a.created_at).getTime() - new Date(b.date_visited || b.created_at).getTime();
+        case 'newest':
+        default:
+          return new Date(b.date_visited || b.created_at).getTime() - new Date(a.date_visited || a.created_at).getTime();
+      }
+    });
+
+    return sorted;
+  }, [friendRestaurantsData, searchTerm, cuisineFilter, sortBy, ratingFilter]);
+
+  // Get unique cuisines for filter
+  const uniqueCuisines = useMemo(() => {
+    const cuisines = new Set(friendRestaurantsData.map(r => r.cuisine).filter(Boolean));
+    return Array.from(cuisines).sort();
+  }, [friendRestaurantsData]);
+
   if (isLoading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
@@ -377,6 +655,225 @@ export function FriendsPage() {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="text-lg text-muted-foreground">Loading your friends...</p>
         </div>
+      </div>
+    );
+  }
+
+  // Friend Profile View
+  if (currentView === 'profile' && viewingFriend) {
+    return (
+      <div className="w-full px-4 py-8 max-w-7xl mx-auto">
+        {/* Header with back button */}
+        <div className="flex items-center gap-4 mb-8">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleBackToList}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Friends
+          </Button>
+          <div className="flex items-center gap-4">
+            <Avatar className="h-16 w-16">
+              <AvatarImage src={viewingFriend.avatar_url || ''} />
+              <AvatarFallback className="text-2xl">
+                {viewingFriend.username?.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <h1 className="text-3xl font-bold">@{viewingFriend.username}</h1>
+              {viewingFriend.name && (
+                <p className="text-lg text-muted-foreground">{viewingFriend.name}</p>
+              )}
+              <div className="flex items-center gap-3 mt-2">
+                <Badge variant={viewingFriend.is_public ? "default" : "secondary"}>
+                  {viewingFriend.is_public ? 'Public Profile' : 'Private Profile'}
+                </Badge>
+                <Badge variant="outline">
+                  <Star className="h-3 w-3 mr-1" />
+                  Score: {viewingFriend.score}
+                </Badge>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {isLoadingProfile ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center space-y-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="text-muted-foreground">Loading profile...</p>
+            </div>
+          </div>
+        ) : friendProfile ? (
+          <>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <Star className="h-8 w-8 text-primary mx-auto mb-2" />
+                  <div className="text-2xl font-bold">{friendStats.rated_count}</div>
+                  <div className="text-sm text-muted-foreground">Rated</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <Heart className="h-8 w-8 text-primary mx-auto mb-2" />
+                  <div className="text-2xl font-bold">{friendStats.wishlist_count}</div>
+                  <div className="text-sm text-muted-foreground">Wishlist</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <TrendingUp className="h-8 w-8 text-primary mx-auto mb-2" />
+                  <div className="text-2xl font-bold">{friendStats.avg_rating?.toFixed(1) || '0.0'}</div>
+                  <div className="text-sm text-muted-foreground">Avg Rating</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <Award className="h-8 w-8 text-primary mx-auto mb-2" />
+                  <div className="text-2xl font-bold">{friendStats.michelin_count}</div>
+                  <div className="text-sm text-muted-foreground">Michelin Stars</div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Filters and search */}
+            <div className="bg-card p-4 rounded-lg border mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search restaurants..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <Select value={cuisineFilter} onValueChange={setCuisineFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Cuisines" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Cuisines</SelectItem>
+                    {uniqueCuisines.map(cuisine => (
+                      <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={ratingFilter} onValueChange={setRatingFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Ratings" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Ratings</SelectItem>
+                    <SelectItem value="8">8+ Stars</SelectItem>
+                    <SelectItem value="6-8">6-8 Stars</SelectItem>
+                    <SelectItem value="4-6">4-6 Stars</SelectItem>
+                    <SelectItem value="0-4">Under 4 Stars</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Newest First</SelectItem>
+                    <SelectItem value="oldest">Oldest First</SelectItem>
+                    <SelectItem value="rating">Highest Rated</SelectItem>
+                    <SelectItem value="name">Name A-Z</SelectItem>
+                    <SelectItem value="cuisine">Cuisine</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Filter className="h-4 w-4" />
+                  {filteredAndSortedRestaurants.length} of {friendRestaurantsData.length}
+                </div>
+              </div>
+            </div>
+
+            {/* Restaurants Grid */}
+            <div className="grid gap-6">
+              {filteredAndSortedRestaurants.slice(0, displayedRestaurants).map((restaurant) => (
+                <Card key={restaurant.id} className="overflow-hidden">
+                  <CardContent className="p-6">
+                    <div className="grid md:grid-cols-3 gap-6">
+                      {/* Restaurant Info */}
+                      <div className="md:col-span-2 space-y-4">
+                        <div>
+                          <h3 className="text-xl font-bold mb-2">{restaurant.name}</h3>
+                          <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mb-3">
+                            <span className="flex items-center gap-1">
+                              <ChefHat className="h-4 w-4" />
+                              {restaurant.cuisine}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <MapPin className="h-4 w-4" />
+                              {restaurant.city}
+                            </span>
+                            {restaurant.date_visited && (
+                              <span className="flex items-center gap-1">
+                                <Calendar className="h-4 w-4" />
+                                {new Date(restaurant.date_visited).toLocaleDateString()}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-3">
+                            {restaurant.price_range && <PriceRange priceRange={restaurant.price_range} />}
+                            {restaurant.michelin_stars > 0 && <MichelinStars stars={restaurant.michelin_stars} />}
+                          </div>
+                        </div>
+                        
+                        {restaurant.notes && (
+                          <div className="bg-muted p-4 rounded-lg">
+                            <p className="text-sm leading-relaxed">{restaurant.notes}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Rating and Actions */}
+                      <div className="flex md:flex-col items-start md:items-end gap-4">
+                        <div className="text-center md:text-right">
+                          <div className="flex items-center gap-2 mb-2">
+                            <StarRating rating={restaurant.rating} readonly size="sm" />
+                            <span className="font-bold text-xl">{restaurant.rating?.toFixed(1)}</span>
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => addToWishlist(restaurant)}
+                          className="flex items-center gap-2"
+                        >
+                          <Heart className="h-4 w-4" />
+                          Add to Wishlist
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              
+              {displayedRestaurants < filteredAndSortedRestaurants.length && (
+                <div className="text-center mt-6">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setDisplayedRestaurants(prev => prev + 10)}
+                    className="flex items-center gap-2"
+                  >
+                    Load More ({filteredAndSortedRestaurants.length - displayedRestaurants} remaining)
+                  </Button>
+                </div>
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Failed to load profile data</p>
+          </div>
+        )}
       </div>
     );
   }
@@ -643,7 +1140,7 @@ export function FriendsPage() {
                           variant="outline"
                           size="sm"
                           className="flex-1"
-                          onClick={() => setSelectedFriend(friend)}
+                          onClick={() => handleViewProfile(friend)}
                         >
                           <Eye className="h-4 w-4 mr-2" />
                           View Profile
