@@ -391,18 +391,23 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
               {restaurant.phone_number && (
                 <div>
                   <h4 className="font-semibold mb-2">Phone</h4>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">{restaurant.phone_number}</span>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleCallPhone}
-                      className="h-7 text-xs"
-                    >
-                      <Phone className="h-3 w-3 mr-1" />
-                      Call
-                    </Button>
-                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={handleCallPhone}
+                    className="w-full h-auto p-3 justify-start hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/20">
+                        <Phone className="h-4 w-4 text-green-600 dark:text-green-500" />
+                      </div>
+                      <div className="flex flex-col items-start text-left">
+                        <span className="text-sm font-medium">Call Restaurant</span>
+                        <span className="text-xs text-muted-foreground">
+                          {restaurant.phone_number}
+                        </span>
+                      </div>
+                    </div>
+                  </Button>
                 </div>
               )}
               
