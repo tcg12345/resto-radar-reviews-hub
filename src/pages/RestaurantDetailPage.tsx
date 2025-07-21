@@ -261,11 +261,19 @@ export function RestaurantDetailPage() {
       <div className="flex items-center justify-between mb-6">
         <Button 
           variant="outline" 
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            if (friendId) {
+              // Navigate back to friend's profile if we came from there
+              navigate(`/friend/${friendId}`);
+            } else {
+              // Fall back to browser back navigation
+              navigate(-1);
+            }
+          }}
           className="flex items-center gap-2"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back
+          {friendId ? 'Back to Profile' : 'Back'}
         </Button>
         {friendProfile && (
           <Badge variant="secondary">
