@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, MapPin, Star, Heart, Phone, Globe, Navigation, Clock, Plus } from 'lucide-react';
+import { Search, MapPin, Star, Heart, Phone, Globe, Navigation, Clock, Plus, Truck, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,6 +34,14 @@ interface GooglePlaceResult {
   types: string[];
   opening_hours?: {
     open_now: boolean;
+  };
+  yelpData?: {
+    id: string;
+    url: string;
+    categories: string[];
+    price?: string;
+    photos: string[];
+    transactions: string[];
   };
 }
 interface PlaceDetails extends GooglePlaceResult {
@@ -297,7 +305,11 @@ export default function UnifiedSearchPage() {
       });
       if (error) throw error;
       if (data.status === 'OK') {
-        setSearchResults(data.results || []);
+        const results = data.results || [];
+        
+        // Enhance search results with Yelp data
+        const enhancedResults = await enhanceWithYelp(results);
+        setSearchResults(enhancedResults);
       } else {
         toast.error('No results found');
         setSearchResults([]);
@@ -308,6 +320,54 @@ export default function UnifiedSearchPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Function to enhance search results with Yelp data
+  const enhanceWithYelp = async (restaurants: GooglePlaceResult[]): Promise<GooglePlaceResult[]> => {
+    const enhancedRestaurants = await Promise.all(
+      restaurants.map(async (restaurant) => {
+        try {
+          const { data: yelpData, error: yelpError } = await supabase.functions.invoke('yelp-restaurant-data', {
+            body: {
+              action: 'search',
+              term: restaurant.name,
+              location: restaurant.formatted_address,
+              limit: 1,
+              sort_by: 'best_match'
+            }
+          });
+
+          if (!yelpError && yelpData?.businesses?.length > 0) {
+            const yelpBusiness = yelpData.businesses[0];
+            
+            restaurant.yelpData = {
+              id: yelpBusiness.id,
+              url: yelpBusiness.url,
+              categories: yelpBusiness.categories?.map((cat: any) => cat.title) || [],
+              price: yelpBusiness.price || undefined,
+              photos: yelpBusiness.photos || [],
+              transactions: yelpBusiness.transactions || []
+            };
+
+            // Use Yelp rating if available and higher
+            if (yelpBusiness.rating && yelpBusiness.rating > (restaurant.rating || 0)) {
+              restaurant.rating = yelpBusiness.rating;
+            }
+
+            // Use Yelp review count if available and higher
+            if (yelpBusiness.review_count && yelpBusiness.review_count > (restaurant.user_ratings_total || 0)) {
+              restaurant.user_ratings_total = yelpBusiness.review_count;
+            }
+          }
+        } catch (error) {
+          console.warn(`Failed to get Yelp data for ${restaurant.name}:`, error);
+        }
+        
+        return restaurant;
+      })
+    );
+    
+    return enhancedRestaurants;
   };
   const handlePlaceClick = async (place: GooglePlaceResult) => {
     try {
@@ -556,38 +616,100 @@ export default function UnifiedSearchPage() {
               <TabsContent value="list" className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {searchResults.map(place => <Card key={place.place_id} className="cursor-pointer hover:shadow-lg transition-shadow">
-                      <CardContent className="p-4" onClick={() => handlePlaceClick(place)}>
-                        <h3 className="font-semibold text-lg mb-2">{place.name}</h3>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <h3 className="font-semibold text-lg leading-tight line-clamp-2" onClick={() => handlePlaceClick(place)}>
+                            {place.name}
+                          </h3>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleQuickAdd(place);
+                            }}
+                            className="shrink-0 ml-2"
+                          >
+                            <Heart className="h-4 w-4" />
+                          </Button>
+                        </div>
                         
-                        <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center gap-2 mb-2" onClick={() => handlePlaceClick(place)}>
                           <MapPin className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm text-muted-foreground line-clamp-1">
                             {place.formatted_address}
                           </span>
                         </div>
 
-                        {place.rating && <div className="flex items-center gap-2 mb-2">
+                        {place.rating && <div className="flex items-center gap-2 mb-2" onClick={() => handlePlaceClick(place)}>
                             <Star className="h-4 w-4 text-yellow-500 fill-current" />
                             <span className="font-medium">{place.rating}</span>
                             {place.user_ratings_total && <span className="text-sm text-muted-foreground">
-                                ({place.user_ratings_total} reviews)
+                                ({place.user_ratings_total.toLocaleString()})
                               </span>}
                           </div>}
 
-                        <div className="flex items-center justify-between">
-                          <Badge variant="secondary">
-                            {getPriceDisplay(place.price_level)}
-                          </Badge>
+                        <div className="flex items-center justify-between mb-2" onClick={() => handlePlaceClick(place)}>
+                          <div className="flex">
+                            <span className="text-lg font-bold text-green-600">
+                              {place.yelpData?.price || getPriceDisplay(place.price_level)}
+                            </span>
+                          </div>
                           
                           {place.opening_hours?.open_now !== undefined && <Badge variant={place.opening_hours.open_now ? "default" : "destructive"}>
                               {place.opening_hours.open_now ? "Open" : "Closed"}
                             </Badge>}
                         </div>
 
-                        <div className="flex flex-wrap gap-1 mt-2">
+                        {/* Yelp Badge and Services */}
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          {place.yelpData && (
+                            <Badge variant="secondary" className="text-xs bg-red-100 text-red-800 border-red-200">
+                              Yelp ✓
+                            </Badge>
+                          )}
+                          {place.yelpData?.transactions?.includes('delivery') && (
+                            <Badge variant="outline" className="text-xs flex items-center gap-1">
+                              <Truck className="h-3 w-3" />
+                              Delivery
+                            </Badge>
+                          )}
+                          {place.yelpData?.transactions?.includes('pickup') && (
+                            <Badge variant="outline" className="text-xs flex items-center gap-1">
+                              <ShoppingBag className="h-3 w-3" />
+                              Pickup
+                            </Badge>
+                          )}
+                        </div>
+
+                        <div className="flex flex-wrap gap-1 mb-3" onClick={() => handlePlaceClick(place)}>
                           {place.types.slice(0, 3).map(type => <Badge key={type} variant="outline" className="text-xs">
                               {type.replace(/_/g, ' ')}
                             </Badge>)}
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePlaceClick(place)}
+                            className="flex-1"
+                          >
+                            View Details
+                          </Button>
+                          
+                          {place.yelpData && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.open(place.yelpData.url, '_blank');
+                              }}
+                            >
+                              <Star className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </CardContent>
                     </Card>)}
