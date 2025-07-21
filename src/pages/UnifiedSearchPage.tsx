@@ -382,7 +382,37 @@ export default function UnifiedSearchPage() {
       });
       if (error) throw error;
       if (data.status === 'OK') {
-        setSelectedPlace(data.result);
+        const detailedPlace = data.result;
+        
+        // Fetch Yelp data for the detailed view
+        try {
+          const { data: yelpData, error: yelpError } = await supabase.functions.invoke('yelp-restaurant-data', {
+            body: {
+              action: 'search',
+              term: detailedPlace.name,
+              location: detailedPlace.formatted_address,
+              limit: 1,
+              sort_by: 'best_match'
+            }
+          });
+
+          if (!yelpError && yelpData?.businesses?.length > 0) {
+            const yelpBusiness = yelpData.businesses[0];
+            
+            detailedPlace.yelpData = {
+              id: yelpBusiness.id,
+              url: yelpBusiness.url,
+              categories: yelpBusiness.categories?.map((cat: any) => cat.title) || [],
+              price: yelpBusiness.price || undefined,
+              photos: yelpBusiness.photos || [],
+              transactions: yelpBusiness.transactions || []
+            };
+          }
+        } catch (yelpError) {
+          console.warn(`Failed to get Yelp data for ${detailedPlace.name}:`, yelpError);
+        }
+        
+        setSelectedPlace(detailedPlace);
       }
     } catch (error) {
       console.error('Failed to get place details:', error);
