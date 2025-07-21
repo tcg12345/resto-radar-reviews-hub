@@ -69,8 +69,8 @@ function FriendProfileModal({ friend, isOpen, onClose }: FriendProfileModalProps
   const [restaurants, setRestaurants] = useState<any[]>([]);
   const [wishlist, setWishlist] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [displayedRestaurants, setDisplayedRestaurants] = useState(10);
-  const [displayedWishlist, setDisplayedWishlist] = useState(10);
+  const [displayedRestaurants, setDisplayedRestaurants] = useState(1000); // Show all restaurants by default
+  const [displayedWishlist, setDisplayedWishlist] = useState(1000); // Show all wishlist items by default
 
   useEffect(() => {
     if (isOpen && friend) {
@@ -82,8 +82,7 @@ function FriendProfileModal({ friend, isOpen, onClose }: FriendProfileModalProps
     if (!friend) return;
     
     setIsLoading(true);
-    setDisplayedRestaurants(10);
-    setDisplayedWishlist(10);
+    // Don't reset display limits - show all restaurants loaded from database
     
     try {
       // Use direct database call for much faster loading
@@ -226,17 +225,7 @@ function FriendProfileModal({ friend, isOpen, onClose }: FriendProfileModalProps
                       </CardContent>
                     </Card>
                   ))}
-                  {displayedRestaurants < restaurants.length && (
-                    <div className="text-center mt-6">
-                      <Button 
-                        variant="outline" 
-                        onClick={() => setDisplayedRestaurants(prev => prev + 10)}
-                        className="flex items-center gap-2"
-                      >
-                        Load More ({restaurants.length - displayedRestaurants} remaining)
-                      </Button>
-                    </div>
-                  )}
+                  {/* All restaurants are shown by default now */}
                 </div>
               )}
             </TabsContent>
@@ -279,17 +268,7 @@ function FriendProfileModal({ friend, isOpen, onClose }: FriendProfileModalProps
                       </CardContent>
                     </Card>
                   ))}
-                  {displayedWishlist < wishlist.length && (
-                    <div className="text-center mt-6">
-                      <Button 
-                        variant="outline" 
-                        onClick={() => setDisplayedWishlist(prev => prev + 10)}
-                        className="flex items-center gap-2"
-                      >
-                        Load More ({wishlist.length - displayedWishlist} remaining)
-                      </Button>
-                    </div>
-                  )}
+                  {/* All wishlist items are shown by default now */}
                 </div>
               )}
             </TabsContent>
@@ -371,8 +350,8 @@ export function FriendsPage({
   const [friendStats, setFriendStats] = useState<any>({});
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [isLoadingMoreDetails, setIsLoadingMoreDetails] = useState(false);
-  const [displayedRestaurants, setDisplayedRestaurants] = useState(10);
-  const [displayedWishlist, setDisplayedWishlist] = useState(10);
+  const [displayedRestaurants, setDisplayedRestaurants] = useState(1000); // Show all restaurants by default
+  const [displayedWishlist, setDisplayedWishlist] = useState(1000); // Show all wishlist items by default
   
   // Filter and sort states for friend profile
   const [searchTerm, setSearchTerm] = useState('');
@@ -1480,18 +1459,7 @@ export function FriendsPage({
                     </div>
                   </div>
 
-                  {/* Load All Button */}
-                  {displayedRestaurants < filteredAndSortedRestaurants.length && (
-                    <div className="flex justify-center">
-                      <Button 
-                        variant="default" 
-                        onClick={() => setDisplayedRestaurants(filteredAndSortedRestaurants.length)}
-                        className="flex items-center gap-2"
-                      >
-                        Load All ({filteredAndSortedRestaurants.length - displayedRestaurants} remaining)
-                      </Button>
-                    </div>
-                  )}
+                  {/* All restaurants are shown by default now */}
                 </div>
 
                 {/* Restaurants Grid */}
@@ -1551,17 +1519,7 @@ export function FriendsPage({
                     </Card>
                   ))}
                   
-                  {displayedRestaurants < filteredAndSortedRestaurants.length && (
-                    <div className="text-center mt-6">
-                      <Button 
-                        variant="outline" 
-                        onClick={() => setDisplayedRestaurants(prev => prev + 10)}
-                        className="flex items-center gap-2"
-                      >
-                        Load More ({filteredAndSortedRestaurants.length - displayedRestaurants} remaining)
-                      </Button>
-                    </div>
-                  )}
+                  {/* All restaurants are shown by default now */}
 
                   {filteredAndSortedRestaurants.length === 0 && (
                     <div className="text-center py-12">
@@ -1650,17 +1608,7 @@ export function FriendsPage({
                         </Card>
                       ))}
                       
-                      {displayedWishlist < friendWishlistData.length && (
-                        <div className="text-center mt-6">
-                          <Button 
-                            variant="outline" 
-                            onClick={() => setDisplayedWishlist(prev => prev + 10)}
-                            className="flex items-center gap-2"
-                          >
-                            Load More ({friendWishlistData.length - displayedWishlist} remaining)
-                          </Button>
-                        </div>
-                      )}
+                      {/* All wishlist items are shown by default now */}
                     </>
                   )}
                 </div>
