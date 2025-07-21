@@ -381,99 +381,126 @@ export function RestaurantDetailPage() {
               </div>
             </div>
 
-            {/* Website - Always show section with fallback */}
-            <div className="flex items-start gap-3">
-              <Globe className="h-5 w-5 text-muted-foreground mt-0.5" />
-              <div className="flex-1">
-                <div className="font-medium">Website</div>
-                {restaurant.website ? (
-                  <a 
-                    href={restaurant.website} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-sm text-blue-600 hover:underline flex items-center gap-1"
+            {/* Website - Always show section with modern styling */}
+            <div>
+              <div className="font-medium mb-2">Website</div>
+              {restaurant.website ? (
+                <a 
+                  href={restaurant.website} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="block"
+                >
+                  <div className="flex items-center p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 mr-3">
+                      <Globe className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">Visit Website</span>
+                      <span className="text-xs text-muted-foreground">
+                        {new URL(restaurant.website).hostname}
+                      </span>
+                    </div>
+                  </div>
+                </a>
+              ) : (
+                <div className="flex items-center p-3 rounded-lg border border-border bg-muted/20">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted mr-3">
+                    <Globe className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div className="flex flex-col flex-1">
+                    <span className="text-sm text-muted-foreground">Website not available</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        const searchQuery = `${restaurant.name} ${restaurant.city} restaurant website`;
+                        const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
+                        window.open(searchUrl, '_blank');
+                      } catch (error) {
+                        console.error('Error opening search:', error);
+                      }
+                    }}
+                    className="h-7 text-xs"
                   >
-                    Visit Website
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Not available</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={async () => {
-                        try {
-                          const searchQuery = `${restaurant.name} ${restaurant.city} restaurant website`;
-                          const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
-                          window.open(searchUrl, '_blank');
-                        } catch (error) {
-                          console.error('Error opening search:', error);
-                        }
-                      }}
-                      className="h-6 px-2 text-xs"
-                    >
-                      Search Online
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Phone - Always show section with fallback */}
-            <div className="flex items-start gap-3">
-              <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
-              <div className="flex-1">
-                <div className="font-medium">Phone</div>
-                {(restaurant as any).phone_number ? (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">{(restaurant as any).phone_number}</span>
-                    <a
-                      href={`tel:${(restaurant as any).phone_number}`}
-                      className="text-sm text-blue-600 hover:underline"
-                    >
-                      Call
-                    </a>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Not available</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={async () => {
-                        try {
-                          const searchQuery = `${restaurant.name} ${restaurant.city} restaurant phone number`;
-                          const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
-                          window.open(searchUrl, '_blank');
-                        } catch (error) {
-                          console.error('Error opening search:', error);
-                        }
-                      }}
-                      className="h-6 px-2 text-xs"
-                    >
-                      Find Phone
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {restaurant.latitude && restaurant.longitude && (
-              <div className="flex items-start gap-3">
-                <Navigation className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <div className="font-medium">Directions</div>
-                  <a
-                    href={`https://www.google.com/maps/dir/?api=1&destination=${restaurant.latitude},${restaurant.longitude}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-blue-600 hover:underline flex items-center gap-1"
-                  >
-                    Get Directions
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
+                    Search Online
+                  </Button>
                 </div>
+              )}
+            </div>
+
+            {/* Phone - Always show section with modern styling */}
+            <div>
+              <div className="font-medium mb-2">Phone</div>
+              {(restaurant as any).phone_number ? (
+                <a
+                  href={`tel:${(restaurant as any).phone_number}`}
+                  className="block"
+                >
+                  <div className="flex items-center p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/20 mr-3">
+                      <Phone className="h-4 w-4 text-green-600 dark:text-green-500" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">Call Restaurant</span>
+                      <span className="text-xs text-muted-foreground">
+                        {(restaurant as any).phone_number}
+                      </span>
+                    </div>
+                  </div>
+                </a>
+              ) : (
+                <div className="flex items-center p-3 rounded-lg border border-border bg-muted/20">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted mr-3">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div className="flex flex-col flex-1">
+                    <span className="text-sm text-muted-foreground">Phone not available</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        const searchQuery = `${restaurant.name} ${restaurant.city} restaurant phone number`;
+                        const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
+                        window.open(searchUrl, '_blank');
+                      } catch (error) {
+                        console.error('Error opening search:', error);
+                      }
+                    }}
+                    className="h-7 text-xs"
+                  >
+                    Find Phone
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Directions - Modern styling */}
+            {restaurant.latitude && restaurant.longitude && (
+              <div>
+                <div className="font-medium mb-2">Directions</div>
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${restaurant.latitude},${restaurant.longitude}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block"
+                >
+                  <div className="flex items-center p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/20 mr-3">
+                      <Navigation className="h-4 w-4 text-blue-600 dark:text-blue-500" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">Get Directions</span>
+                      <span className="text-xs text-muted-foreground">
+                        Open in Google Maps
+                      </span>
+                    </div>
+                  </div>
+                </a>
               </div>
             )}
 
