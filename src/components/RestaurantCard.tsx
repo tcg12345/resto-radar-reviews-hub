@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { MapPin, Clock, Tag, Edit2, Trash2, Eye, Bot } from 'lucide-react';
+import { MapPin, Clock, Tag, Edit2, Trash2, Eye, Bot, ExternalLink, Phone, Globe } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 import { 
@@ -114,6 +114,18 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
 
   const openGallery = () => {
     setIsGalleryOpen(true);
+  };
+
+  const handleOpenWebsite = () => {
+    if (restaurant.website) {
+      window.open(restaurant.website, '_blank');
+    }
+  };
+
+  const handleCallPhone = () => {
+    if (restaurant.phone_number) {
+      window.open(`tel:${restaurant.phone_number}`, '_blank');
+    }
   };
 
   return (
@@ -264,13 +276,13 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
         </div>
       </CardContent>
       
-      <CardFooter className="flex justify-end gap-1.5 pt-0 pb-3">
+      <CardFooter className="flex gap-2 pt-0 pb-3">
         <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
           <DialogTrigger asChild>
             <Button 
               size="sm" 
               variant="outline"
-              className="h-7 px-2 text-xs"
+              className="flex-1 h-7 px-2 text-xs"
             >
               <Eye className="mr-1 h-3 w-3" />
               Details
@@ -328,10 +340,11 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
                     </div>
                   </div>
                 )}
+                
                 {restaurant.priceRange && (
                   <div>
                     <h4 className="font-semibold mb-2">Price Range</h4>
-                    <span className="text-green-600 font-medium">{`${'$'.repeat(restaurant.priceRange)}`}</span>
+                    <PriceRange priceRange={restaurant.priceRange} readonly size="sm" />
                   </div>
                 )}
               </div>
@@ -346,33 +359,27 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
               {restaurant.dateVisited && (
                 <div>
                   <h4 className="font-semibold mb-2">Date Visited</h4>
-                  <p className="text-sm text-muted-foreground flex items-center">
-                    <Clock className="mr-1 h-3 w-3" />
-                    {format(new Date(restaurant.dateVisited), 'MMM d, yyyy')}
+                  <p className="text-sm text-muted-foreground">
+                    {format(new Date(restaurant.dateVisited), 'EEEE, MMMM do, yyyy')}
                   </p>
-                </div>
-              )}
-              
-              {restaurant.isWishlist && (
-                <div>
-                  <h4 className="font-semibold mb-2">Status</h4>
-                  <span className="inline-flex items-center rounded-full bg-accent/10 px-2.5 py-1 text-xs font-medium text-accent">
-                    Wishlist
-                  </span>
                 </div>
               )}
               
               {restaurant.website && (
                 <div>
                   <h4 className="font-semibold mb-2">Website</h4>
-                  <a 
-                    href={restaurant.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-primary hover:underline"
-                  >
-                    {restaurant.website}
-                  </a>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground truncate">{restaurant.website}</span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleOpenWebsite}
+                      className="h-7 text-xs"
+                    >
+                      <ExternalLink className="h-3 w-3 mr-1" />
+                      Visit
+                    </Button>
+                  </div>
                 </div>
               )}
               
@@ -381,12 +388,15 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
                   <h4 className="font-semibold mb-2">Phone</h4>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">{restaurant.phone_number}</span>
-                    <a
-                      href={`tel:${restaurant.phone_number}`}
-                      className="text-sm text-primary hover:underline"
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleCallPhone}
+                      className="h-7 text-xs"
                     >
+                      <Phone className="h-3 w-3 mr-1" />
                       Call
-                    </a>
+                    </Button>
                   </div>
                 </div>
               )}
@@ -403,39 +413,42 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
                   <p className="text-sm text-muted-foreground whitespace-pre-wrap">{restaurant.notes}</p>
                 </div>
               )}
+              
+              {/* Action buttons inside details modal */}
+              <div className="flex gap-2 pt-4 border-t">
+                {showAIReviewAssistant && !restaurant.isWishlist && (
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setIsAIReviewOpen(true)}
+                  >
+                    <Bot className="mr-1 h-3 w-3" />
+                    AI Review
+                  </Button>
+                )}
+                
+                {onEdit && (
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => onEdit(restaurant.id)}
+                  >
+                    <Edit2 className="mr-1 h-3 w-3" />
+                    Edit
+                  </Button>
+                )}
+              </div>
             </div>
           </DialogContent>
         </Dialog>
-        
-        {showAIReviewAssistant && !restaurant.isWishlist && (
-          <Button 
-            size="sm" 
-            variant="outline"
-            className="h-7 px-2 text-xs"
-            onClick={() => setIsAIReviewOpen(true)}
-          >
-            <Bot className="mr-1 h-3 w-3" />
-            AI Review
-          </Button>
-        )}
-        
-        {onEdit && (
-          <Button 
-            size="sm" 
-            variant="outline"
-            className="h-7 px-2 text-xs"
-            onClick={() => onEdit(restaurant.id)}
-          >
-            <Edit2 className="mr-1 h-3 w-3" />
-            Edit
-          </Button>
-        )}
         
         {onDelete && (
           <Button 
             size="sm" 
             variant="outline" 
-            className="h-7 px-2 text-xs text-destructive hover:bg-destructive/10"
+            className="flex-1 h-7 px-2 text-xs text-destructive hover:bg-destructive/10"
             onClick={() => onDelete(restaurant.id)}
           >
             <Trash2 className="mr-1 h-3 w-3" />
