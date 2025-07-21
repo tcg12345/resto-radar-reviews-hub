@@ -9,7 +9,8 @@ import {
   Heart,
   Phone,
   Clock,
-  ExternalLink
+  ExternalLink,
+  Navigation
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,8 @@ import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/components/StarRating';
 import { MichelinStars } from '@/components/MichelinStars';
 import { PriceRange } from '@/components/PriceRange';
+import { RestaurantLocationMap } from '@/components/RestaurantLocationMap';
+import { WeeklyOpeningHours } from '@/components/WeeklyOpeningHours';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -286,6 +289,23 @@ export function RestaurantDetailPage() {
         </Card>
       )}
 
+      {/* Location Map */}
+      {restaurant.latitude && restaurant.longitude && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Location</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <RestaurantLocationMap
+              latitude={restaurant.latitude}
+              longitude={restaurant.longitude}
+              name={restaurant.name}
+              address={restaurant.address}
+            />
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid md:grid-cols-2 gap-6">
         {/* Restaurant Details */}
         <Card>
@@ -323,14 +343,20 @@ export function RestaurantDetailPage() {
               </div>
             )}
 
-            {restaurant.opening_hours && (
+            {restaurant.latitude && restaurant.longitude && (
               <div className="flex items-start gap-3">
-                <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <Navigation className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>
-                  <div className="font-medium">Hours</div>
-                  <div className="text-sm text-muted-foreground whitespace-pre-line">
-                    {restaurant.opening_hours}
-                  </div>
+                  <div className="font-medium">Directions</div>
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${restaurant.latitude},${restaurant.longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-blue-600 hover:underline flex items-center gap-1"
+                  >
+                    Get Directions
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
                 </div>
               </div>
             )}
@@ -351,6 +377,18 @@ export function RestaurantDetailPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Opening Hours */}
+        {restaurant.opening_hours && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Opening Hours</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <WeeklyOpeningHours openingHours={restaurant.opening_hours} />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Notes */}
         {restaurant.notes && (
