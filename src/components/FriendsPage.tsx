@@ -857,9 +857,22 @@ export function FriendsPage() {
                                     }
                                   </p>
                                 </div>
-                                <div className="flex items-center gap-2 flex-shrink-0">
-                                  <StarRating rating={restaurant.rating} readonly size="sm" />
-                                  <span className="font-medium">{restaurant.rating?.toFixed(1)}</span>
+                                <div className="flex items-center gap-3 flex-shrink-0">
+                                  <div className="flex items-center gap-2">
+                                    <StarRating rating={restaurant.rating} readonly size="sm" />
+                                    <span className="font-medium">{restaurant.rating?.toFixed(1)}</span>
+                                  </div>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      navigate(`/restaurant/${restaurant.id}?friendId=${viewingFriend?.id}`);
+                                    }}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                    Details
+                                  </Button>
                                 </div>
                               </div>
                             ))}
