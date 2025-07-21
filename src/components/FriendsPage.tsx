@@ -92,7 +92,7 @@ function FriendProfileModal({ friend, isOpen, onClose }: FriendProfileModalProps
         .rpc('get_friend_profile_data', {
           target_user_id: friend.id,
           requesting_user_id: userData.user?.id || '',
-          restaurant_limit: 50 // Load more initially for better UX
+          restaurant_limit: 1000 // Load all restaurants, no artificial limit
         })
         .single();
 
