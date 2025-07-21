@@ -14,7 +14,7 @@ export function GrubbyLogo({ size = 'md', showText = true, className = '' }: Gru
   const { container, text } = dimensions[size];
 
   return (
-    <div className={`flex items-center space-x-2 justify-start ml-0 ${className}`}>
+    <div className={`flex items-center space-x-2 justify-start -ml-2 ${className}`}>
       <img 
         src="/lovable-uploads/42e9db1d-cc84-4c54-9adb-50dc08b98369.png" 
         alt="Grubby Logo" 
