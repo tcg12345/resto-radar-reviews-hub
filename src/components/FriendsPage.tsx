@@ -1099,6 +1099,19 @@ export function FriendsPage() {
                       <span>{filteredAndSortedRestaurants.length} of {friendRestaurantsData.length} restaurants</span>
                     </div>
                   </div>
+
+                  {/* Load All Button */}
+                  {displayedRestaurants < filteredAndSortedRestaurants.length && (
+                    <div className="flex justify-center">
+                      <Button 
+                        variant="default" 
+                        onClick={() => setDisplayedRestaurants(filteredAndSortedRestaurants.length)}
+                        className="flex items-center gap-2"
+                      >
+                        Load All ({filteredAndSortedRestaurants.length - displayedRestaurants} remaining)
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Restaurants Grid */}
