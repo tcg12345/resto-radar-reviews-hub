@@ -104,7 +104,7 @@ export default function UnifiedSearchPage() {
         setLiveSearchResults([]);
         setShowLiveResults(false);
       }
-    }, 500);
+    }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery, locationQuery]);
   const performLiveSearch = async () => {
@@ -308,9 +308,15 @@ export default function UnifiedSearchPage() {
       if (data.status === 'OK') {
         const results = data.results || [];
         
-        // Enhance search results with Yelp data
-        const enhancedResults = await enhanceWithYelp(results);
-        setSearchResults(enhancedResults);
+        // Show results immediately for faster response
+        setSearchResults(results);
+        
+        // Enhance with Yelp data in background (non-blocking)
+        enhanceWithYelp(results).then(enhancedResults => {
+          setSearchResults(enhancedResults);
+        }).catch(error => {
+          console.warn('Failed to enhance with Yelp data:', error);
+        });
       } else {
         toast.error('No results found');
         setSearchResults([]);
@@ -325,10 +331,21 @@ export default function UnifiedSearchPage() {
 
   // Function to enhance search results with Yelp data
   const enhanceWithYelp = async (restaurants: GooglePlaceResult[]): Promise<GooglePlaceResult[]> => {
-    const enhancedRestaurants = await Promise.all(
-      restaurants.map(async (restaurant) => {
+    // Limit concurrent Yelp requests to prevent API overload
+    const batchSize = 3;
+    const enhancedRestaurants = [...restaurants];
+    
+    for (let i = 0; i < restaurants.length; i += batchSize) {
+      const batch = restaurants.slice(i, i + batchSize);
+      const batchPromises = batch.map(async (restaurant, batchIndex) => {
+        const actualIndex = i + batchIndex;
         try {
-          const { data: yelpData, error: yelpError } = await supabase.functions.invoke('yelp-restaurant-data', {
+          // Add timeout to prevent hanging requests
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Yelp request timeout')), 3000)
+          );
+          
+          const yelpPromise = supabase.functions.invoke('yelp-restaurant-data', {
             body: {
               action: 'search',
               term: restaurant.name,
@@ -338,36 +355,42 @@ export default function UnifiedSearchPage() {
             }
           });
 
+          const { data: yelpData, error: yelpError } = await Promise.race([yelpPromise, timeoutPromise]) as any;
+
           if (!yelpError && yelpData?.businesses?.length > 0) {
             const yelpBusiness = yelpData.businesses[0];
             
-            restaurant.yelpData = {
-              id: yelpBusiness.id,
-              url: yelpBusiness.url,
-              categories: yelpBusiness.categories?.map((cat: any) => cat.title) || [],
-              price: yelpBusiness.price || undefined,
-              photos: yelpBusiness.photos || [],
-              transactions: yelpBusiness.transactions || [],
-              menu_url: yelpBusiness.menu_url || undefined
+            enhancedRestaurants[actualIndex] = {
+              ...enhancedRestaurants[actualIndex],
+              yelpData: {
+                id: yelpBusiness.id,
+                url: yelpBusiness.url,
+                categories: yelpBusiness.categories?.map((cat: any) => cat.title) || [],
+                price: yelpBusiness.price || undefined,
+                photos: yelpBusiness.photos || [],
+                transactions: yelpBusiness.transactions || [],
+                menu_url: yelpBusiness.menu_url || undefined
+              }
             };
 
             // Use Yelp rating if available and higher
-            if (yelpBusiness.rating && yelpBusiness.rating > (restaurant.rating || 0)) {
-              restaurant.rating = yelpBusiness.rating;
+            if (yelpBusiness.rating && yelpBusiness.rating > (enhancedRestaurants[actualIndex].rating || 0)) {
+              enhancedRestaurants[actualIndex].rating = yelpBusiness.rating;
             }
 
             // Use Yelp review count if available and higher
-            if (yelpBusiness.review_count && yelpBusiness.review_count > (restaurant.user_ratings_total || 0)) {
-              restaurant.user_ratings_total = yelpBusiness.review_count;
+            if (yelpBusiness.review_count && yelpBusiness.review_count > (enhancedRestaurants[actualIndex].user_ratings_total || 0)) {
+              enhancedRestaurants[actualIndex].user_ratings_total = yelpBusiness.review_count;
             }
           }
         } catch (error) {
           console.warn(`Failed to get Yelp data for ${restaurant.name}:`, error);
         }
-        
-        return restaurant;
-      })
-    );
+      });
+      
+      // Wait for current batch to complete before starting next batch
+      await Promise.allSettled(batchPromises);
+    }
     
     return enhancedRestaurants;
   };
