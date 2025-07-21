@@ -1379,6 +1379,7 @@ export function FriendsPage() {
           friend={selectedFriend}
           isOpen={!!selectedFriend}
           onClose={() => setSelectedFriend(null)}
+          onViewProfile={handleViewProfile}
         />
     </div>
   );

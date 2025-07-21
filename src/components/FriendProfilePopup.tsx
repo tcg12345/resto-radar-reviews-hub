@@ -13,9 +13,10 @@ interface FriendProfilePopupProps {
   friend: any;
   isOpen: boolean;
   onClose: () => void;
+  onViewProfile?: (friend: any) => void;
 }
 
-export function FriendProfilePopup({ friend, isOpen, onClose }: FriendProfilePopupProps) {
+export function FriendProfilePopup({ friend, isOpen, onClose, onViewProfile }: FriendProfilePopupProps) {
   const navigate = useNavigate();
   const [stats, setStats] = useState({
     ratedCount: 0,
@@ -63,7 +64,10 @@ export function FriendProfilePopup({ friend, isOpen, onClose }: FriendProfilePop
 
   const handleViewFullProfile = () => {
     onClose();
-    navigate(`/friends/${friend.id}`);
+    // Use callback to parent component to handle profile viewing
+    if (onViewProfile) {
+      onViewProfile(friend);
+    }
   };
 
   if (!friend) return null;
