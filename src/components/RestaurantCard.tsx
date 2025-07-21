@@ -368,18 +368,23 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
               {restaurant.website && (
                 <div>
                   <h4 className="font-semibold mb-2">Website</h4>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground truncate">{restaurant.website}</span>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleOpenWebsite}
-                      className="h-7 text-xs"
-                    >
-                      <ExternalLink className="h-3 w-3 mr-1" />
-                      Visit
-                    </Button>
-                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={handleOpenWebsite}
+                    className="w-full h-auto p-3 justify-start hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
+                        <Globe className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="flex flex-col items-start text-left">
+                        <span className="text-sm font-medium">Visit Website</span>
+                        <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                          {new URL(restaurant.website).hostname}
+                        </span>
+                      </div>
+                    </div>
+                  </Button>
                 </div>
               )}
               
