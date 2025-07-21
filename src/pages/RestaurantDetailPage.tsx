@@ -38,6 +38,7 @@ interface Restaurant {
   notes: string;
   photos: string[];
   website: string;
+  phone_number?: string;
   latitude: number;
   longitude: number;
   reservable: boolean;
@@ -45,7 +46,11 @@ interface Restaurant {
   opening_hours: string;
   date_visited: string;
   created_at: string;
+  updated_at?: string;
   user_id: string;
+  is_wishlist: boolean;
+  category_ratings?: any;
+  use_weighted_rating?: boolean;
 }
 
 interface Profile {
@@ -62,10 +67,47 @@ export function RestaurantDetailPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+  const [restaurant, setRestaurant] = useState<any>(null);
   const [friendProfile, setFriendProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
+
+  const fetchGooglePlacesDetails = async (restaurant: any) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('google-places-search', {
+        body: { 
+          type: 'details', 
+          placeId: restaurant.id  // Assuming restaurant.id is the Google Place ID
+        }
+      });
+
+      if (error) {
+        console.error('Error fetching Google Places details:', error);
+        return restaurant;
+      }
+
+      if (data?.result) {
+        const placeDetails = data.result;
+        // Update restaurant with additional details from Google Places
+        const updatedRestaurant = {
+          ...restaurant,
+          website: restaurant.website || placeDetails.website || '',
+          phone_number: restaurant.phone_number || placeDetails.formatted_phone_number || '',
+          opening_hours: restaurant.opening_hours || placeDetails.opening_hours?.weekday_text?.join('\n') || '',
+          photos: restaurant.photos?.length > 0 ? restaurant.photos : 
+            (placeDetails.photos?.map((photo: any) => 
+              `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo.photo_reference}&key=YOUR_API_KEY`
+            ) || [])
+        };
+        
+        return updatedRestaurant;
+      }
+    } catch (error) {
+      console.error('Error calling Google Places API:', error);
+    }
+    
+    return restaurant;
+  };
 
   useEffect(() => {
     const fetchRestaurantDetails = async () => {
@@ -87,7 +129,13 @@ export function RestaurantDetailPage() {
           return;
         }
 
-        setRestaurant(restaurantData);
+        // Try to enhance with Google Places data if missing website or phone
+        let enhancedRestaurant = restaurantData;
+        if (!restaurantData.website || !(restaurantData as any).phone_number) {
+          enhancedRestaurant = await fetchGooglePlacesDetails(restaurantData);
+        }
+
+        setRestaurant(enhancedRestaurant);
 
         // Fetch friend profile
         const { data: profileData, error: profileError } = await supabase
@@ -333,6 +381,24 @@ export function RestaurantDetailPage() {
                     Visit Website
                     <ExternalLink className="h-3 w-3" />
                   </a>
+                </div>
+              </div>
+            )}
+
+            {restaurant.phone_number && (
+              <div className="flex items-start gap-3">
+                <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div>
+                  <div className="font-medium">Phone</div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">{restaurant.phone_number}</span>
+                    <a
+                      href={`tel:${restaurant.phone_number}`}
+                      className="text-sm text-blue-600 hover:underline"
+                    >
+                      Call
+                    </a>
+                  </div>
                 </div>
               </div>
             )}
