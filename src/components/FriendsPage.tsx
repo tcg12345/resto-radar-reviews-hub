@@ -1617,15 +1617,30 @@ export function FriendsPage() {
                                     {restaurant.address && ` • ${restaurant.address}`}
                                   </p>
                                 </div>
-                                <div className="flex items-center gap-3 flex-wrap">
-                                  {(restaurant.priceRange || restaurant.price_range) && <PriceRange priceRange={restaurant.priceRange || restaurant.price_range} />}
-                                  {(restaurant.michelinStars || restaurant.michelin_stars) && <MichelinStars stars={restaurant.michelinStars || restaurant.michelin_stars} />}
-                                  <span className="text-xs text-muted-foreground">
-                                    {(restaurant.dateVisited || restaurant.date_visited)
-                                      ? new Date(restaurant.dateVisited || restaurant.date_visited).toLocaleDateString()
-                                      : new Date(restaurant.createdAt || restaurant.created_at).toLocaleDateString()
-                                    }
-                                  </span>
+                                <div className="flex items-center justify-between gap-3 flex-wrap">
+                                  <div className="flex items-center gap-3 flex-wrap">
+                                    {(restaurant.priceRange || restaurant.price_range) && <PriceRange priceRange={restaurant.priceRange || restaurant.price_range} />}
+                                    {(restaurant.michelinStars || restaurant.michelin_stars) && <MichelinStars stars={restaurant.michelinStars || restaurant.michelin_stars} />}
+                                    <span className="text-xs text-muted-foreground">
+                                      {(restaurant.dateVisited || restaurant.date_visited)
+                                        ? new Date(restaurant.dateVisited || restaurant.date_visited).toLocaleDateString()
+                                        : new Date(restaurant.createdAt || restaurant.created_at).toLocaleDateString()
+                                      }
+                                    </span>
+                                  </div>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      const restaurantId = restaurant.id || restaurant.restaurant_id;
+                                      const friendId = restaurant.userId || restaurant.friend_id;
+                                      navigate(`/restaurant/${restaurantId}?friendId=${friendId}`);
+                                    }}
+                                    className="flex items-center gap-2 flex-shrink-0"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                    Details
+                                  </Button>
                                 </div>
                                 {restaurant.notes && (
                                   <p className="text-sm p-2 bg-muted/50 rounded text-muted-foreground italic break-words">
