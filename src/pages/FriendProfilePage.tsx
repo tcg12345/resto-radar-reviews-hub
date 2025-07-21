@@ -79,30 +79,28 @@ export default function FriendProfilePage() {
     try {
       console.log('Loading friend profile data for:', friendData.id);
       
-      // Use cached friend profile for fast loading
+      // Use cached friend profile for lightning-fast loading
       const { data: cachedProfile, error } = await supabase
         .rpc('get_cached_friend_profile', { 
           target_user_id: friendData.id,
           requesting_user_id: user?.id
-        })
-        .single();
+        });
 
-      if (error || !cachedProfile) {
+      if (error) {
         console.error('Error fetching cached friend profile:', error);
         setIsLoading(false);
         return;
       }
 
-      const profile = cachedProfile as any;
-      
-      if (profile.error) {
-        console.log('Cannot view this friend\'s profile:', profile.error);
+      if (!cachedProfile || (cachedProfile as any).error) {
+        console.log('Cannot view this friend\'s profile or no cached data');
         setIsLoading(false);
         return;
       }
 
-      const profileData = profile.profile;
-      const statsData = profile.stats;
+      const profile = cachedProfile as any;
+      const profileData = profile.profile || {};
+      const statsData = profile.stats || {};
       const restaurantsData = profile.restaurants || [];
       const wishlistData = profile.wishlist || [];
 
