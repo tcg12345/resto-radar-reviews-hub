@@ -372,6 +372,19 @@ export default function UnifiedSearchPage() {
     return enhancedRestaurants;
   };
   const handlePlaceClick = async (place: GooglePlaceResult) => {
+    // Show modal immediately with basic data
+    setSelectedPlace({
+      ...place,
+      formatted_phone_number: undefined,
+      website: undefined,
+      opening_hours: place.opening_hours ? {
+        open_now: place.opening_hours.open_now,
+        weekday_text: []
+      } : undefined,
+      reviews: []
+    });
+
+    // Load detailed data in background
     try {
       const {
         data,
@@ -382,22 +395,25 @@ export default function UnifiedSearchPage() {
           type: 'details'
         }
       });
+      
       if (error) throw error;
+      
       if (data.status === 'OK') {
         const detailedPlace = data.result;
         
-        // Fetch Yelp data for the detailed view
-        try {
-          const { data: yelpData, error: yelpError } = await supabase.functions.invoke('yelp-restaurant-data', {
-            body: {
-              action: 'search',
-              term: detailedPlace.name,
-              location: detailedPlace.formatted_address,
-              limit: 1,
-              sort_by: 'best_match'
-            }
-          });
-
+        // Update modal with detailed Google data first
+        setSelectedPlace(detailedPlace);
+        
+        // Then fetch Yelp data in background (non-blocking)
+        supabase.functions.invoke('yelp-restaurant-data', {
+          body: {
+            action: 'search',
+            term: detailedPlace.name,
+            location: detailedPlace.formatted_address,
+            limit: 1,
+            sort_by: 'best_match'
+          }
+        }).then(({ data: yelpData, error: yelpError }) => {
           if (!yelpError && yelpData?.businesses?.length > 0) {
             const yelpBusiness = yelpData.businesses[0];
             
@@ -410,12 +426,13 @@ export default function UnifiedSearchPage() {
               transactions: yelpBusiness.transactions || [],
               menu_url: yelpBusiness.menu_url || undefined
             };
+            
+            // Update modal with Yelp data
+            setSelectedPlace({...detailedPlace});
           }
-        } catch (yelpError) {
-          console.warn(`Failed to get Yelp data for ${detailedPlace.name}:`, yelpError);
-        }
-        
-        setSelectedPlace(detailedPlace);
+        }).catch(error => {
+          console.warn('Failed to get Yelp data:', error);
+        });
       }
     } catch (error) {
       console.error('Failed to get place details:', error);
