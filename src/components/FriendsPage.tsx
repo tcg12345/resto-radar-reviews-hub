@@ -579,7 +579,7 @@ export function FriendsPage() {
         console.error('Error adding to wishlist:', error);
         toast({
           title: "Error",
-          description: "Failed to add restaurant to wishlist",
+          description: `Failed to add restaurant to wishlist: ${error.message}`,
           variant: "destructive",
         });
       } else {
@@ -592,7 +592,7 @@ export function FriendsPage() {
       console.error('Error adding to wishlist:', error);
       toast({
         title: "Error",
-        description: "Failed to add restaurant to wishlist",
+        description: `Failed to add restaurant to wishlist: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
     }
