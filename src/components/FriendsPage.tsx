@@ -527,29 +527,69 @@ export function FriendsPage() {
   };
 
   const addToWishlist = async (restaurant: any) => {
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to add restaurants to your wishlist",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       console.log('Adding restaurant to wishlist:', restaurant);
       
-      // Validate required fields
-      if (!restaurant.name || !restaurant.address || !restaurant.city || !restaurant.cuisine) {
-        console.error('Missing required fields:', {
-          name: !!restaurant.name,
-          address: !!restaurant.address,
-          city: !!restaurant.city,
-          cuisine: !!restaurant.cuisine
+      // Wait a bit for data to fully load if needed
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Validate required fields with better error messages
+      if (!restaurant.name) {
+        toast({
+          title: "Error", 
+          description: "Restaurant name is missing. Please try again.",
+          variant: "destructive",
         });
+        return;
+      }
+      
+      if (!restaurant.cuisine) {
         toast({
           title: "Error",
-          description: "Restaurant data is incomplete. Cannot add to wishlist.",
+          description: "Restaurant cuisine information is missing. Please try again.",
+          variant: "destructive", 
+        });
+        return;
+      }
+
+      // Check if restaurant already exists in user's wishlist
+      const { data: existingRestaurant, error: checkError } = await supabase
+        .from('restaurants')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('name', restaurant.name)
+        .eq('is_wishlist', true)
+        .maybeSingle();
+
+      if (checkError) {
+        console.error('Error checking existing restaurant:', checkError);
+        toast({
+          title: "Error",
+          description: "Failed to check if restaurant already exists",
           variant: "destructive",
         });
         return;
       }
 
+      if (existingRestaurant) {
+        toast({
+          title: "Already exists",
+          description: `${restaurant.name} is already in your wishlist!`,
+        });
+        return;
+      }
+
       // Format location properly
-      let formattedLocation = restaurant.city;
+      let formattedLocation = restaurant.city || '';
       if (restaurant.country) {
         if (restaurant.country.toLowerCase() === 'united states' || 
             restaurant.country.toLowerCase() === 'usa' || 
@@ -561,21 +601,21 @@ export function FriendsPage() {
             part.trim().match(/^[A-Za-z\s]+$/) // Full state name
           );
           if (statePart) {
-            formattedLocation = `${restaurant.city}, ${statePart.trim()}`;
+            formattedLocation = `${restaurant.city || ''}, ${statePart.trim()}`;
           } else {
-            formattedLocation = `${restaurant.city}, USA`;
+            formattedLocation = `${restaurant.city || ''}, USA`;
           }
         } else {
           // For international, use "City, Country"
-          formattedLocation = `${restaurant.city}, ${restaurant.country}`;
+          formattedLocation = `${restaurant.city || ''}, ${restaurant.country}`;
         }
       }
 
       const restaurantData = {
         user_id: user.id,
         name: restaurant.name,
-        address: restaurant.address,
-        city: formattedLocation,
+        address: restaurant.address || '',
+        city: formattedLocation || 'Unknown Location',
         country: restaurant.country || null,
         cuisine: restaurant.cuisine,
         price_range: restaurant.price_range || null,
@@ -595,7 +635,7 @@ export function FriendsPage() {
 
       const { error } = await supabase
         .from('restaurants')
-        .insert(restaurantData);
+        .insert([restaurantData]);
 
       if (error) {
         console.error('Supabase error adding to wishlist:', error);
