@@ -27,6 +27,7 @@ interface DbRestaurant {
   user_id: string;
   opening_hours: string | null;
   website: string | null;
+  phone_number: string | null;
 }
 
 interface RestaurantContextType {
@@ -68,6 +69,7 @@ const mapDbRestaurantToRestaurant = (dbRestaurant: DbRestaurant): Restaurant => 
   userId: dbRestaurant.user_id,
   openingHours: dbRestaurant.opening_hours ?? undefined,
   website: dbRestaurant.website ?? undefined,
+  phone_number: dbRestaurant.phone_number ?? undefined,
 });
 
 export function RestaurantProvider({ children }: RestaurantProviderProps) {
@@ -86,7 +88,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
           // User is authenticated, fetch their restaurants
           const { data, error } = await supabase
             .from('restaurants')
-            .select('id, name, address, city, country, cuisine, rating, notes, date_visited, is_wishlist, latitude, longitude, category_ratings, use_weighted_rating, price_range, michelin_stars, created_at, updated_at, user_id, opening_hours, website')
+            .select('id, name, address, city, country, cuisine, rating, notes, date_visited, is_wishlist, latitude, longitude, category_ratings, use_weighted_rating, price_range, michelin_stars, created_at, updated_at, user_id, opening_hours, website, phone_number')
             .eq('user_id', session.user.id)
             .order('created_at', { ascending: false });
 
@@ -201,6 +203,9 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         use_weighted_rating: data.useWeightedRating,
         price_range: data.priceRange ?? null,
         michelin_stars: data.michelinStars ?? null,
+        website: (data as any).website ?? null,
+        phone_number: (data as any).phone_number ?? null,
+        opening_hours: (data as any).openingHours ?? null,
         user_id: session.user.id,
       };
       
@@ -314,6 +319,9 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
           use_weighted_rating: data.useWeightedRating,
           price_range: data.priceRange ?? null,
           michelin_stars: data.michelinStars ?? null,
+          website: (data as any).website ?? null,
+          phone_number: (data as any).phone_number ?? null,
+          opening_hours: (data as any).openingHours ?? null,
           // user_id is already set, no need to update it
         })
         .eq('id', id)

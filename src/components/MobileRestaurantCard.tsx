@@ -246,6 +246,33 @@ export function MobileRestaurantCard({
               </div>
             )}
             
+            {restaurant.website && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Website</p>
+                <Button onClick={handleOpenWebsite} variant="outline" size="sm" className="w-full justify-start">
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Visit Website
+                </Button>
+              </div>
+            )}
+            
+            {restaurant.phone_number && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Phone</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground flex-1">{restaurant.phone_number}</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open(`tel:${restaurant.phone_number}`, '_self')}
+                  >
+                    <Phone className="h-4 w-4 mr-1" />
+                    Call
+                  </Button>
+                </div>
+              </div>
+            )}
+            
             <div className="flex gap-2 pt-4">
               {restaurant.website && (
                 <Button onClick={handleOpenWebsite} className="flex-1">

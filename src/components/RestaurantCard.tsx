@@ -375,6 +375,21 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
                 </div>
               )}
               
+              {restaurant.phone_number && (
+                <div>
+                  <h4 className="font-semibold mb-2">Phone</h4>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">{restaurant.phone_number}</span>
+                    <a
+                      href={`tel:${restaurant.phone_number}`}
+                      className="text-sm text-primary hover:underline"
+                    >
+                      Call
+                    </a>
+                  </div>
+                </div>
+              )}
+              
               {restaurant.openingHours && (
                 <div>
                   <OpeningHoursDisplay hours={restaurant.openingHours.split('\n')} />
