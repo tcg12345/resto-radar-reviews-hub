@@ -82,10 +82,10 @@ All colors MUST be HSL.
     --muted: 220 14% 96%;
     --muted-foreground: 215 16% 47%;
 
-    /* Premium accent - Rich gold */
-    --accent: 45 93% 47%;
+    /* Premium accent - Vibrant teal */
+    --accent: 180 85% 50%;
     --accent-foreground: 0 0% 100%;
-    --accent-muted: 45 20% 95%;
+    --accent-muted: 180 20% 95%;
 
     /* Success color - Forest green */
     --success: 142 71% 45%;
@@ -128,7 +128,7 @@ All colors MUST be HSL.
 
     /* Sophisticated gradients */
     --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%) 0%, hsl(221 83% 63%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(45 93% 47%) 0%, hsl(45 93% 57%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(180 85% 50%) 0%, hsl(180 85% 60%) 100%);
     --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(220 14% 98%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(220 14% 98%) 100%);
     --gradient-hero: linear-gradient(135deg, hsl(221 83% 53%) 0%, hsl(221 83% 45%) 50%, hsl(240 10% 8%) 100%);
@@ -172,10 +172,10 @@ All colors MUST be HSL.
     --muted: 240 4% 16%;
     --muted-foreground: 215 20% 65%;
 
-    /* Dark mode accent - Rich gold */
-    --accent: 45 93% 57%;
+    /* Dark mode accent - Vibrant teal */
+    --accent: 180 85% 60%;
     --accent-foreground: 0 0% 100%;
-    --accent-muted: 45 20% 16%;
+    --accent-muted: 180 20% 16%;
 
     /* Dark mode success */
     --success: 142 71% 55%;
@@ -216,7 +216,7 @@ All colors MUST be HSL.
 
     /* Dark mode gradients */
     --gradient-primary: linear-gradient(135deg, hsl(221 83% 63%) 0%, hsl(221 83% 73%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(45 93% 57%) 0%, hsl(45 93% 67%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(180 85% 60%) 0%, hsl(180 85% 70%) 100%);
     --gradient-subtle: linear-gradient(180deg, hsl(240 10% 8%) 0%, hsl(240 6% 10%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(240 6% 10%) 0%, hsl(240 4% 14%) 100%);
     --gradient-hero: linear-gradient(135deg, hsl(240 10% 8%) 0%, hsl(221 83% 23%) 50%, hsl(221 83% 53%) 100%);
