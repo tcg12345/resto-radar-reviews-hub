@@ -181,6 +181,10 @@ export function NotificationsPanel() {
     // Mark as read
     await markAsRead(notificationId);
     
+    // Get the notification to find the sender ID
+    const notification = notifications.find(n => n.id === notificationId);
+    const senderId = notification?.data?.sender_id;
+    
     // Update share status
     try {
       await supabase
@@ -195,8 +199,8 @@ export function NotificationsPanel() {
     // Close popover
     setOpen(false);
     
-    // Navigate to restaurant
-    navigate(`/restaurant/${restaurantId}`);
+    // Navigate to restaurant with sender ID as friendId
+    navigate(`/restaurant/${restaurantId}?friendId=${senderId}`);
   };
 
   const formatTimeAgo = (date: string) => {
