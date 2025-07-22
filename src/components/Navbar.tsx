@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/contexts/AuthContext';
 import { GrubbyLogo } from '@/components/GrubbyLogo';
+import { NotificationsPanel } from '@/components/NotificationsPanel';
 
 interface NavbarProps {
   activeTab: 'home' | 'rated' | 'wishlist' | 'map' | 'search' | 'settings' | 'friends';
@@ -61,15 +62,18 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
 
         <div className="flex items-center space-x-2">
           {user ? (
-            <Button
-              variant="ghost"
-              size="lg"
-              onClick={() => onTabChange('settings')}
-              className="h-12 w-12"
-            >
-              <Settings className="h-8 w-8" />
-              <span className="sr-only">Settings</span>
-            </Button>
+            <>
+              <NotificationsPanel />
+              <Button
+                variant="ghost"
+                size="lg"
+                onClick={() => onTabChange('settings')}
+                className="h-12 w-12"
+              >
+                <Settings className="h-8 w-8" />
+                <span className="sr-only">Settings</span>
+              </Button>
+            </>
           ) : (
             <Button 
               variant="outline" 
