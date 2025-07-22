@@ -57,20 +57,50 @@ export function NotificationsPanel() {
     
     fetchNotifications();
 
-    // Set up real-time subscription
+    // Set up real-time subscription for new notifications only
     const subscription = supabase
       .channel('notifications-changes')
       .on('postgres_changes', 
         { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
         (payload) => {
-          // Add new notification to the list
-          setNotifications(prev => [payload.new as Notification, ...prev]);
+          // Add new notification to the list only if it doesn't exist
+          setNotifications(prev => {
+            const exists = prev.some(n => n.id === payload.new.id);
+            if (exists) return prev;
+            return [payload.new as Notification, ...prev];
+          });
           setUnreadCount(prev => prev + 1);
           
           // Show toast for new notification
           toast(payload.new.title, {
             description: payload.new.message,
           });
+        }
+      )
+      .on('postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          // Remove deleted notification from local state
+          setNotifications(prev => prev.filter(n => n.id !== payload.old.id));
+          
+          // Update unread count if the deleted notification was unread
+          if (!payload.old.read_at) {
+            setUnreadCount(prev => Math.max(0, prev - 1));
+          }
+        }
+      )
+      .on('postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          // Update notification in local state
+          setNotifications(prev => 
+            prev.map(n => n.id === payload.new.id ? payload.new as Notification : n)
+          );
+          
+          // Update unread count if read status changed
+          if (payload.old.read_at === null && payload.new.read_at !== null) {
+            setUnreadCount(prev => Math.max(0, prev - 1));
+          }
         }
       )
       .subscribe();
