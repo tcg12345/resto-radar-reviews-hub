@@ -59,8 +59,15 @@ export default function FriendProfilePage() {
   // Filter and sort states
   const [searchTerm, setSearchTerm] = useState('');
   const [cuisineFilter, setCuisineFilter] = useState('all');
+  const [cityFilter, setCityFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [ratingFilter, setRatingFilter] = useState('all');
+  
+  // Wishlist filter states
+  const [wishlistSearchTerm, setWishlistSearchTerm] = useState('');
+  const [wishlistCuisineFilter, setWishlistCuisineFilter] = useState('all');
+  const [wishlistCityFilter, setWishlistCityFilter] = useState('all');
+  const [wishlistSortBy, setWishlistSortBy] = useState('newest');
 
   useEffect(() => {
     if (!friendId || !user) return;
@@ -242,12 +249,14 @@ export default function FriendProfilePage() {
       
       const matchesCuisine = cuisineFilter === 'all' || restaurant.cuisine === cuisineFilter;
       
+      const matchesCity = cityFilter === 'all' || restaurant.city === cityFilter;
+      
       const matchesRating = ratingFilter === 'all' || 
                            (ratingFilter === 'high' && restaurant.rating >= 8) ||
                            (ratingFilter === 'medium' && restaurant.rating >= 6 && restaurant.rating < 8) ||
                            (ratingFilter === 'low' && restaurant.rating < 6);
       
-      return matchesSearch && matchesCuisine && matchesRating;
+      return matchesSearch && matchesCuisine && matchesCity && matchesRating;
     });
 
     // Sort filtered results
@@ -272,13 +281,63 @@ export default function FriendProfilePage() {
     }
 
     return filtered;
-  }, [allRestaurants, searchTerm, cuisineFilter, sortBy, ratingFilter]);
+  }, [allRestaurants, searchTerm, cuisineFilter, cityFilter, sortBy, ratingFilter]);
 
   // Get unique cuisines for filter dropdown
   const availableCuisines = useMemo(() => {
     const cuisines = [...new Set(allRestaurants.map(r => r.cuisine))].filter(Boolean);
     return cuisines.sort();
   }, [allRestaurants]);
+
+  // Get unique cities for filter dropdown
+  const availableCities = useMemo(() => {
+    const cities = [...new Set(allRestaurants.map(r => r.city))].filter(Boolean);
+    return cities.sort();
+  }, [allRestaurants]);
+
+  // Filtered wishlist with memoization for performance
+  const filteredWishlist = useMemo(() => {
+    let filtered = allWishlist.filter(restaurant => {
+      const matchesSearch = restaurant.name.toLowerCase().includes(wishlistSearchTerm.toLowerCase()) ||
+                          restaurant.cuisine.toLowerCase().includes(wishlistSearchTerm.toLowerCase()) ||
+                          (restaurant.address && restaurant.address.toLowerCase().includes(wishlistSearchTerm.toLowerCase()));
+      
+      const matchesCuisine = wishlistCuisineFilter === 'all' || restaurant.cuisine === wishlistCuisineFilter;
+      
+      const matchesCity = wishlistCityFilter === 'all' || restaurant.city === wishlistCityFilter;
+      
+      return matchesSearch && matchesCuisine && matchesCity;
+    });
+
+    // Sort filtered results
+    switch (wishlistSortBy) {
+      case 'name':
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'cuisine':
+        filtered.sort((a, b) => a.cuisine.localeCompare(b.cuisine));
+        break;
+      case 'oldest':
+        filtered.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+        break;
+      default: // newest
+        filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
+
+    return filtered;
+  }, [allWishlist, wishlistSearchTerm, wishlistCuisineFilter, wishlistCityFilter, wishlistSortBy]);
+
+  // Get unique cuisines for wishlist filter dropdown
+  const availableWishlistCuisines = useMemo(() => {
+    const cuisines = [...new Set(allWishlist.map(r => r.cuisine))].filter(Boolean);
+    return cuisines.sort();
+  }, [allWishlist]);
+
+  // Get unique cities for wishlist filter dropdown
+  const availableWishlistCities = useMemo(() => {
+    const cities = [...new Set(allWishlist.map(r => r.city))].filter(Boolean);
+    return cities.sort();
+  }, [allWishlist]);
 
   // Add restaurant to current user's wishlist
   const addToWishlist = async (restaurant: any) => {
@@ -565,7 +624,7 @@ export default function FriendProfilePage() {
             {/* Filter and Sort Controls */}
             <Card className="mb-6">
               <CardContent className="p-6">
-                <div className="grid gap-4 md:grid-cols-4">
+                <div className="grid gap-4 md:grid-cols-5">
                   <div>
                     <label className="text-sm font-medium mb-2 block">Search</label>
                     <Input
@@ -585,6 +644,21 @@ export default function FriendProfilePage() {
                         <SelectItem value="all">All Cuisines</SelectItem>
                         {availableCuisines.map(cuisine => (
                           <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">City</label>
+                    <Select value={cityFilter} onValueChange={setCityFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All cities" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Cities</SelectItem>
+                        {availableCities.map(city => (
+                          <SelectItem key={city} value={city}>{city}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -629,9 +703,9 @@ export default function FriendProfilePage() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-lg text-muted-foreground">No rated restaurants yet</p>
+                  <p className="text-lg text-muted-foreground">No rated restaurants found</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {friend.username} hasn't rated any restaurants
+                    Try adjusting your filters to see more results
                   </p>
                 </CardContent>
               </Card>
@@ -734,19 +808,87 @@ export default function FriendProfilePage() {
 
           {/* Wishlist Tab */}
           <TabsContent value="wishlist" className="mt-8">
-            {wishlist.length === 0 ? (
+            {/* Wishlist Filter Controls */}
+            {allWishlist.length > 0 && (
+              <Card className="mb-6">
+                <CardContent className="p-6">
+                  <div className="grid gap-4 md:grid-cols-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Search</label>
+                      <Input
+                        placeholder="Search wishlist..."
+                        value={wishlistSearchTerm}
+                        onChange={(e) => setWishlistSearchTerm(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Cuisine</label>
+                      <Select value={wishlistCuisineFilter} onValueChange={setWishlistCuisineFilter}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="All cuisines" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Cuisines</SelectItem>
+                          {availableWishlistCuisines.map(cuisine => (
+                            <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">City</label>
+                      <Select value={wishlistCityFilter} onValueChange={setWishlistCityFilter}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="All cities" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Cities</SelectItem>
+                          {availableWishlistCities.map(city => (
+                            <SelectItem key={city} value={city}>{city}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Sort By</label>
+                      <Select value={wishlistSortBy} onValueChange={setWishlistSortBy}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sort by..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="newest">Newest First</SelectItem>
+                          <SelectItem value="oldest">Oldest First</SelectItem>
+                          <SelectItem value="name">Name (A-Z)</SelectItem>
+                          <SelectItem value="cuisine">Cuisine (A-Z)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {filteredWishlist.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
                   <Eye className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-lg text-muted-foreground">No wishlist items yet</p>
+                  <p className="text-lg text-muted-foreground">
+                    {allWishlist.length === 0 ? "No wishlist items yet" : "No wishlist items found"}
+                  </p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {friend.username} hasn't added any restaurants to their wishlist
+                    {allWishlist.length === 0 
+                      ? `${friend.username} hasn't added any restaurants to their wishlist`
+                      : "Try adjusting your filters to see more results"
+                    }
                   </p>
                 </CardContent>
               </Card>
             ) : (
               <div className="grid gap-4">
-                {wishlist.slice(0, displayedWishlist).map((restaurant) => (
+                {filteredWishlist.slice(0, displayedWishlist).map((restaurant) => (
                    <Card key={restaurant.id} className="overflow-hidden">
                      <CardContent className="p-4 sm:p-6">
                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
@@ -771,14 +913,14 @@ export default function FriendProfilePage() {
                     </CardContent>
                   </Card>
                 ))}
-                {displayedWishlist < allWishlist.length && (
+                {displayedWishlist < filteredWishlist.length && (
                   <div className="text-center mt-6">
                     <Button 
                       variant="outline" 
                       onClick={loadMoreWishlist}
                       className="flex items-center gap-2"
                     >
-                      Load More ({allWishlist.length - displayedWishlist} remaining)
+                      Load More ({filteredWishlist.length - displayedWishlist} remaining)
                     </Button>
                   </div>
                 )}
