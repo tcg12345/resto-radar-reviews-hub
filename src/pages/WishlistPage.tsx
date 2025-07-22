@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Heart } from 'lucide-react';
+import { Plus, Heart, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RestaurantCard } from '@/components/RestaurantCard';
@@ -14,6 +14,7 @@ interface WishlistPageProps {
   onAddRestaurant: (data: RestaurantFormData) => void;
   onEditRestaurant: (id: string, data: RestaurantFormData) => void;
   onDeleteRestaurant: (id: string) => void;
+  onRefresh?: () => void;
 }
 
 export function WishlistPage({
@@ -21,6 +22,7 @@ export function WishlistPage({
   onAddRestaurant,
   onEditRestaurant,
   onDeleteRestaurant,
+  onRefresh,
 }: WishlistPageProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -88,10 +90,17 @@ export function WishlistPage({
     <div className="container py-6 mobile-container px-4 sm:px-6">
       <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Restaurant Wishlist</h2>
-        <Button onClick={() => setIsAddDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add to Wishlist
-        </Button>
+        <div className="flex items-center gap-2">
+          {onRefresh && (
+            <Button variant="outline" size="sm" onClick={onRefresh}>
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+          )}
+          <Button onClick={() => setIsAddDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add to Wishlist
+          </Button>
+        </div>
       </div>
 
       <div className="mb-6">
