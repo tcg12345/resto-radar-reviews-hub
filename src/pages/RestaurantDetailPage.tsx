@@ -185,7 +185,7 @@ export function RestaurantDetailPage() {
         return;
       }
 
-      // Add to wishlist
+      // Add to wishlist without copying photos
       const restaurantData = {
         user_id: user.id,
         name: restaurant.name,
@@ -196,7 +196,7 @@ export function RestaurantDetailPage() {
         price_range: restaurant.price_range,
         michelin_stars: restaurant.michelin_stars,
         notes: restaurant.notes,
-        photos: restaurant.photos,
+        photos: [], // Don't copy friend's photos
         website: restaurant.website,
         phone_number: restaurant.phone_number,
         latitude: restaurant.latitude,
