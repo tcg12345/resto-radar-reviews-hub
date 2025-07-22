@@ -270,7 +270,6 @@ export function FriendsPage({
   onInitialViewProcessed?: () => void; 
 } = {}) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const navigate = useNavigate();
   const { 
     friends, 
