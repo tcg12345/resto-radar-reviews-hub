@@ -526,7 +526,7 @@ export function RestaurantProfileModal({
 
                               {/* Stats Cards */}
                               <div className="flex gap-3">
-                                {place.rating && <div className="flex-1 relative overflow-hidden rounded-xl bg-gradient-to-br from-yellow-100 via-yellow-50 to-orange-100 p-4 shadow-md border border-yellow-200/60">
+                                {place.rating && <div className="flex-1 relative overflow-hidden rounded-xl bg-gradient-to-br from-yellow-200 via-yellow-100 to-orange-200 p-4 shadow-md border border-yellow-200/60">
                                     <div className="absolute top-0 right-0 w-12 h-12 bg-yellow-300/20 rounded-full -mr-6 -mt-6"></div>
                                     <div className="relative">
                                       <div className="flex items-center gap-2 mb-2">
@@ -543,7 +543,7 @@ export function RestaurantProfileModal({
                                     </div>
                                   </div>}
 
-                                {place.price_level && <div className="flex-1 relative overflow-hidden rounded-xl bg-gradient-to-br from-green-100 via-green-50 to-emerald-100 p-4 shadow-md border border-green-200/60">
+                                {place.price_level && <div className="flex-1 relative overflow-hidden rounded-xl bg-gradient-to-br from-green-200 via-green-100 to-emerald-200 p-4 shadow-md border border-green-200/60">
                                     <div className="absolute bottom-0 left-0 w-10 h-10 bg-green-300/20 rounded-full -ml-5 -mb-5"></div>
                                     <div className="relative">
                                       <div className="flex items-center gap-2 mb-2">
