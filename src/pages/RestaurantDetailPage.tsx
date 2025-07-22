@@ -590,7 +590,7 @@ export function RestaurantDetailPage() {
                 </div>
               </div>
 
-              <div className="h-96 w-full [&_>_*]:!rounded-none [&_canvas]:!rounded-none">
+              <div className="h-80 w-full [&_>_*]:!rounded-none [&_canvas]:!rounded-none [&_>_*]:!h-full">
                 <RestaurantLocationMap 
                   latitude={restaurant.latitude} 
                   longitude={restaurant.longitude} 

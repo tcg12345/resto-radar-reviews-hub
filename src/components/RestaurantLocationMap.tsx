@@ -72,12 +72,12 @@ export function RestaurantLocationMap({ latitude, longitude, name, address }: Re
   }, [token, latitude, longitude, name, address]);
 
   if (isLoading) {
-    return <Skeleton className="h-64 w-full rounded-lg" />;
+    return <Skeleton className="h-full w-full" />;
   }
 
   if (!token) {
     return (
-      <div className="h-64 bg-muted rounded-lg flex items-center justify-center">
+      <div className="h-full bg-muted flex items-center justify-center">
         <div className="text-center text-muted-foreground">
           <p>Map not available</p>
           <p className="text-xs mt-1">Mapbox token required</p>
@@ -87,7 +87,7 @@ export function RestaurantLocationMap({ latitude, longitude, name, address }: Re
   }
 
   return (
-    <div className="relative h-64 w-full rounded-lg overflow-hidden">
+    <div className="relative h-full w-full overflow-hidden">
       <div ref={mapContainer} className="h-full w-full">
         {!mapLoaded && (
           <div className="absolute inset-0 flex items-center justify-center bg-muted">
