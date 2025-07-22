@@ -669,14 +669,16 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <div className="space-y-3">
                           {place.opening_hours.weekday_text.map((hours, index) => (
-                            <div key={index} className="bg-muted/30 hover:bg-muted/50 rounded-lg p-3 border transition-colors duration-200">
-                              <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
-                                {hours.split(': ')[0]}
-                              </div>
-                              <div className="text-sm font-semibold text-foreground">
-                                {hours.split(': ')[1] || 'Closed'}
+                            <div key={index} className="bg-muted/30 hover:bg-muted/50 rounded-lg p-4 border transition-colors duration-200 w-full">
+                              <div className="flex justify-between items-center">
+                                <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                                  {hours.split(': ')[0]}
+                                </div>
+                                <div className="text-sm font-semibold text-foreground">
+                                  {hours.split(': ')[1] || 'Closed'}
+                                </div>
                               </div>
                             </div>
                           ))}
