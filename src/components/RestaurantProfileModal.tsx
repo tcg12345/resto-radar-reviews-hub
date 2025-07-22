@@ -535,7 +535,10 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                                   )}
 
                                   {place.website && (
-                                    <div className="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-card to-card/95 p-5 shadow-sm hover:shadow-md transition-all duration-300">
+                                    <div 
+                                      className="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-card to-card/95 p-5 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
+                                      onClick={() => window.open(place.website, '_blank', 'noopener noreferrer')}
+                                    >
                                       <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                                       <div className="relative flex items-center gap-3">
                                         <div className="p-2.5 rounded-lg bg-purple-100 group-hover:bg-purple-200 transition-colors duration-300">
@@ -543,14 +546,9 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                                         </div>
                                         <div className="flex-1 min-w-0">
                                           <h4 className="text-xs font-medium text-purple-600 uppercase tracking-wider mb-1">Website</h4>
-                                          <a 
-                                            href={place.website} 
-                                            target="_blank" 
-                                            rel="noopener noreferrer"
-                                            className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors duration-200 truncate block"
-                                          >
+                                          <p className="text-sm font-semibold text-primary transition-colors duration-200 truncate">
                                             {place.website.replace(/^https?:\/\//, '')}
-                                          </a>
+                                          </p>
                                         </div>
                                       </div>
                                     </div>
