@@ -61,13 +61,13 @@ export const colorThemes: ColorTheme[] = [
   {
     id: 'royal-purple',
     name: 'Royal Purple',
-    description: 'Elegant purple with vibrant teal accents',
+    description: 'Elegant purple with vibrant amber accents',
     colors: {
       primary: '263 70% 50%',
       primaryGlow: '263 70% 60%',
       primaryMuted: '263 20% 94%',
-      accent: '180 85% 50%',
-      accentMuted: '180 20% 95%',
+      accent: '43 96% 56%',
+      accentMuted: '43 20% 95%',
       success: '142 71% 45%',
       warning: '43 96% 56%',
     }
