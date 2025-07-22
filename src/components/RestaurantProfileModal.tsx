@@ -342,290 +342,402 @@ export function RestaurantProfileModal({
     window.open(url, '_blank');
   };
   return <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] flex flex-col p-0">
-        <DialogHeader className="sticky top-0 bg-background z-50 border-b px-6 py-4 flex-shrink-0 flex flex-row items-center justify-between">
-          <DialogTitle className="text-2xl font-bold">{place.name}</DialogTitle>
-          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </Button>
+      <DialogContent className="max-w-7xl max-h-[95vh] flex flex-col p-0">
+        <DialogHeader className="sticky top-0 bg-background z-50 border-b px-6 py-4 flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <DialogTitle className="text-2xl font-bold">{place.name}</DialogTitle>
+              {place.opening_hours?.open_now !== undefined && (
+                <Badge variant={place.opening_hours.open_now ? "default" : "destructive"} className="text-sm">
+                  <Clock className="h-3 w-3 mr-1" />
+                  {place.opening_hours.open_now ? "Open Now" : "Closed"}
+                </Badge>
+              )}
+            </div>
+            <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 shrink-0">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </Button>
+          </div>
         </DialogHeader>
         
-        <div className="flex-1 overflow-y-auto px-6 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Main Info */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Basic Info */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MapPin className="h-5 w-5" />
-                    Location & Contact
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Address</p>
-                    <p>{place.formatted_address}</p>
-                  </div>
-                  
-                  {place.formatted_phone_number && <div>
-                      <p className="text-sm text-muted-foreground">Phone</p>
-                      <p>{place.formatted_phone_number}</p>
-                    </div>}
-
-                  {place.website && <div>
-                      <p className="text-sm text-muted-foreground">Website</p>
-                      
-                    </div>}
-
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    <Button size="sm" onClick={handleCallRestaurant} disabled={!place.formatted_phone_number} className="flex-1 min-w-0">
-                      <Phone className="h-4 w-4 mr-2 flex-shrink-0" />
-                      <span className="truncate">Call</span>
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={handleVisitWebsite} disabled={!place.website} className="flex-1 min-w-0">
-                      <Globe className="h-4 w-4 mr-2 flex-shrink-0" />
-                      <span className="truncate">Website</span>
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={handleGetDirections} className="flex-1 min-w-0">
-                      <Navigation className="h-4 w-4 mr-2 flex-shrink-0" />
-                      <span className="truncate">Directions</span>
-                    </Button>
-                    {place.yelpData && (
-                      <Button size="sm" variant="outline" onClick={() => window.open(place.yelpData!.url, '_blank')} className="flex-1 min-w-0">
-                        <Star className="h-4 w-4 mr-2 flex-shrink-0" />
-                        <span className="truncate">View on Yelp</span>
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Star className="h-5 w-5" />
-                    Ratings & Info
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {place.rating && <div>
-                      <button onClick={handleRatingClick} className="flex items-center gap-2 mb-2 hover:opacity-80 transition-opacity cursor-pointer">
-                        <span className="text-2xl font-bold">{place.rating}</span>
-                        <div className="flex">
-                          {[1, 2, 3, 4, 5].map(star => <Star key={star} className={`h-5 w-5 ${star <= Math.round(place.rating!) ? 'text-yellow-500 fill-current' : 'text-gray-300'}`} />)}
-                        </div>
-                      </button>
-                      {place.user_ratings_total && <p className="text-sm text-muted-foreground">
-                          Based on {place.user_ratings_total} reviews
-                        </p>}
-                    </div>}
-
-                  <div>
-                    <p className="text-sm text-muted-foreground">Price Level</p>
-                    <p className="font-semibold">{getPriceDisplay(place.price_level)}</p>
-                  </div>
-
-                  {place.opening_hours?.open_now !== undefined && <div>
-                      <p className="text-sm text-muted-foreground">Status</p>
-                      <Badge variant={place.opening_hours.open_now ? "default" : "destructive"}>
-                        <Clock className="h-3 w-3 mr-1" />
-                        {place.opening_hours.open_now ? "Open Now" : "Closed"}
-                      </Badge>
-                    </div>}
-
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    <Button size="sm" onClick={handleAddToWishlist} disabled={isAddingToWishlist || !user} className="flex-1 min-w-0">
-                      <Heart className="h-4 w-4 mr-2 flex-shrink-0" />
-                      <span className="truncate">Add to Wishlist</span>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Opening Hours */}
-            {place.opening_hours?.weekday_text && <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="h-5 w-5" />
-                    Opening Hours
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {place.opening_hours.weekday_text.map((hours, index) => <p key={index} className="text-sm">
-                        {hours}
-                      </p>)}
-                  </div>
-                </CardContent>
-              </Card>}
-
-
-            {user && <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Star className="h-5 w-5" />
-                    Add Your Rating & Review
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-2">Your Rating</p>
-                    <StarRating rating={userRating} onRatingChange={setUserRating} />
-                  </div>
-                  
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-2">Your Review (Optional)</p>
-                    <Textarea placeholder="Share your experience..." value={userReview} onChange={e => setUserReview(e.target.value)} rows={3} />
-                  </div>
-
-                  {/* Photo Upload */}
-                  <div>
-                    <Label htmlFor="review-photos" className="text-sm text-muted-foreground">
-                      Add Photos (Optional)
-                    </Label>
-                    <div className="mt-2 space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploadingPhotos || reviewPhotoUrls.length >= 5}>
-                          <Camera className="h-4 w-4 mr-2" />
-                          {uploadingPhotos ? 'Uploading...' : 'Add Photos'}
-                        </Button>
-                        <span className="text-xs text-muted-foreground">
-                          {reviewPhotoUrls.length}/5 photos
-                        </span>
-                      </div>
-                      
-                      <Input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={e => {
-                    if (e.target.files) {
-                      handlePhotoUpload(e.target.files);
-                    }
-                  }} />
-
-                      {/* Photo Preview */}
-                      {reviewPhotoUrls.length > 0 && <div className="grid grid-cols-5 gap-2">
-                          {reviewPhotoUrls.map((url, index) => <div key={index} className="relative">
-                              <img src={url} alt={`Review photo ${index + 1}`} className="w-full h-16 object-cover rounded border" />
-                              <Button type="button" variant="destructive" size="sm" className="absolute -top-2 -right-2 h-6 w-6 p-0" onClick={() => removePhoto(index)}>
-                                ×
-                              </Button>
-                            </div>)}
-                        </div>}
+        <div className="flex-1 overflow-y-auto">
+          {/* Hero Section with Key Info */}
+          <div className="bg-gradient-to-r from-primary/5 to-primary/10 px-6 py-6 border-b">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-center">
+              {/* Quick Stats */}
+              <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
+                {place.rating && (
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-primary">{place.rating}</div>
+                    <div className="flex justify-center mb-1">
+                      {[1, 2, 3, 4, 5].map(star => 
+                        <Star key={star} className={`h-4 w-4 ${star <= Math.round(place.rating!) ? 'text-yellow-500 fill-current' : 'text-gray-300'}`} />
+                      )}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {place.user_ratings_total} reviews
                     </div>
                   </div>
-
-                  <Button onClick={handleAddToRatings} disabled={isSubmittingReview || userRating === 0}>
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Add to My Ratings
+                )}
+                
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-primary">{getPriceDisplay(place.price_level)}</div>
+                  <div className="text-xs text-muted-foreground">Price Level</div>
+                </div>
+                
+                {aiCuisine && (
+                  <div className="text-center">
+                    <Badge variant="secondary" className="text-sm font-medium">{aiCuisine}</Badge>
+                    <div className="text-xs text-muted-foreground mt-1">Cuisine</div>
+                  </div>
+                )}
+                
+                {place.yelpData && (
+                  <div className="text-center">
+                    <Badge variant="outline" className="text-sm">
+                      <Star className="h-3 w-3 mr-1" />
+                      Yelp
+                    </Badge>
+                    <div className="text-xs text-muted-foreground mt-1">Available</div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="lg:col-span-2">
+                <div className="grid grid-cols-2 gap-3">
+                  <Button onClick={handleCallRestaurant} disabled={!place.formatted_phone_number} className="w-full">
+                    <Phone className="h-4 w-4 mr-2" />
+                    Call
                   </Button>
-                </CardContent>
-              </Card>}
+                  <Button variant="outline" onClick={handleGetDirections} className="w-full">
+                    <Navigation className="h-4 w-4 mr-2" />
+                    Directions
+                  </Button>
+                  <Button variant="outline" onClick={handleVisitWebsite} disabled={!place.website} className="w-full">
+                    <Globe className="h-4 w-4 mr-2" />
+                    Website
+                  </Button>
+                  <Button variant="outline" onClick={handleAddToWishlist} disabled={isAddingToWishlist || !user} className="w-full">
+                    <Heart className="h-4 w-4 mr-2" />
+                    Wishlist
+                  </Button>
+                </div>
+                
+                {place.yelpData && (
+                  <Button variant="secondary" onClick={() => window.open(place.yelpData!.url, '_blank')} className="w-full mt-3">
+                    <Star className="h-4 w-4 mr-2" />
+                    View on Yelp
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
 
-            {/* Google Reviews */}
-            {place.reviews && place.reviews.length > 0 && <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <MessageSquare className="h-5 w-5" />
-                      Google Reviews
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" onClick={handleViewMoreReviews} className="flex items-center gap-1">
-                        <ExternalLink className="h-4 w-4" />
-                        View More Reviews
-                      </Button>
-                      <Select value={reviewSortBy} onValueChange={(value: 'recent' | 'helpful' | 'rating') => setReviewSortBy(value)}>
-                        <SelectTrigger className="w-32">
-                          <Filter className="h-4 w-4 mr-2" />
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="recent">Most Recent</SelectItem>
-                          <SelectItem value="helpful">Most Helpful</SelectItem>
-                          <SelectItem value="rating">Highest Rated</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {getSortedReviews().slice(0, showAllReviews ? getSortedReviews().length : 3).map((review, index) => <div key={index} className="border-b last:border-b-0 pb-4 last:pb-0">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold">{review.author_name}</span>
-                          <div className="flex">
-                            {[1, 2, 3, 4, 5].map(star => <Star key={star} className={`h-4 w-4 ${star <= review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'}`} />)}
-                          </div>
-                        </div>
-                        <span className="text-sm text-muted-foreground">
-                          {new Date(review.time * 1000).toLocaleDateString()}
-                        </span>
+          <div className="px-6 py-6">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+              {/* Main Content */}
+              <div className="xl:col-span-2 space-y-6">
+                {/* Contact Information */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <MapPin className="h-5 w-5" />
+                      Contact Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid gap-4">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Address</p>
+                        <p className="text-sm">{place.formatted_address}</p>
                       </div>
-                      <p className="text-sm text-muted-foreground">{review.text}</p>
-                    </div>)}
-                  
-                  {/* Show More/Less Reviews Button */}
-                  {getSortedReviews().length > 3 && <div className="pt-4 border-t">
-                      <Button variant="outline" size="sm" onClick={() => setShowAllReviews(!showAllReviews)} className="w-full">
-                        {showAllReviews ? 'Show Less Reviews' : `Show All ${getSortedReviews().length} Google Reviews`}
+                      
+                      {place.formatted_phone_number && (
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Phone</p>
+                          <p className="text-sm">{place.formatted_phone_number}</p>
+                        </div>
+                      )}
+
+                      {place.website && (
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Website</p>
+                          <a 
+                            href={place.website} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-sm text-primary hover:underline"
+                          >
+                            {place.website}
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Opening Hours */}
+                {place.opening_hours?.weekday_text && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Clock className="h-5 w-5" />
+                        Opening Hours
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {place.opening_hours.weekday_text.map((hours, index) => (
+                          <div key={index} className="flex justify-between text-sm">
+                            <span className="font-medium">{hours.split(': ')[0]}</span>
+                            <span className="text-muted-foreground">{hours.split(': ')[1]}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* User Rating Section */}
+                {user && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Star className="h-5 w-5" />
+                        Add Your Rating & Review
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground mb-3">Your Rating</p>
+                        <StarRating rating={userRating} onRatingChange={setUserRating} />
+                      </div>
+                      
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground mb-3">Your Review (Optional)</p>
+                        <Textarea 
+                          placeholder="Share your experience..." 
+                          value={userReview} 
+                          onChange={e => setUserReview(e.target.value)} 
+                          rows={4}
+                          className="resize-none"
+                        />
+                      </div>
+
+                      {/* Photo Upload */}
+                      <div>
+                        <Label className="text-sm font-medium text-muted-foreground">
+                          Add Photos (Optional)
+                        </Label>
+                        <div className="mt-3 space-y-4">
+                          <div className="flex items-center gap-3">
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => fileInputRef.current?.click()} 
+                              disabled={uploadingPhotos || reviewPhotoUrls.length >= 5}
+                              className="min-w-[120px]"
+                            >
+                              <Camera className="h-4 w-4 mr-2" />
+                              {uploadingPhotos ? 'Uploading...' : 'Add Photos'}
+                            </Button>
+                            <span className="text-xs text-muted-foreground">
+                              {reviewPhotoUrls.length}/5 photos
+                            </span>
+                          </div>
+                          
+                          <Input 
+                            ref={fileInputRef} 
+                            type="file" 
+                            accept="image/*" 
+                            multiple 
+                            className="hidden" 
+                            onChange={e => {
+                              if (e.target.files) {
+                                handlePhotoUpload(e.target.files);
+                              }
+                            }} 
+                          />
+
+                          {/* Photo Preview */}
+                          {reviewPhotoUrls.length > 0 && (
+                            <div className="grid grid-cols-5 gap-3">
+                              {reviewPhotoUrls.map((url, index) => (
+                                <div key={index} className="relative aspect-square">
+                                  <img 
+                                    src={url} 
+                                    alt={`Review photo ${index + 1}`} 
+                                    className="w-full h-full object-cover rounded-lg border" 
+                                  />
+                                  <Button 
+                                    type="button" 
+                                    variant="destructive" 
+                                    size="sm" 
+                                    className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full" 
+                                    onClick={() => removePhoto(index)}
+                                  >
+                                    ×
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <Button 
+                        onClick={handleAddToRatings} 
+                        disabled={isSubmittingReview || userRating === 0}
+                        className="w-full"
+                      >
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        {isSubmittingReview ? 'Adding...' : 'Add to My Ratings'}
                       </Button>
-                    </div>}
-                  
-                  {/* Note about Google Reviews */}
-                  <div className="pt-2 text-xs text-muted-foreground text-center">
-                    Showing all available Google Reviews (up to {getSortedReviews().length} reviews)
-                  </div>
-                </CardContent>
-              </Card>}
-          </div>
+                    </CardContent>
+                  </Card>
+                )}
 
-          {/* Right Column - Map & Categories */}
-          <div className="lg:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5" />
-                  Location
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64 rounded-lg overflow-hidden">
-                  <GlobalSearchMap restaurants={[place]} onRestaurantClick={() => {}} center={{
-                  lat: place.geometry.location.lat,
-                  lng: place.geometry.location.lng
-                }} />
-                </div>
-              </CardContent>
-            </Card>
+                {/* Google Reviews */}
+                {place.reviews && place.reviews.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <MessageSquare className="h-5 w-5" />
+                          Google Reviews
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={handleViewMoreReviews} 
+                            className="flex items-center gap-2"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                            View More
+                          </Button>
+                          <Select 
+                            value={reviewSortBy} 
+                            onValueChange={(value: 'recent' | 'helpful' | 'rating') => setReviewSortBy(value)}
+                          >
+                            <SelectTrigger className="w-36">
+                              <Filter className="h-4 w-4 mr-2" />
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="recent">Most Recent</SelectItem>
+                              <SelectItem value="helpful">Most Helpful</SelectItem>
+                              <SelectItem value="rating">Highest Rated</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {getSortedReviews().slice(0, showAllReviews ? getSortedReviews().length : 3).map((review, index) => (
+                        <div key={index} className="border-b last:border-b-0 pb-4 last:pb-0">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <span className="font-medium">{review.author_name}</span>
+                              <div className="flex">
+                                {[1, 2, 3, 4, 5].map(star => 
+                                  <Star key={star} className={`h-4 w-4 ${star <= review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'}`} />
+                                )}
+                              </div>
+                            </div>
+                            <span className="text-sm text-muted-foreground">
+                              {new Date(review.time * 1000).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground leading-relaxed">{review.text}</p>
+                        </div>
+                      ))}
+                      
+                      {/* Show More/Less Reviews Button */}
+                      {getSortedReviews().length > 3 && (
+                        <div className="pt-4 border-t">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => setShowAllReviews(!showAllReviews)} 
+                            className="w-full"
+                          >
+                            {showAllReviews ? 'Show Less Reviews' : `Show All ${getSortedReviews().length} Reviews`}
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
 
-            {/* Categories */}
-            <Card className="mt-4">
-              <CardHeader>
-                <CardTitle>
-                  {aiCuisine && <div className="mb-2">
-                      <Badge variant="secondary" className="text-sm">
-                        {aiCuisine}
-                      </Badge>
-                    </div>}
-                  Categories
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {(aiCategories.length > 0 ? aiCategories : place.types).map(type => <Badge key={type} variant="outline">
-                      {type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                    </Badge>)}
-                  {isLoadingAiAnalysis && <Badge variant="outline" className="animate-pulse">
-                      Analyzing...
-                    </Badge>}
-                </div>
-              </CardContent>
-            </Card>
+              {/* Sidebar */}
+              <div className="xl:col-span-1 space-y-6">
+                {/* Map */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <MapPin className="h-5 w-5" />
+                      Location
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-64 rounded-lg overflow-hidden">
+                      <GlobalSearchMap 
+                        restaurants={[place]} 
+                        onRestaurantClick={() => {}} 
+                        center={{
+                          lat: place.geometry.location.lat,
+                          lng: place.geometry.location.lng
+                        }} 
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Categories */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Categories & Tags</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {aiCuisine && (
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground mb-2">Cuisine Type</p>
+                          <Badge variant="secondary" className="text-sm font-medium">
+                            {aiCuisine}
+                          </Badge>
+                        </div>
+                      )}
+                      
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground mb-2">
+                          {aiCategories.length > 0 ? 'AI Categories' : 'Google Categories'}
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {(aiCategories.length > 0 ? aiCategories : place.types.slice(0, 8)).map(type => (
+                            <Badge key={type} variant="outline" className="text-xs">
+                              {type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            </Badge>
+                          ))}
+                          {isLoadingAiAnalysis && (
+                            <Badge variant="outline" className="animate-pulse text-xs">
+                              Analyzing...
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           </div>
-        </div>
         </div>
       </DialogContent>
     </Dialog>;
