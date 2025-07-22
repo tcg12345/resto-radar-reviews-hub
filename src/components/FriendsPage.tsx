@@ -173,62 +173,6 @@ function FriendProfileModal({ friend, isOpen, onClose }: FriendProfileModalProps
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="restaurants" className="mt-6 space-y-4">
-              {restaurants.length === 0 ? (
-                <Card>
-                  <CardContent className="py-12 text-center">
-                    <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-lg text-muted-foreground">No rated restaurants yet</p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {friend.username} hasn't rated any restaurants
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="grid gap-4">
-                  {restaurants.slice(0, displayedRestaurants).map((restaurant) => (
-                    <Card key={restaurant.id} className="overflow-hidden">
-                      <CardContent className="p-4 sm:p-6">
-                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 gap-4">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-lg sm:text-xl mb-1 break-words">{restaurant.name}</h3>
-                            <p className="text-muted-foreground mb-2">{restaurant.cuisine}</p>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                              <MapPin className="h-4 w-4 flex-shrink-0" />
-                              <span className="break-words">{restaurant.address}, {restaurant.city}</span>
-                            </div>
-                            {restaurant.date_visited && (
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Calendar className="h-4 w-4 flex-shrink-0" />
-                                <span>Visited: {new Date(restaurant.date_visited).toLocaleDateString()}</span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex sm:flex-col items-start sm:items-end gap-3 sm:gap-3 flex-shrink-0">
-                            {restaurant.rating && (
-                              <div className="flex items-center gap-2">
-                                <StarRating rating={restaurant.rating} readonly size="sm" />
-                                <span className="font-bold text-lg">{restaurant.rating.toFixed(1)}</span>
-                              </div>
-                            )}
-                            <div className="flex items-center gap-2">
-                              {restaurant.price_range && <PriceRange priceRange={restaurant.price_range} />}
-                              {restaurant.michelin_stars && <MichelinStars stars={restaurant.michelin_stars} />}
-                            </div>
-                          </div>
-                        </div>
-                        {restaurant.notes && (
-                          <div className="mt-4 p-4 bg-muted rounded-lg">
-                            <p className="text-sm leading-relaxed">{restaurant.notes}</p>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
-                  {/* All restaurants are shown by default now */}
-                </div>
-              )}
-            </TabsContent>
 
             <TabsContent value="wishlist" className="mt-6 space-y-4">
               {wishlist.length === 0 ? (
