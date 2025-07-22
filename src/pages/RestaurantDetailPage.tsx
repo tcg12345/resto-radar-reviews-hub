@@ -412,47 +412,6 @@ export function RestaurantDetailPage() {
             </CardContent>
           </Card>}
 
-        {/* Contact Information - Full Width */}
-        <Card className="hover-scale animate-fade-in">
-          <CardHeader>
-            <CardTitle className="text-lg">Contact Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Phone */}
-              <div>
-                <h4 className="font-medium flex items-center gap-2 mb-2">
-                  <Phone className="h-4 w-4 text-green-600" />
-                  Phone
-                </h4>
-                {(restaurant as any).phone_number ? <a href={`tel:${(restaurant as any).phone_number}`} className="block bg-green-50 dark:bg-green-900/20 p-3 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors">
-                    <div className="font-medium text-green-700 dark:text-green-400">
-                      {(restaurant as any).phone_number}
-                    </div>
-                    <div className="text-xs text-muted-foreground">Tap to call</div>
-                  </a> : <div className="bg-muted/20 p-3 rounded-lg text-sm text-muted-foreground">
-                    Not available
-                  </div>}
-              </div>
-
-              {/* Website */}
-              <div>
-                <h4 className="font-medium flex items-center gap-2 mb-2">
-                  <Globe className="h-4 w-4 text-primary" />
-                  Website
-                </h4>
-                {restaurant.website ? <a href={restaurant.website} target="_blank" rel="noopener noreferrer" className="block bg-primary/10 p-3 rounded-lg hover:bg-primary/20 transition-colors">
-                    <div className="font-medium text-primary">Visit Website</div>
-                    <div className="text-xs text-muted-foreground">
-                      {new URL(restaurant.website).hostname}
-                    </div>
-                  </a> : <div className="bg-muted/20 p-3 rounded-lg text-sm text-muted-foreground">
-                    Not available
-                  </div>}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Location & Interactive Map */}
         {restaurant.latitude && restaurant.longitude && <div className="animate-fade-in">
