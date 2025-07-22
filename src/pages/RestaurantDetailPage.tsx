@@ -549,10 +549,7 @@ export function RestaurantDetailPage() {
                         {restaurant.city}, {restaurant.country}
                       </p>
                     </div>
-                    <div className="flex items-center gap-6 mt-3 text-xs text-muted-foreground">
-                      <span>Latitude: {restaurant.latitude.toFixed(6)}</span>
-                      <span>Longitude: {restaurant.longitude.toFixed(6)}</span>
-                    </div>
+                    
                   </div>
                   <Button variant="default" size="sm" asChild className="shrink-0">
                     <a href={`https://www.google.com/maps/dir/?api=1&destination=${restaurant.latitude},${restaurant.longitude}`} target="_blank" rel="noopener noreferrer">
