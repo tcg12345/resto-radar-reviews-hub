@@ -579,8 +579,7 @@ export function RestaurantProfileModal({
                                     <div className="p-1.5 rounded-md bg-slate-200/80">
                                       <Clock className="h-3.5 w-3.5 text-slate-700" />
                                     </div>
-                                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">HOURS
-                                  </span>
+                                     <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">STATUS</span>
                                   </div>
                                   <div className="flex flex-wrap gap-2">
                                     {place.opening_hours?.open_now !== undefined && <Badge variant={place.opening_hours.open_now ? "default" : "destructive"} className="text-xs font-medium px-2 py-1 rounded-full">
