@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Eye, Heart, Check, X, Clock, Trash2, MessageSquare } from 'lucide-react';
+import { Bell, Eye, Heart, Check, X, Clock, Trash2, MessageSquare, Reply } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -31,6 +31,10 @@ export function NotificationsPanel() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [messageDialogOpen, setMessageDialogOpen] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState<string>('');
+  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
+  const [replyMessage, setReplyMessage] = useState<string>('');
+  const [isReplying, setIsReplying] = useState(false);
+  const [showReplyForm, setShowReplyForm] = useState(false);
   
   useEffect(() => {
     if (!user) return;
@@ -265,10 +269,14 @@ export function NotificationsPanel() {
     }
   };
 
-  const showFullMessage = (message: string) => {
+  const showFullMessage = (message: string, notification: Notification) => {
     setSelectedMessage(message);
+    setSelectedNotification(notification);
     setMessageDialogOpen(true);
     setOpen(false); // Close the notifications panel when opening message dialog
+    // Reset reply form state
+    setShowReplyForm(false);
+    setReplyMessage('');
   };
 
   const handleMessageDialogClose = (open: boolean) => {
@@ -276,6 +284,56 @@ export function NotificationsPanel() {
     if (!open) {
       // When message dialog closes, reopen the notifications panel
       setOpen(true);
+    }
+  };
+
+  const handleSendReply = async () => {
+    if (!user || !selectedNotification || !replyMessage.trim()) return;
+    
+    const senderId = selectedNotification.data?.sender_id;
+    if (!senderId) {
+      toast.error('Cannot determine recipient');
+      return;
+    }
+    
+    setIsReplying(true);
+    try {
+      // Create a notification for the sender
+      const notificationData = {
+        user_id: senderId,
+        type: 'message_reply',
+        title: `${user.user_metadata?.name || 'Someone'} replied to your message`,
+        message: `Reply: ${replyMessage.substring(0, 50)}${replyMessage.length > 50 ? '...' : ''}`,
+        data: {
+          sender_id: user.id,
+          sender_name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+          original_notification_id: selectedNotification.id,
+          reply_message: replyMessage,
+          restaurant_id: selectedNotification.data?.restaurant_id,
+          restaurant_name: selectedNotification.data?.restaurant_name
+        }
+      };
+      
+      const { error } = await supabase
+        .from('notifications')
+        .insert([notificationData]);
+        
+      if (error) throw error;
+      
+      toast.success('Reply sent successfully!');
+      setShowReplyForm(false);
+      setReplyMessage('');
+      
+      // Close the dialog
+      setMessageDialogOpen(false);
+      // Reopen the notifications panel
+      setOpen(true);
+      
+    } catch (error) {
+      console.error('Error sending reply:', error);
+      toast.error('Failed to send reply. Please try again.');
+    } finally {
+      setIsReplying(false);
     }
   };
 
@@ -408,7 +466,7 @@ export function NotificationsPanel() {
                                 className="h-7 px-2 text-xs border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary font-medium"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  showFullMessage(notification.data.share_message);
+                                  showFullMessage(notification.data.share_message, notification);
                                 }}
                               >
                                 <MessageSquare className="h-3 w-3 mr-1" />
@@ -483,6 +541,45 @@ export function NotificationsPanel() {
               {selectedMessage}
             </p>
           </div>
+          
+          {!showReplyForm ? (
+            <Button 
+              variant="outline" 
+              className="mt-2 bg-primary/5 hover:bg-primary/10 text-primary border-primary/20"
+              onClick={() => setShowReplyForm(true)}
+            >
+              <Reply className="h-4 w-4 mr-2" />
+              Reply
+            </Button>
+          ) : (
+            <div className="mt-4 space-y-3">
+              <textarea 
+                className="w-full p-3 border rounded-md text-sm resize-y min-h-[100px] focus:outline-none focus:ring-2 focus:ring-primary/50"
+                placeholder="Type your reply here..."
+                value={replyMessage}
+                onChange={(e) => setReplyMessage(e.target.value)}
+                disabled={isReplying}
+              />
+              <div className="flex justify-end gap-2">
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowReplyForm(false)}
+                  disabled={isReplying}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  variant="default"
+                  size="sm"
+                  onClick={handleSendReply}
+                  disabled={!replyMessage.trim() || isReplying}
+                >
+                  {isReplying ? 'Sending...' : 'Send Reply'}
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </Popover>
