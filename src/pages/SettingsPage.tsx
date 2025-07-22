@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,7 +23,7 @@ interface SettingsPageProps {
 export default function SettingsPage({ onBack }: SettingsPageProps) {
   const { user, profile, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { currentTheme, themes, applyTheme, getCurrentTheme } = useColorTheme();
+  const { currentTheme, themes, customColors, applyTheme, updateCustomColors, getCurrentTheme } = useColorTheme();
   const [defaultMapStyle, setDefaultMapStyle] = useLocalStorage<'streets' | 'satellite' | 'hybrid'>('defaultMapStyle', 'satellite');
   
   // Profile form state
@@ -486,6 +487,137 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                     ))}
                   </div>
                 </div>
+                
+                {/* Custom Color Theme Section */}
+                {currentTheme === 'custom' && (
+                  <>
+                    <Separator />
+                    
+                    <div className="space-y-6">
+                      <div className="space-y-0.5">
+                        <Label className="flex items-center gap-2">
+                          <Palette className="h-4 w-4" />
+                          Custom Colors
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Customize your primary and accent colors with the sliders below
+                        </p>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Primary Color */}
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium text-sm">Primary Color</h4>
+                            <div 
+                              className="w-8 h-8 rounded-full border-2 border-white shadow-lg"
+                              style={{ backgroundColor: `hsl(${customColors.primary.h}, ${customColors.primary.s}%, ${customColors.primary.l}%)` }}
+                            />
+                          </div>
+                          
+                          <div className="space-y-3">
+                            <div className="space-y-2">
+                              <div className="flex justify-between">
+                                <Label className="text-xs">Hue</Label>
+                                <span className="text-xs text-muted-foreground">{customColors.primary.h}°</span>
+                              </div>
+                              <Slider
+                                value={[customColors.primary.h]}
+                                onValueChange={([h]) => updateCustomColors({ ...customColors.primary, h }, customColors.accent)}
+                                max={360}
+                                step={1}
+                                className="w-full"
+                              />
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <div className="flex justify-between">
+                                <Label className="text-xs">Saturation</Label>
+                                <span className="text-xs text-muted-foreground">{customColors.primary.s}%</span>
+                              </div>
+                              <Slider
+                                value={[customColors.primary.s]}
+                                onValueChange={([s]) => updateCustomColors({ ...customColors.primary, s }, customColors.accent)}
+                                max={100}
+                                step={1}
+                                className="w-full"
+                              />
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <div className="flex justify-between">
+                                <Label className="text-xs">Lightness</Label>
+                                <span className="text-xs text-muted-foreground">{customColors.primary.l}%</span>
+                              </div>
+                              <Slider
+                                value={[customColors.primary.l]}
+                                onValueChange={([l]) => updateCustomColors({ ...customColors.primary, l }, customColors.accent)}
+                                max={100}
+                                step={1}
+                                className="w-full"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Accent Color */}
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium text-sm">Accent Color</h4>
+                            <div 
+                              className="w-8 h-8 rounded-full border-2 border-white shadow-lg"
+                              style={{ backgroundColor: `hsl(${customColors.accent.h}, ${customColors.accent.s}%, ${customColors.accent.l}%)` }}
+                            />
+                          </div>
+                          
+                          <div className="space-y-3">
+                            <div className="space-y-2">
+                              <div className="flex justify-between">
+                                <Label className="text-xs">Hue</Label>
+                                <span className="text-xs text-muted-foreground">{customColors.accent.h}°</span>
+                              </div>
+                              <Slider
+                                value={[customColors.accent.h]}
+                                onValueChange={([h]) => updateCustomColors(customColors.primary, { ...customColors.accent, h })}
+                                max={360}
+                                step={1}
+                                className="w-full"
+                              />
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <div className="flex justify-between">
+                                <Label className="text-xs">Saturation</Label>
+                                <span className="text-xs text-muted-foreground">{customColors.accent.s}%</span>
+                              </div>
+                              <Slider
+                                value={[customColors.accent.s]}
+                                onValueChange={([s]) => updateCustomColors(customColors.primary, { ...customColors.accent, s })}
+                                max={100}
+                                step={1}
+                                className="w-full"
+                              />
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <div className="flex justify-between">
+                                <Label className="text-xs">Lightness</Label>
+                                <span className="text-xs text-muted-foreground">{customColors.accent.l}%</span>
+                              </div>
+                              <Slider
+                                value={[customColors.accent.l]}
+                                onValueChange={([l]) => updateCustomColors(customColors.primary, { ...customColors.accent, l })}
+                                max={100}
+                                step={1}
+                                className="w-full"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 <Separator />
 
