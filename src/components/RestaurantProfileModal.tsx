@@ -569,42 +569,42 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                               </div>
 
                               {/* Stats Cards */}
-                              <div className="space-y-4">
+                              <div className="flex gap-3">
                                 {place.rating && (
-                                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-yellow-100 via-yellow-50 to-orange-100 p-6 shadow-lg border border-yellow-200/60">
-                                    <div className="absolute top-0 right-0 w-20 h-20 bg-yellow-300/20 rounded-full -mr-10 -mt-10"></div>
+                                  <div className="flex-1 relative overflow-hidden rounded-xl bg-gradient-to-br from-yellow-100 via-yellow-50 to-orange-100 p-4 shadow-md border border-yellow-200/60">
+                                    <div className="absolute top-0 right-0 w-12 h-12 bg-yellow-300/20 rounded-full -mr-6 -mt-6"></div>
                                     <div className="relative">
-                                      <div className="flex items-center gap-3 mb-3">
-                                        <div className="p-2 rounded-lg bg-yellow-200/80">
-                                          <Star className="h-5 w-5 text-yellow-700" />
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <div className="p-1.5 rounded-md bg-yellow-200/80">
+                                          <Star className="h-3.5 w-3.5 text-yellow-700" />
                                         </div>
-                                        <span className="text-sm font-bold text-yellow-800 uppercase tracking-wider">Rating</span>
+                                        <span className="text-xs font-bold text-yellow-800 uppercase tracking-wider">Rating</span>
                                       </div>
-                                      <div className="flex items-baseline gap-2 mb-2">
-                                        <span className="text-3xl font-black text-yellow-900">{place.rating}</span>
-                                        <span className="text-lg font-medium text-yellow-700">/ 5.0</span>
+                                      <div className="flex items-baseline gap-1 mb-1">
+                                        <span className="text-2xl font-black text-yellow-900">{place.rating}</span>
+                                        <span className="text-sm font-medium text-yellow-700">/ 5.0</span>
                                       </div>
                                       {place.user_ratings_total && (
-                                        <p className="text-sm font-medium text-yellow-700">{place.user_ratings_total.toLocaleString()} reviews</p>
+                                        <p className="text-xs font-medium text-yellow-700">{place.user_ratings_total.toLocaleString()} reviews</p>
                                       )}
                                     </div>
                                   </div>
                                 )}
 
                                 {place.price_level && (
-                                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-100 via-green-50 to-emerald-100 p-6 shadow-lg border border-green-200/60">
-                                    <div className="absolute bottom-0 left-0 w-16 h-16 bg-green-300/20 rounded-full -ml-8 -mb-8"></div>
+                                  <div className="flex-1 relative overflow-hidden rounded-xl bg-gradient-to-br from-green-100 via-green-50 to-emerald-100 p-4 shadow-md border border-green-200/60">
+                                    <div className="absolute bottom-0 left-0 w-10 h-10 bg-green-300/20 rounded-full -ml-5 -mb-5"></div>
                                     <div className="relative">
-                                      <div className="flex items-center gap-3 mb-3">
-                                        <div className="p-2 rounded-lg bg-green-200/80">
-                                          <svg className="h-5 w-5 text-green-700" fill="currentColor" viewBox="0 0 20 20">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <div className="p-1.5 rounded-md bg-green-200/80">
+                                          <svg className="h-3.5 w-3.5 text-green-700" fill="currentColor" viewBox="0 0 20 20">
                                             <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4zM18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" />
                                           </svg>
                                         </div>
-                                        <span className="text-sm font-bold text-green-800 uppercase tracking-wider">Price</span>
+                                        <span className="text-xs font-bold text-green-800 uppercase tracking-wider">Price</span>
                                       </div>
-                                      <div className="text-3xl font-black text-green-900 mb-2">{getPriceDisplay(place.price_level)}</div>
-                                      <p className="text-sm font-medium text-green-700">Price level</p>
+                                      <div className="text-2xl font-black text-green-900 mb-1">{getPriceDisplay(place.price_level)}</div>
+                                      <p className="text-xs font-medium text-green-700">Price level</p>
                                     </div>
                                   </div>
                                 )}
