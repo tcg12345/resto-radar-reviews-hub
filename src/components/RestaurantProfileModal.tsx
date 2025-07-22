@@ -509,31 +509,31 @@ export function RestaurantProfileModal({
                           {/* Quick Stats */}
                           <div className="grid grid-cols-2 gap-3">
                             {place.rating && (
-                              <div className="p-3 rounded-lg bg-yellow-50 border border-yellow-200">
+                              <div className="p-3 rounded-lg bg-muted/50 border border-border">
                                 <div className="flex items-center gap-2 mb-1">
-                                  <Star className="h-4 w-4 text-yellow-600" />
-                                  <span className="text-xs font-medium text-yellow-700 uppercase tracking-wide">Rating</span>
+                                  <Star className="h-4 w-4 text-primary" />
+                                  <span className="text-xs font-medium text-foreground uppercase tracking-wide">Rating</span>
                                 </div>
                                 <div className="flex items-baseline gap-1">
-                                  <span className="text-lg font-bold text-yellow-800">{place.rating}</span>
-                                  <span className="text-xs text-yellow-600">/ 5.0</span>
+                                  <span className="text-lg font-bold text-foreground">{place.rating}</span>
+                                  <span className="text-xs text-muted-foreground">/ 5.0</span>
                                 </div>
                                 {place.user_ratings_total && (
-                                  <p className="text-xs text-yellow-600 mt-1">{place.user_ratings_total} reviews</p>
+                                  <p className="text-xs text-muted-foreground mt-1">{place.user_ratings_total} reviews</p>
                                 )}
                               </div>
                             )}
 
                             {place.price_level && (
-                              <div className="p-3 rounded-lg bg-green-50 border border-green-200">
+                              <div className="p-3 rounded-lg bg-muted/50 border border-border">
                                 <div className="flex items-center gap-2 mb-1">
-                                  <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                  <svg className="h-4 w-4 text-primary" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4zM18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" />
                                   </svg>
-                                  <span className="text-xs font-medium text-green-700 uppercase tracking-wide">Price</span>
+                                  <span className="text-xs font-medium text-foreground uppercase tracking-wide">Price</span>
                                 </div>
-                                <div className="text-lg font-bold text-green-800">{getPriceDisplay(place.price_level)}</div>
-                                <p className="text-xs text-green-600 mt-1">Price level</p>
+                                <div className="text-lg font-bold text-foreground">{getPriceDisplay(place.price_level)}</div>
+                                <p className="text-xs text-muted-foreground mt-1">Price level</p>
                               </div>
                             )}
                           </div>
