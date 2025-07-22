@@ -242,8 +242,7 @@ export function RestaurantDetailPage() {
 
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
         {/* Data Source Notice */}
-        {friendProfile && (
-          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800">
+        {friendProfile && <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="flex-shrink-0">
@@ -263,8 +262,7 @@ export function RestaurantDetailPage() {
                 </div>
               </div>
             </CardContent>
-          </Card>
-        )}
+          </Card>}
         {/* Hero Section - Compact */}
         <div className="grid lg:grid-cols-5 gap-6">
           {/* Main Info - More space */}
@@ -528,8 +526,7 @@ export function RestaurantDetailPage() {
         </div>
 
         {/* Full Width Map */}
-        {restaurant.latitude && restaurant.longitude && (
-          <div className="animate-fade-in space-y-4">
+        {restaurant.latitude && restaurant.longitude && <div className="animate-fade-in space-y-4">
             {/* Address Information Card */}
             <Card>
               <CardContent className="p-6">
@@ -557,17 +554,8 @@ export function RestaurantDetailPage() {
                       <span>Longitude: {restaurant.longitude.toFixed(6)}</span>
                     </div>
                   </div>
-                  <Button
-                    variant="default"
-                    size="sm"
-                    asChild
-                    className="shrink-0"
-                  >
-                    <a
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${restaurant.latitude},${restaurant.longitude}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
+                  <Button variant="default" size="sm" asChild className="shrink-0">
+                    <a href={`https://www.google.com/maps/dir/?api=1&destination=${restaurant.latitude},${restaurant.longitude}`} target="_blank" rel="noopener noreferrer">
                       <Navigation className="h-4 w-4 mr-2" />
                       Get Directions
                     </a>
@@ -591,39 +579,13 @@ export function RestaurantDetailPage() {
               </div>
 
               <div className="h-80 w-full [&_>_*]:!rounded-none [&_canvas]:!rounded-none [&_>_*]:!h-full">
-                <RestaurantLocationMap 
-                  latitude={restaurant.latitude} 
-                  longitude={restaurant.longitude} 
-                  name={restaurant.name} 
-                  address={restaurant.address} 
-                />
+                <RestaurantLocationMap latitude={restaurant.latitude} longitude={restaurant.longitude} name={restaurant.name} address={restaurant.address} />
               </div>
             </div>
-          </div>
-        )}
+          </div>}
 
         {/* Reservation Section - Full Width if available */}
-        {restaurant.reservable && <Card className="animate-fade-in bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20 border-orange-200 dark:border-orange-800">
-            <CardHeader>
-              <CardTitle className="text-xl flex items-center gap-2 text-orange-800 dark:text-orange-200">
-                <ExternalLink className="h-6 w-6" />
-                Make a Reservation
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <p className="text-orange-700 dark:text-orange-300">
-                  This restaurant accepts reservations. Book your table in advance to ensure availability.
-                </p>
-                {restaurant.reservation_url && <a href={restaurant.reservation_url} target="_blank" rel="noopener noreferrer" className="inline-block">
-                    <Button className="bg-orange-600 hover:bg-orange-700 text-white" size="lg">
-                      <ExternalLink className="h-5 w-5 mr-2" />
-                      Reserve Online Now
-                    </Button>
-                  </a>}
-              </div>
-            </CardContent>
-          </Card>}
+        {restaurant.reservable}
       </div>
     </div>;
 }
