@@ -255,9 +255,7 @@ export function RestaurantDetailPage() {
                 <div className="flex items-center gap-3">
                   <StarRating rating={restaurant.rating} readonly size="lg" />
                   
-                  <span className="text-muted-foreground font-medium">
-                    {restaurant.rating ? 'Rated' : 'Unrated'}
-                  </span>
+                  
                 </div>
                 {restaurant.michelin_stars > 0 && <div className="ml-auto">
                     <MichelinStars stars={restaurant.michelin_stars} />
