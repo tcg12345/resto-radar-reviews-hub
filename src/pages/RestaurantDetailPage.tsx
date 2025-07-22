@@ -561,7 +561,7 @@ export function RestaurantDetailPage() {
                 </div>
 
                 {/* Interactive Map */}
-                <div className="relative overflow-hidden">
+                <div className="relative overflow-hidden rounded-b-lg">
                   <div className="absolute top-4 left-4 z-10">
                     <div className="bg-background/95 backdrop-blur-sm rounded-md shadow-sm border px-3 py-2">
                       <p className="text-sm font-medium text-foreground">Interactive Map</p>
