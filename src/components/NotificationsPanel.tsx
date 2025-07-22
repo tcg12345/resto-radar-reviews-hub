@@ -361,7 +361,7 @@ export function NotificationsPanel() {
                       </AvatarFallback>
                     </Avatar>
 
-                    <div className="flex-1 min-w-0 space-y-2">
+                    <div className="flex-1 min-w-0 space-y-2 -mx-1">
                       {/* Header with sender name */}
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-semibold text-foreground">
