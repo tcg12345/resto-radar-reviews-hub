@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Save, Eye, EyeOff, User, Mail, Phone, MapPin, Settings as SettingsIcon, Shield, Key, Moon, Sun, Map, Satellite, Trash2, Palette } from 'lucide-react';
+import { ArrowLeft, Save, Eye, EyeOff, User, Mail, Phone, MapPin, Settings as SettingsIcon, Shield, Key, Moon, Sun, Map, Satellite, Trash2, Palette, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,8 +22,12 @@ interface SettingsPageProps {
 export default function SettingsPage({ onBack }: SettingsPageProps) {
   const { user, profile, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { currentTheme, themes, customColors, applyTheme, updateCustomColors, getCurrentTheme } = useColorTheme();
+  const { currentTheme, themes, customThemes, tempCustomColors, applyTheme, saveCustomTheme, deleteCustomTheme, updateTempCustomColors, getAllThemes, getCurrentTheme } = useColorTheme();
   const [defaultMapStyle, setDefaultMapStyle] = useLocalStorage<'streets' | 'satellite' | 'hybrid'>('defaultMapStyle', 'satellite');
+  
+  // Custom theme creation state
+  const [customThemeName, setCustomThemeName] = useState('');
+  const [showCustomThemeCreator, setShowCustomThemeCreator] = useState(false);
   
   // Profile form state
   const [name, setName] = useState('');
@@ -451,30 +454,35 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                     </p>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {themes.map((themeOption) => (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {getAllThemes().map((themeOption) => (
                       <div
                         key={themeOption.id}
-                        className={`group relative cursor-pointer rounded-lg border-2 p-4 transition-all hover:shadow-md ${
-                          currentTheme === themeOption.id 
-                            ? 'border-primary bg-primary/5' 
+                        className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                          currentTheme === themeOption.id
+                            ? 'border-primary bg-primary/5'
                             : 'border-border hover:border-primary/50'
                         }`}
                         onClick={() => applyTheme(themeOption.id)}
                       >
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="flex gap-1">
-                            <div 
-                              className="w-4 h-4 rounded-full border"
-                              style={{ backgroundColor: `hsl(${themeOption.colors.primary})` }}
-                            />
-                            <div 
-                              className="w-4 h-4 rounded-full border"
-                              style={{ backgroundColor: `hsl(${themeOption.colors.accent})` }}
-                            />
-                          </div>
+                        <div className="flex items-center gap-3">
                           <div className="flex-1">
-                            <h4 className="font-medium text-sm">{themeOption.name}</h4>
+                            <div className="flex items-center justify-between">
+                              <h4 className="font-medium text-sm">{themeOption.name}</h4>
+                              {customThemes.find(t => t.id === themeOption.id) && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteCustomTheme(themeOption.id);
+                                  }}
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
                           </div>
                           {currentTheme === themeOption.id && (
                             <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
@@ -486,21 +494,30 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                       </div>
                     ))}
                   </div>
-                </div>
+                  
+                  {/* Custom Theme Creator Button */}
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowCustomThemeCreator(!showCustomThemeCreator)}
+                    className="w-full"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Custom Theme
+                  </Button>
                 
-                {/* Custom Color Theme Section */}
-                {currentTheme === 'custom' && (
+                {/* Custom Color Theme Creator */}
+                {showCustomThemeCreator && (
                   <>
                     <Separator />
                     
-                    <div className="space-y-6">
+                    <div className="space-y-6 p-4 bg-muted/50 rounded-lg">
                       <div className="space-y-0.5">
                         <Label className="flex items-center gap-2">
                           <Palette className="h-4 w-4" />
-                          Custom Colors
+                          Create Custom Theme
                         </Label>
                         <p className="text-sm text-muted-foreground">
-                          Customize your primary and accent colors with the sliders below
+                          Choose your primary and accent colors, then save your custom theme
                         </p>
                       </div>
                       
@@ -511,52 +528,18 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                             <h4 className="font-medium text-sm">Primary Color</h4>
                             <div 
                               className="w-8 h-8 rounded-full border-2 border-white shadow-lg"
-                              style={{ backgroundColor: `hsl(${customColors.primary.h}, ${customColors.primary.s}%, ${customColors.primary.l}%)` }}
+                              style={{ backgroundColor: tempCustomColors.primary }}
                             />
                           </div>
                           
-                          <div className="space-y-3">
-                            <div className="space-y-2">
-                              <div className="flex justify-between">
-                                <Label className="text-xs">Hue</Label>
-                                <span className="text-xs text-muted-foreground">{customColors.primary.h}°</span>
-                              </div>
-                              <Slider
-                                value={[customColors.primary.h]}
-                                onValueChange={([h]) => updateCustomColors({ ...customColors.primary, h }, customColors.accent)}
-                                max={360}
-                                step={1}
-                                className="w-full"
-                              />
-                            </div>
-                            
-                            <div className="space-y-2">
-                              <div className="flex justify-between">
-                                <Label className="text-xs">Saturation</Label>
-                                <span className="text-xs text-muted-foreground">{customColors.primary.s}%</span>
-                              </div>
-                              <Slider
-                                value={[customColors.primary.s]}
-                                onValueChange={([s]) => updateCustomColors({ ...customColors.primary, s }, customColors.accent)}
-                                max={100}
-                                step={1}
-                                className="w-full"
-                              />
-                            </div>
-                            
-                            <div className="space-y-2">
-                              <div className="flex justify-between">
-                                <Label className="text-xs">Lightness</Label>
-                                <span className="text-xs text-muted-foreground">{customColors.primary.l}%</span>
-                              </div>
-                              <Slider
-                                value={[customColors.primary.l]}
-                                onValueChange={([l]) => updateCustomColors({ ...customColors.primary, l }, customColors.accent)}
-                                max={100}
-                                step={1}
-                                className="w-full"
-                              />
-                            </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Pick Primary Color</Label>
+                            <input
+                              type="color"
+                              value={tempCustomColors.primary}
+                              onChange={(e) => updateTempCustomColors(e.target.value, tempCustomColors.accent)}
+                              className="w-full h-10 rounded border cursor-pointer"
+                            />
                           </div>
                         </div>
                         
@@ -566,58 +549,49 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                             <h4 className="font-medium text-sm">Accent Color</h4>
                             <div 
                               className="w-8 h-8 rounded-full border-2 border-white shadow-lg"
-                              style={{ backgroundColor: `hsl(${customColors.accent.h}, ${customColors.accent.s}%, ${customColors.accent.l}%)` }}
+                              style={{ backgroundColor: tempCustomColors.accent }}
                             />
                           </div>
                           
-                          <div className="space-y-3">
-                            <div className="space-y-2">
-                              <div className="flex justify-between">
-                                <Label className="text-xs">Hue</Label>
-                                <span className="text-xs text-muted-foreground">{customColors.accent.h}°</span>
-                              </div>
-                              <Slider
-                                value={[customColors.accent.h]}
-                                onValueChange={([h]) => updateCustomColors(customColors.primary, { ...customColors.accent, h })}
-                                max={360}
-                                step={1}
-                                className="w-full"
-                              />
-                            </div>
-                            
-                            <div className="space-y-2">
-                              <div className="flex justify-between">
-                                <Label className="text-xs">Saturation</Label>
-                                <span className="text-xs text-muted-foreground">{customColors.accent.s}%</span>
-                              </div>
-                              <Slider
-                                value={[customColors.accent.s]}
-                                onValueChange={([s]) => updateCustomColors(customColors.primary, { ...customColors.accent, s })}
-                                max={100}
-                                step={1}
-                                className="w-full"
-                              />
-                            </div>
-                            
-                            <div className="space-y-2">
-                              <div className="flex justify-between">
-                                <Label className="text-xs">Lightness</Label>
-                                <span className="text-xs text-muted-foreground">{customColors.accent.l}%</span>
-                              </div>
-                              <Slider
-                                value={[customColors.accent.l]}
-                                onValueChange={([l]) => updateCustomColors(customColors.primary, { ...customColors.accent, l })}
-                                max={100}
-                                step={1}
-                                className="w-full"
-                              />
-                            </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Pick Accent Color</Label>
+                            <input
+                              type="color"
+                              value={tempCustomColors.accent}
+                              onChange={(e) => updateTempCustomColors(tempCustomColors.primary, e.target.value)}
+                              className="w-full h-10 rounded border cursor-pointer"
+                            />
                           </div>
                         </div>
+                      </div>
+                      
+                      {/* Save Theme */}
+                      <div className="flex items-center gap-2">
+                        <Input
+                          placeholder="Enter theme name..."
+                          value={customThemeName}
+                          onChange={(e) => setCustomThemeName(e.target.value)}
+                          className="flex-1"
+                        />
+                        <Button
+                          onClick={() => {
+                            if (customThemeName.trim()) {
+                              saveCustomTheme(customThemeName.trim());
+                              setCustomThemeName('');
+                              setShowCustomThemeCreator(false);
+                              toast.success('Custom theme saved!');
+                            }
+                          }}
+                          disabled={!customThemeName.trim()}
+                        >
+                          <Save className="h-4 w-4 mr-2" />
+                          Save Theme
+                        </Button>
                       </div>
                     </div>
                   </>
                 )}
+                </div>
 
                 <Separator />
 

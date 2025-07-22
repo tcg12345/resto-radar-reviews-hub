@@ -15,6 +15,15 @@ export interface ColorTheme {
   };
 }
 
+export interface CustomTheme {
+  id: string;
+  name: string;
+  colors: {
+    primary: string;
+    accent: string;
+  };
+}
+
 export const colorThemes: ColorTheme[] = [
   {
     id: 'professional-blue',
@@ -142,21 +151,49 @@ export const colorThemes: ColorTheme[] = [
       warning: '43 96% 56%',
     }
   },
-  {
-    id: 'custom',
-    name: 'Custom',
-    description: 'Create your own color scheme',
-    colors: {
-      primary: '221 83% 53%',
-      primaryGlow: '221 83% 63%',
-      primaryMuted: '221 20% 94%',
-      accent: '180 85% 50%',
-      accentMuted: '180 20% 95%',
-      success: '142 71% 45%',
-      warning: '43 96% 56%',
-    }
-  }
 ];
+
+// Helper functions to convert between hex and HSL
+function hexToHsl(hex: string): {h: number, s: number, l: number} {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return {h: 0, s: 0, l: 0};
+  
+  let r = parseInt(result[1], 16) / 255;
+  let g = parseInt(result[2], 16) / 255;
+  let b = parseInt(result[3], 16) / 255;
+  
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h = 0, s = 0, l = (max + min) / 2;
+
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+    h /= 6;
+  }
+
+  return {
+    h: Math.round(h * 360),
+    s: Math.round(s * 100),
+    l: Math.round(l * 100)
+  };
+}
+
+function hslToHex(h: number, s: number, l: number): string {
+  l /= 100;
+  const a = s * Math.min(l, 1 - l) / 100;
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * color).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
 
 // Helper function to convert HSL values to CSS string
 function hslToString(h: number, s: number, l: number): string {
@@ -177,33 +214,65 @@ export function useColorTheme() {
     return localStorage.getItem('color-theme') || 'professional-blue';
   });
 
-  const [customColors, setCustomColors] = useState<{primary: {h: number, s: number, l: number}, accent: {h: number, s: number, l: number}}>(() => {
-    const stored = localStorage.getItem('custom-colors');
-    return stored ? JSON.parse(stored) : {
-      primary: { h: 221, s: 83, l: 53 },
-      accent: { h: 180, s: 85, l: 50 }
-    };
+  const [customThemes, setCustomThemes] = useState<CustomTheme[]>(() => {
+    const stored = localStorage.getItem('custom-themes');
+    return stored ? JSON.parse(stored) : [];
   });
 
-  const updateCustomColors = (primary: {h: number, s: number, l: number}, accent: {h: number, s: number, l: number}) => {
-    setCustomColors({ primary, accent });
-    localStorage.setItem('custom-colors', JSON.stringify({ primary, accent }));
+  const [tempCustomColors, setTempCustomColors] = useState<{primary: string, accent: string}>({
+    primary: '#3b82f6',
+    accent: '#14b8a6'
+  });
+
+  const saveCustomTheme = (name: string) => {
+    const newTheme: CustomTheme = {
+      id: `custom-${Date.now()}`,
+      name,
+      colors: {
+        primary: tempCustomColors.primary,
+        accent: tempCustomColors.accent
+      }
+    };
     
-    if (currentTheme === 'custom') {
-      applyCustomTheme(primary, accent);
+    const updatedThemes = [...customThemes, newTheme];
+    setCustomThemes(updatedThemes);
+    localStorage.setItem('custom-themes', JSON.stringify(updatedThemes));
+    
+    // Apply the new theme
+    applyCustomTheme(tempCustomColors.primary, tempCustomColors.accent);
+    setCurrentTheme(newTheme.id);
+    localStorage.setItem('color-theme', newTheme.id);
+  };
+
+  const deleteCustomTheme = (themeId: string) => {
+    const updatedThemes = customThemes.filter(theme => theme.id !== themeId);
+    setCustomThemes(updatedThemes);
+    localStorage.setItem('custom-themes', JSON.stringify(updatedThemes));
+    
+    // If we're deleting the currently active theme, switch to professional-blue
+    if (currentTheme === themeId) {
+      applyTheme('professional-blue');
     }
   };
 
-  const applyCustomTheme = (primary: {h: number, s: number, l: number}, accent: {h: number, s: number, l: number}) => {
+  const updateTempCustomColors = (primary: string, accent: string) => {
+    setTempCustomColors({ primary, accent });
+    applyCustomTheme(primary, accent);
+  };
+
+  const applyCustomTheme = (primaryHex: string, accentHex: string) => {
+    const primaryHsl = hexToHsl(primaryHex);
+    const accentHsl = hexToHsl(accentHex);
+    
     const root = document.documentElement;
-    const primaryVariations = generateColorVariations(primary.h, primary.s, primary.l);
+    const primaryVariations = generateColorVariations(primaryHsl.h, primaryHsl.s, primaryHsl.l);
     
     // Update CSS variables
     root.style.setProperty('--primary', primaryVariations.primary);
     root.style.setProperty('--primary-glow', primaryVariations.primaryGlow);
     root.style.setProperty('--primary-muted', primaryVariations.primaryMuted);
-    root.style.setProperty('--accent', hslToString(accent.h, accent.s, accent.l));
-    root.style.setProperty('--accent-muted', hslToString(accent.h, Math.max(accent.s - 60, 20), Math.min(accent.l + 40, 95)));
+    root.style.setProperty('--accent', hslToString(accentHsl.h, accentHsl.s, accentHsl.l));
+    root.style.setProperty('--accent-muted', hslToString(accentHsl.h, Math.max(accentHsl.s - 60, 20), Math.min(accentHsl.l + 40, 95)));
     
     // Update other theme colors
     root.style.setProperty('--success', '142 71% 45%');
@@ -212,16 +281,16 @@ export function useColorTheme() {
     // Update culinary colors to match primary
     root.style.setProperty('--culinary', primaryVariations.primary);
     root.style.setProperty('--culinary-muted', primaryVariations.primaryMuted);
-    root.style.setProperty('--culinary-accent', hslToString(accent.h, accent.s, accent.l));
+    root.style.setProperty('--culinary-accent', hslToString(accentHsl.h, accentHsl.s, accentHsl.l));
     root.style.setProperty('--culinary-highlight', primaryVariations.primaryGlow);
     
     // Update rating colors
-    root.style.setProperty('--rating-filled', hslToString(accent.h, accent.s, accent.l));
+    root.style.setProperty('--rating-filled', hslToString(accentHsl.h, accentHsl.s, accentHsl.l));
     root.style.setProperty('--rating-hover', primaryVariations.primaryGlow);
     
     // Update gradients
     root.style.setProperty('--gradient-primary', `linear-gradient(135deg, hsl(${primaryVariations.primary}) 0%, hsl(${primaryVariations.primaryGlow}) 100%)`);
-    root.style.setProperty('--gradient-accent', `linear-gradient(135deg, hsl(${hslToString(accent.h, accent.s, accent.l)}) 0%, hsl(${primaryVariations.primaryGlow}) 100%)`);
+    root.style.setProperty('--gradient-accent', `linear-gradient(135deg, hsl(${hslToString(accentHsl.h, accentHsl.s, accentHsl.l)}) 0%, hsl(${primaryVariations.primaryGlow}) 100%)`);
     
     // Update ring color
     root.style.setProperty('--ring', primaryVariations.primary);
@@ -233,8 +302,10 @@ export function useColorTheme() {
   };
 
   const applyTheme = (themeId: string) => {
-    if (themeId === 'custom') {
-      applyCustomTheme(customColors.primary, customColors.accent);
+    // Check if it's a custom theme
+    const customTheme = customThemes.find(t => t.id === themeId);
+    if (customTheme) {
+      applyCustomTheme(customTheme.colors.primary, customTheme.colors.accent);
       setCurrentTheme(themeId);
       localStorage.setItem('color-theme', themeId);
       return;
@@ -281,19 +352,46 @@ export function useColorTheme() {
   };
 
   useEffect(() => {
-    if (currentTheme === 'custom') {
-      applyCustomTheme(customColors.primary, customColors.accent);
+    const customTheme = customThemes.find(t => t.id === currentTheme);
+    if (customTheme) {
+      applyCustomTheme(customTheme.colors.primary, customTheme.colors.accent);
     } else {
       applyTheme(currentTheme);
     }
   }, []);
 
+  const getAllThemes = () => [
+    ...colorThemes,
+    ...customThemes.map(theme => ({
+      id: theme.id,
+      name: theme.name,
+      description: 'Custom theme',
+      colors: {
+        primary: '0 0% 0%', // We'll convert hex to HSL if needed
+        primaryGlow: '0 0% 0%',
+        primaryMuted: '0 0% 0%',
+        accent: '0 0% 0%',
+        accentMuted: '0 0% 0%',
+        success: '142 71% 45%',
+        warning: '43 96% 56%',
+      }
+    }))
+  ];
+
   return {
     currentTheme,
     themes: colorThemes,
-    customColors,
+    customThemes,
+    tempCustomColors,
     applyTheme,
-    updateCustomColors,
-    getCurrentTheme: () => colorThemes.find(t => t.id === currentTheme)
+    saveCustomTheme,
+    deleteCustomTheme,
+    updateTempCustomColors,
+    getAllThemes,
+    getCurrentTheme: () => {
+      const customTheme = customThemes.find(t => t.id === currentTheme);
+      if (customTheme) return { id: customTheme.id, name: customTheme.name, description: 'Custom theme' };
+      return colorThemes.find(t => t.id === currentTheme);
+    }
   };
 }
