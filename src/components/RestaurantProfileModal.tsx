@@ -637,29 +637,29 @@ export function RestaurantProfileModal({
                       <CardContent>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           {aiCuisine && (
-                            <div className="p-4 rounded-lg border bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-                              <h4 className="font-medium text-blue-900 mb-2 flex items-center gap-2">
+                            <div className="p-4 rounded-lg border bg-gradient-to-br from-blue-200/80 to-indigo-200/80 border-blue-300/60">
+                              <h4 className="font-medium text-blue-700 mb-2 flex items-center gap-2">
                                 <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                                   <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
                                 </svg>
                                 Cuisine Type
                               </h4>
-                              <p className="text-sm text-blue-700 font-medium">{aiCuisine}</p>
+                              <p className="text-sm text-blue-600 font-medium">{aiCuisine}</p>
                               <p className="text-xs text-blue-600 mt-1">AI-identified cuisine</p>
                             </div>
                           )}
 
                           {place.yelpData && (
-                            <div className="p-4 rounded-lg border bg-gradient-to-br from-red-50 to-pink-50 border-red-200">
-                              <h4 className="font-medium text-red-900 mb-2 flex items-center gap-2">
+                            <div className="p-4 rounded-lg border bg-gradient-to-br from-red-200/80 to-pink-200/80 border-red-300/60">
+                              <h4 className="font-medium text-red-700 mb-2 flex items-center gap-2">
                                 <Star className="h-4 w-4" />
                                 Yelp Data
                               </h4>
                               <div className="space-y-1">
                                 {place.yelpData.price && (
-                                  <p className="text-sm text-red-700">Price: <span className="font-medium">{place.yelpData.price}</span></p>
+                                  <p className="text-sm text-red-600">Price: <span className="font-medium">{place.yelpData.price}</span></p>
                                 )}
-                                <p className="text-sm text-red-700">
+                                <p className="text-sm text-red-600">
                                   Categories: <span className="font-medium">{place.yelpData.categories.slice(0, 2).join(', ')}</span>
                                 </p>
                               </div>
@@ -667,8 +667,8 @@ export function RestaurantProfileModal({
                             </div>
                           )}
 
-                          <div className="p-4 rounded-lg border bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
-                            <h4 className="font-medium text-green-900 mb-2 flex items-center gap-2">
+                          <div className="p-4 rounded-lg border bg-gradient-to-br from-green-200/80 to-emerald-200/80 border-green-300/60">
+                            <h4 className="font-medium text-green-700 mb-2 flex items-center gap-2">
                               <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                               </svg>
