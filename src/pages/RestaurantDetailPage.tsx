@@ -501,26 +501,7 @@ export function RestaurantDetailPage() {
             </Card>}
 
           {/* Location & Map */}
-          {restaurant.latitude && restaurant.longitude && <Card className="hover-scale">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-primary" />
-                  Location
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="bg-muted/30 p-3 rounded-lg text-sm">
-                    <div className="font-medium">{restaurant.address}</div>
-                    <div className="text-muted-foreground">{restaurant.city}, {restaurant.country}</div>
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    <div>Lat: {restaurant.latitude}</div>
-                    <div>Lng: {restaurant.longitude}</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>}
+          {restaurant.latitude && restaurant.longitude}
         </div>
 
         {/* Location & Interactive Map */}
