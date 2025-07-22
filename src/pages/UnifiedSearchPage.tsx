@@ -320,14 +320,8 @@ export default function UnifiedSearchPage() {
           )?.replace(/_/g, ' ') || 'Restaurant'
         }));
         
-        // Load ALL data before showing results to prevent staggered loading
-        try {
-          const enhancedResults = await enhanceWithYelp(resultsWithFallback);
-          setSearchResults(enhancedResults);
-        } catch (error) {
-          console.warn('Failed to enhance with Yelp data, showing basic results:', error);
-          setSearchResults(resultsWithFallback);
-        }
+        // Show results immediately for instant search
+        setSearchResults(resultsWithFallback);
       } else {
         toast.error('No results found');
         setSearchResults([]);
@@ -340,103 +334,6 @@ export default function UnifiedSearchPage() {
     }
   };
 
-  // Function to enhance search results with Yelp data and AI analysis
-  const enhanceWithYelp = async (restaurants: GooglePlaceResult[]): Promise<GooglePlaceResult[]> => {
-    // Limit concurrent requests to prevent API overload
-    const batchSize = 3;
-    const enhancedRestaurants = [...restaurants];
-    
-    for (let i = 0; i < restaurants.length; i += batchSize) {
-      const batch = restaurants.slice(i, i + batchSize);
-      const batchPromises = batch.map(async (restaurant, batchIndex) => {
-        const actualIndex = i + batchIndex;
-        try {
-          // Add timeout to prevent hanging requests
-          const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Request timeout')), 3000)
-          );
-          
-          // Get Yelp data
-          const yelpPromise = supabase.functions.invoke('yelp-restaurant-data', {
-            body: {
-              action: 'search',
-              term: restaurant.name,
-              location: restaurant.formatted_address,
-              limit: 1,
-              sort_by: 'best_match'
-            }
-          });
-
-          // Get AI cuisine analysis
-          const aiPromise = supabase.functions.invoke('ai-restaurant-analysis', {
-            body: {
-              name: restaurant.name,
-              types: restaurant.types,
-              address: restaurant.formatted_address
-            }
-          });
-
-          const [yelpResult, aiResult] = await Promise.allSettled([
-            Promise.race([yelpPromise, timeoutPromise]),
-            Promise.race([aiPromise, timeoutPromise])
-          ]);
-
-          // Process Yelp data
-          if (yelpResult.status === 'fulfilled') {
-            const { data: yelpData, error: yelpError } = yelpResult.value as any;
-            if (!yelpError && yelpData?.businesses?.length > 0) {
-              const yelpBusiness = yelpData.businesses[0];
-              
-              enhancedRestaurants[actualIndex] = {
-                ...enhancedRestaurants[actualIndex],
-                yelpData: {
-                  id: yelpBusiness.id,
-                  url: yelpBusiness.url,
-                  categories: yelpBusiness.categories?.map((cat: any) => cat.title) || [],
-                  price: yelpBusiness.price || undefined,
-                  photos: yelpBusiness.photos || [],
-                  transactions: yelpBusiness.transactions || [],
-                  menu_url: yelpBusiness.menu_url || undefined
-                }
-              };
-
-              // Use Yelp rating if available and higher
-              if (yelpBusiness.rating && yelpBusiness.rating > (enhancedRestaurants[actualIndex].rating || 0)) {
-                enhancedRestaurants[actualIndex].rating = yelpBusiness.rating;
-              }
-
-              // Use Yelp review count if available and higher
-              if (yelpBusiness.review_count && yelpBusiness.review_count > (enhancedRestaurants[actualIndex].user_ratings_total || 0)) {
-                enhancedRestaurants[actualIndex].user_ratings_total = yelpBusiness.review_count;
-              }
-            }
-          }
-
-          // Process AI cuisine analysis
-          if (aiResult.status === 'fulfilled') {
-            const { data: aiData, error: aiError } = aiResult.value as any;
-            if (!aiError && aiData?.success) {
-              enhancedRestaurants[actualIndex] = {
-                ...enhancedRestaurants[actualIndex],
-                aiAnalysis: {
-                  cuisine: aiData.cuisine,
-                  categories: aiData.categories || []
-                }
-              };
-            }
-          }
-
-        } catch (error) {
-          console.warn(`Failed to enhance data for ${restaurant.name}:`, error);
-        }
-      });
-      
-      // Wait for current batch to complete before starting next batch
-      await Promise.allSettled(batchPromises);
-    }
-    
-    return enhancedRestaurants;
-  };
   const handlePlaceClick = async (place: GooglePlaceResult) => {
     // Show modal immediately with basic data
     setSelectedPlace({
@@ -467,38 +364,8 @@ export default function UnifiedSearchPage() {
       if (data.status === 'OK') {
         const detailedPlace = data.result;
         
-        // Update modal with detailed Google data first
+        // Update modal with detailed Google data only for instant loading
         setSelectedPlace(detailedPlace);
-        
-        // Then fetch Yelp data in background (non-blocking)
-        supabase.functions.invoke('yelp-restaurant-data', {
-          body: {
-            action: 'search',
-            term: detailedPlace.name,
-            location: detailedPlace.formatted_address,
-            limit: 1,
-            sort_by: 'best_match'
-          }
-        }).then(({ data: yelpData, error: yelpError }) => {
-          if (!yelpError && yelpData?.businesses?.length > 0) {
-            const yelpBusiness = yelpData.businesses[0];
-            
-            detailedPlace.yelpData = {
-              id: yelpBusiness.id,
-              url: yelpBusiness.url,
-              categories: yelpBusiness.categories?.map((cat: any) => cat.title) || [],
-              price: yelpBusiness.price || undefined,
-              photos: yelpBusiness.photos || [],
-              transactions: yelpBusiness.transactions || [],
-              menu_url: yelpBusiness.menu_url || undefined
-            };
-            
-            // Update modal with Yelp data
-            setSelectedPlace({...detailedPlace});
-          }
-        }).catch(error => {
-          console.warn('Failed to get Yelp data:', error);
-        });
       }
     } catch (error) {
       console.error('Failed to get place details:', error);
