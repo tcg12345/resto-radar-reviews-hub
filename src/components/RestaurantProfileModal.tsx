@@ -375,10 +375,10 @@ export function RestaurantProfileModal({
                 </svg>
               </Button>
             </div>
-            <div className="mt-3 border-b border-border"></div>
+            <div className="mt-3 border-b border-border w-full -mx-6 mb-0"></div>
           </DialogHeader>
           
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto bg-background">
             {/* Hero Section with Key Info */}
             <div className="bg-gradient-to-r from-primary/5 to-primary/10 px-6 py-6">
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-center">
