@@ -85,6 +85,62 @@ export const colorThemes: ColorTheme[] = [
       success: '142 71% 45%',
       warning: '43 96% 56%',
     }
+  },
+  {
+    id: 'ocean-teal',
+    name: 'Ocean Teal',
+    description: 'Deep teal with vibrant coral accents',
+    colors: {
+      primary: '180 71% 45%',
+      primaryGlow: '180 71% 55%',
+      primaryMuted: '180 20% 94%',
+      accent: '16 90% 60%',
+      accentMuted: '16 20% 95%',
+      success: '142 71% 45%',
+      warning: '43 96% 56%',
+    }
+  },
+  {
+    id: 'sunset-pink',
+    name: 'Sunset Pink',
+    description: 'Warm pink with golden yellow accents',
+    colors: {
+      primary: '330 81% 60%',
+      primaryGlow: '330 81% 70%',
+      primaryMuted: '330 20% 94%',
+      accent: '51 92% 55%',
+      accentMuted: '51 20% 95%',
+      success: '142 71% 45%',
+      warning: '43 96% 56%',
+    }
+  },
+  {
+    id: 'midnight-slate',
+    name: 'Midnight Slate',
+    description: 'Dark slate with electric blue accents',
+    colors: {
+      primary: '215 25% 27%',
+      primaryGlow: '215 25% 37%',
+      primaryMuted: '215 20% 94%',
+      accent: '200 98% 50%',
+      accentMuted: '200 20% 95%',
+      success: '142 71% 45%',
+      warning: '43 96% 56%',
+    }
+  },
+  {
+    id: 'lavender-dream',
+    name: 'Lavender Dream',
+    description: 'Soft lavender with fresh mint accents',
+    colors: {
+      primary: '280 60% 65%',
+      primaryGlow: '280 60% 75%',
+      primaryMuted: '280 20% 94%',
+      accent: '160 84% 50%',
+      accentMuted: '160 20% 95%',
+      success: '142 71% 45%',
+      warning: '43 96% 56%',
+    }
   }
 ];
 
