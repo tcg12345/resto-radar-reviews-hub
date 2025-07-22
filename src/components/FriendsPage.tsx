@@ -1016,7 +1016,7 @@ export function FriendsPage({
     return sorted;
   }, [friendRestaurantsData, searchTerm, selectedCuisines, selectedCities, selectedPriceRanges, ratingRange, sortBy]);
 
-  // Get unique cuisines for filter, sorted by popularity
+  // Get unique cuisines for filter, sorted alphabetically with counts
   const uniqueCuisines = useMemo(() => {
     const cuisineCounts = friendRestaurantsData.reduce((acc, restaurant) => {
       if (restaurant.cuisine) {
@@ -1026,11 +1026,11 @@ export function FriendsPage({
     }, {} as Record<string, number>);
     
     return Object.entries(cuisineCounts)
-      .sort(([, countA]: [string, number], [, countB]: [string, number]) => countB - countA) // Sort by count descending
-      .map(([cuisine]) => cuisine);
+      .map(([cuisine, count]): { name: string; count: number } => ({ name: cuisine, count: count as number }))
+      .sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically
   }, [friendRestaurantsData]);
 
-  // Get unique cities for filter, sorted by popularity
+  // Get unique cities for filter, sorted alphabetically with counts
   const uniqueCities = useMemo(() => {
     const cityCounts = friendRestaurantsData.reduce((acc, restaurant) => {
       if (restaurant.city) {
@@ -1040,8 +1040,8 @@ export function FriendsPage({
     }, {} as Record<string, number>);
     
     return Object.entries(cityCounts)
-      .sort(([, countA]: [string, number], [, countB]: [string, number]) => countB - countA) // Sort by count descending
-      .map(([city]) => city);
+      .map(([city, count]): { name: string; count: number } => ({ name: city, count: count as number }))
+      .sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically
   }, [friendRestaurantsData]);
 
   if (isLoading) {
@@ -1217,16 +1217,15 @@ export function FriendsPage({
                           <p className="text-muted-foreground text-sm">No cuisine data available</p>
                         ) : (
                           <div className="space-y-3">
-                            {uniqueCuisines.slice(0, 5).map((cuisine, index) => {
-                              const count = friendRestaurantsData.filter(r => r.cuisine === cuisine).length;
+                            {uniqueCuisines.slice(0, 5).map(({ name, count }, index) => {
                               const percentage = Math.round((count / friendRestaurantsData.length) * 100);
                               return (
                                 <div 
-                                  key={cuisine} 
+                                  key={name} 
                                   className="flex items-center justify-between hover:bg-muted/50 p-2 rounded cursor-pointer transition-colors"
-                                  onClick={() => handleCuisineClick(cuisine)}
+                                  onClick={() => handleCuisineClick(name)}
                                 >
-                                  <span className="text-sm font-medium">{cuisine}</span>
+                                  <span className="text-sm font-medium">{name}</span>
                                   <div className="flex items-center gap-2">
                                     <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
                                       <div 
@@ -1349,21 +1348,21 @@ export function FriendsPage({
                             <div className="space-y-3">
                               <div className="font-medium">Select Cuisines</div>
                               <div className="max-h-48 overflow-y-auto space-y-2">
-                                {uniqueCuisines.map(cuisine => (
-                                  <div key={cuisine} className="flex items-center space-x-2">
+                                {uniqueCuisines.map(({ name, count }) => (
+                                  <div key={name} className="flex items-center space-x-2">
                                     <Checkbox
-                                      id={cuisine}
-                                      checked={selectedCuisines.includes(cuisine)}
+                                      id={name}
+                                      checked={selectedCuisines.includes(name)}
                                       onCheckedChange={(checked) => {
                                         if (checked) {
-                                          setSelectedCuisines([...selectedCuisines, cuisine]);
+                                          setSelectedCuisines([...selectedCuisines, name]);
                                         } else {
-                                          setSelectedCuisines(selectedCuisines.filter(c => c !== cuisine));
+                                          setSelectedCuisines(selectedCuisines.filter(c => c !== name));
                                         }
                                       }}
                                     />
-                                    <label htmlFor={cuisine} className="text-sm cursor-pointer">
-                                      {cuisine}
+                                    <label htmlFor={name} className="text-sm cursor-pointer">
+                                      {name} ({count})
                                     </label>
                                   </div>
                                 ))}
@@ -1389,21 +1388,21 @@ export function FriendsPage({
                             <div className="space-y-3">
                               <div className="font-medium">Select Cities</div>
                               <div className="max-h-48 overflow-y-auto space-y-2">
-                                {uniqueCities.map(city => (
-                                  <div key={city} className="flex items-center space-x-2">
+                                {uniqueCities.map(({ name, count }) => (
+                                  <div key={name} className="flex items-center space-x-2">
                                     <Checkbox
-                                      id={city}
-                                      checked={selectedCities.includes(city)}
+                                      id={name}
+                                      checked={selectedCities.includes(name)}
                                       onCheckedChange={(checked) => {
                                         if (checked) {
-                                          setSelectedCities([...selectedCities, city]);
+                                          setSelectedCities([...selectedCities, name]);
                                         } else {
-                                          setSelectedCities(selectedCities.filter(c => c !== city));
+                                          setSelectedCities(selectedCities.filter(c => c !== name));
                                         }
                                       }}
                                     />
-                                    <label htmlFor={city} className="text-sm cursor-pointer">
-                                      {city}
+                                    <label htmlFor={name} className="text-sm cursor-pointer">
+                                      {name} ({count})
                                     </label>
                                   </div>
                                 ))}
@@ -1698,16 +1697,15 @@ export function FriendsPage({
                         <p className="text-muted-foreground text-sm">No cuisine data available</p>
                       ) : (
                         <div className="space-y-3">
-                          {uniqueCuisines.slice(0, 6).map((cuisine) => {
-                            const count = friendRestaurantsData.filter(r => r.cuisine === cuisine).length;
+                          {uniqueCuisines.slice(0, 6).map(({ name, count }) => {
                             const percentage = Math.round((count / friendRestaurantsData.length) * 100);
                              return (
                                <div 
-                                 key={cuisine} 
+                                 key={name} 
                                  className="flex items-center justify-between hover:bg-muted/50 p-2 rounded cursor-pointer transition-colors"
-                                 onClick={() => handleCuisineClick(cuisine)}
+                                 onClick={() => handleCuisineClick(name)}
                                >
-                                 <span className="text-sm font-medium truncate">{cuisine}</span>
+                                 <span className="text-sm font-medium truncate">{name}</span>
                                  <div className="flex items-center gap-2">
                                    <div className="w-12 h-2 bg-muted rounded-full overflow-hidden">
                                      <div 
