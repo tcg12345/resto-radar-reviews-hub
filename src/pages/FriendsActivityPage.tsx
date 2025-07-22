@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Star, Heart, MapPin, Clock, Filter, SortAsc } from 'lucide-react';
+import { Users, Star, Heart, MapPin, Clock, Filter, SortAsc, List } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -288,12 +288,45 @@ export function FriendsActivityPage() {
         </Card>
       </div>
 
+      {/* Quick Filter Buttons */}
+      <div className="flex items-center justify-center">
+        <div className="flex items-center bg-muted/50 p-1 rounded-lg">
+          <Button
+            variant={filterBy === 'all' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setFilterBy('all')}
+            className="flex items-center gap-2 px-4"
+          >
+            <List className="h-4 w-4" />
+            All ({friendsRestaurants.length})
+          </Button>
+          <Button
+            variant={filterBy === 'rated' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setFilterBy('rated')}
+            className="flex items-center gap-2 px-4"
+          >
+            <Star className="h-4 w-4" />
+            Rated ({friendsRestaurants.filter(r => !r.is_wishlist && r.rating !== null).length})
+          </Button>
+          <Button
+            variant={filterBy === 'wishlist' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setFilterBy('wishlist')}
+            className="flex items-center gap-2 px-4"
+          >
+            <Heart className="h-4 w-4" />
+            Wishlist ({friendsRestaurants.filter(r => r.is_wishlist).length})
+          </Button>
+        </div>
+      </div>
+
       {/* Filters and Search */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Filter className="h-5 w-5" />
-            Filters & Search
+            Additional Filters & Search
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -314,17 +347,6 @@ export function FriendsActivityPage() {
                 <SelectItem value="rating">Highest Rated</SelectItem>
                 <SelectItem value="alphabetical">A-Z</SelectItem>
                 <SelectItem value="friend">By Friend</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={filterBy} onValueChange={(value: FilterOption) => setFilterBy(value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Items</SelectItem>
-                <SelectItem value="rated">Rated Only</SelectItem>
-                <SelectItem value="wishlist">Wishlist Only</SelectItem>
               </SelectContent>
             </Select>
           </div>
