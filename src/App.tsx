@@ -42,6 +42,7 @@ const App = () => (
                 <Route path="/friends" element={<RequireAuth><FriendsPage /></RequireAuth>} />
                 
                 {/* Chat routes */}
+                <Route path="/chat-list" element={<RequireAuth><ChatListPage /></RequireAuth>} />
                 <Route path="/chat" element={<RequireAuth><ChatListPage /></RequireAuth>} />
                 <Route path="/chat/:roomId" element={<RequireAuth><ChatPage /></RequireAuth>} />
                 

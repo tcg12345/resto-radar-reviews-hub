@@ -1,66 +1,58 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, MessageCircle, Plus, Search } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
+import { ChatWindow } from '@/components/ChatWindow';
 
 interface ChatRoom {
   id: string;
   last_message_at: string;
-  other_participant: {
-    id: string;
-    username: string;
-    name: string;
-    avatar_url: string;
-  };
-  last_message?: {
+  updated_at: string;
+  participants: {
+    user_id: string;
+    profile: {
+      username: string;
+      name: string;
+      avatar_url: string;
+    };
+  }[];
+  lastMessage?: {
     content: string;
     sender_id: string;
     created_at: string;
   };
-  unread_count: number;
-}
-
-interface Friend {
-  friend_id: string;
-  username: string;
-  name: string;
-  avatar_url: string;
 }
 
 export function ChatListPage() {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
-  const [friends, setFriends] = useState<Friend[]>([]);
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isNewChatOpen, setIsNewChatOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     
     fetchChatRooms();
-    fetchFriends();
+    setupRealtimeSubscription();
   }, [user]);
 
   const fetchChatRooms = async () => {
     if (!user) return;
 
     try {
-      // Get all chat rooms the user participates in
-      const { data: userRooms, error: roomsError } = await supabase
+      // Fetch chat rooms where user participates
+      const { data: rooms, error: roomsError } = await supabase
         .from('chat_room_participants')
         .select(`
           room_id,
-          chat_rooms(id, last_message_at)
+          chat_rooms!inner(
+            id,
+            last_message_at,
+            updated_at
+          )
         `)
         .eq('user_id', user.id);
 
@@ -69,278 +61,228 @@ export function ChatListPage() {
         return;
       }
 
-      if (!userRooms || userRooms.length === 0) {
-        setChatRooms([]);
+      if (!rooms?.length) {
         setIsLoading(false);
         return;
       }
 
-      const roomIds = userRooms.map(ur => ur.room_id);
+      // Get participants for each room
+      const roomsWithParticipants = await Promise.all(
+        rooms.map(async (room) => {
+          const { data: participants, error: participantsError } = await supabase
+            .from('chat_room_participants')
+            .select('user_id')
+            .eq('room_id', room.room_id)
+            .neq('user_id', user.id); // Exclude current user
 
-      // Get other participants for each room
-      const { data: allParticipants, error: participantsError } = await supabase
-        .from('chat_room_participants')
-        .select('room_id, user_id')
-        .in('room_id', roomIds)
-        .neq('user_id', user.id);
+          if (participantsError) {
+            console.error('Error fetching participants:', participantsError);
+            return null;
+          }
 
-      if (participantsError) {
-        console.error('Error fetching participants:', participantsError);
-        return;
-      }
+          // Get profiles for participants
+          const userIds = participants?.map(p => p.user_id) || [];
+          const { data: profilesData, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, username, name, avatar_url')
+            .in('id', userIds);
 
-      // Get profiles for other participants
-      const otherUserIds = allParticipants?.map(p => p.user_id) || [];
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, username, name, avatar_url')
-        .in('id', otherUserIds);
+          if (profilesError) {
+            console.error('Error fetching profiles:', profilesError);
+            return null;
+          }
 
-      if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
-        return;
-      }
+          // Get last message for this room
+          const { data: lastMessage } = await supabase
+            .from('messages')
+            .select('content, sender_id, created_at')
+            .eq('room_id', room.room_id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
 
-      // Get last message for each room
-      const { data: lastMessages, error: messagesError } = await supabase
-        .from('messages')
-        .select('room_id, content, sender_id, created_at')
-        .in('room_id', roomIds)
-        .order('created_at', { ascending: false });
+          return {
+            id: room.room_id,
+            last_message_at: room.chat_rooms.last_message_at,
+            updated_at: room.chat_rooms.updated_at,
+            participants: profilesData?.map(profile => ({
+              user_id: profile.id,
+              profile: {
+                username: profile.username || 'Unknown',
+                name: profile.name || profile.username || 'Unknown',
+                avatar_url: profile.avatar_url || ''
+              }
+            })) || [],
+            lastMessage
+          };
+        })
+      );
 
-      if (messagesError) {
-        console.error('Error fetching last messages:', messagesError);
-      }
-
-      // Build chat rooms array
-      const rooms: ChatRoom[] = userRooms.map(userRoom => {
-        const roomData = Array.isArray(userRoom.chat_rooms) ? userRoom.chat_rooms[0] : userRoom.chat_rooms;
-        const otherParticipant = allParticipants?.find(p => p.room_id === userRoom.room_id);
-        const profile = profiles?.find(p => p.id === otherParticipant?.user_id);
-        const lastMessage = lastMessages?.find(m => m.room_id === userRoom.room_id);
-
-        return {
-          id: userRoom.room_id,
-          last_message_at: roomData?.last_message_at || new Date().toISOString(),
-          other_participant: {
-            id: profile?.id || '',
-            username: profile?.username || '',
-            name: profile?.name || '',
-            avatar_url: profile?.avatar_url || ''
-          },
-          last_message: lastMessage ? {
-            content: lastMessage.content,
-            sender_id: lastMessage.sender_id,
-            created_at: lastMessage.created_at
-          } : undefined,
-          unread_count: 0 // TODO: Implement unread count logic
-        };
-      }).filter(room => room.other_participant.id); // Filter out rooms without valid participants
-
+      const validRooms = roomsWithParticipants.filter(room => room !== null) as ChatRoom[];
+      
       // Sort by last message time
-      rooms.sort((a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime());
+      validRooms.sort((a, b) => 
+        new Date(b.last_message_at || b.updated_at).getTime() - 
+        new Date(a.last_message_at || a.updated_at).getTime()
+      );
 
-      setChatRooms(rooms);
+      setChatRooms(validRooms);
+      
+      // Auto-select first room if none selected
+      if (!selectedRoomId && validRooms.length > 0) {
+        setSelectedRoomId(validRooms[0].id);
+      }
     } catch (error) {
-      console.error('Error fetching chat rooms:', error);
-      toast('Failed to load chats');
+      console.error('Error in fetchChatRooms:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const fetchFriends = async () => {
+  const setupRealtimeSubscription = () => {
     if (!user) return;
 
-    try {
-      const { data: friendsData, error } = await supabase
-        .rpc('get_friends_with_scores', { requesting_user_id: user.id });
+    const channel = supabase
+      .channel('chat-rooms-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'messages'
+        },
+        () => {
+          fetchChatRooms(); // Refresh chat rooms when messages change
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'chat_rooms'
+        },
+        () => {
+          fetchChatRooms(); // Refresh when rooms change
+        }
+      )
+      .subscribe();
 
-      if (error) {
-        console.error('Error fetching friends:', error);
-        return;
-      }
-
-      setFriends(friendsData || []);
-    } catch (error) {
-      console.error('Error fetching friends:', error);
-    }
-  };
-
-  const startChat = async (friendId: string) => {
-    if (!user) return;
-
-    try {
-      const { data: roomId, error } = await supabase
-        .rpc('get_or_create_dm_room', { other_user_id: friendId });
-
-      if (error) {
-        console.error('Error creating chat room:', error);
-        toast('Failed to start chat');
-        return;
-      }
-
-      setIsNewChatOpen(false);
-      navigate(`/chat/${roomId}`);
-    } catch (error) {
-      console.error('Error starting chat:', error);
-      toast('Failed to start chat');
-    }
+    return () => {
+      supabase.removeChannel(channel);
+    };
   };
 
   const formatLastMessageTime = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const minutes = Math.floor(diff / (1000 * 60));
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
-    if (minutes < 1) return 'now';
-    if (minutes < 60) return `${minutes}m`;
-    if (hours < 24) return `${hours}h`;
-    if (days < 7) return `${days}d`;
-    return date.toLocaleDateString();
+    if (diffInHours < 24) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else if (diffInHours < 168) { // 7 days
+      return date.toLocaleDateString([], { weekday: 'short' });
+    } else {
+      return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    }
   };
 
-  const filteredFriends = friends.filter(friend =>
-    friend.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    friend.username?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const getOtherParticipant = (room: ChatRoom) => {
+    return room.participants[0]; // Should be the other user (not current user)
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-lg text-muted-foreground">Loading chats...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b">
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/')}
-              className="flex-shrink-0"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <h1 className="text-xl font-semibold">Messages</h1>
-          </div>
-
-          <Dialog open={isNewChatOpen} onOpenChange={setIsNewChatOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                New Chat
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Start New Chat</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <Input
-                  placeholder="Search friends..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full"
-                />
-                <div className="max-h-60 overflow-y-auto space-y-2">
-                  {filteredFriends.map((friend) => (
-                    <Card
-                      key={friend.friend_id}
-                      className="cursor-pointer hover:bg-muted/50 transition-colors"
-                      onClick={() => startChat(friend.friend_id)}
-                    >
-                      <CardContent className="p-3">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={friend.avatar_url} />
-                            <AvatarFallback>
-                              {(friend.name || friend.username || 'U').charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <p className="font-medium">{friend.name || friend.username}</p>
-                            {friend.username && friend.name && (
-                              <p className="text-sm text-muted-foreground">@{friend.username}</p>
-                            )}
+    <div className="flex h-screen bg-background">
+      {/* Chat List Sidebar */}
+      <div className="w-80 border-r border-border flex flex-col">
+        <div className="p-4 border-b border-border">
+          <h1 className="text-xl font-semibold">Messages</h1>
+        </div>
+        
+        <ScrollArea className="flex-1">
+          {chatRooms.length === 0 ? (
+            <div className="p-4 text-center text-muted-foreground">
+              <p>No conversations yet</p>
+              <p className="text-sm mt-1">Start chatting with your friends!</p>
+            </div>
+          ) : (
+            <div className="p-2">
+              {chatRooms.map((room) => {
+                const otherParticipant = getOtherParticipant(room);
+                const isSelected = selectedRoomId === room.id;
+                
+                return (
+                  <Card 
+                    key={room.id}
+                    className={`mb-2 cursor-pointer transition-all duration-200 hover:bg-accent/50 ${
+                      isSelected ? 'bg-accent border-primary' : ''
+                    }`}
+                    onClick={() => setSelectedRoomId(room.id)}
+                  >
+                    <CardContent className="p-3">
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage 
+                            src={otherParticipant?.profile.avatar_url} 
+                            alt={otherParticipant?.profile.name}
+                          />
+                          <AvatarFallback>
+                            {otherParticipant?.profile.name?.charAt(0) || '?'}
+                          </AvatarFallback>
+                        </Avatar>
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-medium text-sm truncate">
+                              {otherParticipant?.profile.name || 'Unknown User'}
+                            </h3>
+                            <span className="text-xs text-muted-foreground">
+                              {formatLastMessageTime(room.last_message_at || room.updated_at)}
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center justify-between mt-1">
+                            <p className="text-sm text-muted-foreground truncate">
+                              {room.lastMessage ? (
+                                room.lastMessage.content
+                              ) : (
+                                'No messages yet'
+                              )}
+                            </p>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                  {filteredFriends.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      {searchQuery ? 'No friends found' : 'No friends to chat with'}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </ScrollArea>
       </div>
 
-      {/* Chat List */}
-      <div className="p-4">
-        {isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="text-muted-foreground">Loading chats...</div>
-          </div>
-        ) : chatRooms.length === 0 ? (
-          <div className="text-center py-12">
-            <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">No conversations yet</h3>
-            <p className="text-muted-foreground mb-4">
-              Start a conversation with your friends
-            </p>
-            <Button onClick={() => setIsNewChatOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Start New Chat
-            </Button>
-          </div>
+      {/* Chat Window */}
+      <div className="flex-1 flex flex-col">
+        {selectedRoomId ? (
+          <ChatWindow roomId={selectedRoomId} />
         ) : (
-          <div className="space-y-2">
-            {chatRooms.map((room) => (
-              <Card
-                key={room.id}
-                className="cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => navigate(`/chat/${room.id}`)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={room.other_participant.avatar_url} />
-                      <AvatarFallback>
-                        {(room.other_participant.name || room.other_participant.username || 'U').charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-medium truncate">
-                          {room.other_participant.name || room.other_participant.username}
-                        </h3>
-                        <div className="flex items-center gap-2">
-                          {room.unread_count > 0 && (
-                            <Badge variant="default" className="text-xs">
-                              {room.unread_count}
-                            </Badge>
-                          )}
-                          <span className="text-xs text-muted-foreground">
-                            {formatLastMessageTime(room.last_message_at)}
-                          </span>
-                        </div>
-                      </div>
-                      {room.last_message && (
-                        <p className="text-sm text-muted-foreground truncate">
-                          {room.last_message.sender_id === user?.id ? 'You: ' : ''}
-                          {room.last_message.content}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="flex-1 flex items-center justify-center bg-muted/20">
+            <div className="text-center">
+              <h2 className="text-xl font-medium text-muted-foreground mb-2">
+                Select a conversation
+              </h2>
+              <p className="text-muted-foreground">
+                Choose a chat from the sidebar to start messaging
+              </p>
+            </div>
           </div>
         )}
       </div>

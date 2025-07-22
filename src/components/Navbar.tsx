@@ -66,7 +66,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
               <Button
                 variant="ghost"
                 size="lg"
-                onClick={() => navigate('/chat')}
+                onClick={() => navigate('/chat-list')}
                 className="h-12 w-12"
                 title="Messages"
               >
