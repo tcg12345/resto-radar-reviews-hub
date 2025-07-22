@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Send, Users } from 'lucide-react';
+import { Send, Users, Search } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useFriends } from '@/hooks/useFriends';
@@ -23,7 +24,14 @@ export function ShareRestaurantDialog({ restaurant, isOpen, onOpenChange }: Shar
   const { friends } = useFriends();
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [message, setMessage] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [isSharing, setIsSharing] = useState(false);
+
+  // Filter friends based on search query
+  const filteredFriends = friends.filter(friend => 
+    friend.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    friend.username?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleFriendToggle = (friendId: string) => {
     setSelectedFriends(prev => 
@@ -162,49 +170,69 @@ export function ShareRestaurantDialog({ restaurant, isOpen, onOpenChange }: Shar
                 <p className="text-xs">Add friends to start sharing restaurants!</p>
               </div>
             ) : (
-              <div className="max-h-48 overflow-y-auto space-y-2">
-                {friends.map((friend) => (
-                  <div
-                    key={friend.id}
-                    className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
-                      selectedFriends.includes(friend.id)
-                        ? 'bg-primary/10 border border-primary/20'
-                        : 'hover:bg-muted/50'
-                    }`}
-                    onClick={() => handleFriendToggle(friend.id)}
-                  >
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={friend.avatar_url || ''} />
-                      <AvatarFallback className="text-xs">
-                        {friend.username?.charAt(0).toUpperCase() || friend.name?.charAt(0).toUpperCase() || '?'}
-                      </AvatarFallback>
-                    </Avatar>
-                    
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        {friend.name || friend.username}
-                      </p>
-                      {friend.name && friend.username && (
-                        <p className="text-xs text-muted-foreground truncate">
-                          @{friend.username}
-                        </p>
-                      )}
-                    </div>
+              <>
+                {/* Search Bar */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search friends..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
 
-                    <div className={`w-4 h-4 rounded border-2 transition-colors ${
-                      selectedFriends.includes(friend.id)
-                        ? 'bg-primary border-primary'
-                        : 'border-muted-foreground/30'
-                    }`}>
-                      {selectedFriends.includes(friend.id) && (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <div className="w-2 h-2 bg-white rounded-full" />
-                        </div>
-                      )}
+                {/* Friends List */}
+                <div className="max-h-48 overflow-y-auto space-y-2">
+                  {filteredFriends.length === 0 ? (
+                    <div className="text-center py-4 text-muted-foreground">
+                      <p className="text-sm">No friends found matching "{searchQuery}"</p>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ) : (
+                    filteredFriends.map((friend) => (
+                      <div
+                        key={friend.id}
+                        className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
+                          selectedFriends.includes(friend.id)
+                            ? 'bg-primary/10 border border-primary/20'
+                            : 'hover:bg-muted/50'
+                        }`}
+                        onClick={() => handleFriendToggle(friend.id)}
+                      >
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={friend.avatar_url || ''} />
+                          <AvatarFallback className="text-xs">
+                            {friend.username?.charAt(0).toUpperCase() || friend.name?.charAt(0).toUpperCase() || '?'}
+                          </AvatarFallback>
+                        </Avatar>
+                        
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {friend.name || friend.username}
+                          </p>
+                          {friend.name && friend.username && (
+                            <p className="text-xs text-muted-foreground truncate">
+                              @{friend.username}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className={`w-4 h-4 rounded border-2 transition-colors ${
+                          selectedFriends.includes(friend.id)
+                            ? 'bg-primary border-primary'
+                            : 'border-muted-foreground/30'
+                        }`}>
+                          {selectedFriends.includes(friend.id) && (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <div className="w-2 h-2 bg-white rounded-full" />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </>
             )}
           </div>
 
