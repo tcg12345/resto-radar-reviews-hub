@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Users, Star, Heart, MapPin, Clock, Filter, SortAsc, List } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -41,6 +41,15 @@ type SortOption = 'recent' | 'rating' | 'alphabetical' | 'friend';
 type FilterOption = 'all' | 'rated' | 'wishlist';
 type CityFilterOption = string | 'all';
 
+// Global cache for friends activity data
+const friendsActivityCache = new Map<string, {
+  data: FriendRestaurant[];
+  timestamp: number;
+  userId: string;
+}>();
+
+const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
+
 export function FriendsActivityPage() {
   const { user } = useAuth();
   const [friendsRestaurants, setFriendsRestaurants] = useState<FriendRestaurant[]>([]);
@@ -51,6 +60,7 @@ export function FriendsActivityPage() {
   const [filterBy, setFilterBy] = useState<FilterOption>('all');
   const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
   const [selectedCity, setSelectedCity] = useState<CityFilterOption>('all');
+  const dataFetched = useRef(false);
 
   // Memoize expensive calculations
   const uniqueCuisines = React.useMemo(() => {
@@ -64,7 +74,22 @@ export function FriendsActivityPage() {
   }, [friendsRestaurants]);
 
   useEffect(() => {
-    if (user) {
+    if (user && !dataFetched.current) {
+      // Check cache first
+      const cacheKey = `friends-activity-${user.id}`;
+      const cached = friendsActivityCache.get(cacheKey);
+      
+      if (cached && 
+          cached.userId === user.id && 
+          Date.now() - cached.timestamp < CACHE_DURATION) {
+        // Use cached data instantly
+        setFriendsRestaurants(cached.data);
+        setIsLoading(false);
+        dataFetched.current = true;
+        return;
+      }
+      
+      // Fetch fresh data
       fetchFriendsRestaurants();
     }
   }, [user]);
@@ -150,6 +175,15 @@ export function FriendsActivityPage() {
       });
 
       setFriendsRestaurants(formattedRestaurants);
+      dataFetched.current = true;
+      
+      // Cache the data
+      const cacheKey = `friends-activity-${user.id}`;
+      friendsActivityCache.set(cacheKey, {
+        data: formattedRestaurants,
+        timestamp: Date.now(),
+        userId: user.id
+      });
     } catch (error) {
       console.error('Error in fallback fetch:', error);
     }
