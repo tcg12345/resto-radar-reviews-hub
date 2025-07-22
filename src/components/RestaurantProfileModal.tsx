@@ -296,8 +296,8 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
       }
     }
 
-    // Use AI to determine Michelin stars and enhance cuisine
-    let michelinStars = place.rating && place.rating >= 4.5 ? 1 : 0; // Default fallback
+    // Use AI to determine Michelin stars - keep it optional
+    let michelinStars = undefined; // Start with undefined, not 0
     let enhancedCuisine = aiCuisine;
     let enhancedPriceRange = place.price_level;
 
@@ -314,8 +314,9 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
         }
       });
       
-      if (michelinData && michelinData.michelinStars !== null) {
-        michelinStars = michelinData.michelinStars;
+      if (michelinData && michelinData.michelinStars !== null && michelinData.michelinStars !== undefined) {
+        // Only set if AI actually detected Michelin stars (not 0)
+        michelinStars = michelinData.michelinStars > 0 ? michelinData.michelinStars : undefined;
         console.log('AI detected Michelin stars:', michelinStars);
       }
     } catch (error) {
@@ -329,7 +330,7 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
       country: country,
       cuisine: enhancedCuisine || place.types.filter(type => !['establishment', 'point_of_interest', 'food'].includes(type))[0] || 'restaurant',
       priceRange: enhancedPriceRange || undefined,
-      michelinStars: michelinStars,
+      michelinStars: michelinStars, // This will be undefined if no Michelin stars
       notes: '',
       latitude: place.geometry?.location?.lat || undefined,
       longitude: place.geometry?.location?.lng || undefined,
