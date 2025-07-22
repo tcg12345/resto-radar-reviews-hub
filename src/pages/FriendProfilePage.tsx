@@ -283,16 +283,32 @@ export default function FriendProfilePage() {
     return filtered;
   }, [allRestaurants, searchTerm, cuisineFilter, cityFilter, sortBy, ratingFilter]);
 
-  // Get unique cuisines for filter dropdown
+  // Get unique cuisines for filter dropdown with counts
   const availableCuisines = useMemo(() => {
-    const cuisines = [...new Set(allRestaurants.map(r => r.cuisine))].filter(Boolean);
-    return cuisines.sort();
+    const cuisineCount: { [key: string]: number } = {};
+    allRestaurants.forEach(r => {
+      if (r.cuisine) {
+        cuisineCount[r.cuisine] = (cuisineCount[r.cuisine] || 0) + 1;
+      }
+    });
+    
+    return Object.entries(cuisineCount)
+      .map(([cuisine, count]) => ({ cuisine, count }))
+      .sort((a, b) => a.cuisine.localeCompare(b.cuisine));
   }, [allRestaurants]);
 
-  // Get unique cities for filter dropdown
+  // Get unique cities for filter dropdown with counts
   const availableCities = useMemo(() => {
-    const cities = [...new Set(allRestaurants.map(r => r.city))].filter(Boolean);
-    return cities.sort();
+    const cityCount: { [key: string]: number } = {};
+    allRestaurants.forEach(r => {
+      if (r.city) {
+        cityCount[r.city] = (cityCount[r.city] || 0) + 1;
+      }
+    });
+    
+    return Object.entries(cityCount)
+      .map(([city, count]) => ({ city, count }))
+      .sort((a, b) => a.city.localeCompare(b.city));
   }, [allRestaurants]);
 
   // Filtered wishlist with memoization for performance
@@ -327,16 +343,32 @@ export default function FriendProfilePage() {
     return filtered;
   }, [allWishlist, wishlistSearchTerm, wishlistCuisineFilter, wishlistCityFilter, wishlistSortBy]);
 
-  // Get unique cuisines for wishlist filter dropdown
+  // Get unique cuisines for wishlist filter dropdown with counts
   const availableWishlistCuisines = useMemo(() => {
-    const cuisines = [...new Set(allWishlist.map(r => r.cuisine))].filter(Boolean);
-    return cuisines.sort();
+    const cuisineCount: { [key: string]: number } = {};
+    allWishlist.forEach(r => {
+      if (r.cuisine) {
+        cuisineCount[r.cuisine] = (cuisineCount[r.cuisine] || 0) + 1;
+      }
+    });
+    
+    return Object.entries(cuisineCount)
+      .map(([cuisine, count]) => ({ cuisine, count }))
+      .sort((a, b) => a.cuisine.localeCompare(b.cuisine));
   }, [allWishlist]);
 
-  // Get unique cities for wishlist filter dropdown
+  // Get unique cities for wishlist filter dropdown with counts
   const availableWishlistCities = useMemo(() => {
-    const cities = [...new Set(allWishlist.map(r => r.city))].filter(Boolean);
-    return cities.sort();
+    const cityCount: { [key: string]: number } = {};
+    allWishlist.forEach(r => {
+      if (r.city) {
+        cityCount[r.city] = (cityCount[r.city] || 0) + 1;
+      }
+    });
+    
+    return Object.entries(cityCount)
+      .map(([city, count]) => ({ city, count }))
+      .sort((a, b) => a.city.localeCompare(b.city));
   }, [allWishlist]);
 
   // Add restaurant to current user's wishlist
@@ -640,27 +672,27 @@ export default function FriendProfilePage() {
                       <SelectTrigger>
                         <SelectValue placeholder="All cuisines" />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Cuisines</SelectItem>
-                        {availableCuisines.map(cuisine => (
-                          <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">City</label>
-                    <Select value={cityFilter} onValueChange={setCityFilter}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="All cities" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Cities</SelectItem>
-                        {availableCities.map(city => (
-                          <SelectItem key={city} value={city}>{city}</SelectItem>
-                        ))}
-                      </SelectContent>
+                        <SelectContent>
+                          <SelectItem value="all">All Cuisines</SelectItem>
+                          {availableCuisines.map(({ cuisine, count }) => (
+                            <SelectItem key={cuisine} value={cuisine}>{cuisine} ({count})</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">City</label>
+                      <Select value={cityFilter} onValueChange={setCityFilter}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="All cities" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Cities</SelectItem>
+                          {availableCities.map(({ city, count }) => (
+                            <SelectItem key={city} value={city}>{city} ({count})</SelectItem>
+                          ))}
+                        </SelectContent>
                     </Select>
                   </div>
                   
@@ -830,8 +862,8 @@ export default function FriendProfilePage() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All Cuisines</SelectItem>
-                          {availableWishlistCuisines.map(cuisine => (
-                            <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
+                          {availableWishlistCuisines.map(({ cuisine, count }) => (
+                            <SelectItem key={cuisine} value={cuisine}>{cuisine} ({count})</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -861,9 +893,9 @@ export default function FriendProfilePage() {
               <Tabs defaultValue="all" onValueChange={setWishlistCityFilter} value={wishlistCityFilter} className="mb-6">
                 <TabsList className="mb-4">
                   <TabsTrigger value="all">All Cities</TabsTrigger>
-                  {availableWishlistCities.map((city) => (
+                  {availableWishlistCities.map(({ city, count }) => (
                     <TabsTrigger key={city} value={city}>
-                      {city}
+                      {city} ({count})
                     </TabsTrigger>
                   ))}
                 </TabsList>
