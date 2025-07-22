@@ -378,11 +378,6 @@ export function NotificationsPanel() {
                               <h4 className="font-semibold text-foreground text-sm truncate">
                                 {notification.data?.restaurant_name || 'Restaurant'}
                               </h4>
-                              {notification.data?.share_message && (
-                                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                  "{notification.data.share_message}"
-                                </p>
-                              )}
                             </div>
                             <Button
                               variant="outline"
