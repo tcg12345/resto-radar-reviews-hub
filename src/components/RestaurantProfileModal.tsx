@@ -447,19 +447,7 @@ export function RestaurantProfileModal({
                 <div className="xl:col-span-2 space-y-6">
                   {/* Restaurant Information */}
                   <Card className="overflow-hidden border-0 shadow-lg bg-gradient-to-br from-background via-background to-muted/30">
-                    <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">
-                      <CardTitle className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-full bg-primary/10">
-                            <MapPin className="h-5 w-5 text-primary" />
-                          </div>
-                          <div>
-                            <h3 className="text-lg font-semibold">Restaurant Details</h3>
-                            <p className="text-sm text-muted-foreground">Essential information & contact</p>
-                          </div>
-                        </div>
-                      </CardTitle>
-                    </CardHeader>
+                    
                     <CardContent className="p-0">
                       <div className="relative overflow-hidden">
                         {/* Background Gradient */}
