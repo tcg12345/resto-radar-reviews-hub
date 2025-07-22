@@ -328,7 +328,7 @@ export function RestaurantDetailPage() {
             ) : (
               <Card className="overflow-hidden animate-fade-in">
                 <CardContent className="p-0">
-                  <div className="h-80 bg-muted/30 flex items-center justify-center">
+                  <div className="h-96 lg:h-[500px] bg-muted/30 flex items-center justify-center">
                     <div className="text-center text-muted-foreground">
                       <div className="text-lg font-medium mb-2">No Photos Added</div>
                       <div className="text-sm">Photos will appear here when available</div>
