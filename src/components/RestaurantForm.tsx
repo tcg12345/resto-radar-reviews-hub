@@ -59,7 +59,7 @@ const cuisineOptions = [
 cuisineOptions.push('Other');
 
 export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlist = false, hideSearch = false }: RestaurantFormProps) {
-  const [isMobile, setIsMobile] = useState(false);
+  
   const [isProcessingPhotos, setIsProcessingPhotos] = useState(false);
   const [photoProgress, setPhotoProgress] = useState(0);
   const [photosToProcess, setPhotosToProcess] = useState(0);
@@ -82,16 +82,6 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     return '';
   });
   
-  useEffect(() => {
-    // Detect if we're on a mobile device
-    const checkIsMobile = () => {
-      const userAgent = navigator.userAgent.toLowerCase();
-      const isMobileDevice = /iphone|ipad|android|mobile/.test(userAgent);
-      setIsMobile(isMobileDevice);
-    };
-    
-    checkIsMobile();
-  }, []);
 
   const [formData, setFormData] = useState<RestaurantFormData>({
     name: initialData?.name || '',
@@ -1140,42 +1130,12 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
               </div>
             ))}
 
-            {/* Show native mobile buttons only on mobile devices */}
-            {isMobile && (
-              <>
-                {/* Native Photo Gallery Button */}
-                <button
-                  type="button"
-                  onClick={addPhotoFromGallery}
-                  className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-md border border-dashed bg-muted/50 text-muted-foreground transition-colors hover:bg-muted"
-                >
-                  <Images className="mb-1 h-6 w-6" />
-                  <span className="text-sm font-medium">Photo Gallery</span>
-                  <span className="text-xs opacity-75">Select from album</span>
-                </button>
 
-                {/* Native Camera Button */}
-                <button
-                  type="button"
-                  onClick={takePhoto}
-                  className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-md border border-dashed bg-muted/50 text-muted-foreground transition-colors hover:bg-muted"
-                >
-                  <Camera className="mb-1 h-6 w-6" />
-                  <span className="text-sm font-medium">Take Photo</span>
-                  <span className="text-xs opacity-75">Use camera</span>
-                </button>
-              </>
-            )}
-
-            {/* Enhanced File System Selection for Desktop */}
+            {/* File System Selection */}
             <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-md border border-dashed bg-muted/50 text-muted-foreground transition-colors hover:bg-muted">
-              {isMobile ? <PlusCircle className="mb-1 h-6 w-6" /> : <Monitor className="mb-1 h-6 w-6" />}
-              <span className="text-sm font-medium">
-                {isMobile ? 'Files' : 'Photo Library'}
-              </span>
-              <span className="text-xs opacity-75 text-center">
-                {isMobile ? 'Select multiple' : 'Cmd+click multiple'}
-              </span>
+              <Monitor className="mb-1 h-6 w-6" />
+              <span className="text-sm font-medium">Photo Library</span>
+              <span className="text-xs opacity-75 text-center">Cmd+click multiple</span>
               <input
                 type="file"
                 accept="image/*"
