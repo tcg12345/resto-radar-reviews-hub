@@ -87,7 +87,8 @@ export function ShareRestaurantDialog({ restaurant, isOpen, onOpenChange }: Shar
       onOpenChange(false);
     } catch (error) {
       console.error('Error sharing restaurant:', error);
-      toast.error('Failed to share restaurant. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      toast.error(`Failed to share restaurant: ${errorMessage}`);
     } finally {
       setIsSharing(false);
     }
