@@ -366,8 +366,10 @@ export default function UnifiedSearchPage() {
             }
           }
         }).then(({ data: yelpData, error: yelpError }) => {
+          console.log('Yelp API response:', yelpData, 'Error:', yelpError);
           if (!yelpError && yelpData?.businesses?.length > 0) {
             const yelpBusiness = yelpData.businesses[0];
+            console.log('Found Yelp business:', yelpBusiness);
             
             // Update the modal with Yelp data
             setSelectedPlace(prev => prev ? {
@@ -382,6 +384,8 @@ export default function UnifiedSearchPage() {
                 menu_url: yelpBusiness.menu_url || undefined
               }
             } : null);
+          } else {
+            console.log('No Yelp data found:', yelpError || 'No businesses returned');
           }
         }).catch(error => {
           console.warn('Failed to get Yelp data for modal:', error);
