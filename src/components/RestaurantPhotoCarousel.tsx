@@ -37,7 +37,7 @@ export function RestaurantPhotoCarousel({ photos, restaurantName }: RestaurantPh
         <img 
           src={photos[currentIndex]} 
           alt={`${restaurantName} photo ${currentIndex + 1}`}
-          className="w-full h-full object-cover transition-all duration-300"
+          className="w-full h-full object-contain transition-all duration-300"
         />
         
         {/* Navigation Arrows - only show if more than one photo */}
