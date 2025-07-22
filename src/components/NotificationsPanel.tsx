@@ -307,10 +307,14 @@ export function NotificationsPanel() {
                       </p>
                       
                       {notification.type === 'restaurant_share' && (
-                        <div className="flex items-center gap-1 text-xs text-primary">
-                          <Eye className="h-3 w-3" />
-                          Click to view restaurant details
-                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs w-fit px-3 pointer-events-none"
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          View
+                        </Button>
                       )}
 
                       <div className="flex justify-between items-center mt-2">
