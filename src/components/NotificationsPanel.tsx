@@ -409,14 +409,14 @@ export function NotificationsPanel() {
                             <Button 
                               variant="ghost" 
                               size="sm"
-                              className="h-7 w-7 p-0 text-muted-foreground hover:text-primary transition-colors"
+                              className="h-7 px-2 text-muted-foreground hover:text-primary transition-colors"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 showFullMessage(notification.data.share_message);
                               }}
                             >
-                              <MessageSquare className="h-3 w-3" />
-                              <span className="sr-only">Read full message</span>
+                              <MessageSquare className="h-3 w-3 mr-1" />
+                              <span className="text-xs">View Details</span>
                             </Button>
                           )}
                           
