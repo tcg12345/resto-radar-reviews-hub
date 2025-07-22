@@ -25,7 +25,8 @@ import {
   Filter,
   SortAsc,
   SortDesc,
-  Heart
+  Heart,
+  Share2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -874,6 +875,79 @@ export function FriendsPage({
     }
   };
 
+  const shareRestaurant = async (restaurant: any) => {
+    const shareText = `Check out ${restaurant.name} in ${restaurant.city}! ${restaurant.cuisine} cuisine${restaurant.rating ? ` • Rated ${restaurant.rating}/10` : ''}${restaurant.michelin_stars ? ` • ${restaurant.michelin_stars} Michelin Star${restaurant.michelin_stars > 1 ? 's' : ''}` : ''}`;
+    const shareUrl = `${window.location.origin}/restaurant/${restaurant.id}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: restaurant.name,
+          text: shareText,
+          url: shareUrl,
+        });
+        toast({
+          title: "Shared!",
+          description: "Restaurant shared successfully",
+        });
+      } catch (error) {
+        if (error instanceof Error && error.name !== 'AbortError') {
+          console.error('Error sharing:', error);
+          fallbackShare(shareText, shareUrl);
+        }
+      }
+    } else {
+      fallbackShare(shareText, shareUrl);
+    }
+  };
+
+  const fallbackShare = (text: string, url: string) => {
+    const fullText = `${text}\n${url}`;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(fullText).then(() => {
+        toast({
+          title: "Copied to clipboard!",
+          description: "Restaurant details copied. You can now paste and share them.",
+        });
+      }).catch(() => {
+        showShareOptions(text, url);
+      });
+    } else {
+      showShareOptions(text, url);
+    }
+  };
+
+  const showShareOptions = (text: string, url: string) => {
+    const fullText = `${text}\n${url}`;
+    const mailtoUrl = `mailto:?subject=${encodeURIComponent(`Check out ${text.split(' in ')[0]}`)}&body=${encodeURIComponent(fullText)}`;
+    const smsUrl = `sms:?body=${encodeURIComponent(fullText)}`;
+    
+    // Create a simple alert with sharing options
+    if (confirm('Share via email or copy to clipboard?\n\nClick OK for email, Cancel to copy to clipboard.')) {
+      window.open(mailtoUrl, '_blank');
+    } else {
+      // Try to copy to clipboard manually
+      const textArea = document.createElement('textarea');
+      textArea.value = fullText;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        toast({
+          title: "Copied to clipboard!",
+          description: "Restaurant details copied. You can now paste and share them.",
+        });
+      } catch (err) {
+        console.error('Failed to copy text: ', err);
+        toast({
+          title: "Share",
+          description: `Copy this: ${fullText}`,
+        });
+      }
+      document.body.removeChild(textArea);
+    }
+  };
+
   // Interactive filter functions for statistics
   const handleRatingRangeClick = (min: number, max: number) => {
     console.log('Rating range clicked:', min, max);
@@ -1516,6 +1590,14 @@ export function FriendsPage({
                               <Button
                                 variant="outline"
                                 size="sm"
+                                onClick={() => shareRestaurant(restaurant)}
+                                className="p-2"
+                              >
+                                <Share2 className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
                                 onClick={() => {
                                   // Navigate to restaurant detail page
                                   navigate(`/restaurant/${restaurant.id}?friendId=${viewingFriend?.id}`);
@@ -1639,6 +1721,15 @@ export function FriendsPage({
                                   >
                                     <Eye className="h-4 w-4" />
                                     View Details
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => shareRestaurant(restaurant)}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <Share2 className="h-4 w-4" />
+                                    Share
                                   </Button>
                                   <Button
                                     variant="outline"
