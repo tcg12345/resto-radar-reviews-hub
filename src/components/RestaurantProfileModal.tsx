@@ -359,7 +359,7 @@ export function RestaurantProfileModal({
   };
   return <>
       <Dialog open={true} onOpenChange={onClose}>
-        <DialogContent className="max-w-7xl max-h-[95vh] flex flex-col p-0">
+        <DialogContent className="max-w-7xl max-h-[95vh] flex flex-col p-0 rounded-lg overflow-hidden">
           <DialogHeader className="sticky top-0 bg-background z-50 border-b px-6 py-4 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
