@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Save, Eye, EyeOff, User, Mail, Phone, MapPin, Settings as SettingsIcon, Shield, Key, Moon, Sun, Map, Satellite, Trash2 } from 'lucide-react';
+import { ArrowLeft, Save, Eye, EyeOff, User, Mail, Phone, MapPin, Settings as SettingsIcon, Shield, Key, Moon, Sun, Map, Satellite, Trash2, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
+import { useColorTheme, colorThemes } from '@/hooks/useColorTheme';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -21,6 +22,7 @@ interface SettingsPageProps {
 export default function SettingsPage({ onBack }: SettingsPageProps) {
   const { user, profile, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { currentTheme, themes, applyTheme, getCurrentTheme } = useColorTheme();
   const [defaultMapStyle, setDefaultMapStyle] = useLocalStorage<'streets' | 'satellite' | 'hybrid'>('defaultMapStyle', 'satellite');
   
   // Profile form state
@@ -434,6 +436,58 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                     )}
                   </Button>
                 </div>
+
+                <Separator />
+
+                <div className="space-y-4">
+                  <div className="space-y-0.5">
+                    <Label className="flex items-center gap-2">
+                      <Palette className="h-4 w-4" />
+                      Color Theme
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Choose your preferred color palette for the app
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {themes.map((themeOption) => (
+                      <div
+                        key={themeOption.id}
+                        className={`group relative cursor-pointer rounded-lg border-2 p-4 transition-all hover:shadow-md ${
+                          currentTheme === themeOption.id 
+                            ? 'border-primary bg-primary/5' 
+                            : 'border-border hover:border-primary/50'
+                        }`}
+                        onClick={() => applyTheme(themeOption.id)}
+                      >
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="flex gap-1">
+                            <div 
+                              className="w-4 h-4 rounded-full border"
+                              style={{ backgroundColor: `hsl(${themeOption.colors.primary})` }}
+                            />
+                            <div 
+                              className="w-4 h-4 rounded-full border"
+                              style={{ backgroundColor: `hsl(${themeOption.colors.accent})` }}
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-medium text-sm">{themeOption.name}</h4>
+                          </div>
+                          {currentTheme === themeOption.id && (
+                            <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                              <div className="w-2 h-2 rounded-full bg-white"></div>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">{themeOption.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <Separator />
 
                 <div className="space-y-4">
                   <div className="space-y-0.5">
