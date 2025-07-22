@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Search, MapPin, Star, Heart, Phone, Globe, Navigation, Clock, Plus, Truck, ShoppingBag } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Search, MapPin, Star, Heart, Phone, Globe, Navigation, Clock, Plus, Truck, ShoppingBag, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -84,6 +84,8 @@ export default function UnifiedSearchPage() {
     lat: number;
     lng: number;
   } | null>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Get user's location
   useEffect(() => {
@@ -99,9 +101,26 @@ export default function UnifiedSearchPage() {
     }
   }, []);
 
+  // Click outside handler to hide dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowLiveResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   // Live search for restaurants
   useEffect(() => {
-    const timer = setTimeout(() => {
+    // Clear existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    
+    debounceTimerRef.current = setTimeout(() => {
       if (searchQuery.length > 2) {
         performLiveSearch();
       } else {
@@ -109,7 +128,11 @@ export default function UnifiedSearchPage() {
         setShowLiveResults(false);
       }
     }, 150); // Faster debounce for more responsive search
-    return () => clearTimeout(timer);
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
   }, [searchQuery, locationQuery]);
   const performLiveSearch = async () => {
     if (!searchQuery.trim() || searchQuery.length < 3) return;
@@ -233,7 +256,19 @@ export default function UnifiedSearchPage() {
     setLocationQuery(suggestion.description);
     setShowLocationSuggestions(false);
   };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    setShowLiveResults(false);
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+  };
   const handleSearch = async () => {
+    // Clear any pending live search timers
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
     // Hide live results when official search is triggered
     setShowLiveResults(false);
     if (!searchQuery.trim()) return;
@@ -378,22 +413,37 @@ export default function UnifiedSearchPage() {
               <div className="space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
                   {/* Main Search Input */}
-                  <div className="lg:col-span-2 space-y-2 relative">
+                  <div className="lg:col-span-2 space-y-2 relative" ref={searchRef}>
                     <div className="relative group">
                       <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary-glow/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       <div className="relative bg-background/80 backdrop-blur-sm rounded-xl border border-border group-hover:border-primary/50 transition-all duration-300">
                         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 group-hover:text-primary transition-colors duration-300" />
-                        <Input placeholder="🔍 What are you craving? Search by name, cuisine, atmosphere, or special dishes..." value={searchQuery} onChange={e => {
-                        setSearchQuery(e.target.value);
-                        if (e.target.value.length > 2) {
-                          setShowLiveResults(true);
-                        } else {
-                          setShowLiveResults(false);
-                        }
-                      }} onKeyPress={e => e.key === 'Enter' && handleSearch()} onBlur={() => {
-                        // Delay hiding to allow clicks on dropdown items
-                        setTimeout(() => setShowLiveResults(false), 300);
-                      }} className="pl-12 pr-4 h-14 bg-transparent border-none text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none" />
+                        <Input 
+                          placeholder="🔍 What are you craving? Search by name, cuisine, atmosphere, or special dishes..." 
+                          value={searchQuery} 
+                          onChange={e => {
+                            setSearchQuery(e.target.value);
+                            if (e.target.value.length > 2) {
+                              setShowLiveResults(true);
+                            } else {
+                              setShowLiveResults(false);
+                            }
+                          }} 
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') {
+                              handleSearch();
+                            }
+                          }}
+                          className="pl-12 pr-10 h-14 bg-transparent border-none text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none" 
+                        />
+                        {searchQuery && (
+                          <button
+                            onClick={clearSearch}
+                            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-muted/50"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        )}
                         
                         {/* Live Search Results Dropdown - Positioned below search bar */}
                         {showLiveResults && (liveSearchResults.length > 0 || isLiveSearching) && <div className="absolute top-full left-0 right-0 bg-card border border-border rounded-xl shadow-2xl animate-fade-in" style={{
