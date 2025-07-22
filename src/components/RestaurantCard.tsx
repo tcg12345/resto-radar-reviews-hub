@@ -35,20 +35,16 @@ interface RestaurantCardProps {
 // Component for displaying location with geocoding
 function LocationDisplay({ restaurant }: { restaurant: Restaurant }) {
   const [locationText, setLocationText] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     async function determineLocation() {
       if (restaurant.country === 'United States' && restaurant.latitude && restaurant.longitude) {
-        setIsLoading(true);
         try {
           const state = await getStateFromCoordinatesCached(restaurant.latitude, restaurant.longitude);
           setLocationText(state ? `${restaurant.city}, ${state}` : `${restaurant.city}, United States`);
         } catch (error) {
           console.error('Error getting state:', error);
           setLocationText(`${restaurant.city}, United States`);
-        } finally {
-          setIsLoading(false);
         }
       } else {
         setLocationText(`${restaurant.city}${restaurant.country ? `, ${restaurant.country}` : ''}`);
@@ -58,11 +54,10 @@ function LocationDisplay({ restaurant }: { restaurant: Restaurant }) {
     determineLocation();
   }, [restaurant.city, restaurant.country, restaurant.latitude, restaurant.longitude]);
 
-  if (isLoading) {
-    return <span>{restaurant.city}, ...</span>;
-  }
-
-  return <span>{locationText}</span>;
+  // Show immediate fallback while loading
+  const displayText = locationText || `${restaurant.city}${restaurant.country ? `, ${restaurant.country}` : ''}`;
+  
+  return <span>{displayText}</span>;
 }
 
 // Helper function to get current day's hours
@@ -86,18 +81,37 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isAIReviewOpen, setIsAIReviewOpen] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
+  const [isDataReady, setIsDataReady] = useState(false);
   const { loadRestaurantPhotos } = useRestaurants();
   
   const hasMultiplePhotos = restaurant.photos.length > 1;
   
-  // Load photos when component mounts if they aren't already loaded
+  // Preload all card data when component mounts
   useEffect(() => {
-    if (restaurant.photos.length === 0) {
-      setIsLoadingPhotos(true);
-      loadRestaurantPhotos(restaurant.id).finally(() => {
+    const preloadData = async () => {
+      // Load photos if needed
+      if (restaurant.photos.length === 0) {
+        setIsLoadingPhotos(true);
+        await loadRestaurantPhotos(restaurant.id);
         setIsLoadingPhotos(false);
-      });
-    }
+      }
+      
+      // Preload first image if available
+      if (restaurant.photos.length > 0) {
+        const img = new Image();
+        img.onload = () => setImageLoading(false);
+        img.onerror = () => setImageLoading(false);
+        img.src = restaurant.photos[0];
+      } else {
+        setImageLoading(false);
+      }
+      
+      // Small delay to ensure all data processing is complete
+      await new Promise(resolve => setTimeout(resolve, 100));
+      setIsDataReady(true);
+    };
+
+    preloadData();
   }, [restaurant.id, restaurant.photos.length, loadRestaurantPhotos]);
   
   const nextPhoto = () => {
@@ -127,6 +141,24 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
       window.open(`tel:${restaurant.phone_number}`, '_blank');
     }
   };
+
+  // Show skeleton until all data is ready
+  if (!isDataReady) {
+    return (
+      <Card className="overflow-hidden">
+        <Skeleton className="h-48 w-full" />
+        <CardContent className="p-4 space-y-3">
+          <Skeleton className="h-6 w-3/4" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-1/2" />
+          <div className="flex gap-2">
+            <Skeleton className="h-8 w-20" />
+            <Skeleton className="h-8 w-20" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <>

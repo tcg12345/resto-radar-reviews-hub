@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -94,11 +94,36 @@ const getFeatureIcon = (feature: string) => {
 export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist, onViewDetails }: DiscoverResultCardProps) {
   const { user } = useAuth();
   const { addRestaurant } = useRestaurants();
+  const [isDataReady, setIsDataReady] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
   const [isMoreInfoOpen, setIsMoreInfoOpen] = useState(false);
   const [showFullWeekHours, setShowFullWeekHours] = useState(false);
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
+
+  // Preload all data when component mounts
+  useEffect(() => {
+    const preloadData = async () => {
+      // Preload image if available
+      if (restaurant.images?.[0]) {
+        const img = new Image();
+        img.onload = () => setImageLoading(false);
+        img.onerror = () => {
+          setImageError(true);
+          setImageLoading(false);
+        };
+        img.src = restaurant.images[0];
+      } else {
+        setImageLoading(false);
+      }
+      
+      // Small delay to ensure all data is ready
+      await new Promise(resolve => setTimeout(resolve, 100));
+      setIsDataReady(true);
+    };
+
+    preloadData();
+  }, [restaurant.images]);
 
   const getPriceDisplay = (range: number) => '$'.repeat(Math.min(range, 4));
   
@@ -192,6 +217,24 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist,
   };
 
   const fallbackImage = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=240&fit=crop&auto=format';
+
+  // Show skeleton until all data is ready
+  if (!isDataReady) {
+    return (
+      <Card className="overflow-hidden">
+        <Skeleton className="h-60 w-full" />
+        <CardContent className="p-4 space-y-3">
+          <Skeleton className="h-6 w-3/4" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-1/2" />
+          <div className="flex gap-2">
+            <Skeleton className="h-8 w-20" />
+            <Skeleton className="h-8 w-20" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="group hover:shadow-xl transition-all duration-300 border-muted/50 hover:border-primary/30 bg-card/50 backdrop-blur-sm">
