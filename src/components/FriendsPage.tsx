@@ -804,7 +804,7 @@ export function FriendsPage({
         return;
       }
 
-      // Insert with complete restaurant data including price and stars
+      // Insert with complete restaurant data including price and stars but NO photos
       const restaurantData = {
         user_id: user.id,
         name: restaurant.name.toString(),
@@ -820,6 +820,7 @@ export function FriendsPage({
         opening_hours: restaurant.opening_hours || null,
         website: restaurant.website || null,
         phone_number: restaurant.phone_number || null,
+        photos: [], // Explicitly set empty array for photos
         is_wishlist: true
       };
 
