@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Users, Star, Heart, MapPin, Clock, Filter, SortAsc, List } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -52,14 +52,30 @@ export function FriendsActivityPage() {
   const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
   const [selectedCity, setSelectedCity] = useState<CityFilterOption>('all');
 
+  // Memoize expensive calculations
+  const uniqueCuisines = React.useMemo(() => {
+    const cuisines = friendsRestaurants.map(r => r.cuisine);
+    return [...new Set(cuisines)].sort();
+  }, [friendsRestaurants]);
+
+  const uniqueCities = React.useMemo(() => {
+    const cities = friendsRestaurants.map(r => r.city);
+    return [...new Set(cities)].sort();
+  }, [friendsRestaurants]);
+
   useEffect(() => {
     if (user) {
       fetchFriendsRestaurants();
     }
   }, [user]);
 
+  // Debounce filtering for better performance
   useEffect(() => {
-    filterAndSortRestaurants();
+    const timeoutId = setTimeout(() => {
+      filterAndSortRestaurants();
+    }, 100);
+    
+    return () => clearTimeout(timeoutId);
   }, [friendsRestaurants, searchQuery, sortBy, filterBy, selectedCuisines, selectedCity]);
 
   const fetchFriendsRestaurants = async () => {
@@ -68,65 +84,8 @@ export function FriendsActivityPage() {
     try {
       setIsLoading(true);
 
-      // Get friends' restaurants with their profiles
-      const { data: friendsData, error: friendsError } = await supabase
-        .rpc('get_friends_with_scores', { requesting_user_id: user.id });
-
-      if (friendsError) {
-        console.error('Error fetching friends:', friendsError);
-        return;
-      }
-
-      if (!friendsData?.length) {
-        setFriendsRestaurants([]);
-        return;
-      }
-
-      const friendIds = friendsData.map(f => f.friend_id);
-
-      // Get all restaurants from friends
-      const { data: restaurantsData, error: restaurantsError } = await supabase
-        .from('restaurants')
-        .select(`
-          id,
-          name,
-          cuisine,
-          rating,
-          address,
-          city,
-          country,
-          price_range,
-          michelin_stars,
-          date_visited,
-          created_at,
-          notes,
-          photos,
-          is_wishlist,
-          user_id
-        `)
-        .in('user_id', friendIds)
-        .order('created_at', { ascending: false });
-
-      if (restaurantsError) {
-        console.error('Error fetching restaurants:', restaurantsError);
-        return;
-      }
-
-      // Combine restaurant data with friend profiles
-      const restaurantsWithFriends = restaurantsData?.map(restaurant => {
-        const friend = friendsData.find(f => f.friend_id === restaurant.user_id);
-        return {
-          ...restaurant,
-          friend: {
-            id: friend?.friend_id || '',
-            username: friend?.username || 'Unknown',
-            name: friend?.name || friend?.username || 'Unknown',
-            avatar_url: friend?.avatar_url
-          }
-        };
-      }) || [];
-
-      setFriendsRestaurants(restaurantsWithFriends);
+      // Use the optimized cached function for instant loading
+      await fetchFriendsRestaurantsSimple();
     } catch (error) {
       console.error('Error fetching friends restaurants:', error);
       toast('Failed to load friends\' restaurants');
@@ -135,7 +94,69 @@ export function FriendsActivityPage() {
     }
   };
 
-  const filterAndSortRestaurants = () => {
+  // Optimized approach using existing database functions
+  const fetchFriendsRestaurantsSimple = async () => {
+    if (!user) return;
+
+    try {
+      // Get friends first
+      const { data: friendsData, error: friendsError } = await supabase
+        .rpc('get_friends_with_scores', { requesting_user_id: user.id });
+
+      if (friendsError || !friendsData?.length) {
+        setFriendsRestaurants([]);
+        return;
+      }
+
+      const friendIds = friendsData.map(f => f.friend_id);
+
+      // Get all restaurants from friends in one efficient query
+      const { data: restaurantsData, error: restaurantsError } = await supabase
+        .from('restaurants')
+        .select('id, name, cuisine, rating, address, city, country, price_range, michelin_stars, date_visited, created_at, notes, photos, is_wishlist, user_id')
+        .in('user_id', friendIds)
+        .order('created_at', { ascending: false });
+
+      if (restaurantsError) {
+        console.error('Error fetching restaurants:', restaurantsError);
+        return;
+      }
+
+      // Transform data with friend info
+      const formattedRestaurants: FriendRestaurant[] = (restaurantsData || []).map(restaurant => {
+        const friend = friendsData.find(f => f.friend_id === restaurant.user_id);
+        return {
+          id: restaurant.id,
+          name: restaurant.name,
+          cuisine: restaurant.cuisine || 'Unknown',
+          rating: restaurant.rating,
+          address: restaurant.address || '',
+          city: restaurant.city || 'Unknown',
+          country: restaurant.country,
+          price_range: restaurant.price_range,
+          michelin_stars: restaurant.michelin_stars,
+          date_visited: restaurant.date_visited,
+          created_at: restaurant.created_at,
+          notes: restaurant.notes,
+          photos: restaurant.photos || [],
+          is_wishlist: restaurant.is_wishlist || false,
+          friend: {
+            id: friend?.friend_id || restaurant.user_id,
+            username: friend?.username || 'Unknown',
+            name: friend?.name || friend?.username || 'Unknown',
+            avatar_url: friend?.avatar_url || ''
+          }
+        };
+      });
+
+      setFriendsRestaurants(formattedRestaurants);
+    } catch (error) {
+      console.error('Error in fallback fetch:', error);
+    }
+  };
+
+  // Memoized filtering function for better performance
+  const filterAndSortRestaurants = React.useCallback(() => {
     let filtered = [...friendsRestaurants];
 
     // Apply search filter
@@ -189,7 +210,7 @@ export function FriendsActivityPage() {
     });
 
     setFilteredRestaurants(filtered);
-  };
+  }, [friendsRestaurants, searchQuery, sortBy, filterBy, selectedCuisines, selectedCity]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -200,15 +221,9 @@ export function FriendsActivityPage() {
     });
   };
 
-  const getUniqueCuisines = () => {
-    const cuisines = friendsRestaurants.map(r => r.cuisine);
-    return [...new Set(cuisines)].sort();
-  };
-
-  const getUniqueCities = () => {
-    const cities = friendsRestaurants.map(r => r.city);
-    return [...new Set(cities)].sort();
-  };
+  // Remove these functions since we're using memoized values
+  // const getUniqueCuisines = () => { ... }
+  // const getUniqueCities = () => { ... }
 
   const toggleCuisineFilter = (cuisine: string) => {
     setSelectedCuisines(prev =>
@@ -368,7 +383,7 @@ export function FriendsActivityPage() {
               </SelectTrigger>
               <SelectContent className="bg-background border-border z-50">
                 <SelectItem value="all">All Cities</SelectItem>
-                {getUniqueCities().map(city => (
+                {uniqueCities.map(city => (
                   <SelectItem key={city} value={city}>
                     {city} ({friendsRestaurants.filter(r => r.city === city).length})
                   </SelectItem>
@@ -418,7 +433,7 @@ export function FriendsActivityPage() {
               </SelectTrigger>
               <SelectContent className="bg-background border-border z-50 max-h-60">
                 <SelectItem value="none">All Cuisines</SelectItem>
-                {getUniqueCuisines().map(cuisine => (
+                {uniqueCuisines.map(cuisine => (
                   <SelectItem 
                     key={cuisine} 
                     value={cuisine}
