@@ -328,7 +328,7 @@ export function RestaurantDetailPage() {
 
           {/* Action Panel - Compact */}
           <div className="lg:col-span-2 space-y-4 animate-fade-in">
-            <Button onClick={addToWishlist} disabled={isAddingToWishlist} size="lg" className="w-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white py-4 text-base font-medium hover-scale">
+            <Button onClick={addToWishlist} disabled={isAddingToWishlist} size="lg" className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-4 text-base font-medium hover-scale">
               <Heart className="h-5 w-5 fill-current mr-2" />
               {isAddingToWishlist ? 'Adding...' : 'Add to Wishlist'}
             </Button>
