@@ -355,21 +355,20 @@ export default function UnifiedSearchPage() {
         setSelectedPlace(detailedPlace);
         
         // Fetch Yelp data in background for the modal
+        console.log('Starting Yelp API call for restaurant:', detailedPlace.name);
         supabase.functions.invoke('yelp-restaurant-data', {
           body: {
             action: 'search',
-            params: {
-              term: detailedPlace.name,
-              location: detailedPlace.formatted_address,
-              limit: 1,
-              sort_by: 'best_match'
-            }
+            term: detailedPlace.name,
+            location: detailedPlace.formatted_address,
+            limit: 1,
+            sort_by: 'best_match'
           }
         }).then(({ data: yelpData, error: yelpError }) => {
           console.log('Yelp API response:', yelpData, 'Error:', yelpError);
           if (!yelpError && yelpData?.businesses?.length > 0) {
             const yelpBusiness = yelpData.businesses[0];
-            console.log('Found Yelp business:', yelpBusiness);
+            console.log('Found Yelp business:', yelpBusiness, 'URL:', yelpBusiness.url);
             
             // Update the modal with Yelp data
             setSelectedPlace(prev => prev ? {
@@ -384,11 +383,12 @@ export default function UnifiedSearchPage() {
                 menu_url: yelpBusiness.menu_url || undefined
               }
             } : null);
+            console.log('Yelp data successfully added to modal!');
           } else {
             console.log('No Yelp data found:', yelpError || 'No businesses returned');
           }
         }).catch(error => {
-          console.warn('Failed to get Yelp data for modal:', error);
+          console.error('Yelp API call failed:', error);
         });
       }
     } catch (error) {
