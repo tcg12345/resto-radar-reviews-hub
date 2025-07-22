@@ -484,105 +484,173 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                         </div>
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Contact Column */}
-                        <div className="space-y-4">
-                          <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                            <MapPin className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Address</p>
-                              <p className="text-sm font-medium leading-relaxed">{place.formatted_address}</p>
-                            </div>
-                          </div>
-                          
-                          {place.formatted_phone_number && (
-                            <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                              <Phone className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Phone</p>
-                                <p className="text-sm font-medium">{place.formatted_phone_number}</p>
-                              </div>
-                            </div>
-                          )}
-
-                          {place.website && (
-                            <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                              <Globe className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Website</p>
-                                <a 
-                                  href={place.website} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="text-sm font-medium text-primary hover:underline break-all"
-                                >
-                                  {place.website.replace(/^https?:\/\//, '')}
-                                </a>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Stats & Features Column */}
-                        <div className="space-y-4">
-                          {/* Quick Stats */}
-                          <div className="grid grid-cols-2 gap-3">
-                            {place.rating && (
-                              <div className="p-3 rounded-lg bg-yellow-200/80 border border-yellow-300/60">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <Star className="h-4 w-4 text-yellow-600" />
-                                  <span className="text-xs font-medium text-yellow-600 uppercase tracking-wide">Rating</span>
+                    <CardContent className="p-0">
+                      <div className="relative overflow-hidden">
+                        {/* Background Gradient */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5"></div>
+                        
+                        {/* Main Content Grid */}
+                        <div className="relative p-8">
+                          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            
+                            {/* Contact Information - Left Column */}
+                            <div className="lg:col-span-2 space-y-6">
+                              <div className="flex items-center gap-3 mb-6">
+                                <div className="p-2 rounded-full bg-primary/10">
+                                  <MapPin className="h-5 w-5 text-primary" />
                                 </div>
-                                <div className="flex items-baseline gap-1">
-                                  <span className="text-lg font-bold text-yellow-700">{place.rating}</span>
-                                  <span className="text-xs text-yellow-600">/ 5.0</span>
-                                </div>
-                                {place.user_ratings_total && (
-                                  <p className="text-xs text-yellow-600 mt-1">{place.user_ratings_total} reviews</p>
-                                )}
+                                <h3 className="text-xl font-bold text-foreground">Contact & Location</h3>
                               </div>
-                            )}
-
-                            {place.price_level && (
-                              <div className="p-3 rounded-lg bg-green-200/80 border border-green-300/60">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4zM18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" />
-                                  </svg>
-                                  <span className="text-xs font-medium text-green-600 uppercase tracking-wide">Price</span>
-                                </div>
-                                <div className="text-lg font-bold text-green-700">{getPriceDisplay(place.price_level)}</div>
-                                <p className="text-xs text-green-600 mt-1">Price level</p>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Features */}
-                          <div className="space-y-3">
-                            <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Features</h4>
-                            <div className="flex flex-wrap gap-2">
-                              {place.opening_hours?.open_now !== undefined && (
-                                <Badge 
-                                  variant={place.opening_hours.open_now ? "default" : "destructive"}
-                                  className="text-xs"
-                                >
-                                  <Clock className="h-3 w-3 mr-1" />
-                                  {place.opening_hours.open_now ? "Open Now" : "Closed"}
-                                </Badge>
-                              )}
                               
-                              {place.types.includes('meal_delivery') && (
-                                <Badge variant="outline" className="text-xs">
-                                  Delivery
-                                </Badge>
-                              )}
+                              <div className="space-y-4">
+                                {/* Address Card */}
+                                <div className="group relative overflow-hidden rounded-xl border bg-gradient-to-r from-card via-card/95 to-card/90 p-6 shadow-sm hover:shadow-md transition-all duration-300">
+                                  <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                  <div className="relative flex items-start gap-4">
+                                    <div className="mt-1 p-3 rounded-lg bg-primary/10 group-hover:bg-primary/15 transition-colors duration-300">
+                                      <MapPin className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <h4 className="text-sm font-semibold text-primary mb-2">Address</h4>
+                                      <p className="text-foreground font-medium leading-relaxed">{place.formatted_address}</p>
+                                    </div>
+                                  </div>
+                                </div>
 
-                              {place.types.includes('meal_takeaway') && (
-                                <Badge variant="outline" className="text-xs">
-                                  Takeaway
-                                </Badge>
-                              )}
+                                {/* Contact Details Grid */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  {place.formatted_phone_number && (
+                                    <div className="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-card to-card/95 p-5 shadow-sm hover:shadow-md transition-all duration-300">
+                                      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                      <div className="relative flex items-center gap-3">
+                                        <div className="p-2.5 rounded-lg bg-blue-100 group-hover:bg-blue-200 transition-colors duration-300">
+                                          <Phone className="h-4 w-4 text-blue-600" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                          <h4 className="text-xs font-medium text-blue-600 uppercase tracking-wider mb-1">Phone</h4>
+                                          <p className="text-sm font-semibold text-foreground">{place.formatted_phone_number}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {place.website && (
+                                    <div className="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-card to-card/95 p-5 shadow-sm hover:shadow-md transition-all duration-300">
+                                      <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                      <div className="relative flex items-center gap-3">
+                                        <div className="p-2.5 rounded-lg bg-purple-100 group-hover:bg-purple-200 transition-colors duration-300">
+                                          <Globe className="h-4 w-4 text-purple-600" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                          <h4 className="text-xs font-medium text-purple-600 uppercase tracking-wider mb-1">Website</h4>
+                                          <a 
+                                            href={place.website} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors duration-200 truncate block"
+                                          >
+                                            {place.website.replace(/^https?:\/\//, '')}
+                                          </a>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Stats & Features - Right Column */}
+                            <div className="space-y-6">
+                              <div className="flex items-center gap-3 mb-6">
+                                <div className="p-2 rounded-full bg-accent/10">
+                                  <Star className="h-5 w-5 text-accent" />
+                                </div>
+                                <h3 className="text-xl font-bold text-foreground">Quick Stats</h3>
+                              </div>
+
+                              {/* Stats Cards */}
+                              <div className="space-y-4">
+                                {place.rating && (
+                                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-yellow-100 via-yellow-50 to-orange-100 p-6 shadow-lg border border-yellow-200/60">
+                                    <div className="absolute top-0 right-0 w-20 h-20 bg-yellow-300/20 rounded-full -mr-10 -mt-10"></div>
+                                    <div className="relative">
+                                      <div className="flex items-center gap-3 mb-3">
+                                        <div className="p-2 rounded-lg bg-yellow-200/80">
+                                          <Star className="h-5 w-5 text-yellow-700" />
+                                        </div>
+                                        <span className="text-sm font-bold text-yellow-800 uppercase tracking-wider">Rating</span>
+                                      </div>
+                                      <div className="flex items-baseline gap-2 mb-2">
+                                        <span className="text-3xl font-black text-yellow-900">{place.rating}</span>
+                                        <span className="text-lg font-medium text-yellow-700">/ 5.0</span>
+                                      </div>
+                                      {place.user_ratings_total && (
+                                        <p className="text-sm font-medium text-yellow-700">{place.user_ratings_total.toLocaleString()} reviews</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {place.price_level && (
+                                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-100 via-green-50 to-emerald-100 p-6 shadow-lg border border-green-200/60">
+                                    <div className="absolute bottom-0 left-0 w-16 h-16 bg-green-300/20 rounded-full -ml-8 -mb-8"></div>
+                                    <div className="relative">
+                                      <div className="flex items-center gap-3 mb-3">
+                                        <div className="p-2 rounded-lg bg-green-200/80">
+                                          <svg className="h-5 w-5 text-green-700" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4zM18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" />
+                                          </svg>
+                                        </div>
+                                        <span className="text-sm font-bold text-green-800 uppercase tracking-wider">Price</span>
+                                      </div>
+                                      <div className="text-3xl font-black text-green-900 mb-2">{getPriceDisplay(place.price_level)}</div>
+                                      <p className="text-sm font-medium text-green-700">Price level</p>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Features Section */}
+                                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6 shadow-lg border border-slate-200/60">
+                                  <div className="absolute top-0 right-0 w-24 h-24 bg-slate-200/30 rounded-full -mr-12 -mt-12"></div>
+                                  <div className="relative">
+                                    <div className="flex items-center gap-3 mb-4">
+                                      <div className="p-2 rounded-lg bg-slate-200/80">
+                                        <Clock className="h-5 w-5 text-slate-700" />
+                                      </div>
+                                      <span className="text-sm font-bold text-slate-800 uppercase tracking-wider">Features</span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                      {place.opening_hours?.open_now !== undefined && (
+                                        <Badge 
+                                          variant={place.opening_hours.open_now ? "default" : "destructive"}
+                                          className="text-xs font-medium px-3 py-1.5 rounded-full"
+                                        >
+                                          <Clock className="h-3 w-3 mr-1.5" />
+                                          {place.opening_hours.open_now ? "Open Now" : "Closed"}
+                                        </Badge>
+                                      )}
+                                      
+                                      {place.types.includes('meal_delivery') && (
+                                        <Badge variant="outline" className="text-xs font-medium px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 border-blue-200">
+                                          🚚 Delivery
+                                        </Badge>
+                                      )}
+
+                                      {place.types.includes('meal_takeaway') && (
+                                        <Badge variant="outline" className="text-xs font-medium px-3 py-1.5 rounded-full bg-orange-50 text-orange-700 border-orange-200">
+                                          🥡 Takeaway
+                                        </Badge>
+                                      )}
+
+                                      {place.types.includes('dine_in') && (
+                                        <Badge variant="outline" className="text-xs font-medium px-3 py-1.5 rounded-full bg-purple-50 text-purple-700 border-purple-200">
+                                          🍽️ Dine-in
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
