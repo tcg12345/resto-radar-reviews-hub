@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { MapPin, Clock, Tag, Edit2, Trash2, Eye, Bot, ExternalLink, Phone, Globe } from 'lucide-react';
+import { MapPin, Clock, Tag, Edit2, Trash2, Eye, Bot, ExternalLink, Phone, Globe, Share2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 import { 
@@ -24,6 +24,7 @@ import { AIReviewAssistant } from '@/components/AIReviewAssistant';
 import { Restaurant } from '@/types/restaurant';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 import { getStateFromCoordinatesCached } from '@/utils/geocoding';
+import { toast } from 'sonner';
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
@@ -139,6 +140,74 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
   const handleCallPhone = () => {
     if (restaurant.phone_number) {
       window.open(`tel:${restaurant.phone_number}`, '_blank');
+    }
+  };
+
+  const shareRestaurant = async () => {
+    const shareText = `Check out ${restaurant.name} in ${restaurant.city}! ${restaurant.cuisine} cuisine${restaurant.rating ? ` • Rated ${restaurant.rating}/10` : ''}${restaurant.michelinStars ? ` • ${restaurant.michelinStars} Michelin Star${restaurant.michelinStars > 1 ? 's' : ''}` : ''}`;
+    const shareUrl = `${window.location.origin}/restaurant/${restaurant.id}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: restaurant.name,
+          text: shareText,
+          url: shareUrl,
+        });
+        toast("Shared!", {
+          description: "Restaurant shared successfully",
+        });
+      } catch (error) {
+        if (error instanceof Error && error.name !== 'AbortError') {
+          console.error('Error sharing:', error);
+          fallbackShare(shareText, shareUrl);
+        }
+      }
+    } else {
+      fallbackShare(shareText, shareUrl);
+    }
+  };
+
+  const fallbackShare = (text: string, url: string) => {
+    const fullText = `${text}\n${url}`;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(fullText).then(() => {
+        toast("Copied to clipboard!", {
+          description: "Restaurant details copied. You can now paste and share them.",
+        });
+      }).catch(() => {
+        showShareOptions(text, url);
+      });
+    } else {
+      showShareOptions(text, url);
+    }
+  };
+
+  const showShareOptions = (text: string, url: string) => {
+    const fullText = `${text}\n${url}`;
+    const mailtoUrl = `mailto:?subject=${encodeURIComponent(`Check out ${text.split(' in ')[0]}`)}&body=${encodeURIComponent(fullText)}`;
+    
+    // Create a simple alert with sharing options
+    if (confirm('Share via email or copy to clipboard?\n\nClick OK for email, Cancel to copy to clipboard.')) {
+      window.open(mailtoUrl, '_blank');
+    } else {
+      // Try to copy to clipboard manually
+      const textArea = document.createElement('textarea');
+      textArea.value = fullText;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        toast("Copied to clipboard!", {
+          description: "Restaurant details copied. You can now paste and share them.",
+        });
+      } catch (err) {
+        console.error('Failed to copy text: ', err);
+        toast("Share", {
+          description: `Copy this: ${fullText}`,
+        });
+      }
+      document.body.removeChild(textArea);
     }
   };
 
@@ -485,6 +554,16 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
             </div>
           </DialogContent>
         </Dialog>
+        
+        <Button 
+          size="sm" 
+          variant="outline"
+          className="flex-1 h-7 px-2 text-xs"
+          onClick={shareRestaurant}
+        >
+          <Share2 className="mr-1 h-3 w-3" />
+          Share
+        </Button>
         
         {onDelete && (
           <Button 
