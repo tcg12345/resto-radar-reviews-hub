@@ -360,25 +360,27 @@ export function RestaurantProfileModal({
   return <>
       <Dialog open={true} onOpenChange={onClose}>
         <DialogContent className="max-w-7xl max-h-[95vh] flex flex-col p-0 rounded-lg overflow-hidden">
-          <DialogHeader className="sticky top-0 bg-background z-50 px-6 py-4 flex-shrink-0">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <DialogTitle className="text-2xl font-bold">{place.name}</DialogTitle>
-                {place.opening_hours?.open_now !== undefined && <Badge variant={place.opening_hours.open_now ? "default" : "destructive"} className="text-sm">
-                    <Clock className="h-3 w-3 mr-1" />
-                    {place.opening_hours.open_now ? "Open Now" : "Closed"}
-                  </Badge>}
+          <div className="sticky top-0 bg-background z-50">
+            <DialogHeader className="px-6 py-4 flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <DialogTitle className="text-2xl font-bold">{place.name}</DialogTitle>
+                  {place.opening_hours?.open_now !== undefined && <Badge variant={place.opening_hours.open_now ? "default" : "destructive"} className="text-sm">
+                      <Clock className="h-3 w-3 mr-1" />
+                      {place.opening_hours.open_now ? "Open Now" : "Closed"}
+                    </Badge>}
+                </div>
+                <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 shrink-0">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </Button>
               </div>
-              <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 shrink-0">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </Button>
-            </div>
-            <div className="mt-3 border-b border-border w-full -mx-6 mb-0"></div>
-          </DialogHeader>
+            </DialogHeader>
+            <div className="border-t border-border w-full"></div>
+          </div>
           
-          <div className="flex-1 overflow-y-auto bg-background">
+          <div className="flex-1 overflow-y-auto">
             {/* Hero Section with Key Info */}
             <div className="bg-gradient-to-r from-primary/5 to-primary/10 px-6 py-6">
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-center">
