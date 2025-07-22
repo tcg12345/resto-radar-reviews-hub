@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { ChatWindow } from '@/components/ChatWindow';
+import { toast } from 'sonner';
 
 interface ChatRoom {
   id: string;
@@ -29,17 +32,28 @@ interface ChatRoom {
   };
 }
 
+interface Friend {
+  friend_id: string;
+  username: string;
+  name: string;
+  avatar_url: string;
+}
+
 export function ChatListPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
+  const [friends, setFriends] = useState<Friend[]>([]);
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isNewChatOpen, setIsNewChatOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     
     fetchChatRooms();
+    fetchFriends();
     setupRealtimeSubscription();
   }, [user]);
 
@@ -143,6 +157,46 @@ export function ChatListPage() {
     }
   };
 
+  const fetchFriends = async () => {
+    if (!user) return;
+
+    try {
+      const { data: friendsData, error } = await supabase
+        .rpc('get_friends_with_scores', { requesting_user_id: user.id });
+
+      if (error) {
+        console.error('Error fetching friends:', error);
+        return;
+      }
+
+      setFriends(friendsData || []);
+    } catch (error) {
+      console.error('Error fetching friends:', error);
+    }
+  };
+
+  const startChat = async (friendId: string) => {
+    if (!user) return;
+
+    try {
+      const { data: roomId, error } = await supabase
+        .rpc('get_or_create_dm_room', { other_user_id: friendId });
+
+      if (error) {
+        console.error('Error creating chat room:', error);
+        toast('Failed to start chat');
+        return;
+      }
+
+      setIsNewChatOpen(false);
+      setSelectedRoomId(roomId);
+      fetchChatRooms(); // Refresh to show new room
+    } catch (error) {
+      console.error('Error starting chat:', error);
+      toast('Failed to start chat');
+    }
+  };
+
   const setupRealtimeSubscription = () => {
     if (!user) return;
 
@@ -195,6 +249,11 @@ export function ChatListPage() {
     return room.participants[0]; // Should be the other user (not current user)
   };
 
+  const filteredFriends = friends.filter(friend =>
+    friend.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    friend.username?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -207,16 +266,71 @@ export function ChatListPage() {
     <div className="flex h-screen bg-background">
       {/* Chat List Sidebar */}
       <div className="w-80 border-r border-border flex flex-col">
-        <div className="p-4 border-b border-border flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/')}
-            className="flex-shrink-0"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-xl font-semibold">Messages</h1>
+        <div className="p-4 border-b border-border flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/')}
+              className="flex-shrink-0"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="text-xl font-semibold">Messages</h1>
+          </div>
+          
+          <Dialog open={isNewChatOpen} onOpenChange={setIsNewChatOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm">
+                <Plus className="h-4 w-4 mr-2" />
+                New Chat
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Start New Chat</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <Input
+                  placeholder="Search friends..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full"
+                />
+                <div className="max-h-60 overflow-y-auto space-y-2">
+                  {filteredFriends.map((friend) => (
+                    <Card
+                      key={friend.friend_id}
+                      className="cursor-pointer hover:bg-muted/50 transition-colors"
+                      onClick={() => startChat(friend.friend_id)}
+                    >
+                      <CardContent className="p-3">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={friend.avatar_url} />
+                            <AvatarFallback>
+                              {(friend.name || friend.username || 'U').charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <p className="font-medium">{friend.name || friend.username}</p>
+                            {friend.username && friend.name && (
+                              <p className="text-sm text-muted-foreground">@{friend.username}</p>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                  {filteredFriends.length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      {searchQuery ? 'No friends found' : 'No friends to chat with'}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
         
         <ScrollArea className="flex-1">
