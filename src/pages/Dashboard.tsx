@@ -96,7 +96,7 @@ export default function Dashboard() {
         />
       )}
       
-      <main className="flex-1 pb-0 lg:pb-0 pb-16 mobile-scroll">
+      <main className="flex-1 pb-16 lg:pb-0 mobile-scroll">`
         <div className="min-h-full mobile-container">
           {renderContent()}
         </div>
