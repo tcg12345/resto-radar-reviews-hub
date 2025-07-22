@@ -520,7 +520,10 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                                 {/* Contact Details Grid */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   {place.formatted_phone_number && (
-                                    <div className="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-card to-card/95 p-5 shadow-sm hover:shadow-md transition-all duration-300">
+                                    <div 
+                                      className="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-card to-card/95 p-5 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
+                                      onClick={() => window.open(`tel:${place.formatted_phone_number}`)}
+                                    >
                                       <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                                       <div className="relative flex items-center gap-3">
                                         <div className="p-2.5 rounded-lg bg-blue-100 group-hover:bg-blue-200 transition-colors duration-300">
