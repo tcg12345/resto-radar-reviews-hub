@@ -841,8 +841,7 @@ export default function FriendProfilePage() {
           {/* Wishlist Tab */}
           <TabsContent value="wishlist" className="mt-8">
             {/* Wishlist Filter Controls */}
-            {allWishlist.length > 0 && (
-              <Card className="mb-6">
+            <Card className="mb-6">
                 <CardContent className="p-6">
                   <div className="grid gap-4 md:grid-cols-3">
                     <div>
@@ -884,9 +883,8 @@ export default function FriendProfilePage() {
                       </Select>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                 </CardContent>
+               </Card>
 
             {/* City Filter Buttons */}
             {availableWishlistCities.length > 0 && (
