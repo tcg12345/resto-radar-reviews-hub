@@ -13,6 +13,8 @@ export function GrubbyLogo({ size = 'md', showText = true, className = '' }: Gru
     switch (currentTheme) {
       case 'forest-green':
         return '/lovable-uploads/ae2b0f9b-0084-4b18-97d0-fcf000255bd3.png';
+      case 'professional-blue':
+        return '/lovable-uploads/7f2af544-2da2-4215-9cdf-78845079ddea.png';
       default:
         return '/lovable-uploads/42e9db1d-cc84-4c54-9adb-50dc08b98369.png';
     }
