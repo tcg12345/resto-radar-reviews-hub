@@ -7,6 +7,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/contexts/AuthContext';
 import { GrubbyLogo } from '@/components/GrubbyLogo';
 import { NotificationsPanel } from '@/components/NotificationsPanel';
+import { useUnreadMessageCount } from '@/hooks/useUnreadMessageCount';
 
 interface NavbarProps {
   activeTab: 'home' | 'rated' | 'wishlist' | 'map' | 'search' | 'settings' | 'friends';
@@ -16,6 +17,7 @@ interface NavbarProps {
 export function Navbar({ activeTab, onTabChange }: NavbarProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const unreadMessageCount = useUnreadMessageCount();
 
   const tabs = [
     { id: 'home' as const, label: 'Home', icon: Home },
@@ -67,10 +69,15 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
                 variant="ghost"
                 size="lg"
                 onClick={() => navigate('/chat-list')}
-                className="h-12 w-12"
+                className="h-12 w-12 relative"
                 title="Messages"
               >
                 <MessageCircle className="h-6 w-6" />
+                {unreadMessageCount > 0 && (
+                  <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                    {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
+                  </span>
+                )}
                 <span className="sr-only">Messages</span>
               </Button>
               <NotificationsPanel />
