@@ -529,47 +529,36 @@ export function RestaurantDetailPage() {
 
         {/* Full Width Map */}
         {restaurant.latitude && restaurant.longitude && (
-          <Card className="animate-fade-in overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-xl flex items-center gap-2">
-                    <MapPin className="h-5 w-5 text-primary" />
-                    Interactive Map
-                  </CardTitle>
-                  <p className="text-muted-foreground text-sm mt-1">
-                    Explore the location and nearby area
-                  </p>
-                </div>
-                <Badge variant="outline" className="text-xs">
-                  <Navigation className="h-3 w-3 mr-1" />
-                  Get Directions
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              {/* Address Display */}
-              <div className="bg-muted/30 border-b px-6 py-4">
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mt-0.5">
-                    <MapPin className="h-4 w-4 text-primary" />
+          <div className="animate-fade-in space-y-4">
+            {/* Address Information Card */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                    <MapPin className="h-6 w-6 text-primary" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-foreground mb-1">
-                      {restaurant.name}
-                    </h4>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {restaurant.address}
-                      <br />
-                      {restaurant.city}, {restaurant.country}
-                    </p>
-                    <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                      <span>Lat: {restaurant.latitude.toFixed(6)}</span>
-                      <span>Lng: {restaurant.longitude.toFixed(6)}</span>
+                    <h3 className="text-lg font-semibold text-foreground mb-2">
+                      Location & Address
+                    </h3>
+                    <div className="space-y-1">
+                      <p className="font-medium text-foreground">
+                        {restaurant.name}
+                      </p>
+                      <p className="text-muted-foreground">
+                        {restaurant.address}
+                      </p>
+                      <p className="text-muted-foreground">
+                        {restaurant.city}, {restaurant.country}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-6 mt-3 text-xs text-muted-foreground">
+                      <span>Latitude: {restaurant.latitude.toFixed(6)}</span>
+                      <span>Longitude: {restaurant.longitude.toFixed(6)}</span>
                     </div>
                   </div>
                   <Button
-                    variant="outline"
+                    variant="default"
                     size="sm"
                     asChild
                     className="shrink-0"
@@ -580,38 +569,37 @@ export function RestaurantDetailPage() {
                       rel="noopener noreferrer"
                     >
                       <Navigation className="h-4 w-4 mr-2" />
-                      Directions
+                      Get Directions
                     </a>
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Interactive Map */}
+            <div className="relative overflow-hidden rounded-lg border bg-card shadow-sm">
+              <div className="absolute top-4 left-4 z-10">
+                <div className="bg-background/95 backdrop-blur-sm rounded-md shadow-sm border px-3 py-2">
+                  <p className="text-sm font-medium text-foreground">Interactive Map</p>
+                </div>
               </div>
               
-              {/* Map Container */}
-              <div className="relative">
-                <div className="h-96 w-full">
-                  <RestaurantLocationMap 
-                    latitude={restaurant.latitude} 
-                    longitude={restaurant.longitude} 
-                    name={restaurant.name} 
-                    address={restaurant.address} 
-                  />
-                </div>
-                
-                {/* Map Overlay Controls */}
-                <div className="absolute top-4 left-4 bg-background/90 backdrop-blur-sm rounded-lg shadow-sm border p-2">
-                  <p className="text-xs font-medium text-muted-foreground">
-                    Interactive Map
-                  </p>
-                </div>
-                
-                <div className="absolute bottom-4 right-4 bg-background/90 backdrop-blur-sm rounded-lg shadow-sm border px-3 py-2">
-                  <p className="text-xs text-muted-foreground">
-                    Zoom and pan to explore
-                  </p>
+              <div className="absolute top-4 right-4 z-10">
+                <div className="bg-background/95 backdrop-blur-sm rounded-md shadow-sm border px-3 py-2">
+                  <p className="text-xs text-muted-foreground">Drag to explore</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+
+              <div className="h-96 w-full [&_>_*]:!rounded-none [&_canvas]:!rounded-none">
+                <RestaurantLocationMap 
+                  latitude={restaurant.latitude} 
+                  longitude={restaurant.longitude} 
+                  name={restaurant.name} 
+                  address={restaurant.address} 
+                />
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Reservation Section - Full Width if available */}
