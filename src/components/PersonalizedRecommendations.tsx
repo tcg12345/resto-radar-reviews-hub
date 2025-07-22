@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 import { Restaurant } from '@/types/restaurant';
 import { RestaurantDetailsModal } from '@/components/RestaurantDetailsModal';
+import { RecommendationCardSkeleton } from '@/components/skeletons/RecommendationCardSkeleton';
 import { toast } from 'sonner';
 
 interface RecommendationEngine {
@@ -451,7 +452,7 @@ export function PersonalizedRecommendations() {
               </div>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {[...Array(6)].map((_, i) => (
-                  <div key={i} className="h-48 bg-muted animate-pulse rounded-lg" />
+                  <RecommendationCardSkeleton key={i} />
                 ))}
               </div>
             </div>

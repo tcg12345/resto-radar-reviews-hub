@@ -14,6 +14,7 @@ import { PersonalizedRecommendations } from '@/components/PersonalizedRecommenda
 import { RestaurantProfileModal } from '@/components/RestaurantProfileModal';
 import { DiscoverPage } from '@/pages/DiscoverPage';
 import { FriendsActivityPage } from '@/pages/FriendsActivityPage';
+import { SearchResultSkeleton } from '@/components/skeletons/SearchResultSkeleton';
 interface GooglePlaceResult {
   place_id: string;
   name: string;

@@ -49,6 +49,9 @@ import { MichelinStars } from '@/components/MichelinStars';
 import { PriceRange } from '@/components/PriceRange';
 import { ContactPermission } from '@/components/ContactPermission';
 import { FriendProfilePopup } from '@/components/FriendProfilePopup';
+import { FriendCardSkeleton } from '@/components/skeletons/FriendCardSkeleton';
+import { FriendProfileSkeleton } from '@/components/skeletons/FriendProfileSkeleton';
+import { ActivityFeedSkeleton } from '@/components/skeletons/ActivityFeedSkeleton';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -155,12 +158,7 @@ function FriendProfileModal({ friend, isOpen, onClose }: FriendProfileModalProps
         <Separator />
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center space-y-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="text-muted-foreground">Loading {friend.username}'s restaurants...</p>
-            </div>
-          </div>
+          <FriendProfileSkeleton />
         ) : (
           <Tabs defaultValue="restaurants" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
@@ -1098,12 +1096,7 @@ export function FriendsPage({
         </div>
 
         {isLoadingProfile ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center space-y-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="text-muted-foreground">Loading profile...</p>
-            </div>
-          </div>
+          <FriendProfileSkeleton />
         ) : friendProfile ? (
           <>
             {/* Stats Cards */}
@@ -1908,7 +1901,13 @@ export function FriendsPage({
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 max-h-[600px] overflow-y-auto">
-                  {friends.length === 0 ? (
+                  {isLoading && friends.length === 0 ? (
+                    <div className="space-y-3">
+                      {[...Array(3)].map((_, i) => (
+                        <FriendCardSkeleton key={i} />
+                      ))}
+                    </div>
+                  ) : friends.length === 0 ? (
                     <div className="text-center py-8">
                       <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                       <p className="text-muted-foreground">No friends yet</p>
@@ -2059,10 +2058,7 @@ export function FriendsPage({
                       
                       
                       {isLoading && friendRestaurants.length === 0 && (
-                        <div className="text-center py-8">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                          <p className="text-muted-foreground">Loading friend activity...</p>
-                        </div>
+                        <ActivityFeedSkeleton />
                       )}
                     </div>
                   )}
@@ -2082,7 +2078,13 @@ export function FriendsPage({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {friends.length === 0 ? (
+              {isLoading && friends.length === 0 ? (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {[...Array(6)].map((_, i) => (
+                    <FriendCardSkeleton key={i} />
+                  ))}
+                </div>
+              ) : friends.length === 0 ? (
                 <div className="text-center py-12">
                   <Users className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                   <p className="text-lg text-muted-foreground mb-2">No friends yet</p>
