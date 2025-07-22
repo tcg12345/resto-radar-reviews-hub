@@ -287,38 +287,67 @@ export function NotificationsPanel() {
               {notifications.map((notification) => (
                 <div 
                   key={notification.id} 
-                  className={`p-3 ${!notification.read_at ? 'bg-primary/5' : ''} ${notification.type === 'restaurant_share' ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}`}
+                  className={`relative p-4 border-l-4 ${!notification.read_at 
+                    ? 'border-l-primary bg-primary/5' 
+                    : 'border-l-muted bg-background'
+                  } ${notification.type === 'restaurant_share' 
+                    ? 'cursor-pointer hover:bg-muted/30 transition-all duration-200' 
+                    : ''
+                  }`}
                   onClick={() => notification.type === 'restaurant_share' && handleViewRestaurant(notification.id, notification.data?.restaurant_id)}
                 >
+                  {/* Unread indicator */}
+                  {!notification.read_at && (
+                    <div className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full"></div>
+                  )}
+                  
                   <div className="flex items-start gap-3">
-                    {notification.type === 'restaurant_share' && (
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={''} />
-                        <AvatarFallback className="text-xs bg-secondary">
-                          {notification.data?.sender_name?.charAt(0).toUpperCase() || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                    )}
+                    {/* Avatar */}
+                    <Avatar className="h-10 w-10 ring-2 ring-background shadow-sm">
+                      <AvatarImage src={''} />
+                      <AvatarFallback className="text-sm bg-primary/10 text-primary font-semibold">
+                        {notification.data?.sender_name?.charAt(0).toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
 
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium mb-1">{notification.title}</p>
-                      <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-                        {notification.message}
-                      </p>
+                    <div className="flex-1 min-w-0 space-y-2">
+                      {/* Header with sender name */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-foreground">
+                          {notification.data?.sender_name || 'Someone'}
+                        </span>
+                        <span className="text-xs text-muted-foreground">shared a restaurant</span>
+                      </div>
                       
+                      {/* Restaurant card */}
                       {notification.type === 'restaurant_share' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 text-xs w-fit px-3 pointer-events-none"
-                        >
-                          <Eye className="h-3 w-3 mr-1" />
-                          View
-                        </Button>
+                        <div className="bg-background rounded-lg border p-3 shadow-sm">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-foreground text-sm truncate">
+                                {notification.data?.restaurant_name || 'Restaurant'}
+                              </h4>
+                              {notification.data?.share_message && (
+                                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                  "{notification.data.share_message}"
+                                </p>
+                              )}
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 text-xs px-3 ml-3 pointer-events-none shrink-0"
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              View
+                            </Button>
+                          </div>
+                        </div>
                       )}
 
-                      <div className="flex justify-between items-center mt-2">
-                        <span className="text-[10px] text-muted-foreground flex items-center">
+                      {/* Footer with time and actions */}
+                      <div className="flex justify-between items-center pt-1">
+                        <span className="text-xs text-muted-foreground flex items-center">
                           <Clock className="h-3 w-3 mr-1" />
                           {formatTimeAgo(notification.created_at)}
                         </span>
@@ -327,7 +356,7 @@ export function NotificationsPanel() {
                           <Button 
                             variant="ghost" 
                             size="sm"
-                            className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                            className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive transition-colors"
                             onClick={(e) => {
                               e.stopPropagation();
                               deleteNotification(notification.id);
@@ -341,7 +370,7 @@ export function NotificationsPanel() {
                             <Button 
                               variant="ghost" 
                               size="sm"
-                              className="h-6 w-6 p-0"
+                              className="h-7 w-7 p-0 text-muted-foreground hover:text-primary transition-colors"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 markAsRead(notification.id);
