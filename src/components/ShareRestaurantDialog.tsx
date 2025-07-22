@@ -39,13 +39,19 @@ export function ShareRestaurantDialog({ restaurant, isOpen, onOpenChange }: Shar
       return;
     }
 
+    console.log('Starting share process for restaurant:', restaurant.id);
+    console.log('Selected friends:', selectedFriends);
+    console.log('User ID:', user.id);
+
     setIsSharing(true);
 
     try {
       // Create shares for each selected friend
       const sharePromises = selectedFriends.map(async (friendId) => {
+        console.log(`Creating share for friend: ${friendId}`);
+        
         // Create the restaurant share
-        const { error: shareError } = await supabase
+        const { data: shareData, error: shareError } = await supabase
           .from('restaurant_shares')
           .insert({
             sender_id: user.id,
@@ -54,11 +60,18 @@ export function ShareRestaurantDialog({ restaurant, isOpen, onOpenChange }: Shar
             message: message.trim() || null
           });
 
-        if (shareError) throw shareError;
+        if (shareError) {
+          console.error('Share insert error:', shareError);
+          throw shareError;
+        }
+        
+        console.log('Share created successfully:', shareData);
 
         // Create notification for the friend
         const friend = friends.find(f => f.id === friendId);
-        const { error: notificationError } = await supabase
+        console.log(`Creating notification for friend: ${friend?.username}`);
+        
+        const { data: notificationData, error: notificationError } = await supabase
           .from('notifications')
           .insert({
             user_id: friendId,
@@ -74,7 +87,12 @@ export function ShareRestaurantDialog({ restaurant, isOpen, onOpenChange }: Shar
             }
           });
 
-        if (notificationError) throw notificationError;
+        if (notificationError) {
+          console.error('Notification insert error:', notificationError);
+          throw notificationError;
+        }
+        
+        console.log('Notification created successfully:', notificationData);
       });
 
       await Promise.all(sharePromises);
@@ -87,6 +105,7 @@ export function ShareRestaurantDialog({ restaurant, isOpen, onOpenChange }: Shar
       onOpenChange(false);
     } catch (error) {
       console.error('Error sharing restaurant:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       toast.error(`Failed to share restaurant: ${errorMessage}`);
     } finally {
