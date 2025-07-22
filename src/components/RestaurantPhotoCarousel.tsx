@@ -75,7 +75,7 @@ export function RestaurantPhotoCarousel({ photos, restaurantName }: RestaurantPh
       
       {/* Dots Indicator - only show if more than one photo */}
       {photos.length > 1 && (
-        <div className="flex justify-center mt-4 space-x-2">
+        <div className="flex justify-center mt-4 mb-4 space-x-2">
           {photos.map((_, index) => (
             <button
               key={index}
