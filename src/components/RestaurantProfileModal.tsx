@@ -676,7 +676,7 @@ export function RestaurantProfileModal({
                             </h4>
                             <div className="flex flex-wrap gap-1">
                               {place.types.slice(0, 3).map(type => (
-                                <Badge key={type} variant="outline" className="text-xs bg-white/80 text-green-800 border-green-300">
+                                <Badge key={type} variant="outline" className="text-xs bg-white/80 text-green-700 border-green-300">
                                   {type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                 </Badge>
                               ))}
