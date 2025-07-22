@@ -353,6 +353,39 @@ export default function UnifiedSearchPage() {
         
         // Update modal with detailed Google data only for instant loading
         setSelectedPlace(detailedPlace);
+        
+        // Fetch Yelp data in background for the modal
+        supabase.functions.invoke('yelp-restaurant-data', {
+          body: {
+            action: 'search',
+            params: {
+              term: detailedPlace.name,
+              location: detailedPlace.formatted_address,
+              limit: 1,
+              sort_by: 'best_match'
+            }
+          }
+        }).then(({ data: yelpData, error: yelpError }) => {
+          if (!yelpError && yelpData?.businesses?.length > 0) {
+            const yelpBusiness = yelpData.businesses[0];
+            
+            // Update the modal with Yelp data
+            setSelectedPlace(prev => prev ? {
+              ...prev,
+              yelpData: {
+                id: yelpBusiness.id,
+                url: yelpBusiness.url,
+                categories: yelpBusiness.categories?.map((cat: any) => cat.title) || [],
+                price: yelpBusiness.price || undefined,
+                photos: yelpBusiness.photos || [],
+                transactions: yelpBusiness.transactions || [],
+                menu_url: yelpBusiness.menu_url || undefined
+              }
+            } : null);
+          }
+        }).catch(error => {
+          console.warn('Failed to get Yelp data for modal:', error);
+        });
       }
     } catch (error) {
       console.error('Failed to get place details:', error);
