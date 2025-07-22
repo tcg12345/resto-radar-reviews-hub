@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Eye, Heart, Check, X, Clock } from 'lucide-react';
+import { Bell, Eye, Heart, Check, X, Clock, Trash2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -203,6 +203,31 @@ export function NotificationsPanel() {
     navigate(`/restaurant/${restaurantId}?friendId=${senderId}`);
   };
 
+  const deleteNotification = async (notificationId: string) => {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', notificationId);
+      
+      if (error) throw error;
+      
+      // Update local state
+      setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      
+      // Update unread count if the deleted notification was unread
+      const deletedNotification = notifications.find(n => n.id === notificationId);
+      if (deletedNotification && !deletedNotification.read_at) {
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      }
+      
+      toast('Notification deleted');
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+      toast.error('Failed to delete notification');
+    }
+  };
+
   const formatTimeAgo = (date: string) => {
     const now = new Date();
     const pastDate = new Date(date);
@@ -294,20 +319,35 @@ export function NotificationsPanel() {
                           {formatTimeAgo(notification.created_at)}
                         </span>
                         
-                        {!notification.read_at && (
+                        <div className="flex items-center gap-1">
                           <Button 
                             variant="ghost" 
                             size="sm"
-                            className="h-6 w-6 p-0"
+                            className="h-6 w-6 p-0 text-destructive hover:text-destructive"
                             onClick={(e) => {
                               e.stopPropagation();
-                              markAsRead(notification.id);
+                              deleteNotification(notification.id);
                             }}
                           >
-                            <Check className="h-3 w-3" />
-                            <span className="sr-only">Mark as read</span>
+                            <Trash2 className="h-3 w-3" />
+                            <span className="sr-only">Delete notification</span>
                           </Button>
-                        )}
+                          
+                          {!notification.read_at && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                markAsRead(notification.id);
+                              }}
+                            >
+                              <Check className="h-3 w-3" />
+                              <span className="sr-only">Mark as read</span>
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
