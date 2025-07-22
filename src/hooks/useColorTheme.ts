@@ -362,20 +362,26 @@ export function useColorTheme() {
 
   const getAllThemes = () => [
     ...colorThemes,
-    ...customThemes.map(theme => ({
-      id: theme.id,
-      name: theme.name,
-      description: 'Custom theme',
-      colors: {
-        primary: '0 0% 0%', // We'll convert hex to HSL if needed
-        primaryGlow: '0 0% 0%',
-        primaryMuted: '0 0% 0%',
-        accent: '0 0% 0%',
-        accentMuted: '0 0% 0%',
-        success: '142 71% 45%',
-        warning: '43 96% 56%',
-      }
-    }))
+    ...customThemes.map(theme => {
+      const primaryHsl = hexToHsl(theme.colors.primary);
+      const accentHsl = hexToHsl(theme.colors.accent);
+      const primaryVariations = generateColorVariations(primaryHsl.h, primaryHsl.s, primaryHsl.l);
+      
+      return {
+        id: theme.id,
+        name: theme.name,
+        description: 'Custom theme',
+        colors: {
+          primary: primaryVariations.primary,
+          primaryGlow: primaryVariations.primaryGlow,
+          primaryMuted: primaryVariations.primaryMuted,
+          accent: hslToString(accentHsl.h, accentHsl.s, accentHsl.l),
+          accentMuted: hslToString(accentHsl.h, Math.max(accentHsl.s - 60, 20), Math.min(accentHsl.l + 40, 95)),
+          success: '142 71% 45%',
+          warning: '43 96% 56%',
+        }
+      };
+    })
   ];
 
   return {

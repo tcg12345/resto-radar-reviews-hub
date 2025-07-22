@@ -464,33 +464,46 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                             : 'border-border hover:border-primary/50'
                         }`}
                         onClick={() => applyTheme(themeOption.id)}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between">
-                              <h4 className="font-medium text-sm">{themeOption.name}</h4>
-                              {customThemes.find(t => t.id === themeOption.id) && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    deleteCustomTheme(themeOption.id);
-                                  }}
-                                >
-                                  <X className="h-3 w-3" />
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                          {currentTheme === themeOption.id && (
-                            <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                              <div className="w-2 h-2 rounded-full bg-white"></div>
-                            </div>
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground">{themeOption.description}</p>
+                       >
+                         <div className="flex items-center gap-3">
+                           <div className="flex gap-2 items-center">
+                             {/* Color preview circles */}
+                             <div className="flex gap-1">
+                               <div 
+                                 className="w-3 h-3 rounded-full border border-white/20 shadow-sm"
+                                 style={{ backgroundColor: `hsl(${themeOption.colors.primary})` }}
+                               />
+                               <div 
+                                 className="w-3 h-3 rounded-full border border-white/20 shadow-sm"
+                                 style={{ backgroundColor: `hsl(${themeOption.colors.accent})` }}
+                               />
+                             </div>
+                           </div>
+                           <div className="flex-1">
+                             <div className="flex items-center justify-between">
+                               <h4 className="font-medium text-sm">{themeOption.name}</h4>
+                               {customThemes.find(t => t.id === themeOption.id) && (
+                                 <Button
+                                   variant="ghost"
+                                   size="sm"
+                                   className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                                   onClick={(e) => {
+                                     e.stopPropagation();
+                                     deleteCustomTheme(themeOption.id);
+                                   }}
+                                 >
+                                   <X className="h-3 w-3" />
+                                 </Button>
+                               )}
+                             </div>
+                           </div>
+                           {currentTheme === themeOption.id && (
+                             <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                               <div className="w-2 h-2 rounded-full bg-white"></div>
+                             </div>
+                           )}
+                         </div>
+                         <p className="text-xs text-muted-foreground">{themeOption.description}</p>
                       </div>
                     ))}
                   </div>
