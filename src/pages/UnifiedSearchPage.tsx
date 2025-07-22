@@ -659,9 +659,7 @@ export default function UnifiedSearchPage() {
                           {/* Show single cuisine type - prioritize AI analysis, then fallback cuisine, then first relevant type */}
                           {(() => {
                       const cuisine = place.aiAnalysis?.cuisine || place.fallbackCuisine || place.types.find(type => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 'Restaurant';
-                      return <Badge variant="outline" className="text-xs">
-                                {cuisine}
-                              </Badge>;
+                      return;
                     })()}
                         </div>
 
