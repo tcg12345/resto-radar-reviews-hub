@@ -455,50 +455,6 @@ export function RestaurantDetailPage() {
           </Card>
 
           {/* Category Ratings */}
-          {restaurant.category_ratings ? <Card className="hover-scale">
-              <CardHeader>
-                <CardTitle className="text-lg">Detailed Ratings</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {Object.entries(restaurant.category_ratings).map(([category, rating]) => <div key={category} className="flex items-center justify-between">
-                    <span className="capitalize font-medium">{category}</span>
-                    <div className="flex items-center gap-2">
-                      <StarRating rating={rating as number} readonly size="sm" />
-                      <span className="text-sm font-bold">{(rating as number)?.toFixed(1)}</span>
-                    </div>
-                  </div>)}
-              </CardContent>
-            </Card> : <Card className="hover-scale">
-              <CardHeader>
-                <CardTitle className="text-lg">Restaurant Highlights</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span>Cuisine Style</span>
-                    <Badge variant="secondary">{restaurant.cuisine}</Badge>
-                  </div>
-                  {restaurant.price_range && <div className="flex items-center justify-between">
-                      <span>Price Range</span>
-                      <PriceRange priceRange={restaurant.price_range} />
-                    </div>}
-                  {restaurant.michelin_stars > 0 && <div className="flex items-center justify-between">
-                      <span>Michelin Stars</span>
-                      <MichelinStars stars={restaurant.michelin_stars} />
-                    </div>}
-                  <div className="flex items-center justify-between">
-                    <span>Location</span>
-                    <span className="text-sm text-muted-foreground">{restaurant.city}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Reservations</span>
-                    <Badge variant={restaurant.reservable ? "default" : "outline"}>
-                      {restaurant.reservable ? "Available" : "Not Available"}
-                    </Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>}
 
           {/* Location & Map */}
           {restaurant.latitude && restaurant.longitude}
