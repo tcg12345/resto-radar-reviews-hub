@@ -561,7 +561,7 @@ export function RestaurantProfileModal({
                               </div>
 
                               {/* Features Section */}
-                              <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-50 via-white to-slate-100 p-4 shadow-md border border-slate-200/60">
+                              <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-300 via-slate-200 to-slate-400 p-4 shadow-md border border-slate-300/60">
                                 <div className="absolute top-0 right-0 w-16 h-16 bg-slate-200/30 rounded-full -mr-8 -mt-8"></div>
                                 <div className="relative">
                                   <div className="flex items-center gap-2 mb-3">
