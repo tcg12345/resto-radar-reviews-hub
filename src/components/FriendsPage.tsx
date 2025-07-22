@@ -500,17 +500,10 @@ export function FriendsPage({
   const handleRefreshCache = async () => {
     const success = await rebuildFriendActivityCache();
     if (success) {
-      toast({
-        title: "Success",
-        description: "Friend activity refreshed!",
-      });
+      toast("Friend activity refreshed!");
       loadInitialActivity();
     } else {
-      toast({
-        title: "Error",
-        description: "Failed to refresh activity",
-        variant: "destructive",
-      });
+      toast("Failed to refresh activity");
     }
   };
 
@@ -605,21 +598,13 @@ export function FriendsPage({
 
       if (basicError || !basicProfile) {
         console.error('Error fetching basic friend profile:', basicError);
-        toast({
-          title: "Error",
-          description: "Failed to load friend profile",
-          variant: "destructive",
-        });
+        toast("Failed to load friend profile");
         setIsLoadingProfile(false);
         return;
       }
 
       if (!basicProfile.can_view) {
-        toast({
-          title: "Access Denied",
-          description: "Cannot view this friend's profile",
-          variant: "destructive",
-        });
+        toast("Cannot view this friend's profile");
         setIsLoadingProfile(false);
         return;
       }
@@ -658,11 +643,7 @@ export function FriendsPage({
       
     } catch (error) {
       console.error('Error loading friend profile:', error);
-      toast({
-        title: "Error", 
-        description: "Failed to load friend profile",
-        variant: "destructive",
-      });
+      toast("Failed to load friend profile");
       setIsLoadingProfile(false);
     }
   };
@@ -789,11 +770,7 @@ export function FriendsPage({
 
   const addToWishlist = async (restaurant: any) => {
     if (!user) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to add restaurants to your wishlist",
-        variant: "destructive",
-      });
+      toast("You must be logged in to add restaurants to your wishlist");
       return;
     }
 
@@ -805,21 +782,13 @@ export function FriendsPage({
       // Validate required fields
       if (!restaurant.name) {
         console.log('ERROR: Missing restaurant name');
-        toast({
-          title: "Error", 
-          description: "Restaurant name is missing. Please try again.",
-          variant: "destructive",
-        });
+        toast("Restaurant name is missing. Please try again.");
         return;
       }
       
       if (!restaurant.cuisine) {
         console.log('ERROR: Missing restaurant cuisine');
-        toast({
-          title: "Error",
-          description: "Restaurant cuisine information is missing. Please try again.",
-          variant: "destructive", 
-        });
+        toast("Restaurant cuisine information is missing. Please try again.");
         return;
       }
 
@@ -861,18 +830,11 @@ export function FriendsPage({
         console.error('Error details:', error.details);
         console.error('Error hint:', error.hint);
         
-        toast({
-          title: "Database Error",
-          description: `Error: ${error.message}. Code: ${error.code}`,
-          variant: "destructive",
-        });
+        toast(`Database Error: ${error.message}. Code: ${error.code}`);
       } else {
         console.log('=== SUCCESS ===');
         console.log('Inserted data:', data);
-        toast({
-          title: "Success",
-          description: `${restaurant.name} added to your wishlist!`,
-        });
+        toast(`${restaurant.name} added to your wishlist!`);
       }
     } catch (error) {
       console.error('=== CATCH BLOCK ERROR ===');
@@ -885,11 +847,7 @@ export function FriendsPage({
         console.error('Error stack:', error.stack);
       }
       
-      toast({
-        title: "Unexpected Error",
-        description: `Failed to add restaurant: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        variant: "destructive",
-      });
+      toast(`Failed to add restaurant: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -904,10 +862,7 @@ export function FriendsPage({
           text: shareText,
           url: shareUrl,
         });
-        toast({
-          title: "Shared!",
-          description: "Restaurant shared successfully",
-        });
+        toast("Restaurant shared successfully");
       } catch (error) {
         if (error instanceof Error && error.name !== 'AbortError') {
           console.error('Error sharing:', error);
@@ -923,10 +878,7 @@ export function FriendsPage({
     const fullText = `${text}\n${url}`;
     if (navigator.clipboard) {
       navigator.clipboard.writeText(fullText).then(() => {
-        toast({
-          title: "Copied to clipboard!",
-          description: "Restaurant details copied. You can now paste and share them.",
-        });
+        toast("Restaurant details copied. You can now paste and share them.");
       }).catch(() => {
         showShareOptions(text, url);
       });
@@ -951,16 +903,10 @@ export function FriendsPage({
       textArea.select();
       try {
         document.execCommand('copy');
-        toast({
-          title: "Copied to clipboard!",
-          description: "Restaurant details copied. You can now paste and share them.",
-        });
+        toast("Restaurant details copied. You can now paste and share them.");
       } catch (err) {
         console.error('Failed to copy text: ', err);
-        toast({
-          title: "Share",
-          description: `Copy this: ${fullText}`,
-        });
+        toast(`Copy this: ${fullText}`);
       }
       document.body.removeChild(textArea);
     }

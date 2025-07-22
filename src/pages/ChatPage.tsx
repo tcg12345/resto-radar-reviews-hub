@@ -186,7 +186,20 @@ export function ChatPage() {
             } : undefined
           };
 
-          setMessages(prev => [...prev, newMessage]);
+          setMessages(prev => {
+            // Remove any optimistic message with same content and sender from last 5 seconds
+            const filtered = prev.filter(msg => {
+              if (msg.id.startsWith('temp-') && 
+                  msg.sender_id === newMessage.sender_id && 
+                  msg.content === newMessage.content) {
+                const msgTime = new Date(msg.created_at).getTime();
+                const now = Date.now();
+                return now - msgTime > 5000; // Keep if older than 5 seconds
+              }
+              return true;
+            });
+            return [...filtered, newMessage];
+          });
         }
       )
       .subscribe();
@@ -200,26 +213,49 @@ export function ChatPage() {
     if (!newMessage.trim() || !roomId || !user || isSending) return;
 
     setIsSending(true);
+    const messageContent = newMessage.trim();
+    
+    // Optimistic update - add message immediately to UI
+    const optimisticMessage: Message = {
+      id: `temp-${Date.now()}`,
+      sender_id: user.id,
+      content: messageContent,
+      message_type: 'text',
+      created_at: new Date().toISOString(),
+      sender_profile: {
+        username: user.user_metadata?.username || user.email?.split('@')[0] || 'User',
+        name: user.user_metadata?.display_name || user.email?.split('@')[0] || 'User',
+        avatar_url: user.user_metadata?.avatar_url || ''
+      }
+    };
+    
+    setMessages(prev => [...prev, optimisticMessage]);
+    setNewMessage('');
+    
     try {
       const { error } = await supabase
         .from('messages')
         .insert({
           room_id: roomId,
           sender_id: user.id,
-          content: newMessage.trim(),
+          content: messageContent,
           message_type: 'text'
         });
 
       if (error) {
         console.error('Error sending message:', error);
         toast('Failed to send message');
+        // Remove optimistic message on error
+        setMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
+        setNewMessage(messageContent); // Restore message content
         return;
       }
-
-      setNewMessage('');
     } catch (error) {
       console.error('Error sending message:', error);
       toast('Failed to send message');
+      // Remove optimistic message on error
+      setMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
+      setNewMessage(messageContent); // Restore message content
     } finally {
       setIsSending(false);
     }
