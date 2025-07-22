@@ -13,6 +13,7 @@ import { GlobalSearchMap } from '@/components/GlobalSearchMap';
 import { PersonalizedRecommendations } from '@/components/PersonalizedRecommendations';
 import { RestaurantProfileModal } from '@/components/RestaurantProfileModal';
 import { DiscoverPage } from '@/pages/DiscoverPage';
+import { FriendsActivityPage } from '@/pages/FriendsActivityPage';
 interface GooglePlaceResult {
   place_id: string;
   name: string;
@@ -79,7 +80,7 @@ export default function UnifiedSearchPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLiveSearching, setIsLiveSearching] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<PlaceDetails | null>(null);
-  const [activeTab, setActiveTab] = useState<'global' | 'smart' | 'recommendations'>('global');
+  const [activeTab, setActiveTab] = useState<'global' | 'smart' | 'recommendations' | 'friends'>('global');
   const [userLocation, setUserLocation] = useState<{
     lat: number;
     lng: number;
@@ -406,11 +407,12 @@ export default function UnifiedSearchPage() {
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={value => setActiveTab(value as 'global' | 'smart' | 'recommendations')}>
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs value={activeTab} onValueChange={value => setActiveTab(value as 'global' | 'smart' | 'recommendations' | 'friends')}>
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="global">Restaurant Search</TabsTrigger>
           <TabsTrigger value="smart">Smart Discovery</TabsTrigger>
           <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
+          <TabsTrigger value="friends">Friends' Activity</TabsTrigger>
         </TabsList>
 
         <TabsContent value="global" className="space-y-6">
@@ -699,6 +701,10 @@ export default function UnifiedSearchPage() {
           <div className="space-y-6">
             <PersonalizedRecommendations />
           </div>
+        </TabsContent>
+
+        <TabsContent value="friends" className="space-y-6">
+          <FriendsActivityPage />
         </TabsContent>
       </Tabs>
 
