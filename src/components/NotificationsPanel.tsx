@@ -406,46 +406,65 @@ export function NotificationsPanel() {
                         <div className="flex items-center gap-1">
                           {/* Show message button if there's a message */}
                           {notification.data?.share_message && (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="h-8 px-3 text-xs border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary font-medium"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                showFullMessage(notification.data.share_message);
-                              }}
-                            >
-                              <MessageSquare className="h-3 w-3 mr-1" />
-                              <span className="text-xs">View Message</span>
-                            </Button>
+                            <div className="flex items-center gap-2 p-2 rounded-lg border border-border bg-background/50">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="h-7 px-2 text-xs border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary font-medium"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  showFullMessage(notification.data.share_message);
+                                }}
+                              >
+                                <MessageSquare className="h-3 w-3 mr-1" />
+                                <span className="text-xs">View Message</span>
+                              </Button>
+                              
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="h-7 px-2 text-xs border-destructive/20 bg-destructive/5 hover:bg-destructive/10 text-destructive"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteNotification(notification.id);
+                                }}
+                              >
+                                <Trash2 className="h-3 w-3 mr-1" />
+                                <span className="text-xs">Delete</span>
+                              </Button>
+                            </div>
                           )}
                           
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive transition-colors"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteNotification(notification.id);
-                            }}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                            <span className="sr-only">Delete notification</span>
-                          </Button>
-                          
-                          {!notification.read_at && (
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              className="h-7 w-7 p-0 text-muted-foreground hover:text-primary transition-colors"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                markAsRead(notification.id);
-                              }}
-                            >
-                              <Check className="h-3 w-3" />
-                              <span className="sr-only">Mark as read</span>
-                            </Button>
+                          {!notification.data?.share_message && (
+                            <div className="flex items-center gap-1">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive transition-colors"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteNotification(notification.id);
+                                }}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                                <span className="sr-only">Delete notification</span>
+                              </Button>
+                              
+                              {!notification.read_at && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  className="h-7 w-7 p-0 text-muted-foreground hover:text-primary transition-colors"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    markAsRead(notification.id);
+                                  }}
+                                >
+                                  <Check className="h-3 w-3" />
+                                  <span className="sr-only">Mark as read</span>
+                                </Button>
+                              )}
+                            </div>
                           )}
                         </div>
                       </div>
