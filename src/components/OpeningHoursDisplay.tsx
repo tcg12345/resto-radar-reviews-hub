@@ -45,9 +45,14 @@ export function OpeningHoursDisplay({ hours, className = "" }: OpeningHoursDispl
           const time = formatHours(hour);
           
           return (
-            <div key={index} className="flex justify-between items-center text-sm">
-              <span className="font-medium min-w-20">{day}</span>
-              <span className="text-muted-foreground text-right">{time}</span>
+            <div key={index}>
+              <div className="flex justify-between items-center text-sm py-2">
+                <span className="font-medium min-w-20">{day}</span>
+                <span className="text-muted-foreground text-right">{time}</span>
+              </div>
+              {index < hours.length - 1 && (
+                <div className="border-b border-border/50"></div>
+              )}
             </div>
           );
         })}
