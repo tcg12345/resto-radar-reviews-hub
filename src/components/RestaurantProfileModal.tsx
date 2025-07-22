@@ -241,18 +241,25 @@ export function RestaurantProfileModal({
     }
   };
   const handleAddToRatings = async () => {
+    console.log('handleAddToRatings called - user:', user, 'userRating:', userRating);
+    
     if (!user) {
+      console.log('No user - showing sign in error');
       toast.error('Please sign in to add ratings');
       return;
     }
     if (userRating === 0) {
+      console.log('No rating selected - showing rating error');
       toast.error('Please select a rating');
       return;
     }
+    
+    console.log('Starting to submit review...');
     setIsSubmittingReview(true);
     try {
       // Get Michelin stars using AI
       let michelinStars = null;
+      console.log('Getting Michelin stars for:', place.name);
       try {
         const { data: aiData } = await supabase.functions.invoke('ai-michelin-detector', {
           body: {
@@ -267,6 +274,7 @@ export function RestaurantProfileModal({
         if (aiData && aiData.michelinStars !== null) {
           michelinStars = aiData.michelinStars;
         }
+        console.log('Michelin stars result:', michelinStars);
       } catch (error) {
         console.log('Could not determine Michelin stars:', error);
       }
@@ -309,8 +317,13 @@ export function RestaurantProfileModal({
         isWishlist: false,
       };
       
+      console.log('Restaurant form data:', restaurantFormData);
+      
       // Use the context function to add restaurant which will update local state
+      console.log('Calling addRestaurant with data...');
       await addRestaurant(restaurantFormData);
+      console.log('Restaurant added successfully!');
+      
       toast.success('Rating added successfully!');
       setUserRating(0);
       setUserReview('');
@@ -318,7 +331,7 @@ export function RestaurantProfileModal({
       setReviewPhotoUrls([]);
     } catch (error) {
       console.error('Error adding rating:', error);
-      toast.error('Failed to add rating');
+      toast.error(`Failed to add rating: ${error.message || 'Unknown error'}`);
     } finally {
       setIsSubmittingReview(false);
     }
