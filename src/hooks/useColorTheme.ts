@@ -61,13 +61,13 @@ export const colorThemes: ColorTheme[] = [
   {
     id: 'royal-purple',
     name: 'Royal Purple',
-    description: 'Elegant purple with silver accents',
+    description: 'Elegant purple with vibrant teal accents',
     colors: {
       primary: '263 70% 50%',
       primaryGlow: '263 70% 60%',
       primaryMuted: '263 20% 94%',
-      accent: '220 13% 45%',
-      accentMuted: '220 13% 95%',
+      accent: '180 85% 50%',
+      accentMuted: '180 20% 95%',
       success: '142 71% 45%',
       warning: '43 96% 56%',
     }
@@ -75,13 +75,13 @@ export const colorThemes: ColorTheme[] = [
   {
     id: 'crimson-red',
     name: 'Crimson Red',
-    description: 'Bold red with dark gray accents',
+    description: 'Bold red with vibrant teal accents',
     colors: {
       primary: '348 83% 47%',
       primaryGlow: '348 83% 57%',
       primaryMuted: '348 20% 94%',
-      accent: '220 13% 35%',
-      accentMuted: '220 13% 95%',
+      accent: '180 85% 50%',
+      accentMuted: '180 20% 95%',
       success: '142 71% 45%',
       warning: '43 96% 56%',
     }
