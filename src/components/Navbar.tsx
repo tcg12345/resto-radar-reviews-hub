@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { MapPin, Star, Heart, Home, Search, Settings, Users } from 'lucide-react';
+import { MapPin, Star, Heart, Home, Search, Settings, Users, MessageCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/hooks/useTheme';
@@ -63,6 +63,16 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
         <div className="flex items-center space-x-2">
           {user ? (
             <>
+              <Button
+                variant="ghost"
+                size="lg"
+                onClick={() => navigate('/chat')}
+                className="h-12 w-12"
+                title="Messages"
+              >
+                <MessageCircle className="h-6 w-6" />
+                <span className="sr-only">Messages</span>
+              </Button>
               <NotificationsPanel />
               <Button
                 variant="ghost"

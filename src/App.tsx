@@ -15,6 +15,8 @@ import AuthPage from "./pages/AuthPage";
 import DemoPage from "./pages/DemoPage";
 import { RestaurantDetailPage } from "./pages/RestaurantDetailPage";
 import { FriendsPage } from "./pages/FriendsPage";
+import { ChatListPage } from "./pages/ChatListPage";
+import { ChatPage } from "./pages/ChatPage";
 
 
 const queryClient = new QueryClient();
@@ -38,6 +40,10 @@ const App = () => (
                 
                 {/* Friends route */}
                 <Route path="/friends" element={<RequireAuth><FriendsPage /></RequireAuth>} />
+                
+                {/* Chat routes */}
+                <Route path="/chat" element={<RequireAuth><ChatListPage /></RequireAuth>} />
+                <Route path="/chat/:roomId" element={<RequireAuth><ChatPage /></RequireAuth>} />
                 
                 {/* Restaurant detail route */}
                 <Route path="/restaurant/:restaurantId" element={<RequireAuth><RestaurantDetailPage /></RequireAuth>} />

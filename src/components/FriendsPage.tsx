@@ -26,7 +26,8 @@ import {
   SortAsc,
   SortDesc,
   Heart,
-  Share2
+  Share2,
+  MessageCircle
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -50,7 +51,6 @@ import { ContactPermission } from '@/components/ContactPermission';
 import { FriendProfilePopup } from '@/components/FriendProfilePopup';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 
 interface SearchResult {
   id: string;
@@ -537,12 +537,31 @@ export function FriendsPage({
 
   const hasPendingRequest = (userId: string) => {
     return sentRequests.some(request => request.receiver_id === userId) ||
-           pendingRequests.some(request => request.sender_id === userId);
+            pendingRequests.some(request => request.sender_id === userId);
   };
 
   const handleContactPermission = (contactList: any[]) => {
     setContacts(contactList);
     setShowContactPermission(false);
+  };
+
+  // Start chat with friend
+  const handleStartChat = async (friendId: string) => {
+    try {
+      const { data: roomId, error } = await supabase
+        .rpc('get_or_create_dm_room', { other_user_id: friendId });
+
+      if (error) {
+        console.error('Error creating chat room:', error);
+        toast('Failed to start chat');
+        return;
+      }
+
+      navigate(`/chat/${roomId}`);
+    } catch (error) {
+      console.error('Error starting chat:', error);
+      toast('Failed to start chat');
+    }
   };
 
   // Friend profile navigation
