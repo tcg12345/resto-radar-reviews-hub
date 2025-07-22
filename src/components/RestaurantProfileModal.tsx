@@ -652,11 +652,9 @@ export function RestaurantProfileModal({
                   </CardHeader>
                   <CardContent className="p-0 h-[250px] rounded-b-lg overflow-hidden">
                     <GlobalSearchMap
-                      center={[place.geometry.location.lng, place.geometry.location.lat]}
-                      zoom={14}
-                      places={[place]}
-                      interactive={true}
-                      selectedPlaceId={place.place_id}
+                      center={{ lat: place.geometry.location.lat, lng: place.geometry.location.lng }}
+                      restaurants={[place]}
+                      onRestaurantClick={() => {}}
                     />
                   </CardContent>
                 </Card>
