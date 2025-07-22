@@ -528,16 +528,91 @@ export function RestaurantDetailPage() {
         </div>
 
         {/* Full Width Map */}
-        {restaurant.latitude && restaurant.longitude && <Card className="animate-fade-in">
-            <CardHeader>
-              <CardTitle className="text-xl">Interactive Map</CardTitle>
+        {restaurant.latitude && restaurant.longitude && (
+          <Card className="animate-fade-in overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-primary" />
+                    Interactive Map
+                  </CardTitle>
+                  <p className="text-muted-foreground text-sm mt-1">
+                    Explore the location and nearby area
+                  </p>
+                </div>
+                <Badge variant="outline" className="text-xs">
+                  <Navigation className="h-3 w-3 mr-1" />
+                  Get Directions
+                </Badge>
+              </div>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="h-96">
-                <RestaurantLocationMap latitude={restaurant.latitude} longitude={restaurant.longitude} name={restaurant.name} address={restaurant.address} />
+              {/* Address Display */}
+              <div className="bg-muted/30 border-b px-6 py-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mt-0.5">
+                    <MapPin className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-foreground mb-1">
+                      {restaurant.name}
+                    </h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {restaurant.address}
+                      <br />
+                      {restaurant.city}, {restaurant.country}
+                    </p>
+                    <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                      <span>Lat: {restaurant.latitude.toFixed(6)}</span>
+                      <span>Lng: {restaurant.longitude.toFixed(6)}</span>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                    className="shrink-0"
+                  >
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${restaurant.latitude},${restaurant.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Navigation className="h-4 w-4 mr-2" />
+                      Directions
+                    </a>
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Map Container */}
+              <div className="relative">
+                <div className="h-96 w-full">
+                  <RestaurantLocationMap 
+                    latitude={restaurant.latitude} 
+                    longitude={restaurant.longitude} 
+                    name={restaurant.name} 
+                    address={restaurant.address} 
+                  />
+                </div>
+                
+                {/* Map Overlay Controls */}
+                <div className="absolute top-4 left-4 bg-background/90 backdrop-blur-sm rounded-lg shadow-sm border p-2">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Interactive Map
+                  </p>
+                </div>
+                
+                <div className="absolute bottom-4 right-4 bg-background/90 backdrop-blur-sm rounded-lg shadow-sm border px-3 py-2">
+                  <p className="text-xs text-muted-foreground">
+                    Zoom and pan to explore
+                  </p>
+                </div>
               </div>
             </CardContent>
-          </Card>}
+          </Card>
+        )}
 
         {/* Reservation Section - Full Width if available */}
         {restaurant.reservable && <Card className="animate-fade-in bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20 border-orange-200 dark:border-orange-800">
