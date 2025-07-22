@@ -39,6 +39,7 @@ interface FriendRestaurant {
 
 type SortOption = 'recent' | 'rating' | 'alphabetical' | 'friend';
 type FilterOption = 'all' | 'rated' | 'wishlist';
+type CityFilterOption = string | 'all';
 
 export function FriendsActivityPage() {
   const { user } = useAuth();
@@ -49,6 +50,7 @@ export function FriendsActivityPage() {
   const [sortBy, setSortBy] = useState<SortOption>('recent');
   const [filterBy, setFilterBy] = useState<FilterOption>('all');
   const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
+  const [selectedCity, setSelectedCity] = useState<CityFilterOption>('all');
 
   useEffect(() => {
     if (user) {
@@ -58,7 +60,7 @@ export function FriendsActivityPage() {
 
   useEffect(() => {
     filterAndSortRestaurants();
-  }, [friendsRestaurants, searchQuery, sortBy, filterBy, selectedCuisines]);
+  }, [friendsRestaurants, searchQuery, sortBy, filterBy, selectedCuisines, selectedCity]);
 
   const fetchFriendsRestaurants = async () => {
     if (!user) return;
@@ -155,6 +157,11 @@ export function FriendsActivityPage() {
       filtered = filtered.filter(r => r.is_wishlist);
     }
 
+    // Apply city filter
+    if (selectedCity !== 'all') {
+      filtered = filtered.filter(r => r.city === selectedCity);
+    }
+
     // Apply cuisine filter
     if (selectedCuisines.length > 0) {
       filtered = filtered.filter(r =>
@@ -196,6 +203,11 @@ export function FriendsActivityPage() {
   const getUniqueCuisines = () => {
     const cuisines = friendsRestaurants.map(r => r.cuisine);
     return [...new Set(cuisines)].sort();
+  };
+
+  const getUniqueCities = () => {
+    const cities = friendsRestaurants.map(r => r.city);
+    return [...new Set(cities)].sort();
   };
 
   const toggleCuisineFilter = (cuisine: string) => {
@@ -330,42 +342,114 @@ export function FriendsActivityPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Input
-              placeholder="Search restaurants, friends, or cuisines..."
+              placeholder="Search restaurants, friends..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="md:col-span-2"
+              className="lg:col-span-2"
             />
             
             <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-background border-border">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-background border-border z-50">
                 <SelectItem value="recent">Most Recent</SelectItem>
                 <SelectItem value="rating">Highest Rated</SelectItem>
                 <SelectItem value="alphabetical">A-Z</SelectItem>
                 <SelectItem value="friend">By Friend</SelectItem>
               </SelectContent>
             </Select>
+
+            <Select value={selectedCity} onValueChange={(value: CityFilterOption) => setSelectedCity(value)}>
+              <SelectTrigger className="bg-background border-border">
+                <SelectValue placeholder="Filter by city" />
+              </SelectTrigger>
+              <SelectContent className="bg-background border-border z-50">
+                <SelectItem value="all">All Cities</SelectItem>
+                {getUniqueCities().map(city => (
+                  <SelectItem key={city} value={city}>
+                    {city} ({friendsRestaurants.filter(r => r.city === city).length})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Cuisine Tags */}
+          {/* Cuisine Dropdown Filter */}
           <div className="space-y-2">
-            <p className="text-sm font-medium">Filter by Cuisine:</p>
-            <div className="flex flex-wrap gap-2">
-              {getUniqueCuisines().map(cuisine => (
-                <Badge
-                  key={cuisine}
-                  variant={selectedCuisines.includes(cuisine) ? "default" : "outline"}
-                  className="cursor-pointer hover:bg-primary/10"
-                  onClick={() => toggleCuisineFilter(cuisine)}
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium">Filter by Cuisine:</p>
+              {selectedCuisines.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedCuisines([])}
+                  className="text-xs"
                 >
-                  {cuisine}
-                </Badge>
-              ))}
+                  Clear Cuisines ({selectedCuisines.length})
+                </Button>
+              )}
             </div>
+            
+            <Select 
+              value={selectedCuisines.length === 1 ? selectedCuisines[0] : selectedCuisines.length > 1 ? 'multiple' : 'none'} 
+              onValueChange={(value) => {
+                if (value === 'none') {
+                  setSelectedCuisines([]);
+                } else if (value !== 'multiple') {
+                  setSelectedCuisines(prev => 
+                    prev.includes(value) 
+                      ? prev.filter(c => c !== value)
+                      : [...prev, value]
+                  );
+                }
+              }}
+            >
+              <SelectTrigger className="bg-background border-border">
+                <SelectValue placeholder={
+                  selectedCuisines.length === 0 
+                    ? "Select cuisines..." 
+                    : selectedCuisines.length === 1 
+                      ? selectedCuisines[0]
+                      : `${selectedCuisines.length} cuisines selected`
+                } />
+              </SelectTrigger>
+              <SelectContent className="bg-background border-border z-50 max-h-60">
+                <SelectItem value="none">All Cuisines</SelectItem>
+                {getUniqueCuisines().map(cuisine => (
+                  <SelectItem 
+                    key={cuisine} 
+                    value={cuisine}
+                    className={selectedCuisines.includes(cuisine) ? 'bg-primary/10' : ''}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <span>{cuisine}</span>
+                      <span className="text-muted-foreground ml-2">
+                        ({friendsRestaurants.filter(r => r.cuisine === cuisine).length})
+                      </span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Selected Cuisine Tags */}
+            {selectedCuisines.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {selectedCuisines.map(cuisine => (
+                  <Badge
+                    key={cuisine}
+                    variant="default"
+                    className="cursor-pointer hover:bg-primary/80"
+                    onClick={() => setSelectedCuisines(prev => prev.filter(c => c !== cuisine))}
+                  >
+                    {cuisine} ×
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
