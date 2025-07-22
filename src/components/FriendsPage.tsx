@@ -1543,6 +1543,40 @@ export function FriendsPage({
               </TabsContent>
 
               <TabsContent value="wishlist" className="mt-6">
+                {/* Wishlist Filter */}
+                <div className="mb-6 flex gap-3 items-center">
+                  <Filter className="h-4 w-4 text-muted-foreground" />
+                  <Select 
+                    value={selectedCities.length === 1 ? selectedCities[0] : ""} 
+                    onValueChange={(value) => {
+                      if (value === "all") {
+                        setSelectedCities([]);
+                      } else {
+                        setSelectedCities([value]);
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Filter by city" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Cities</SelectItem>
+                      {Array.from(new Set(friendWishlistData.map(r => r.city))).sort().map(city => (
+                        <SelectItem key={city} value={city}>{city}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedCities.length > 0 && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setSelectedCities([])}
+                    >
+                      Clear Filter
+                    </Button>
+                  )}
+                </div>
+                
                 {/* Wishlist Items */}
                 <div className="grid gap-6">
                   {friendWishlistData.length === 0 ? (
@@ -1557,7 +1591,12 @@ export function FriendsPage({
                     </Card>
                   ) : (
                     <>
-                      {friendWishlistData.slice(0, displayedWishlist).map((restaurant) => (
+                      {friendWishlistData
+                        .filter(restaurant => 
+                          selectedCities.length === 0 || selectedCities.includes(restaurant.city)
+                        )
+                        .slice(0, displayedWishlist)
+                        .map((restaurant) => (
                         <Card key={restaurant.id} className="overflow-hidden">
                           <CardContent className="p-6">
                             <div className="grid md:grid-cols-3 gap-6">
