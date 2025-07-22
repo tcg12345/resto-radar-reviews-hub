@@ -561,48 +561,50 @@ export function RestaurantProfileModal({
                               </div>
 
                               {/* Features Section */}
-                              <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-300 via-slate-200 to-slate-400 p-4 shadow-md border border-slate-300/60">
+                              <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-300 via-slate-200 to-slate-400 p-3 shadow-md border border-slate-300/60">
                                 <div className="absolute top-0 right-0 w-16 h-16 bg-slate-200/30 rounded-full -mr-8 -mt-8"></div>
                                 <div className="relative">
-                                  <div className="flex items-center gap-2 mb-3">
-                                    <div className="p-1.5 rounded-md bg-slate-200/80">
-                                      <Clock className="h-3.5 w-3.5 text-slate-700" />
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <div className="p-1.5 rounded-md bg-slate-200/80">
+                                        <Clock className="h-3.5 w-3.5 text-slate-700" />
+                                      </div>
+                                      <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">STATUS</span>
                                     </div>
-                                     <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">STATUS</span>
-                                     {place.opening_hours?.open_now !== undefined && <span className="text-xs font-medium text-slate-700">
-                                        • {place.opening_hours.open_now ? "Open" : "Closed"}
-                                      </span>}
+                                    {place.opening_hours?.open_now !== undefined && <Badge variant={place.opening_hours.open_now ? "default" : "destructive"} className="text-xs font-medium px-3 py-1 rounded-full">
+                                        {place.opening_hours.open_now ? "Open" : "Closed"}
+                                      </Badge>}
                                   </div>
-                                  <div className="flex flex-wrap gap-2">
-                                    {place.types.includes('meal_delivery') && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-blue-50 text-blue-700 border-blue-200">
+                                  <div className="flex flex-wrap gap-1.5 mt-2">
+                                    {place.types.includes('meal_delivery') && <Badge variant="outline" className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border-blue-200">
                                         🚚 Delivery
                                       </Badge>}
 
-                                    {place.types.includes('meal_takeaway') && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-orange-50 text-orange-700 border-orange-200">
+                                    {place.types.includes('meal_takeaway') && <Badge variant="outline" className="text-xs font-medium px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border-orange-200">
                                         🥡 Takeaway
                                       </Badge>}
 
-                                    {place.types.includes('dine_in') && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-purple-50 text-purple-700 border-purple-200">
+                                    {place.types.includes('dine_in') && <Badge variant="outline" className="text-xs font-medium px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border-purple-200">
                                         🍽️ Dine-in
                                       </Badge>}
 
-                                    {(place.types.includes('wheelchair_accessible_entrance') || place.types.includes('wheelchair_accessible')) && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-teal-50 text-teal-700 border-teal-200">
+                                    {(place.types.includes('wheelchair_accessible_entrance') || place.types.includes('wheelchair_accessible')) && <Badge variant="outline" className="text-xs font-medium px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border-teal-200">
                                         ♿ Accessible
                                       </Badge>}
 
-                                    {place.types.includes('wifi') && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-indigo-50 text-indigo-700 border-indigo-200">
+                                    {place.types.includes('wifi') && <Badge variant="outline" className="text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border-indigo-200">
                                         📶 WiFi
                                       </Badge>}
 
-                                    {place.types.includes('accepts_credit_cards') && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-green-50 text-green-700 border-green-200">
+                                    {place.types.includes('accepts_credit_cards') && <Badge variant="outline" className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-50 text-green-700 border-green-200">
                                         💳 Cards Accepted
                                       </Badge>}
 
-                                    {place.types.includes('outdoor_seating') && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border-emerald-200">
+                                    {place.types.includes('outdoor_seating') && <Badge variant="outline" className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border-emerald-200">
                                         🌤️ Outdoor Seating
                                       </Badge>}
 
-                                    {place.types.includes('parking') && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-slate-50 text-slate-700 border-slate-200">
+                                    {place.types.includes('parking') && <Badge variant="outline" className="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-50 text-slate-700 border-slate-200">
                                         🅿️ Parking
                                       </Badge>}
                                   </div>
