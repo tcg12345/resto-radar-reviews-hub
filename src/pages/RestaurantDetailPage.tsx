@@ -241,6 +241,30 @@ export function RestaurantDetailPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+        {/* Data Source Notice */}
+        {friendProfile && (
+          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                    <span className="text-lg font-semibold text-blue-700 dark:text-blue-300">
+                      {friendProfile.name?.charAt(0) || friendProfile.username?.charAt(0) || 'U'}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <p className="text-blue-800 dark:text-blue-200 font-medium">
+                    Restaurant data shared by {friendProfile.name || friendProfile.username}
+                  </p>
+                  <p className="text-blue-600 dark:text-blue-300 text-sm">
+                    This information comes from their personal restaurant collection
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
         {/* Hero Section - Compact */}
         <div className="grid lg:grid-cols-5 gap-6">
           {/* Main Info - More space */}
