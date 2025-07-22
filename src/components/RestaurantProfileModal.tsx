@@ -441,43 +441,253 @@ export function RestaurantProfileModal({
               {/* Main Content */}
               <div className="xl:col-span-2 space-y-6">
                 {/* Contact Information */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <MapPin className="h-5 w-5" />
-                      Contact Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid gap-4">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Address</p>
-                        <p className="text-sm">{place.formatted_address}</p>
-                      </div>
-                      
-                      {place.formatted_phone_number && (
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Phone</p>
-                          <p className="text-sm">{place.formatted_phone_number}</p>
+                {/* Restaurant Information Hub */}
+                <div className="grid gap-6">
+                  {/* Essential Info Card */}
+                  <Card className="overflow-hidden border-0 shadow-lg bg-gradient-to-br from-background via-background to-muted/30">
+                    <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">
+                      <CardTitle className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-full bg-primary/10">
+                            <MapPin className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold">Restaurant Details</h3>
+                            <p className="text-sm text-muted-foreground">Essential information & contact</p>
+                          </div>
                         </div>
-                      )}
+                        {place.yelpData && (
+                          <Badge variant="secondary" className="bg-red-100 text-red-700 border-red-200">
+                            <Star className="h-3 w-3 mr-1" />
+                            Yelp Verified
+                          </Badge>
+                        )}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Contact Column */}
+                        <div className="space-y-4">
+                          <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                            <MapPin className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Address</p>
+                              <p className="text-sm font-medium leading-relaxed">{place.formatted_address}</p>
+                            </div>
+                          </div>
+                          
+                          {place.formatted_phone_number && (
+                            <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                              <Phone className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Phone</p>
+                                <p className="text-sm font-medium">{place.formatted_phone_number}</p>
+                              </div>
+                            </div>
+                          )}
 
-                      {place.website && (
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Website</p>
-                          <a 
-                            href={place.website} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-sm text-primary hover:underline"
-                          >
-                            {place.website}
-                          </a>
+                          {place.website && (
+                            <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                              <Globe className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Website</p>
+                                <a 
+                                  href={place.website} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-sm font-medium text-primary hover:underline break-all"
+                                >
+                                  {place.website.replace(/^https?:\/\//, '')}
+                                </a>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+
+                        {/* Stats & Features Column */}
+                        <div className="space-y-4">
+                          {/* Quick Stats */}
+                          <div className="grid grid-cols-2 gap-3">
+                            {place.rating && (
+                              <div className="p-3 rounded-lg bg-yellow-50 border border-yellow-200">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Star className="h-4 w-4 text-yellow-600" />
+                                  <span className="text-xs font-medium text-yellow-700 uppercase tracking-wide">Rating</span>
+                                </div>
+                                <div className="flex items-baseline gap-1">
+                                  <span className="text-lg font-bold text-yellow-800">{place.rating}</span>
+                                  <span className="text-xs text-yellow-600">/ 5.0</span>
+                                </div>
+                                {place.user_ratings_total && (
+                                  <p className="text-xs text-yellow-600 mt-1">{place.user_ratings_total} reviews</p>
+                                )}
+                              </div>
+                            )}
+
+                            {place.price_level && (
+                              <div className="p-3 rounded-lg bg-green-50 border border-green-200">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4zM18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" />
+                                  </svg>
+                                  <span className="text-xs font-medium text-green-700 uppercase tracking-wide">Price</span>
+                                </div>
+                                <div className="text-lg font-bold text-green-800">{getPriceDisplay(place.price_level)}</div>
+                                <p className="text-xs text-green-600 mt-1">Price level</p>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Features */}
+                          <div className="space-y-3">
+                            <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Features</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {place.opening_hours?.open_now !== undefined && (
+                                <Badge 
+                                  variant={place.opening_hours.open_now ? "default" : "destructive"}
+                                  className="text-xs"
+                                >
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  {place.opening_hours.open_now ? "Open Now" : "Closed"}
+                                </Badge>
+                              )}
+                              
+                              {place.types.includes('meal_delivery') && (
+                                <Badge variant="outline" className="text-xs">
+                                  <svg className="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                                    <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1V8a1 1 0 00-1-1h-3z" />
+                                  </svg>
+                                  Delivery
+                                </Badge>
+                              )}
+
+                              {place.types.includes('meal_takeaway') && (
+                                <Badge variant="outline" className="text-xs">
+                                  <svg className="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                                  </svg>
+                                  Takeaway
+                                </Badge>
+                              )}
+
+                              {place.types.includes('wheelchair_accessible_entrance') && (
+                                <Badge variant="outline" className="text-xs">
+                                  <svg className="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
+                                  </svg>
+                                  Accessible
+                                </Badge>
+                              )}
+
+                              {place.types.includes('outdoor_seating') && (
+                                <Badge variant="outline" className="text-xs">
+                                  <svg className="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                                  </svg>
+                                  Outdoor Seating
+                                </Badge>
+                              )}
+
+                              {place.yelpData?.transactions.includes('reservation') && (
+                                <Badge variant="outline" className="text-xs">
+                                  <svg className="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                                  </svg>
+                                  Reservations
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Distance & Directions */}
+                          <div className="pt-3 border-t">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Navigation className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm text-muted-foreground">Get directions</span>
+                              </div>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={handleGetDirections}
+                                className="h-8 px-3 text-xs"
+                              >
+                                <Navigation className="h-3 w-3 mr-1" />
+                                Navigate
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Additional Information Grid */}
+                  {(place.yelpData || aiCuisine || place.types.length > 3) && (
+                    <Card className="border-0 shadow-md">
+                      <CardHeader className="pb-4">
+                        <CardTitle className="flex items-center gap-2 text-base">
+                          <svg className="h-5 w-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                          </svg>
+                          Additional Information
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {aiCuisine && (
+                            <div className="p-4 rounded-lg border bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+                              <h4 className="font-medium text-blue-900 mb-2 flex items-center gap-2">
+                                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+                                </svg>
+                                Cuisine Type
+                              </h4>
+                              <p className="text-sm text-blue-700 font-medium">{aiCuisine}</p>
+                              <p className="text-xs text-blue-600 mt-1">AI-identified cuisine</p>
+                            </div>
+                          )}
+
+                          {place.yelpData && (
+                            <div className="p-4 rounded-lg border bg-gradient-to-br from-red-50 to-pink-50 border-red-200">
+                              <h4 className="font-medium text-red-900 mb-2 flex items-center gap-2">
+                                <Star className="h-4 w-4" />
+                                Yelp Data
+                              </h4>
+                              <div className="space-y-1">
+                                {place.yelpData.price && (
+                                  <p className="text-sm text-red-700">Price: <span className="font-medium">{place.yelpData.price}</span></p>
+                                )}
+                                <p className="text-sm text-red-700">
+                                  Categories: <span className="font-medium">{place.yelpData.categories.slice(0, 2).join(', ')}</span>
+                                </p>
+                              </div>
+                              <p className="text-xs text-red-600 mt-2">Verified on Yelp</p>
+                            </div>
+                          )}
+
+                          <div className="p-4 rounded-lg border bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+                            <h4 className="font-medium text-green-900 mb-2 flex items-center gap-2">
+                              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                              Establishment Type
+                            </h4>
+                            <div className="flex flex-wrap gap-1">
+                              {place.types.slice(0, 3).map(type => (
+                                <Badge key={type} variant="outline" className="text-xs bg-white/50">
+                                  {type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                </Badge>
+                              ))}
+                            </div>
+                            <p className="text-xs text-green-600 mt-2">Google Places categories</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
 
                 {/* Opening Hours */}
                 {place.opening_hours?.weekday_text && (
