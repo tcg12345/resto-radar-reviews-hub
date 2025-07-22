@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus } from 'lucide-react';
+import { ArrowLeft, Plus, Users, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -8,6 +8,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { ChatWindow } from '@/components/ChatWindow';
@@ -15,8 +17,10 @@ import { toast } from 'sonner';
 
 interface ChatRoom {
   id: string;
+  name?: string; // For group chats
   last_message_at: string;
   updated_at: string;
+  is_group: boolean;
   participants: {
     user_id: string;
     profile: {
@@ -48,6 +52,8 @@ export function ChatListPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isNewChatOpen, setIsNewChatOpen] = useState(false);
+  const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
+  const [groupChatName, setGroupChatName] = useState('');
 
   useEffect(() => {
     if (!user) return;
@@ -197,6 +203,67 @@ export function ChatListPage() {
     }
   };
 
+  const createGroupChat = async () => {
+    if (!user || selectedFriends.length === 0) {
+      toast('Please select at least one friend');
+      return;
+    }
+
+    try {
+      // Create a new group chat room
+      const { data: room, error: roomError } = await supabase
+        .from('chat_rooms')
+        .insert({
+          name: groupChatName.trim() || `Group with ${selectedFriends.length} friends`,
+          is_group: true
+        })
+        .select()
+        .single();
+
+      if (roomError) {
+        console.error('Error creating group chat room:', roomError);
+        toast('Failed to create group chat');
+        return;
+      }
+
+      // Add all participants (current user + selected friends)
+      const participantsToAdd = [user.id, ...selectedFriends];
+      const { error: participantsError } = await supabase
+        .from('chat_room_participants')
+        .insert(
+          participantsToAdd.map(userId => ({
+            room_id: room.id,
+            user_id: userId
+          }))
+        );
+
+      if (participantsError) {
+        console.error('Error adding participants:', participantsError);
+        toast('Failed to add participants to group chat');
+        return;
+      }
+
+      // Reset form and close dialog
+      setSelectedFriends([]);
+      setGroupChatName('');
+      setIsNewChatOpen(false);
+      setSelectedRoomId(room.id);
+      fetchChatRooms(); // Refresh to show new room
+      toast('Group chat created successfully!');
+    } catch (error) {
+      console.error('Error creating group chat:', error);
+      toast('Failed to create group chat');
+    }
+  };
+
+  const toggleFriendSelection = (friendId: string) => {
+    setSelectedFriends(prev => 
+      prev.includes(friendId)
+        ? prev.filter(id => id !== friendId)
+        : [...prev, friendId]
+    );
+  };
+
   const setupRealtimeSubscription = () => {
     if (!user) return;
 
@@ -246,7 +313,28 @@ export function ChatListPage() {
   };
 
   const getOtherParticipant = (room: ChatRoom) => {
-    return room.participants[0]; // Should be the other user (not current user)
+    return room.participants.find(p => p.user_id !== user?.id);
+  };
+
+  const getChatDisplayName = (room: ChatRoom) => {
+    if (room.is_group && room.name) {
+      return room.name;
+    } else if (room.is_group) {
+      const otherParticipants = room.participants.filter(p => p.user_id !== user?.id);
+      return otherParticipants.map(p => p.profile.name).join(', ');
+    } else {
+      const otherParticipant = getOtherParticipant(room);
+      return otherParticipant?.profile.name || 'Unknown User';
+    }
+  };
+
+  const getChatAvatar = (room: ChatRoom) => {
+    if (room.is_group) {
+      return null; // Will show group icon
+    } else {
+      const otherParticipant = getOtherParticipant(room);
+      return otherParticipant?.profile.avatar_url;
+    }
   };
 
   const filteredFriends = friends.filter(friend =>
@@ -286,49 +374,116 @@ export function ChatListPage() {
                 New Chat
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>Start New Chat</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
-                <Input
-                  placeholder="Search friends..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full"
-                />
-                <div className="max-h-60 overflow-y-auto space-y-2">
-                  {filteredFriends.map((friend) => (
-                    <Card
-                      key={friend.friend_id}
-                      className="cursor-pointer hover:bg-muted/50 transition-colors"
-                      onClick={() => startChat(friend.friend_id)}
-                    >
-                      <CardContent className="p-3">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={friend.avatar_url} />
-                            <AvatarFallback>
-                              {(friend.name || friend.username || 'U').charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <p className="font-medium">{friend.name || friend.username}</p>
-                            {friend.username && friend.name && (
-                              <p className="text-sm text-muted-foreground">@{friend.username}</p>
-                            )}
+              
+              <Tabs defaultValue="dm" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="dm">Direct Message</TabsTrigger>
+                  <TabsTrigger value="group">Group Chat</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="dm" className="space-y-4">
+                  <Input
+                    placeholder="Search friends..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full"
+                  />
+                  <div className="max-h-60 overflow-y-auto space-y-2">
+                    {filteredFriends.map((friend) => (
+                      <Card
+                        key={friend.friend_id}
+                        className="cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => startChat(friend.friend_id)}
+                      >
+                        <CardContent className="p-3">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={friend.avatar_url} />
+                              <AvatarFallback>
+                                {(friend.name || friend.username || 'U').charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <p className="font-medium">{friend.name || friend.username}</p>
+                              {friend.username && friend.name && (
+                                <p className="text-sm text-muted-foreground">@{friend.username}</p>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                  {filteredFriends.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      {searchQuery ? 'No friends found' : 'No friends to chat with'}
+                        </CardContent>
+                      </Card>
+                    ))}
+                    {filteredFriends.length === 0 && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        {searchQuery ? 'No friends found' : 'No friends to chat with'}
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="group" className="space-y-4">
+                  <Input
+                    placeholder="Group chat name (optional)"
+                    value={groupChatName}
+                    onChange={(e) => setGroupChatName(e.target.value)}
+                    className="w-full"
+                  />
+                  <Input
+                    placeholder="Search friends..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full"
+                  />
+                  <div className="max-h-48 overflow-y-auto space-y-2">
+                    {filteredFriends.map((friend) => (
+                      <Card
+                        key={friend.friend_id}
+                        className={`cursor-pointer transition-colors ${
+                          selectedFriends.includes(friend.friend_id)
+                            ? 'bg-accent border-primary'
+                            : 'hover:bg-muted/50'
+                        }`}
+                        onClick={() => toggleFriendSelection(friend.friend_id)}
+                      >
+                        <CardContent className="p-3">
+                          <div className="flex items-center gap-3">
+                            <Checkbox
+                              checked={selectedFriends.includes(friend.friend_id)}
+                              onChange={() => toggleFriendSelection(friend.friend_id)}
+                            />
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={friend.avatar_url} />
+                              <AvatarFallback>
+                                {(friend.name || friend.username || 'U').charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <p className="font-medium text-sm">{friend.name || friend.username}</p>
+                              {friend.username && friend.name && (
+                                <p className="text-xs text-muted-foreground">@{friend.username}</p>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                  {selectedFriends.length > 0 && (
+                    <div className="flex items-center justify-between pt-2 border-t">
+                      <span className="text-sm text-muted-foreground">
+                        {selectedFriends.length} friend{selectedFriends.length > 1 ? 's' : ''} selected
+                      </span>
+                      <Button onClick={createGroupChat} size="sm">
+                        Create Group
+                      </Button>
                     </div>
                   )}
-                </div>
-              </div>
+                </TabsContent>
+              </Tabs>
             </DialogContent>
           </Dialog>
         </div>
@@ -342,7 +497,6 @@ export function ChatListPage() {
           ) : (
             <div className="p-2">
               {chatRooms.map((room) => {
-                const otherParticipant = getOtherParticipant(room);
                 const isSelected = selectedRoomId === room.id;
                 
                 return (
@@ -355,20 +509,26 @@ export function ChatListPage() {
                   >
                     <CardContent className="p-3">
                       <div className="flex items-center space-x-3">
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage 
-                            src={otherParticipant?.profile.avatar_url} 
-                            alt={otherParticipant?.profile.name}
-                          />
-                          <AvatarFallback>
-                            {otherParticipant?.profile.name?.charAt(0) || '?'}
-                          </AvatarFallback>
-                        </Avatar>
+                        {room.is_group ? (
+                          <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                            <Users className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                        ) : (
+                          <Avatar className="h-12 w-12">
+                            <AvatarImage 
+                              src={getChatAvatar(room)} 
+                              alt={getChatDisplayName(room)}
+                            />
+                            <AvatarFallback>
+                              {getChatDisplayName(room).charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
                         
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
                             <h3 className="font-medium text-sm truncate">
-                              {otherParticipant?.profile.name || 'Unknown User'}
+                              {getChatDisplayName(room)}
                             </h3>
                             <span className="text-xs text-muted-foreground">
                               {formatLastMessageTime(room.last_message_at || room.updated_at)}
@@ -383,6 +543,11 @@ export function ChatListPage() {
                                 'No messages yet'
                               )}
                             </p>
+                            {room.is_group && (
+                              <Badge variant="secondary" className="text-xs">
+                                {room.participants.length}
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       </div>
