@@ -17,7 +17,6 @@ import { useRestaurants } from "@/contexts/RestaurantContext";
 import { RestaurantDialog } from "./Dialog/RestaurantDialog";
 import { RestaurantFormData } from "@/types/restaurant";
 import { GlobalSearchMap } from "@/components/GlobalSearchMap";
-
 interface PlaceDetails {
   place_id: string;
   name: string;
@@ -59,16 +58,20 @@ interface PlaceDetails {
     menu_url?: string;
   };
 }
-
 interface RestaurantProfileModalProps {
   place: PlaceDetails;
   onClose: () => void;
 }
-
-export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModalProps) {
-  const { user } = useAuth();
-  const { addRestaurant } = useRestaurants();
-  
+export function RestaurantProfileModal({
+  place,
+  onClose
+}: RestaurantProfileModalProps) {
+  const {
+    user
+  } = useAuth();
+  const {
+    addRestaurant
+  } = useRestaurants();
   const [userRating, setUserRating] = useState(0);
   const [userReview, setUserReview] = useState('');
   const [reviewPhotos, setReviewPhotos] = useState<File[]>([]);
@@ -90,7 +93,10 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
     const analyzeRestaurant = async () => {
       setIsLoadingAiAnalysis(true);
       try {
-        const { data, error } = await supabase.functions.invoke('ai-restaurant-analysis', {
+        const {
+          data,
+          error
+        } = await supabase.functions.invoke('ai-restaurant-analysis', {
           body: {
             name: place.name,
             types: place.types,
@@ -110,22 +116,18 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
     };
     analyzeRestaurant();
   });
-
   const getPriceDisplay = (priceLevel?: number) => {
     if (!priceLevel) return 'Price not available';
     return '$'.repeat(priceLevel);
   };
-
   const handleRatingClick = () => {
     const searchQuery = `${place.name} ${place.formatted_address} reviews`;
     window.open(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, '_blank');
   };
-
   const handleViewMoreReviews = () => {
     const searchQuery = `${place.name} reviews`;
     window.open(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, '_blank');
   };
-
   const getSortedReviews = () => {
     if (!place.reviews) return [];
     const reviews = [...place.reviews];
@@ -140,7 +142,6 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
         return reviews;
     }
   };
-
   const handlePhotoUpload = async (files: FileList) => {
     setUploadingPhotos(true);
     const uploadedUrls: string[] = [];
@@ -160,12 +161,10 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
       setUploadingPhotos(false);
     }
   };
-
   const removePhoto = (index: number) => {
     setReviewPhotoUrls(prev => prev.filter((_, i) => i !== index));
     setReviewPhotos(prev => prev.filter((_, i) => i !== index));
   };
-
   const handleAddToWishlist = async () => {
     if (!user) {
       toast.error('Please sign in to add to wishlist');
@@ -176,7 +175,9 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
       // Get Michelin stars using AI
       let michelinStars = null;
       try {
-        const { data: aiData } = await supabase.functions.invoke('ai-michelin-detector', {
+        const {
+          data: aiData
+        } = await supabase.functions.invoke('ai-michelin-detector', {
           body: {
             name: place.name,
             address: place.formatted_address,
@@ -197,11 +198,9 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
       const addressParts = place.formatted_address.split(',').map(part => part.trim());
       let city = '';
       let country = '';
-      
       if (addressParts.length >= 2) {
         const lastPart = addressParts[addressParts.length - 1];
         const secondLastPart = addressParts[addressParts.length - 2];
-        
         if (lastPart.match(/^(USA|United States|US)$/i)) {
           country = 'United States';
           city = addressParts[1] || '';
@@ -213,7 +212,6 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
           city = secondLastPart || '';
         }
       }
-
       const restaurantFormData = {
         name: place.name,
         address: place.formatted_address.split(',')[0]?.trim() || place.formatted_address,
@@ -228,9 +226,8 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
         notes: `Added from Global Search`,
         dateVisited: '',
         photos: [],
-        isWishlist: true,
+        isWishlist: true
       };
-      
       await addRestaurant(restaurantFormData);
       toast.success('Added to wishlist!');
     } catch (error: any) {
@@ -240,13 +237,12 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
       setIsAddingToWishlist(false);
     }
   };
-
   const handleAddToRatings = async () => {
     if (!user) {
       toast.error('Please sign in to add ratings');
       return;
     }
-    
+
     // Show loading and enhance data with AI
     toast.info('Analyzing restaurant with AI...');
     try {
@@ -259,7 +255,6 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
       setIsRestaurantDialogOpen(true);
     }
   };
-
   const handleRestaurantFormSubmit = async (data: RestaurantFormData) => {
     try {
       await addRestaurant(data);
@@ -274,16 +269,14 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
   // Create AI-enhanced restaurant data for the form
   const getAIEnhancedRestaurantData = async () => {
     console.log('Enhancing restaurant data with AI...');
-    
+
     // Parse address components
     const addressParts = place.formatted_address.split(',').map(part => part.trim());
     let city = '';
     let country = '';
-    
     if (addressParts.length >= 2) {
       const lastPart = addressParts[addressParts.length - 1];
       const secondLastPart = addressParts[addressParts.length - 2];
-      
       if (lastPart.match(/^(USA|United States|US)$/i)) {
         country = 'United States';
         city = addressParts[1] || '';
@@ -300,10 +293,11 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
     let michelinStars = undefined; // Start with undefined, not 0
     let enhancedCuisine = aiCuisine;
     let enhancedPriceRange = place.price_level;
-
     try {
       // Get Michelin stars using AI
-      const { data: michelinData } = await supabase.functions.invoke('ai-michelin-detector', {
+      const {
+        data: michelinData
+      } = await supabase.functions.invoke('ai-michelin-detector', {
         body: {
           name: place.name,
           address: place.formatted_address,
@@ -313,7 +307,6 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
           notes: `${place.name} - Google rating: ${place.rating || 'N/A'}`
         }
       });
-      
       if (michelinData && michelinData.michelinStars !== null && michelinData.michelinStars !== undefined) {
         // Only set if AI actually detected Michelin stars (not 0)
         michelinStars = michelinData.michelinStars > 0 ? michelinData.michelinStars : undefined;
@@ -322,7 +315,6 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
     } catch (error) {
       console.log('Could not determine Michelin stars with AI:', error);
     }
-
     return {
       name: place.name,
       address: place.formatted_address.split(',')[0]?.trim() || place.formatted_address,
@@ -330,7 +322,8 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
       country: country,
       cuisine: enhancedCuisine || place.types.filter(type => !['establishment', 'point_of_interest', 'food'].includes(type))[0] || 'restaurant',
       priceRange: enhancedPriceRange || undefined,
-      michelinStars: michelinStars, // This will be undefined if no Michelin stars
+      michelinStars: michelinStars,
+      // This will be undefined if no Michelin stars
       notes: '',
       latitude: place.geometry?.location?.lat || undefined,
       longitude: place.geometry?.location?.lng || undefined,
@@ -338,7 +331,7 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
       phone_number: place.formatted_phone_number || undefined,
       openingHours: place.opening_hours?.weekday_text?.join('\n') || undefined,
       photos: [],
-      isWishlist: false,
+      isWishlist: false
     };
   };
 
@@ -346,7 +339,6 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
   const getPrefilledRestaurantData = async () => {
     return await getAIEnhancedRestaurantData();
   };
-
   const handleCallRestaurant = () => {
     if (place.formatted_phone_number) {
       window.open(`tel:${place.formatted_phone_number}`);
@@ -354,7 +346,6 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
       toast.error('Phone number not available');
     }
   };
-
   const handleVisitWebsite = () => {
     if (place.website) {
       window.open(place.website, '_blank');
@@ -362,26 +353,21 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
       toast.error('Website not available');
     }
   };
-
   const handleGetDirections = () => {
     const url = `https://www.google.com/maps/dir/?api=1&destination=${place.geometry.location.lat},${place.geometry.location.lng}`;
     window.open(url, '_blank');
   };
-
-  return (
-    <>
+  return <>
       <Dialog open={true} onOpenChange={onClose}>
         <DialogContent className="max-w-7xl max-h-[95vh] flex flex-col p-0">
           <DialogHeader className="sticky top-0 bg-background z-50 border-b px-6 py-4 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <DialogTitle className="text-2xl font-bold">{place.name}</DialogTitle>
-                {place.opening_hours?.open_now !== undefined && (
-                  <Badge variant={place.opening_hours.open_now ? "default" : "destructive"} className="text-sm">
+                {place.opening_hours?.open_now !== undefined && <Badge variant={place.opening_hours.open_now ? "default" : "destructive"} className="text-sm">
                     <Clock className="h-3 w-3 mr-1" />
                     {place.opening_hours.open_now ? "Open Now" : "Closed"}
-                  </Badge>
-                )}
+                  </Badge>}
               </div>
               <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 shrink-0">
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -397,41 +383,33 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-center">
                 {/* Quick Stats */}
                 <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {place.rating && (
-                    <div className="text-center">
+                  {place.rating && <div className="text-center">
                       <div className="text-2xl font-bold text-primary">{place.rating}</div>
                       <div className="flex justify-center mb-1">
-                        {[1, 2, 3, 4, 5].map(star => 
-                          <Star key={star} className={`h-4 w-4 ${star <= Math.round(place.rating!) ? 'text-yellow-500 fill-current' : 'text-gray-300'}`} />
-                        )}
+                        {[1, 2, 3, 4, 5].map(star => <Star key={star} className={`h-4 w-4 ${star <= Math.round(place.rating!) ? 'text-yellow-500 fill-current' : 'text-gray-300'}`} />)}
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {place.user_ratings_total} reviews
                       </div>
-                    </div>
-                  )}
+                    </div>}
                   
                   <div className="text-center">
                     <div className="text-2xl font-bold text-primary">{getPriceDisplay(place.price_level)}</div>
                     <div className="text-xs text-muted-foreground">Price Level</div>
                   </div>
                   
-                  {aiCuisine && (
-                    <div className="text-center">
+                  {aiCuisine && <div className="text-center">
                       <Badge variant="secondary" className="text-sm font-medium">{aiCuisine}</Badge>
                       <div className="text-xs text-muted-foreground mt-1">Cuisine</div>
-                    </div>
-                  )}
+                    </div>}
                   
-                  {place.yelpData && (
-                    <div className="text-center">
+                  {place.yelpData && <div className="text-center">
                       <Badge variant="outline" className="text-sm">
                         <Star className="h-3 w-3 mr-1" />
                         Yelp
                       </Badge>
                       <div className="text-xs text-muted-foreground mt-1">Available</div>
-                    </div>
-                  )}
+                    </div>}
                 </div>
                 
                 {/* Action Buttons */}
@@ -455,12 +433,10 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                     </Button>
                   </div>
                   
-                  {place.yelpData && (
-                    <Button variant="secondary" onClick={() => window.open(place.yelpData!.url, '_blank')} className="w-full mt-3">
+                  {place.yelpData && <Button variant="secondary" onClick={() => window.open(place.yelpData!.url, '_blank')} className="w-full mt-3">
                       <Star className="h-4 w-4 mr-2" />
                       View on Yelp
-                    </Button>
-                  )}
+                    </Button>}
                 </div>
               </div>
             </div>
@@ -519,11 +495,7 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
 
                                 {/* Contact Details Grid */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  {place.formatted_phone_number && (
-                                    <div 
-                                      className="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-card to-card/95 p-5 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
-                                      onClick={() => window.open(`tel:${place.formatted_phone_number}`)}
-                                    >
+                                  {place.formatted_phone_number && <div className="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-card to-card/95 p-5 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer" onClick={() => window.open(`tel:${place.formatted_phone_number}`)}>
                                       <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                                       <div className="relative flex items-center gap-3">
                                         <div className="p-2.5 rounded-lg bg-blue-100 group-hover:bg-blue-200 transition-colors duration-300">
@@ -534,14 +506,9 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                                           <p className="text-sm font-semibold text-foreground">{place.formatted_phone_number}</p>
                                         </div>
                                       </div>
-                                    </div>
-                                  )}
+                                    </div>}
 
-                                  {place.website && (
-                                    <div 
-                                      className="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-card to-card/95 p-5 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
-                                      onClick={() => window.open(place.website, '_blank', 'noopener noreferrer')}
-                                    >
+                                  {place.website && <div className="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-card to-card/95 p-5 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer" onClick={() => window.open(place.website, '_blank', 'noopener noreferrer')}>
                                       <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                                       <div className="relative flex items-center gap-3">
                                         <div className="p-2.5 rounded-lg bg-purple-100 group-hover:bg-purple-200 transition-colors duration-300">
@@ -554,8 +521,7 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                                           </p>
                                         </div>
                                       </div>
-                                    </div>
-                                  )}
+                                    </div>}
                                 </div>
                               </div>
                             </div>
@@ -571,8 +537,7 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
 
                               {/* Stats Cards */}
                               <div className="flex gap-3">
-                                {place.rating && (
-                                  <div className="flex-1 relative overflow-hidden rounded-xl bg-gradient-to-br from-yellow-100 via-yellow-50 to-orange-100 p-4 shadow-md border border-yellow-200/60">
+                                {place.rating && <div className="flex-1 relative overflow-hidden rounded-xl bg-gradient-to-br from-yellow-100 via-yellow-50 to-orange-100 p-4 shadow-md border border-yellow-200/60">
                                     <div className="absolute top-0 right-0 w-12 h-12 bg-yellow-300/20 rounded-full -mr-6 -mt-6"></div>
                                     <div className="relative">
                                       <div className="flex items-center gap-2 mb-2">
@@ -585,15 +550,11 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                                         <span className="text-2xl font-black text-yellow-900">{place.rating}</span>
                                         <span className="text-sm font-medium text-yellow-700">/ 5.0</span>
                                       </div>
-                                      {place.user_ratings_total && (
-                                        <p className="text-xs font-medium text-yellow-700">{place.user_ratings_total.toLocaleString()} reviews</p>
-                                      )}
+                                      {place.user_ratings_total && <p className="text-xs font-medium text-yellow-700">{place.user_ratings_total.toLocaleString()} reviews</p>}
                                     </div>
-                                  </div>
-                                )}
+                                  </div>}
 
-                                {place.price_level && (
-                                  <div className="flex-1 relative overflow-hidden rounded-xl bg-gradient-to-br from-green-100 via-green-50 to-emerald-100 p-4 shadow-md border border-green-200/60">
+                                {place.price_level && <div className="flex-1 relative overflow-hidden rounded-xl bg-gradient-to-br from-green-100 via-green-50 to-emerald-100 p-4 shadow-md border border-green-200/60">
                                     <div className="absolute bottom-0 left-0 w-10 h-10 bg-green-300/20 rounded-full -ml-5 -mb-5"></div>
                                     <div className="relative">
                                       <div className="flex items-center gap-2 mb-2">
@@ -607,8 +568,7 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                                       <div className="text-2xl font-black text-green-900 mb-1">{getPriceDisplay(place.price_level)}</div>
                                       <p className="text-xs font-medium text-green-700">Price level</p>
                                     </div>
-                                  </div>
-                                )}
+                                  </div>}
                               </div>
 
                               {/* Features Section */}
@@ -619,36 +579,26 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                                     <div className="p-1.5 rounded-md bg-slate-200/80">
                                       <Clock className="h-3.5 w-3.5 text-slate-700" />
                                     </div>
-                                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Features</span>
+                                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">HOURS
+                                  </span>
                                   </div>
                                   <div className="flex flex-wrap gap-2">
-                                    {place.opening_hours?.open_now !== undefined && (
-                                      <Badge 
-                                        variant={place.opening_hours.open_now ? "default" : "destructive"}
-                                        className="text-xs font-medium px-2 py-1 rounded-full"
-                                      >
+                                    {place.opening_hours?.open_now !== undefined && <Badge variant={place.opening_hours.open_now ? "default" : "destructive"} className="text-xs font-medium px-2 py-1 rounded-full">
                                         <Clock className="h-3 w-3 mr-1" />
                                         {place.opening_hours.open_now ? "Open Now" : "Closed"}
-                                      </Badge>
-                                    )}
+                                      </Badge>}
                                     
-                                    {place.types.includes('meal_delivery') && (
-                                      <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-blue-50 text-blue-700 border-blue-200">
+                                    {place.types.includes('meal_delivery') && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-blue-50 text-blue-700 border-blue-200">
                                         🚚 Delivery
-                                      </Badge>
-                                    )}
+                                      </Badge>}
 
-                                    {place.types.includes('meal_takeaway') && (
-                                      <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-orange-50 text-orange-700 border-orange-200">
+                                    {place.types.includes('meal_takeaway') && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-orange-50 text-orange-700 border-orange-200">
                                         🥡 Takeaway
-                                      </Badge>
-                                    )}
+                                      </Badge>}
 
-                                    {place.types.includes('dine_in') && (
-                                      <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-purple-50 text-purple-700 border-purple-200">
+                                    {place.types.includes('dine_in') && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-purple-50 text-purple-700 border-purple-200">
                                         🍽️ Dine-in
-                                      </Badge>
-                                    )}
+                                      </Badge>}
                                   </div>
                                 </div>
                               </div>
@@ -660,8 +610,7 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                   </Card>
 
                   {/* Opening Hours */}
-                  {place.opening_hours?.weekday_text && (
-                    <Card>
+                  {place.opening_hours?.weekday_text && <Card>
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                           <Clock className="h-5 w-5" />
@@ -670,8 +619,7 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-3">
-                          {place.opening_hours.weekday_text.map((hours, index) => (
-                            <div key={index} className="bg-muted/30 hover:bg-muted/50 rounded-lg p-4 border transition-colors duration-200 w-full">
+                          {place.opening_hours.weekday_text.map((hours, index) => <div key={index} className="bg-muted/30 hover:bg-muted/50 rounded-lg p-4 border transition-colors duration-200 w-full">
                               <div className="flex justify-between items-center">
                                 <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                                   {hours.split(': ')[0]}
@@ -680,16 +628,13 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                                   {hours.split(': ')[1] || 'Closed'}
                                 </div>
                               </div>
-                            </div>
-                          ))}
+                            </div>)}
                         </div>
                       </CardContent>
-                    </Card>
-                  )}
+                    </Card>}
 
                   {/* User Rating Section */}
-                  {user && (
-                    <Card>
+                  {user && <Card>
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                           <Star className="h-5 w-5" />
@@ -697,16 +642,12 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <Button 
-                          onClick={handleAddToRatings} 
-                          className="w-full"
-                        >
+                        <Button onClick={handleAddToRatings} className="w-full">
                           <MessageSquare className="h-4 w-4 mr-2" />
                           Add to My Ratings
                         </Button>
                       </CardContent>
-                    </Card>
-                  )}
+                    </Card>}
                 </div>
 
                 {/* Sidebar */}
@@ -721,14 +662,10 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                     </CardHeader>
                     <CardContent>
                       <div className="h-64 rounded-lg overflow-hidden">
-                        <GlobalSearchMap 
-                          restaurants={[place]} 
-                          onRestaurantClick={() => {}} 
-                          center={{
-                            lat: place.geometry.location.lat,
-                            lng: place.geometry.location.lng
-                          }} 
-                        />
+                        <GlobalSearchMap restaurants={[place]} onRestaurantClick={() => {}} center={{
+                        lat: place.geometry.location.lat,
+                        lng: place.geometry.location.lng
+                      }} />
                       </div>
                     </CardContent>
                   </Card>
@@ -740,30 +677,24 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
-                        {aiCuisine && (
-                          <div>
+                        {aiCuisine && <div>
                             <p className="text-sm font-medium text-muted-foreground mb-2">Cuisine Type</p>
                             <Badge variant="secondary" className="text-sm font-medium">
                               {aiCuisine}
                             </Badge>
-                          </div>
-                        )}
+                          </div>}
                         
                         <div>
                           <p className="text-sm font-medium text-muted-foreground mb-2">
                             {aiCategories.length > 0 ? 'AI Categories' : 'Google Categories'}
                           </p>
                           <div className="flex flex-wrap gap-2">
-                            {(aiCategories.length > 0 ? aiCategories : place.types.slice(0, 8)).map(type => (
-                              <Badge key={type} variant="outline" className="text-xs">
+                            {(aiCategories.length > 0 ? aiCategories : place.types.slice(0, 8)).map(type => <Badge key={type} variant="outline" className="text-xs">
                                 {type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                              </Badge>
-                            ))}
-                            {isLoadingAiAnalysis && (
-                              <Badge variant="outline" className="animate-pulse text-xs">
+                              </Badge>)}
+                            {isLoadingAiAnalysis && <Badge variant="outline" className="animate-pulse text-xs">
                                 Analyzing...
-                              </Badge>
-                            )}
+                              </Badge>}
                           </div>
                         </div>
                       </div>
@@ -771,8 +702,7 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                   </Card>
 
                   {/* Google Reviews */}
-                  {place.reviews && place.reviews.length > 0 && (
-                    <Card>
+                  {place.reviews && place.reviews.length > 0 && <Card>
                       <CardHeader>
                         <CardTitle className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
@@ -780,18 +710,10 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                             Reviews
                           </div>
                           <div className="flex items-center gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={handleViewMoreReviews} 
-                              className="flex items-center gap-1"
-                            >
+                            <Button variant="outline" size="sm" onClick={handleViewMoreReviews} className="flex items-center gap-1">
                               <ExternalLink className="h-3 w-3" />
                             </Button>
-                            <Select 
-                              value={reviewSortBy} 
-                              onValueChange={(value: 'recent' | 'helpful' | 'rating') => setReviewSortBy(value)}
-                            >
+                            <Select value={reviewSortBy} onValueChange={(value: 'recent' | 'helpful' | 'rating') => setReviewSortBy(value)}>
                               <SelectTrigger className="w-24">
                                 <Filter className="h-3 w-3" />
                               </SelectTrigger>
@@ -805,15 +727,12 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-3">
-                        {getSortedReviews().slice(0, showAllReviews ? getSortedReviews().length : 2).map((review, index) => (
-                          <div key={index} className="border-b last:border-b-0 pb-3 last:pb-0">
+                        {getSortedReviews().slice(0, showAllReviews ? getSortedReviews().length : 2).map((review, index) => <div key={index} className="border-b last:border-b-0 pb-3 last:pb-0">
                             <div className="flex items-start justify-between mb-2">
                               <div className="flex-1 min-w-0">
                                 <span className="font-medium text-sm truncate block">{review.author_name}</span>
                                 <div className="flex items-center gap-1 mt-1">
-                                  {[1, 2, 3, 4, 5].map(star => 
-                                    <Star key={star} className={`h-3 w-3 ${star <= review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'}`} />
-                                  )}
+                                  {[1, 2, 3, 4, 5].map(star => <Star key={star} className={`h-3 w-3 ${star <= review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'}`} />)}
                                   <span className="text-xs text-muted-foreground ml-1">
                                     {new Date(review.time * 1000).toLocaleDateString()}
                                   </span>
@@ -821,25 +740,16 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                               </div>
                             </div>
                             <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">{review.text}</p>
-                          </div>
-                        ))}
+                          </div>)}
                         
                         {/* Show More/Less Reviews Button */}
-                        {getSortedReviews().length > 2 && (
-                          <div className="pt-3 border-t">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => setShowAllReviews(!showAllReviews)} 
-                              className="w-full text-xs"
-                            >
+                        {getSortedReviews().length > 2 && <div className="pt-3 border-t">
+                            <Button variant="outline" size="sm" onClick={() => setShowAllReviews(!showAllReviews)} className="w-full text-xs">
                               {showAllReviews ? 'Show Less' : `Show All ${getSortedReviews().length}`}
                             </Button>
-                          </div>
-                        )}
+                          </div>}
                       </CardContent>
-                    </Card>
-                  )}
+                    </Card>}
                 </div>
               </div>
             </div>
@@ -848,15 +758,6 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
       </Dialog>
 
       {/* Restaurant Form Dialog */}
-      <RestaurantDialog
-        isOpen={isRestaurantDialogOpen}
-        onOpenChange={setIsRestaurantDialogOpen}
-        restaurant={(enhancedRestaurantData || getPrefilledRestaurantData()) as any}
-        onSave={handleRestaurantFormSubmit}
-        dialogType="add"
-        defaultWishlist={false}
-        hideSearch={true}
-      />
-    </>
-  );
+      <RestaurantDialog isOpen={isRestaurantDialogOpen} onOpenChange={setIsRestaurantDialogOpen} restaurant={(enhancedRestaurantData || getPrefilledRestaurantData()) as any} onSave={handleRestaurantFormSubmit} dialogType="add" defaultWishlist={false} hideSearch={true} />
+    </>;
 }
