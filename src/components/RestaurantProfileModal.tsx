@@ -377,11 +377,9 @@ export function RestaurantProfileModal({
                 </Button>
               </div>
             </DialogHeader>
-            <div className="border-t border-border w-full"></div>
           </div>
-          
+          <div className="border-t border-border w-full"></div>
           <div className="flex-1 overflow-y-auto">
-            {/* Hero Section with Key Info */}
             <div className="bg-gradient-to-r from-primary/5 to-primary/10 px-6 py-6">
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-center">
                 {/* Quick Stats */}
