@@ -98,9 +98,9 @@ All colors MUST be HSL.
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Premium borders and inputs - Very high visibility */
-    --border: 220 13% 50%;
-    --input: 220 13% 60%;
+    /* Premium borders and inputs - Balanced visibility */
+    --border: 220 13% 60%;
+    --input: 220 13% 65%;
     --ring: 221 83% 53%;
 
     --radius: 0.75rem;
@@ -188,9 +188,9 @@ All colors MUST be HSL.
     --destructive: 0 84% 70%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Dark mode borders - Very high visibility */
-    --border: 240 4% 50%;
-    --input: 240 4% 45%;
+    /* Dark mode borders - Balanced visibility */
+    --border: 240 4% 40%;
+    --input: 240 4% 35%;
     --ring: 221 83% 63%;
     
     --sidebar-background: 240 10% 8%;
