@@ -268,6 +268,15 @@ export function NotificationsPanel() {
   const showFullMessage = (message: string) => {
     setSelectedMessage(message);
     setMessageDialogOpen(true);
+    setOpen(false); // Close the notifications panel when opening message dialog
+  };
+
+  const handleMessageDialogClose = (open: boolean) => {
+    setMessageDialogOpen(open);
+    if (!open) {
+      // When message dialog closes, reopen the notifications panel
+      setOpen(true);
+    }
   };
 
   const formatTimeAgo = (date: string) => {
@@ -450,7 +459,7 @@ export function NotificationsPanel() {
       </PopoverContent>
       
       {/* Message Dialog */}
-      <Dialog open={messageDialogOpen} onOpenChange={setMessageDialogOpen}>
+      <Dialog open={messageDialogOpen} onOpenChange={handleMessageDialogClose}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Full Message</DialogTitle>
