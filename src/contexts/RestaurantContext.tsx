@@ -121,8 +121,27 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       loadRestaurants();
     });
     
+    // Set up real-time subscription for restaurant changes
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'restaurants'
+        },
+        (payload) => {
+          console.log('Real-time restaurant change:', payload);
+          // Reload restaurants when changes occur
+          loadRestaurants();
+        }
+      )
+      .subscribe();
+    
     return () => {
       subscription.unsubscribe();
+      supabase.removeChannel(channel);
     };
   }, []);
 

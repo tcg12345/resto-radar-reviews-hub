@@ -804,21 +804,30 @@ export function FriendsPage({
         return;
       }
 
-      // Simple insert with minimal required fields only
-      const minimalData = {
+      // Insert with complete restaurant data including price and stars
+      const restaurantData = {
         user_id: user.id,
         name: restaurant.name.toString(),
         address: (restaurant.address || '').toString(),
         city: (restaurant.city || 'Unknown').toString(),
+        country: restaurant.country || null,
         cuisine: restaurant.cuisine.toString(),
+        price_range: restaurant.price_range || null,
+        michelin_stars: restaurant.michelin_stars || null,
+        notes: restaurant.notes || null,
+        latitude: restaurant.latitude || null,
+        longitude: restaurant.longitude || null,
+        opening_hours: restaurant.opening_hours || null,
+        website: restaurant.website || null,
+        phone_number: restaurant.phone_number || null,
         is_wishlist: true
       };
 
-      console.log('Minimal data to insert:', JSON.stringify(minimalData, null, 2));
+      console.log('Restaurant data to insert:', JSON.stringify(restaurantData, null, 2));
 
       const { data, error } = await supabase
         .from('restaurants')
-        .insert(minimalData)
+        .insert(restaurantData)
         .select();
 
       console.log('Supabase response data:', data);
