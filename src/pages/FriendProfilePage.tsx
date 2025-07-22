@@ -812,7 +812,7 @@ export default function FriendProfilePage() {
             {allWishlist.length > 0 && (
               <Card className="mb-6">
                 <CardContent className="p-6">
-                  <div className="grid gap-4 md:grid-cols-4">
+                  <div className="grid gap-4 md:grid-cols-3">
                     <div>
                       <label className="text-sm font-medium mb-2 block">Search</label>
                       <Input
@@ -838,21 +838,6 @@ export default function FriendProfilePage() {
                     </div>
                     
                     <div>
-                      <label className="text-sm font-medium mb-2 block">City</label>
-                      <Select value={wishlistCityFilter} onValueChange={setWishlistCityFilter}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="All cities" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Cities</SelectItem>
-                          {availableWishlistCities.map(city => (
-                            <SelectItem key={city} value={city}>{city}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
                       <label className="text-sm font-medium mb-2 block">Sort By</label>
                       <Select value={wishlistSortBy} onValueChange={setWishlistSortBy}>
                         <SelectTrigger>
@@ -869,6 +854,20 @@ export default function FriendProfilePage() {
                   </div>
                 </CardContent>
               </Card>
+            )}
+
+            {/* City Filter Tabs */}
+            {availableWishlistCities.length > 0 && (
+              <Tabs defaultValue="all" onValueChange={setWishlistCityFilter} value={wishlistCityFilter} className="mb-6">
+                <TabsList className="mb-4">
+                  <TabsTrigger value="all">All Cities</TabsTrigger>
+                  {availableWishlistCities.map((city) => (
+                    <TabsTrigger key={city} value={city}>
+                      {city}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
             )}
 
             {filteredWishlist.length === 0 ? (
