@@ -301,9 +301,7 @@ export function RestaurantDetailPage() {
                     <Calendar className="h-4 w-4 mr-2" />
                     {new Date(restaurant.date_visited).toLocaleDateString()}
                   </Badge>}
-                {restaurant.reservable && <Badge className="text-sm px-3 py-1 bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
-                    Reservations Available
-                  </Badge>}
+                {restaurant.reservable}
               </div>
 
               {/* Address */}
