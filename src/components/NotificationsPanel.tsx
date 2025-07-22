@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Eye, Heart, Check, X, Clock, Trash2 } from 'lucide-react';
+import { Bell, Eye, Heart, Check, X, Clock, Trash2, MessageSquare } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,6 +29,8 @@ export function NotificationsPanel() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [messageDialogOpen, setMessageDialogOpen] = useState(false);
+  const [selectedMessage, setSelectedMessage] = useState<string>('');
   
   useEffect(() => {
     if (!user) return;
@@ -205,6 +208,11 @@ export function NotificationsPanel() {
 
   const deleteNotification = async (notificationId: string) => {
     try {
+      // First check if the deleted notification was unread
+      const deletedNotification = notifications.find(n => n.id === notificationId);
+      const wasUnread = deletedNotification && !deletedNotification.read_at;
+      
+      // Delete from database - this ensures permanent deletion
       const { error } = await supabase
         .from('notifications')
         .delete()
@@ -212,20 +220,24 @@ export function NotificationsPanel() {
       
       if (error) throw error;
       
-      // Update local state
+      // Update local state immediately
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
       
       // Update unread count if the deleted notification was unread
-      const deletedNotification = notifications.find(n => n.id === notificationId);
-      if (deletedNotification && !deletedNotification.read_at) {
+      if (wasUnread) {
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
       
-      toast('Notification deleted');
+      toast('Notification deleted permanently');
     } catch (error) {
       console.error('Error deleting notification:', error);
       toast.error('Failed to delete notification');
     }
+  };
+
+  const showFullMessage = (message: string) => {
+    setSelectedMessage(message);
+    setMessageDialogOpen(true);
   };
 
   const formatTimeAgo = (date: string) => {
@@ -353,6 +365,22 @@ export function NotificationsPanel() {
                         </span>
                         
                         <div className="flex items-center gap-1">
+                          {/* Show message button if there's a message */}
+                          {notification.data?.share_message && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="h-7 w-7 p-0 text-muted-foreground hover:text-primary transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                showFullMessage(notification.data.share_message);
+                              }}
+                            >
+                              <MessageSquare className="h-3 w-3" />
+                              <span className="sr-only">Read full message</span>
+                            </Button>
+                          )}
+                          
                           <Button 
                             variant="ghost" 
                             size="sm"
@@ -390,6 +418,20 @@ export function NotificationsPanel() {
           )}
         </div>
       </PopoverContent>
+      
+      {/* Message Dialog */}
+      <Dialog open={messageDialogOpen} onOpenChange={setMessageDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Full Message</DialogTitle>
+          </DialogHeader>
+          <div className="p-4 bg-muted/30 rounded-lg">
+            <p className="text-sm whitespace-pre-wrap break-words">
+              "{selectedMessage}"
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Popover>
   );
 }
