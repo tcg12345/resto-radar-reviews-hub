@@ -71,7 +71,6 @@ export default function UnifiedSearchPage() {
   } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [locationQuery, setLocationQuery] = useState('');
-  const [searchType, setSearchType] = useState<SearchType>('description');
   const [locationSuggestions, setLocationSuggestions] = useState<any[]>([]);
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
   const [searchResults, setSearchResults] = useState<GooglePlaceResult[]>([]);
@@ -305,7 +304,7 @@ export default function UnifiedSearchPage() {
           query: specificQuery,
           type: 'search',
           location: searchLocation,
-          searchType: searchType,
+          searchType: 'description', // Always use description search
           radius: locationQuery.trim() ? 10000 : 50000 // Smaller radius when location specified
         }
       });
@@ -546,29 +545,13 @@ export default function UnifiedSearchPage() {
                 <p className="text-muted-foreground">Search by name, cuisine, or let us help you find something new</p>
               </div>
 
-              {/* Search Type Selection - Modern Pills */}
+              {/* Combined Search Header - Always Active */}
               <div className="mb-8">
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {[{
-                  value: 'description',
-                  label: 'Discover',
-                  icon: '🔍'
-                }, {
-                  value: 'name',
-                  label: 'Restaurant Name',
-                  icon: '🏪'
-                }, {
-                  value: 'cuisine',
-                  label: 'Cuisine Type',
-                  icon: '🍽️'
-                }].map(({
-                  value,
-                  label,
-                  icon
-                }) => <button key={value} onClick={() => setSearchType(value as SearchType)} className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2 ${searchType === value ? 'bg-primary text-primary-foreground shadow-lg scale-105' : 'bg-background/50 hover:bg-background/80 border border-border hover:border-primary/50'}`}>
-                      <span>{icon}</span>
-                      <span>{label}</span>
-                    </button>)}
+                <div className="flex justify-center">
+                  <div className="px-6 py-3 rounded-full text-base font-medium bg-primary text-primary-foreground shadow-lg flex items-center gap-3">
+                    <span>🔍</span>
+                    <span>Smart Restaurant Search</span>
+                  </div>
                 </div>
               </div>
 
@@ -581,7 +564,7 @@ export default function UnifiedSearchPage() {
                       <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary-glow/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       <div className="relative bg-background/80 backdrop-blur-sm rounded-xl border border-border group-hover:border-primary/50 transition-all duration-300">
                         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 group-hover:text-primary transition-colors duration-300" />
-                        <Input placeholder={searchType === 'name' ? '🏪 Restaurant name (e.g., "The Cottage", "Joe\'s Pizza")' : searchType === 'cuisine' ? '🍽️ Cuisine type (e.g., "Italian", "Chinese", "Mexican")' : '🔍 What are you craving? (cuisine, atmosphere, special dishes...)'} value={searchQuery} onChange={e => {
+                        <Input placeholder="🔍 What are you craving? Search by name, cuisine, atmosphere, or special dishes..." value={searchQuery} onChange={e => {
                         setSearchQuery(e.target.value);
                         if (e.target.value.length > 2) {
                           setShowLiveResults(true);
