@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Calendar, ChefHat, Globe, Heart, Phone, Clock, ExternalLink, Navigation } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, ChefHat, Globe, Heart, Phone, Clock, ExternalLink, Navigation, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -349,6 +349,11 @@ export function RestaurantDetailPage() {
                   <Navigation className="h-5 w-5 text-blue-600" />
                   <span className="text-sm font-medium text-center">Directions</span>
                 </a>}
+
+              <a href={`https://www.google.com/search?q=${encodeURIComponent(restaurant.name + ' reviews')}`} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-2 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors hover-scale">
+                <Star className="h-5 w-5 text-yellow-600" />
+                <span className="text-sm font-medium text-center">Reviews</span>
+              </a>
 
             </div>
 
