@@ -74,6 +74,8 @@ export function ChatListPage() {
           room_id,
           chat_rooms!inner(
             id,
+            name,
+            is_group,
             last_message_at,
             updated_at
           )
@@ -127,6 +129,8 @@ export function ChatListPage() {
 
           return {
             id: room.room_id,
+            name: room.chat_rooms.name,
+            is_group: room.chat_rooms.is_group || false,
             last_message_at: room.chat_rooms.last_message_at,
             updated_at: room.chat_rooms.updated_at,
             participants: profilesData?.map(profile => ({
@@ -213,10 +217,10 @@ export function ChatListPage() {
       // Create a new group chat room
       const { data: room, error: roomError } = await supabase
         .from('chat_rooms')
-        .insert({
+        .insert([{
           name: groupChatName.trim() || `Group with ${selectedFriends.length} friends`,
           is_group: true
-        })
+        }])
         .select()
         .single();
 

@@ -50,19 +50,25 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_group: boolean
           last_message_at: string | null
+          name: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           id?: string
+          is_group?: boolean
           last_message_at?: string | null
+          name?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           id?: string
+          is_group?: boolean
           last_message_at?: string | null
+          name?: string | null
           updated_at?: string
         }
         Relationships: []
