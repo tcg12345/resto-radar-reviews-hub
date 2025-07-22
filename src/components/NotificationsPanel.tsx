@@ -466,7 +466,7 @@ export function NotificationsPanel() {
           </DialogHeader>
           <div className="p-4 bg-muted/30 rounded-lg max-w-full overflow-hidden">
             <p className="text-sm whitespace-pre-wrap break-all hyphens-auto max-w-full">
-              "{selectedMessage}"
+              {selectedMessage}
             </p>
           </div>
         </DialogContent>
