@@ -356,6 +356,7 @@ export function FriendsPage({
   // Filter and sort states for friend profile
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
+  const [selectedCities, setSelectedCities] = useState<string[]>([]);
   const [selectedPriceRanges, setSelectedPriceRanges] = useState<number[]>([]);
   const [ratingRange, setRatingRange] = useState<[number, number]>([0, 10]);
   const [sortBy, setSortBy] = useState('rating'); // Default to highest rated
@@ -925,6 +926,7 @@ export function FriendsPage({
     setRatingRange([min, max]);
     // Reset other filters when clicking rating statistic
     setSelectedCuisines([]);
+    setSelectedCities([]);
     setSelectedPriceRanges([]);
     setSearchTerm('');
     setActiveTab('restaurants');
@@ -936,6 +938,7 @@ export function FriendsPage({
     setSelectedCuisines([cuisine]);
     // Reset other filters when clicking cuisine statistic
     setRatingRange([0, 10]);
+    setSelectedCities([]);
     setSelectedPriceRanges([]);
     setSearchTerm('');
     setActiveTab('restaurants');
@@ -946,6 +949,7 @@ export function FriendsPage({
   const clearAllFilters = () => {
     setSearchTerm('');
     setSelectedCuisines([]);
+    setSelectedCities([]);
     setSelectedPriceRanges([]);
     setRatingRange([0, 10]);
     setSortBy('rating'); // Reset to highest rated default
@@ -968,6 +972,13 @@ export function FriendsPage({
     if (selectedCuisines.length > 0) {
       filtered = filtered.filter(restaurant => 
         selectedCuisines.includes(restaurant.cuisine)
+      );
+    }
+
+    // Apply city filter
+    if (selectedCities.length > 0) {
+      filtered = filtered.filter(restaurant => 
+        selectedCities.includes(restaurant.city)
       );
     }
 
@@ -1003,7 +1014,7 @@ export function FriendsPage({
     });
 
     return sorted;
-  }, [friendRestaurantsData, searchTerm, selectedCuisines, selectedPriceRanges, ratingRange, sortBy]);
+  }, [friendRestaurantsData, searchTerm, selectedCuisines, selectedCities, selectedPriceRanges, ratingRange, sortBy]);
 
   // Get unique cuisines for filter, sorted by popularity
   const uniqueCuisines = useMemo(() => {
@@ -1017,6 +1028,20 @@ export function FriendsPage({
     return Object.entries(cuisineCounts)
       .sort(([, countA]: [string, number], [, countB]: [string, number]) => countB - countA) // Sort by count descending
       .map(([cuisine]) => cuisine);
+  }, [friendRestaurantsData]);
+
+  // Get unique cities for filter, sorted by popularity
+  const uniqueCities = useMemo(() => {
+    const cityCounts = friendRestaurantsData.reduce((acc, restaurant) => {
+      if (restaurant.city) {
+        acc[restaurant.city] = (acc[restaurant.city] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+    
+    return Object.entries(cityCounts)
+      .sort(([, countA]: [string, number], [, countB]: [string, number]) => countB - countA) // Sort by count descending
+      .map(([city]) => city);
   }, [friendRestaurantsData]);
 
   if (isLoading) {
@@ -1294,7 +1319,7 @@ export function FriendsPage({
                         <Filter className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium text-sm">Filters</span>
                       </div>
-                      {(selectedCuisines.length > 0 || selectedPriceRanges.length > 0 || ratingRange[0] !== 0 || ratingRange[1] !== 10) && (
+                      {(selectedCuisines.length > 0 || selectedCities.length > 0 || selectedPriceRanges.length > 0 || ratingRange[0] !== 0 || ratingRange[1] !== 10) && (
                         <Button 
                           variant="ghost" 
                           size="sm"
@@ -1307,7 +1332,7 @@ export function FriendsPage({
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                       {/* Cuisine Filter */}
                       <div className="space-y-2">
                         <label className="text-sm font-medium">Cuisine</label>
@@ -1339,6 +1364,46 @@ export function FriendsPage({
                                     />
                                     <label htmlFor={cuisine} className="text-sm cursor-pointer">
                                       {cuisine}
+                                    </label>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+
+                      {/* City Filter */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">City</label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full justify-between">
+                              {selectedCities.length === 0 ? "All Cities" : 
+                               selectedCities.length === 1 ? selectedCities[0] :
+                               `${selectedCities.length} selected`}
+                              <MapPin className="ml-2 h-4 w-4" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-64 p-4 z-50 bg-background">
+                            <div className="space-y-3">
+                              <div className="font-medium">Select Cities</div>
+                              <div className="max-h-48 overflow-y-auto space-y-2">
+                                {uniqueCities.map(city => (
+                                  <div key={city} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={city}
+                                      checked={selectedCities.includes(city)}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          setSelectedCities([...selectedCities, city]);
+                                        } else {
+                                          setSelectedCities(selectedCities.filter(c => c !== city));
+                                        }
+                                      }}
+                                    />
+                                    <label htmlFor={city} className="text-sm cursor-pointer">
+                                      {city}
                                     </label>
                                   </div>
                                 ))}
