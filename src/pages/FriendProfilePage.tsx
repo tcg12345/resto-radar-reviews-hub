@@ -888,18 +888,29 @@ export default function FriendProfilePage() {
               </Card>
             )}
 
-            {/* City Filter Tabs */}
+            {/* City Filter Buttons */}
             {availableWishlistCities.length > 0 && (
-              <Tabs defaultValue="all" onValueChange={setWishlistCityFilter} value={wishlistCityFilter} className="mb-6">
-                <TabsList className="mb-4">
-                  <TabsTrigger value="all">All Cities</TabsTrigger>
+              <div className="mb-6">
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant={wishlistCityFilter === 'all' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setWishlistCityFilter('all')}
+                  >
+                    All Cities
+                  </Button>
                   {availableWishlistCities.map(({ city, count }) => (
-                    <TabsTrigger key={city} value={city}>
+                    <Button
+                      key={city}
+                      variant={wishlistCityFilter === city ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setWishlistCityFilter(city)}
+                    >
                       {city} ({count})
-                    </TabsTrigger>
+                    </Button>
                   ))}
-                </TabsList>
-              </Tabs>
+                </div>
+              </div>
             )}
 
             {filteredWishlist.length === 0 ? (
