@@ -262,7 +262,8 @@ export function NotificationsPanel() {
               {notifications.map((notification) => (
                 <div 
                   key={notification.id} 
-                  className={`p-3 ${!notification.read_at ? 'bg-primary/5' : ''}`}
+                  className={`p-3 ${!notification.read_at ? 'bg-primary/5' : ''} ${notification.type === 'restaurant_share' ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}`}
+                  onClick={() => notification.type === 'restaurant_share' && handleViewRestaurant(notification.id, notification.data?.restaurant_id)}
                 >
                   <div className="flex items-start gap-3">
                     {notification.type === 'restaurant_share' && (
@@ -281,25 +282,9 @@ export function NotificationsPanel() {
                       </p>
                       
                       {notification.type === 'restaurant_share' && (
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 text-xs flex-1 px-2"
-                            onClick={() => handleViewRestaurant(notification.id, notification.data?.restaurant_id)}
-                          >
-                            <Eye className="h-3 w-3 mr-1" />
-                            View
-                          </Button>
-                          <Button
-                            variant="default"
-                            size="sm"
-                            className="h-7 text-xs flex-1 px-2"
-                            onClick={() => handleAddToWishlist(notification.id, notification.data?.restaurant_id)}
-                          >
-                            <Heart className="h-3 w-3 mr-1" />
-                            Add to Wishlist
-                          </Button>
+                        <div className="flex items-center gap-1 text-xs text-primary">
+                          <Eye className="h-3 w-3" />
+                          Click to view restaurant details
                         </div>
                       )}
 
@@ -314,7 +299,10 @@ export function NotificationsPanel() {
                             variant="ghost" 
                             size="sm"
                             className="h-6 w-6 p-0"
-                            onClick={() => markAsRead(notification.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              markAsRead(notification.id);
+                            }}
                           >
                             <Check className="h-3 w-3" />
                             <span className="sr-only">Mark as read</span>
