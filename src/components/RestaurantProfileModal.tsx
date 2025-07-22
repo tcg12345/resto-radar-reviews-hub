@@ -569,13 +569,11 @@ export function RestaurantProfileModal({
                                       <Clock className="h-3.5 w-3.5 text-slate-700" />
                                     </div>
                                      <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">STATUS</span>
+                                     {place.opening_hours?.open_now !== undefined && <span className="text-xs font-medium text-slate-700">
+                                        • {place.opening_hours.open_now ? "Open" : "Closed"}
+                                      </span>}
                                   </div>
                                   <div className="flex flex-wrap gap-2">
-                                    {place.opening_hours?.open_now !== undefined && <Badge variant={place.opening_hours.open_now ? "default" : "destructive"} className="text-xs font-medium px-2 py-1 rounded-full">
-                                        <Clock className="h-3 w-3 mr-1" />
-                                        {place.opening_hours.open_now ? "Open Now" : "Closed"}
-                                      </Badge>}
-                                    
                                     {place.types.includes('meal_delivery') && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-blue-50 text-blue-700 border-blue-200">
                                         🚚 Delivery
                                       </Badge>}
@@ -606,10 +604,6 @@ export function RestaurantProfileModal({
 
                                     {place.types.includes('parking') && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-slate-50 text-slate-700 border-slate-200">
                                         🅿️ Parking
-                                      </Badge>}
-
-                                    {place.yelpData?.transactions?.includes('pickup') && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-cyan-50 text-cyan-700 border-cyan-200">
-                                        📦 Pickup
                                       </Badge>}
                                   </div>
                                 </div>
