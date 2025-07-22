@@ -108,7 +108,6 @@ export default function UnifiedSearchPage() {
         setShowLiveResults(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
@@ -119,7 +118,6 @@ export default function UnifiedSearchPage() {
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
-    
     debounceTimerRef.current = setTimeout(() => {
       if (searchQuery.length > 2) {
         performLiveSearch();
@@ -150,18 +148,18 @@ export default function UnifiedSearchPage() {
         searchParams.location = `${userLocation.lat},${userLocation.lng}`;
         searchParams.radius = 50000;
       }
-
-      const { data, error } = await supabase.functions.invoke('google-places-search', {
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('google-places-search', {
         body: searchParams
       });
-
       if (error) {
         setLiveSearchResults([]);
         setShowLiveResults(false);
         setIsLiveSearching(false);
         return;
       }
-
       if (data && data.status === 'OK' && data.results && data.results.length > 0) {
         setLiveSearchResults(data.results.slice(0, 6));
         setShowLiveResults(true);
@@ -256,7 +254,6 @@ export default function UnifiedSearchPage() {
     setLocationQuery(suggestion.description);
     setShowLocationSuggestions(false);
   };
-
   const clearSearch = () => {
     setSearchQuery('');
     setShowLiveResults(false);
@@ -275,10 +272,7 @@ export default function UnifiedSearchPage() {
     setIsLoading(true);
     try {
       // Simplified search for speed - use text-based search
-      const searchQuery_final = locationQuery.trim() 
-        ? `${searchQuery} in ${locationQuery}` 
-        : searchQuery;
-
+      const searchQuery_final = locationQuery.trim() ? `${searchQuery} in ${locationQuery}` : searchQuery;
       const searchParams: any = {
         query: searchQuery_final,
         type: 'search',
@@ -290,23 +284,22 @@ export default function UnifiedSearchPage() {
         searchParams.location = `${userLocation.lat},${userLocation.lng}`;
         searchParams.radius = 50000;
       }
-
-      const { data, error } = await supabase.functions.invoke('google-places-search', {
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('google-places-search', {
         body: searchParams
       });
-
       if (error) throw error;
       if (data.status === 'OK') {
         const results = data.results || [];
-        
+
         // Add immediate fallback cuisine to all results for instant display
         const resultsWithFallback = results.map(result => ({
           ...result,
-          fallbackCuisine: result.types.find(type => 
-            !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type)
-          )?.replace(/_/g, ' ') || 'Restaurant'
+          fallbackCuisine: result.types.find(type => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 'Restaurant'
         }));
-        
+
         // Show results immediately for instant search
         setSearchResults(resultsWithFallback);
       } else {
@@ -320,7 +313,6 @@ export default function UnifiedSearchPage() {
       setIsLoading(false);
     }
   };
-
   const handlePlaceClick = async (place: GooglePlaceResult) => {
     // Show modal immediately with basic data
     setSelectedPlace({
@@ -345,15 +337,13 @@ export default function UnifiedSearchPage() {
           type: 'details'
         }
       });
-      
       if (error) throw error;
-      
       if (data.status === 'OK') {
         const detailedPlace = data.result;
-        
+
         // Update modal with detailed Google data only for instant loading
         setSelectedPlace(detailedPlace);
-        
+
         // Fetch Yelp data in background for the modal
         console.log('Starting Yelp API call for restaurant:', detailedPlace.name);
         supabase.functions.invoke('yelp-restaurant-data', {
@@ -364,12 +354,15 @@ export default function UnifiedSearchPage() {
             limit: 1,
             sort_by: 'best_match'
           }
-        }).then(({ data: yelpData, error: yelpError }) => {
+        }).then(({
+          data: yelpData,
+          error: yelpError
+        }) => {
           console.log('Yelp API response:', yelpData, 'Error:', yelpError);
           if (!yelpError && yelpData?.businesses?.length > 0) {
             const yelpBusiness = yelpData.businesses[0];
             console.log('Found Yelp business:', yelpBusiness, 'URL:', yelpBusiness.url);
-            
+
             // Update the modal with Yelp data
             setSelectedPlace(prev => prev ? {
               ...prev,
@@ -441,7 +434,7 @@ export default function UnifiedSearchPage() {
                 <div className="flex justify-center">
                   <div className="px-6 py-3 rounded-full text-base font-medium bg-primary text-primary-foreground shadow-lg flex items-center gap-3">
                     <span>🔍</span>
-                    <span>Smart Restaurant Search</span>
+                    <span>Restaurant Search</span>
                   </div>
                 </div>
               </div>
@@ -455,32 +448,21 @@ export default function UnifiedSearchPage() {
                       <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary-glow/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       <div className="relative bg-background/80 backdrop-blur-sm rounded-xl border border-border group-hover:border-primary/50 transition-all duration-300">
                         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 group-hover:text-primary transition-colors duration-300" />
-                        <Input 
-                          placeholder="🔍 What are you craving? Search by name, cuisine, atmosphere, or special dishes..." 
-                          value={searchQuery} 
-                          onChange={e => {
-                            setSearchQuery(e.target.value);
-                            if (e.target.value.length > 2) {
-                              setShowLiveResults(true);
-                            } else {
-                              setShowLiveResults(false);
-                            }
-                          }} 
-                          onKeyDown={e => {
-                            if (e.key === 'Enter') {
-                              handleSearch();
-                            }
-                          }}
-                          className="pl-12 pr-10 h-14 bg-transparent border-none text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none" 
-                        />
-                        {searchQuery && (
-                          <button
-                            onClick={clearSearch}
-                            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-muted/50"
-                          >
+                        <Input placeholder="🔍 What are you craving? Search by name, cuisine, atmosphere, or special dishes..." value={searchQuery} onChange={e => {
+                        setSearchQuery(e.target.value);
+                        if (e.target.value.length > 2) {
+                          setShowLiveResults(true);
+                        } else {
+                          setShowLiveResults(false);
+                        }
+                      }} onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          handleSearch();
+                        }
+                      }} className="pl-12 pr-10 h-14 bg-transparent border-none text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none" />
+                        {searchQuery && <button onClick={clearSearch} className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-muted/50">
                             <X className="h-4 w-4" />
-                          </button>
-                        )}
+                          </button>}
                         
                         {/* Live Search Results Dropdown - Positioned below search bar */}
                         {showLiveResults && (liveSearchResults.length > 0 || isLiveSearching) && <div className="absolute top-full left-0 right-0 bg-card border border-border rounded-xl shadow-2xl animate-fade-in" style={{
@@ -623,15 +605,10 @@ export default function UnifiedSearchPage() {
                           <h3 className="font-semibold text-lg leading-tight line-clamp-2" onClick={() => handlePlaceClick(place)}>
                             {place.name}
                           </h3>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleQuickAdd(place);
-                            }}
-                            className="shrink-0 ml-2"
-                          >
+                          <Button variant="ghost" size="sm" onClick={e => {
+                      e.stopPropagation();
+                      handleQuickAdd(place);
+                    }} className="shrink-0 ml-2">
                             <Heart className="h-4 w-4" />
                           </Button>
                         </div>
@@ -665,62 +642,40 @@ export default function UnifiedSearchPage() {
 
                         {/* Yelp Badge and Services */}
                         <div className="flex flex-wrap gap-1 mb-2">
-                          {place.yelpData && (
-                            <Badge variant="secondary" className="text-xs bg-red-100 text-red-800 border-red-200">
+                          {place.yelpData && <Badge variant="secondary" className="text-xs bg-red-100 text-red-800 border-red-200">
                               Yelp ✓
-                            </Badge>
-                          )}
-                          {place.yelpData?.transactions?.includes('delivery') && (
-                            <Badge variant="outline" className="text-xs flex items-center gap-1">
+                            </Badge>}
+                          {place.yelpData?.transactions?.includes('delivery') && <Badge variant="outline" className="text-xs flex items-center gap-1">
                               <Truck className="h-3 w-3" />
                               Delivery
-                            </Badge>
-                          )}
-                          {place.yelpData?.transactions?.includes('pickup') && (
-                            <Badge variant="outline" className="text-xs flex items-center gap-1">
+                            </Badge>}
+                          {place.yelpData?.transactions?.includes('pickup') && <Badge variant="outline" className="text-xs flex items-center gap-1">
                               <ShoppingBag className="h-3 w-3" />
                               Pickup
-                            </Badge>
-                          )}
+                            </Badge>}
                         </div>
 
                         <div className="flex flex-wrap gap-1 mb-3" onClick={() => handlePlaceClick(place)}>
                           {/* Show single cuisine type - prioritize AI analysis, then fallback cuisine, then first relevant type */}
                           {(() => {
-                            const cuisine = place.aiAnalysis?.cuisine || 
-                              place.fallbackCuisine || 
-                              place.types.find(type => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 
-                              'Restaurant';
-                            return (
-                              <Badge variant="outline" className="text-xs">
+                      const cuisine = place.aiAnalysis?.cuisine || place.fallbackCuisine || place.types.find(type => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 'Restaurant';
+                      return <Badge variant="outline" className="text-xs">
                                 {cuisine}
-                              </Badge>
-                            );
-                          })()}
+                              </Badge>;
+                    })()}
                         </div>
 
                         <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePlaceClick(place)}
-                            className="flex-1"
-                          >
+                          <Button variant="outline" size="sm" onClick={() => handlePlaceClick(place)} className="flex-1">
                             View Details
                           </Button>
                           
-                          {place.yelpData && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                window.open(place.yelpData.url, '_blank');
-                              }}
-                            >
+                          {place.yelpData && <Button variant="outline" size="sm" onClick={e => {
+                      e.stopPropagation();
+                      window.open(place.yelpData.url, '_blank');
+                    }}>
                               <Star className="h-4 w-4" />
-                            </Button>
-                          )}
+                            </Button>}
                         </div>
                       </CardContent>
                     </Card>)}
