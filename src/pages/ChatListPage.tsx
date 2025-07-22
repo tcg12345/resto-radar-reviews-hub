@@ -214,6 +214,12 @@ export function ChatListPage() {
     }
 
     try {
+      console.log('Creating group chat with:', { 
+        groupChatName: groupChatName.trim() || `Group with ${selectedFriends.length} friends`,
+        selectedFriends,
+        userId: user.id 
+      });
+
       // Create a new group chat room
       const { data: room, error: roomError } = await supabase
         .from('chat_rooms')
@@ -226,12 +232,16 @@ export function ChatListPage() {
 
       if (roomError) {
         console.error('Error creating group chat room:', roomError);
-        toast('Failed to create group chat');
+        toast('Failed to create group chat room');
         return;
       }
 
+      console.log('Group chat room created successfully:', room);
+
       // Add all participants (current user + selected friends)
       const participantsToAdd = [user.id, ...selectedFriends];
+      console.log('Adding participants:', participantsToAdd);
+
       const { error: participantsError } = await supabase
         .from('chat_room_participants')
         .insert(
