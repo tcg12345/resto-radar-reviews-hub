@@ -289,7 +289,7 @@ export function RestaurantDetailPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="w-full px-4 py-8">
         {/* Hero Section */}
         <div className="grid lg:grid-cols-3 gap-8 mb-8">
           {/* Main Info */}
