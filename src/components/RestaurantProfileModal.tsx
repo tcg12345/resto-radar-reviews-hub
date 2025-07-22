@@ -601,78 +601,6 @@ export function RestaurantProfileModal({
                   </Card>
                 )}
 
-                {/* Google Reviews */}
-                {place.reviews && place.reviews.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <MessageSquare className="h-5 w-5" />
-                          Google Reviews
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={handleViewMoreReviews} 
-                            className="flex items-center gap-2"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                            View More
-                          </Button>
-                          <Select 
-                            value={reviewSortBy} 
-                            onValueChange={(value: 'recent' | 'helpful' | 'rating') => setReviewSortBy(value)}
-                          >
-                            <SelectTrigger className="w-36">
-                              <Filter className="h-4 w-4 mr-2" />
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="recent">Most Recent</SelectItem>
-                              <SelectItem value="helpful">Most Helpful</SelectItem>
-                              <SelectItem value="rating">Highest Rated</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {getSortedReviews().slice(0, showAllReviews ? getSortedReviews().length : 3).map((review, index) => (
-                        <div key={index} className="border-b last:border-b-0 pb-4 last:pb-0">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                              <span className="font-medium">{review.author_name}</span>
-                              <div className="flex">
-                                {[1, 2, 3, 4, 5].map(star => 
-                                  <Star key={star} className={`h-4 w-4 ${star <= review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'}`} />
-                                )}
-                              </div>
-                            </div>
-                            <span className="text-sm text-muted-foreground">
-                              {new Date(review.time * 1000).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <p className="text-sm text-muted-foreground leading-relaxed">{review.text}</p>
-                        </div>
-                      ))}
-                      
-                      {/* Show More/Less Reviews Button */}
-                      {getSortedReviews().length > 3 && (
-                        <div className="pt-4 border-t">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => setShowAllReviews(!showAllReviews)} 
-                            className="w-full"
-                          >
-                            {showAllReviews ? 'Show Less Reviews' : `Show All ${getSortedReviews().length} Reviews`}
-                          </Button>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
               </div>
 
               {/* Sidebar */}
@@ -735,6 +663,77 @@ export function RestaurantProfileModal({
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Google Reviews */}
+                {place.reviews && place.reviews.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <MessageSquare className="h-5 w-5" />
+                          Reviews
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={handleViewMoreReviews} 
+                            className="flex items-center gap-1"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                          </Button>
+                          <Select 
+                            value={reviewSortBy} 
+                            onValueChange={(value: 'recent' | 'helpful' | 'rating') => setReviewSortBy(value)}
+                          >
+                            <SelectTrigger className="w-24">
+                              <Filter className="h-3 w-3" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="recent">Recent</SelectItem>
+                              <SelectItem value="helpful">Helpful</SelectItem>
+                              <SelectItem value="rating">Top Rated</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {getSortedReviews().slice(0, showAllReviews ? getSortedReviews().length : 2).map((review, index) => (
+                        <div key={index} className="border-b last:border-b-0 pb-3 last:pb-0">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex-1 min-w-0">
+                              <span className="font-medium text-sm truncate block">{review.author_name}</span>
+                              <div className="flex items-center gap-1 mt-1">
+                                {[1, 2, 3, 4, 5].map(star => 
+                                  <Star key={star} className={`h-3 w-3 ${star <= review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'}`} />
+                                )}
+                                <span className="text-xs text-muted-foreground ml-1">
+                                  {new Date(review.time * 1000).toLocaleDateString()}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">{review.text}</p>
+                        </div>
+                      ))}
+                      
+                      {/* Show More/Less Reviews Button */}
+                      {getSortedReviews().length > 2 && (
+                        <div className="pt-3 border-t">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => setShowAllReviews(!showAllReviews)} 
+                            className="w-full text-xs"
+                          >
+                            {showAllReviews ? 'Show Less' : `Show All ${getSortedReviews().length}`}
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </div>
           </div>
