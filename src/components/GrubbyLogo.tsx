@@ -17,6 +17,8 @@ export function GrubbyLogo({ size = 'md', showText = true, className = '' }: Gru
         return '/lovable-uploads/7f2af544-2da2-4215-9cdf-78845079ddea.png';
       case 'royal-purple':
         return '/lovable-uploads/11b9bd4d-7516-4300-afc4-5916a04a932f.png';
+      case 'crimson-red':
+        return '/lovable-uploads/c58d19e3-6527-466e-bc23-7de1acec9f44.png';
       default:
         return '/lovable-uploads/42e9db1d-cc84-4c54-9adb-50dc08b98369.png';
     }
