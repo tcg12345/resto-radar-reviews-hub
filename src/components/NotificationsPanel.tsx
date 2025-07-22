@@ -436,11 +436,11 @@ export function NotificationsPanel() {
                           )}
                           
                           {!notification.data?.share_message && (
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-2 p-2 rounded-lg border border-border bg-background/50">
                               <Button 
-                                variant="ghost" 
+                                variant="outline" 
                                 size="sm"
-                                className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive transition-colors"
+                                className="h-7 w-7 p-0 border-destructive/20 bg-destructive/5 hover:bg-destructive/10 text-destructive"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   deleteNotification(notification.id);
@@ -452,9 +452,9 @@ export function NotificationsPanel() {
                               
                               {!notification.read_at && (
                                 <Button 
-                                  variant="ghost" 
+                                  variant="outline" 
                                   size="sm"
-                                  className="h-7 w-7 p-0 text-muted-foreground hover:text-primary transition-colors"
+                                  className="h-7 w-7 p-0 border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     markAsRead(notification.id);
