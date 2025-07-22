@@ -423,14 +423,14 @@ export function NotificationsPanel() {
                               <Button 
                                 variant="outline" 
                                 size="sm"
-                                className="h-7 px-2 text-xs border-destructive/20 bg-destructive/5 hover:bg-destructive/10 text-destructive"
+                                className="h-7 w-7 p-0 border-destructive/20 bg-destructive/5 hover:bg-destructive/10 text-destructive"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   deleteNotification(notification.id);
                                 }}
                               >
-                                <Trash2 className="h-3 w-3 mr-1" />
-                                <span className="text-xs">Delete</span>
+                                <Trash2 className="h-3 w-3" />
+                                <span className="sr-only">Delete notification</span>
                               </Button>
                             </div>
                           )}
