@@ -1016,9 +1016,14 @@ export function FriendsPage({
     return sorted;
   }, [friendRestaurantsData, searchTerm, selectedCuisines, selectedCities, selectedPriceRanges, ratingRange, sortBy]);
 
-  // Get unique cuisines for filter, sorted alphabetically with counts
+  // Get unique cuisines for filter, sorted alphabetically with adaptive counts
   const uniqueCuisines = useMemo(() => {
-    const cuisineCounts = friendRestaurantsData.reduce((acc, restaurant) => {
+    // Filter by selected cities first to get adaptive counts
+    const filteredByCity = selectedCities.length === 0 
+      ? friendRestaurantsData 
+      : friendRestaurantsData.filter(restaurant => selectedCities.includes(restaurant.city));
+    
+    const cuisineCounts = filteredByCity.reduce((acc, restaurant) => {
       if (restaurant.cuisine) {
         acc[restaurant.cuisine] = (acc[restaurant.cuisine] || 0) + 1;
       }
@@ -1028,11 +1033,16 @@ export function FriendsPage({
     return Object.entries(cuisineCounts)
       .map(([cuisine, count]): { name: string; count: number } => ({ name: cuisine, count: count as number }))
       .sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically
-  }, [friendRestaurantsData]);
+  }, [friendRestaurantsData, selectedCities]);
 
-  // Get unique cities for filter, sorted alphabetically with counts
+  // Get unique cities for filter, sorted alphabetically with adaptive counts
   const uniqueCities = useMemo(() => {
-    const cityCounts = friendRestaurantsData.reduce((acc, restaurant) => {
+    // Filter by selected cuisines first to get adaptive counts
+    const filteredByCuisine = selectedCuisines.length === 0 
+      ? friendRestaurantsData 
+      : friendRestaurantsData.filter(restaurant => selectedCuisines.includes(restaurant.cuisine));
+    
+    const cityCounts = filteredByCuisine.reduce((acc, restaurant) => {
       if (restaurant.city) {
         acc[restaurant.city] = (acc[restaurant.city] || 0) + 1;
       }
@@ -1042,7 +1052,7 @@ export function FriendsPage({
     return Object.entries(cityCounts)
       .map(([city, count]): { name: string; count: number } => ({ name: city, count: count as number }))
       .sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically
-  }, [friendRestaurantsData]);
+  }, [friendRestaurantsData, selectedCuisines]);
 
   if (isLoading) {
     return (
