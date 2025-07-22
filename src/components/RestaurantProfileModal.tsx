@@ -608,46 +608,46 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
                                     </div>
                                   </div>
                                 )}
+                              </div>
 
-                                {/* Features Section */}
-                                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6 shadow-lg border border-slate-200/60">
-                                  <div className="absolute top-0 right-0 w-24 h-24 bg-slate-200/30 rounded-full -mr-12 -mt-12"></div>
-                                  <div className="relative">
-                                    <div className="flex items-center gap-3 mb-4">
-                                      <div className="p-2 rounded-lg bg-slate-200/80">
-                                        <Clock className="h-5 w-5 text-slate-700" />
-                                      </div>
-                                      <span className="text-sm font-bold text-slate-800 uppercase tracking-wider">Features</span>
+                              {/* Features Section */}
+                              <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-50 via-white to-slate-100 p-4 shadow-md border border-slate-200/60">
+                                <div className="absolute top-0 right-0 w-16 h-16 bg-slate-200/30 rounded-full -mr-8 -mt-8"></div>
+                                <div className="relative">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <div className="p-1.5 rounded-md bg-slate-200/80">
+                                      <Clock className="h-3.5 w-3.5 text-slate-700" />
                                     </div>
-                                    <div className="flex flex-wrap gap-2">
-                                      {place.opening_hours?.open_now !== undefined && (
-                                        <Badge 
-                                          variant={place.opening_hours.open_now ? "default" : "destructive"}
-                                          className="text-xs font-medium px-3 py-1.5 rounded-full"
-                                        >
-                                          <Clock className="h-3 w-3 mr-1.5" />
-                                          {place.opening_hours.open_now ? "Open Now" : "Closed"}
-                                        </Badge>
-                                      )}
-                                      
-                                      {place.types.includes('meal_delivery') && (
-                                        <Badge variant="outline" className="text-xs font-medium px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 border-blue-200">
-                                          🚚 Delivery
-                                        </Badge>
-                                      )}
+                                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Features</span>
+                                  </div>
+                                  <div className="flex flex-wrap gap-2">
+                                    {place.opening_hours?.open_now !== undefined && (
+                                      <Badge 
+                                        variant={place.opening_hours.open_now ? "default" : "destructive"}
+                                        className="text-xs font-medium px-2 py-1 rounded-full"
+                                      >
+                                        <Clock className="h-3 w-3 mr-1" />
+                                        {place.opening_hours.open_now ? "Open Now" : "Closed"}
+                                      </Badge>
+                                    )}
+                                    
+                                    {place.types.includes('meal_delivery') && (
+                                      <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-blue-50 text-blue-700 border-blue-200">
+                                        🚚 Delivery
+                                      </Badge>
+                                    )}
 
-                                      {place.types.includes('meal_takeaway') && (
-                                        <Badge variant="outline" className="text-xs font-medium px-3 py-1.5 rounded-full bg-orange-50 text-orange-700 border-orange-200">
-                                          🥡 Takeaway
-                                        </Badge>
-                                      )}
+                                    {place.types.includes('meal_takeaway') && (
+                                      <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-orange-50 text-orange-700 border-orange-200">
+                                        🥡 Takeaway
+                                      </Badge>
+                                    )}
 
-                                      {place.types.includes('dine_in') && (
-                                        <Badge variant="outline" className="text-xs font-medium px-3 py-1.5 rounded-full bg-purple-50 text-purple-700 border-purple-200">
-                                          🍽️ Dine-in
-                                        </Badge>
-                                      )}
-                                    </div>
+                                    {place.types.includes('dine_in') && (
+                                      <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-purple-50 text-purple-700 border-purple-200">
+                                        🍽️ Dine-in
+                                      </Badge>
+                                    )}
                                   </div>
                                 </div>
                               </div>
