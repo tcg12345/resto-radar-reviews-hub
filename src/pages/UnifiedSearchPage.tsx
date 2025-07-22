@@ -108,88 +108,45 @@ export default function UnifiedSearchPage() {
         setLiveSearchResults([]);
         setShowLiveResults(false);
       }
-    }, 300);
+    }, 150); // Faster debounce for more responsive search
     return () => clearTimeout(timer);
   }, [searchQuery, locationQuery]);
   const performLiveSearch = async () => {
     if (!searchQuery.trim() || searchQuery.length < 3) return;
     setIsLiveSearching(true);
     try {
-      // Use location-specific search parameters
+      // Simplified search - just use query and location text for speed
       const searchParams: any = {
-        query: searchQuery,
-        type: 'search'
+        query: locationQuery.trim() ? `${searchQuery} in ${locationQuery}` : searchQuery,
+        type: 'search',
+        radius: 25000 // Standard radius
       };
 
-      // If location is provided, geocode it first for better accuracy
-      if (locationQuery && locationQuery.trim()) {
-        console.log('Searching with location:', locationQuery);
-        try {
-          // First geocode the location to get coordinates
-          const {
-            data: geocodeData,
-            error: geocodeError
-          } = await supabase.functions.invoke('geocode', {
-            body: {
-              address: locationQuery
-            }
-          });
-          console.log('Geocode response:', geocodeData);
-          if (geocodeData && geocodeData.results && geocodeData.results.length > 0) {
-            const location = geocodeData.results[0].geometry.location;
-            const formattedAddress = geocodeData.results[0].formatted_address;
-            console.log('Using geocoded coordinates:', location, 'for address:', formattedAddress);
-            searchParams.location = `${location.lat},${location.lng}`;
-            searchParams.radius = 10000; // 10km radius for specific location
-            // Use nearby search instead of text search for better location accuracy
-            searchParams.type = 'nearby';
-            searchParams.query = searchQuery; // Keep original query for nearby search
-          } else {
-            console.log('Geocoding failed, using text-based location search');
-            // Fallback: use location in the query text
-            searchParams.query = `${searchQuery} in ${locationQuery}`;
-            searchParams.radius = 25000;
-          }
-        } catch (geocodeError) {
-          console.log('Geocoding error:', geocodeError);
-          // Fallback: include location in query text
-          searchParams.query = `${searchQuery} in ${locationQuery}`;
-          searchParams.radius = 25000;
-        }
-      } else if (userLocation) {
-        console.log('Using user location:', userLocation);
+      // Only add coordinates if user location is available (no geocoding delay)
+      if (userLocation && !locationQuery.trim()) {
         searchParams.location = `${userLocation.lat},${userLocation.lng}`;
-        searchParams.radius = 50000; // 50km radius when using user location
+        searchParams.radius = 50000;
       }
-      console.log('Final search params:', searchParams);
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('google-places-search', {
+
+      const { data, error } = await supabase.functions.invoke('google-places-search', {
         body: searchParams
       });
-      console.log('Search response:', data);
+
       if (error) {
-        console.error('Live search error:', error);
         setLiveSearchResults([]);
         setShowLiveResults(false);
         setIsLiveSearching(false);
         return;
       }
+
       if (data && data.status === 'OK' && data.results && data.results.length > 0) {
-        console.log('Found restaurants:', data.results.map(r => ({
-          name: r.name,
-          address: r.formatted_address
-        })));
-        setLiveSearchResults(data.results.slice(0, 6)); // Show up to 6 results
+        setLiveSearchResults(data.results.slice(0, 6));
         setShowLiveResults(true);
       } else {
-        console.log('No results found, status:', data?.status);
         setLiveSearchResults([]);
         setShowLiveResults(false);
       }
     } catch (error) {
-      console.error('Live search error:', error);
       setLiveSearchResults([]);
       setShowLiveResults(false);
     } finally {
@@ -282,37 +239,32 @@ export default function UnifiedSearchPage() {
     if (!searchQuery.trim()) return;
     setIsLoading(true);
     try {
-      // Use locationQuery if provided, otherwise fall back to user location
-      let searchLocation = undefined;
-      if (locationQuery.trim()) {
-        searchLocation = locationQuery;
-      } else if (userLocation) {
-        searchLocation = `${userLocation.lat},${userLocation.lng}`;
+      // Simplified search for speed - use text-based search
+      const searchQuery_final = locationQuery.trim() 
+        ? `${searchQuery} in ${locationQuery}` 
+        : searchQuery;
+
+      const searchParams: any = {
+        query: searchQuery_final,
+        type: 'search',
+        radius: 25000
+      };
+
+      // Only add user location if no location query specified
+      if (userLocation && !locationQuery.trim()) {
+        searchParams.location = `${userLocation.lat},${userLocation.lng}`;
+        searchParams.radius = 50000;
       }
 
-      // Construct a more specific search query
-      let specificQuery = searchQuery.trim();
-      if (locationQuery.trim()) {
-        // When location is specified, make query more specific to that location
-        specificQuery = `${searchQuery} in ${locationQuery}`;
-      }
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('google-places-search', {
-        body: {
-          query: specificQuery,
-          type: 'search',
-          location: searchLocation,
-          searchType: 'description', // Always use description search
-          radius: locationQuery.trim() ? 10000 : 50000 // Smaller radius when location specified
-        }
+      const { data, error } = await supabase.functions.invoke('google-places-search', {
+        body: searchParams
       });
+
       if (error) throw error;
       if (data.status === 'OK') {
         const results = data.results || [];
         
-        // Add immediate fallback cuisine to all results for faster display
+        // Add immediate fallback cuisine to all results for instant display
         const resultsWithFallback = results.map(result => ({
           ...result,
           fallbackCuisine: result.types.find(type => 
