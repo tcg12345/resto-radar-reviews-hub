@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
-import { MobileNavbar } from '@/components/MobileNavbar';
-import { MobileHeader } from '@/components/MobileHeader';
 import { RatedRestaurantsPage } from '@/pages/RatedRestaurantsPage';
 import { MapPage } from '@/pages/MapPage';
 import { WishlistPage } from '@/pages/WishlistPage';
@@ -12,7 +10,6 @@ import SettingsPage from '@/pages/SettingsPage';
 import { FriendsPage } from '@/pages/FriendsPage';
 import { AIChatbot } from '@/components/AIChatbot';
 import { useRestaurants } from '@/contexts/RestaurantContext';
-import { useIsMobileDevice } from '@/hooks/use-mobile-device';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<'home' | 'rated' | 'wishlist' | 'map' | 'search' | 'settings' | 'friends'>('home');
@@ -21,9 +18,6 @@ export default function Dashboard() {
   const { restaurants, addRestaurant, updateRestaurant, deleteRestaurant } = useRestaurants();
   const navigate = useNavigate();
   const location = useLocation();
-  const isMobile = useIsMobileDevice();
-
-  console.log('Dashboard render - isMobile:', isMobile, 'screenWidth:', window.innerWidth);
 
   // Handle navigation state from other pages
   useEffect(() => {
@@ -93,33 +87,7 @@ export default function Dashboard() {
     );
   };
 
-  if (isMobile) {
-    return (
-      <div className="flex min-h-screen flex-col bg-background mobile-container no-horizontal-scroll">
-        <MobileHeader 
-          activeTab={activeTab} 
-          onTabChange={setActiveTab}
-          onBack={activeTab === 'settings' ? () => setActiveTab('home') : undefined}
-          showSettings={activeTab !== 'settings'}
-        />
-        
-        <main className="flex-1 pb-16 mobile-container">
-          {renderContent()}
-        </main>
-        
-        {activeTab !== 'settings' && (
-          <MobileNavbar 
-            activeTab={activeTab} 
-            onTabChange={setActiveTab} 
-          />
-        )}
-        
-        {activeTab !== 'settings' && activeTab !== 'map' && <AIChatbot />}
-      </div>
-    );
-  }
-
-  // Desktop version - unchanged
+  // Always use desktop version
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {activeTab !== 'settings' && (
