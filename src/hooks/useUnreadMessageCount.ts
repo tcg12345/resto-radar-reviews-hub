@@ -55,7 +55,7 @@ export function useUnreadMessageCount() {
 
     fetchUnreadCount();
 
-    // Set up real-time subscription for new messages
+    // Set up real-time subscription for new messages and read status updates
     const subscription = supabase
       .channel('unread-messages')
       .on('postgres_changes', 
@@ -75,6 +75,15 @@ export function useUnreadMessageCount() {
             if (participant && (!participant.last_read_at || payload.new.created_at > participant.last_read_at)) {
               setUnreadCount(prev => prev + 1);
             }
+          }
+        }
+      )
+      .on('postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'chat_room_participants' },
+        async (payload) => {
+          // If the current user's last_read_at was updated, refresh count
+          if (payload.new.user_id === user.id) {
+            fetchUnreadCount();
           }
         }
       )

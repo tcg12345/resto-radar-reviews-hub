@@ -50,6 +50,9 @@ export function ChatWindow({ roomId }: ChatWindowProps) {
     setIsLoading(true);
     fetchChatData();
     setupRealtimeSubscription();
+    
+    // Mark messages as read when chat window opens
+    markMessagesAsRead();
   }, [roomId, user]);
 
   useEffect(() => {
@@ -201,6 +204,20 @@ export function ChatWindow({ roomId }: ChatWindowProps) {
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const markMessagesAsRead = async () => {
+    if (!roomId || !user) return;
+
+    try {
+      await supabase
+        .from('chat_room_participants')
+        .update({ last_read_at: new Date().toISOString() })
+        .eq('room_id', roomId)
+        .eq('user_id', user.id);
+    } catch (error) {
+      console.error('Error marking messages as read:', error);
+    }
   };
 
   const sendMessage = async () => {
