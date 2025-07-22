@@ -350,10 +350,6 @@ export function RestaurantDetailPage() {
                   <span className="text-sm font-medium text-center">Directions</span>
                 </a>}
 
-              {restaurant.reservation_url && <a href={restaurant.reservation_url} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-2 p-3 rounded-lg bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors hover-scale">
-                  <ExternalLink className="h-5 w-5 text-orange-600" />
-                  <span className="text-sm font-medium text-center">Reserve</span>
-                </a>}
             </div>
 
             {/* Restaurant Stats */}
