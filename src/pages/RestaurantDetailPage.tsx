@@ -295,7 +295,7 @@ export function RestaurantDetailPage() {
           {/* Main Info */}
           <div className="lg:col-span-2 space-y-6">
             <div>
-              <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              <h1 className="text-5xl font-bold mb-4 pb-2 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent leading-tight">
                 {restaurant.name}
               </h1>
               <div className="flex items-center gap-4 mb-6">
