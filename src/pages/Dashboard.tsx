@@ -87,9 +87,8 @@ export default function Dashboard() {
     );
   };
 
-  // Always use desktop version
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col bg-background mobile-viewport">
       {activeTab !== 'settings' && (
         <Navbar 
           activeTab={activeTab} 
@@ -97,8 +96,10 @@ export default function Dashboard() {
         />
       )}
       
-      <main className="flex-1">
-        {renderContent()}
+      <main className="flex-1 pb-0 lg:pb-0 pb-16 mobile-scroll">
+        <div className="min-h-full mobile-container">
+          {renderContent()}
+        </div>
       </main>
       
       {activeTab !== 'settings' && activeTab !== 'map' && <AIChatbot />}
