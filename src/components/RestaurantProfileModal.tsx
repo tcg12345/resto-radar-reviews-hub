@@ -122,7 +122,7 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
   };
 
   const handleViewMoreReviews = () => {
-    const searchQuery = `${place.name} ${place.formatted_address} reviews site:google.com`;
+    const searchQuery = `${place.name} reviews`;
     window.open(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, '_blank');
   };
 
