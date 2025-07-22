@@ -197,6 +197,33 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          created_at: string | null
+          endpoint: string
+          id: string
+          request_count: number | null
+          user_id: string | null
+          window_start: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          endpoint: string
+          id?: string
+          request_count?: number | null
+          user_id?: string | null
+          window_start?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          request_count?: number | null
+          user_id?: string | null
+          window_start?: string | null
+        }
+        Relationships: []
+      }
       reservations: {
         Row: {
           confirmation_notes: string | null
@@ -377,6 +404,15 @@ export type Database = {
       }
       check_email_exists: {
         Args: { email_to_check: string }
+        Returns: boolean
+      }
+      check_rate_limit: {
+        Args: {
+          target_user_id: string
+          endpoint_name: string
+          max_requests?: number
+          window_minutes?: number
+        }
         Returns: boolean
       }
       get_cached_friend_activity: {
