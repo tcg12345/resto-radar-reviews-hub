@@ -407,16 +407,16 @@ export function NotificationsPanel() {
                           {/* Show message button if there's a message */}
                           {notification.data?.share_message && (
                             <Button 
-                              variant="ghost" 
+                              variant="outline" 
                               size="sm"
-                              className="h-7 px-2 text-muted-foreground hover:text-primary transition-colors"
+                              className="h-8 px-3 text-xs border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary font-medium"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 showFullMessage(notification.data.share_message);
                               }}
                             >
                               <MessageSquare className="h-3 w-3 mr-1" />
-                              <span className="text-xs">View Details</span>
+                              <span className="text-xs">View Message</span>
                             </Button>
                           )}
                           
