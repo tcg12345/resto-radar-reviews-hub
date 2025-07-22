@@ -687,6 +687,10 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: undefined
       }
+      user_participates_in_room: {
+        Args: { room_id: string; user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
