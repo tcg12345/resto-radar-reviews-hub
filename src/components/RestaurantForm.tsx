@@ -46,6 +46,7 @@ interface RestaurantFormProps {
   onSubmit: (data: RestaurantFormData) => void;
   onCancel: () => void;
   defaultWishlist?: boolean;
+  hideSearch?: boolean;
 }
 
 const cuisineOptions = [
@@ -57,7 +58,7 @@ const cuisineOptions = [
 // Add "Other" at the end
 cuisineOptions.push('Other');
 
-export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlist = false }: RestaurantFormProps) {
+export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlist = false, hideSearch = false }: RestaurantFormProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [isProcessingPhotos, setIsProcessingPhotos] = useState(false);
   const [photoProgress, setPhotoProgress] = useState(0);
@@ -825,29 +826,31 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
         </DialogContent>
       </Dialog>
       
-      {/* Google Places Restaurant Search */}
-      <div className="p-4 border rounded-lg bg-muted/30 space-y-4">
-        <div className="flex items-center gap-2">
-          <Search className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-semibold">Search for Restaurant</h3>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          Search for a restaurant using Google Places to automatically fill in all details including website, phone, and more.
-        </p>
-        
-        <RestaurantSearchSelect 
-          onRestaurantSelect={handleRestaurantSelect}
-          placeholder="Search for a restaurant (e.g., 'Le Bernardin New York')"
-          disabled={isAIEnhancing}
-        />
-        
-        {isAIEnhancing && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-            <span>AI is analyzing restaurant details...</span>
+      {/* Google Places Restaurant Search - only show if not hiding search */}
+      {!hideSearch && (
+        <div className="p-4 border rounded-lg bg-muted/30 space-y-4">
+          <div className="flex items-center gap-2">
+            <Search className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-semibold">Search for Restaurant</h3>
           </div>
-        )}
-      </div>
+          <p className="text-sm text-muted-foreground">
+            Search for a restaurant using Google Places to automatically fill in all details including website, phone, and more.
+          </p>
+          
+          <RestaurantSearchSelect 
+            onRestaurantSelect={handleRestaurantSelect}
+            placeholder="Search for a restaurant (e.g., 'Le Bernardin New York')"
+            disabled={isAIEnhancing}
+          />
+          
+          {isAIEnhancing && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+              <span>AI is analyzing restaurant details...</span>
+            </div>
+          )}
+        </div>
+      )}
       
       <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">

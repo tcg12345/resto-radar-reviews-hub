@@ -82,6 +82,7 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
   const [aiCategories, setAiCategories] = useState<string[]>([]);
   const [isLoadingAiAnalysis, setIsLoadingAiAnalysis] = useState(false);
   const [isRestaurantDialogOpen, setIsRestaurantDialogOpen] = useState(false);
+  const [enhancedRestaurantData, setEnhancedRestaurantData] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Analyze restaurant with AI on component mount
@@ -240,12 +241,23 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
     }
   };
 
-  const handleAddToRatings = () => {
+  const handleAddToRatings = async () => {
     if (!user) {
       toast.error('Please sign in to add ratings');
       return;
     }
-    setIsRestaurantDialogOpen(true);
+    
+    // Show loading and enhance data with AI
+    toast.info('Analyzing restaurant with AI...');
+    try {
+      const enhanced = await getAIEnhancedRestaurantData();
+      setEnhancedRestaurantData(enhanced);
+      setIsRestaurantDialogOpen(true);
+    } catch (error) {
+      console.error('Error enhancing restaurant data:', error);
+      toast.error('Failed to analyze restaurant, but you can still add it manually');
+      setIsRestaurantDialogOpen(true);
+    }
   };
 
   const handleRestaurantFormSubmit = async (data: RestaurantFormData) => {
@@ -259,8 +271,10 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
     }
   };
 
-  // Create pre-filled restaurant data for the form
-  const getPrefilledRestaurantData = () => {
+  // Create AI-enhanced restaurant data for the form
+  const getAIEnhancedRestaurantData = async () => {
+    console.log('Enhancing restaurant data with AI...');
+    
     // Parse address components
     const addressParts = place.formatted_address.split(',').map(part => part.trim());
     let city = '';
@@ -282,13 +296,40 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
       }
     }
 
+    // Use AI to determine Michelin stars and enhance cuisine
+    let michelinStars = place.rating && place.rating >= 4.5 ? 1 : 0; // Default fallback
+    let enhancedCuisine = aiCuisine;
+    let enhancedPriceRange = place.price_level;
+
+    try {
+      // Get Michelin stars using AI
+      const { data: michelinData } = await supabase.functions.invoke('ai-michelin-detector', {
+        body: {
+          name: place.name,
+          address: place.formatted_address,
+          city: city,
+          country: country,
+          cuisine: aiCuisine || place.types.filter(type => !['establishment', 'point_of_interest', 'food'].includes(type))[0] || 'restaurant',
+          notes: `${place.name} - Google rating: ${place.rating || 'N/A'}`
+        }
+      });
+      
+      if (michelinData && michelinData.michelinStars !== null) {
+        michelinStars = michelinData.michelinStars;
+        console.log('AI detected Michelin stars:', michelinStars);
+      }
+    } catch (error) {
+      console.log('Could not determine Michelin stars with AI:', error);
+    }
+
     return {
       name: place.name,
       address: place.formatted_address.split(',')[0]?.trim() || place.formatted_address,
       city: city,
       country: country,
-      cuisine: aiCuisine || place.types.filter(type => !['establishment', 'point_of_interest', 'food'].includes(type))[0] || 'restaurant',
-      priceRange: place.price_level || undefined,
+      cuisine: enhancedCuisine || place.types.filter(type => !['establishment', 'point_of_interest', 'food'].includes(type))[0] || 'restaurant',
+      priceRange: enhancedPriceRange || undefined,
+      michelinStars: michelinStars,
       notes: '',
       latitude: place.geometry?.location?.lat || undefined,
       longitude: place.geometry?.location?.lng || undefined,
@@ -298,6 +339,11 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
       photos: [],
       isWishlist: false,
     };
+  };
+
+  // Keep the original function for backward compatibility
+  const getPrefilledRestaurantData = async () => {
+    return await getAIEnhancedRestaurantData();
   };
 
   const handleCallRestaurant = () => {
@@ -729,10 +775,11 @@ export function RestaurantProfileModal({ place, onClose }: RestaurantProfileModa
       <RestaurantDialog
         isOpen={isRestaurantDialogOpen}
         onOpenChange={setIsRestaurantDialogOpen}
-        restaurant={getPrefilledRestaurantData() as any}
+        restaurant={(enhancedRestaurantData || getPrefilledRestaurantData()) as any}
         onSave={handleRestaurantFormSubmit}
         dialogType="add"
         defaultWishlist={false}
+        hideSearch={true}
       />
     </>
   );
