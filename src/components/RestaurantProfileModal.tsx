@@ -588,24 +588,28 @@ export function RestaurantProfileModal({
                                         🍽️ Dine-in
                                       </Badge>}
 
-                                    {place.types.includes('bar') && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-pink-50 text-pink-700 border-pink-200">
-                                        🍺 Bar
+                                    {(place.types.includes('wheelchair_accessible_entrance') || place.types.includes('wheelchair_accessible')) && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-teal-50 text-teal-700 border-teal-200">
+                                        ♿ Accessible
                                       </Badge>}
 
-                                    {place.types.includes('reservation') && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border-emerald-200">
-                                        📅 Reservations
+                                    {place.types.includes('wifi') && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-indigo-50 text-indigo-700 border-indigo-200">
+                                        📶 WiFi
                                       </Badge>}
 
-                                    {place.formatted_phone_number && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-indigo-50 text-indigo-700 border-indigo-200">
-                                        📞 Phone Available
+                                    {place.types.includes('accepts_credit_cards') && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-green-50 text-green-700 border-green-200">
+                                        💳 Cards Accepted
                                       </Badge>}
 
-                                    {place.website && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-cyan-50 text-cyan-700 border-cyan-200">
-                                        🌐 Website
+                                    {place.types.includes('outdoor_seating') && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border-emerald-200">
+                                        🌤️ Outdoor Seating
                                       </Badge>}
 
-                                    {place.user_ratings_total && place.user_ratings_total > 100 && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-yellow-50 text-yellow-700 border-yellow-200">
-                                        ⭐ Popular ({place.user_ratings_total}+ reviews)
+                                    {place.types.includes('parking') && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-slate-50 text-slate-700 border-slate-200">
+                                        🅿️ Parking
+                                      </Badge>}
+
+                                    {place.yelpData?.transactions?.includes('pickup') && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-cyan-50 text-cyan-700 border-cyan-200">
+                                        📦 Pickup
                                       </Badge>}
                                   </div>
                                 </div>
