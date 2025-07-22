@@ -587,6 +587,26 @@ export function RestaurantProfileModal({
                                     {place.types.includes('dine_in') && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-purple-50 text-purple-700 border-purple-200">
                                         🍽️ Dine-in
                                       </Badge>}
+
+                                    {place.types.includes('bar') && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-pink-50 text-pink-700 border-pink-200">
+                                        🍺 Bar
+                                      </Badge>}
+
+                                    {place.types.includes('reservation') && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border-emerald-200">
+                                        📅 Reservations
+                                      </Badge>}
+
+                                    {place.formatted_phone_number && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-indigo-50 text-indigo-700 border-indigo-200">
+                                        📞 Phone Available
+                                      </Badge>}
+
+                                    {place.website && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-cyan-50 text-cyan-700 border-cyan-200">
+                                        🌐 Website
+                                      </Badge>}
+
+                                    {place.user_ratings_total && place.user_ratings_total > 100 && <Badge variant="outline" className="text-xs font-medium px-2 py-1 rounded-full bg-yellow-50 text-yellow-700 border-yellow-200">
+                                        ⭐ Popular ({place.user_ratings_total}+ reviews)
+                                      </Badge>}
                                   </div>
                                 </div>
                               </div>
