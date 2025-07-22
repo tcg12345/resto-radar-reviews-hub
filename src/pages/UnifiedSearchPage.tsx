@@ -408,11 +408,11 @@ export default function UnifiedSearchPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={value => setActiveTab(value as 'global' | 'smart' | 'recommendations' | 'friends')}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="global">Restaurant Search</TabsTrigger>
-          <TabsTrigger value="smart">Smart Discovery</TabsTrigger>
-          <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
-          <TabsTrigger value="friends">Friends' Activity</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1 md:gap-0 h-auto md:h-10 p-1">
+          <TabsTrigger value="global" className="text-xs md:text-sm px-2 md:px-3 py-2 md:py-1.5">Search</TabsTrigger>
+          <TabsTrigger value="smart" className="text-xs md:text-sm px-2 md:px-3 py-2 md:py-1.5">Discovery</TabsTrigger>
+          <TabsTrigger value="recommendations" className="text-xs md:text-sm px-2 md:px-3 py-2 md:py-1.5">Recommendations</TabsTrigger>
+          <TabsTrigger value="friends" className="text-xs md:text-sm px-2 md:px-3 py-2 md:py-1.5">Friends</TabsTrigger>
         </TabsList>
 
         <TabsContent value="global" className="space-y-6">
