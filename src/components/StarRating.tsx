@@ -22,15 +22,15 @@ export function StarRating({
   const [sliderStep, setSliderStep] = useState<number>(0.01);
 
   const sizeClasses = {
-    sm: 'h-4 w-4',
-    md: 'h-5 w-5',
-    lg: 'h-6 w-6'
+    sm: 'h-5 w-5',
+    md: 'h-6 w-6',
+    lg: 'h-7 w-7'
   };
 
   const textSizeClasses = {
-    sm: 'text-sm',
-    md: 'text-base',
-    lg: 'text-lg'
+    sm: 'text-base',
+    md: 'text-lg',
+    lg: 'text-xl'
   };
 
   const displayRating = hoverRating ?? rating;
