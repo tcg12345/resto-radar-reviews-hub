@@ -1568,10 +1568,6 @@ export function FriendsPage({
                               </div>
 
                               <div className="flex md:flex-col items-start md:items-end gap-4">
-                                <Badge variant="outline" className="flex items-center gap-1">
-                                  <Heart className="h-3 w-3" />
-                                  Wishlist
-                                </Badge>
                                 <div className="flex flex-col gap-2">
                                   <Button
                                     variant="outline"
