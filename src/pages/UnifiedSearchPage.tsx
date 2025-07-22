@@ -403,7 +403,7 @@ export default function UnifiedSearchPage() {
   const getPhotoUrl = (photoReference: string) => {
     return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photoReference}&key=${import.meta.env.VITE_GOOGLE_PLACES_API_KEY}`;
   };
-  return <div className="container mx-auto p-6 max-w-7xl">
+  return <div className="w-full p-6">
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
           Search & Discover Restaurants

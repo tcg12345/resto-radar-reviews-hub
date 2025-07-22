@@ -1033,7 +1033,7 @@ export function FriendsPage({
   // Friend Profile View
   if (currentView === 'profile' && viewingFriend) {
     return (
-      <div className="w-full px-4 py-8 max-w-7xl mx-auto">
+      <div className="w-full px-4 py-8">
         {/* Header with back button */}
         <div className="flex items-center gap-4 mb-8">
           <Button
@@ -1721,7 +1721,7 @@ export function FriendsPage({
   }
 
   return (
-    <div className="w-full px-4 py-8 max-w-7xl mx-auto">
+    <div className="w-full px-4 py-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">
