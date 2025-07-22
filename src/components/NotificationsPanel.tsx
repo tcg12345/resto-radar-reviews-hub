@@ -372,7 +372,7 @@ export function NotificationsPanel() {
                       
                       {/* Restaurant card */}
                       {notification.type === 'restaurant_share' && (
-                        <div className="bg-background rounded-lg border p-3 shadow-sm">
+                        <div className="bg-background rounded-lg border p-3 shadow-sm w-full">
                           <div className="flex items-center justify-between">
                             <div className="flex-1 min-w-0">
                               <h4 className="font-semibold text-foreground text-sm truncate">
