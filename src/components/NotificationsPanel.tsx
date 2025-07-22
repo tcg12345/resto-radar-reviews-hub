@@ -370,31 +370,31 @@ export function NotificationsPanel() {
                         <span className="text-xs text-muted-foreground">shared a restaurant</span>
                       </div>
                       
-                       {/* Restaurant card */}
-                       {notification.type === 'restaurant_share' && (
-                         <div className="bg-background rounded-lg border p-3 shadow-sm w-full -ml-14 pl-14">
-                           <div className="flex items-center justify-between">
-                             <div className="flex-1 min-w-0">
-                               <h4 className="font-semibold text-foreground text-sm truncate">
-                                 {notification.data?.restaurant_name || 'Restaurant'}
-                               </h4>
-                               {notification.data?.share_message && (
-                                 <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                   "{notification.data.share_message}"
-                                 </p>
-                               )}
-                             </div>
-                             <Button
-                               variant="outline"
-                               size="sm"
-                               className="h-8 text-xs px-3 ml-3 pointer-events-none shrink-0"
-                             >
-                               <Eye className="h-3 w-3 mr-1" />
-                               View
-                             </Button>
-                           </div>
-                         </div>
-                       )}
+                      {/* Restaurant card */}
+                      {notification.type === 'restaurant_share' && (
+                        <div className="bg-background rounded-lg border p-3 shadow-sm w-full">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-foreground text-sm truncate">
+                                {notification.data?.restaurant_name || 'Restaurant'}
+                              </h4>
+                              {notification.data?.share_message && (
+                                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                  "{notification.data.share_message}"
+                                </p>
+                              )}
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 text-xs px-3 ml-3 pointer-events-none shrink-0"
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              View
+                            </Button>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Footer with time and actions */}
                       <div className="flex justify-between items-center pt-1">
