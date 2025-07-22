@@ -268,7 +268,7 @@ export function RestaurantDetailPage() {
           {/* Main Info - More space */}
           <div className="lg:col-span-3 space-y-4">
             <div className="animate-fade-in">
-              <h1 className="text-4xl lg:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent leading-normal">
+              <h1 className="text-4xl lg:text-5xl font-bold mb-3 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent leading-normal">
                 {restaurant.name}
               </h1>
               
