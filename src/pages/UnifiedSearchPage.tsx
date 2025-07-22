@@ -321,15 +321,14 @@ export default function UnifiedSearchPage() {
           )?.replace(/_/g, ' ') || 'Restaurant'
         }));
         
-        // Show results immediately for faster response
-        setSearchResults(resultsWithFallback);
-        
-        // Enhance with Yelp data in background (non-blocking)
-        enhanceWithYelp(resultsWithFallback).then(enhancedResults => {
+        // Load ALL data before showing results to prevent staggered loading
+        try {
+          const enhancedResults = await enhanceWithYelp(resultsWithFallback);
           setSearchResults(enhancedResults);
-        }).catch(error => {
-          console.warn('Failed to enhance with Yelp data:', error);
-        });
+        } catch (error) {
+          console.warn('Failed to enhance with Yelp data, showing basic results:', error);
+          setSearchResults(resultsWithFallback);
+        }
       } else {
         toast.error('No results found');
         setSearchResults([]);
