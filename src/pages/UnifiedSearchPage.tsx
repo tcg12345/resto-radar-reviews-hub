@@ -403,12 +403,382 @@ export default function UnifiedSearchPage() {
   return (
     <div className="w-full">
       {/* Mobile Search Section */}
-      <div className="lg:hidden px-4 py-6">
+      <div className="lg:hidden px-4 py-4 space-y-4">
         <MobileRestaurantSearch onPlaceSelect={handlePlaceClick} />
+        
+        {/* Mobile Results */}
+        {(isLoading || searchResults.length > 0) && (
+          <div className="space-y-4">
+            {isLoading ? (
+              <div className="grid gap-3">
+                {[...Array(3)].map((_, i) => (
+                  <SearchResultSkeleton key={i} />
+                ))}
+              </div>
+            ) : (
+              <div className="grid gap-3">
+                {searchResults.map(place => (
+                  <Card key={place.place_id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => handlePlaceClick(place)}>
+                    <CardContent className="p-3">
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="font-semibold text-base leading-tight line-clamp-2" onClick={() => handlePlaceClick(place)}>
+                          {place.name}
+                        </h3>
+                        <Button variant="ghost" size="sm" onClick={e => {
+                          e.stopPropagation();
+                          handleQuickAdd(place);
+                        }} className="shrink-0 ml-2 p-1">
+                          <Heart className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    
+                      <div className="flex items-center gap-2 mb-2" onClick={() => handlePlaceClick(place)}>
+                        <MapPin className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground line-clamp-1">
+                          {place.formatted_address}
+                        </span>
+                      </div>
+
+                      {place.rating && (
+                        <div className="flex items-center gap-2 mb-2" onClick={() => handlePlaceClick(place)}>
+                          <Star className="h-3 w-3 text-yellow-500 fill-current" />
+                          <span className="text-sm font-medium">{place.rating}</span>
+                          {place.user_ratings_total && (
+                            <span className="text-xs text-muted-foreground">
+                              ({place.user_ratings_total.toLocaleString()})
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between" onClick={() => handlePlaceClick(place)}>
+                        <div className="flex">
+                          <span className="text-sm font-bold text-green-600">
+                            {place.yelpData?.price || getPriceDisplay(place.price_level)}
+                          </span>
+                        </div>
+                        
+                        {place.opening_hours?.open_now !== undefined && (
+                          <Badge variant={place.opening_hours.open_now ? "default" : "destructive"} className="text-xs">
+                            {place.opening_hours.open_now ? "Open" : "Closed"}
+                          </Badge>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Desktop Search Section */}
       <div className="hidden lg:block relative rounded-2xl bg-gradient-to-br from-background via-background to-primary/10 border border-primary/20 shadow-2xl">
+        {/* ... keep existing desktop code ... */}
+        <div className="relative p-8">
+          <div className="mb-8 text-center">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-2">
+              Discover Your Next Favorite Restaurant
+            </h2>
+            <p className="text-muted-foreground">Search by name, cuisine, or let us help you find something new</p>
+          </div>
+
+          <div className="mb-8">
+            <div className="flex justify-center">
+              <div className="px-6 py-3 rounded-full text-base font-medium bg-primary text-primary-foreground shadow-lg flex items-center gap-3">
+                <span>🔍</span>
+                <span>Restaurant Search</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+              <div className="lg:col-span-2 space-y-2 relative" ref={searchRef}>
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary-glow/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="relative bg-background/80 backdrop-blur-sm rounded-xl border border-border group-hover:border-primary/50 transition-all duration-300">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 group-hover:text-primary transition-colors duration-300" />
+                    <Input 
+                      placeholder="🔍 What are you craving? Search by name, cuisine, atmosphere, or special dishes..." 
+                      value={searchQuery} 
+                      onChange={e => {
+                        console.log('Search input changed:', e.target.value);
+                        setSearchQuery(e.target.value);
+                        if (e.target.value.length > 2) {
+                          console.log('Setting showLiveResults to true');
+                          setShowLiveResults(true);
+                        } else {
+                          console.log('Setting showLiveResults to false');
+                          setShowLiveResults(false);
+                        }
+                      }} 
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          handleSearch();
+                        }
+                      }} 
+                      className="pl-12 pr-10 h-14 bg-transparent border-none text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none" 
+                    />
+                    {searchQuery && (
+                      <button 
+                        onClick={clearSearch} 
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-muted/50"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
+                    
+                    {showLiveResults && (liveSearchResults.length > 0 || isLiveSearching) && (
+                      <div className="absolute top-full left-0 right-0 bg-card border border-border rounded-xl shadow-2xl animate-fade-in" style={{
+                        position: 'absolute',
+                        zIndex: 99999,
+                        marginTop: '8px'
+                      }}>
+                        <div className="max-h-96 overflow-y-auto bg-card">
+                          {isLiveSearching && (
+                            <div className="px-4 py-4 text-center text-muted-foreground bg-card">
+                              <div className="flex items-center justify-center gap-2">
+                                <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                                <span className="text-sm">Searching restaurants...</span>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {!isLiveSearching && liveSearchResults.map((place, index) => (
+                            <div key={place.place_id} className="px-4 py-4 hover:bg-primary/10 cursor-pointer transition-colors duration-200 border-b border-border/30 last:border-b-0 bg-card">
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="flex-1 min-w-0" onClick={() => {
+                                  handlePlaceClick(place);
+                                  setShowLiveResults(false);
+                                }}>
+                                  <div className="flex items-start gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 flex-shrink-0" />
+                                    <div className="min-w-0 flex-1">
+                                      <div className="font-medium text-sm hover:text-primary transition-colors line-clamp-1">
+                                        {place.name}
+                                      </div>
+                                      <div className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+                                        {place.formatted_address}
+                                      </div>
+                                      <div className="flex items-center gap-3 mt-1">
+                                        {place.rating && (
+                                          <div className="flex items-center gap-1">
+                                            <Star className="h-2.5 w-2.5 fill-yellow-400 text-yellow-400" />
+                                            <span className="text-xs font-medium">{place.rating}</span>
+                                          </div>
+                                        )}
+                                        {place.price_level && (
+                                          <div className="text-xs text-muted-foreground">
+                                            {getPriceDisplay(place.price_level)}
+                                          </div>
+                                        )}
+                                        {place.opening_hours?.open_now !== undefined && (
+                                          <div className={`text-xs px-1.5 py-0.5 rounded-full text-xs ${place.opening_hours.open_now ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                            {place.opening_hours.open_now ? 'Open' : 'Closed'}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleQuickAdd(place);
+                                    }}
+                                    className="h-7 w-7 p-0 hover:bg-muted/80"
+                                  >
+                                    <Heart className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2 relative">
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-gradient-to-r from-secondary/20 to-secondary-glow/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="relative bg-background/80 backdrop-blur-sm rounded-xl border border-border group-hover:border-primary/50 transition-all duration-300">
+                    <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 group-hover:text-primary transition-colors duration-300" />
+                    <Input 
+                      placeholder="📍 Location (optional)" 
+                      value={locationQuery} 
+                      onChange={e => {
+                        setLocationQuery(e.target.value);
+                        generateLocationSuggestions(e.target.value);
+                        setShowLocationSuggestions(e.target.value.length > 1);
+                      }} 
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          handleSearch();
+                          setShowLocationSuggestions(false);
+                        } else if (e.key === 'Escape') {
+                          setShowLocationSuggestions(false);
+                        }
+                      }} 
+                      onFocus={() => locationQuery.length > 1 && setShowLocationSuggestions(true)} 
+                      onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 150)} 
+                      className="pl-12 pr-4 h-14 bg-transparent border-none text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none" 
+                    />
+                    
+                    {showLocationSuggestions && locationSuggestions.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 bg-card border border-border rounded-xl shadow-2xl z-[99999] mt-2">
+                        <div className="max-h-64 overflow-y-auto">
+                          {locationSuggestions.map((suggestion, index) => (
+                            <div key={index} className="px-4 py-3 hover:bg-primary/10 cursor-pointer transition-colors border-b border-border/30 last:border-b-0" onClick={() => handleLocationSuggestionClick(suggestion)}>
+                              <div className="flex items-center gap-2">
+                                <MapPin className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm">{suggestion.description}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="h-14 flex items-end">
+                  <Button onClick={handleSearch} disabled={isLoading} className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-primary to-primary-glow hover:from-primary-glow hover:to-primary shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:transform-none disabled:scale-100">
+                    {isLoading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                        <span className="hidden sm:inline">Searching...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Search className="h-5 w-5" />
+                        <span className="hidden sm:inline">Find Restaurants</span>
+                        <span className="sm:hidden">Find</span>
+                      </div>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+            
+            {(locationQuery || userLocation) && (
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">
+                  {locationQuery ? `Searching near "${locationQuery}"` : 'Searching near your location'}
+                  {!locationQuery && userLocation && ' - specify a location above for more targeted results'}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Results Section */}
+      {(isLoading || searchResults.length > 0) && (
+        <div className="hidden lg:block">
+          <Tabs defaultValue="list" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="list">List View</TabsTrigger>
+              <TabsTrigger value="map">Map View</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="list" className="space-y-4">
+              {isLoading ? (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {[...Array(6)].map((_, i) => (
+                    <SearchResultSkeleton key={i} />
+                  ))}
+                </div>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                   {searchResults.map(place => (
+                     <Card key={place.place_id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handlePlaceClick(place)}>
+                       <CardContent className="p-4">
+                         <div className="flex items-start justify-between mb-2">
+                           <h3 className="font-semibold text-lg leading-tight line-clamp-2" onClick={() => handlePlaceClick(place)}>
+                             {place.name}
+                           </h3>
+                           <Button variant="ghost" size="sm" onClick={e => {
+                             e.stopPropagation();
+                             handleQuickAdd(place);
+                           }} className="shrink-0 ml-2">
+                             <Heart className="h-4 w-4" />
+                           </Button>
+                         </div>
+                       
+                         <div className="flex items-center gap-2 mb-2" onClick={() => handlePlaceClick(place)}>
+                           <MapPin className="h-4 w-4 text-muted-foreground" />
+                           <span className="text-sm text-muted-foreground line-clamp-1">
+                             {place.formatted_address}
+                           </span>
+                         </div>
+
+                         {place.rating && (
+                           <div className="flex items-center gap-2 mb-2" onClick={() => handlePlaceClick(place)}>
+                             <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                             <span className="font-medium">{place.rating}</span>
+                             {place.user_ratings_total && (
+                               <span className="text-sm text-muted-foreground">
+                                 ({place.user_ratings_total.toLocaleString()})
+                               </span>
+                             )}
+                           </div>
+                         )}
+
+                         <div className="flex items-center justify-between mb-2" onClick={() => handlePlaceClick(place)}>
+                           <div className="flex">
+                             <span className="text-lg font-bold text-green-600">
+                               {place.yelpData?.price || getPriceDisplay(place.price_level)}
+                             </span>
+                           </div>
+                           
+                           {place.opening_hours?.open_now !== undefined && (
+                             <Badge variant={place.opening_hours.open_now ? "default" : "destructive"}>
+                               {place.opening_hours.open_now ? "Open" : "Closed"}
+                             </Badge>
+                           )}
+                         </div>
+
+                         {place.yelpData && (
+                           <Badge variant="secondary" className="text-xs bg-red-100 text-red-800 border-red-200">
+                             Yelp ✓
+                           </Badge>
+                         )}
+                       </CardContent>
+                     </Card>
+                   ))}
+                 </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="map" className="space-y-4">
+              <div className="w-full h-[600px] rounded-xl overflow-hidden border border-border">
+                <GlobalSearchMap 
+                  places={searchResults}
+                  onPlaceClick={handlePlaceClick}
+                  center={{
+                    lat: 40.7128,
+                    lng: -74.0060
+                  }} />
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      )}
+
+      {selectedPlace && <RestaurantProfileModal place={selectedPlace} onClose={() => setSelectedPlace(null)} />}
+    </div>
+  );
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary-glow/5 opacity-50" />
         

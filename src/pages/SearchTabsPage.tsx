@@ -40,19 +40,14 @@ export default function SearchTabsPage() {
 
   return (
     <>
-      {/* Mobile Version - Simplified */}
+      {/* Mobile Version - Improved */}
       <div className="lg:hidden w-full h-full">
-        {/* Compact Header */}
-        <div className="bg-background/95 backdrop-blur-sm border-b sticky top-16 z-10 px-4 py-2">
-          <h1 className="text-lg font-semibold text-foreground">Search</h1>
-        </div>
-
-        {/* Tab Switcher */}
-        <div className="p-4 pb-2">
+        {/* Tab Switcher - Fixed Position */}
+        <div className="bg-background/95 backdrop-blur-sm border-b sticky top-16 z-10 px-4 py-3">
           <div className="flex bg-muted/50 rounded-lg p-1">
             <button
               onClick={() => handleTabChange('global')}
-              className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${
+              className={`flex-1 py-2.5 px-3 rounded-md text-sm font-medium transition-all ${
                 activeTab === 'global'
                   ? 'bg-white text-foreground shadow-sm'
                   : 'text-muted-foreground'
@@ -62,7 +57,7 @@ export default function SearchTabsPage() {
             </button>
             <button
               onClick={() => handleTabChange('friends')}
-              className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${
+              className={`flex-1 py-2.5 px-3 rounded-md text-sm font-medium transition-all ${
                 activeTab === 'friends'
                   ? 'bg-white text-foreground shadow-sm'
                   : 'text-muted-foreground'
