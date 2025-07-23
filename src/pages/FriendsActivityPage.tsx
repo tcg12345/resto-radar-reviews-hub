@@ -453,10 +453,14 @@ export function FriendsActivityPage() {
       await loadRestaurantBatch(allFriendIds, friendsData, newOffset, true);
       setCurrentPage(nextPage);
       
-      // Scroll to top of the page after DOM update
-      setTimeout(() => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }, 100);
+      // Scroll to top of the page after render
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          document.documentElement.scrollTop = 0;
+          document.body.scrollTop = 0;
+        });
+      });
       
     } catch (error) {
       console.error('❌ Error loading next page:', error);
@@ -487,10 +491,14 @@ export function FriendsActivityPage() {
       await loadRestaurantBatch(allFriendIds, friendsData, newOffset, true);
       setCurrentPage(prevPage);
       
-      // Scroll to top of the page after DOM update
-      setTimeout(() => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }, 100);
+      // Scroll to top of the page after render
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          document.documentElement.scrollTop = 0;
+          document.body.scrollTop = 0;
+        });
+      });
       
     } catch (error) {
       console.error('❌ Error loading previous page:', error);
