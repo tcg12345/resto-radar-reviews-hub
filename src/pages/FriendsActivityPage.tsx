@@ -479,7 +479,7 @@ export function FriendsActivityPage() {
   };
 
   const loadMoreRestaurants = async () => {
-    console.log('loadMoreRestaurants called:', {
+    console.log('🔄 loadMoreRestaurants called:', {
       isLoadingMore,
       hasMore,
       allFriendIdsLength: allFriendIds.length,
@@ -489,9 +489,11 @@ export function FriendsActivityPage() {
     });
     
     if (isLoadingMore || !hasMore || allFriendIds.length === 0 || isLoadingRef.current) {
-      console.log('loadMoreRestaurants: Early return due to conditions');
+      console.log('❌ loadMoreRestaurants: Early return due to conditions');
       return;
     }
+    
+    console.log('✅ Starting to load more restaurants...');
     
     isLoadingRef.current = true;
     setIsLoadingMore(true);
@@ -504,11 +506,13 @@ export function FriendsActivityPage() {
       const preloadedData = preloadCache.get(cacheKey);
       
       if (preloadedData && preloadedData.length > 0) {
+        console.log('📦 Using preloaded data:', preloadedData.length, 'restaurants');
         // Use preloaded data for instant loading
         setFriendsRestaurants(prev => {
           // Deduplicate by ID to prevent duplicates
           const existingIds = new Set(prev.map(r => r.id));
           const newRestaurants = preloadedData.filter(r => !existingIds.has(r.id));
+          console.log('🔄 Adding', newRestaurants.length, 'new restaurants to existing', prev.length);
           return [...prev, ...newRestaurants];
         });
         setCurrentOffset(newOffset);
@@ -516,6 +520,7 @@ export function FriendsActivityPage() {
         
         // Check if we got fewer results than requested
         if (preloadedData.length < ITEMS_PER_PAGE) {
+          console.log('🚫 Setting hasMore to false - preloaded data < ITEMS_PER_PAGE');
           setHasMore(false);
         } else {
           // Preload next batch in background
@@ -525,10 +530,12 @@ export function FriendsActivityPage() {
           }, 100);
         }
       } else {
+        console.log('🗃️ No preloaded data, loading from database...');
         // Fallback to loading from database
         const friendsData = await getFriendsData();
         
         if (!friendsData.length) {
+          console.log('❌ No friends data available');
           setHasMore(false);
           return;
         }
@@ -542,8 +549,10 @@ export function FriendsActivityPage() {
         }, 100);
       }
     } catch (error) {
-      console.error('Error loading more restaurants:', error);
+      console.error('❌ Error loading more restaurants:', error);
+      toast.error('Failed to load more restaurants');
     } finally {
+      console.log('✅ loadMoreRestaurants completed');
       setIsLoadingMore(false);
       isLoadingRef.current = false;
     }
@@ -1194,32 +1203,23 @@ export function FriendsActivityPage() {
               </Card>
               ))}
 
-            {/* Skeleton cards for loading more */}
+            {/* Skeleton cards for loading more - show immediately when loading starts */}
             {isLoadingMore && (
-              <>
-                {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
-                  <RestaurantActivityCardSkeleton key={`skeleton-${index}`} />
-                ))}
-              </>
-            )}
-            </div>
-
-            {/* Loading trigger */}
-            {hasMore && !isLoadingMore && (
-              <div 
-                ref={loadingTriggerRef}
-                className="h-1 w-full"
-                style={{ gridColumn: '1 / -1' }}
-              />
-            )}
-
-            {/* Skeleton cards for loading more */}
-            {isLoadingMore && hasMore && (
               <>
                 {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
                   <RestaurantActivityCardSkeleton key={`skeleton-loading-${index}`} />
                 ))}
               </>
+            )}
+            </div>
+
+            {/* Loading trigger - invisible element that triggers more loading */}
+            {hasMore && !isLoadingMore && (
+              <div 
+                ref={loadingTriggerRef}
+                className="h-1 w-full opacity-0"
+                style={{ gridColumn: '1 / -1' }}
+              />
             )}
 
             {!hasMore && friendsRestaurants.length > 0 && (
