@@ -456,7 +456,7 @@ export function RestaurantDetailPage() {
             {/* Add to Wishlist Card - Left Side */}
             <Card className="bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 dark:from-rose-950/30 dark:via-pink-950/30 dark:to-purple-950/30 border-rose-200/50 dark:border-rose-800/50 shadow-xl backdrop-blur-sm overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 via-pink-500/5 to-purple-500/5" />
-              <CardContent className="relative px-8 pt-6 pb-4">
+              <CardContent className="relative px-8 pt-6 pb-1">
                 <div className="text-center space-y-3">
                   <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-rose-500 to-purple-600 rounded-xl shadow-lg mb-2">
                     <Heart className="h-6 w-6 text-white fill-current" />
