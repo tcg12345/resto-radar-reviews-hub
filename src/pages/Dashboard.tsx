@@ -13,7 +13,7 @@ import { AIChatbot } from '@/components/AIChatbot';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState<'home' | 'rated' | 'wishlist' | 'map' | 'search' | 'settings' | 'friends' | 'itinerary'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'itinerary'>('home');
   const [shouldOpenAddDialog, setShouldOpenAddDialog] = useState(false);
   const [viewFriendId, setViewFriendId] = useState<string | null>(null);
   const { restaurants, addRestaurant, updateRestaurant, deleteRestaurant } = useRestaurants();
@@ -53,7 +53,7 @@ export default function Dashboard() {
             onDeleteRestaurant={deleteRestaurant}
             shouldOpenAddDialog={shouldOpenAddDialog}
             onAddDialogClose={() => setShouldOpenAddDialog(false)}
-            onNavigateToMap={() => setActiveTab('map')}
+            onNavigateToMap={() => navigate('/map')}
             onOpenSettings={() => setActiveTab('settings')}
           />
         </div>
@@ -63,13 +63,7 @@ export default function Dashboard() {
             onAddRestaurant={addRestaurant}
             onEditRestaurant={updateRestaurant}
             onDeleteRestaurant={deleteRestaurant}
-          />
-        </div>
-        <div className={`${activeTab === 'map' ? 'block' : 'hidden'}`}>
-          <MapPage
-            restaurants={restaurants}
-            onEditRestaurant={updateRestaurant}
-            onDeleteRestaurant={deleteRestaurant}
+            onNavigateToMap={() => navigate('/map')}
           />
         </div>
         <div className={`${activeTab === 'search' ? 'block' : 'hidden'}`}>
@@ -103,7 +97,7 @@ export default function Dashboard() {
         </div>
       </main>
       
-      {activeTab !== 'settings' && activeTab !== 'map' && <AIChatbot />}
+      {activeTab !== 'settings' && <AIChatbot />}
     </div>
   );
 }

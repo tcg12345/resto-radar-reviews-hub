@@ -5,7 +5,7 @@ import { AIChatbot } from '@/components/AIChatbot';
 
 interface LayoutProps {
   children: ReactNode;
-  activeTab?: 'home' | 'rated' | 'wishlist' | 'map' | 'search' | 'settings' | 'friends' | 'itinerary';
+  activeTab?: 'home' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'itinerary';
   showNavbar?: boolean;
   showChatbot?: boolean;
 }
@@ -18,7 +18,7 @@ export function Layout({
 }: LayoutProps) {
   const navigate = useNavigate();
 
-  const handleTabChange = (tab: 'home' | 'rated' | 'wishlist' | 'map' | 'search' | 'settings' | 'friends' | 'itinerary') => {
+  const handleTabChange = (tab: 'home' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'itinerary') => {
     // Navigate to the appropriate route for each tab
     switch (tab) {
       case 'home':
@@ -29,9 +29,6 @@ export function Layout({
         break;
       case 'wishlist':
         navigate('/wishlist');
-        break;
-      case 'map':
-        navigate('/map');
         break;
       case 'search':
         navigate('/search/global');
@@ -51,7 +48,7 @@ export function Layout({
   };
 
   return (
-    <div className={`flex min-h-screen flex-col bg-background mobile-viewport ${activeTab === 'map' ? 'overflow-hidden' : ''}`}>
+    <div className={`flex min-h-screen flex-col bg-background mobile-viewport`}>
       {showNavbar && (
         <Navbar 
           activeTab={activeTab} 
@@ -59,8 +56,8 @@ export function Layout({
         />
       )}
       
-      <main className={`flex-1 ${activeTab === 'map' ? 'overflow-hidden' : 'pb-16 lg:pb-0'} mobile-scroll`}>
-        <div className={`min-h-full ${activeTab === 'map' ? 'overflow-hidden' : 'mobile-container'}`}>
+      <main className={`flex-1 pb-16 lg:pb-0 mobile-scroll`}>
+        <div className={`min-h-full mobile-container`}>
           {children}
         </div>
       </main>

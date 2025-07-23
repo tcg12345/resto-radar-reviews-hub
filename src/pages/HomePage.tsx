@@ -24,15 +24,17 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRestaurants } from '@/contexts/RestaurantContext';
+import { useNavigate } from 'react-router-dom';
 
 interface HomePageProps {
-  onNavigate: (tab: 'rated' | 'wishlist' | 'map' | 'search' | 'friends') => void;
+  onNavigate: (tab: 'rated' | 'wishlist' | 'search' | 'friends') => void;
   onOpenAddRestaurant: () => void;
 }
 
 export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePageProps) {
   const { user, profile } = useAuth();
   const { restaurants } = useRestaurants();
+  const navigate = useNavigate();
   const [rotatingCardIndex, setRotatingCardIndex] = useState(0);
 
   const ratedRestaurants = restaurants.filter(r => !r.isWishlist);
@@ -135,7 +137,7 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
       description: 'Explore your restaurants',
       icon: MapPin,
       color: 'bg-blue-500',
-      action: () => onNavigate('map')
+      action: () => navigate('/map')
     },
     {
       title: 'Wishlist',

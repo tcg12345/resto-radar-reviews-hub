@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Heart, RotateCcw } from 'lucide-react';
+import { Plus, Heart, RotateCcw, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RestaurantCard } from '@/components/RestaurantCard';
@@ -15,6 +15,7 @@ interface WishlistPageProps {
   onEditRestaurant: (id: string, data: RestaurantFormData) => void;
   onDeleteRestaurant: (id: string) => void;
   onRefresh?: () => void;
+  onNavigateToMap?: () => void;
 }
 
 export function WishlistPage({
@@ -23,6 +24,7 @@ export function WishlistPage({
   onEditRestaurant,
   onDeleteRestaurant,
   onRefresh,
+  onNavigateToMap,
 }: WishlistPageProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -91,6 +93,11 @@ export function WishlistPage({
       <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Restaurant Wishlist</h2>
         <div className="flex items-center gap-2">
+          {onNavigateToMap && (
+            <Button variant="outline" onClick={onNavigateToMap}>
+              <MapPin className="h-4 w-4" />
+            </Button>
+          )}
           {onRefresh && (
             <Button variant="outline" size="sm" onClick={onRefresh}>
               <RotateCcw className="h-4 w-4" />
