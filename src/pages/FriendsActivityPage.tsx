@@ -17,6 +17,7 @@ import { PriceRange } from '@/components/PriceRange';
 import { StarRating } from '@/components/StarRating';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ActivityFeedSkeleton } from '@/components/skeletons/ActivityFeedSkeleton';
+import { RestaurantActivityCardSkeleton } from '@/components/skeletons/RestaurantActivityCardSkeleton';
 
 interface FriendRestaurant {
   id: string;
@@ -1024,26 +1025,24 @@ export function FriendsActivityPage() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              ))}
+
+            {/* Skeleton cards for loading more */}
+            {isLoadingMore && (
+              <>
+                {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
+                  <RestaurantActivityCardSkeleton key={`skeleton-${index}`} />
+                ))}
+              </>
+            )}
             </div>
 
-            {/* Loading trigger and indicator */}
+            {/* Invisible loading trigger */}
             {hasMore && (
               <div 
                 ref={loadingTriggerRef}
-                className="flex justify-center items-center py-8"
-              >
-                {isLoadingMore ? (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                    <span>Loading more restaurants...</span>
-                  </div>
-                ) : (
-                  <div className="text-muted-foreground text-sm">
-                    Scroll down to load more
-                  </div>
-                )}
-              </div>
+                className="h-4"
+              />
             )}
 
             {!hasMore && friendsRestaurants.length > 0 && (
