@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, MapPin, Star, Heart, Phone, Globe, Navigation, Clock, Plus, Truck, ShoppingBag, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +14,6 @@ import { GlobalSearchMap } from '@/components/GlobalSearchMap';
 import { PersonalizedRecommendations } from '@/components/PersonalizedRecommendations';
 import { RestaurantProfileModal } from '@/components/RestaurantProfileModal';
 import { DiscoverPage } from '@/pages/DiscoverPage';
-import { FriendsActivityPage } from '@/pages/FriendsActivityPage';
 import { SearchResultSkeleton } from '@/components/skeletons/SearchResultSkeleton';
 interface GooglePlaceResult {
   place_id: string;
@@ -68,6 +68,7 @@ interface PlaceDetails extends GooglePlaceResult {
 }
 export type SearchType = 'name' | 'cuisine' | 'description';
 export default function UnifiedSearchPage() {
+  const navigate = useNavigate();
   const {
     user
   } = useAuth();
@@ -81,7 +82,7 @@ export default function UnifiedSearchPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLiveSearching, setIsLiveSearching] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<PlaceDetails | null>(null);
-  const [activeTab, setActiveTab] = useState<'global' | 'smart' | 'recommendations' | 'friends'>('global');
+  const [activeTab, setActiveTab] = useState<'global' | 'smart' | 'recommendations'>('global');
   const [userLocation, setUserLocation] = useState<{
     lat: number;
     lng: number;
@@ -408,7 +409,13 @@ export default function UnifiedSearchPage() {
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={value => setActiveTab(value as 'global' | 'smart' | 'recommendations' | 'friends')}>
+      <Tabs value={activeTab} onValueChange={(value) => {
+        if (value === 'friends') {
+          navigate('/friends-activity');
+        } else {
+          setActiveTab(value as 'global' | 'smart' | 'recommendations');
+        }
+      }}>
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1 md:gap-0 h-auto md:h-10 p-1">
           <TabsTrigger value="global" className="text-xs md:text-sm px-2 md:px-3 py-2 md:py-1.5">Search</TabsTrigger>
           <TabsTrigger value="smart" className="text-xs md:text-sm px-2 md:px-3 py-2 md:py-1.5">Discovery</TabsTrigger>
@@ -729,9 +736,6 @@ export default function UnifiedSearchPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="friends" className="space-y-6">
-          <FriendsActivityPage />
-        </TabsContent>
       </Tabs>
 
       {/* Restaurant Profile Modal */}
