@@ -282,17 +282,17 @@ export function RestaurantDetailPage() {
                 {restaurant.name}
               </h1>
               
-              {/* Rating Bar */}
-              <div className="flex items-center gap-4 mb-4 p-4 bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl border">
-                <div className="flex items-center gap-3">
-                  <StarRating rating={restaurant.rating} readonly size="lg" />
-                  
-                  
+              {/* Rating Bar - Only show for rated restaurants */}
+              {!restaurant.is_wishlist && (
+                <div className="flex items-center gap-4 mb-4 p-4 bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl border">
+                  <div className="flex items-center gap-3">
+                    <StarRating rating={restaurant.rating} readonly size="lg" />
+                  </div>
+                  {restaurant.michelin_stars > 0 && <div className="ml-auto">
+                      <MichelinStars stars={restaurant.michelin_stars} />
+                    </div>}
                 </div>
-                {restaurant.michelin_stars > 0 && <div className="ml-auto">
-                    <MichelinStars stars={restaurant.michelin_stars} />
-                  </div>}
-              </div>
+              )}
               
               {/* Quick Info Tags */}
               <div className="flex flex-wrap items-center gap-3 mb-4">
@@ -328,24 +328,26 @@ export function RestaurantDetailPage() {
               </Card>
             </div>
 
-            {/* Photos Section */}
-            {restaurant.photos && restaurant.photos.length > 0 ? (
-              <Card className="overflow-hidden animate-fade-in">
-                <CardContent className="p-0">
-                  <RestaurantPhotoCarousel photos={restaurant.photos} restaurantName={restaurant.name} />
-                </CardContent>
-              </Card>
-            ) : (
-              <Card className="overflow-hidden animate-fade-in">
-                <CardContent className="p-0">
-                  <div className="h-96 lg:h-[500px] bg-muted/30 flex items-center justify-center">
-                    <div className="text-center text-muted-foreground">
-                      <div className="text-lg font-medium mb-2">No Photos Added</div>
-                      <div className="text-sm">Photos will appear here when available</div>
+            {/* Photos Section - Only show for rated restaurants */}
+            {!restaurant.is_wishlist && (
+              restaurant.photos && restaurant.photos.length > 0 ? (
+                <Card className="overflow-hidden animate-fade-in">
+                  <CardContent className="p-0">
+                    <RestaurantPhotoCarousel photos={restaurant.photos} restaurantName={restaurant.name} />
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="overflow-hidden animate-fade-in">
+                  <CardContent className="p-0">
+                    <div className="h-96 lg:h-[500px] bg-muted/30 flex items-center justify-center">
+                      <div className="text-center text-muted-foreground">
+                        <div className="text-lg font-medium mb-2">No Photos Added</div>
+                        <div className="text-sm">Photos will appear here when available</div>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              )
             )}
           </div>
 
