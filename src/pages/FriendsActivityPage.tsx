@@ -75,23 +75,102 @@ export function FriendsActivityPage() {
   const [currentOffset, setCurrentOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [allFriendIds, setAllFriendIds] = useState<string[]>([]);
+  const [allRestaurantsCache, setAllRestaurantsCache] = useState<FriendRestaurant[]>([]);
+  const [restaurantMetadata, setRestaurantMetadata] = useState<{
+    totalCount: number;
+    ratedCount: number;
+    wishlistCount: number;
+    cities: Record<string, number>;
+    cuisines: Record<string, number>;
+  } | null>(null);
   const dataFetched = useRef(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadingTriggerRef = useRef<HTMLDivElement>(null);
-  const isLoadingRef = useRef(false); // Prevent concurrent loading
+  const isLoadingRef = useRef(false);
 
   const ITEMS_PER_PAGE = 10;
 
-  // Memoize expensive calculations
+  // Load metadata for all restaurants to show accurate filter counts
+  const loadRestaurantMetadata = async (friendIds: string[]) => {
+    try {
+      const { data: allRestaurants, error } = await supabase
+        .from('restaurants')
+        .select('id, cuisine, city, is_wishlist, rating')
+        .in('user_id', friendIds);
+
+      if (error || !allRestaurants) return null;
+
+      const metadata = {
+        totalCount: allRestaurants.length,
+        ratedCount: allRestaurants.filter(r => !r.is_wishlist && r.rating !== null).length,
+        wishlistCount: allRestaurants.filter(r => r.is_wishlist).length,
+        cities: {} as Record<string, number>,
+        cuisines: {} as Record<string, number>
+      };
+
+      // Count by city and cuisine
+      allRestaurants.forEach(restaurant => {
+        if (restaurant.city) {
+          metadata.cities[restaurant.city] = (metadata.cities[restaurant.city] || 0) + 1;
+        }
+        if (restaurant.cuisine) {
+          metadata.cuisines[restaurant.cuisine] = (metadata.cuisines[restaurant.cuisine] || 0) + 1;
+        }
+      });
+
+      return metadata;
+    } catch (error) {
+      console.error('Error loading metadata:', error);
+      return null;
+    }
+  };
+
+  // Get filter counts from metadata or fallback to current data
+  const getFilterCounts = () => {
+    if (restaurantMetadata) {
+      return {
+        total: restaurantMetadata.totalCount,
+        rated: restaurantMetadata.ratedCount,
+        wishlist: restaurantMetadata.wishlistCount,
+        cities: restaurantMetadata.cities,
+        cuisines: restaurantMetadata.cuisines
+      };
+    }
+    
+    // Fallback to current loaded data
+    const cities: Record<string, number> = {};
+    const cuisines: Record<string, number> = {};
+    
+    friendsRestaurants.forEach(r => {
+      cities[r.city] = (cities[r.city] || 0) + 1;
+      cuisines[r.cuisine] = (cuisines[r.cuisine] || 0) + 1;
+    });
+
+    return {
+      total: friendsRestaurants.length,
+      rated: friendsRestaurants.filter(r => !r.is_wishlist && r.rating !== null).length,
+      wishlist: friendsRestaurants.filter(r => r.is_wishlist).length,
+      cities,
+      cuisines
+    };
+  };
+
+  const filterCounts = getFilterCounts();
+
+  // Get unique values for filters from metadata
   const uniqueCuisines = React.useMemo(() => {
-    const cuisines = friendsRestaurants.map(r => r.cuisine);
-    return [...new Set(cuisines)].sort();
-  }, [friendsRestaurants]);
+    if (restaurantMetadata) {
+      return Object.keys(restaurantMetadata.cuisines).sort();
+    }
+    return [...new Set(friendsRestaurants.map(r => r.cuisine))].sort();
+  }, [restaurantMetadata, friendsRestaurants]);
 
   const uniqueCities = React.useMemo(() => {
-    const cities = friendsRestaurants.map(r => r.city);
-    return [...new Set(cities)].sort();
-  }, [friendsRestaurants]);
+    if (restaurantMetadata) {
+      return Object.keys(restaurantMetadata.cities).sort();
+    }
+    return [...new Set(friendsRestaurants.map(r => r.city))].sort();
+  }, [restaurantMetadata, friendsRestaurants]);
 
   // Apply filters to current restaurants
   const filteredRestaurants = React.useMemo(() => {
@@ -156,17 +235,27 @@ export function FriendsActivityPage() {
     }
   }, [user]);
 
-  // Reset and reload when filters change (but not on initial load)
+  // Smart filtering - only reload for complex filters, use local filtering for simple ones
   useEffect(() => {
     if (dataFetched.current && user) {
-      setFriendsRestaurants([]);
-      setCurrentOffset(0);
-      setHasMore(true);
-      // Clear caches to prevent conflicts
-      preloadCache.clear();
-      loadInitialData();
+      // For simple filters (all/rated/wishlist), don't reload - just filter locally
+      if (searchQuery || selectedCuisines.length > 0 || selectedCity !== 'all') {
+        // Complex filters require database query
+        setFriendsRestaurants([]);
+        setCurrentOffset(0);
+        setHasMore(true);
+        preloadCache.clear();
+        loadInitialData();
+      }
+      // For filterBy (all/rated/wishlist), just update the local filtering
+      // The filteredRestaurants will handle this automatically
     }
-  }, [searchQuery, sortBy, filterBy, selectedCuisines, selectedCity]);
+  }, [searchQuery, selectedCuisines, selectedCity]);
+
+  // Separate effect for sort changes that don't require reload
+  useEffect(() => {
+    // Sort changes don't require data reload, just re-sorting
+  }, [sortBy, filterBy]);
 
   // Intersection observer for infinite scroll
   useEffect(() => {
@@ -284,6 +373,12 @@ export function FriendsActivityPage() {
 
       const friendIds = friendsData.map(f => f.friend_id);
       setAllFriendIds(friendIds);
+
+      // Load metadata for all restaurants to show accurate filter counts
+      const metadata = await loadRestaurantMetadata(friendIds);
+      if (metadata) {
+        setRestaurantMetadata(metadata);
+      }
 
       // Load first batch of restaurants
       await loadRestaurantBatch(friendIds, friendsData, 0, true);
@@ -549,7 +644,7 @@ export function FriendsActivityPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Total Rated</p>
                 <p className="text-2xl font-bold">
-                  {friendsRestaurants.filter(r => !r.is_wishlist && r.rating !== null).length}
+                  {filterCounts.rated}
                 </p>
               </div>
             </div>
@@ -563,7 +658,7 @@ export function FriendsActivityPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Wishlist Items</p>
                 <p className="text-2xl font-bold">
-                  {friendsRestaurants.filter(r => r.is_wishlist).length}
+                  {filterCounts.wishlist}
                 </p>
               </div>
             </div>
@@ -609,7 +704,7 @@ export function FriendsActivityPage() {
             className="flex items-center gap-2 px-4"
           >
             <List className="h-4 w-4" />
-            All ({friendsRestaurants.length})
+            All ({filterCounts.total})
           </Button>
           <Button
             variant={filterBy === 'rated' ? 'default' : 'ghost'}
@@ -618,7 +713,7 @@ export function FriendsActivityPage() {
             className="flex items-center gap-2 px-4"
           >
             <Star className="h-4 w-4" />
-            Rated ({friendsRestaurants.filter(r => !r.is_wishlist && r.rating !== null).length})
+            Rated ({filterCounts.rated})
           </Button>
           <Button
             variant={filterBy === 'wishlist' ? 'default' : 'ghost'}
@@ -627,7 +722,7 @@ export function FriendsActivityPage() {
             className="flex items-center gap-2 px-4"
           >
             <Heart className="h-4 w-4" />
-            Wishlist ({friendsRestaurants.filter(r => r.is_wishlist).length})
+            Wishlist ({filterCounts.wishlist})
           </Button>
         </div>
       </div>
@@ -669,7 +764,7 @@ export function FriendsActivityPage() {
                 <SelectItem value="all">All Cities</SelectItem>
                 {uniqueCities.map(city => (
                   <SelectItem key={city} value={city}>
-                    {city} ({friendsRestaurants.filter(r => r.city === city).length})
+                    {city} ({filterCounts.cities[city] || 0})
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -726,7 +821,7 @@ export function FriendsActivityPage() {
                     <div className="flex items-center justify-between w-full">
                       <span>{cuisine}</span>
                       <span className="text-muted-foreground ml-2">
-                        ({friendsRestaurants.filter(r => r.cuisine === cuisine).length})
+                        ({filterCounts.cuisines[cuisine] || 0})
                       </span>
                     </div>
                   </SelectItem>
