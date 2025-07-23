@@ -53,7 +53,7 @@ const App = () => (
                 <Route path="/home" element={<RequireAuth><Layout activeTab="home"><HomePageWrapper /></Layout></RequireAuth>} />
                 <Route path="/rated" element={<RequireAuth><Layout activeTab="rated"><RatedRestaurantsPageWrapper /></Layout></RequireAuth>} />
                 <Route path="/wishlist" element={<RequireAuth><Layout activeTab="wishlist"><WishlistPageWrapper /></Layout></RequireAuth>} />
-                <Route path="/map" element={<RequireAuth><Layout showChatbot={false}><MapPageWrapper /></Layout></RequireAuth>} />
+                <Route path="/map" element={<RequireAuth><Layout activeTab="search" showChatbot={false}><MapPageWrapper /></Layout></RequireAuth>} />
                 <Route path="/itinerary" element={<RequireAuth><Layout activeTab="itinerary"><ItineraryPage /></Layout></RequireAuth>} />
                 
                 {/* Search section with sub-tabs */}
