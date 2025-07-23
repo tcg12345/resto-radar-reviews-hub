@@ -55,6 +55,7 @@ export function RestaurantDetailPage() {
   }>();
   const [searchParams] = useSearchParams();
   const friendId = searchParams.get('friendId');
+  const fromFriendsActivity = searchParams.get('fromFriendsActivity') === 'true';
   const navigate = useNavigate();
   const {
     user
@@ -216,7 +217,13 @@ export function RestaurantDetailPage() {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Button variant="outline" onClick={() => {
-            if (friendId) {
+            if (fromFriendsActivity) {
+              navigate('/', {
+                state: {
+                  activeTab: 'friends-activity'
+                }
+              });
+            } else if (friendId) {
               navigate('/', {
                 state: {
                   activeTab: 'friends',
@@ -228,7 +235,7 @@ export function RestaurantDetailPage() {
             }
           }} className="flex items-center gap-2">
               <ArrowLeft className="h-4 w-4" />
-              {friendId ? 'Back to Profile' : 'Back'}
+              {fromFriendsActivity ? 'Back to Friends Activity' : friendId ? 'Back to Profile' : 'Back'}
             </Button>
             {friendProfile && <Badge variant="secondary" className="text-sm">
                 From {friendProfile.username || friendProfile.name}
