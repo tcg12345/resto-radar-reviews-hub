@@ -50,7 +50,17 @@ const friendsActivityCache = new Map<string, {
   userId: string;
 }>();
 
-const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
+// Cache for friends data to avoid refetching
+const friendsDataCache = new Map<string, {
+  data: any[];
+  timestamp: number;
+}>();
+
+// Preload cache for next batches
+const preloadCache = new Map<string, FriendRestaurant[]>();
+
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes for faster refresh
+const FRIENDS_CACHE_DURATION = 30 * 60 * 1000; // 30 minutes for friends data
 
 export function FriendsActivityPage() {
   const { user } = useAuth();
@@ -181,6 +191,78 @@ export function FriendsActivityPage() {
     };
   }, [hasMore, isLoadingMore, isLoading]);
 
+  const getFriendsData = async () => {
+    const cacheKey = `friends_${user?.id}`;
+    const cached = friendsDataCache.get(cacheKey);
+    
+    if (cached && (Date.now() - cached.timestamp) < FRIENDS_CACHE_DURATION) {
+      return cached.data;
+    }
+
+    const { data: friendsData, error: friendsError } = await supabase
+      .rpc('get_friends_with_scores', { requesting_user_id: user?.id });
+
+    if (friendsError || !friendsData?.length) {
+      return [];
+    }
+
+    // Cache the friends data
+    friendsDataCache.set(cacheKey, {
+      data: friendsData,
+      timestamp: Date.now()
+    });
+
+    return friendsData;
+  };
+
+  const preloadNextBatch = async (friendIds: string[], friendsData: any[], nextOffset: number) => {
+    try {
+      const cacheKey = `preload_${user?.id}_${nextOffset}`;
+      
+      let query = supabase
+        .from('restaurants')
+        .select('id, name, cuisine, rating, address, city, country, price_range, michelin_stars, date_visited, created_at, notes, is_wishlist, user_id')
+        .in('user_id', friendIds)
+        .order('created_at', { ascending: false })
+        .range(nextOffset, nextOffset + ITEMS_PER_PAGE - 1);
+
+      const { data: restaurantsData } = await query;
+      
+      if (restaurantsData?.length) {
+        const friendsMap = new Map(friendsData.map(f => [f.friend_id, f]));
+        const formattedRestaurants: FriendRestaurant[] = restaurantsData.map(restaurant => {
+          const friend = friendsMap.get(restaurant.user_id);
+          return {
+            id: restaurant.id,
+            name: restaurant.name,
+            cuisine: restaurant.cuisine || 'Unknown',
+            rating: restaurant.rating,
+            address: restaurant.address || '',
+            city: restaurant.city || 'Unknown',
+            country: restaurant.country,
+            price_range: restaurant.price_range,
+            michelin_stars: restaurant.michelin_stars,
+            date_visited: restaurant.date_visited,
+            created_at: restaurant.created_at,
+            notes: restaurant.notes,
+            photos: [],  // Don't preload photos for performance
+            is_wishlist: restaurant.is_wishlist || false,
+            friend: {
+              id: friend?.friend_id || restaurant.user_id,
+              username: friend?.username || 'Unknown',
+              name: friend?.name || friend?.username || 'Unknown',
+              avatar_url: friend?.avatar_url || ''
+            }
+          };
+        });
+        
+        preloadCache.set(cacheKey, formattedRestaurants);
+      }
+    } catch (error) {
+      console.error('Error preloading next batch:', error);
+    }
+  };
+
   const loadInitialData = async () => {
     if (!user) return;
     
@@ -188,11 +270,10 @@ export function FriendsActivityPage() {
       setIsLoading(true);
       setCurrentOffset(0);
       
-      // Get friends list first
-      const { data: friendsData, error: friendsError } = await supabase
-        .rpc('get_friends_with_scores', { requesting_user_id: user.id });
-
-      if (friendsError || !friendsData?.length) {
+      // Get friends data with caching
+      const friendsData = await getFriendsData();
+      
+      if (!friendsData.length) {
         setFriendsRestaurants([]);
         setHasMore(false);
         return;
@@ -203,6 +284,12 @@ export function FriendsActivityPage() {
 
       // Load first batch of restaurants
       await loadRestaurantBatch(friendIds, friendsData, 0, true);
+      
+      // Preload next batch in background
+      setTimeout(() => {
+        preloadNextBatch(friendIds, friendsData, ITEMS_PER_PAGE);
+      }, 100);
+      
       dataFetched.current = true;
     } catch (error) {
       console.error('Error loading initial data:', error);
@@ -218,18 +305,45 @@ export function FriendsActivityPage() {
     setIsLoadingMore(true);
     
     try {
-      // Get friends data from cache or refetch if needed
-      const { data: friendsData, error: friendsError } = await supabase
-        .rpc('get_friends_with_scores', { requesting_user_id: user.id });
-
-      if (friendsError || !friendsData?.length) {
-        setHasMore(false);
-        return;
-      }
-
       const newOffset = currentOffset + ITEMS_PER_PAGE;
-      await loadRestaurantBatch(allFriendIds, friendsData, newOffset, false);
-      setCurrentOffset(newOffset);
+      const cacheKey = `preload_${user?.id}_${newOffset}`;
+      
+      // Check if we have preloaded data
+      const preloadedData = preloadCache.get(cacheKey);
+      
+      if (preloadedData && preloadedData.length > 0) {
+        // Use preloaded data for instant loading
+        setFriendsRestaurants(prev => [...prev, ...preloadedData]);
+        setCurrentOffset(newOffset);
+        preloadCache.delete(cacheKey);
+        
+        // Check if we got fewer results than requested
+        if (preloadedData.length < ITEMS_PER_PAGE) {
+          setHasMore(false);
+        } else {
+          // Preload next batch in background
+          const friendsData = await getFriendsData();
+          setTimeout(() => {
+            preloadNextBatch(allFriendIds, friendsData, newOffset + ITEMS_PER_PAGE);
+          }, 100);
+        }
+      } else {
+        // Fallback to loading from database
+        const friendsData = await getFriendsData();
+        
+        if (!friendsData.length) {
+          setHasMore(false);
+          return;
+        }
+
+        await loadRestaurantBatch(allFriendIds, friendsData, newOffset, false);
+        setCurrentOffset(newOffset);
+        
+        // Preload next batch
+        setTimeout(() => {
+          preloadNextBatch(allFriendIds, friendsData, newOffset + ITEMS_PER_PAGE);
+        }, 100);
+      }
     } catch (error) {
       console.error('Error loading more restaurants:', error);
     } finally {
@@ -243,9 +357,10 @@ export function FriendsActivityPage() {
     offset: number, 
     isInitial: boolean
   ) => {
+    // Exclude photos from initial query for better performance
     let query = supabase
       .from('restaurants')
-      .select('id, name, cuisine, rating, address, city, country, price_range, michelin_stars, date_visited, created_at, notes, photos, is_wishlist, user_id')
+      .select('id, name, cuisine, rating, address, city, country, price_range, michelin_stars, date_visited, created_at, notes, is_wishlist, user_id')
       .in('user_id', friendIds)
       .order('created_at', { ascending: false })
       .range(offset, offset + ITEMS_PER_PAGE - 1);
@@ -290,7 +405,7 @@ export function FriendsActivityPage() {
         date_visited: restaurant.date_visited,
         created_at: restaurant.created_at,
         notes: restaurant.notes,
-        photos: restaurant.photos || [],
+        photos: [], // Exclude photos for performance
         is_wishlist: restaurant.is_wishlist || false,
         friend: {
           id: friend?.friend_id || restaurant.user_id,
