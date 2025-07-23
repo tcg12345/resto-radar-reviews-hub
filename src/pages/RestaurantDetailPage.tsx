@@ -454,7 +454,7 @@ export function RestaurantDetailPage() {
             {/* Combined Action Row */}
             <div className="grid lg:grid-cols-2 gap-6">
             {/* Add to Wishlist Card - Left Side */}
-            <Card className="bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 dark:from-rose-950/30 dark:via-pink-950/30 dark:to-purple-950/30 border-rose-200/50 dark:border-rose-800/50 shadow-xl backdrop-blur-sm overflow-hidden">
+            <Card className="h-full bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 dark:from-rose-950/30 dark:via-pink-950/30 dark:to-purple-950/30 border-rose-200/50 dark:border-rose-800/50 shadow-xl backdrop-blur-sm overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 via-pink-500/5 to-purple-500/5" />
               <CardContent className="relative px-8 pt-3 pb-1 flex items-center justify-center">
                 <div className="text-center space-y-1">
@@ -481,7 +481,7 @@ export function RestaurantDetailPage() {
             </Card>
 
               {/* Quick Actions - Right Side */}
-              <Card className="shadow-lg border-0 bg-gradient-to-r from-slate-50 to-zinc-50 dark:from-slate-950/50 dark:to-zinc-950/50">
+              <Card className="h-full shadow-lg border-0 bg-gradient-to-r from-slate-50 to-zinc-50 dark:from-slate-950/50 dark:to-zinc-950/50">
                 <CardContent className="p-4">
                   <div className="grid grid-cols-2 gap-3">
                     {(restaurant.phone_number || (restaurant as any).phone_number) && (
