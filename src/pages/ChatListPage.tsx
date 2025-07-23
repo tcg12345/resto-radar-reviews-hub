@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
@@ -54,6 +55,7 @@ export function ChatListPage() {
   const [isNewChatOpen, setIsNewChatOpen] = useState(false);
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [groupChatName, setGroupChatName] = useState('');
+  const [chatToDelete, setChatToDelete] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -612,18 +614,18 @@ export function ChatListPage() {
                                <span className="text-xs text-muted-foreground">
                                  {formatLastMessageTime(room.last_message_at || room.updated_at)}
                                </span>
-                               {/* Delete button - shows on hover */}
-                               <Button
-                                 variant="ghost"
-                                 size="sm"
-                                 className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
-                                 onClick={(e) => {
-                                   e.stopPropagation();
-                                   deleteChat(room.id, getChatDisplayName(room));
-                                 }}
-                               >
-                                 <Trash2 className="h-3 w-3" />
-                               </Button>
+                                {/* Delete button - shows on hover */}
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setChatToDelete({ id: room.id, name: getChatDisplayName(room) });
+                                  }}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
                              </div>
                            </div>
                            
@@ -669,6 +671,39 @@ export function ChatListPage() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!chatToDelete} onOpenChange={() => setChatToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Chat</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the chat with "{chatToDelete?.name}"? 
+              {chatRooms.find(room => room.id === chatToDelete?.id)?.participants.length === 0 
+                ? ' This action cannot be undone.' 
+                : ' You will leave this chat and it will continue without you.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setChatToDelete(null)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (chatToDelete) {
+                  deleteChat(chatToDelete.id, chatToDelete.name);
+                  setChatToDelete(null);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {chatRooms.find(room => room.id === chatToDelete?.id)?.participants.length === 0 
+                ? 'Delete Chat' 
+                : 'Leave Chat'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
