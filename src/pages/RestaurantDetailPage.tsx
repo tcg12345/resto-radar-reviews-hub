@@ -453,7 +453,7 @@ export function RestaurantDetailPage() {
 
             {/* Quick Actions Grid for wishlist */}
             <div className="grid grid-cols-4 gap-3 max-w-2xl mx-auto">
-              {(restaurant as any).phone_number && <a href={`tel:${(restaurant as any).phone_number}`} className="flex flex-col items-center gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors hover-scale">
+              {(restaurant.phone_number || (restaurant as any).phone_number) && <a href={`tel:${restaurant.phone_number || (restaurant as any).phone_number}`} className="flex flex-col items-center gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors hover-scale">
                   <Phone className="h-5 w-5 text-green-600" />
                   <span className="text-sm font-medium text-center">Call</span>
                 </a>}
@@ -473,6 +473,21 @@ export function RestaurantDetailPage() {
                 <span className="text-sm font-medium text-center">Reviews</span>
               </a>
             </div>
+
+            {/* Opening Hours for wishlist restaurants */}
+            {restaurant.opening_hours && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-primary" />
+                    Opening Hours
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <OpeningHoursDisplay hours={restaurant.opening_hours.split('\n')} />
+                </CardContent>
+              </Card>
+            )}
           </div>
         )}
 
