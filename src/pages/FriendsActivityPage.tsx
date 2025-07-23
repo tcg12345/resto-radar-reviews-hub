@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Users, Star, Heart, MapPin, Clock, Filter, SortAsc, List, ChevronDown, ChevronRight } from 'lucide-react';
+import { Users, Star, Heart, MapPin, Clock, Filter, SortAsc, List, ChevronDown, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -464,29 +464,81 @@ export function FriendsActivityPage() {
     }
   };
 
+  const loadPreviousPage = async () => {
+    if (isLoadingMore || currentPage <= 1 || allFriendIds.length === 0) {
+      return;
+    }
+    
+    setIsLoadingMore(true);
+    
+    try {
+      const prevPage = currentPage - 1;
+      const newOffset = (prevPage - 1) * ITEMS_PER_PAGE;
+      
+      const friendsData = await getFriendsData();
+      
+      if (!friendsData.length) {
+        return;
+      }
+
+      // Load the previous page and replace all restaurants
+      await loadRestaurantBatch(allFriendIds, friendsData, newOffset, true);
+      setCurrentPage(prevPage);
+      
+      // Scroll to top of the page
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+    } catch (error) {
+      console.error('❌ Error loading previous page:', error);
+      toast.error('Failed to load previous page');
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
   const loadRestaurantBatch = async (
     friendIds: string[], 
     friendsData: any[], 
     offset: number, 
     isInitial: boolean
   ) => {
-    // Load raw data from database without filters (except wishlist/rated for performance)
+    // Build the query with all active filters applied at database level
     let query = supabase
       .from('restaurants')
       .select('id, name, cuisine, rating, address, city, country, price_range, michelin_stars, date_visited, created_at, notes, is_wishlist, user_id')
       .in('user_id', friendIds)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + ITEMS_PER_PAGE - 1);
+      .order('created_at', { ascending: false });
 
-    // Only apply basic filters that significantly reduce data size
+    // Apply basic filter (rated/wishlist/all)
     if (filterBy === 'rated') {
       query = query.eq('is_wishlist', false).not('rating', 'is', null);
     } else if (filterBy === 'wishlist') {
       query = query.eq('is_wishlist', true);
     }
 
-    // Note: Other filters (search, cuisines, cities, friends) will be applied locally
-    // to ensure proper pagination behavior
+    // Apply search filter at database level
+    if (debouncedSearchQuery) {
+      const searchTerm = `%${debouncedSearchQuery.toLowerCase()}%`;
+      query = query.or(`name.ilike.${searchTerm},cuisine.ilike.${searchTerm},city.ilike.${searchTerm}`);
+    }
+
+    // Apply city filter at database level
+    if (selectedCities.length > 0) {
+      query = query.in('city', selectedCities);
+    }
+
+    // Apply cuisine filter at database level
+    if (selectedCuisines.length > 0) {
+      query = query.in('cuisine', selectedCuisines);
+    }
+
+    // Apply friend filter at database level
+    if (selectedFriends.length > 0) {
+      query = query.in('user_id', selectedFriends);
+    }
+
+    // Apply pagination
+    query = query.range(offset, offset + ITEMS_PER_PAGE - 1);
 
     const { data: restaurantsData, error: restaurantsError } = await query;
 
@@ -528,16 +580,8 @@ export function FriendsActivityPage() {
       };
     });
 
-    if (isInitial) {
-      setFriendsRestaurants(formattedRestaurants);
-    } else {
-      setFriendsRestaurants(prev => {
-        // Deduplicate by ID to prevent duplicates
-        const existingIds = new Set(prev.map(r => r.id));
-        const newRestaurants = formattedRestaurants.filter(r => !existingIds.has(r.id));
-        return [...prev, ...newRestaurants];
-      });
-    }
+    // Always replace restaurants for pagination (not append)
+    setFriendsRestaurants(formattedRestaurants);
 
     // Check if we got fewer results than requested
     console.log(`Restaurant batch loaded: ${restaurantsData.length} restaurants, offset: ${offset}, isInitial: ${isInitial}`);
@@ -1121,6 +1165,32 @@ export function FriendsActivityPage() {
 
             {/* Pagination Controls */}
             <div className="flex justify-center items-center gap-4 pt-8">
+              {/* Previous Page Button */}
+              {currentPage > 1 && (
+                <Button 
+                  onClick={loadPreviousPage}
+                  disabled={isLoadingMore}
+                  size="lg"
+                  variant="outline"
+                  className="min-w-32 flex items-center gap-2"
+                >
+                  {isLoadingMore ? 'Loading...' : (
+                    <>
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous Page ({currentPage - 1})
+                    </>
+                  )}
+                </Button>
+              )}
+
+              {/* Page indicator */}
+              {(currentPage > 1 || hasMore) && (
+                <div className="text-sm text-muted-foreground font-medium px-4">
+                  Page {currentPage}
+                </div>
+              )}
+
+              {/* Next Page Button */}
               {hasMore && (
                 <Button 
                   onClick={loadNextPage}
@@ -1137,16 +1207,11 @@ export function FriendsActivityPage() {
                 </Button>
               )}
               
+              {/* End message */}
               {!hasMore && friendsRestaurants.length > 0 && (
                 <div className="text-center text-muted-foreground">
                   <p>You've reached the end of the list!</p>
-                  <p className="text-sm mt-1">Page {currentPage} • {friendsRestaurants.length} total restaurants</p>
-                </div>
-              )}
-              
-              {currentPage > 1 && (
-                <div className="text-sm text-muted-foreground">
-                  Page {currentPage}
+                  <p className="text-sm mt-1">Page {currentPage} • {filteredRestaurants.length} restaurants shown</p>
                 </div>
               )}
             </div>
