@@ -454,7 +454,7 @@ export function RestaurantDetailPage() {
             {/* Hero Action Card */}
             <Card className="bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 dark:from-rose-950/30 dark:via-pink-950/30 dark:to-purple-950/30 border-rose-200/50 dark:border-rose-800/50 shadow-xl backdrop-blur-sm overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 via-pink-500/5 to-purple-500/5" />
-              <CardContent className="relative p-8">
+              <CardContent className="relative px-8 py-6">
                 <div className="text-center space-y-4">
                   <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-rose-500 to-purple-600 rounded-2xl shadow-lg mb-4">
                     <Heart className="h-8 w-8 text-white fill-current" />
