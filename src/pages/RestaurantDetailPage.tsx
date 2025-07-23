@@ -293,9 +293,9 @@ export function RestaurantDetailPage() {
           </Card>
         )}
         {/* Hero Section - Dynamic layout based on wishlist status */}
-        <div className={restaurant.is_wishlist ? "grid lg:grid-cols-3 gap-6" : "grid lg:grid-cols-5 gap-6"}>
-          {/* Main Info - Adjusted space based on wishlist status */}
-          <div className={restaurant.is_wishlist ? "lg:col-span-2 space-y-4" : "lg:col-span-3 space-y-4"}>
+        <div className={restaurant.is_wishlist ? "space-y-6" : "grid lg:grid-cols-5 gap-6"}>
+          {/* Main Info - Full width for wishlist, partial for rated */}
+          <div className={restaurant.is_wishlist ? "space-y-4" : "lg:col-span-3 space-y-4"}>
             <div className="animate-fade-in">
               <h1 className="text-4xl lg:text-5xl font-bold mb-3 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent leading-relaxed">
                 {restaurant.name}
@@ -330,7 +330,6 @@ export function RestaurantDetailPage() {
                     <Calendar className="h-4 w-4 mr-2" />
                     {new Date(restaurant.date_visited).toLocaleDateString()}
                   </Badge>}
-                {restaurant.reservable}
               </div>
 
               {/* Address */}
@@ -370,15 +369,90 @@ export function RestaurantDetailPage() {
             )}
           </div>
 
-          {/* Action Panel - Adjusted space based on wishlist status */}
-          <div className={restaurant.is_wishlist ? "lg:col-span-1 space-y-4 animate-fade-in" : "lg:col-span-2 space-y-4 animate-fade-in"}>
+          {/* Action Panel - Only show for rated restaurants */}
+          {!restaurant.is_wishlist && (
+            <div className="lg:col-span-2 space-y-4 animate-fade-in">
+              <Button onClick={addToWishlist} disabled={isAddingToWishlist} size="lg" className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-4 text-base font-medium hover-scale">
+                <Heart className="h-5 w-5 fill-current mr-2" />
+                {isAddingToWishlist ? 'Adding...' : 'Add to Wishlist'}
+              </Button>
+
+              {/* Quick Actions Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                {(restaurant as any).phone_number && <a href={`tel:${(restaurant as any).phone_number}`} className="flex flex-col items-center gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors hover-scale">
+                    <Phone className="h-5 w-5 text-green-600" />
+                    <span className="text-sm font-medium text-center">Call</span>
+                  </a>}
+                
+                {restaurant.website && <a href={restaurant.website} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-2 p-3 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors hover-scale">
+                    <Globe className="h-5 w-5 text-primary" />
+                    <span className="text-sm font-medium text-center">Website</span>
+                  </a>}
+
+                {restaurant.latitude && restaurant.longitude && <a href={`https://www.google.com/maps/dir/?api=1&destination=${restaurant.latitude},${restaurant.longitude}`} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors hover-scale">
+                    <Navigation className="h-5 w-5 text-blue-600" />
+                    <span className="text-sm font-medium text-center">Directions</span>
+                  </a>}
+
+                <a href={`https://www.google.com/search?q=${encodeURIComponent(restaurant.name + ' reviews')}`} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-2 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors hover-scale">
+                  <Star className="h-5 w-5 text-yellow-600" />
+                  <span className="text-sm font-medium text-center">Reviews</span>
+                </a>
+              </div>
+
+              {/* Restaurant Stats */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Restaurant Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Added</span>
+                    <span className="font-medium">
+                      {new Date(restaurant.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Status</span>
+                    <Badge variant="outline" className="text-xs">
+                      {restaurant.is_wishlist ? 'Wishlist' : 'Visited'}
+                    </Badge>
+                  </div>
+                  {restaurant.updated_at && restaurant.updated_at !== restaurant.created_at && <div className="flex justify-between">
+                      <span className="text-muted-foreground">Updated</span>
+                      <span className="font-medium">
+                        {new Date(restaurant.updated_at).toLocaleDateString()}
+                      </span>
+                    </div>}
+                </CardContent>
+              </Card>
+
+              {/* Opening Hours - Compact */}
+              {restaurant.opening_hours && <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-primary" />
+                      Hours
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <OpeningHoursDisplay hours={restaurant.opening_hours.split('\n')} />
+                  </CardContent>
+                </Card>}
+            </div>
+          )}
+        </div>
+
+        {/* Wishlist Actions - Full width section for wishlist items */}
+        {restaurant.is_wishlist && (
+          <div className="space-y-4">
             <Button onClick={addToWishlist} disabled={isAddingToWishlist} size="lg" className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-4 text-base font-medium hover-scale">
               <Heart className="h-5 w-5 fill-current mr-2" />
               {isAddingToWishlist ? 'Adding...' : 'Add to Wishlist'}
             </Button>
 
-            {/* Quick Actions Grid */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Quick Actions Grid for wishlist */}
+            <div className="grid grid-cols-4 gap-3 max-w-2xl mx-auto">
               {(restaurant as any).phone_number && <a href={`tel:${(restaurant as any).phone_number}`} className="flex flex-col items-center gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors hover-scale">
                   <Phone className="h-5 w-5 text-green-600" />
                   <span className="text-sm font-medium text-center">Call</span>
@@ -398,50 +472,9 @@ export function RestaurantDetailPage() {
                 <Star className="h-5 w-5 text-yellow-600" />
                 <span className="text-sm font-medium text-center">Reviews</span>
               </a>
-
             </div>
-
-            {/* Restaurant Stats */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Restaurant Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Added</span>
-                  <span className="font-medium">
-                    {new Date(restaurant.created_at).toLocaleDateString()}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Status</span>
-                  <Badge variant="outline" className="text-xs">
-                    {restaurant.is_wishlist ? 'Wishlist' : 'Visited'}
-                  </Badge>
-                </div>
-                {restaurant.updated_at && restaurant.updated_at !== restaurant.created_at && <div className="flex justify-between">
-                    <span className="text-muted-foreground">Updated</span>
-                    <span className="font-medium">
-                      {new Date(restaurant.updated_at).toLocaleDateString()}
-                    </span>
-                  </div>}
-              </CardContent>
-            </Card>
-
-            {/* Opening Hours - Compact */}
-            {restaurant.opening_hours && <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-primary" />
-                    Hours
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <OpeningHoursDisplay hours={restaurant.opening_hours.split('\n')} />
-                </CardContent>
-              </Card>}
           </div>
-        </div>
+        )}
 
         {/* Personal Notes - Prominent if exists */}
         {restaurant.notes && <Card className="animate-fade-in border-l-4 border-l-primary">
@@ -456,7 +489,6 @@ export function RestaurantDetailPage() {
               </div>
             </CardContent>
           </Card>}
-
 
         {/* Location & Interactive Map */}
         {restaurant.latitude && restaurant.longitude && <div className="animate-fade-in">
@@ -514,9 +546,6 @@ export function RestaurantDetailPage() {
               </CardContent>
             </Card>
           </div>}
-
-        {/* Reservation Section - Full Width if available */}
-        {restaurant.reservable}
       </div>
     </div>;
 }
