@@ -155,12 +155,14 @@ export function FriendsActivityPage() {
     }
   }, [user]);
 
-  // Reset and reload when filters change
+  // Reset and reload when filters change (but not on initial load)
   useEffect(() => {
-    if (dataFetched.current) {
+    if (dataFetched.current && user) {
       setFriendsRestaurants([]);
       setCurrentOffset(0);
       setHasMore(true);
+      // Clear caches to prevent conflicts
+      preloadCache.clear();
       loadInitialData();
     }
   }, [searchQuery, sortBy, filterBy, selectedCuisines, selectedCity]);
