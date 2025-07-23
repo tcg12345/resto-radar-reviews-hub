@@ -108,81 +108,89 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
         </div>
       </nav>
 
-      {/* Mobile Top Bar */}
-      <nav className="lg:hidden sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 safe-area-top">
-        <div className="flex h-12 items-center justify-between px-3">
-          <div className="cursor-pointer" onClick={() => onTabChange('home')}>
-            <GrubbyLogo size="sm" />
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            {user ? (
-              <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate('/chat-list')}
-                  className="h-8 w-8 relative mobile-tap-target"
+      {/* Mobile Top Bar - Fixed spacing to avoid iPhone notch */}
+      <nav className="lg:hidden sticky top-0 z-50 w-full bg-background border-b border-border/50">
+        <div className="pt-safe-area-top">
+          <div className="flex h-14 items-center justify-between px-4">
+            <div className="cursor-pointer" onClick={() => onTabChange('home')}>
+              <GrubbyLogo size="sm" />
+            </div>
+            
+            <div className="flex items-center space-x-3">
+              {user ? (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate('/chat-list')}
+                    className="h-9 w-9 relative mobile-tap-target rounded-full"
+                  >
+                    <MessageCircle className="h-5 w-5" />
+                    {unreadMessageCount > 0 && (
+                      <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
+                        {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
+                      </span>
+                    )}
+                  </Button>
+                  <NotificationsPanel />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onTabChange('settings')}
+                    className="h-9 w-9 mobile-tap-target rounded-full"
+                  >
+                    <Settings className="h-5 w-5" />
+                  </Button>
+                </>
+              ) : (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => navigate('/auth')}
+                  className="mobile-tap-target rounded-full px-4"
                 >
-                  <MessageCircle className="h-4 w-4" />
-                  {unreadMessageCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary text-[8px] font-bold text-primary-foreground">
-                      {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
-                    </span>
-                  )}
+                  Sign In
                 </Button>
-                <NotificationsPanel />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onTabChange('settings')}
-                  className="h-8 w-8 mobile-tap-target"
-                >
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </>
-            ) : (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => navigate('/auth')}
-                className="mobile-tap-target"
-              >
-                Sign In
-              </Button>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </nav>
 
-      {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/90 safe-area-bottom">
-        <div className="grid grid-cols-6 gap-0.5 p-1.5">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <Button
-                key={tab.id}
-                variant="ghost"
-                size="sm"
-                onClick={() => onTabChange(tab.id)}
-                className={`relative flex flex-col items-center justify-center h-10 w-full mobile-tap-target transition-all duration-200 ${
-                  isActive 
-                    ? 'text-primary bg-primary/10' 
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                }`}
-              >
-                <Icon className={`h-4 w-4 mb-0.5 ${isActive ? 'text-primary' : ''}`} />
-                <span className={`text-[10px] leading-tight line-clamp-1 ${isActive ? 'text-primary font-medium' : ''}`}>
-                  {tab.shortLabel}
-                </span>
-                {isActive && (
-                  <div className="absolute inset-x-2 top-0 h-0.5 bg-primary rounded-full" />
-                )}
-              </Button>
-            );
-          })}
+      {/* Mobile Bottom Navigation - Much Larger and Touch-Friendly */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border/50">
+        <div className="pb-safe-area-bottom">
+          <div className="grid grid-cols-6 gap-0 p-2">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <Button
+                  key={tab.id}
+                  variant="ghost"
+                  size="lg"
+                  onClick={() => onTabChange(tab.id)}
+                  className={`relative flex flex-col items-center justify-center h-16 w-full mobile-tap-target transition-all duration-300 rounded-2xl ${
+                    isActive 
+                      ? 'text-primary bg-primary/15 shadow-sm' 
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
+                  }`}
+                >
+                  <Icon className={`h-6 w-6 mb-1 transition-all duration-300 ${
+                    isActive ? 'text-primary scale-110' : ''
+                  }`} />
+                  <span className={`text-xs font-medium leading-tight line-clamp-1 transition-all duration-300 ${
+                    isActive ? 'text-primary' : ''
+                  }`}>
+                    {tab.shortLabel}
+                  </span>
+                  {isActive && (
+                    <div className="absolute inset-x-3 top-1 h-1 bg-primary rounded-full" />
+                  )}
+                </Button>
+              );
+            })}
+          </div>
         </div>
       </nav>
     </>
