@@ -171,6 +171,9 @@ export function FriendsActivityPage() {
     if (restaurantMetadata) {
       return Object.keys(restaurantMetadata.cuisines).sort();
     }
+    if (!friendsRestaurants || friendsRestaurants.length === 0) {
+      return [];
+    }
     return [...new Set(friendsRestaurants.map(r => r.cuisine))].sort();
   }, [restaurantMetadata, friendsRestaurants]);
 
@@ -178,10 +181,17 @@ export function FriendsActivityPage() {
     if (restaurantMetadata) {
       return Object.keys(restaurantMetadata.cities).sort();
     }
+    if (!friendsRestaurants || friendsRestaurants.length === 0) {
+      return [];
+    }
     return [...new Set(friendsRestaurants.map(r => r.city))].sort();
   }, [restaurantMetadata, friendsRestaurants]);
 
   const uniqueFriends = React.useMemo(() => {
+    if (!friendsRestaurants || friendsRestaurants.length === 0) {
+      return [];
+    }
+    
     const friendsMap = new Map();
     friendsRestaurants.forEach(r => {
       if (!friendsMap.has(r.friend.id)) {
