@@ -34,7 +34,7 @@ export function Layout({
         navigate('/map');
         break;
       case 'search':
-        navigate('/search');
+        navigate('/search/global');
         break;
       case 'settings':
         navigate('/settings');

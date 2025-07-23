@@ -25,6 +25,8 @@ import WishlistPageWrapper from "./pages/WishlistPageWrapper";
 import MapPageWrapper from "./pages/MapPageWrapper";
 import UnifiedSearchPage from "./pages/UnifiedSearchPage";
 import SettingsPageWrapper from "./pages/SettingsPageWrapper";
+import SearchTabsPage from "./pages/SearchTabsPage";
+import UserProfilePage from "./pages/UserProfilePage";
 
 
 const queryClient = new QueryClient();
@@ -51,18 +53,20 @@ const App = () => (
                 <Route path="/rated" element={<RequireAuth><Layout activeTab="rated"><RatedRestaurantsPageWrapper /></Layout></RequireAuth>} />
                 <Route path="/wishlist" element={<RequireAuth><Layout activeTab="wishlist"><WishlistPageWrapper /></Layout></RequireAuth>} />
                 <Route path="/map" element={<RequireAuth><Layout activeTab="map" showNavbar={false} showChatbot={false}><MapPageWrapper /></Layout></RequireAuth>} />
-                <Route path="/search" element={<RequireAuth><Layout activeTab="search"><UnifiedSearchPage /></Layout></RequireAuth>} />
+                
+                {/* Search section with sub-tabs */}
+                <Route path="/search" element={<RequireAuth><Layout activeTab="search"><SearchTabsPage /></Layout></RequireAuth>} />
+                <Route path="/search/:tab" element={<RequireAuth><Layout activeTab="search"><SearchTabsPage /></Layout></RequireAuth>} />
+                
                 <Route path="/settings" element={<RequireAuth><Layout activeTab="settings" showNavbar={false} showChatbot={false}><SettingsPageWrapper /></Layout></RequireAuth>} />
                 <Route path="/friends" element={<RequireAuth><Layout activeTab="friends"><FriendsPage /></Layout></RequireAuth>} />
                 
-                {/* Friends Activity route */}
-                <Route path="/friends-activity" element={
-                  <RequireAuth>
-                    <Layout activeTab="search">
-                      <FriendsActivityPage />
-                    </Layout>
-                  </RequireAuth>
-                } />
+                {/* User profile routes */}
+                <Route path="/user/:userId" element={<RequireAuth><UserProfilePage /></RequireAuth>} />
+                <Route path="/profile/:userId" element={<RequireAuth><UserProfilePage /></RequireAuth>} />
+                
+                {/* Legacy friends activity route - redirect to search/friends */}
+                <Route path="/friends-activity" element={<RequireAuth><Layout activeTab="search"><SearchTabsPage /></Layout></RequireAuth>} />
                 
                 {/* Chat routes */}
                 <Route path="/chat-list" element={<RequireAuth><ChatListPage /></RequireAuth>} />
