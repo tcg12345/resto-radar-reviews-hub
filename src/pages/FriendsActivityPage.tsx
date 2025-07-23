@@ -875,63 +875,165 @@ export function FriendsActivityPage() {
             </div>
           )}
 
-          {/* Friends Dropdown Filter */}
-          <Collapsible 
-            open={isFriendsDropdownOpen} 
-            onOpenChange={setIsFriendsDropdownOpen}
-            className="space-y-2"
-          >
-            <CollapsibleTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full justify-between bg-background border-border"
-              >
-                <span className="text-sm font-medium">
-                  Filter by Friend
-                  {selectedFriends.length > 0 && (
-                    <span className="ml-2 text-primary">
-                      ({selectedFriends.length} selected)
-                    </span>
-                  )}
-                </span>
-                <ChevronDown className={`h-4 w-4 transition-transform ${isFriendsDropdownOpen ? 'rotate-180' : ''}`} />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-64 overflow-y-auto p-2 border rounded-md bg-background">
-                {uniqueFriends.map(friend => (
-                  <div key={friend.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`friend-${friend.id}`}
-                      checked={selectedFriends.includes(friend.id)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedFriends(prev => [...prev, friend.id]);
-                        } else {
-                          setSelectedFriends(prev => prev.filter(f => f !== friend.id));
-                        }
-                      }}
-                    />
-                    <label
-                      htmlFor={`friend-${friend.id}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                    >
-                      {friend.name} ({friend.count})
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
+          {/* Filter Row - Friends, City, and Cuisine in horizontal layout */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Friends Dropdown Filter */}
+            <Collapsible 
+              open={isFriendsDropdownOpen} 
+              onOpenChange={setIsFriendsDropdownOpen}
+              className="space-y-2"
+            >
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between bg-background border-border"
+                >
+                  <span className="text-sm font-medium">
+                    Filter by Friend
+                    {selectedFriends.length > 0 && (
+                      <span className="ml-2 text-primary">
+                        ({selectedFriends.length} selected)
+                      </span>
+                    )}
+                  </span>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${isFriendsDropdownOpen ? 'rotate-180' : ''}`} />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-2">
+                <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto p-2 border rounded-md bg-background">
+                  {uniqueFriends.map(friend => (
+                    <div key={friend.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`friend-${friend.id}`}
+                        checked={selectedFriends.includes(friend.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedFriends(prev => [...prev, friend.id]);
+                          } else {
+                            setSelectedFriends(prev => prev.filter(f => f !== friend.id));
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor={`friend-${friend.id}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        {friend.name} ({friend.count})
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
 
-          {/* Selected Friends Tags */}
-          {selectedFriends.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-2">
+            {/* City Dropdown Filter */}
+            <Collapsible 
+              open={isCityDropdownOpen} 
+              onOpenChange={setIsCityDropdownOpen}
+              className="space-y-2"
+            >
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between bg-background border-border"
+                >
+                  <span className="text-sm font-medium">
+                    Filter by City
+                    {selectedCities.length > 0 && (
+                      <span className="ml-2 text-primary">
+                        ({selectedCities.length} selected)
+                      </span>
+                    )}
+                  </span>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${isCityDropdownOpen ? 'rotate-180' : ''}`} />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-2">
+                <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto p-2 border rounded-md bg-background">
+                  {uniqueCities.map(city => (
+                    <div key={city} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`city-${city}`}
+                        checked={selectedCities.includes(city)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedCities(prev => [...prev, city]);
+                          } else {
+                            setSelectedCities(prev => prev.filter(c => c !== city));
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor={`city-${city}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        {city} ({filterCounts.cities[city] || 0})
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* Cuisine Dropdown Filter */}
+            <Collapsible 
+              open={isCuisineDropdownOpen} 
+              onOpenChange={setIsCuisineDropdownOpen}
+              className="space-y-2"
+            >
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between bg-background border-border"
+                >
+                  <span className="text-sm font-medium">
+                    Filter by Cuisine
+                    {selectedCuisines.length > 0 && (
+                      <span className="ml-2 text-primary">
+                        ({selectedCuisines.length} selected)
+                      </span>
+                    )}
+                  </span>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${isCuisineDropdownOpen ? 'rotate-180' : ''}`} />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-2">
+                <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto p-2 border rounded-md bg-background">
+                  {uniqueCuisines.map(cuisine => (
+                    <div key={cuisine} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`cuisine-${cuisine}`}
+                        checked={selectedCuisines.includes(cuisine)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedCuisines(prev => [...prev, cuisine]);
+                          } else {
+                            setSelectedCuisines(prev => prev.filter(c => c !== cuisine));
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor={`cuisine-${cuisine}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        {cuisine} ({filterCounts.cuisines[cuisine] || 0})
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
+
+          {/* All Selected Tags Combined */}
+          {(selectedFriends.length > 0 || selectedCities.length > 0 || selectedCuisines.length > 0) && (
+            <div className="flex flex-wrap gap-2 mt-4">
+              {/* Selected Friends Tags */}
               {selectedFriends.map(friendId => {
                 const friend = uniqueFriends.find(f => f.id === friendId);
                 return (
                   <Badge
-                    key={friendId}
+                    key={`friend-${friendId}`}
                     variant="default"
                     className="cursor-pointer hover:bg-primary/80"
                     onClick={() => setSelectedFriends(prev => prev.filter(f => f !== friendId))}
@@ -940,64 +1042,11 @@ export function FriendsActivityPage() {
                   </Badge>
                 );
               })}
-            </div>
-          )}
-
-          {/* City Dropdown Filter */}
-          <Collapsible 
-            open={isCityDropdownOpen} 
-            onOpenChange={setIsCityDropdownOpen}
-            className="space-y-2"
-          >
-            <CollapsibleTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full justify-between bg-background border-border"
-              >
-                <span className="text-sm font-medium">
-                  Filter by City
-                  {selectedCities.length > 0 && (
-                    <span className="ml-2 text-primary">
-                      ({selectedCities.length} selected)
-                    </span>
-                  )}
-                </span>
-                <ChevronDown className={`h-4 w-4 transition-transform ${isCityDropdownOpen ? 'rotate-180' : ''}`} />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-2">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-64 overflow-y-auto p-2 border rounded-md bg-background">
-                {uniqueCities.map(city => (
-                  <div key={city} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`city-${city}`}
-                      checked={selectedCities.includes(city)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedCities(prev => [...prev, city]);
-                        } else {
-                          setSelectedCities(prev => prev.filter(c => c !== city));
-                        }
-                      }}
-                    />
-                    <label
-                      htmlFor={`city-${city}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                    >
-                      {city} ({filterCounts.cities[city] || 0})
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-
-          {/* Selected City Tags */}
-          {selectedCities.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-2">
+              
+              {/* Selected City Tags */}
               {selectedCities.map(city => (
                 <Badge
-                  key={city}
+                  key={`city-${city}`}
                   variant="default"
                   className="cursor-pointer hover:bg-primary/80"
                   onClick={() => setSelectedCities(prev => prev.filter(c => c !== city))}
@@ -1005,64 +1054,11 @@ export function FriendsActivityPage() {
                   {city} ×
                 </Badge>
               ))}
-            </div>
-          )}
-
-          {/* Cuisine Dropdown Filter */}
-          <Collapsible 
-            open={isCuisineDropdownOpen} 
-            onOpenChange={setIsCuisineDropdownOpen}
-            className="space-y-2"
-          >
-            <CollapsibleTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full justify-between bg-background border-border"
-              >
-                <span className="text-sm font-medium">
-                  Filter by Cuisine
-                  {selectedCuisines.length > 0 && (
-                    <span className="ml-2 text-primary">
-                      ({selectedCuisines.length} selected)
-                    </span>
-                  )}
-                </span>
-                <ChevronDown className={`h-4 w-4 transition-transform ${isCuisineDropdownOpen ? 'rotate-180' : ''}`} />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-2">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-64 overflow-y-auto p-2 border rounded-md bg-background">
-                {uniqueCuisines.map(cuisine => (
-                  <div key={cuisine} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`cuisine-${cuisine}`}
-                      checked={selectedCuisines.includes(cuisine)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedCuisines(prev => [...prev, cuisine]);
-                        } else {
-                          setSelectedCuisines(prev => prev.filter(c => c !== cuisine));
-                        }
-                      }}
-                    />
-                    <label
-                      htmlFor={`cuisine-${cuisine}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                    >
-                      {cuisine} ({filterCounts.cuisines[cuisine] || 0})
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-
-          {/* Selected Cuisine Tags */}
-          {selectedCuisines.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-2">
+              
+              {/* Selected Cuisine Tags */}
               {selectedCuisines.map(cuisine => (
                 <Badge
-                  key={cuisine}
+                  key={`cuisine-${cuisine}`}
                   variant="default"
                   className="cursor-pointer hover:bg-primary/80"
                   onClick={() => setSelectedCuisines(prev => prev.filter(c => c !== cuisine))}
