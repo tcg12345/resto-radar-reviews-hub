@@ -384,23 +384,23 @@ export function RestaurantDetailPage() {
 
               {/* Quick Actions Grid */}
               <div className="grid grid-cols-2 gap-3">
-                {(restaurant as any).phone_number && <a href={`tel:${(restaurant as any).phone_number}`} className="flex flex-col items-center gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors hover-scale">
-                    <Phone className="h-5 w-5 text-green-600" />
+                {(restaurant as any).phone_number && <a href={`tel:${(restaurant as any).phone_number}`} className="flex flex-col items-center gap-2 p-4 rounded-lg bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors hover-scale">
+                    <Phone className="h-8 w-8 text-green-600" />
                     <span className="text-sm font-medium text-center">Call</span>
                   </a>}
                 
-                {restaurant.website && <a href={restaurant.website} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-2 p-3 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors hover-scale">
-                    <Globe className="h-5 w-5 text-primary" />
+                {restaurant.website && <a href={restaurant.website} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-2 p-4 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors hover-scale">
+                    <Globe className="h-8 w-8 text-primary" />
                     <span className="text-sm font-medium text-center">Website</span>
                   </a>}
 
-                {restaurant.latitude && restaurant.longitude && <a href={`https://www.google.com/maps/dir/?api=1&destination=${restaurant.latitude},${restaurant.longitude}`} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors hover-scale">
-                    <Navigation className="h-5 w-5 text-blue-600" />
+                {restaurant.latitude && restaurant.longitude && <a href={`https://www.google.com/maps/dir/?api=1&destination=${restaurant.latitude},${restaurant.longitude}`} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-2 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors hover-scale">
+                    <Navigation className="h-8 w-8 text-blue-600" />
                     <span className="text-sm font-medium text-center">Directions</span>
                   </a>}
 
-                <a href={`https://www.google.com/search?q=${encodeURIComponent(restaurant.name + ' reviews')}`} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-2 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors hover-scale">
-                  <Star className="h-5 w-5 text-yellow-600" />
+                <a href={`https://www.google.com/search?q=${encodeURIComponent(restaurant.name + ' reviews')}`} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-2 p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors hover-scale">
+                  <Star className="h-8 w-8 text-yellow-600" />
                   <span className="text-sm font-medium text-center">Reviews</span>
                 </a>
               </div>
