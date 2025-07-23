@@ -17,6 +17,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { DiscoverResultCard } from '@/components/DiscoverResultCard';
+import { DiscoverResultsSkeleton } from '@/components/skeletons/DiscoverResultsSkeleton';
 
 interface RestaurantResult {
   id: string;
@@ -359,16 +360,20 @@ export function DiscoverResultsGrid({
       )}
 
       {/* Results Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {sortedRestaurants.map((restaurant) => (
-          <DiscoverResultCard
-            key={restaurant.id}
-            restaurant={restaurant}
-            onToggleWishlist={onToggleWishlist}
-            isInWishlist={isInWishlist(restaurant)}
-          />
-        ))}
-      </div>
+      {isLoading ? (
+        <DiscoverResultsSkeleton />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {sortedRestaurants.map((restaurant) => (
+            <DiscoverResultCard
+              key={restaurant.id}
+              restaurant={restaurant}
+              onToggleWishlist={onToggleWishlist}
+              isInWishlist={isInWishlist(restaurant)}
+            />
+          ))}
+        </div>
+      )}
 
       {/* No filtered results */}
       {sortedRestaurants.length === 0 && filteredRestaurants.length !== restaurants.length && (

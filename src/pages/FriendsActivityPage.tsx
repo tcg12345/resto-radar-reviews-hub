@@ -13,6 +13,8 @@ import { toast } from 'sonner';
 import { MichelinStars } from '@/components/MichelinStars';
 import { PriceRange } from '@/components/PriceRange';
 import { StarRating } from '@/components/StarRating';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ActivityFeedSkeleton } from '@/components/skeletons/ActivityFeedSkeleton';
 
 interface FriendRestaurant {
   id: string;
@@ -269,8 +271,65 @@ export function FriendsActivityPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-lg text-muted-foreground">Loading friends' activity...</div>
+      <div className="w-full p-6 space-y-6">
+        {/* Header skeleton */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-8 w-8" />
+            <Skeleton className="h-10 w-64" />
+          </div>
+          <Skeleton className="h-6 w-96" />
+        </div>
+
+        {/* Stats skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-5 w-5" />
+                  <div>
+                    <Skeleton className="h-4 w-20 mb-1" />
+                    <Skeleton className="h-8 w-8" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Quick filter buttons skeleton */}
+        <div className="flex items-center justify-center">
+          <div className="flex items-center bg-muted/50 p-1 rounded-lg gap-1">
+            {[...Array(3)].map((_, i) => (
+              <Skeleton key={i} className="h-8 w-20" />
+            ))}
+          </div>
+        </div>
+
+        {/* Filters skeleton */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Skeleton className="h-5 w-5" />
+              <Skeleton className="h-6 w-48" />
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="h-10 w-full" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Activity feed skeleton */}
+        <div className="grid gap-4">
+          {[...Array(6)].map((_, i) => (
+            <ActivityFeedSkeleton key={i} />
+          ))}
+        </div>
       </div>
     );
   }

@@ -594,94 +594,118 @@ export default function UnifiedSearchPage() {
           </div>
 
           {/* Results Section */}
-          {searchResults.length > 0 && <Tabs defaultValue="list" className="space-y-4">
+          {(isLoading || searchResults.length > 0) && (
+            <Tabs defaultValue="list" className="space-y-4">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="list">List View</TabsTrigger>
                 <TabsTrigger value="map">Map View</TabsTrigger>
               </TabsList>
 
               <TabsContent value="list" className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {searchResults.map(place => <Card key={place.place_id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handlePlaceClick(place)}>
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-2">
-                          <h3 className="font-semibold text-lg leading-tight line-clamp-2" onClick={() => handlePlaceClick(place)}>
-                            {place.name}
-                          </h3>
-                          <Button variant="ghost" size="sm" onClick={e => {
-                      e.stopPropagation();
-                      handleQuickAdd(place);
-                    }} className="shrink-0 ml-2">
-                            <Heart className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        
-                        <div className="flex items-center gap-2 mb-2" onClick={() => handlePlaceClick(place)}>
-                          <MapPin className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground line-clamp-1">
-                            {place.formatted_address}
-                          </span>
-                        </div>
+                {isLoading ? (
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {[...Array(6)].map((_, i) => (
+                      <SearchResultSkeleton key={i} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                     {searchResults.map(place => (
+                       <Card key={place.place_id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handlePlaceClick(place)}>
+                         <CardContent className="p-4">
+                           <div className="flex items-start justify-between mb-2">
+                             <h3 className="font-semibold text-lg leading-tight line-clamp-2" onClick={() => handlePlaceClick(place)}>
+                               {place.name}
+                             </h3>
+                             <Button variant="ghost" size="sm" onClick={e => {
+                               e.stopPropagation();
+                               handleQuickAdd(place);
+                             }} className="shrink-0 ml-2">
+                               <Heart className="h-4 w-4" />
+                             </Button>
+                           </div>
+                         
+                           <div className="flex items-center gap-2 mb-2" onClick={() => handlePlaceClick(place)}>
+                             <MapPin className="h-4 w-4 text-muted-foreground" />
+                             <span className="text-sm text-muted-foreground line-clamp-1">
+                               {place.formatted_address}
+                             </span>
+                           </div>
 
-                        {place.rating && <div className="flex items-center gap-2 mb-2" onClick={() => handlePlaceClick(place)}>
-                            <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                            <span className="font-medium">{place.rating}</span>
-                            {place.user_ratings_total && <span className="text-sm text-muted-foreground">
-                                ({place.user_ratings_total.toLocaleString()})
-                              </span>}
-                          </div>}
+                           {place.rating && (
+                             <div className="flex items-center gap-2 mb-2" onClick={() => handlePlaceClick(place)}>
+                               <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                               <span className="font-medium">{place.rating}</span>
+                               {place.user_ratings_total && (
+                                 <span className="text-sm text-muted-foreground">
+                                   ({place.user_ratings_total.toLocaleString()})
+                                 </span>
+                               )}
+                             </div>
+                           )}
 
-                        <div className="flex items-center justify-between mb-2" onClick={() => handlePlaceClick(place)}>
-                          <div className="flex">
-                            <span className="text-lg font-bold text-green-600">
-                              {place.yelpData?.price || getPriceDisplay(place.price_level)}
-                            </span>
-                          </div>
-                          
-                          {place.opening_hours?.open_now !== undefined && <Badge variant={place.opening_hours.open_now ? "default" : "destructive"}>
-                              {place.opening_hours.open_now ? "Open" : "Closed"}
-                            </Badge>}
-                        </div>
+                           <div className="flex items-center justify-between mb-2" onClick={() => handlePlaceClick(place)}>
+                             <div className="flex">
+                               <span className="text-lg font-bold text-green-600">
+                                 {place.yelpData?.price || getPriceDisplay(place.price_level)}
+                               </span>
+                             </div>
+                             
+                             {place.opening_hours?.open_now !== undefined && (
+                               <Badge variant={place.opening_hours.open_now ? "default" : "destructive"}>
+                                 {place.opening_hours.open_now ? "Open" : "Closed"}
+                               </Badge>
+                             )}
+                           </div>
 
-                        {/* Yelp Badge and Services */}
-                        <div className="flex flex-wrap gap-1 mb-2">
-                          {place.yelpData && <Badge variant="secondary" className="text-xs bg-red-100 text-red-800 border-red-200">
-                              Yelp ✓
-                            </Badge>}
-                          {place.yelpData?.transactions?.includes('delivery') && <Badge variant="outline" className="text-xs flex items-center gap-1">
-                              <Truck className="h-3 w-3" />
-                              Delivery
-                            </Badge>}
-                          {place.yelpData?.transactions?.includes('pickup') && <Badge variant="outline" className="text-xs flex items-center gap-1">
-                              <ShoppingBag className="h-3 w-3" />
-                              Pickup
-                            </Badge>}
-                        </div>
+                           {/* Yelp Badge and Services */}
+                           <div className="flex flex-wrap gap-1 mb-2">
+                             {place.yelpData && (
+                               <Badge variant="secondary" className="text-xs bg-red-100 text-red-800 border-red-200">
+                                 Yelp ✓
+                               </Badge>
+                             )}
+                             {place.yelpData?.transactions?.includes('delivery') && (
+                               <Badge variant="outline" className="text-xs flex items-center gap-1">
+                                 <Truck className="h-3 w-3" />
+                                 Delivery
+                               </Badge>
+                             )}
+                             {place.yelpData?.transactions?.includes('pickup') && (
+                               <Badge variant="outline" className="text-xs flex items-center gap-1">
+                                 <ShoppingBag className="h-3 w-3" />
+                                 Pickup
+                               </Badge>
+                             )}
+                           </div>
 
-                        <div className="flex flex-wrap gap-1 mb-3" onClick={() => handlePlaceClick(place)}>
-                          {/* Show single cuisine type - prioritize AI analysis, then fallback cuisine, then first relevant type */}
-                          {(() => {
-                      const cuisine = place.aiAnalysis?.cuisine || place.fallbackCuisine || place.types.find(type => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 'Restaurant';
-                      return <Badge variant="outline" className="text-xs">{cuisine}</Badge>;
-                    })()}
-                        </div>
+                           <div className="flex flex-wrap gap-1 mb-3" onClick={() => handlePlaceClick(place)}>
+                             {(() => {
+                               const cuisine = place.aiAnalysis?.cuisine || place.fallbackCuisine || place.types.find(type => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 'Restaurant';
+                               return <Badge variant="outline" className="text-xs">{cuisine}</Badge>;
+                             })()}
+                           </div>
 
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm" onClick={() => handlePlaceClick(place)} className="flex-1">
-                            View Details
-                          </Button>
-                          
-                          {place.yelpData && <Button variant="outline" size="sm" onClick={e => {
-                      e.stopPropagation();
-                      window.open(place.yelpData.url, '_blank');
-                    }}>
-                              <Star className="h-4 w-4" />
-                            </Button>}
-                        </div>
-                      </CardContent>
-                    </Card>)}
-                </div>
-              </TabsContent>
+                           <div className="flex gap-2">
+                             <Button variant="outline" size="sm" onClick={() => handlePlaceClick(place)} className="flex-1">
+                               View Details
+                             </Button>
+                             
+                             {place.yelpData && (
+                               <Button variant="outline" size="sm" onClick={e => {
+                                 e.stopPropagation();
+                                 window.open(place.yelpData.url, '_blank');
+                               }}>
+                                 <Star className="h-4 w-4" />
+                               </Button>
+                             )}
+                           </div>
+                         </CardContent>
+                       </Card>
+                     ))}
+                   </div>
+                 )}
+               </TabsContent>
 
               <TabsContent value="map">
                 <div className="h-[600px] rounded-lg overflow-hidden">
@@ -691,7 +715,8 @@ export default function UnifiedSearchPage() {
               }} />
                 </div>
               </TabsContent>
-            </Tabs>}
+            </Tabs>
+          )}
         </TabsContent>
 
         <TabsContent value="smart">

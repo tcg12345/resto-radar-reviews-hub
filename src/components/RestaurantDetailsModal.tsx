@@ -7,6 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { OpeningHoursDisplay } from '@/components/OpeningHoursDisplay';
 import { ReservationWidget } from '@/components/ReservationWidget';
+import { RestaurantDetailsSkeleton } from '@/components/skeletons/RestaurantDetailsSkeleton';
 
 
 interface Restaurant {
@@ -44,7 +45,15 @@ export function RestaurantDetailsModal({
   onClose, 
   onSaveToWishlist 
 }: RestaurantDetailsModalProps) {
-  if (!restaurant) return null;
+  if (!isOpen) return null;
+  
+  if (!restaurant) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <RestaurantDetailsSkeleton />
+      </Dialog>
+    );
+  }
 
   const getPriceDisplay = (range: number) => '$'.repeat(Math.min(range, 4));
 
