@@ -251,51 +251,56 @@ export function RestaurantDetailPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-        {/* Data Source Notice */}
-        {friendProfile && <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="flex-shrink-0">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                    <span className="text-lg font-semibold text-blue-700 dark:text-blue-300">
-                      {friendProfile.name?.charAt(0) || friendProfile.username?.charAt(0) || 'U'}
-                    </span>
+        {/* Data Source and Wishlist Notices */}
+        {friendProfile && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Data Source Notice */}
+            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                      <span className="text-lg font-semibold text-blue-700 dark:text-blue-300">
+                        {friendProfile.name?.charAt(0) || friendProfile.username?.charAt(0) || 'U'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-blue-800 dark:text-blue-200 font-medium">
+                      Restaurant data shared by {friendProfile.name || friendProfile.username}
+                    </p>
+                    <p className="text-blue-600 dark:text-blue-300 text-sm">
+                      This information comes from their personal restaurant collection
+                    </p>
                   </div>
                 </div>
-                <div className="flex-1">
-                  <p className="text-blue-800 dark:text-blue-200 font-medium">
-                    Restaurant data shared by {friendProfile.name || friendProfile.username}
-                  </p>
-                  <p className="text-blue-600 dark:text-blue-300 text-sm">
-                    This information comes from their personal restaurant collection
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>}
+              </CardContent>
+            </Card>
 
-        {/* Wishlist Notice */}
-        {restaurant.is_wishlist && friendProfile && (
-          <Card className="bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-rose-500/10 border-purple-200/50 dark:border-purple-800/50 shadow-lg backdrop-blur-sm animate-fade-in">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
-                  <Heart className="h-6 w-6 text-white fill-current animate-pulse" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold bg-gradient-to-r from-purple-700 to-pink-700 dark:from-purple-300 dark:to-pink-300 bg-clip-text text-transparent">
-                    Wishlist Restaurant
-                  </h3>
-                  <p className="text-purple-700/80 dark:text-purple-300/80 font-medium">
-                    This restaurant is in {friendProfile.name || friendProfile.username}'s wishlist
-                  </p>
-                  <p className="text-purple-600/70 dark:text-purple-400/70 text-sm mt-1">
-                    They haven't visited yet • No rating or photos available
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Wishlist Notice */}
+            {restaurant.is_wishlist && (
+              <Card className="bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-rose-500/10 border-purple-200/50 dark:border-purple-800/50 shadow-lg backdrop-blur-sm animate-fade-in">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                      <Heart className="h-6 w-6 text-white fill-current animate-pulse" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-bold bg-gradient-to-r from-purple-700 to-pink-700 dark:from-purple-300 dark:to-pink-300 bg-clip-text text-transparent">
+                        Wishlist Restaurant
+                      </h3>
+                      <p className="text-purple-700/80 dark:text-purple-300/80 font-medium">
+                        This restaurant is in {friendProfile.name || friendProfile.username}'s wishlist
+                      </p>
+                      <p className="text-purple-600/70 dark:text-purple-400/70 text-sm mt-1">
+                        They haven't visited yet • No rating or photos available
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         )}
         {/* Hero Section - Dynamic layout based on wishlist status */}
         <div className={restaurant.is_wishlist ? "space-y-6" : "grid lg:grid-cols-5 gap-6"}>
