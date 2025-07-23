@@ -575,6 +575,7 @@ export function PersonalizedRecommendations() {
         restaurant={selectedRestaurant}
         isOpen={showDetailsModal}
         onClose={() => setShowDetailsModal(false)}
+        canAddToWishlist={true}
       />
     </div>
   );

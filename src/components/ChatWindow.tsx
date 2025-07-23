@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Restaurant } from '@/types/restaurant';
+import { SharedRestaurantCard } from './SharedRestaurantCard';
 
 interface Message {
   id: string;
@@ -286,13 +287,34 @@ export function ChatWindow({ roomId }: ChatWindowProps) {
     if (!roomId || !user || isSending) return;
 
     setIsSending(true);
-    const restaurantMessage = `🍽️ ${restaurant.name} - ${restaurant.address}, ${restaurant.city}${restaurant.rating ? ` (Rating: ${restaurant.rating}/10)` : ''}`;
+    
+    // Store the full restaurant object as JSON
+    const restaurantData = JSON.stringify({
+      id: restaurant.id,
+      name: restaurant.name,
+      address: restaurant.address,
+      city: restaurant.city,
+      country: restaurant.country,
+      cuisine: restaurant.cuisine,
+      rating: restaurant.rating,
+      priceRange: restaurant.priceRange,
+      michelinStars: restaurant.michelinStars,
+      photos: restaurant.photos,
+      notes: restaurant.notes,
+      latitude: restaurant.latitude,
+      longitude: restaurant.longitude,
+      website: restaurant.website,
+      phone_number: restaurant.phone_number,
+      openingHours: restaurant.openingHours,
+      reservable: restaurant.reservable,
+      reservationUrl: restaurant.reservationUrl
+    });
     
     // Optimistic update
     const optimisticMessage: Message = {
       id: `temp-${Date.now()}`,
       sender_id: user.id,
-      content: restaurantMessage,
+      content: restaurantData,
       message_type: 'restaurant',
       created_at: new Date().toISOString(),
       sender_profile: {
@@ -311,7 +333,7 @@ export function ChatWindow({ roomId }: ChatWindowProps) {
         .insert({
           room_id: roomId,
           sender_id: user.id,
-          content: restaurantMessage,
+          content: restaurantData,
           message_type: 'restaurant'
         });
 
@@ -526,20 +548,29 @@ export function ChatWindow({ roomId }: ChatWindowProps) {
                     </Avatar>
                   )}
                   
-                  <div
-                    className={`max-w-xs px-3 py-2 rounded-lg ${
-                      isOwnMessage
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted'
-                    }`}
-                  >
-                    <p className="text-sm">{message.content}</p>
-                    <p className={`text-xs mt-1 ${
-                      isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground'
-                    }`}>
-                      {formatMessageTime(message.created_at)}
-                    </p>
-                  </div>
+                   {message.message_type === 'restaurant' ? (
+                     <div className={`${isOwnMessage ? 'flex justify-end' : 'flex justify-start'}`}>
+                       <SharedRestaurantCard 
+                         restaurantData={message.content}
+                         isOwnMessage={isOwnMessage}
+                       />
+                     </div>
+                   ) : (
+                     <div
+                       className={`max-w-xs px-3 py-2 rounded-lg ${
+                         isOwnMessage
+                           ? 'bg-primary text-primary-foreground'
+                           : 'bg-muted'
+                       }`}
+                     >
+                       <p className="text-sm">{message.content}</p>
+                       <p className={`text-xs mt-1 ${
+                         isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                       }`}>
+                         {formatMessageTime(message.created_at)}
+                       </p>
+                     </div>
+                   )}
                 </div>
               );
             })}
