@@ -199,7 +199,7 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
   const uniquePriceRanges = [...new Set(restaurants.map(r => r.priceRange).filter(Boolean))].sort();
 
   return (
-    <div className="relative h-[calc(100vh-64px)]">
+    <div className="relative h-[calc(100vh-128px)]">
       {/* Filter Panel - draggable positioned filter box */}
       {showFilters && (
         <Card 
