@@ -90,7 +90,7 @@ export default function UnifiedSearchPage() {
     lat: number;
     lng: number;
   } | null>(null);
-  const [priceFilter, setPriceFilter] = useState<string>('');
+  const [priceFilter, setPriceFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('relevance');
   const [radius, setRadius] = useState<number>(25000);
   const searchRef = useRef<HTMLDivElement>(null);
