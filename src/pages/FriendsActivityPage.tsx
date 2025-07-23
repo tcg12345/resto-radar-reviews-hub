@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Users, Star, Heart, MapPin, Clock, Filter, SortAsc, List, ChevronDown } from 'lucide-react';
+import { Users, Star, Heart, MapPin, Clock, Filter, SortAsc, List, ChevronDown, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -452,6 +452,9 @@ export function FriendsActivityPage() {
       // Load the next page and replace all restaurants (pagination behavior)
       await loadRestaurantBatch(allFriendIds, friendsData, newOffset, true);
       setCurrentPage(nextPage);
+      
+      // Scroll to top of the page
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       
     } catch (error) {
       console.error('❌ Error loading next page:', error);
@@ -1123,9 +1126,14 @@ export function FriendsActivityPage() {
                   onClick={loadNextPage}
                   disabled={isLoadingMore}
                   size="lg"
-                  className="min-w-32"
+                  className="min-w-32 flex items-center gap-2"
                 >
-                  {isLoadingMore ? 'Loading...' : `Next Page (${currentPage + 1})`}
+                  {isLoadingMore ? 'Loading...' : (
+                    <>
+                      Next Page ({currentPage + 1})
+                      <ChevronRight className="h-4 w-4" />
+                    </>
+                  )}
                 </Button>
               )}
               
