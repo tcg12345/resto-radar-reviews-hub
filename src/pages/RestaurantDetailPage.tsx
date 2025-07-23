@@ -548,19 +548,19 @@ export function RestaurantDetailPage() {
           </div>
 
             {/* Opening Hours and Location Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Opening Hours Card */}
               {restaurant.opening_hours && (
-                <Card className="shadow-lg border-0 bg-gradient-to-br from-indigo-50/50 to-blue-50/50 dark:from-indigo-950/20 dark:to-blue-950/20">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-xl font-bold flex items-center gap-3 bg-gradient-to-r from-indigo-700 to-blue-700 dark:from-indigo-300 dark:to-blue-300 bg-clip-text text-transparent">
-                      <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md">
-                        <Clock className="h-5 w-5 text-white" />
+                <Card className="lg:col-span-1 shadow-lg border-0 bg-gradient-to-br from-indigo-50/50 to-blue-50/50 dark:from-indigo-950/20 dark:to-blue-950/20">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg font-bold flex items-center gap-2 bg-gradient-to-r from-indigo-700 to-blue-700 dark:from-indigo-300 dark:to-blue-300 bg-clip-text text-transparent">
+                      <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
+                        <Clock className="h-4 w-4 text-white" />
                       </div>
                       Opening Hours
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
+                  <CardContent className="space-y-2">
                     <OpeningHoursDisplay hours={restaurant.opening_hours.split('\n')} />
                   </CardContent>
                 </Card>
@@ -568,27 +568,27 @@ export function RestaurantDetailPage() {
 
               {/* Location & Interactive Map */}
               {restaurant.latitude && restaurant.longitude && (
-                <div className="animate-fade-in">
+                <div className="lg:col-span-2 animate-fade-in">
                   <Card>
                     <CardContent className="p-0 space-y-0">
                       {/* Address Information Header */}
-                      <div className="p-6">
-                        <div className="flex items-start gap-4">
-                          <div className="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                            <MapPin className="h-6 w-6 text-primary" />
+                      <div className="p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                            <MapPin className="h-5 w-5 text-primary" />
                           </div>
                           <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-foreground mb-2">
+                            <h3 className="text-lg font-semibold text-foreground mb-1">
                               Location & Address
                             </h3>
                             <div className="space-y-1">
                               <p className="font-medium text-foreground">
                                 {restaurant.name}
                               </p>
-                              <p className="text-muted-foreground">
+                              <p className="text-muted-foreground text-sm">
                                 {restaurant.address}
                               </p>
-                              <p className="text-muted-foreground">
+                              <p className="text-muted-foreground text-sm">
                                 {restaurant.city}, {restaurant.country}
                               </p>
                             </div>
@@ -616,7 +616,7 @@ export function RestaurantDetailPage() {
                           </div>
                         </div>
 
-                        <div className="h-80 w-full [&_>_*]:!rounded-none [&_canvas]:!rounded-none [&_>_*]:!h-full">
+                        <div className="h-64 w-full [&_>_*]:!rounded-none [&_canvas]:!rounded-none [&_>_*]:!h-full">
                           <RestaurantLocationMap latitude={restaurant.latitude} longitude={restaurant.longitude} name={restaurant.name} address={restaurant.address} />
                         </div>
                       </div>
