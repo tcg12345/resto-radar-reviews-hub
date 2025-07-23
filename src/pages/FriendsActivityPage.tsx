@@ -56,13 +56,21 @@ export function FriendsActivityPage() {
   const { user } = useAuth();
   const [friendsRestaurants, setFriendsRestaurants] = useState<FriendRestaurant[]>([]);
   const [filteredRestaurants, setFilteredRestaurants] = useState<FriendRestaurant[]>([]);
+  const [displayedRestaurants, setDisplayedRestaurants] = useState<FriendRestaurant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('recent');
   const [filterBy, setFilterBy] = useState<FilterOption>('all');
   const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
   const [selectedCity, setSelectedCity] = useState<CityFilterOption>('all');
+  const [currentPage, setCurrentPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
   const dataFetched = useRef(false);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadingTriggerRef = useRef<HTMLDivElement>(null);
+
+  const ITEMS_PER_PAGE = 10;
 
   // Memoize expensive calculations
   const uniqueCuisines = React.useMemo(() => {
@@ -104,6 +112,62 @@ export function FriendsActivityPage() {
     
     return () => clearTimeout(timeoutId);
   }, [friendsRestaurants, searchQuery, sortBy, filterBy, selectedCuisines, selectedCity]);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(0);
+    setHasMore(true);
+    updateDisplayedRestaurants(filteredRestaurants, 0);
+  }, [filteredRestaurants]);
+
+  // Intersection observer for infinite scroll
+  useEffect(() => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+          loadMoreRestaurants();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadingTriggerRef.current) {
+      observerRef.current.observe(loadingTriggerRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [hasMore, isLoadingMore]);
+
+  const updateDisplayedRestaurants = (allRestaurants: FriendRestaurant[], page: number) => {
+    const startIndex = 0;
+    const endIndex = (page + 1) * ITEMS_PER_PAGE;
+    const newDisplayed = allRestaurants.slice(startIndex, endIndex);
+    
+    setDisplayedRestaurants(newDisplayed);
+    setHasMore(endIndex < allRestaurants.length);
+  };
+
+  const loadMoreRestaurants = () => {
+    if (isLoadingMore || !hasMore) return;
+    
+    setIsLoadingMore(true);
+    
+    // Simulate small delay for smooth UX
+    setTimeout(() => {
+      const nextPage = currentPage + 1;
+      setCurrentPage(nextPage);
+      updateDisplayedRestaurants(filteredRestaurants, nextPage);
+      setIsLoadingMore(false);
+    }, 200);
+  };
 
   // Load from cached database table for instant loading
   const loadFromCachedTable = async () => {
@@ -702,10 +766,15 @@ export function FriendsActivityPage() {
       </Card>
 
       {/* Results */}
-      <div className="space-y-4">
+        <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">
             {filteredRestaurants.length} {filteredRestaurants.length === 1 ? 'Item' : 'Items'}
+            {displayedRestaurants.length < filteredRestaurants.length && (
+              <span className="text-sm text-muted-foreground ml-2">
+                (showing {displayedRestaurants.length})
+              </span>
+            )}
           </h2>
         </div>
 
@@ -722,8 +791,9 @@ export function FriendsActivityPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredRestaurants.map((restaurant) => (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {displayedRestaurants.map((restaurant) => (
               <Card key={restaurant.id} className="hover:shadow-lg transition-shadow">
                 <CardContent className="p-6">
                   <div className="space-y-4">
@@ -802,7 +872,33 @@ export function FriendsActivityPage() {
                 </CardContent>
               </Card>
             ))}
-          </div>
+            </div>
+
+            {/* Loading trigger and indicator */}
+            {hasMore && (
+              <div 
+                ref={loadingTriggerRef}
+                className="flex justify-center items-center py-8"
+              >
+                {isLoadingMore ? (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                    <span>Loading more restaurants...</span>
+                  </div>
+                ) : (
+                  <div className="text-muted-foreground text-sm">
+                    Scroll down to load more
+                  </div>
+                )}
+              </div>
+            )}
+
+            {!hasMore && displayedRestaurants.length > 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>You've reached the end of the list!</p>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
