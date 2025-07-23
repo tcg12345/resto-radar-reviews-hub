@@ -280,6 +280,13 @@ export function ChatListPage() {
     );
   };
 
+  const toggleDMFriendSelection = (friendId: string) => {
+    // For DM, only allow selecting one friend at a time
+    setSelectedFriends(prev => 
+      prev.includes(friendId) ? [] : [friendId]
+    );
+  };
+
   const deleteChat = async (roomId: string, roomName?: string) => {
     if (!user) return;
 
@@ -447,7 +454,18 @@ export function ChatListPage() {
             <h1 className="text-xl font-semibold">Messages</h1>
           </div>
           
-          <Dialog open={isNewChatOpen} onOpenChange={setIsNewChatOpen}>
+          <Dialog 
+            open={isNewChatOpen} 
+            onOpenChange={(open) => {
+              setIsNewChatOpen(open);
+              if (!open) {
+                // Clear selections when dialog closes
+                setSelectedFriends([]);
+                setGroupChatName('');
+                setSearchQuery('');
+              }
+            }}
+          >
             <DialogTrigger asChild>
               <Button size="sm">
                 <Plus className="h-4 w-4 mr-2" />
@@ -459,7 +477,14 @@ export function ChatListPage() {
                 <DialogTitle>Start New Chat</DialogTitle>
               </DialogHeader>
               
-              <Tabs defaultValue="dm" className="w-full">
+              <Tabs 
+                defaultValue="dm" 
+                className="w-full"
+                onValueChange={() => {
+                  // Clear selections when switching tabs
+                  setSelectedFriends([]);
+                }}
+              >
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="dm">Direct Message</TabsTrigger>
                   <TabsTrigger value="group">Group Chat</TabsTrigger>
@@ -472,15 +497,23 @@ export function ChatListPage() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full"
                   />
-                  <div className="max-h-60 overflow-y-auto space-y-2">
+                  <div className="max-h-48 overflow-y-auto space-y-2">
                     {filteredFriends.map((friend) => (
                       <Card
                         key={friend.friend_id}
-                        className="cursor-pointer hover:bg-muted/50 transition-colors"
-                        onClick={() => startChat(friend.friend_id)}
+                        className={`cursor-pointer transition-colors ${
+                          selectedFriends.includes(friend.friend_id)
+                            ? 'bg-accent border-primary'
+                            : 'hover:bg-muted/50'
+                        }`}
+                        onClick={() => toggleDMFriendSelection(friend.friend_id)}
                       >
                         <CardContent className="p-3">
                           <div className="flex items-center gap-3">
+                            <Checkbox
+                              checked={selectedFriends.includes(friend.friend_id)}
+                              onChange={() => toggleDMFriendSelection(friend.friend_id)}
+                            />
                             <Avatar className="h-10 w-10">
                               <AvatarImage src={friend.avatar_url} />
                               <AvatarFallback>
@@ -503,6 +536,16 @@ export function ChatListPage() {
                       </div>
                     )}
                   </div>
+                  {selectedFriends.length === 1 && (
+                    <div className="flex items-center justify-between pt-2 border-t">
+                      <span className="text-sm text-muted-foreground">
+                        Ready to start chat
+                      </span>
+                      <Button onClick={() => startChat(selectedFriends[0])} size="sm">
+                        Create Chat
+                      </Button>
+                    </div>
+                  )}
                 </TabsContent>
                 
                 <TabsContent value="group" className="space-y-4">
