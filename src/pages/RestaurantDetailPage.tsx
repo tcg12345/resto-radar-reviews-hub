@@ -456,25 +456,25 @@ export function RestaurantDetailPage() {
             {/* Add to Wishlist Card - Left Side */}
             <Card className="bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 dark:from-rose-950/30 dark:via-pink-950/30 dark:to-purple-950/30 border-rose-200/50 dark:border-rose-800/50 shadow-xl backdrop-blur-sm overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 via-pink-500/5 to-purple-500/5" />
-              <CardContent className="relative px-8 pt-6 pb-1">
-                <div className="text-center space-y-3">
-                  <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-rose-500 to-purple-600 rounded-xl shadow-lg mb-2">
-                    <Heart className="h-6 w-6 text-white fill-current" />
+              <CardContent className="relative px-8 pt-4 pb-0">
+                <div className="text-center space-y-2">
+                  <div className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-rose-500 to-purple-600 rounded-xl shadow-lg">
+                    <Heart className="h-5 w-5 text-white fill-current" />
                   </div>
-                  <h3 className="text-xl font-bold bg-gradient-to-r from-rose-700 to-purple-700 dark:from-rose-300 dark:to-purple-300 bg-clip-text text-transparent">
+                  <h3 className="text-lg font-bold bg-gradient-to-r from-rose-700 to-purple-700 dark:from-rose-300 dark:to-purple-300 bg-clip-text text-transparent">
                     Add to Your Wishlist
                   </h3>
-                  <p className="text-muted-foreground text-sm">
+                  <p className="text-muted-foreground text-xs">
                     Save this restaurant to your own wishlist and get notified about updates
                   </p>
                   <Button 
                     onClick={addToWishlist} 
                     disabled={isAddingToWishlist} 
-                    size="default" 
-                    className="bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white px-6 py-3 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover-scale border-0"
+                    size="sm" 
+                    className="bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white px-4 py-2 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover-scale border-0"
                   >
-                    <Heart className="h-4 w-4 fill-current mr-2" />
-                    {isAddingToWishlist ? 'Adding to Wishlist...' : 'Add to My Wishlist'}
+                    <Heart className="h-3 w-3 fill-current mr-1" />
+                    {isAddingToWishlist ? 'Adding...' : 'Add to My Wishlist'}
                   </Button>
                 </div>
               </CardContent>
