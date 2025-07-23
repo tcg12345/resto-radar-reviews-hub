@@ -15,6 +15,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<'home' | 'rated' | 'wishlist' | 'map' | 'search' | 'settings' | 'friends'>('home');
   const [shouldOpenAddDialog, setShouldOpenAddDialog] = useState(false);
   const [viewFriendId, setViewFriendId] = useState<string | null>(null);
+  const [searchSubTab, setSearchSubTab] = useState<string | null>(null);
   const { restaurants, addRestaurant, updateRestaurant, deleteRestaurant } = useRestaurants();
   const navigate = useNavigate();
   const location = useLocation();
@@ -26,6 +27,9 @@ export default function Dashboard() {
     }
     if (location.state?.viewFriendId) {
       setViewFriendId(location.state.viewFriendId);
+    }
+    if (location.state?.searchSubTab) {
+      setSearchSubTab(location.state.searchSubTab);
     }
     // Clear navigation state after using it
     if (location.state) {
@@ -72,7 +76,10 @@ export default function Dashboard() {
           />
         </div>
         <div className={`${activeTab === 'search' ? 'block' : 'hidden'}`}>
-          <UnifiedSearchPage />
+          <UnifiedSearchPage 
+            initialSubTab={searchSubTab} 
+            onSubTabProcessed={() => setSearchSubTab(null)}
+          />
         </div>
         <div className={`${activeTab === 'settings' ? 'block' : 'hidden'}`}>
           <SettingsPage onBack={() => setActiveTab('home')} />

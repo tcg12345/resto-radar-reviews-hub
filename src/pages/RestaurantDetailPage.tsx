@@ -220,7 +220,8 @@ export function RestaurantDetailPage() {
             if (fromFriendsActivity) {
               navigate('/', {
                 state: {
-                  activeTab: 'friends-activity'
+                  activeTab: 'search',
+                  searchSubTab: 'friends'
                 }
               });
             } else if (friendId) {
