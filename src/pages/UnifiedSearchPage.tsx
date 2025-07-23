@@ -402,6 +402,11 @@ export default function UnifiedSearchPage() {
   };
   return (
     <div className="w-full">
+      {/* Mobile Search Section */}
+      <div className="lg:hidden px-4 py-6">
+        <MobileRestaurantSearch onPlaceSelect={handlePlaceClick} />
+      </div>
+
       {/* Desktop Search Section */}
       <div className="hidden lg:block relative rounded-2xl bg-gradient-to-br from-background via-background to-primary/10 border border-primary/20 shadow-2xl">
         {/* Background Pattern */}
@@ -439,13 +444,16 @@ export default function UnifiedSearchPage() {
                       placeholder="🔍 What are you craving? Search by name, cuisine, atmosphere, or special dishes..." 
                       value={searchQuery} 
                       onChange={e => {
+                        console.log('Search input changed:', e.target.value);
                         setSearchQuery(e.target.value);
                         if (e.target.value.length > 2) {
+                          console.log('Setting showLiveResults to true');
                           setShowLiveResults(true);
                         } else {
+                          console.log('Setting showLiveResults to false');
                           setShowLiveResults(false);
                         }
-                      }} 
+                      }}
                       onKeyDown={e => {
                         if (e.key === 'Enter') {
                           handleSearch();
