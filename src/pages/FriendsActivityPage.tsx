@@ -318,6 +318,15 @@ export function FriendsActivityPage() {
     observerRef.current = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
+        console.log('Intersection observer triggered:', {
+          isIntersecting: entry.isIntersecting,
+          hasMore,
+          isLoadingMore,
+          isLoading,
+          isLoadingRefCurrent: isLoadingRef.current,
+          friendsRestaurantsLength: friendsRestaurants.length
+        });
+        
         if (entry.isIntersecting && hasMore && !isLoadingMore && !isLoading && !isLoadingRef.current) {
           console.log('Loading more restaurants triggered by intersection');
           loadMoreRestaurants();
@@ -331,7 +340,10 @@ export function FriendsActivityPage() {
 
     const currentTrigger = loadingTriggerRef.current;
     if (currentTrigger) {
+      console.log('Observing loading trigger element');
       observerRef.current.observe(currentTrigger);
+    } else {
+      console.log('Loading trigger element not found');
     }
 
     return () => {
@@ -456,7 +468,19 @@ export function FriendsActivityPage() {
   };
 
   const loadMoreRestaurants = async () => {
-    if (isLoadingMore || !hasMore || allFriendIds.length === 0 || isLoadingRef.current) return;
+    console.log('loadMoreRestaurants called:', {
+      isLoadingMore,
+      hasMore,
+      allFriendIdsLength: allFriendIds.length,
+      isLoadingRefCurrent: isLoadingRef.current,
+      currentOffset,
+      friendsRestaurantsLength: friendsRestaurants.length
+    });
+    
+    if (isLoadingMore || !hasMore || allFriendIds.length === 0 || isLoadingRef.current) {
+      console.log('loadMoreRestaurants: Early return due to conditions');
+      return;
+    }
     
     isLoadingRef.current = true;
     setIsLoadingMore(true);
@@ -590,11 +614,15 @@ export function FriendsActivityPage() {
     }
 
     // Check if we got fewer results than requested
+    console.log(`Restaurant batch loaded: ${restaurantsData.length} restaurants, offset: ${offset}, isInitial: ${isInitial}`);
+    
     if (restaurantsData.length < ITEMS_PER_PAGE) {
-      console.log(`Got ${restaurantsData.length} restaurants, setting hasMore to false`);
+      console.log(`Got ${restaurantsData.length} restaurants (< ${ITEMS_PER_PAGE}), setting hasMore to false`);
       setHasMore(false);
     } else {
       console.log(`Got ${restaurantsData.length} restaurants, more may be available`);
+      // Keep hasMore true if we got a full batch
+      setHasMore(true);
     }
   };
 
@@ -1169,9 +1197,11 @@ export function FriendsActivityPage() {
             {hasMore && (
               <div 
                 ref={loadingTriggerRef}
-                className="h-20 w-full"
+                className="h-20 w-full flex items-center justify-center bg-muted/10"
                 style={{ gridColumn: '1 / -1' }}
-              />
+              >
+                <div className="text-sm text-muted-foreground">Loading trigger zone</div>
+              </div>
             )}
 
             {!hasMore && friendsRestaurants.length > 0 && (
