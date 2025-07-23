@@ -55,8 +55,6 @@ const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
 export function FriendsActivityPage() {
   const { user } = useAuth();
   const [friendsRestaurants, setFriendsRestaurants] = useState<FriendRestaurant[]>([]);
-  const [filteredRestaurants, setFilteredRestaurants] = useState<FriendRestaurant[]>([]);
-  const [displayedRestaurants, setDisplayedRestaurants] = useState<FriendRestaurant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -64,8 +62,9 @@ export function FriendsActivityPage() {
   const [filterBy, setFilterBy] = useState<FilterOption>('all');
   const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
   const [selectedCity, setSelectedCity] = useState<CityFilterOption>('all');
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentOffset, setCurrentOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [allFriendIds, setAllFriendIds] = useState<string[]>([]);
   const dataFetched = useRef(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadingTriggerRef = useRef<HTMLDivElement>(null);
@@ -83,323 +82,8 @@ export function FriendsActivityPage() {
     return [...new Set(cities)].sort();
   }, [friendsRestaurants]);
 
-  useEffect(() => {
-    if (user && !dataFetched.current) {
-      // Check cache first for instant loading
-      const cacheKey = `friends-activity-${user.id}`;
-      const cached = friendsActivityCache.get(cacheKey);
-      
-      if (cached && 
-          cached.userId === user.id && 
-          Date.now() - cached.timestamp < CACHE_DURATION) {
-        // Use cached data instantly
-        setFriendsRestaurants(cached.data);
-        setIsLoading(false);
-        dataFetched.current = true;
-        return;
-      }
-      
-      // Try to load from the friend_activity_cache table first for instant loading
-      loadFromCachedTable();
-    }
-  }, [user]);
-
-  // Debounce filtering for better performance
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      filterAndSortRestaurants();
-    }, 100);
-    
-    return () => clearTimeout(timeoutId);
-  }, [friendsRestaurants, searchQuery, sortBy, filterBy, selectedCuisines, selectedCity]);
-
-  // Reset pagination when filters change
-  useEffect(() => {
-    setCurrentPage(0);
-    setHasMore(true);
-    updateDisplayedRestaurants(filteredRestaurants, 0);
-  }, [filteredRestaurants]);
-
-  // Intersection observer for infinite scroll
-  useEffect(() => {
-    if (observerRef.current) {
-      observerRef.current.disconnect();
-    }
-
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
-          loadMoreRestaurants();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (loadingTriggerRef.current) {
-      observerRef.current.observe(loadingTriggerRef.current);
-    }
-
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
-    };
-  }, [hasMore, isLoadingMore]);
-
-  const updateDisplayedRestaurants = (allRestaurants: FriendRestaurant[], page: number) => {
-    const startIndex = 0;
-    const endIndex = (page + 1) * ITEMS_PER_PAGE;
-    const newDisplayed = allRestaurants.slice(startIndex, endIndex);
-    
-    setDisplayedRestaurants(newDisplayed);
-    setHasMore(endIndex < allRestaurants.length);
-  };
-
-  const loadMoreRestaurants = () => {
-    if (isLoadingMore || !hasMore) return;
-    
-    setIsLoadingMore(true);
-    
-    // Simulate small delay for smooth UX
-    setTimeout(() => {
-      const nextPage = currentPage + 1;
-      setCurrentPage(nextPage);
-      updateDisplayedRestaurants(filteredRestaurants, nextPage);
-      setIsLoadingMore(false);
-    }, 200);
-  };
-
-  // Load from cached database table for instant loading
-  const loadFromCachedTable = async () => {
-    if (!user) return;
-
-    try {
-      // Try to get cached activity data first
-      const { data: cachedData, error: cacheError } = await supabase
-        .from('friend_activity_cache')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('activity_date', { ascending: false });
-
-      if (!cacheError && cachedData && cachedData.length > 0) {
-        // Transform cached data to match our interface
-        const transformedData: FriendRestaurant[] = cachedData.map(item => {
-          const activityData = item.activity_data as any;
-          return {
-            id: activityData.restaurant_id || item.restaurant_id,
-            name: activityData.restaurant_name || activityData.name || 'Unknown',
-            cuisine: activityData.cuisine || 'Unknown',
-            rating: activityData.rating,
-            address: activityData.address || '',
-            city: activityData.city || 'Unknown',
-            country: activityData.country,
-            price_range: activityData.price_range,
-            michelin_stars: activityData.michelin_stars,
-            date_visited: activityData.date_visited,
-            created_at: activityData.created_at || item.activity_date,
-            notes: activityData.notes,
-            photos: activityData.photos || [],
-            is_wishlist: activityData.is_wishlist || false,
-            friend: {
-              id: item.friend_id,
-              username: activityData.friend_username || 'Unknown',
-              name: activityData.friend_name || activityData.friend_username || 'Unknown',
-              avatar_url: activityData.friend_avatar_url || ''
-            }
-          };
-        });
-
-        setFriendsRestaurants(transformedData);
-        setIsLoading(false);
-        dataFetched.current = true;
-        
-        // Cache in memory for next time
-        const cacheKey = `friends-activity-${user.id}`;
-        friendsActivityCache.set(cacheKey, {
-          data: transformedData,
-          timestamp: Date.now(),
-          userId: user.id
-        });
-        
-        // Refresh data in background without showing loading
-        setTimeout(() => {
-          refreshDataInBackground();
-        }, 100);
-        
-        return;
-      }
-    } catch (error) {
-      console.error('Error loading from cached table:', error);
-    }
-
-    // If no cached data, fetch fresh data
-    fetchFriendsRestaurants();
-  };
-
-  // Refresh data in background without affecting UI
-  const refreshDataInBackground = async () => {
-    try {
-      await fetchFriendsRestaurantsSimple();
-    } catch (error) {
-      console.error('Background refresh failed:', error);
-    }
-  };
-
-  const fetchFriendsRestaurants = async () => {
-    if (!user) return;
-
-    try {
-      setIsLoading(true);
-
-      // Use the optimized cached function for instant loading
-      await fetchFriendsRestaurantsSimple();
-    } catch (error) {
-      console.error('Error fetching friends restaurants:', error);
-      toast('Failed to load friends\' restaurants');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Ultra-optimized approach using database cache
-  const fetchFriendsRestaurantsSimple = async () => {
-    if (!user) return;
-
-    try {
-      // First try the cached friend activity function for near-instant loading
-      const { data: cachedActivity, error: cacheError } = await supabase
-        .functions.invoke('friend-activity-cache', {
-          body: { action: 'get', user_id: user.id }
-        });
-
-      if (!cacheError && cachedActivity?.activities?.length > 0) {
-        const formattedRestaurants: FriendRestaurant[] = cachedActivity.activities.map((activity: any) => ({
-          id: activity.restaurant_id,
-          name: activity.restaurant_name,
-          cuisine: activity.cuisine || 'Unknown',
-          rating: activity.rating,
-          address: activity.address || '',
-          city: activity.city || 'Unknown',
-          country: activity.country,
-          price_range: activity.price_range,
-          michelin_stars: activity.michelin_stars,
-          date_visited: activity.date_visited,
-          created_at: activity.created_at,
-          notes: activity.notes,
-          photos: activity.photos || [],
-          is_wishlist: activity.is_wishlist || false,
-          friend: {
-            id: activity.friend_id,
-            username: activity.friend_username,
-            name: activity.friend_name || activity.friend_username,
-            avatar_url: activity.friend_avatar_url || ''
-          }
-        }));
-
-        setFriendsRestaurants(formattedRestaurants);
-        dataFetched.current = true;
-        
-        // Cache in memory
-        const cacheKey = `friends-activity-${user.id}`;
-        friendsActivityCache.set(cacheKey, {
-          data: formattedRestaurants,
-          timestamp: Date.now(),
-          userId: user.id
-        });
-        
-        return;
-      }
-
-      // Fallback to direct database query if cache fails
-      await fetchFriendsRestaurantsDirectly();
-    } catch (error) {
-      console.error('Error in optimized fetch:', error);
-      // Fallback to direct query
-      await fetchFriendsRestaurantsDirectly();
-    }
-  };
-
-  // Direct database query as fallback
-  const fetchFriendsRestaurantsDirectly = async () => {
-    if (!user) return;
-
-    try {
-      // Get friends first (this should be very fast)
-      const { data: friendsData, error: friendsError } = await supabase
-        .rpc('get_friends_with_scores', { requesting_user_id: user.id });
-
-      if (friendsError || !friendsData?.length) {
-        setFriendsRestaurants([]);
-        return;
-      }
-
-      const friendIds = friendsData.map(f => f.friend_id);
-
-      // Get all restaurants from friends with a limit for faster loading
-      const { data: restaurantsData, error: restaurantsError } = await supabase
-        .from('restaurants')
-        .select('id, name, cuisine, rating, address, city, country, price_range, michelin_stars, date_visited, created_at, notes, photos, is_wishlist, user_id')
-        .in('user_id', friendIds)
-        .order('created_at', { ascending: false })
-        .limit(100); // Limit to recent 100 entries for faster loading
-
-      if (restaurantsError) {
-        console.error('Error fetching restaurants:', restaurantsError);
-        return;
-      }
-
-      // Transform data with friend info (optimized)
-      const friendsMap = new Map(friendsData.map(f => [f.friend_id, f]));
-      const formattedRestaurants: FriendRestaurant[] = (restaurantsData || []).map(restaurant => {
-        const friend = friendsMap.get(restaurant.user_id);
-        return {
-          id: restaurant.id,
-          name: restaurant.name,
-          cuisine: restaurant.cuisine || 'Unknown',
-          rating: restaurant.rating,
-          address: restaurant.address || '',
-          city: restaurant.city || 'Unknown',
-          country: restaurant.country,
-          price_range: restaurant.price_range,
-          michelin_stars: restaurant.michelin_stars,
-          date_visited: restaurant.date_visited,
-          created_at: restaurant.created_at,
-          notes: restaurant.notes,
-          photos: restaurant.photos || [],
-          is_wishlist: restaurant.is_wishlist || false,
-          friend: {
-            id: friend?.friend_id || restaurant.user_id,
-            username: friend?.username || 'Unknown',
-            name: friend?.name || friend?.username || 'Unknown',
-            avatar_url: friend?.avatar_url || ''
-          }
-        };
-      });
-
-      setFriendsRestaurants(formattedRestaurants);
-      dataFetched.current = true;
-      
-      // Cache the data
-      const cacheKey = `friends-activity-${user.id}`;
-      friendsActivityCache.set(cacheKey, {
-        data: formattedRestaurants,
-        timestamp: Date.now(),
-        userId: user.id
-      });
-      
-      // Rebuild cache in background for next time
-      setTimeout(() => {
-        supabase.functions.invoke('friend-activity-cache', {
-          body: { action: 'rebuild', user_id: user.id }
-        });
-      }, 1000);
-    } catch (error) {
-      console.error('Error in direct fetch:', error);
-    }
-  };
-
-  // Memoized filtering function for better performance
-  const filterAndSortRestaurants = React.useCallback(() => {
+  // Apply filters to current restaurants
+  const filteredRestaurants = React.useMemo(() => {
     let filtered = [...friendsRestaurants];
 
     // Apply search filter
@@ -452,8 +136,182 @@ export function FriendsActivityPage() {
       }
     });
 
-    setFilteredRestaurants(filtered);
+    return filtered;
   }, [friendsRestaurants, searchQuery, sortBy, filterBy, selectedCuisines, selectedCity]);
+
+  useEffect(() => {
+    if (user && !dataFetched.current) {
+      loadInitialData();
+    }
+  }, [user]);
+
+  // Reset and reload when filters change
+  useEffect(() => {
+    if (dataFetched.current) {
+      setFriendsRestaurants([]);
+      setCurrentOffset(0);
+      setHasMore(true);
+      loadInitialData();
+    }
+  }, [searchQuery, sortBy, filterBy, selectedCuisines, selectedCity]);
+
+  // Intersection observer for infinite scroll
+  useEffect(() => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore && !isLoading) {
+          loadMoreRestaurants();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadingTriggerRef.current) {
+      observerRef.current.observe(loadingTriggerRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [hasMore, isLoadingMore, isLoading]);
+
+  const loadInitialData = async () => {
+    if (!user) return;
+    
+    try {
+      setIsLoading(true);
+      setCurrentOffset(0);
+      
+      // Get friends list first
+      const { data: friendsData, error: friendsError } = await supabase
+        .rpc('get_friends_with_scores', { requesting_user_id: user.id });
+
+      if (friendsError || !friendsData?.length) {
+        setFriendsRestaurants([]);
+        setHasMore(false);
+        return;
+      }
+
+      const friendIds = friendsData.map(f => f.friend_id);
+      setAllFriendIds(friendIds);
+
+      // Load first batch of restaurants
+      await loadRestaurantBatch(friendIds, friendsData, 0, true);
+      dataFetched.current = true;
+    } catch (error) {
+      console.error('Error loading initial data:', error);
+      toast('Failed to load friends\' restaurants');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadMoreRestaurants = async () => {
+    if (isLoadingMore || !hasMore || allFriendIds.length === 0) return;
+    
+    setIsLoadingMore(true);
+    
+    try {
+      // Get friends data from cache or refetch if needed
+      const { data: friendsData, error: friendsError } = await supabase
+        .rpc('get_friends_with_scores', { requesting_user_id: user.id });
+
+      if (friendsError || !friendsData?.length) {
+        setHasMore(false);
+        return;
+      }
+
+      const newOffset = currentOffset + ITEMS_PER_PAGE;
+      await loadRestaurantBatch(allFriendIds, friendsData, newOffset, false);
+      setCurrentOffset(newOffset);
+    } catch (error) {
+      console.error('Error loading more restaurants:', error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  const loadRestaurantBatch = async (
+    friendIds: string[], 
+    friendsData: any[], 
+    offset: number, 
+    isInitial: boolean
+  ) => {
+    let query = supabase
+      .from('restaurants')
+      .select('id, name, cuisine, rating, address, city, country, price_range, michelin_stars, date_visited, created_at, notes, photos, is_wishlist, user_id')
+      .in('user_id', friendIds)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + ITEMS_PER_PAGE - 1);
+
+    // Apply filters to the database query for better performance
+    if (filterBy === 'rated') {
+      query = query.eq('is_wishlist', false).not('rating', 'is', null);
+    } else if (filterBy === 'wishlist') {
+      query = query.eq('is_wishlist', true);
+    }
+
+    if (selectedCuisines.length > 0) {
+      query = query.in('cuisine', selectedCuisines);
+    }
+
+    const { data: restaurantsData, error: restaurantsError } = await query;
+
+    if (restaurantsError) {
+      console.error('Error fetching restaurants:', restaurantsError);
+      return;
+    }
+
+    if (!restaurantsData || restaurantsData.length === 0) {
+      setHasMore(false);
+      return;
+    }
+
+    // Transform data with friend info (optimized)
+    const friendsMap = new Map(friendsData.map(f => [f.friend_id, f]));
+    const formattedRestaurants: FriendRestaurant[] = restaurantsData.map(restaurant => {
+      const friend = friendsMap.get(restaurant.user_id);
+      return {
+        id: restaurant.id,
+        name: restaurant.name,
+        cuisine: restaurant.cuisine || 'Unknown',
+        rating: restaurant.rating,
+        address: restaurant.address || '',
+        city: restaurant.city || 'Unknown',
+        country: restaurant.country,
+        price_range: restaurant.price_range,
+        michelin_stars: restaurant.michelin_stars,
+        date_visited: restaurant.date_visited,
+        created_at: restaurant.created_at,
+        notes: restaurant.notes,
+        photos: restaurant.photos || [],
+        is_wishlist: restaurant.is_wishlist || false,
+        friend: {
+          id: friend?.friend_id || restaurant.user_id,
+          username: friend?.username || 'Unknown',
+          name: friend?.name || friend?.username || 'Unknown',
+          avatar_url: friend?.avatar_url || ''
+        }
+      };
+    });
+
+    if (isInitial) {
+      setFriendsRestaurants(formattedRestaurants);
+    } else {
+      setFriendsRestaurants(prev => [...prev, ...formattedRestaurants]);
+    }
+
+    // Check if we got fewer results than requested
+    if (restaurantsData.length < ITEMS_PER_PAGE) {
+      setHasMore(false);
+    }
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -770,21 +628,21 @@ export function FriendsActivityPage() {
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">
             {filteredRestaurants.length} {filteredRestaurants.length === 1 ? 'Item' : 'Items'}
-            {displayedRestaurants.length < filteredRestaurants.length && (
+            {friendsRestaurants.length > 0 && hasMore && (
               <span className="text-sm text-muted-foreground ml-2">
-                (showing {displayedRestaurants.length})
+                (loaded {friendsRestaurants.length} of many)
               </span>
             )}
           </h2>
         </div>
 
-        {filteredRestaurants.length === 0 ? (
+        {friendsRestaurants.length === 0 && !isLoading ? (
           <Card>
             <CardContent className="p-12 text-center">
               <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-medium mb-2">No Activity Found</h3>
               <p className="text-muted-foreground">
-                {friendsRestaurants.length === 0
+                {friendsRestaurants.length === 0 && !isLoading
                   ? "Your friends haven't added any restaurants yet."
                   : "No restaurants match your current filters."}
               </p>
@@ -793,7 +651,7 @@ export function FriendsActivityPage() {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {displayedRestaurants.map((restaurant) => (
+              {filteredRestaurants.map((restaurant) => (
               <Card key={restaurant.id} className="hover:shadow-lg transition-shadow">
                 <CardContent className="p-6">
                   <div className="space-y-4">
@@ -893,7 +751,7 @@ export function FriendsActivityPage() {
               </div>
             )}
 
-            {!hasMore && displayedRestaurants.length > 0 && (
+            {!hasMore && friendsRestaurants.length > 0 && (
               <div className="text-center py-8 text-muted-foreground">
                 <p>You've reached the end of the list!</p>
               </div>
