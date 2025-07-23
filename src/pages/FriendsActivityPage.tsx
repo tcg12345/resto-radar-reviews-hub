@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Users, Star, Heart, MapPin, Clock, Filter, SortAsc, List, ChevronDown, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -69,20 +69,29 @@ const FRIENDS_CACHE_DURATION = 30 * 60 * 1000; // 30 minutes for friends data
 export function FriendsActivityPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // Initialize state from URL parameters
   const [friendsRestaurants, setFriendsRestaurants] = useState<FriendRestaurant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<SortOption>('recent');
-  const [filterBy, setFilterBy] = useState<FilterOption>('all');
-  const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
-  const [selectedCities, setSelectedCities] = useState<string[]>([]);
-  const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState<SortOption>((searchParams.get('sort') as SortOption) || 'recent');
+  const [filterBy, setFilterBy] = useState<FilterOption>((searchParams.get('filter') as FilterOption) || 'all');
+  const [selectedCuisines, setSelectedCuisines] = useState<string[]>(
+    searchParams.get('cuisines') ? searchParams.get('cuisines')!.split(',') : []
+  );
+  const [selectedCities, setSelectedCities] = useState<string[]>(
+    searchParams.get('cities') ? searchParams.get('cities')!.split(',') : []
+  );
+  const [selectedFriends, setSelectedFriends] = useState<string[]>(
+    searchParams.get('friends') ? searchParams.get('friends')!.split(',') : []
+  );
   const [isCuisineDropdownOpen, setIsCuisineDropdownOpen] = useState(false);
   const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
   const [isFriendsDropdownOpen, setIsFriendsDropdownOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page') || '1'));
   const [hasMore, setHasMore] = useState(true);
   const [allFriendIds, setAllFriendIds] = useState<string[]>([]);
   const [allRestaurantsCache, setAllRestaurantsCache] = useState<FriendRestaurant[]>([]);
@@ -227,6 +236,21 @@ export function FriendsActivityPage() {
       }
     };
   }, [searchQuery]);
+
+  // Update URL parameters when filters change
+  useEffect(() => {
+    const params = new URLSearchParams();
+    
+    if (searchQuery) params.set('search', searchQuery);
+    if (sortBy !== 'recent') params.set('sort', sortBy);
+    if (filterBy !== 'all') params.set('filter', filterBy);
+    if (selectedCuisines.length > 0) params.set('cuisines', selectedCuisines.join(','));
+    if (selectedCities.length > 0) params.set('cities', selectedCities.join(','));
+    if (selectedFriends.length > 0) params.set('friends', selectedFriends.join(','));
+    if (currentPage > 1) params.set('page', currentPage.toString());
+    
+    setSearchParams(params);
+  }, [searchQuery, sortBy, filterBy, selectedCuisines, selectedCities, selectedFriends, currentPage, setSearchParams]);
 
   // Apply filters to current restaurants  
   const filteredRestaurants = React.useMemo(() => {

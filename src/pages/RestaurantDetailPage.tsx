@@ -218,12 +218,7 @@ export function RestaurantDetailPage() {
           <div className="flex items-center justify-between">
             <Button variant="outline" onClick={() => {
             if (fromFriendsActivity) {
-              navigate('/', {
-                state: {
-                  activeTab: 'search',
-                  searchSubTab: 'friends'
-                }
-              });
+              navigate('/friends-activity');
             } else if (friendId) {
               navigate('/', {
                 state: {

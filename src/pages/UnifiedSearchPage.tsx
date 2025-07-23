@@ -67,12 +67,7 @@ interface PlaceDetails extends GooglePlaceResult {
   }>;
 }
 export type SearchType = 'name' | 'cuisine' | 'description';
-interface UnifiedSearchPageProps {
-  initialSubTab?: string | null;
-  onSubTabProcessed?: () => void;
-}
-
-export default function UnifiedSearchPage({ initialSubTab, onSubTabProcessed }: UnifiedSearchPageProps = {}) {
+export default function UnifiedSearchPage() {
   const {
     user
   } = useAuth();
@@ -118,14 +113,6 @@ export default function UnifiedSearchPage({ initialSubTab, onSubTabProcessed }: 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  // Handle initial sub-tab from navigation state
-  useEffect(() => {
-    if (initialSubTab) {
-      setActiveTab(initialSubTab as 'global' | 'smart' | 'recommendations' | 'friends');
-      onSubTabProcessed?.();
-    }
-  }, [initialSubTab, onSubTabProcessed]);
 
   // Live search for restaurants
   useEffect(() => {
