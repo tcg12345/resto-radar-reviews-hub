@@ -226,46 +226,11 @@ export function FriendsActivityPage() {
     };
   }, [searchQuery]);
 
-  // Apply filters to current restaurants
+  // Apply filters to current restaurants (this is now just for display since filtering happens in DB)
   const filteredRestaurants = React.useMemo(() => {
     let filtered = [...friendsRestaurants];
 
-    // Apply search filter (use debounced query for actual filtering)
-    if (debouncedSearchQuery) {
-      const query = debouncedSearchQuery.toLowerCase();
-      filtered = filtered.filter(restaurant =>
-        restaurant.name.toLowerCase().includes(query) ||
-        restaurant.cuisine.toLowerCase().includes(query) ||
-        restaurant.city.toLowerCase().includes(query) ||
-        restaurant.friend.name.toLowerCase().includes(query) ||
-        restaurant.friend.username.toLowerCase().includes(query)
-      );
-    }
-
-    // Apply type filter
-    if (filterBy === 'rated') {
-      filtered = filtered.filter(r => !r.is_wishlist && r.rating !== null);
-    } else if (filterBy === 'wishlist') {
-      filtered = filtered.filter(r => r.is_wishlist);
-    }
-
-    // Apply city filter
-    if (selectedCities.length > 0) {
-      filtered = filtered.filter(r => selectedCities.includes(r.city));
-    }
-
-    // Apply friend filter
-    if (selectedFriends.length > 0) {
-      filtered = filtered.filter(r => selectedFriends.includes(r.friend.id));
-    }
-
-    // Apply cuisine filter
-    if (selectedCuisines.length > 0) {
-      filtered = filtered.filter(r =>
-        selectedCuisines.includes(r.cuisine)
-      );
-    }
-
+    // All filtering now happens in the database, so this is just for sorting
     // Apply sorting
     filtered.sort((a, b) => {
       switch (sortBy) {
@@ -286,7 +251,7 @@ export function FriendsActivityPage() {
     });
 
     return filtered;
-  }, [friendsRestaurants, debouncedSearchQuery, sortBy, filterBy, selectedCuisines, selectedCities, selectedFriends]);
+  }, [friendsRestaurants, sortBy]);
 
   useEffect(() => {
     if (user && !dataFetched.current) {
@@ -294,22 +259,28 @@ export function FriendsActivityPage() {
     }
   }, [user]);
 
-  // Smart filtering - only reload for complex filters, use local filtering for simple ones
+  // Smart filtering - reload data when any filters change
   useEffect(() => {
     if (dataFetched.current && user) {
-      // For simple filters (all/rated/wishlist), don't reload - just filter locally
-      if (debouncedSearchQuery || selectedCuisines.length > 0 || selectedCities.length > 0 || selectedFriends.length > 0) {
-        // Complex filters require database query
-        setFriendsRestaurants([]);
-        setCurrentOffset(0);
-        setHasMore(true);
-        preloadCache.clear();
-        loadInitialData();
-      }
-      // For filterBy (all/rated/wishlist), just update the local filtering
-      // The filteredRestaurants will handle this automatically
+      console.log('Filters changed, reloading data...', {
+        search: debouncedSearchQuery,
+        cuisines: selectedCuisines,
+        cities: selectedCities, 
+        friends: selectedFriends,
+        filterBy
+      });
+      
+      // Always reload when filters change to ensure consistency
+      setFriendsRestaurants([]);
+      setCurrentOffset(0);
+      setHasMore(true);
+      preloadCache.clear();
+      
+      // Clear the data fetched flag to ensure fresh load
+      dataFetched.current = false;
+      loadInitialData();
     }
-  }, [debouncedSearchQuery, selectedCuisines, selectedCities, selectedFriends]);
+  }, [debouncedSearchQuery, selectedCuisines, selectedCities, selectedFriends, filterBy]);
 
   // Separate effect for sort changes that don't require reload
   useEffect(() => {
@@ -535,15 +506,32 @@ export function FriendsActivityPage() {
       .order('created_at', { ascending: false })
       .range(offset, offset + ITEMS_PER_PAGE - 1);
 
-    // Apply filters to the database query for better performance
+    // Apply all filters to the database query for consistency
     if (filterBy === 'rated') {
       query = query.eq('is_wishlist', false).not('rating', 'is', null);
     } else if (filterBy === 'wishlist') {
       query = query.eq('is_wishlist', true);
     }
 
+    // Apply search filter
+    if (debouncedSearchQuery) {
+      const searchTerm = debouncedSearchQuery.toLowerCase();
+      query = query.or(`name.ilike.%${searchTerm}%,cuisine.ilike.%${searchTerm}%,city.ilike.%${searchTerm}%,address.ilike.%${searchTerm}%`);
+    }
+
+    // Apply cuisine filter
     if (selectedCuisines.length > 0) {
       query = query.in('cuisine', selectedCuisines);
+    }
+
+    // Apply city filter  
+    if (selectedCities.length > 0) {
+      query = query.in('city', selectedCities);
+    }
+
+    // Apply friends filter
+    if (selectedFriends.length > 0) {
+      query = query.in('user_id', selectedFriends);
     }
 
     const { data: restaurantsData, error: restaurantsError } = await query;
@@ -838,6 +826,7 @@ export function FriendsActivityPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => {
+                  console.log('Clearing all filters...');
                   setSelectedCuisines([]);
                   setSelectedCities([]);
                   setSelectedFriends([]);
