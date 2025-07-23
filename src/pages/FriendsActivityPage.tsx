@@ -324,15 +324,21 @@ export function FriendsActivityPage() {
 
     observerRef.current = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoadingMore && !isLoading && !isLoadingRef.current) {
+        const entry = entries[0];
+        if (entry.isIntersecting && hasMore && !isLoadingMore && !isLoading && !isLoadingRef.current) {
+          console.log('Loading more restaurants triggered by intersection');
           loadMoreRestaurants();
         }
       },
-      { threshold: 0.1 }
+      { 
+        threshold: 0,
+        rootMargin: '100px' // Start loading when trigger is 100px from viewport
+      }
     );
 
-    if (loadingTriggerRef.current) {
-      observerRef.current.observe(loadingTriggerRef.current);
+    const currentTrigger = loadingTriggerRef.current;
+    if (currentTrigger) {
+      observerRef.current.observe(currentTrigger);
     }
 
     return () => {
@@ -340,7 +346,7 @@ export function FriendsActivityPage() {
         observerRef.current.disconnect();
       }
     };
-  }, [hasMore, isLoadingMore, isLoading]);
+  }, []); // Remove dependencies to prevent frequent re-creation
 
   const getFriendsData = async () => {
     const cacheKey = `friends_${user?.id}`;
@@ -1163,11 +1169,12 @@ export function FriendsActivityPage() {
             )}
             </div>
 
-            {/* Invisible loading trigger */}
+            {/* Loading trigger positioned before the last few cards */}
             {hasMore && (
               <div 
                 ref={loadingTriggerRef}
-                className="h-4"
+                className="h-20 w-full"
+                style={{ gridColumn: '1 / -1' }}
               />
             )}
 
