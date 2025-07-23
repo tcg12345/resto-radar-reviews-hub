@@ -316,7 +316,7 @@ export function FriendsActivityPage() {
       setHasMore(true);
       loadInitialData();
     }
-  }, [searchQuery, selectedCuisines, selectedCities, selectedFriends]); // Reset pagination when filters change
+  }, [debouncedSearchQuery, selectedCuisines, selectedCities, selectedFriends]); // Reset pagination when filters change
 
   const getFriendsData = async () => {
     const cacheKey = `friends_${user?.id}`;
