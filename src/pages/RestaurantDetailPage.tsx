@@ -56,6 +56,7 @@ export function RestaurantDetailPage() {
   const [searchParams] = useSearchParams();
   const friendId = searchParams.get('friendId');
   const fromFriendsActivity = searchParams.get('fromFriendsActivity') === 'true';
+  const returnUrl = searchParams.get('returnUrl');
   const navigate = useNavigate();
   const {
     user
@@ -203,7 +204,13 @@ export function RestaurantDetailPage() {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="text-lg font-medium">Restaurant not found</div>
-            <Button variant="outline" onClick={() => navigate(-1)} className="mt-4">
+            <Button variant="outline" onClick={() => {
+              if (returnUrl) {
+                navigate(decodeURIComponent(returnUrl));
+              } else {
+                navigate(-1);
+              }
+            }} className="mt-4">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Go Back
             </Button>
@@ -217,8 +224,11 @@ export function RestaurantDetailPage() {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Button variant="outline" onClick={() => {
-            if (fromFriendsActivity) {
-              navigate('/friends-activity');
+            if (returnUrl) {
+              // Use the returnUrl to navigate back with filters preserved
+              navigate(decodeURIComponent(returnUrl));
+            } else if (fromFriendsActivity) {
+              navigate('/search/friends');
             } else if (friendId) {
               navigate('/', {
                 state: {
@@ -231,7 +241,7 @@ export function RestaurantDetailPage() {
             }
           }} className="flex items-center gap-2">
               <ArrowLeft className="h-4 w-4" />
-              {fromFriendsActivity ? 'Back to Friends Activity' : friendId ? 'Back to Profile' : 'Back'}
+              {returnUrl ? 'Back to Friends Activity' : fromFriendsActivity ? 'Back to Friends Activity' : friendId ? 'Back to Profile' : 'Back'}
             </Button>
             {friendProfile && <Badge variant="secondary" className="text-sm">
                 From {friendProfile.username || friendProfile.name}

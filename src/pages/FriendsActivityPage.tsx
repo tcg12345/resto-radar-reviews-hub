@@ -1107,7 +1107,12 @@ export function FriendsActivityPage() {
               <Card 
                 key={restaurant.id} 
                 className="hover:shadow-lg transition-shadow cursor-pointer" 
-                onClick={() => navigate(`/restaurant/${restaurant.id}?friendId=${restaurant.friend.id}&fromFriendsActivity=true`)}
+                onClick={() => {
+                  // Preserve current search parameters for when user returns
+                  const currentSearch = searchParams.toString();
+                  const returnUrl = currentSearch ? `/search/friends?${currentSearch}` : '/search/friends';
+                  navigate(`/restaurant/${restaurant.id}?friendId=${restaurant.friend.id}&fromFriendsActivity=true&returnUrl=${encodeURIComponent(returnUrl)}`);
+                }}
               >
                 <CardContent className="p-6">
                   <div className="space-y-4">
