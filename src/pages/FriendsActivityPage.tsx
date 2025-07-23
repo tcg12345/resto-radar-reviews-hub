@@ -270,14 +270,14 @@ export function FriendsActivityPage() {
         filterBy
       });
       
-      // Always reload when filters change to ensure consistency
+      // Reset state for fresh load with filters
       setFriendsRestaurants([]);
       setCurrentOffset(0);
       setHasMore(true);
+      setIsLoadingMore(false);
       preloadCache.clear();
       
-      // Clear the data fetched flag to ensure fresh load
-      dataFetched.current = false;
+      // Load fresh data with current filters
       loadInitialData();
     }
   }, [debouncedSearchQuery, selectedCuisines, selectedCities, selectedFriends, filterBy]);
@@ -587,7 +587,10 @@ export function FriendsActivityPage() {
 
     // Check if we got fewer results than requested
     if (restaurantsData.length < ITEMS_PER_PAGE) {
+      console.log(`Got ${restaurantsData.length} restaurants, setting hasMore to false`);
       setHasMore(false);
+    } else {
+      console.log(`Got ${restaurantsData.length} restaurants, more may be available`);
     }
   };
 
