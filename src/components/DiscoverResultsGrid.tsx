@@ -363,7 +363,7 @@ export function DiscoverResultsGrid({
       {isLoading ? (
         <DiscoverResultsSkeleton />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid gap-3 lg:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mobile-grid-compact">
           {sortedRestaurants.map((restaurant) => (
             <DiscoverResultCard
               key={restaurant.id}

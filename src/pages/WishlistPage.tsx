@@ -89,34 +89,50 @@ export function WishlistPage({
   };
 
   return (
-    <div className="container py-6 mobile-container px-4 sm:px-6">
-      <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-        <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Restaurant Wishlist</h2>
-        <div className="flex items-center gap-2">
+    <div className="py-3 lg:py-6 mobile-container">
+      <div className="mb-3 lg:mb-6 flex flex-col items-start justify-between mobile-grid-compact lg:gap-4 sm:flex-row sm:items-center">
+        <h2 className="text-xl lg:text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mobile-truncate">Restaurant Wishlist</h2>
+        <div className="flex items-center mobile-grid-compact">
           {onNavigateToMap && (
-            <Button variant="outline" onClick={onNavigateToMap}>
-              <MapPin className="h-4 w-4" />
+            <Button variant="outline" size="sm" onClick={onNavigateToMap} className="mobile-button">
+              <MapPin className="h-3 w-3 lg:h-4 lg:w-4" />
+              <span className="hidden sm:inline ml-1">Map</span>
             </Button>
           )}
           {onRefresh && (
-            <Button variant="outline" size="sm" onClick={onRefresh}>
-              <RotateCcw className="h-4 w-4" />
+            <Button variant="outline" size="sm" onClick={onRefresh} className="mobile-button">
+              <RotateCcw className="h-3 w-3 lg:h-4 lg:w-4" />
             </Button>
           )}
-          <Button onClick={() => setIsAddDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add to Wishlist
+          <Button size="sm" onClick={() => setIsAddDialogOpen(true)} className="mobile-button">
+            <Plus className="mr-1 lg:mr-2 h-3 w-3 lg:h-4 lg:w-4" />
+            <span className="hidden sm:inline">Add to Wishlist</span>
+            <span className="sm:hidden">Add</span>
           </Button>
         </div>
       </div>
 
-      <div className="mb-6">
-        <Input
-          placeholder="Search wishlist..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
-        />
+      {/* Search and filter controls */}
+      <div className="mb-3 lg:mb-6 flex flex-col sm:flex-row mobile-grid-compact lg:gap-4">
+        <div className="flex-1">
+          <Input
+            placeholder="Search wishlist..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="mobile-button h-8 lg:h-10 text-sm"
+          />
+        </div>
+        <Select value={activeCity} onValueChange={setActiveCity}>
+          <SelectTrigger className="w-full sm:w-[180px] h-8 lg:h-10 text-sm mobile-button">
+            <SelectValue placeholder="All Cities" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Cities</SelectItem>
+            {cities.map((city) => (
+              <SelectItem key={city} value={city}>{city}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {cities.length === 0 ? (
@@ -156,7 +172,7 @@ export function WishlistPage({
                 </Button>
               </div>
             ) : (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-3 lg:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 mobile-grid-compact">
                 {filteredRestaurants.map((restaurant) => (
                   <div key={restaurant.id} className="relative">
                     <RestaurantCard

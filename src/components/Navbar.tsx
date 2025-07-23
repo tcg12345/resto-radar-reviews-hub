@@ -110,7 +110,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
 
       {/* Mobile Top Bar */}
       <nav className="lg:hidden sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 safe-area-top">
-        <div className="flex h-14 items-center justify-between px-4">
+        <div className="flex h-12 items-center justify-between px-3">
           <div className="cursor-pointer" onClick={() => onTabChange('home')}>
             <GrubbyLogo size="sm" />
           </div>
@@ -122,11 +122,11 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
                   variant="ghost"
                   size="sm"
                   onClick={() => navigate('/chat-list')}
-                  className="h-10 w-10 relative mobile-tap-target"
+                  className="h-8 w-8 relative mobile-tap-target"
                 >
-                  <MessageCircle className="h-5 w-5" />
+                  <MessageCircle className="h-4 w-4" />
                   {unreadMessageCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                    <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary text-[8px] font-bold text-primary-foreground">
                       {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
                     </span>
                   )}
@@ -136,9 +136,9 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
                   variant="ghost"
                   size="sm"
                   onClick={() => onTabChange('settings')}
-                  className="h-10 w-10 mobile-tap-target"
+                  className="h-8 w-8 mobile-tap-target"
                 >
-                  <Settings className="h-5 w-5" />
+                  <Settings className="h-4 w-4" />
                 </Button>
               </>
             ) : (
@@ -157,7 +157,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
 
       {/* Mobile Bottom Navigation */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/90 safe-area-bottom">
-        <div className="grid grid-cols-6 gap-1 p-2">
+        <div className="grid grid-cols-6 gap-0.5 p-1.5">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -167,14 +167,14 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
                 variant="ghost"
                 size="sm"
                 onClick={() => onTabChange(tab.id)}
-                className={`relative flex flex-col items-center justify-center h-12 w-full mobile-tap-target transition-all duration-200 ${
+                className={`relative flex flex-col items-center justify-center h-10 w-full mobile-tap-target transition-all duration-200 ${
                   isActive 
                     ? 'text-primary bg-primary/10' 
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                 }`}
               >
-                <Icon className={`h-5 w-5 mb-0.5 ${isActive ? 'text-primary' : ''}`} />
-                <span className={`text-xs leading-tight line-clamp-1 ${isActive ? 'text-primary font-medium' : ''}`}>
+                <Icon className={`h-4 w-4 mb-0.5 ${isActive ? 'text-primary' : ''}`} />
+                <span className={`text-[10px] leading-tight line-clamp-1 ${isActive ? 'text-primary font-medium' : ''}`}>
                   {tab.shortLabel}
                 </span>
                 {isActive && (
