@@ -5,9 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { Restaurant } from '@/types/restaurant';
 
 interface Message {
   id: string;
@@ -42,6 +46,9 @@ export function ChatWindow({ roomId }: ChatWindowProps) {
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [isLoadingRestaurants, setIsLoadingRestaurants] = useState(false);
+  const [isRestaurantDialogOpen, setIsRestaurantDialogOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -217,6 +224,111 @@ export function ChatWindow({ roomId }: ChatWindowProps) {
         .eq('user_id', user.id);
     } catch (error) {
       console.error('Error marking messages as read:', error);
+    }
+  };
+
+  const fetchRestaurants = async () => {
+    if (!user) return;
+
+    setIsLoadingRestaurants(true);
+    try {
+      const { data, error } = await supabase
+        .from('restaurants')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching restaurants:', error);
+        toast('Failed to load restaurants');
+        return;
+      }
+
+      // Map database response to Restaurant type
+      const mappedRestaurants: Restaurant[] = data?.map(dbRestaurant => ({
+        id: dbRestaurant.id,
+        name: dbRestaurant.name,
+        address: dbRestaurant.address,
+        city: dbRestaurant.city,
+        country: dbRestaurant.country,
+        cuisine: dbRestaurant.cuisine,
+        rating: dbRestaurant.rating,
+        categoryRatings: dbRestaurant.category_ratings as any,
+        useWeightedRating: dbRestaurant.use_weighted_rating,
+        priceRange: dbRestaurant.price_range,
+        michelinStars: dbRestaurant.michelin_stars,
+        photos: dbRestaurant.photos || [],
+        notes: dbRestaurant.notes,
+        dateVisited: dbRestaurant.date_visited,
+        latitude: dbRestaurant.latitude,
+        longitude: dbRestaurant.longitude,
+        website: dbRestaurant.website,
+        phoneNumber: dbRestaurant.phone_number,
+        openingHours: dbRestaurant.opening_hours,
+        reservable: dbRestaurant.reservable,
+        reservationUrl: dbRestaurant.reservation_url,
+        isWishlist: dbRestaurant.is_wishlist,
+        createdAt: dbRestaurant.created_at,
+        updatedAt: dbRestaurant.updated_at,
+        userId: dbRestaurant.user_id
+      })) || [];
+
+      setRestaurants(mappedRestaurants);
+    } catch (error) {
+      console.error('Error fetching restaurants:', error);
+      toast('Failed to load restaurants');
+    } finally {
+      setIsLoadingRestaurants(false);
+    }
+  };
+
+  const sendRestaurantMessage = async (restaurant: Restaurant) => {
+    if (!roomId || !user || isSending) return;
+
+    setIsSending(true);
+    const restaurantMessage = `🍽️ ${restaurant.name} - ${restaurant.address}, ${restaurant.city}${restaurant.rating ? ` (Rating: ${restaurant.rating}/10)` : ''}`;
+    
+    // Optimistic update
+    const optimisticMessage: Message = {
+      id: `temp-${Date.now()}`,
+      sender_id: user.id,
+      content: restaurantMessage,
+      message_type: 'restaurant',
+      created_at: new Date().toISOString(),
+      sender_profile: {
+        username: user.user_metadata?.username || user.email?.split('@')[0] || 'User',
+        name: user.user_metadata?.display_name || user.email?.split('@')[0] || 'User',
+        avatar_url: user.user_metadata?.avatar_url || ''
+      }
+    };
+    
+    setMessages(prev => [...prev, optimisticMessage]);
+    setIsRestaurantDialogOpen(false);
+    
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .insert({
+          room_id: roomId,
+          sender_id: user.id,
+          content: restaurantMessage,
+          message_type: 'restaurant'
+        });
+
+      if (error) {
+        console.error('Error sending restaurant message:', error);
+        toast('Failed to send restaurant');
+        setMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
+        return;
+      }
+
+      toast('Restaurant shared!');
+    } catch (error) {
+      console.error('Error sending restaurant message:', error);
+      toast('Failed to send restaurant');
+      setMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -439,9 +551,116 @@ export function ChatWindow({ roomId }: ChatWindowProps) {
       {/* Message Input */}
       <div className="p-4 border-t border-border">
         <div className="flex items-end space-x-2">
-          <Button variant="ghost" size="icon" className="shrink-0">
-            <Image className="h-4 w-4" />
-          </Button>
+          <Dialog open={isRestaurantDialogOpen} onOpenChange={setIsRestaurantDialogOpen}>
+            <DialogTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="shrink-0"
+                onClick={fetchRestaurants}
+              >
+                <Image className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[80vh]">
+              <DialogHeader>
+                <DialogTitle>Share a Restaurant</DialogTitle>
+              </DialogHeader>
+              
+              {isLoadingRestaurants ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="text-muted-foreground">Loading restaurants...</div>
+                </div>
+              ) : (
+                <Tabs defaultValue="rated" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="rated">
+                      Rated ({restaurants.filter(r => !r.isWishlist).length})
+                    </TabsTrigger>
+                    <TabsTrigger value="wishlist">
+                      Wishlist ({restaurants.filter(r => r.isWishlist).length})
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="rated" className="mt-4">
+                    <ScrollArea className="h-[400px]">
+                      <div className="space-y-2">
+                        {restaurants
+                          .filter(r => !r.isWishlist)
+                          .map(restaurant => (
+                            <div
+                              key={restaurant.id}
+                              className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted cursor-pointer transition-colors"
+                              onClick={() => sendRestaurantMessage(restaurant)}
+                            >
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <h4 className="font-medium">{restaurant.name}</h4>
+                                  {restaurant.rating && (
+                                    <Badge variant="secondary">
+                                      {restaurant.rating}/10
+                                    </Badge>
+                                  )}
+                                  {restaurant.michelinStars && (
+                                    <Badge variant="outline">
+                                      {'⭐'.repeat(restaurant.michelinStars)}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  {restaurant.cuisine} • {restaurant.address}, {restaurant.city}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        {restaurants.filter(r => !r.isWishlist).length === 0 && (
+                          <div className="text-center py-8 text-muted-foreground">
+                            No rated restaurants yet
+                          </div>
+                        )}
+                      </div>
+                    </ScrollArea>
+                  </TabsContent>
+                  
+                  <TabsContent value="wishlist" className="mt-4">
+                    <ScrollArea className="h-[400px]">
+                      <div className="space-y-2">
+                        {restaurants
+                          .filter(r => r.isWishlist)
+                          .map(restaurant => (
+                            <div
+                              key={restaurant.id}
+                              className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted cursor-pointer transition-colors"
+                              onClick={() => sendRestaurantMessage(restaurant)}
+                            >
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <h4 className="font-medium">{restaurant.name}</h4>
+                                  {restaurant.michelinStars && (
+                                    <Badge variant="outline">
+                                      {'⭐'.repeat(restaurant.michelinStars)}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  {restaurant.cuisine} • {restaurant.address}, {restaurant.city}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        {restaurants.filter(r => r.isWishlist).length === 0 && (
+                          <div className="text-center py-8 text-muted-foreground">
+                            No wishlist restaurants yet
+                          </div>
+                        )}
+                      </div>
+                    </ScrollArea>
+                  </TabsContent>
+                </Tabs>
+              )}
+            </DialogContent>
+          </Dialog>
+          
           <div className="flex-1 flex items-end space-x-2">
             <Input
               value={newMessage}
