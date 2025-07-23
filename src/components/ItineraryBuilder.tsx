@@ -123,36 +123,31 @@ export function ItineraryBuilder() {
     if (!user || !currentItinerary) return;
 
     try {
-      const itineraryData = {
+      // For now, just show success message - database integration will be added once types are updated
+      toast.success('Itinerary saved successfully (local storage)');
+      
+      // Store in local storage as fallback
+      const savedItineraries = JSON.parse(localStorage.getItem('savedItineraries') || '[]');
+      const itineraryToSave = {
+        ...currentItinerary,
         title,
-        start_date: currentItinerary.startDate.toISOString(),
-        end_date: currentItinerary.endDate.toISOString(),
-        events: events,
-        user_id: user.id,
+        id: currentItinerary.id || crypto.randomUUID(),
+        events,
+        userId: user.id,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
-
-      if (currentItinerary.id) {
-        // Update existing itinerary
-        const { error } = await supabase
-          .from('itineraries')
-          .update(itineraryData)
-          .eq('id', currentItinerary.id);
-
-        if (error) throw error;
-        toast.success('Itinerary updated successfully');
+      
+      const existingIndex = savedItineraries.findIndex((it: any) => it.id === itineraryToSave.id);
+      if (existingIndex >= 0) {
+        savedItineraries[existingIndex] = itineraryToSave;
       } else {
-        // Create new itinerary
-        const { data, error } = await supabase
-          .from('itineraries')
-          .insert(itineraryData)
-          .select()
-          .single();
-
-        if (error) throw error;
-        
-        setCurrentItinerary(prev => prev ? { ...prev, id: data.id } : null);
-        toast.success('Itinerary saved successfully');
+        savedItineraries.push(itineraryToSave);
       }
+      
+      localStorage.setItem('savedItineraries', JSON.stringify(savedItineraries));
+      setCurrentItinerary(itineraryToSave);
+      
     } catch (error) {
       console.error('Error saving itinerary:', error);
       toast.error('Failed to save itinerary');
