@@ -63,7 +63,7 @@ const friendsDataCache = new Map<string, {
 // Preload cache for next batches
 const preloadCache = new Map<string, FriendRestaurant[]>();
 
-import { MobileFriendsSearch } from '@/components/MobileFriendsSearch';
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes for faster refresh
 const FRIENDS_CACHE_DURATION = 30 * 60 * 1000; // 30 minutes for friends data
 
 export function FriendsActivityPage() {
@@ -335,14 +335,14 @@ export function FriendsActivityPage() {
     // Sort changes don't require data reload, just re-sorting
   }, [sortBy, filterBy]);
 
-  // Reset to page 1 when search or selection filters change (but not when data loads initially)
+  // Reset to page 1 when filters change
   useEffect(() => {
     if (dataFetched.current) {
       setCurrentPage(1);
       setHasMore(true);
-      // Don't reload data here - just reset pagination
+      loadInitialData();
     }
-  }, [debouncedSearchQuery, selectedCuisines, selectedCities, selectedFriends]);
+  }, [debouncedSearchQuery, selectedCuisines, selectedCities, selectedFriends]); // Reset pagination when filters change
 
   const getFriendsData = async () => {
     const cacheKey = `friends_${user?.id}`;
@@ -709,573 +709,550 @@ export function FriendsActivityPage() {
   }
 
   return (
-    <>
-      {/* Mobile Version */}
-      <div className="lg:hidden px-4 pb-4">
-        <MobileFriendsSearch 
-          restaurants={filteredRestaurants}
-          isLoading={isLoading}
-          onSearch={setSearchQuery}
-          onFilterChange={(filters) => {
-            setFilterBy(filters.filterBy);
-            setSelectedCuisines(filters.selectedCuisines);
-            setSelectedCities(filters.selectedCities);
-            setSelectedFriends(filters.selectedFriends);
-          }}
-          onSortChange={(sort) => setSortBy(sort as SortOption)}
-        />
+    <div className="w-full p-6 space-y-6">
+      {/* Header */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <Users className="h-8 w-8 text-primary" />
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+            Friends' Activity
+          </h1>
+        </div>
+        <p className="text-muted-foreground text-lg">
+          Discover what your friends have been eating and their wishlist items all in one place
+        </p>
       </div>
 
-      {/* Desktop Version */}
-      <div className="hidden lg:block w-full p-6 space-y-6">
-        {/* Header */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <Users className="h-8 w-8 text-primary" />
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              Friends' Activity
-            </h1>
-          </div>
-          <p className="text-muted-foreground text-lg">
-            Discover what your friends have been eating and their wishlist items all in one place
-          </p>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <Star className="h-5 w-5 text-yellow-500" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Rated</p>
-                  <p className="text-2xl font-bold">
-                    {filterCounts.rated}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <Heart className="h-5 w-5 text-red-500" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Wishlist Items</p>
-                  <p className="text-2xl font-bold">
-                    {filterCounts.wishlist}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-blue-500" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Active Friends</p>
-                  <p className="text-2xl font-bold">
-                    {new Set(friendsRestaurants.map(r => r.friend.id)).size}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-green-500" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Cities</p>
-                  <p className="text-2xl font-bold">
-                    {new Set(friendsRestaurants.map(r => r.city)).size}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Keep all existing desktop functionality... */}
-        {/* Quick Filter Buttons */}
-        <div className="flex items-center justify-center">
-          <div className="flex items-center bg-muted/50 p-1 rounded-lg">
-            <Button
-              variant={filterBy === 'all' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setFilterBy('all')}
-              className="flex items-center gap-2 px-4"
-            >
-              <List className="h-4 w-4" />
-              All ({filterCounts.total})
-            </Button>
-            <Button
-              variant={filterBy === 'rated' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setFilterBy('rated')}
-              className="flex items-center gap-2 px-4"
-            >
-              <Star className="h-4 w-4" />
-              Rated ({filterCounts.rated})
-            </Button>
-            <Button
-              variant={filterBy === 'wishlist' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setFilterBy('wishlist')}
-              className="flex items-center gap-2 px-4"
-            >
-              <Heart className="h-4 w-4" />
-              Wishlist ({filterCounts.wishlist})
-            </Button>
-          </div>
-        </div>
-
-        {/* Filters and Search */}
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Additional Filters & Search
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <Input
-                placeholder="Search restaurants, friends..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    if (searchTimeoutRef.current) {
-                      clearTimeout(searchTimeoutRef.current);
-                    }
-                    setDebouncedSearchQuery(searchQuery);
-                  }
-                }}
-                className="lg:col-span-2"
-              />
-              
-              <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
-                <SelectTrigger className="bg-background border-border">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent className="bg-background border-border z-50">
-                  <SelectItem value="recent">Most Recent</SelectItem>
-                  <SelectItem value="rating">Highest Rated</SelectItem>
-                  <SelectItem value="alphabetical">A-Z</SelectItem>
-                  <SelectItem value="friend">By Friend</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Clear All Filters Button */}
-            {(selectedCuisines.length > 0 || selectedCities.length > 0 || selectedFriends.length > 0 || debouncedSearchQuery) && (
-              <div className="flex justify-end">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setSelectedCuisines([]);
-                    setSelectedCities([]);
-                    setSelectedFriends([]);
-                    setSearchQuery('');
-                    setDebouncedSearchQuery('');
-                  }}
-                  className="text-xs"
-                >
-                  Clear All Filters
-                </Button>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <Star className="h-5 w-5 text-yellow-500" />
+              <div>
+                <p className="text-sm text-muted-foreground">Total Rated</p>
+                <p className="text-2xl font-bold">
+                  {filterCounts.rated}
+                </p>
               </div>
-            )}
-
-            {/* Filter Row - Friends, City, and Cuisine in horizontal layout */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Friends Dropdown Filter */}
-              <Collapsible 
-                open={isFriendsDropdownOpen} 
-                onOpenChange={setIsFriendsDropdownOpen}
-                className="space-y-2"
-              >
-                <CollapsibleTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-between bg-background border-border"
-                  >
-                    <span className="text-sm font-medium">
-                      Filter by Friend
-                      {selectedFriends.length > 0 && (
-                        <span className="ml-2 text-primary">
-                          ({selectedFriends.length} selected)
-                        </span>
-                      )}
-                    </span>
-                    <ChevronDown className={`h-4 w-4 transition-transform ${isFriendsDropdownOpen ? 'rotate-180' : ''}`} />
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-2">
-                  <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto p-2 border rounded-md bg-background">
-                    {uniqueFriends.map(friend => (
-                      <div key={friend.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`friend-${friend.id}`}
-                          checked={selectedFriends.includes(friend.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedFriends(prev => [...prev, friend.id]);
-                            } else {
-                              setSelectedFriends(prev => prev.filter(f => f !== friend.id));
-                            }
-                          }}
-                        />
-                        <label
-                          htmlFor={`friend-${friend.id}`}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                        >
-                          {friend.name} ({friend.count})
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-
-              {/* City Dropdown Filter */}
-              <Collapsible 
-                open={isCityDropdownOpen} 
-                onOpenChange={setIsCityDropdownOpen}
-                className="space-y-2"
-              >
-                <CollapsibleTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-between bg-background border-border"
-                  >
-                    <span className="text-sm font-medium">
-                      Filter by City
-                      {selectedCities.length > 0 && (
-                        <span className="ml-2 text-primary">
-                          ({selectedCities.length} selected)
-                        </span>
-                      )}
-                    </span>
-                    <ChevronDown className={`h-4 w-4 transition-transform ${isCityDropdownOpen ? 'rotate-180' : ''}`} />
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-2">
-                  <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto p-2 border rounded-md bg-background">
-                    {uniqueCities.map(city => (
-                      <div key={city} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`city-${city}`}
-                          checked={selectedCities.includes(city)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedCities(prev => [...prev, city]);
-                            } else {
-                              setSelectedCities(prev => prev.filter(c => c !== city));
-                            }
-                          }}
-                        />
-                        <label
-                          htmlFor={`city-${city}`}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                        >
-                          {city} ({filterCounts.cities[city] || 0})
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-
-              {/* Cuisine Dropdown Filter */}
-              <Collapsible 
-                open={isCuisineDropdownOpen} 
-                onOpenChange={setIsCuisineDropdownOpen}
-                className="space-y-2"
-              >
-                <CollapsibleTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-between bg-background border-border"
-                  >
-                    <span className="text-sm font-medium">
-                      Filter by Cuisine
-                      {selectedCuisines.length > 0 && (
-                        <span className="ml-2 text-primary">
-                          ({selectedCuisines.length} selected)
-                        </span>
-                      )}
-                    </span>
-                    <ChevronDown className={`h-4 w-4 transition-transform ${isCuisineDropdownOpen ? 'rotate-180' : ''}`} />
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-2">
-                  <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto p-2 border rounded-md bg-background">
-                    {uniqueCuisines.map(cuisine => (
-                      <div key={cuisine} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`cuisine-${cuisine}`}
-                          checked={selectedCuisines.includes(cuisine)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedCuisines(prev => [...prev, cuisine]);
-                            } else {
-                              setSelectedCuisines(prev => prev.filter(c => c !== cuisine));
-                            }
-                          }}
-                        />
-                        <label
-                          htmlFor={`cuisine-${cuisine}`}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                        >
-                          {cuisine} ({filterCounts.cuisines[cuisine] || 0})
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
             </div>
-
-            {/* All Selected Tags Combined */}
-            {(selectedFriends.length > 0 || selectedCities.length > 0 || selectedCuisines.length > 0) && (
-              <div className="flex flex-wrap gap-2 mt-4">
-                {/* Selected Friends Tags */}
-                {selectedFriends.map(friendId => {
-                  const friend = uniqueFriends.find(f => f.id === friendId);
-                  return (
-                    <Badge
-                      key={`friend-${friendId}`}
-                      variant="default"
-                      className="cursor-pointer hover:bg-primary/80"
-                      onClick={() => setSelectedFriends(prev => prev.filter(f => f !== friendId))}
-                    >
-                      {friend?.name} ×
-                    </Badge>
-                  );
-                })}
-                
-                {/* Selected City Tags */}
-                {selectedCities.map(city => (
-                  <Badge
-                    key={`city-${city}`}
-                    variant="default"
-                    className="cursor-pointer hover:bg-primary/80"
-                    onClick={() => setSelectedCities(prev => prev.filter(c => c !== city))}
-                  >
-                    {city} ×
-                  </Badge>
-                ))}
-                
-                {/* Selected Cuisine Tags */}
-                {selectedCuisines.map(cuisine => (
-                  <Badge
-                    key={`cuisine-${cuisine}`}
-                    variant="default"
-                    className="cursor-pointer hover:bg-primary/80"
-                    onClick={() => setSelectedCuisines(prev => prev.filter(c => c !== cuisine))}
-                  >
-                    {cuisine} ×
-                  </Badge>
-                ))}
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <Heart className="h-5 w-5 text-red-500" />
+              <div>
+                <p className="text-sm text-muted-foreground">Wishlist Items</p>
+                <p className="text-2xl font-bold">
+                  {filterCounts.wishlist}
+                </p>
               </div>
-            )}
+            </div>
           </CardContent>
         </Card>
 
-        {/* Results */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">
-              {filteredRestaurants.length} {filteredRestaurants.length === 1 ? 'Item' : 'Items'}
-              {friendsRestaurants.length > 0 && hasMore && (
-                <span className="text-sm text-muted-foreground ml-2">
-                  (loaded {friendsRestaurants.length} of many)
-                </span>
-              )}
-            </h2>
-          </div>
-
-          {friendsRestaurants.length === 0 && !isLoading ? (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">No Activity Found</h3>
-                <p className="text-muted-foreground">
-                  {friendsRestaurants.length === 0 && !isLoading
-                    ? "Your friends haven't added any restaurants yet."
-                    : "No restaurants match your current filters."}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-blue-500" />
+              <div>
+                <p className="text-sm text-muted-foreground">Active Friends</p>
+                <p className="text-2xl font-bold">
+                  {new Set(friendsRestaurants.map(r => r.friend.id)).size}
                 </p>
-              </CardContent>
-            </Card>
-          ) : isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Array.from({ length: 6 }).map((_, index) => (
-                <RestaurantActivityCardSkeleton key={`skeleton-${index}`} />
-              ))}
+              </div>
             </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredRestaurants.map((restaurant) => (
-                <Card 
-                  key={restaurant.id} 
-                  className="hover:shadow-lg transition-shadow cursor-pointer" 
-                  onClick={() => {
-                    const currentSearch = searchParams.toString();
-                    const returnUrl = currentSearch ? `/search/friends?${currentSearch}` : '/search/friends';
-                    navigate(`/restaurant/${restaurant.id}?friendId=${restaurant.friend.id}&fromFriendsActivity=true&returnUrl=${encodeURIComponent(returnUrl)}`);
-                  }}
-                >
-                  <CardContent className="p-6">
-                    <div className="space-y-4">
-                      {/* Header with friend info */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={restaurant.friend.avatar_url} />
-                            <AvatarFallback>
-                              {restaurant.friend.name.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium text-sm">{restaurant.friend.name}</p>
-                            <p className="text-xs text-muted-foreground">@{restaurant.friend.username}</p>
-                          </div>
-                        </div>
-                        {restaurant.is_wishlist ? (
-                          <Badge variant="outline" className="text-red-600 border-red-200">
-                            <Heart className="h-3 w-3 mr-1" />
-                            Wishlist
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-green-600 border-green-200">
-                            <Star className="h-3 w-3 mr-1" />
-                            Rated
-                          </Badge>
-                        )}
-                      </div>
+          </CardContent>
+        </Card>
 
-                      {/* Restaurant info */}
-                      <div>
-                        <h3 className="font-semibold text-lg mb-1">{restaurant.name}</h3>
-                        <p className="text-sm text-muted-foreground mb-2">{restaurant.cuisine}</p>
-                        
-                        {/* Rating */}
-                        {restaurant.rating && !restaurant.is_wishlist && (
-                          <div className="flex items-center gap-2 mb-2">
-                            <StarRating rating={restaurant.rating} readonly size="sm" />
-                            <span className="text-sm font-medium">{restaurant.rating}/10</span>
-                          </div>
-                        )}
-
-                        {/* Location */}
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
-                          <MapPin className="h-4 w-4" />
-                          <span>{restaurant.city}{restaurant.country && `, ${restaurant.country}`}</span>
-                        </div>
-
-                        {/* Additional info */}
-                        <div className="flex items-center gap-4 text-sm">
-                          {restaurant.price_range && (
-                            <PriceRange priceRange={restaurant.price_range} />
-                          )}
-                          {restaurant.michelin_stars && restaurant.michelin_stars > 0 && (
-                            <MichelinStars stars={restaurant.michelin_stars} />
-                          )}
-                        </div>
-
-                        {/* Date */}
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
-                          <Clock className="h-3 w-3" />
-                          <span>
-                            {restaurant.is_wishlist ? 'Added' : 'Visited'} {formatDate(restaurant.date_visited || restaurant.created_at)}
-                          </span>
-                        </div>
-
-                        {/* Notes preview */}
-                        {restaurant.notes && (
-                          <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                            "{restaurant.notes}"
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                ))}
-
-              {/* Skeleton cards for loading more */}
-              {isLoadingMore && (
-                <>
-                  {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
-                    <RestaurantActivityCardSkeleton key={`skeleton-loading-${index}`} />
-                  ))}
-                </>
-              )}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-green-500" />
+              <div>
+                <p className="text-sm text-muted-foreground">Cities</p>
+                <p className="text-2xl font-bold">
+                  {new Set(friendsRestaurants.map(r => r.city)).size}
+                </p>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-              {/* Pagination Controls */}
-              <div className="flex justify-center items-center gap-4 pt-8">
-                {/* Previous Page Button */}
-                {currentPage > 1 && (
-                  <Button 
-                    onClick={loadPreviousPage}
-                    disabled={isLoadingMore}
-                    size="lg"
-                    variant="outline"
-                    className="min-w-32 flex items-center gap-2"
-                  >
-                    {isLoadingMore ? 'Loading...' : (
-                      <>
-                        <ChevronLeft className="h-4 w-4" />
-                        Previous Page ({currentPage - 1})
-                      </>
-                    )}
-                  </Button>
-                )}
-
-                {/* Page indicator */}
-                {(currentPage > 1 || hasMore) && (
-                  <div className="text-sm text-muted-foreground font-medium px-4">
-                    Page {currentPage}
-                  </div>
-                )}
-
-                {/* Next Page Button */}
-                {hasMore && (
-                  <Button 
-                    onClick={loadNextPage}
-                    disabled={isLoadingMore}
-                    size="lg"
-                    className="min-w-32 flex items-center gap-2"
-                  >
-                    {isLoadingMore ? 'Loading...' : (
-                      <>
-                        Next Page ({currentPage + 1})
-                        <ChevronRight className="h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
-                )}
-                
-                {/* End message */}
-                {!hasMore && friendsRestaurants.length > 0 && (
-                  <div className="text-center text-muted-foreground">
-                    <p>You've reached the end of the list!</p>
-                    <p className="text-sm mt-1">Page {currentPage} • {filteredRestaurants.length} restaurants shown</p>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
+      {/* Quick Filter Buttons */}
+      <div className="flex items-center justify-center">
+        <div className="flex items-center bg-muted/50 p-1 rounded-lg">
+          <Button
+            variant={filterBy === 'all' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setFilterBy('all')}
+            className="flex items-center gap-2 px-4"
+          >
+            <List className="h-4 w-4" />
+            All ({filterCounts.total})
+          </Button>
+          <Button
+            variant={filterBy === 'rated' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setFilterBy('rated')}
+            className="flex items-center gap-2 px-4"
+          >
+            <Star className="h-4 w-4" />
+            Rated ({filterCounts.rated})
+          </Button>
+          <Button
+            variant={filterBy === 'wishlist' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setFilterBy('wishlist')}
+            className="flex items-center gap-2 px-4"
+          >
+            <Heart className="h-4 w-4" />
+            Wishlist ({filterCounts.wishlist})
+          </Button>
         </div>
       </div>
-    </>
+
+      {/* Filters and Search */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Additional Filters & Search
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Input
+              placeholder="Search restaurants, friends..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  // Clear timeout and trigger search immediately on Enter
+                  if (searchTimeoutRef.current) {
+                    clearTimeout(searchTimeoutRef.current);
+                  }
+                  setDebouncedSearchQuery(searchQuery);
+                }
+              }}
+              className="lg:col-span-2"
+            />
+            
+            <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
+              <SelectTrigger className="bg-background border-border">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent className="bg-background border-border z-50">
+                <SelectItem value="recent">Most Recent</SelectItem>
+                <SelectItem value="rating">Highest Rated</SelectItem>
+                <SelectItem value="alphabetical">A-Z</SelectItem>
+                <SelectItem value="friend">By Friend</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Clear All Filters Button */}
+          {(selectedCuisines.length > 0 || selectedCities.length > 0 || selectedFriends.length > 0 || debouncedSearchQuery) && (
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  console.log('Clearing all filters...');
+                  setSelectedCuisines([]);
+                  setSelectedCities([]);
+                  setSelectedFriends([]);
+                  setSearchQuery('');
+                  setDebouncedSearchQuery('');
+                }}
+                className="text-xs"
+              >
+                Clear All Filters
+              </Button>
+            </div>
+          )}
+
+          {/* Filter Row - Friends, City, and Cuisine in horizontal layout */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Friends Dropdown Filter */}
+            <Collapsible 
+              open={isFriendsDropdownOpen} 
+              onOpenChange={setIsFriendsDropdownOpen}
+              className="space-y-2"
+            >
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between bg-background border-border"
+                >
+                  <span className="text-sm font-medium">
+                    Filter by Friend
+                    {selectedFriends.length > 0 && (
+                      <span className="ml-2 text-primary">
+                        ({selectedFriends.length} selected)
+                      </span>
+                    )}
+                  </span>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${isFriendsDropdownOpen ? 'rotate-180' : ''}`} />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-2">
+                <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto p-2 border rounded-md bg-background">
+                  {uniqueFriends.map(friend => (
+                    <div key={friend.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`friend-${friend.id}`}
+                        checked={selectedFriends.includes(friend.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedFriends(prev => [...prev, friend.id]);
+                          } else {
+                            setSelectedFriends(prev => prev.filter(f => f !== friend.id));
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor={`friend-${friend.id}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        {friend.name} ({friend.count})
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* City Dropdown Filter */}
+            <Collapsible 
+              open={isCityDropdownOpen} 
+              onOpenChange={setIsCityDropdownOpen}
+              className="space-y-2"
+            >
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between bg-background border-border"
+                >
+                  <span className="text-sm font-medium">
+                    Filter by City
+                    {selectedCities.length > 0 && (
+                      <span className="ml-2 text-primary">
+                        ({selectedCities.length} selected)
+                      </span>
+                    )}
+                  </span>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${isCityDropdownOpen ? 'rotate-180' : ''}`} />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-2">
+                <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto p-2 border rounded-md bg-background">
+                  {uniqueCities.map(city => (
+                    <div key={city} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`city-${city}`}
+                        checked={selectedCities.includes(city)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedCities(prev => [...prev, city]);
+                          } else {
+                            setSelectedCities(prev => prev.filter(c => c !== city));
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor={`city-${city}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        {city} ({filterCounts.cities[city] || 0})
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* Cuisine Dropdown Filter */}
+            <Collapsible 
+              open={isCuisineDropdownOpen} 
+              onOpenChange={setIsCuisineDropdownOpen}
+              className="space-y-2"
+            >
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between bg-background border-border"
+                >
+                  <span className="text-sm font-medium">
+                    Filter by Cuisine
+                    {selectedCuisines.length > 0 && (
+                      <span className="ml-2 text-primary">
+                        ({selectedCuisines.length} selected)
+                      </span>
+                    )}
+                  </span>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${isCuisineDropdownOpen ? 'rotate-180' : ''}`} />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-2">
+                <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto p-2 border rounded-md bg-background">
+                  {uniqueCuisines.map(cuisine => (
+                    <div key={cuisine} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`cuisine-${cuisine}`}
+                        checked={selectedCuisines.includes(cuisine)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedCuisines(prev => [...prev, cuisine]);
+                          } else {
+                            setSelectedCuisines(prev => prev.filter(c => c !== cuisine));
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor={`cuisine-${cuisine}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        {cuisine} ({filterCounts.cuisines[cuisine] || 0})
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
+
+          {/* All Selected Tags Combined */}
+          {(selectedFriends.length > 0 || selectedCities.length > 0 || selectedCuisines.length > 0) && (
+            <div className="flex flex-wrap gap-2 mt-4">
+              {/* Selected Friends Tags */}
+              {selectedFriends.map(friendId => {
+                const friend = uniqueFriends.find(f => f.id === friendId);
+                return (
+                  <Badge
+                    key={`friend-${friendId}`}
+                    variant="default"
+                    className="cursor-pointer hover:bg-primary/80"
+                    onClick={() => setSelectedFriends(prev => prev.filter(f => f !== friendId))}
+                  >
+                    {friend?.name} ×
+                  </Badge>
+                );
+              })}
+              
+              {/* Selected City Tags */}
+              {selectedCities.map(city => (
+                <Badge
+                  key={`city-${city}`}
+                  variant="default"
+                  className="cursor-pointer hover:bg-primary/80"
+                  onClick={() => setSelectedCities(prev => prev.filter(c => c !== city))}
+                >
+                  {city} ×
+                </Badge>
+              ))}
+              
+              {/* Selected Cuisine Tags */}
+              {selectedCuisines.map(cuisine => (
+                <Badge
+                  key={`cuisine-${cuisine}`}
+                  variant="default"
+                  className="cursor-pointer hover:bg-primary/80"
+                  onClick={() => setSelectedCuisines(prev => prev.filter(c => c !== cuisine))}
+                >
+                  {cuisine} ×
+                </Badge>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Results */}
+        <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold">
+            {filteredRestaurants.length} {filteredRestaurants.length === 1 ? 'Item' : 'Items'}
+            {friendsRestaurants.length > 0 && hasMore && (
+              <span className="text-sm text-muted-foreground ml-2">
+                (loaded {friendsRestaurants.length} of many)
+              </span>
+            )}
+          </h2>
+        </div>
+
+        {friendsRestaurants.length === 0 && !isLoading ? (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">No Activity Found</h3>
+              <p className="text-muted-foreground">
+                {friendsRestaurants.length === 0 && !isLoading
+                  ? "Your friends haven't added any restaurants yet."
+                  : "No restaurants match your current filters."}
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredRestaurants.map((restaurant) => (
+              <Card 
+                key={restaurant.id} 
+                className="hover:shadow-lg transition-shadow cursor-pointer" 
+                onClick={() => {
+                  // Preserve current search parameters for when user returns
+                  const currentSearch = searchParams.toString();
+                  const returnUrl = currentSearch ? `/search/friends?${currentSearch}` : '/search/friends';
+                  navigate(`/restaurant/${restaurant.id}?friendId=${restaurant.friend.id}&fromFriendsActivity=true&returnUrl=${encodeURIComponent(returnUrl)}`);
+                }}
+              >
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    {/* Header with friend info */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={restaurant.friend.avatar_url} />
+                          <AvatarFallback>
+                            {restaurant.friend.name.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium text-sm">{restaurant.friend.name}</p>
+                          <p className="text-xs text-muted-foreground">@{restaurant.friend.username}</p>
+                        </div>
+                      </div>
+                      {restaurant.is_wishlist ? (
+                        <Badge variant="outline" className="text-red-600 border-red-200">
+                          <Heart className="h-3 w-3 mr-1" />
+                          Wishlist
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-green-600 border-green-200">
+                          <Star className="h-3 w-3 mr-1" />
+                          Rated
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* Restaurant info */}
+                    <div>
+                      <h3 className="font-semibold text-lg mb-1">{restaurant.name}</h3>
+                      <p className="text-sm text-muted-foreground mb-2">{restaurant.cuisine}</p>
+                      
+                      {/* Rating */}
+                      {restaurant.rating && !restaurant.is_wishlist && (
+                        <div className="flex items-center gap-2 mb-2">
+                          <StarRating rating={restaurant.rating} readonly size="sm" />
+                          <span className="text-sm font-medium">{restaurant.rating}/10</span>
+                        </div>
+                      )}
+
+                      {/* Location */}
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
+                        <MapPin className="h-4 w-4" />
+                        <span>{restaurant.city}{restaurant.country && `, ${restaurant.country}`}</span>
+                      </div>
+
+                      {/* Additional info */}
+                      <div className="flex items-center gap-4 text-sm">
+                        {restaurant.price_range && (
+                          <PriceRange priceRange={restaurant.price_range} />
+                        )}
+                        {restaurant.michelin_stars && restaurant.michelin_stars > 0 && (
+                          <MichelinStars stars={restaurant.michelin_stars} />
+                        )}
+                      </div>
+
+                      {/* Date */}
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
+                        <Clock className="h-3 w-3" />
+                        <span>
+                          {restaurant.is_wishlist ? 'Added' : 'Visited'} {formatDate(restaurant.date_visited || restaurant.created_at)}
+                        </span>
+                      </div>
+
+                      {/* Notes preview */}
+                      {restaurant.notes && (
+                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                          "{restaurant.notes}"
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              ))}
+
+            {/* Skeleton cards for loading more - show immediately when loading starts */}
+            {isLoadingMore && (
+              <>
+                {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
+                  <RestaurantActivityCardSkeleton key={`skeleton-loading-${index}`} />
+                ))}
+              </>
+            )}
+            </div>
+
+            {/* Pagination Controls */}
+            <div className="flex justify-center items-center gap-4 pt-8">
+              {/* Previous Page Button */}
+              {currentPage > 1 && (
+                <Button 
+                  onClick={loadPreviousPage}
+                  disabled={isLoadingMore}
+                  size="lg"
+                  variant="outline"
+                  className="min-w-32 flex items-center gap-2"
+                >
+                  {isLoadingMore ? 'Loading...' : (
+                    <>
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous Page ({currentPage - 1})
+                    </>
+                  )}
+                </Button>
+              )}
+
+              {/* Page indicator */}
+              {(currentPage > 1 || hasMore) && (
+                <div className="text-sm text-muted-foreground font-medium px-4">
+                  Page {currentPage}
+                </div>
+              )}
+
+              {/* Next Page Button */}
+              {hasMore && (
+                <Button 
+                  onClick={loadNextPage}
+                  disabled={isLoadingMore}
+                  size="lg"
+                  className="min-w-32 flex items-center gap-2"
+                >
+                  {isLoadingMore ? 'Loading...' : (
+                    <>
+                      Next Page ({currentPage + 1})
+                      <ChevronRight className="h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              )}
+              
+              {/* End message */}
+              {!hasMore && friendsRestaurants.length > 0 && (
+                <div className="text-center text-muted-foreground">
+                  <p>You've reached the end of the list!</p>
+                  <p className="text-sm mt-1">Page {currentPage} • {filteredRestaurants.length} restaurants shown</p>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
   );
 }

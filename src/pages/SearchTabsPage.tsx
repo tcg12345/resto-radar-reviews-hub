@@ -40,40 +40,44 @@ export default function SearchTabsPage() {
 
   return (
     <>
-      {/* Mobile Version - Improved */}
-      <div className="lg:hidden w-full h-full">
-        {/* Tab Switcher - Fixed Position */}
-        <div className="bg-background/95 backdrop-blur-sm border-b sticky top-16 z-10 px-4 py-3">
-          <div className="flex bg-muted/50 rounded-lg p-1">
+      {/* Mobile Version - Simplified */}
+      <div className="lg:hidden w-full mobile-container py-3">
+        <div className="mb-4">
+          <h1 className="text-xl font-bold mb-2 bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+            Search
+          </h1>
+        </div>
+
+        <Tabs value={activeTab} onValueChange={handleTabChange}>
+          {/* Mobile Tab Buttons */}
+          <div className="flex mb-4 bg-muted/30 rounded-xl p-1">
             <button
               onClick={() => handleTabChange('global')}
-              className={`flex-1 py-2.5 px-3 rounded-md text-sm font-medium transition-all ${
+              className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
                 activeTab === 'global'
-                  ? 'bg-white text-foreground shadow-sm'
-                  : 'text-muted-foreground'
+                  ? 'bg-white text-primary shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Restaurants
             </button>
             <button
               onClick={() => handleTabChange('friends')}
-              className={`flex-1 py-2.5 px-3 rounded-md text-sm font-medium transition-all ${
+              className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
                 activeTab === 'friends'
-                  ? 'bg-white text-foreground shadow-sm'
-                  : 'text-muted-foreground'
+                  ? 'bg-white text-primary shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Friends
             </button>
           </div>
-        </div>
 
-        <Tabs value={activeTab} onValueChange={handleTabChange}>
-          <TabsContent value="global" className="mt-0 px-0">
+          <TabsContent value="global" className="mt-0">
             <UnifiedSearchPage />
           </TabsContent>
 
-          <TabsContent value="friends" className="mt-0 px-0">
+          <TabsContent value="friends" className="mt-0">
             <FriendsActivityPage />
           </TabsContent>
         </Tabs>
