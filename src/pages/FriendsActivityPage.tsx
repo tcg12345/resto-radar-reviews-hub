@@ -78,6 +78,7 @@ export function FriendsActivityPage() {
   const dataFetched = useRef(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadingTriggerRef = useRef<HTMLDivElement>(null);
+  const isLoadingRef = useRef(false); // Prevent concurrent loading
 
   const ITEMS_PER_PAGE = 10;
 
@@ -175,7 +176,7 @@ export function FriendsActivityPage() {
 
     observerRef.current = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoadingMore && !isLoading) {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore && !isLoading && !isLoadingRef.current) {
           loadMoreRestaurants();
         }
       },
@@ -302,8 +303,9 @@ export function FriendsActivityPage() {
   };
 
   const loadMoreRestaurants = async () => {
-    if (isLoadingMore || !hasMore || allFriendIds.length === 0) return;
+    if (isLoadingMore || !hasMore || allFriendIds.length === 0 || isLoadingRef.current) return;
     
+    isLoadingRef.current = true;
     setIsLoadingMore(true);
     
     try {
@@ -315,7 +317,12 @@ export function FriendsActivityPage() {
       
       if (preloadedData && preloadedData.length > 0) {
         // Use preloaded data for instant loading
-        setFriendsRestaurants(prev => [...prev, ...preloadedData]);
+        setFriendsRestaurants(prev => {
+          // Deduplicate by ID to prevent duplicates
+          const existingIds = new Set(prev.map(r => r.id));
+          const newRestaurants = preloadedData.filter(r => !existingIds.has(r.id));
+          return [...prev, ...newRestaurants];
+        });
         setCurrentOffset(newOffset);
         preloadCache.delete(cacheKey);
         
@@ -350,6 +357,7 @@ export function FriendsActivityPage() {
       console.error('Error loading more restaurants:', error);
     } finally {
       setIsLoadingMore(false);
+      isLoadingRef.current = false;
     }
   };
 
@@ -421,7 +429,12 @@ export function FriendsActivityPage() {
     if (isInitial) {
       setFriendsRestaurants(formattedRestaurants);
     } else {
-      setFriendsRestaurants(prev => [...prev, ...formattedRestaurants]);
+      setFriendsRestaurants(prev => {
+        // Deduplicate by ID to prevent duplicates
+        const existingIds = new Set(prev.map(r => r.id));
+        const newRestaurants = formattedRestaurants.filter(r => !existingIds.has(r.id));
+        return [...prev, ...newRestaurants];
+      });
     }
 
     // Check if we got fewer results than requested
