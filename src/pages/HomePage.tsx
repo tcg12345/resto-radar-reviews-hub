@@ -231,19 +231,19 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
         {stats.map((stat, index) => (
           <Card key={index} className="relative overflow-hidden">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 lg:pb-2">
+              <CardTitle className="text-xs lg:text-sm font-medium text-muted-foreground">
                 {stat.title}
               </CardTitle>
-              <div className={`p-2 rounded-full ${stat.bgColor}`}>
-                <stat.icon className={`h-4 w-4 ${stat.color}`} />
+              <div className={`p-1.5 lg:p-2 rounded-full ${stat.bgColor}`}>
+                <stat.icon className={`h-3 w-3 lg:h-4 lg:w-4 ${stat.color}`} />
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
+            <CardContent className="pt-0 pb-3 lg:pb-4">
+              <div className="text-lg lg:text-2xl font-bold">{stat.value}</div>
               <div className="absolute inset-0 bg-gradient-to-r from-transparent to-primary/5 pointer-events-none" />
             </CardContent>
           </Card>
@@ -251,31 +251,31 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
       </div>
 
       {/* Quick Actions */}
-      <div className="space-y-4">
+      <div className="space-y-3 lg:space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold">Quick Actions</h2>
-          <Badge variant="secondary" className="bg-primary/10 text-primary">
-            <Bot className="h-3 w-3 mr-1" />
+          <h2 className="text-xl lg:text-2xl font-semibold">Quick Actions</h2>
+          <Badge variant="secondary" className="bg-primary/10 text-primary text-xs">
+            <Bot className="h-2.5 w-2.5 lg:h-3 lg:w-3 mr-1" />
             AI-Enhanced
           </Badge>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
           {quickActions.map((action, index) => (
             <Card 
               key={index} 
               className="cursor-pointer hover:shadow-lg transition-all duration-200 group border-2 hover:border-primary/20"
               onClick={action.action}
             >
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-4">
-                  <div className={`p-3 rounded-full ${action.color} text-white group-hover:scale-110 transition-transform shadow-lg`}>
-                    <action.icon className="h-6 w-6" />
+              <CardContent className="p-3 lg:p-6">
+                <div className="flex lg:items-center space-x-2 lg:space-x-4 flex-col lg:flex-row">
+                  <div className={`p-2 lg:p-3 rounded-full ${action.color} text-white group-hover:scale-110 transition-transform shadow-lg self-start lg:self-auto`}>
+                    <action.icon className="h-4 w-4 lg:h-6 lg:w-6" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold group-hover:text-primary transition-colors">{action.title}</h3>
-                    <p className="text-sm text-muted-foreground">{action.description}</p>
+                    <h3 className="font-semibold text-sm lg:text-base group-hover:text-primary transition-colors">{action.title}</h3>
+                    <p className="text-xs lg:text-sm text-muted-foreground">{action.description}</p>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                  <ArrowRight className="h-3 w-3 lg:h-4 lg:w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all hidden lg:block" />
                 </div>
               </CardContent>
             </Card>
@@ -285,44 +285,44 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
 
       {/* AI Features Highlight */}
       <Card className="bg-gradient-to-r from-primary/5 via-primary/5 to-secondary/5 border-primary/20">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center">
-                <Bot className="h-6 w-6 text-white" />
+        <CardContent className="p-4 lg:p-6">
+          <div className="flex items-center justify-between mb-3 lg:mb-4">
+            <div className="flex items-center space-x-2 lg:space-x-3">
+              <div className="w-8 h-8 lg:w-12 lg:h-12 rounded-full bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center">
+                <Bot className="h-4 w-4 lg:h-6 lg:w-6 text-white" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold">AI-Powered Features</h3>
-                <p className="text-sm text-muted-foreground">Discover the smart way to find restaurants</p>
+                <h3 className="text-base lg:text-lg font-semibold">AI-Powered Features</h3>
+                <p className="text-xs lg:text-sm text-muted-foreground">Discover the smart way to find restaurants</p>
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-center space-x-3 p-3 rounded-lg bg-background/50">
-              <Search className="h-5 w-5 text-primary" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 lg:gap-4">
+            <div className="flex items-center space-x-2 lg:space-x-3 p-2 lg:p-3 rounded-lg bg-background/50">
+              <Search className="h-4 w-4 lg:h-5 lg:w-5 text-primary" />
               <div>
-                <div className="font-medium text-sm">Smart Discovery</div>
-                <div className="text-xs text-muted-foreground">Natural language search</div>
+                <div className="font-medium text-xs lg:text-sm">Smart Discovery</div>
+                <div className="text-xs text-muted-foreground hidden lg:block">Natural language search</div>
               </div>
             </div>
-            <div className="flex items-center space-x-3 p-3 rounded-lg bg-background/50">
-              <TrendingUp className="h-5 w-5 text-primary" />
+            <div className="flex items-center space-x-2 lg:space-x-3 p-2 lg:p-3 rounded-lg bg-background/50">
+              <TrendingUp className="h-4 w-4 lg:h-5 lg:w-5 text-primary" />
               <div>
-                <div className="font-medium text-sm">Personalized Recs</div>
-                <div className="text-xs text-muted-foreground">AI-curated suggestions</div>
+                <div className="font-medium text-xs lg:text-sm">Personalized Recs</div>
+                <div className="text-xs text-muted-foreground hidden lg:block">AI-curated suggestions</div>
               </div>
             </div>
-            <div className="flex items-center space-x-3 p-3 rounded-lg bg-background/50">
-              <Mic className="h-5 w-5 text-primary" />
+            <div className="flex items-center space-x-2 lg:space-x-3 p-2 lg:p-3 rounded-lg bg-background/50">
+              <Mic className="h-4 w-4 lg:h-5 lg:w-5 text-primary" />
               <div>
-                <div className="font-medium text-sm">Voice Assistant</div>
-                <div className="text-xs text-muted-foreground">Hands-free search</div>
+                <div className="font-medium text-xs lg:text-sm">Voice Assistant</div>
+                <div className="text-xs text-muted-foreground hidden lg:block">Hands-free search</div>
               </div>
             </div>
           </div>
           <Button 
             variant="outline" 
-            className="w-full mt-4 border-primary/30 hover:bg-primary/10"
+            className="w-full mt-3 lg:mt-4 border-primary/30 hover:bg-primary/10 text-sm"
             onClick={() => onNavigate('search')}
           >
             Try AI Discovery Now
@@ -448,36 +448,36 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
       {/* Enhanced Motivational Section */}
       {ratedRestaurants.length > 0 ? (
         <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+          <CardContent className="p-4 lg:p-6">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0">
               <div className="space-y-2">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
+                <h3 className="text-base lg:text-lg font-semibold flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 lg:h-5 lg:w-5" />
                   Keep Exploring! 🍽️
                 </h3>
-                <p className="text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   You've rated {ratedRestaurants.length} restaurants. 
                   {wishlistRestaurants.length > 0 && ` ${wishlistRestaurants.length} more waiting in your wishlist!`}
                 </p>
-                <div className="flex items-center space-x-4 text-sm">
-                  <Badge variant="secondary" className="bg-green-100 text-green-800">
+                <div className="flex flex-wrap items-center gap-2 text-sm">
+                  <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
                     Average: {averageRating.toFixed(1)} ⭐
                   </Badge>
                   {michelinRestaurants.length > 0 && (
-                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 text-xs">
                       {michelinRestaurants.length} Michelin ⭐
                     </Badge>
                   )}
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button onClick={() => onNavigate('wishlist')} variant="outline">
-                  <Heart className="h-4 w-4 mr-2" />
-                  Wishlist
+                <Button onClick={() => onNavigate('wishlist')} variant="outline" size="sm">
+                  <Heart className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
+                  <span className="text-xs lg:text-sm">Wishlist</span>
                 </Button>
-                <Button onClick={() => onNavigate('search')} className="bg-gradient-to-r from-primary to-primary-glow">
-                  <Bot className="h-4 w-4 mr-2" />
-                  AI Discovery
+                <Button onClick={() => onNavigate('search')} className="bg-gradient-to-r from-primary to-primary-glow" size="sm">
+                  <Bot className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
+                  <span className="text-xs lg:text-sm">AI Discovery</span>
                 </Button>
               </div>
             </div>
@@ -485,23 +485,23 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
         </Card>
       ) : (
         <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
-          <CardContent className="p-8 text-center">
-            <div className="space-y-4">
-              <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center">
-                <Bot className="h-8 w-8 text-white" />
+          <CardContent className="p-6 lg:p-8 text-center">
+            <div className="space-y-3 lg:space-y-4">
+              <div className="w-12 h-12 lg:w-16 lg:h-16 mx-auto rounded-full bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center">
+                <Bot className="h-6 w-6 lg:h-8 lg:w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold">Start Your Culinary Journey!</h3>
-              <p className="text-muted-foreground max-w-md mx-auto">
+              <h3 className="text-lg lg:text-xl font-semibold">Start Your Culinary Journey!</h3>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto">
                 Use our AI-powered discovery to find amazing restaurants, or add your first dining experience to get personalized recommendations.
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button onClick={() => onNavigate('search')} className="bg-gradient-to-r from-primary to-primary-glow">
-                  <Search className="h-4 w-4 mr-2" />
-                  Try AI Discovery
+              <div className="flex flex-col sm:flex-row gap-2 lg:gap-3 justify-center">
+                <Button onClick={() => onNavigate('search')} className="bg-gradient-to-r from-primary to-primary-glow" size="sm">
+                  <Search className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
+                  <span className="text-xs lg:text-sm">Try AI Discovery</span>
                 </Button>
-                <Button onClick={onOpenAddRestaurant} variant="outline">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add First Restaurant
+                <Button onClick={onOpenAddRestaurant} variant="outline" size="sm">
+                  <Plus className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
+                  <span className="text-xs lg:text-sm">Add First Restaurant</span>
                 </Button>
               </div>
             </div>
