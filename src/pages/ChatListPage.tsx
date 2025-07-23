@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Users, Check, X } from 'lucide-react';
+import { ArrowLeft, Plus, Users, Check, X, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -278,6 +278,70 @@ export function ChatListPage() {
     );
   };
 
+  const deleteChat = async (roomId: string, roomName?: string) => {
+    if (!user) return;
+
+    try {
+      // Check how many participants are in the room
+      const { data: participants, error: participantsError } = await supabase
+        .from('chat_room_participants')
+        .select('user_id')
+        .eq('room_id', roomId);
+
+      if (participantsError) {
+        console.error('Error checking participants:', participantsError);
+        toast('Failed to delete chat');
+        return;
+      }
+
+      const participantCount = participants?.length || 0;
+      
+      if (participantCount <= 1) {
+        // If only current user is in the room, delete the entire room
+        const { error: deleteRoomError } = await supabase
+          .from('chat_rooms')
+          .delete()
+          .eq('id', roomId);
+
+        if (deleteRoomError) {
+          console.error('Error deleting chat room:', deleteRoomError);
+          toast('Failed to delete chat');
+          return;
+        }
+      } else {
+        // If multiple participants, just remove current user from room
+        const { error: leaveRoomError } = await supabase
+          .from('chat_room_participants')
+          .delete()
+          .eq('room_id', roomId)
+          .eq('user_id', user.id);
+
+        if (leaveRoomError) {
+          console.error('Error leaving chat room:', leaveRoomError);
+          toast('Failed to leave chat');
+          return;
+        }
+      }
+
+      // If we deleted the currently selected room, clear selection
+      if (selectedRoomId === roomId) {
+        setSelectedRoomId(null);
+      }
+
+      // Refresh chat rooms list
+      fetchChatRooms();
+      
+      if (participantCount <= 1) {
+        toast('Chat deleted successfully');
+      } else {
+        toast(`Left ${roomName || 'chat'} successfully`);
+      }
+    } catch (error) {
+      console.error('Error deleting/leaving chat:', error);
+      toast('Failed to delete chat');
+    }
+  };
+
   const setupRealtimeSubscription = () => {
     if (!user) return;
 
@@ -513,60 +577,74 @@ export function ChatListPage() {
               {chatRooms.map((room) => {
                 const isSelected = selectedRoomId === room.id;
                 
-                return (
-                  <Card 
-                    key={room.id}
-                    className={`mb-2 cursor-pointer transition-all duration-200 hover:bg-accent/50 ${
-                      isSelected ? 'bg-accent border-primary' : ''
-                    }`}
-                    onClick={() => setSelectedRoomId(room.id)}
-                  >
-                    <CardContent className="p-3">
-                      <div className="flex items-center space-x-3">
-                        {room.is_group ? (
-                          <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-                            <Users className="h-6 w-6 text-muted-foreground" />
-                          </div>
-                        ) : (
-                          <Avatar className="h-12 w-12">
-                            <AvatarImage 
-                              src={getChatAvatar(room)} 
-                              alt={getChatDisplayName(room)}
-                            />
-                            <AvatarFallback>
-                              {getChatDisplayName(room).charAt(0)}
-                            </AvatarFallback>
-                          </Avatar>
-                        )}
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <h3 className="font-medium text-sm truncate">
-                              {getChatDisplayName(room)}
-                            </h3>
-                            <span className="text-xs text-muted-foreground">
-                              {formatLastMessageTime(room.last_message_at || room.updated_at)}
-                            </span>
-                          </div>
-                          
-                          <div className="flex items-center justify-between mt-1">
-                            <p className="text-sm text-muted-foreground truncate">
-                              {room.lastMessage ? (
-                                room.lastMessage.content
-                              ) : (
-                                'No messages yet'
-                              )}
-                            </p>
-                            {room.is_group && (
-                              <Badge variant="secondary" className="text-xs">
-                                {room.participants.length}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                 return (
+                   <Card 
+                     key={room.id}
+                     className={`mb-2 cursor-pointer transition-all duration-200 hover:bg-accent/50 relative group ${
+                       isSelected ? 'bg-accent border-primary' : ''
+                     }`}
+                     onClick={() => setSelectedRoomId(room.id)}
+                   >
+                     <CardContent className="p-3">
+                       <div className="flex items-center space-x-3">
+                         {room.is_group ? (
+                           <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                             <Users className="h-6 w-6 text-muted-foreground" />
+                           </div>
+                         ) : (
+                           <Avatar className="h-12 w-12">
+                             <AvatarImage 
+                               src={getChatAvatar(room)} 
+                               alt={getChatDisplayName(room)}
+                             />
+                             <AvatarFallback>
+                               {getChatDisplayName(room).charAt(0)}
+                             </AvatarFallback>
+                           </Avatar>
+                         )}
+                         
+                         <div className="flex-1 min-w-0">
+                           <div className="flex items-center justify-between">
+                             <h3 className="font-medium text-sm truncate">
+                               {getChatDisplayName(room)}
+                             </h3>
+                             <div className="flex items-center gap-2">
+                               <span className="text-xs text-muted-foreground">
+                                 {formatLastMessageTime(room.last_message_at || room.updated_at)}
+                               </span>
+                               {/* Delete button - shows on hover */}
+                               <Button
+                                 variant="ghost"
+                                 size="sm"
+                                 className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   deleteChat(room.id, getChatDisplayName(room));
+                                 }}
+                               >
+                                 <Trash2 className="h-3 w-3" />
+                               </Button>
+                             </div>
+                           </div>
+                           
+                           <div className="flex items-center justify-between mt-1">
+                             <p className="text-sm text-muted-foreground truncate">
+                               {room.lastMessage ? (
+                                 room.lastMessage.content
+                               ) : (
+                                 'No messages yet'
+                               )}
+                             </p>
+                             {room.is_group && (
+                               <Badge variant="secondary" className="text-xs">
+                                 {room.participants.length}
+                               </Badge>
+                             )}
+                           </div>
+                         </div>
+                       </div>
+                     </CardContent>
+                   </Card>
                 );
               })}
             </div>
