@@ -111,7 +111,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
       {/* Mobile Top Bar - Fixed spacing to avoid iPhone notch */}
       <nav className="lg:hidden sticky top-0 z-50 w-full bg-background border-b border-border/50">
         <div className="pt-safe-area-top">
-          <div className="flex h-14 items-center justify-between px-4">
+          <div className="flex h-14 items-center justify-between px-4 pt-2">
             <div className="cursor-pointer" onClick={() => onTabChange('home')}>
               <GrubbyLogo size="sm" />
             </div>
