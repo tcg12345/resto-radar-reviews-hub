@@ -1,7 +1,8 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { RestaurantProvider } from '@/contexts/RestaurantContext';
+import { Layout } from '@/components/Layout';
 import LandingPage from './LandingPage';
-import Dashboard from './Dashboard';
+import HomePageWrapper from './HomePageWrapper';
 
 export default function Index() {
   const { user, isLoading } = useAuth();
@@ -17,10 +18,12 @@ export default function Index() {
     );
   }
 
-  // Show dashboard if user is authenticated, otherwise show landing page
+  // Show home page if user is authenticated, otherwise show landing page
   return user ? (
     <RestaurantProvider>
-      <Dashboard />
+      <Layout activeTab="home">
+        <HomePageWrapper />
+      </Layout>
     </RestaurantProvider>
   ) : (
     <LandingPage />

@@ -19,15 +19,31 @@ export function Layout({
   const navigate = useNavigate();
 
   const handleTabChange = (tab: 'home' | 'rated' | 'wishlist' | 'map' | 'search' | 'settings' | 'friends') => {
-    if (tab === 'search') {
-      // If they click search while on friends-activity, keep them there
-      // Otherwise navigate to main dashboard
-      if (window.location.pathname !== '/friends-activity') {
-        navigate('/', { state: { activeTab: 'search' } });
-      }
-    } else {
-      // Navigate to main dashboard with the selected tab
-      navigate('/', { state: { activeTab: tab } });
+    // Navigate to the appropriate route for each tab
+    switch (tab) {
+      case 'home':
+        navigate('/home');
+        break;
+      case 'rated':
+        navigate('/rated');
+        break;
+      case 'wishlist':
+        navigate('/wishlist');
+        break;
+      case 'map':
+        navigate('/map');
+        break;
+      case 'search':
+        navigate('/search');
+        break;
+      case 'settings':
+        navigate('/settings');
+        break;
+      case 'friends':
+        navigate('/friends');
+        break;
+      default:
+        navigate('/home');
     }
   };
 

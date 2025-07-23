@@ -19,6 +19,12 @@ import { Layout } from "./components/Layout";
 import { FriendsPage } from "./pages/FriendsPage";
 import { ChatListPage } from "./pages/ChatListPage";
 import { ChatPage } from "./pages/ChatPage";
+import HomePageWrapper from "./pages/HomePageWrapper";
+import RatedRestaurantsPageWrapper from "./pages/RatedRestaurantsPageWrapper";
+import WishlistPageWrapper from "./pages/WishlistPageWrapper";
+import MapPageWrapper from "./pages/MapPageWrapper";
+import UnifiedSearchPage from "./pages/UnifiedSearchPage";
+import SettingsPageWrapper from "./pages/SettingsPageWrapper";
 
 
 const queryClient = new QueryClient();
@@ -40,8 +46,14 @@ const App = () => (
                 {/* Demo route - shows demo functionality */}
                 <Route path="/demo" element={<DemoPage />} />
                 
-                {/* Friends route */}
-                <Route path="/friends" element={<RequireAuth><FriendsPage /></RequireAuth>} />
+                {/* Individual section routes */}
+                <Route path="/home" element={<RequireAuth><Layout activeTab="home"><HomePageWrapper /></Layout></RequireAuth>} />
+                <Route path="/rated" element={<RequireAuth><Layout activeTab="rated"><RatedRestaurantsPageWrapper /></Layout></RequireAuth>} />
+                <Route path="/wishlist" element={<RequireAuth><Layout activeTab="wishlist"><WishlistPageWrapper /></Layout></RequireAuth>} />
+                <Route path="/map" element={<RequireAuth><Layout activeTab="map" showNavbar={false} showChatbot={false}><MapPageWrapper /></Layout></RequireAuth>} />
+                <Route path="/search" element={<RequireAuth><Layout activeTab="search"><UnifiedSearchPage /></Layout></RequireAuth>} />
+                <Route path="/settings" element={<RequireAuth><Layout activeTab="settings" showNavbar={false} showChatbot={false}><SettingsPageWrapper /></Layout></RequireAuth>} />
+                <Route path="/friends" element={<RequireAuth><Layout activeTab="friends"><FriendsPage /></Layout></RequireAuth>} />
                 
                 {/* Friends Activity route */}
                 <Route path="/friends-activity" element={
