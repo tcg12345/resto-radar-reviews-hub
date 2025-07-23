@@ -75,7 +75,7 @@ export default function FriendProfilePage() {
     if (!actualUserId || !user) return;
 
     // If we have cached profile data, use it instantly
-    if (profile) {
+    if (profile && profile.username) {
       console.log('⚡ Using cached friend profile - INSTANT load!');
       
       // Set friend info from cache
