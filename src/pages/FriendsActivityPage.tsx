@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Users, Star, Heart, MapPin, Clock, Filter, SortAsc, List, ChevronDown, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -67,6 +68,7 @@ const FRIENDS_CACHE_DURATION = 30 * 60 * 1000; // 30 minutes for friends data
 
 export function FriendsActivityPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [friendsRestaurants, setFriendsRestaurants] = useState<FriendRestaurant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -1078,7 +1080,11 @@ export function FriendsActivityPage() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredRestaurants.map((restaurant) => (
-              <Card key={restaurant.id} className="hover:shadow-lg transition-shadow">
+              <Card 
+                key={restaurant.id} 
+                className="hover:shadow-lg transition-shadow cursor-pointer" 
+                onClick={() => navigate(`/restaurant/${restaurant.id}`)}
+              >
                 <CardContent className="p-6">
                   <div className="space-y-4">
                     {/* Header with friend info */}
