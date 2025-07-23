@@ -68,6 +68,7 @@ export function FriendsActivityPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('recent');
   const [filterBy, setFilterBy] = useState<FilterOption>('all');
   const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
@@ -87,6 +88,7 @@ export function FriendsActivityPage() {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadingTriggerRef = useRef<HTMLDivElement>(null);
   const isLoadingRef = useRef(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const ITEMS_PER_PAGE = 10;
 
@@ -172,13 +174,30 @@ export function FriendsActivityPage() {
     return [...new Set(friendsRestaurants.map(r => r.city))].sort();
   }, [restaurantMetadata, friendsRestaurants]);
 
+  // Debounce search query
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    searchTimeoutRef.current = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 800);
+    
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchQuery]);
+
   // Apply filters to current restaurants
   const filteredRestaurants = React.useMemo(() => {
     let filtered = [...friendsRestaurants];
 
-    // Apply search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+    // Apply search filter (use debounced query for actual filtering)
+    if (debouncedSearchQuery) {
+      const query = debouncedSearchQuery.toLowerCase();
       filtered = filtered.filter(restaurant =>
         restaurant.name.toLowerCase().includes(query) ||
         restaurant.cuisine.toLowerCase().includes(query) ||
@@ -227,7 +246,7 @@ export function FriendsActivityPage() {
     });
 
     return filtered;
-  }, [friendsRestaurants, searchQuery, sortBy, filterBy, selectedCuisines, selectedCity]);
+  }, [friendsRestaurants, debouncedSearchQuery, sortBy, filterBy, selectedCuisines, selectedCity]);
 
   useEffect(() => {
     if (user && !dataFetched.current) {
@@ -741,6 +760,15 @@ export function FriendsActivityPage() {
               placeholder="Search restaurants, friends..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  // Clear timeout and trigger search immediately on Enter
+                  if (searchTimeoutRef.current) {
+                    clearTimeout(searchTimeoutRef.current);
+                  }
+                  setDebouncedSearchQuery(searchQuery);
+                }
+              }}
               className="lg:col-span-2"
             />
             
