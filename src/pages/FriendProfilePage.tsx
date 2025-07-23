@@ -36,7 +36,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export default function FriendProfilePage() {
-  const { friendId } = useParams();
+  const { friendId, userId } = useParams(); // Support both /user/:userId and legacy friendId
+  const actualUserId = userId || friendId; // Use userId if available, fallback to friendId
   const navigate = useNavigate();
   const { user } = useAuth();
   const { friends } = useFriends();
@@ -44,7 +45,7 @@ export default function FriendProfilePage() {
   const { toast } = useToast();
   
   // Get profile from cache instantly
-  const profile = friendId ? getFriendProfile(friendId) : null;
+  const profile = actualUserId ? getFriendProfile(actualUserId) : null;
   const [friend, setFriend] = useState<any>(null);
   const [restaurants, setRestaurants] = useState<any[]>([]);
   const [allRestaurants, setAllRestaurants] = useState<any[]>([]);
@@ -464,7 +465,7 @@ export default function FriendProfilePage() {
         <div className="container mx-auto px-4 py-6 mobile-container">
           <div className="flex items-center gap-4 mb-6">
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={() => navigate('/', { state: { activeTab: 'friends' } })}>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/friends')}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Friends
               </Button>
