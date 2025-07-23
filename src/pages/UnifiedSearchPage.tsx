@@ -378,51 +378,50 @@ export default function UnifiedSearchPage() {
     <div className="w-full">
       {/* Mobile Search Section */}
       <div className="lg:hidden px-4 py-4 space-y-4">
-        <div className="mb-4">
-          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'global' | 'smart' | 'recommendations')} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="global">Restaurants</TabsTrigger>
-              <TabsTrigger value="smart">Friends</TabsTrigger>
-            </TabsList>
+        {/* Mobile Tabs */}
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'global' | 'smart' | 'recommendations')} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsTrigger value="global">Restaurants</TabsTrigger>
+            <TabsTrigger value="smart">Friends</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="global" className="space-y-4 mt-0">
+            <MobileRestaurantSearch onPlaceSelect={handlePlaceClick} />
             
-            <TabsContent value="global" className="space-y-4">
-              <MobileRestaurantSearch onPlaceSelect={handlePlaceClick} />
+            {/* Mobile Filters */}
+            <div className="flex gap-2">
+              <Select value={priceFilter} onValueChange={setPriceFilter}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Price" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Any Price</SelectItem>
+                  <SelectItem value="1">$</SelectItem>
+                  <SelectItem value="2">$$</SelectItem>
+                  <SelectItem value="3">$$$</SelectItem>
+                  <SelectItem value="4">$$$$</SelectItem>
+                </SelectContent>
+              </Select>
               
-              {/* Mobile Filters */}
-              <div className="flex gap-2">
-                <Select value={priceFilter} onValueChange={setPriceFilter}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder="Price" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Any Price</SelectItem>
-                    <SelectItem value="1">$</SelectItem>
-                    <SelectItem value="2">$$</SelectItem>
-                    <SelectItem value="3">$$$</SelectItem>
-                    <SelectItem value="4">$$$$</SelectItem>
-                  </SelectContent>
-                </Select>
-                
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder="Sort" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="relevance">Relevance</SelectItem>
-                    <SelectItem value="rating">Rating</SelectItem>
-                    <SelectItem value="distance">Distance</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="smart" className="space-y-4">
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">Friends search functionality coming soon!</p>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Sort" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="relevance">Relevance</SelectItem>
+                  <SelectItem value="rating">Rating</SelectItem>
+                  <SelectItem value="distance">Distance</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="smart" className="space-y-4 mt-0">
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Friends search functionality coming soon!</p>
+            </div>
+          </TabsContent>
+        </Tabs>
         
         {/* Mobile Results */}
         {(isLoading || searchResults.length > 0) && (
@@ -491,7 +490,7 @@ export default function UnifiedSearchPage() {
         )}
       </div>
 
-      {/* Desktop Search Section */}
+      {/* Desktop Search Section - Restored to Original */}
       <div className="hidden lg:block relative rounded-2xl bg-gradient-to-br from-background via-background to-primary/10 border border-primary/20 shadow-2xl">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary-glow/5 opacity-50" />
         
@@ -505,7 +504,7 @@ export default function UnifiedSearchPage() {
             </p>
           </div>
 
-          {/* Desktop Tabs */}
+          {/* Desktop Tabs - Original Structure */}
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'global' | 'smart' | 'recommendations')} className="space-y-6">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="global">Global Search</TabsTrigger>
@@ -568,54 +567,13 @@ export default function UnifiedSearchPage() {
                   </div>
                 </div>
 
-                {/* Filters */}
-                <div className="flex gap-4 mb-4">
-                  <Select value={priceFilter} onValueChange={setPriceFilter}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Price Range" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Any Price</SelectItem>
-                      <SelectItem value="1">$ (Under $15)</SelectItem>
-                      <SelectItem value="2">$$ ($15-30)</SelectItem>
-                      <SelectItem value="3">$$$ ($30-60)</SelectItem>
-                      <SelectItem value="4">$$$$ ($60+)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Sort By" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="relevance">Relevance</SelectItem>
-                      <SelectItem value="rating">Highest Rated</SelectItem>
-                      <SelectItem value="distance">Distance</SelectItem>
-                      <SelectItem value="price_asc">Price: Low to High</SelectItem>
-                      <SelectItem value="price_desc">Price: High to Low</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  <Select value={radius.toString()} onValueChange={(value) => setRadius(Number(value))}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Distance" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="5000">Within 5km</SelectItem>
-                      <SelectItem value="10000">Within 10km</SelectItem>
-                      <SelectItem value="25000">Within 25km</SelectItem>
-                      <SelectItem value="50000">Within 50km</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 <div className="flex gap-4">
                   <Button onClick={handleSearch} className="px-8 h-12" disabled={isLoading}>
                     {isLoading ? 'Searching...' : 'Search'}
                   </Button>
                 </div>
 
-                {/* Live Search Dropdown */}
+                {/* Live Search Dropdown - Original */}
                 {showLiveResults && liveSearchResults.length > 0 && (
                   <div className="absolute top-full mt-2 w-full bg-background border border-border rounded-lg shadow-lg z-50 max-h-96 overflow-auto">
                     <div className="p-2">
@@ -671,7 +629,7 @@ export default function UnifiedSearchPage() {
         </div>
       </div>
 
-      {/* Results Section */}
+      {/* Results Section - Original */}
       {(isLoading || searchResults.length > 0) && (
         <div className="hidden lg:block mt-8">
           <Tabs defaultValue="list" className="space-y-4">
