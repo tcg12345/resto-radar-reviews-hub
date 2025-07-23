@@ -276,16 +276,21 @@ export function RestaurantDetailPage() {
 
         {/* Wishlist Notice */}
         {restaurant.is_wishlist && friendProfile && (
-          <Card className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-800">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <Heart className="h-6 w-6 text-purple-600 fill-current" />
+          <Card className="bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-rose-500/10 border-purple-200/50 dark:border-purple-800/50 shadow-lg backdrop-blur-sm animate-fade-in">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                  <Heart className="h-6 w-6 text-white fill-current animate-pulse" />
+                </div>
                 <div className="flex-1">
-                  <p className="text-purple-800 dark:text-purple-200 font-medium">
+                  <h3 className="text-lg font-bold bg-gradient-to-r from-purple-700 to-pink-700 dark:from-purple-300 dark:to-pink-300 bg-clip-text text-transparent">
+                    Wishlist Restaurant
+                  </h3>
+                  <p className="text-purple-700/80 dark:text-purple-300/80 font-medium">
                     This restaurant is in {friendProfile.name || friendProfile.username}'s wishlist
                   </p>
-                  <p className="text-purple-600 dark:text-purple-300 text-sm">
-                    They haven't visited yet, so no rating or photos are available
+                  <p className="text-purple-600/70 dark:text-purple-400/70 text-sm mt-1">
+                    They haven't visited yet • No rating or photos available
                   </p>
                 </div>
               </div>
@@ -443,47 +448,110 @@ export function RestaurantDetailPage() {
           )}
         </div>
 
-        {/* Wishlist Actions - Full width section for wishlist items */}
+        {/* Wishlist Actions - Elegant full width section */}
         {restaurant.is_wishlist && (
-          <div className="space-y-4">
-            <Button onClick={addToWishlist} disabled={isAddingToWishlist} size="lg" className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-4 text-base font-medium hover-scale">
-              <Heart className="h-5 w-5 fill-current mr-2" />
-              {isAddingToWishlist ? 'Adding...' : 'Add to Wishlist'}
-            </Button>
+          <div className="space-y-8 animate-fade-in">
+            {/* Hero Action Card */}
+            <Card className="bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 dark:from-rose-950/30 dark:via-pink-950/30 dark:to-purple-950/30 border-rose-200/50 dark:border-rose-800/50 shadow-xl backdrop-blur-sm overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 via-pink-500/5 to-purple-500/5" />
+              <CardContent className="relative p-8">
+                <div className="text-center space-y-4">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-rose-500 to-purple-600 rounded-2xl shadow-lg mb-4">
+                    <Heart className="h-8 w-8 text-white fill-current" />
+                  </div>
+                  <h3 className="text-2xl font-bold bg-gradient-to-r from-rose-700 to-purple-700 dark:from-rose-300 dark:to-purple-300 bg-clip-text text-transparent">
+                    Add to Your Wishlist
+                  </h3>
+                  <p className="text-muted-foreground max-w-md mx-auto">
+                    Save this restaurant to your own wishlist and get notified about updates
+                  </p>
+                  <Button 
+                    onClick={addToWishlist} 
+                    disabled={isAddingToWishlist} 
+                    size="lg" 
+                    className="bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover-scale border-0"
+                  >
+                    <Heart className="h-5 w-5 fill-current mr-3" />
+                    {isAddingToWishlist ? 'Adding to Wishlist...' : 'Add to My Wishlist'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
 
-            {/* Quick Actions Grid for wishlist */}
-            <div className="grid grid-cols-4 gap-3 max-w-2xl mx-auto">
-              {(restaurant.phone_number || (restaurant as any).phone_number) && <a href={`tel:${restaurant.phone_number || (restaurant as any).phone_number}`} className="flex flex-col items-center gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors hover-scale">
-                  <Phone className="h-5 w-5 text-green-600" />
-                  <span className="text-sm font-medium text-center">Call</span>
-                </a>}
-              
-              {restaurant.website && <a href={restaurant.website} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-2 p-3 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors hover-scale">
-                  <Globe className="h-5 w-5 text-primary" />
-                  <span className="text-sm font-medium text-center">Website</span>
-                </a>}
+            {/* Quick Actions Grid */}
+            <Card className="shadow-lg border-0 bg-gradient-to-r from-slate-50 to-zinc-50 dark:from-slate-950/50 dark:to-zinc-950/50">
+              <CardContent className="p-8">
+                <h3 className="text-xl font-bold text-center mb-6 bg-gradient-to-r from-slate-700 to-zinc-700 dark:from-slate-300 dark:to-zinc-300 bg-clip-text text-transparent">
+                  Quick Actions
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {(restaurant.phone_number || (restaurant as any).phone_number) && (
+                    <a 
+                      href={`tel:${restaurant.phone_number || (restaurant as any).phone_number}`} 
+                      className="group flex flex-col items-center gap-3 p-6 rounded-2xl bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 hover:from-green-100 dark:hover:from-green-950/50 hover:to-emerald-100 dark:hover:to-emerald-950/50 transition-all duration-300 hover-scale shadow-md hover:shadow-lg border border-green-200/30 dark:border-green-800/30"
+                    >
+                      <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
+                        <Phone className="h-6 w-6 text-white" />
+                      </div>
+                      <span className="text-sm font-semibold text-green-700 dark:text-green-300 group-hover:text-green-800 dark:group-hover:text-green-200 transition-colors">Call Restaurant</span>
+                    </a>
+                  )}
+                  
+                  {restaurant.website && (
+                    <a 
+                      href={restaurant.website} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="group flex flex-col items-center gap-3 p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 hover:from-blue-100 dark:hover:from-blue-950/50 hover:to-indigo-100 dark:hover:to-indigo-950/50 transition-all duration-300 hover-scale shadow-md hover:shadow-lg border border-blue-200/30 dark:border-blue-800/30"
+                    >
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
+                        <Globe className="h-6 w-6 text-white" />
+                      </div>
+                      <span className="text-sm font-semibold text-blue-700 dark:text-blue-300 group-hover:text-blue-800 dark:group-hover:text-blue-200 transition-colors">Visit Website</span>
+                    </a>
+                  )}
 
-              {restaurant.latitude && restaurant.longitude && <a href={`https://www.google.com/maps/dir/?api=1&destination=${restaurant.latitude},${restaurant.longitude}`} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors hover-scale">
-                  <Navigation className="h-5 w-5 text-blue-600" />
-                  <span className="text-sm font-medium text-center">Directions</span>
-                </a>}
+                  {restaurant.latitude && restaurant.longitude && (
+                    <a 
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${restaurant.latitude},${restaurant.longitude}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="group flex flex-col items-center gap-3 p-6 rounded-2xl bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 hover:from-orange-100 dark:hover:from-orange-950/50 hover:to-amber-100 dark:hover:to-amber-950/50 transition-all duration-300 hover-scale shadow-md hover:shadow-lg border border-orange-200/30 dark:border-orange-800/30"
+                    >
+                      <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
+                        <Navigation className="h-6 w-6 text-white" />
+                      </div>
+                      <span className="text-sm font-semibold text-orange-700 dark:text-orange-300 group-hover:text-orange-800 dark:group-hover:text-orange-200 transition-colors">Get Directions</span>
+                    </a>
+                  )}
 
-              <a href={`https://www.google.com/search?q=${encodeURIComponent(restaurant.name + ' reviews')}`} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-2 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors hover-scale">
-                <Star className="h-5 w-5 text-yellow-600" />
-                <span className="text-sm font-medium text-center">Reviews</span>
-              </a>
-            </div>
+                  <a 
+                    href={`https://www.google.com/search?q=${encodeURIComponent(restaurant.name + ' reviews')}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="group flex flex-col items-center gap-3 p-6 rounded-2xl bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 hover:from-yellow-100 dark:hover:from-yellow-950/50 hover:to-orange-100 dark:hover:to-orange-950/50 transition-all duration-300 hover-scale shadow-md hover:shadow-lg border border-yellow-200/30 dark:border-yellow-800/30"
+                  >
+                    <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
+                      <Star className="h-6 w-6 text-white" />
+                    </div>
+                    <span className="text-sm font-semibold text-yellow-700 dark:text-yellow-300 group-hover:text-yellow-800 dark:group-hover:text-yellow-200 transition-colors">Read Reviews</span>
+                  </a>
+                </div>
+              </CardContent>
+            </Card>
 
-            {/* Opening Hours for wishlist restaurants */}
+            {/* Opening Hours Card */}
             {restaurant.opening_hours && (
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-primary" />
+              <Card className="shadow-lg border-0 bg-gradient-to-br from-indigo-50/50 to-blue-50/50 dark:from-indigo-950/20 dark:to-blue-950/20">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-xl font-bold flex items-center gap-3 bg-gradient-to-r from-indigo-700 to-blue-700 dark:from-indigo-300 dark:to-blue-300 bg-clip-text text-transparent">
+                    <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md">
+                      <Clock className="h-5 w-5 text-white" />
+                    </div>
                     Opening Hours
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-3">
                   <OpeningHoursDisplay hours={restaurant.opening_hours.split('\n')} />
                 </CardContent>
               </Card>
