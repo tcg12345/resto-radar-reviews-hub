@@ -48,7 +48,7 @@ export function Layout({
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-background mobile-viewport">
+    <div className={`flex min-h-screen flex-col bg-background mobile-viewport ${activeTab === 'map' ? 'overflow-hidden' : ''}`}>
       {showNavbar && (
         <Navbar 
           activeTab={activeTab} 
@@ -56,8 +56,8 @@ export function Layout({
         />
       )}
       
-      <main className={`flex-1 ${activeTab === 'map' ? '' : 'pb-16 lg:pb-0'} mobile-scroll`}>
-        <div className={`min-h-full ${activeTab === 'map' ? '' : 'mobile-container'}`}>
+      <main className={`flex-1 ${activeTab === 'map' ? 'overflow-hidden' : 'pb-16 lg:pb-0'} mobile-scroll`}>
+        <div className={`min-h-full ${activeTab === 'map' ? 'overflow-hidden' : 'mobile-container'}`}>
           {children}
         </div>
       </main>
