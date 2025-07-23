@@ -311,8 +311,16 @@ export function FriendsActivityPage() {
 
   // Intersection observer for infinite scroll
   useEffect(() => {
+    console.log('Setting up intersection observer, hasMore:', hasMore);
+    
     if (observerRef.current) {
       observerRef.current.disconnect();
+    }
+
+    // Don't set up observer if there's no more data to load
+    if (!hasMore) {
+      console.log('No more data to load, skipping observer setup');
+      return;
     }
 
     observerRef.current = new IntersectionObserver(
@@ -324,26 +332,29 @@ export function FriendsActivityPage() {
           isLoadingMore,
           isLoading,
           isLoadingRefCurrent: isLoadingRef.current,
-          friendsRestaurantsLength: friendsRestaurants.length
+          friendsRestaurantsLength: friendsRestaurants.length,
+          currentOffset
         });
         
         if (entry.isIntersecting && hasMore && !isLoadingMore && !isLoading && !isLoadingRef.current) {
-          console.log('Loading more restaurants triggered by intersection');
+          console.log('🚀 Loading more restaurants triggered by intersection');
           loadMoreRestaurants();
+        } else if (entry.isIntersecting) {
+          console.log('⚠️ Intersection detected but conditions not met for loading');
         }
       },
       { 
         threshold: 0,
-        rootMargin: '100px' // Start loading when trigger is 100px from viewport
+        rootMargin: '50px' // Start loading when trigger is 50px from viewport
       }
     );
 
     const currentTrigger = loadingTriggerRef.current;
     if (currentTrigger) {
-      console.log('Observing loading trigger element');
+      console.log('✅ Observing loading trigger element');
       observerRef.current.observe(currentTrigger);
     } else {
-      console.log('Loading trigger element not found');
+      console.log('❌ Loading trigger element not found');
     }
 
     return () => {
@@ -351,7 +362,7 @@ export function FriendsActivityPage() {
         observerRef.current.disconnect();
       }
     };
-  }, []); // Remove dependencies to prevent frequent re-creation
+  }, [hasMore, isLoadingMore, isLoading]); // Re-create when these change
 
   const getFriendsData = async () => {
     const cacheKey = `friends_${user?.id}`;
@@ -1193,15 +1204,22 @@ export function FriendsActivityPage() {
             )}
             </div>
 
-            {/* Loading trigger positioned before the last few cards */}
-            {hasMore && (
+            {/* Loading trigger */}
+            {hasMore && !isLoadingMore && (
               <div 
                 ref={loadingTriggerRef}
-                className="h-20 w-full flex items-center justify-center bg-muted/10"
+                className="h-1 w-full"
                 style={{ gridColumn: '1 / -1' }}
-              >
-                <div className="text-sm text-muted-foreground">Loading trigger zone</div>
-              </div>
+              />
+            )}
+
+            {/* Skeleton cards for loading more */}
+            {isLoadingMore && hasMore && (
+              <>
+                {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
+                  <RestaurantActivityCardSkeleton key={`skeleton-loading-${index}`} />
+                ))}
+              </>
             )}
 
             {!hasMore && friendsRestaurants.length > 0 && (
