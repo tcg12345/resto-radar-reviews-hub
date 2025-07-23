@@ -56,8 +56,8 @@ export function Layout({
         />
       )}
       
-      <main className="flex-1 pb-16 lg:pb-0 mobile-scroll">
-        <div className="min-h-full mobile-container">
+      <main className={`flex-1 ${activeTab === 'map' ? '' : 'pb-16 lg:pb-0'} mobile-scroll`}>
+        <div className={`min-h-full ${activeTab === 'map' ? '' : 'mobile-container'}`}>
           {children}
         </div>
       </main>
