@@ -244,7 +244,7 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
   };
 
   return (
-    <div className="h-full w-full">
+    <div className="h-full w-full overflow-hidden">
       {showTokenInput && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/80 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-lg bg-card p-6 shadow-lg">
