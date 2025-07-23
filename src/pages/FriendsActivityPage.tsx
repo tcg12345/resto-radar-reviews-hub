@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Users, Star, Heart, MapPin, Clock, Filter, SortAsc, List } from 'lucide-react';
+import { Users, Star, Heart, MapPin, Clock, Filter, SortAsc, List, ChevronDown } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -73,7 +74,8 @@ export function FriendsActivityPage() {
   const [sortBy, setSortBy] = useState<SortOption>('recent');
   const [filterBy, setFilterBy] = useState<FilterOption>('all');
   const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
-  const [selectedCity, setSelectedCity] = useState<CityFilterOption>('all');
+  const [selectedCities, setSelectedCities] = useState<string[]>([]);
+  const [isCuisineDropdownOpen, setIsCuisineDropdownOpen] = useState(false);
   const [currentOffset, setCurrentOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [allFriendIds, setAllFriendIds] = useState<string[]>([]);
@@ -216,8 +218,8 @@ export function FriendsActivityPage() {
     }
 
     // Apply city filter
-    if (selectedCity !== 'all') {
-      filtered = filtered.filter(r => r.city === selectedCity);
+    if (selectedCities.length > 0) {
+      filtered = filtered.filter(r => selectedCities.includes(r.city));
     }
 
     // Apply cuisine filter
@@ -247,7 +249,7 @@ export function FriendsActivityPage() {
     });
 
     return filtered;
-  }, [friendsRestaurants, debouncedSearchQuery, sortBy, filterBy, selectedCuisines, selectedCity]);
+  }, [friendsRestaurants, debouncedSearchQuery, sortBy, filterBy, selectedCuisines, selectedCities]);
 
   useEffect(() => {
     if (user && !dataFetched.current) {
@@ -259,7 +261,7 @@ export function FriendsActivityPage() {
   useEffect(() => {
     if (dataFetched.current && user) {
       // For simple filters (all/rated/wishlist), don't reload - just filter locally
-      if (debouncedSearchQuery || selectedCuisines.length > 0 || selectedCity !== 'all') {
+      if (debouncedSearchQuery || selectedCuisines.length > 0 || selectedCities.length > 0) {
         // Complex filters require database query
         setFriendsRestaurants([]);
         setCurrentOffset(0);
@@ -270,7 +272,7 @@ export function FriendsActivityPage() {
       // For filterBy (all/rated/wishlist), just update the local filtering
       // The filteredRestaurants will handle this automatically
     }
-  }, [debouncedSearchQuery, selectedCuisines, selectedCity]);
+  }, [debouncedSearchQuery, selectedCuisines, selectedCities]);
 
   // Separate effect for sort changes that don't require reload
   useEffect(() => {
@@ -756,7 +758,7 @@ export function FriendsActivityPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <Input
               placeholder="Search restaurants, friends..."
               value={searchQuery}
@@ -784,31 +786,17 @@ export function FriendsActivityPage() {
                 <SelectItem value="friend">By Friend</SelectItem>
               </SelectContent>
             </Select>
-
-            <Select value={selectedCity} onValueChange={(value: CityFilterOption) => setSelectedCity(value)}>
-              <SelectTrigger className="bg-background border-border">
-                <SelectValue placeholder="Filter by city" />
-              </SelectTrigger>
-              <SelectContent className="bg-background border-border z-50">
-                <SelectItem value="all">All Cities</SelectItem>
-                {uniqueCities.map(city => (
-                  <SelectItem key={city} value={city}>
-                    {city} ({filterCounts.cities[city] || 0})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
 
           {/* Clear All Filters Button */}
-          {(selectedCuisines.length > 0 || selectedCity !== 'all' || debouncedSearchQuery) && (
+          {(selectedCuisines.length > 0 || selectedCities.length > 0 || debouncedSearchQuery) && (
             <div className="flex justify-end">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => {
                   setSelectedCuisines([]);
-                  setSelectedCity('all');
+                  setSelectedCities([]);
                   setSearchQuery('');
                   setDebouncedSearchQuery('');
                 }}
@@ -819,49 +807,114 @@ export function FriendsActivityPage() {
             </div>
           )}
 
-          {/* Cuisine Checkbox Filter */}
+          {/* City Checkbox Filter */}
           <div className="space-y-2">
-            <p className="text-sm font-medium">Filter by Cuisine:</p>
+            <p className="text-sm font-medium">Filter by City:</p>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-64 overflow-y-auto">
-              {uniqueCuisines.map(cuisine => (
-                <div key={cuisine} className="flex items-center space-x-2">
+              {uniqueCities.map(city => (
+                <div key={city} className="flex items-center space-x-2">
                   <Checkbox
-                    id={cuisine}
-                    checked={selectedCuisines.includes(cuisine)}
+                    id={city}
+                    checked={selectedCities.includes(city)}
                     onCheckedChange={(checked) => {
                       if (checked) {
-                        setSelectedCuisines(prev => [...prev, cuisine]);
+                        setSelectedCities(prev => [...prev, city]);
                       } else {
-                        setSelectedCuisines(prev => prev.filter(c => c !== cuisine));
+                        setSelectedCities(prev => prev.filter(c => c !== city));
                       }
                     }}
                   />
                   <label
-                    htmlFor={cuisine}
+                    htmlFor={city}
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                   >
-                    {cuisine} ({filterCounts.cuisines[cuisine] || 0})
+                    {city} ({filterCounts.cities[city] || 0})
                   </label>
                 </div>
               ))}
             </div>
 
-            {/* Selected Cuisine Tags */}
-            {selectedCuisines.length > 0 && (
+            {/* Selected City Tags */}
+            {selectedCities.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
-                {selectedCuisines.map(cuisine => (
+                {selectedCities.map(city => (
                   <Badge
-                    key={cuisine}
+                    key={city}
                     variant="default"
                     className="cursor-pointer hover:bg-primary/80"
-                    onClick={() => setSelectedCuisines(prev => prev.filter(c => c !== cuisine))}
+                    onClick={() => setSelectedCities(prev => prev.filter(c => c !== city))}
                   >
-                    {cuisine} ×
+                    {city} ×
                   </Badge>
                 ))}
               </div>
             )}
           </div>
+
+          {/* Cuisine Dropdown Filter */}
+          <Collapsible 
+            open={isCuisineDropdownOpen} 
+            onOpenChange={setIsCuisineDropdownOpen}
+            className="space-y-2"
+          >
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-between bg-background border-border"
+              >
+                <span className="text-sm font-medium">
+                  Filter by Cuisine
+                  {selectedCuisines.length > 0 && (
+                    <span className="ml-2 text-primary">
+                      ({selectedCuisines.length} selected)
+                    </span>
+                  )}
+                </span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${isCuisineDropdownOpen ? 'rotate-180' : ''}`} />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-2">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-64 overflow-y-auto p-2 border rounded-md bg-background">
+                {uniqueCuisines.map(cuisine => (
+                  <div key={cuisine} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`cuisine-${cuisine}`}
+                      checked={selectedCuisines.includes(cuisine)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedCuisines(prev => [...prev, cuisine]);
+                        } else {
+                          setSelectedCuisines(prev => prev.filter(c => c !== cuisine));
+                        }
+                      }}
+                    />
+                    <label
+                      htmlFor={`cuisine-${cuisine}`}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      {cuisine} ({filterCounts.cuisines[cuisine] || 0})
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
+          {/* Selected Cuisine Tags */}
+          {selectedCuisines.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {selectedCuisines.map(cuisine => (
+                <Badge
+                  key={cuisine}
+                  variant="default"
+                  className="cursor-pointer hover:bg-primary/80"
+                  onClick={() => setSelectedCuisines(prev => prev.filter(c => c !== cuisine))}
+                >
+                  {cuisine} ×
+                </Badge>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
