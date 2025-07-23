@@ -278,7 +278,7 @@ export default function UnifiedSearchPage() {
         searchParams.radius = 50000;
       }
 
-      if (priceFilter) {
+      if (priceFilter && priceFilter !== 'all') {
         searchParams.price_level = priceFilter;
       }
 
@@ -395,7 +395,7 @@ export default function UnifiedSearchPage() {
                     <SelectValue placeholder="Price" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Any Price</SelectItem>
+                    <SelectItem value="all">Any Price</SelectItem>
                     <SelectItem value="1">$</SelectItem>
                     <SelectItem value="2">$$</SelectItem>
                     <SelectItem value="3">$$$</SelectItem>
@@ -575,7 +575,7 @@ export default function UnifiedSearchPage() {
                       <SelectValue placeholder="Price Range" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Any Price</SelectItem>
+                      <SelectItem value="all">Any Price</SelectItem>
                       <SelectItem value="1">$ (Under $15)</SelectItem>
                       <SelectItem value="2">$$ ($15-30)</SelectItem>
                       <SelectItem value="3">$$$ ($30-60)</SelectItem>
