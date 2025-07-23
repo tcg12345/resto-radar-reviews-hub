@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Phone, Video, MoreVertical, Image } from 'lucide-react';
+import { Send, Phone, Video, MoreVertical, Image, Trash2, Edit2, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -50,6 +52,10 @@ export function ChatWindow({ roomId }: ChatWindowProps) {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [isLoadingRestaurants, setIsLoadingRestaurants] = useState(false);
   const [isRestaurantDialogOpen, setIsRestaurantDialogOpen] = useState(false);
+  const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
+  const [isEditGroupDialogOpen, setIsEditGroupDialogOpen] = useState(false);
+  const [groupName, setGroupName] = useState('');
+  const [chatRoom, setChatRoom] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -71,6 +77,21 @@ export function ChatWindow({ roomId }: ChatWindowProps) {
     if (!roomId || !user) return;
 
     try {
+      // Fetch chat room details
+      const { data: roomData, error: roomError } = await supabase
+        .from('chat_rooms')
+        .select('*')
+        .eq('id', roomId)
+        .single();
+
+      if (roomError) {
+        console.error('Error fetching room data:', roomError);
+        return;
+      }
+
+      setChatRoom(roomData);
+      setGroupName(roomData.name || '');
+
       // Fetch participants with proper query structure
       const { data: participantsData, error: participantsError } = await supabase
         .from('chat_room_participants')
@@ -453,6 +474,60 @@ export function ChatWindow({ roomId }: ChatWindowProps) {
     return participants.find(p => p.user_id !== user?.id);
   };
 
+  const deleteMessage = async (messageId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .delete()
+        .eq('id', messageId)
+        .eq('sender_id', user.id); // Ensure only the sender can delete
+
+      if (error) {
+        console.error('Error deleting message:', error);
+        toast('Failed to delete message');
+        return;
+      }
+
+      // Remove message from local state
+      setMessages(prev => prev.filter(msg => msg.id !== messageId));
+      toast('Message deleted');
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      toast('Failed to delete message');
+    }
+  };
+
+  const updateGroupInfo = async () => {
+    if (!user || !chatRoom || !groupName.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from('chat_rooms')
+        .update({ name: groupName.trim() })
+        .eq('id', roomId);
+
+      if (error) {
+        console.error('Error updating group info:', error);
+        toast('Failed to update group info');
+        return;
+      }
+
+      setChatRoom(prev => ({ ...prev, name: groupName.trim() }));
+      setIsEditGroupDialogOpen(false);
+      toast('Group info updated');
+    } catch (error) {
+      console.error('Error updating group info:', error);
+      toast('Failed to update group info');
+    }
+  };
+
+  const isGroupChat = chatRoom?.is_group || false;
+  const chatDisplayName = isGroupChat 
+    ? (chatRoom?.name || `Group with ${participants.length} members`)
+    : (getOtherParticipant()?.profile.name || 'Unknown User');
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -469,32 +544,80 @@ export function ChatWindow({ roomId }: ChatWindowProps) {
       {/* Chat Header */}
       <div className="flex items-center justify-between p-4 border-b border-border">
         <div className="flex items-center space-x-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage 
-              src={otherParticipant?.profile.avatar_url} 
-              alt={otherParticipant?.profile.name}
-            />
-            <AvatarFallback>
-              {otherParticipant?.profile.name?.charAt(0) || '?'}
-            </AvatarFallback>
-          </Avatar>
+          {isGroupChat ? (
+            <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+              <Users className="h-5 w-5 text-muted-foreground" />
+            </div>
+          ) : (
+            <Avatar className="h-10 w-10">
+              <AvatarImage 
+                src={otherParticipant?.profile.avatar_url} 
+                alt={otherParticipant?.profile.name}
+              />
+              <AvatarFallback>
+                {otherParticipant?.profile.name?.charAt(0) || '?'}
+              </AvatarFallback>
+            </Avatar>
+          )}
           <div>
             <h2 className="font-semibold">
-              {otherParticipant?.profile.name || 'Unknown User'}
+              {chatDisplayName}
             </h2>
             <p className="text-sm text-muted-foreground">
-              @{otherParticipant?.profile.username || 'unknown'}
+              {isGroupChat 
+                ? `${participants.length} members`
+                : `@${otherParticipant?.profile.username || 'unknown'}`
+              }
             </p>
           </div>
         </div>
         
         <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="icon">
-            <Phone className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon">
-            <Video className="h-4 w-4" />
-          </Button>
+          {!isGroupChat && (
+            <>
+              <Button variant="ghost" size="icon">
+                <Phone className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="icon">
+                <Video className="h-4 w-4" />
+              </Button>
+            </>
+          )}
+          
+          {isGroupChat && (
+            <Dialog open={isEditGroupDialogOpen} onOpenChange={setIsEditGroupDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Edit2 className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Edit Group Info</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="group-name">Group Name</Label>
+                    <Input
+                      id="group-name"
+                      value={groupName}
+                      onChange={(e) => setGroupName(e.target.value)}
+                      placeholder="Enter group name"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsEditGroupDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={updateGroupInfo}>
+                    Save Changes
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
+          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -502,7 +625,7 @@ export function ChatWindow({ roomId }: ChatWindowProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>View Profile</DropdownMenuItem>
+              {!isGroupChat && <DropdownMenuItem>View Profile</DropdownMenuItem>}
               <DropdownMenuItem>Mute Notifications</DropdownMenuItem>
               <DropdownMenuItem className="text-destructive">
                 Delete Conversation
@@ -530,48 +653,70 @@ export function ChatWindow({ roomId }: ChatWindowProps) {
               );
               
               return (
-                <div
-                  key={message.id}
-                  className={`flex items-end space-x-2 mb-4 ${
-                    isOwnMessage ? 'justify-end' : 'justify-start'
-                  }`}
-                >
-                  {!isOwnMessage && (
-                    <Avatar className={`h-8 w-8 ${showAvatar ? 'visible' : 'invisible'}`}>
-                      <AvatarImage 
-                        src={message.sender_profile?.avatar_url} 
-                        alt={message.sender_profile?.name}
-                      />
-                      <AvatarFallback className="text-xs">
-                        {message.sender_profile?.name?.charAt(0) || '?'}
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                  
-                   {message.message_type === 'restaurant' ? (
-                     <div className={`${isOwnMessage ? 'flex justify-end' : 'flex justify-start'}`}>
-                       <SharedRestaurantCard 
-                         restaurantData={message.content}
-                         isOwnMessage={isOwnMessage}
+                 <div
+                   key={message.id}
+                   className={`flex items-end space-x-2 mb-4 group ${
+                     isOwnMessage ? 'justify-end' : 'justify-start'
+                   }`}
+                 >
+                   {!isOwnMessage && (
+                     <Avatar className={`h-8 w-8 ${showAvatar ? 'visible' : 'invisible'}`}>
+                       <AvatarImage 
+                         src={message.sender_profile?.avatar_url} 
+                         alt={message.sender_profile?.name}
                        />
-                     </div>
-                   ) : (
-                     <div
-                       className={`max-w-xs px-3 py-2 rounded-lg ${
-                         isOwnMessage
-                           ? 'bg-primary text-primary-foreground'
-                           : 'bg-muted'
-                       }`}
-                     >
-                       <p className="text-sm">{message.content}</p>
-                       <p className={`text-xs mt-1 ${
-                         isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground'
-                       }`}>
-                         {formatMessageTime(message.created_at)}
-                       </p>
-                     </div>
+                       <AvatarFallback className="text-xs">
+                         {message.sender_profile?.name?.charAt(0) || '?'}
+                       </AvatarFallback>
+                     </Avatar>
                    )}
-                </div>
+                   
+                    {message.message_type === 'restaurant' ? (
+                      <div className={`${isOwnMessage ? 'flex justify-end' : 'flex justify-start'} relative`}>
+                        <SharedRestaurantCard 
+                          restaurantData={message.content}
+                          isOwnMessage={isOwnMessage}
+                        />
+                        {isOwnMessage && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-background border shadow-sm hover:bg-destructive hover:text-destructive-foreground"
+                            onClick={() => setMessageToDelete(message.id)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <div
+                          className={`max-w-xs px-3 py-2 rounded-lg ${
+                            isOwnMessage
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-muted'
+                          }`}
+                        >
+                          <p className="text-sm">{message.content}</p>
+                          <p className={`text-xs mt-1 ${
+                            isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                          }`}>
+                            {formatMessageTime(message.created_at)}
+                          </p>
+                        </div>
+                        {isOwnMessage && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-background border shadow-sm hover:bg-destructive hover:text-destructive-foreground"
+                            onClick={() => setMessageToDelete(message.id)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                 </div>
               );
             })}
           </div>
@@ -711,6 +856,34 @@ export function ChatWindow({ roomId }: ChatWindowProps) {
           </div>
         </div>
       </div>
+
+      {/* Delete Message Confirmation */}
+      <AlertDialog open={!!messageToDelete} onOpenChange={() => setMessageToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Message</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this message? This action cannot be undone and the message will be deleted for everyone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setMessageToDelete(null)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (messageToDelete) {
+                  deleteMessage(messageToDelete);
+                  setMessageToDelete(null);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete Message
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
