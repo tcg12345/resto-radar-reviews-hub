@@ -1083,7 +1083,7 @@ export function FriendsActivityPage() {
               <Card 
                 key={restaurant.id} 
                 className="hover:shadow-lg transition-shadow cursor-pointer" 
-                onClick={() => navigate(`/restaurant/${restaurant.id}`)}
+                onClick={() => navigate(`/restaurant/${restaurant.id}?friendId=${restaurant.friend.id}`)}
               >
                 <CardContent className="p-6">
                   <div className="space-y-4">
