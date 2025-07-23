@@ -130,11 +130,16 @@ export default function FriendProfilePage() {
   }, [actualUserId, user, profile, friends, refreshProfile, getFriendProfile, navigate, toast, isPreloading]);
 
   const loadFullRestaurantData = async () => {
-    if (!actualUserId || !user) return;
+    if (!actualUserId || !user) {
+      console.log('❌ loadFullRestaurantData: Missing actualUserId or user', { actualUserId, user: !!user });
+      return;
+    }
     
+    console.log('🚀 Starting loadFullRestaurantData for user:', actualUserId);
     setIsLoadingFullData(true);
+    
     try {
-      console.log('Loading complete profile data with restaurants...');
+      console.log('📞 Calling get_cached_friend_profile RPC...');
       
       // Use the cached profile RPC function which includes all restaurant data
       const { data: completeProfile, error } = await supabase
@@ -143,16 +148,20 @@ export default function FriendProfilePage() {
           requesting_user_id: user.id 
         });
 
+      console.log('📊 RPC Response:', { completeProfile, error });
+
       if (error) {
-        console.error('Error loading complete profile:', error);
+        console.error('❌ Error loading complete profile:', error);
         return;
       }
 
       if (completeProfile) {
         const profileData = completeProfile as any;
+        console.log('✅ Profile data structure:', Object.keys(profileData));
         
         if (profileData.restaurants && Array.isArray(profileData.restaurants)) {
           const restaurantData = profileData.restaurants;
+          console.log('🍽️ Loading restaurants:', restaurantData.length);
           setRestaurants(restaurantData.slice(0, 10));
           setAllRestaurants(restaurantData);
           setDisplayedRestaurants(Math.min(10, restaurantData.length));
@@ -164,19 +173,24 @@ export default function FriendProfilePage() {
             ratingDistribution: calculateRatingDistribution(restaurantData),
             michelinCount: restaurantData.filter(r => r.michelin_stars > 0).length
           }));
+        } else {
+          console.log('⚠️ No restaurants found in profile data');
         }
 
         if (profileData.wishlist && Array.isArray(profileData.wishlist)) {
           const wishlistData = profileData.wishlist;
+          console.log('⭐ Loading wishlist:', wishlistData.length);
           setWishlist(wishlistData.slice(0, 10));
           setAllWishlist(wishlistData);
           setDisplayedWishlist(Math.min(10, wishlistData.length));
+        } else {
+          console.log('⚠️ No wishlist found in profile data');
         }
       }
 
-      console.log('✅ Complete profile data loaded');
+      console.log('✅ Complete profile data loaded successfully');
     } catch (error) {
-      console.error('Error loading complete profile data:', error);
+      console.error('💥 Error in loadFullRestaurantData:', error);
     } finally {
       setIsLoadingFullData(false);
     }
