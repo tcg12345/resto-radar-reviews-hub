@@ -62,7 +62,11 @@ export function Layout({
         </div>
       </main>
       
-      {showChatbot && <AIChatbot />}
+      {showChatbot && (
+        <div className="hidden lg:block">
+          <AIChatbot />
+        </div>
+      )}
     </div>
   );
 }
