@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { MapPin, Star, Heart, Home, Search, Settings, Users, MessageCircle } from 'lucide-react';
+import { MapPin, Star, Heart, Home, Search, Settings, Users, MessageCircle, Calendar } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/hooks/useTheme';
@@ -10,8 +10,8 @@ import { NotificationsPanel } from '@/components/NotificationsPanel';
 import { useUnreadMessageCount } from '@/hooks/useUnreadMessageCount';
 
 interface NavbarProps {
-  activeTab: 'home' | 'rated' | 'wishlist' | 'map' | 'search' | 'settings' | 'friends';
-  onTabChange: (tab: 'home' | 'rated' | 'wishlist' | 'map' | 'search' | 'settings' | 'friends') => void;
+  activeTab: 'home' | 'rated' | 'wishlist' | 'map' | 'search' | 'settings' | 'friends' | 'itinerary';
+  onTabChange: (tab: 'home' | 'rated' | 'wishlist' | 'map' | 'search' | 'settings' | 'friends' | 'itinerary') => void;
 }
 
 export function Navbar({ activeTab, onTabChange }: NavbarProps) {
@@ -24,6 +24,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
     { id: 'search' as const, label: 'Search & Discover', icon: Search, shortLabel: 'Search' },
     { id: 'rated' as const, label: 'My Ratings', icon: Star, shortLabel: 'Rated' },
     { id: 'wishlist' as const, label: 'Wishlist', icon: Heart, shortLabel: 'Wishlist' },
+    { id: 'itinerary' as const, label: 'Itinerary', icon: Calendar, shortLabel: 'Itinerary' },
     { id: 'friends' as const, label: 'Friends', icon: Users, shortLabel: 'Friends' },
     { id: 'map' as const, label: 'Map View', icon: MapPin, shortLabel: 'Map' },
   ];

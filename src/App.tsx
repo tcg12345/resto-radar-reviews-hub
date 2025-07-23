@@ -27,6 +27,7 @@ import UnifiedSearchPage from "./pages/UnifiedSearchPage";
 import SettingsPageWrapper from "./pages/SettingsPageWrapper";
 import SearchTabsPage from "./pages/SearchTabsPage";
 import UserProfilePage from "./pages/UserProfilePage";
+import ItineraryPage from "./pages/ItineraryPage";
 
 
 const queryClient = new QueryClient();
@@ -53,6 +54,7 @@ const App = () => (
                 <Route path="/rated" element={<RequireAuth><Layout activeTab="rated"><RatedRestaurantsPageWrapper /></Layout></RequireAuth>} />
                 <Route path="/wishlist" element={<RequireAuth><Layout activeTab="wishlist"><WishlistPageWrapper /></Layout></RequireAuth>} />
                 <Route path="/map" element={<RequireAuth><Layout activeTab="map"><MapPageWrapper /></Layout></RequireAuth>} />
+                <Route path="/itinerary" element={<RequireAuth><Layout activeTab="itinerary"><ItineraryPage /></Layout></RequireAuth>} />
                 
                 {/* Search section with sub-tabs */}
                 <Route path="/search" element={<RequireAuth><Layout activeTab="search"><SearchTabsPage /></Layout></RequireAuth>} />

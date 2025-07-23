@@ -13,7 +13,7 @@ import { AIChatbot } from '@/components/AIChatbot';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState<'home' | 'rated' | 'wishlist' | 'map' | 'search' | 'settings' | 'friends'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'rated' | 'wishlist' | 'map' | 'search' | 'settings' | 'friends' | 'itinerary'>('home');
   const [shouldOpenAddDialog, setShouldOpenAddDialog] = useState(false);
   const [viewFriendId, setViewFriendId] = useState<string | null>(null);
   const { restaurants, addRestaurant, updateRestaurant, deleteRestaurant } = useRestaurants();
