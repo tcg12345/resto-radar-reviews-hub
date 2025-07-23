@@ -558,8 +558,11 @@ export function FriendsPage({
   const handleViewProfile = (friend: any) => {
     console.log(`🎯 handleViewProfile called for: ${friend.username}`);
     
-    // Navigate to the dedicated user profile URL instead of using local state
-    navigate(`/user/${friend.id}`);
+    // Use local state instead of URL navigation for better performance
+    setViewingFriend(friend);
+    setCurrentView('profile');
+    setProfileLoadedRef(friend.id);
+    loadFriendProfile(friend);
   };
 
   const handleBackToList = () => {
@@ -1172,7 +1175,7 @@ export function FriendsPage({
                                     variant="outline"
                                     size="sm"
                                     onClick={() => {
-                                      const returnUrl = `/user/${viewingFriend?.id}`;
+                                      const returnUrl = `/friends`;
                                       navigate(`/restaurant/${restaurant.id}?friendId=${viewingFriend?.id}&returnUrl=${encodeURIComponent(returnUrl)}`);
                                     }}
                                     className="flex items-center gap-2"
@@ -1549,7 +1552,7 @@ export function FriendsPage({
                                 size="sm"
                                 onClick={() => {
                                   // Navigate to restaurant detail page
-                                  const returnUrl = `/user/${viewingFriend?.id}`;
+                                  const returnUrl = `/friends`;
                                   navigate(`/restaurant/${restaurant.id}?friendId=${viewingFriend?.id}&returnUrl=${encodeURIComponent(returnUrl)}`);
                                 }}
                                 className="flex items-center gap-2"
@@ -1665,7 +1668,7 @@ export function FriendsPage({
                                     size="sm"
                                     onClick={() => {
                                       // Navigate to restaurant detail page
-                                      const returnUrl = `/user/${viewingFriend?.id}`;
+                                      const returnUrl = `/friends`;
                                       navigate(`/restaurant/${restaurant.id}?friendId=${viewingFriend?.id}&returnUrl=${encodeURIComponent(returnUrl)}`);
                                     }}
                                     className="flex items-center gap-2"
@@ -2032,7 +2035,7 @@ export function FriendsPage({
                                     onClick={() => {
                                       const restaurantId = restaurant.id || restaurant.restaurant_id;
                                       const friendId = restaurant.userId || restaurant.friend_id;
-                                      const returnUrl = `/user/${friendId}`;
+                                      const returnUrl = `/friends`;
                                       navigate(`/restaurant/${restaurantId}?friendId=${friendId}&returnUrl=${encodeURIComponent(returnUrl)}`);
                                     }}
                                     className="flex items-center gap-2 flex-shrink-0"
