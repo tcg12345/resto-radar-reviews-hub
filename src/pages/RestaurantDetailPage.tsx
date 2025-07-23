@@ -8,6 +8,7 @@ import { StarRating } from '@/components/StarRating';
 import { MichelinStars } from '@/components/MichelinStars';
 import { PriceRange } from '@/components/PriceRange';
 import { RestaurantLocationMap } from '@/components/RestaurantLocationMap';
+import { RestaurantDetailsSkeleton } from '@/components/skeletons/RestaurantDetailsSkeleton';
 import { OpeningHoursDisplay } from '@/components/OpeningHoursDisplay';
 import { RestaurantPhotoCarousel } from '@/components/RestaurantPhotoCarousel';
 import { supabase } from '@/integrations/supabase/client';
@@ -194,11 +195,7 @@ export function RestaurantDetailPage() {
     }
   };
   if (isLoading) {
-    return <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg text-muted-foreground">Loading restaurant details...</div>
-        </div>
-      </div>;
+    return <RestaurantDetailsSkeleton />;
   }
   if (!restaurant) {
     return <div className="container mx-auto px-4 py-8">
