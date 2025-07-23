@@ -77,7 +77,7 @@ export function FriendsActivityPage() {
 
   useEffect(() => {
     if (user && !dataFetched.current) {
-      // Check cache first
+      // Check cache first for instant loading
       const cacheKey = `friends-activity-${user.id}`;
       const cached = friendsActivityCache.get(cacheKey);
       
@@ -91,8 +91,8 @@ export function FriendsActivityPage() {
         return;
       }
       
-      // Fetch fresh data
-      fetchFriendsRestaurants();
+      // Try to load from the friend_activity_cache table first for instant loading
+      loadFromCachedTable();
     }
   }, [user]);
 
@@ -104,6 +104,82 @@ export function FriendsActivityPage() {
     
     return () => clearTimeout(timeoutId);
   }, [friendsRestaurants, searchQuery, sortBy, filterBy, selectedCuisines, selectedCity]);
+
+  // Load from cached database table for instant loading
+  const loadFromCachedTable = async () => {
+    if (!user) return;
+
+    try {
+      // Try to get cached activity data first
+      const { data: cachedData, error: cacheError } = await supabase
+        .from('friend_activity_cache')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('activity_date', { ascending: false });
+
+      if (!cacheError && cachedData && cachedData.length > 0) {
+        // Transform cached data to match our interface
+        const transformedData: FriendRestaurant[] = cachedData.map(item => {
+          const activityData = item.activity_data as any;
+          return {
+            id: activityData.restaurant_id || item.restaurant_id,
+            name: activityData.restaurant_name || activityData.name || 'Unknown',
+            cuisine: activityData.cuisine || 'Unknown',
+            rating: activityData.rating,
+            address: activityData.address || '',
+            city: activityData.city || 'Unknown',
+            country: activityData.country,
+            price_range: activityData.price_range,
+            michelin_stars: activityData.michelin_stars,
+            date_visited: activityData.date_visited,
+            created_at: activityData.created_at || item.activity_date,
+            notes: activityData.notes,
+            photos: activityData.photos || [],
+            is_wishlist: activityData.is_wishlist || false,
+            friend: {
+              id: item.friend_id,
+              username: activityData.friend_username || 'Unknown',
+              name: activityData.friend_name || activityData.friend_username || 'Unknown',
+              avatar_url: activityData.friend_avatar_url || ''
+            }
+          };
+        });
+
+        setFriendsRestaurants(transformedData);
+        setIsLoading(false);
+        dataFetched.current = true;
+        
+        // Cache in memory for next time
+        const cacheKey = `friends-activity-${user.id}`;
+        friendsActivityCache.set(cacheKey, {
+          data: transformedData,
+          timestamp: Date.now(),
+          userId: user.id
+        });
+        
+        // Refresh data in background without showing loading
+        setTimeout(() => {
+          refreshDataInBackground();
+        }, 100);
+        
+        return;
+      }
+    } catch (error) {
+      console.error('Error loading from cached table:', error);
+    }
+
+    // If no cached data, fetch fresh data
+    fetchFriendsRestaurants();
+  };
+
+  // Refresh data in background without affecting UI
+  const refreshDataInBackground = async () => {
+    try {
+      await fetchFriendsRestaurantsSimple();
+    } catch (error) {
+      console.error('Background refresh failed:', error);
+    }
+  };
 
   const fetchFriendsRestaurants = async () => {
     if (!user) return;
@@ -121,12 +197,70 @@ export function FriendsActivityPage() {
     }
   };
 
-  // Optimized approach using existing database functions
+  // Ultra-optimized approach using database cache
   const fetchFriendsRestaurantsSimple = async () => {
     if (!user) return;
 
     try {
-      // Get friends first
+      // First try the cached friend activity function for near-instant loading
+      const { data: cachedActivity, error: cacheError } = await supabase
+        .functions.invoke('friend-activity-cache', {
+          body: { action: 'get', user_id: user.id }
+        });
+
+      if (!cacheError && cachedActivity?.activities?.length > 0) {
+        const formattedRestaurants: FriendRestaurant[] = cachedActivity.activities.map((activity: any) => ({
+          id: activity.restaurant_id,
+          name: activity.restaurant_name,
+          cuisine: activity.cuisine || 'Unknown',
+          rating: activity.rating,
+          address: activity.address || '',
+          city: activity.city || 'Unknown',
+          country: activity.country,
+          price_range: activity.price_range,
+          michelin_stars: activity.michelin_stars,
+          date_visited: activity.date_visited,
+          created_at: activity.created_at,
+          notes: activity.notes,
+          photos: activity.photos || [],
+          is_wishlist: activity.is_wishlist || false,
+          friend: {
+            id: activity.friend_id,
+            username: activity.friend_username,
+            name: activity.friend_name || activity.friend_username,
+            avatar_url: activity.friend_avatar_url || ''
+          }
+        }));
+
+        setFriendsRestaurants(formattedRestaurants);
+        dataFetched.current = true;
+        
+        // Cache in memory
+        const cacheKey = `friends-activity-${user.id}`;
+        friendsActivityCache.set(cacheKey, {
+          data: formattedRestaurants,
+          timestamp: Date.now(),
+          userId: user.id
+        });
+        
+        return;
+      }
+
+      // Fallback to direct database query if cache fails
+      await fetchFriendsRestaurantsDirectly();
+    } catch (error) {
+      console.error('Error in optimized fetch:', error);
+      // Fallback to direct query
+      await fetchFriendsRestaurantsDirectly();
+    }
+  };
+
+  // Direct database query as fallback
+  const fetchFriendsRestaurantsDirectly = async () => {
+    if (!user) return;
+
+    try {
+      // Get friends first (this should be very fast)
       const { data: friendsData, error: friendsError } = await supabase
         .rpc('get_friends_with_scores', { requesting_user_id: user.id });
 
@@ -137,21 +271,23 @@ export function FriendsActivityPage() {
 
       const friendIds = friendsData.map(f => f.friend_id);
 
-      // Get all restaurants from friends in one efficient query
+      // Get all restaurants from friends with a limit for faster loading
       const { data: restaurantsData, error: restaurantsError } = await supabase
         .from('restaurants')
         .select('id, name, cuisine, rating, address, city, country, price_range, michelin_stars, date_visited, created_at, notes, photos, is_wishlist, user_id')
         .in('user_id', friendIds)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(100); // Limit to recent 100 entries for faster loading
 
       if (restaurantsError) {
         console.error('Error fetching restaurants:', restaurantsError);
         return;
       }
 
-      // Transform data with friend info
+      // Transform data with friend info (optimized)
+      const friendsMap = new Map(friendsData.map(f => [f.friend_id, f]));
       const formattedRestaurants: FriendRestaurant[] = (restaurantsData || []).map(restaurant => {
-        const friend = friendsData.find(f => f.friend_id === restaurant.user_id);
+        const friend = friendsMap.get(restaurant.user_id);
         return {
           id: restaurant.id,
           name: restaurant.name,
@@ -186,8 +322,15 @@ export function FriendsActivityPage() {
         timestamp: Date.now(),
         userId: user.id
       });
+      
+      // Rebuild cache in background for next time
+      setTimeout(() => {
+        supabase.functions.invoke('friend-activity-cache', {
+          body: { action: 'rebuild', user_id: user.id }
+        });
+      }, 1000);
     } catch (error) {
-      console.error('Error in fallback fetch:', error);
+      console.error('Error in direct fetch:', error);
     }
   };
 
@@ -256,10 +399,6 @@ export function FriendsActivityPage() {
       year: 'numeric'
     });
   };
-
-  // Remove these functions since we're using memoized values
-  // const getUniqueCuisines = () => { ... }
-  // const getUniqueCities = () => { ... }
 
   const toggleCuisineFilter = (cuisine: string) => {
     setSelectedCuisines(prev =>
