@@ -286,9 +286,6 @@ export function RestaurantDetailPage() {
                       <Heart className="h-6 w-6 text-white fill-current animate-pulse" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-lg font-bold bg-gradient-to-r from-purple-700 to-pink-700 dark:from-purple-300 dark:to-pink-300 bg-clip-text text-transparent">
-                        Wishlist Restaurant
-                      </h3>
                       <p className="text-purple-700/80 dark:text-purple-300/80 font-medium">
                         This restaurant is in {friendProfile.name || friendProfile.username}'s wishlist
                       </p>
