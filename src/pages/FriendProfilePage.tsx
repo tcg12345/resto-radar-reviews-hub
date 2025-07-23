@@ -17,6 +17,7 @@ import {
   Heart,
   RefreshCw
 } from 'lucide-react';
+import { FriendProfileSkeleton } from '@/components/skeletons/FriendProfileSkeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -71,15 +72,15 @@ export default function FriendProfilePage() {
   const [wishlistSortBy, setWishlistSortBy] = useState('newest');
 
   useEffect(() => {
-    if (!friendId || !user) return;
+    if (!actualUserId || !user) return;
 
     // If we have cached profile data, use it instantly
     if (profile) {
       console.log('⚡ Using cached friend profile - INSTANT load!');
       
       // Set friend info from cache
-      const foundFriend = friends.find(f => f.id === friendId) || {
-        id: friendId,
+      const foundFriend = friends.find(f => f.id === actualUserId) || {
+        id: actualUserId,
         username: profile.username,
         name: profile.name,
         avatar_url: profile.avatar_url,
@@ -106,8 +107,8 @@ export default function FriendProfilePage() {
       console.log('Cache miss - fetching profile...');
       setIsLoading(true);
       
-      refreshProfile(friendId).then(() => {
-        const refreshedProfile = getFriendProfile(friendId);
+      refreshProfile(actualUserId).then(() => {
+        const refreshedProfile = getFriendProfile(actualUserId);
         if (!refreshedProfile) {
           toast({
             title: "Access Denied",
@@ -126,10 +127,10 @@ export default function FriendProfilePage() {
         setIsLoading(false);
       });
     }
-  }, [friendId, user, profile, friends, refreshProfile, getFriendProfile, navigate, toast, isPreloading]);
+  }, [actualUserId, user, profile, friends, refreshProfile, getFriendProfile, navigate, toast, isPreloading]);
 
   const loadFullRestaurantData = async () => {
-    if (!friendId || !user) return;
+    if (!actualUserId || !user) return;
     
     setIsLoadingFullData(true);
     try {
@@ -139,7 +140,7 @@ export default function FriendProfilePage() {
       const { data: initialRestaurants } = await supabase
         .from('restaurants')
         .select('*')
-        .eq('user_id', friendId)
+        .eq('user_id', actualUserId)
         .eq('is_wishlist', false)
         .order('created_at', { ascending: false })
         .limit(50);
@@ -153,7 +154,7 @@ export default function FriendProfilePage() {
       const { data: wishlistData } = await supabase
         .from('restaurants')
         .select('*')
-        .eq('user_id', friendId)
+        .eq('user_id', actualUserId)
         .eq('is_wishlist', true)
         .order('created_at', { ascending: false })
         .limit(20);
@@ -180,10 +181,10 @@ export default function FriendProfilePage() {
   };
 
   const handleRefresh = async () => {
-    if (!friendId) return;
+    if (!actualUserId) return;
     
     setIsLoadingFullData(true);
-    await refreshProfile(friendId);
+    await refreshProfile(actualUserId);
     await loadFullRestaurantData();
   };
 
@@ -447,14 +448,9 @@ export default function FriendProfilePage() {
     }
   };
 
-  if (isLoading || (!profile && isPreloading) || !friend) {
+  if (isLoading || (!actualUserId) || (!friend && !profile)) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="text-lg text-muted-foreground">Loading profile...</p>
-        </div>
-      </div>
+      <FriendProfileSkeleton />
     );
   }
 
