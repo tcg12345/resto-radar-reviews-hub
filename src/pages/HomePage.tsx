@@ -284,7 +284,7 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
       </div>
 
       {/* AI Features Highlight */}
-      <Card className="bg-gradient-to-r from-primary/5 via-primary/5 to-secondary/5 border-primary/20">
+      <Card className="hidden lg:block bg-gradient-to-r from-primary/5 via-primary/5 to-secondary/5 border-primary/20">
         <CardContent className="p-4 lg:p-6">
           <div className="flex items-center justify-between mb-3 lg:mb-4">
             <div className="flex items-center space-x-2 lg:space-x-3">
