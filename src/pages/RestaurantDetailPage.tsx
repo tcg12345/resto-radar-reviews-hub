@@ -455,23 +455,23 @@ export function RestaurantDetailPage() {
             <Card className="bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 dark:from-rose-950/30 dark:via-pink-950/30 dark:to-purple-950/30 border-rose-200/50 dark:border-rose-800/50 shadow-xl backdrop-blur-sm overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 via-pink-500/5 to-purple-500/5" />
               <CardContent className="relative px-8 py-6">
-                <div className="text-center space-y-4">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-rose-500 to-purple-600 rounded-2xl shadow-lg mb-4">
-                    <Heart className="h-8 w-8 text-white fill-current" />
+                <div className="text-center space-y-3">
+                  <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-rose-500 to-purple-600 rounded-xl shadow-lg mb-2">
+                    <Heart className="h-6 w-6 text-white fill-current" />
                   </div>
-                  <h3 className="text-2xl font-bold bg-gradient-to-r from-rose-700 to-purple-700 dark:from-rose-300 dark:to-purple-300 bg-clip-text text-transparent">
+                  <h3 className="text-xl font-bold bg-gradient-to-r from-rose-700 to-purple-700 dark:from-rose-300 dark:to-purple-300 bg-clip-text text-transparent">
                     Add to Your Wishlist
                   </h3>
-                  <p className="text-muted-foreground max-w-md mx-auto">
+                  <p className="text-muted-foreground max-w-md mx-auto text-sm">
                     Save this restaurant to your own wishlist and get notified about updates
                   </p>
                   <Button 
                     onClick={addToWishlist} 
                     disabled={isAddingToWishlist} 
-                    size="lg" 
-                    className="bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover-scale border-0"
+                    size="default" 
+                    className="bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white px-6 py-3 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover-scale border-0"
                   >
-                    <Heart className="h-5 w-5 fill-current mr-3" />
+                    <Heart className="h-4 w-4 fill-current mr-2" />
                     {isAddingToWishlist ? 'Adding to Wishlist...' : 'Add to My Wishlist'}
                   </Button>
                 </div>
