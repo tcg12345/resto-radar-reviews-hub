@@ -15,6 +15,7 @@ import { PersonalizedRecommendations } from '@/components/PersonalizedRecommenda
 import { RestaurantProfileModal } from '@/components/RestaurantProfileModal';
 import { DiscoverPage } from '@/pages/DiscoverPage';
 import { SearchResultSkeleton } from '@/components/skeletons/SearchResultSkeleton';
+import { MobileRestaurantSearch } from '@/components/MobileRestaurantSearch';
 interface GooglePlaceResult {
   place_id: string;
   name: string;
@@ -401,8 +402,8 @@ export default function UnifiedSearchPage() {
   };
   return (
     <div className="w-full">
-      {/* Modern Search Section - Remove overflow hidden */}
-      <div className="relative rounded-2xl bg-gradient-to-br from-background via-background to-primary/10 border border-primary/20 shadow-2xl">
+      {/* Desktop Search Section */}
+      <div className="hidden lg:block relative rounded-2xl bg-gradient-to-br from-background via-background to-primary/10 border border-primary/20 shadow-2xl">
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary-glow/5 opacity-50" />
         
