@@ -56,6 +56,7 @@ export function ChatWindow({ roomId }: ChatWindowProps) {
   const [isEditGroupDialogOpen, setIsEditGroupDialogOpen] = useState(false);
   const [groupName, setGroupName] = useState('');
   const [chatRoom, setChatRoom] = useState<any>(null);
+  const [isMembersDialogOpen, setIsMembersDialogOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -563,12 +564,19 @@ export function ChatWindow({ roomId }: ChatWindowProps) {
             <h2 className="font-semibold">
               {chatDisplayName}
             </h2>
-            <p className="text-sm text-muted-foreground">
-              {isGroupChat 
-                ? `${participants.length} members`
-                : `@${otherParticipant?.profile.username || 'unknown'}`
-              }
-            </p>
+            {isGroupChat ? (
+              <Button
+                variant="ghost"
+                className="h-auto p-0 text-sm text-muted-foreground hover:text-foreground"
+                onClick={() => setIsMembersDialogOpen(true)}
+              >
+                {participants.length} members
+              </Button>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                @{otherParticipant?.profile.username || 'unknown'}
+              </p>
+            )}
           </div>
         </div>
         
@@ -884,6 +892,37 @@ export function ChatWindow({ roomId }: ChatWindowProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Group Members Dialog */}
+      <Dialog open={isMembersDialogOpen} onOpenChange={setIsMembersDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Group Members ({participants.length})</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 max-h-[400px] overflow-y-auto">
+            {participants.map(participant => (
+              <div key={participant.user_id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage 
+                    src={participant.profile.avatar_url} 
+                    alt={participant.profile.name}
+                  />
+                  <AvatarFallback>
+                    {participant.profile.name?.charAt(0) || '?'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <p className="font-medium">{participant.profile.name}</p>
+                  <p className="text-sm text-muted-foreground">@{participant.profile.username}</p>
+                </div>
+                {participant.user_id === user?.id && (
+                  <Badge variant="secondary">You</Badge>
+                )}
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
