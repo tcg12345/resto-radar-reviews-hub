@@ -15,6 +15,7 @@ import AuthPage from "./pages/AuthPage";
 import DemoPage from "./pages/DemoPage";
 import { RestaurantDetailPage } from "./pages/RestaurantDetailPage";
 import { FriendsActivityPage } from "./pages/FriendsActivityPage";
+import { Layout } from "./components/Layout";
 import { FriendsPage } from "./pages/FriendsPage";
 import { ChatListPage } from "./pages/ChatListPage";
 import { ChatPage } from "./pages/ChatPage";
@@ -43,7 +44,13 @@ const App = () => (
                 <Route path="/friends" element={<RequireAuth><FriendsPage /></RequireAuth>} />
                 
                 {/* Friends Activity route */}
-                <Route path="/friends-activity" element={<RequireAuth><FriendsActivityPage /></RequireAuth>} />
+                <Route path="/friends-activity" element={
+                  <RequireAuth>
+                    <Layout activeTab="search">
+                      <FriendsActivityPage />
+                    </Layout>
+                  </RequireAuth>
+                } />
                 
                 {/* Chat routes */}
                 <Route path="/chat-list" element={<RequireAuth><ChatListPage /></RequireAuth>} />
