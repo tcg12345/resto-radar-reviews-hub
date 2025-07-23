@@ -316,7 +316,7 @@ export function MobileChatWindow({ roomId, onBack }: MobileChatWindowProps) {
       latitude: restaurant.latitude,
       longitude: restaurant.longitude,
       website: restaurant.website,
-      phone_number: restaurant.phoneNumber,
+      phone_number: restaurant.phone_number,
       openingHours: restaurant.openingHours,
       reservable: restaurant.reservable,
       reservationUrl: restaurant.reservationUrl
@@ -647,8 +647,8 @@ export function MobileChatWindow({ roomId, onBack }: MobileChatWindowProps) {
                         {message.message_type === 'restaurant' ? (
                           <div className="max-w-sm">
                             <SharedRestaurantCard 
-                              restaurant={JSON.parse(message.content)}
-                              onRestaurantClick={() => {}}
+                              restaurantData={message.content}
+                              isOwnMessage={message.sender_id === user?.id}
                             />
                           </div>
                         ) : (
