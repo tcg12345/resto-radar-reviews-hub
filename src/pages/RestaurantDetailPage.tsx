@@ -610,11 +610,6 @@ export function RestaurantDetailPage() {
                           </div>
                         </div>
                         
-                        <div className="absolute top-4 right-4 z-10">
-                          <div className="bg-background/95 backdrop-blur-sm rounded-md shadow-sm border px-3 py-2">
-                            <p className="text-xs text-muted-foreground">Drag to explore</p>
-                          </div>
-                        </div>
 
                         <div className="h-64 w-full [&_>_*]:!rounded-none [&_canvas]:!rounded-none [&_>_*]:!h-full">
                           <RestaurantLocationMap latitude={restaurant.latitude} longitude={restaurant.longitude} name={restaurant.name} address={restaurant.address} />
