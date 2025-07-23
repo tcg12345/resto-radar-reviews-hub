@@ -448,7 +448,7 @@ export default function FriendProfilePage() {
     }
   };
 
-  if (isLoading || (!actualUserId) || (!friend && !profile)) {
+  if (isLoading || !actualUserId || !friend) {
     return (
       <FriendProfileSkeleton />
     );
