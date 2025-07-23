@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -799,63 +800,51 @@ export function FriendsActivityPage() {
             </Select>
           </div>
 
-          {/* Cuisine Dropdown Filter */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium">Filter by Cuisine:</p>
-              {selectedCuisines.length > 0 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSelectedCuisines([])}
-                  className="text-xs"
-                >
-                  Clear Cuisines ({selectedCuisines.length})
-                </Button>
-              )}
-            </div>
-            
-            <Select 
-              value={selectedCuisines.length === 1 ? selectedCuisines[0] : selectedCuisines.length > 1 ? 'multiple' : 'none'} 
-              onValueChange={(value) => {
-                if (value === 'none') {
+          {/* Clear All Filters Button */}
+          {(selectedCuisines.length > 0 || selectedCity !== 'all' || debouncedSearchQuery) && (
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
                   setSelectedCuisines([]);
-                } else if (value !== 'multiple') {
-                  setSelectedCuisines(prev => 
-                    prev.includes(value) 
-                      ? prev.filter(c => c !== value)
-                      : [...prev, value]
-                  );
-                }
-              }}
-            >
-              <SelectTrigger className="bg-background border-border">
-                <SelectValue placeholder={
-                  selectedCuisines.length === 0 
-                    ? "Select cuisines..." 
-                    : selectedCuisines.length === 1 
-                      ? selectedCuisines[0]
-                      : `${selectedCuisines.length} cuisines selected`
-                } />
-              </SelectTrigger>
-              <SelectContent className="bg-background border-border z-50 max-h-60">
-                <SelectItem value="none">All Cuisines</SelectItem>
-                {uniqueCuisines.map(cuisine => (
-                  <SelectItem 
-                    key={cuisine} 
-                    value={cuisine}
-                    className={selectedCuisines.includes(cuisine) ? 'bg-primary/10' : ''}
+                  setSelectedCity('all');
+                  setSearchQuery('');
+                  setDebouncedSearchQuery('');
+                }}
+                className="text-xs"
+              >
+                Clear All Filters
+              </Button>
+            </div>
+          )}
+
+          {/* Cuisine Checkbox Filter */}
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Filter by Cuisine:</p>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-64 overflow-y-auto">
+              {uniqueCuisines.map(cuisine => (
+                <div key={cuisine} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={cuisine}
+                    checked={selectedCuisines.includes(cuisine)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelectedCuisines(prev => [...prev, cuisine]);
+                      } else {
+                        setSelectedCuisines(prev => prev.filter(c => c !== cuisine));
+                      }
+                    }}
+                  />
+                  <label
+                    htmlFor={cuisine}
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                   >
-                    <div className="flex items-center justify-between w-full">
-                      <span>{cuisine}</span>
-                      <span className="text-muted-foreground ml-2">
-                        ({filterCounts.cuisines[cuisine] || 0})
-                      </span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                    {cuisine} ({filterCounts.cuisines[cuisine] || 0})
+                  </label>
+                </div>
+              ))}
+            </div>
 
             {/* Selected Cuisine Tags */}
             {selectedCuisines.length > 0 && (
