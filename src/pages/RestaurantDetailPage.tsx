@@ -273,10 +273,29 @@ export function RestaurantDetailPage() {
               </div>
             </CardContent>
           </Card>}
-        {/* Hero Section - Compact */}
-        <div className="grid lg:grid-cols-5 gap-6">
-          {/* Main Info - More space */}
-          <div className="lg:col-span-3 space-y-4">
+
+        {/* Wishlist Notice */}
+        {restaurant.is_wishlist && friendProfile && (
+          <Card className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-800">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <Heart className="h-6 w-6 text-purple-600 fill-current" />
+                <div className="flex-1">
+                  <p className="text-purple-800 dark:text-purple-200 font-medium">
+                    This restaurant is in {friendProfile.name || friendProfile.username}'s wishlist
+                  </p>
+                  <p className="text-purple-600 dark:text-purple-300 text-sm">
+                    They haven't visited yet, so no rating or photos are available
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        {/* Hero Section - Dynamic layout based on wishlist status */}
+        <div className={restaurant.is_wishlist ? "grid lg:grid-cols-3 gap-6" : "grid lg:grid-cols-5 gap-6"}>
+          {/* Main Info - Adjusted space based on wishlist status */}
+          <div className={restaurant.is_wishlist ? "lg:col-span-2 space-y-4" : "lg:col-span-3 space-y-4"}>
             <div className="animate-fade-in">
               <h1 className="text-4xl lg:text-5xl font-bold mb-3 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent leading-relaxed">
                 {restaurant.name}
@@ -351,8 +370,8 @@ export function RestaurantDetailPage() {
             )}
           </div>
 
-          {/* Action Panel - Compact */}
-          <div className="lg:col-span-2 space-y-4 animate-fade-in">
+          {/* Action Panel - Adjusted space based on wishlist status */}
+          <div className={restaurant.is_wishlist ? "lg:col-span-1 space-y-4 animate-fade-in" : "lg:col-span-2 space-y-4 animate-fade-in"}>
             <Button onClick={addToWishlist} disabled={isAddingToWishlist} size="lg" className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-4 text-base font-medium hover-scale">
               <Heart className="h-5 w-5 fill-current mr-2" />
               {isAddingToWishlist ? 'Adding...' : 'Add to Wishlist'}
