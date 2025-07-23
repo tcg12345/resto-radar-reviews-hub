@@ -258,7 +258,7 @@ export function FriendsActivityPage() {
   useEffect(() => {
     if (dataFetched.current && user) {
       // For simple filters (all/rated/wishlist), don't reload - just filter locally
-      if (searchQuery || selectedCuisines.length > 0 || selectedCity !== 'all') {
+      if (debouncedSearchQuery || selectedCuisines.length > 0 || selectedCity !== 'all') {
         // Complex filters require database query
         setFriendsRestaurants([]);
         setCurrentOffset(0);
@@ -269,7 +269,7 @@ export function FriendsActivityPage() {
       // For filterBy (all/rated/wishlist), just update the local filtering
       // The filteredRestaurants will handle this automatically
     }
-  }, [searchQuery, selectedCuisines, selectedCity]);
+  }, [debouncedSearchQuery, selectedCuisines, selectedCity]);
 
   // Separate effect for sort changes that don't require reload
   useEffect(() => {
