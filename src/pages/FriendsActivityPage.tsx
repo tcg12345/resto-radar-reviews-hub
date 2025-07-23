@@ -80,7 +80,7 @@ export function FriendsActivityPage() {
   const [isCuisineDropdownOpen, setIsCuisineDropdownOpen] = useState(false);
   const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
   const [isFriendsDropdownOpen, setIsFriendsDropdownOpen] = useState(false);
-  const [currentOffset, setCurrentOffset] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [allFriendIds, setAllFriendIds] = useState<string[]>([]);
   const [allRestaurantsCache, setAllRestaurantsCache] = useState<FriendRestaurant[]>([]);
@@ -97,7 +97,7 @@ export function FriendsActivityPage() {
   const isLoadingRef = useRef(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const ITEMS_PER_PAGE = 10;
+  const ITEMS_PER_PAGE = 18;
 
   // Load metadata for all restaurants to show accurate filter counts
   const loadRestaurantMetadata = async (friendIds: string[]) => {
@@ -294,7 +294,7 @@ export function FriendsActivityPage() {
       
       // Reset state for fresh load with filters
       setFriendsRestaurants([]);
-      setCurrentOffset(0);
+      setCurrentPage(1);
       setHasMore(true);
       setIsLoadingMore(false);
       preloadCache.clear();
@@ -309,60 +309,14 @@ export function FriendsActivityPage() {
     // Sort changes don't require data reload, just re-sorting
   }, [sortBy, filterBy]);
 
-  // Intersection observer for infinite scroll
+  // Reset to page 1 when filters change
   useEffect(() => {
-    console.log('Setting up intersection observer, hasMore:', hasMore);
-    
-    if (observerRef.current) {
-      observerRef.current.disconnect();
+    if (dataFetched.current) {
+      setCurrentPage(1);
+      setHasMore(true);
+      loadInitialData();
     }
-
-    // Don't set up observer if there's no more data to load
-    if (!hasMore) {
-      console.log('No more data to load, skipping observer setup');
-      return;
-    }
-
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        console.log('Intersection observer triggered:', {
-          isIntersecting: entry.isIntersecting,
-          hasMore,
-          isLoadingMore,
-          isLoading,
-          isLoadingRefCurrent: isLoadingRef.current,
-          friendsRestaurantsLength: friendsRestaurants.length,
-          currentOffset
-        });
-        
-        if (entry.isIntersecting && hasMore && !isLoadingMore && !isLoading && !isLoadingRef.current) {
-          console.log('🚀 Loading more restaurants triggered by intersection');
-          loadMoreRestaurants();
-        } else if (entry.isIntersecting) {
-          console.log('⚠️ Intersection detected but conditions not met for loading');
-        }
-      },
-      { 
-        threshold: 0,
-        rootMargin: '50px' // Start loading when trigger is 50px from viewport
-      }
-    );
-
-    const currentTrigger = loadingTriggerRef.current;
-    if (currentTrigger) {
-      console.log('✅ Observing loading trigger element');
-      observerRef.current.observe(currentTrigger);
-    } else {
-      console.log('❌ Loading trigger element not found');
-    }
-
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
-    };
-  }, [hasMore, isLoadingMore, isLoading]); // Re-create when these change
+  }, [searchQuery, selectedCuisines, selectedCities, selectedFriends]); // Reset pagination when filters change
 
   const getFriendsData = async () => {
     const cacheKey = `friends_${user?.id}`;
@@ -441,7 +395,6 @@ export function FriendsActivityPage() {
     
     try {
       setIsLoading(true);
-      setCurrentOffset(0);
       
       // Get friends data with caching
       const friendsData = await getFriendsData();
@@ -478,83 +431,33 @@ export function FriendsActivityPage() {
     }
   };
 
-  const loadMoreRestaurants = async () => {
-    console.log('🔄 loadMoreRestaurants called:', {
-      isLoadingMore,
-      hasMore,
-      allFriendIdsLength: allFriendIds.length,
-      isLoadingRefCurrent: isLoadingRef.current,
-      currentOffset,
-      friendsRestaurantsLength: friendsRestaurants.length
-    });
-    
-    if (isLoadingMore || !hasMore || allFriendIds.length === 0 || isLoadingRef.current) {
-      console.log('❌ loadMoreRestaurants: Early return due to conditions');
+  const loadNextPage = async () => {
+    if (isLoadingMore || !hasMore || allFriendIds.length === 0) {
       return;
     }
     
-    console.log('✅ Starting to load more restaurants...');
-    
-    isLoadingRef.current = true;
     setIsLoadingMore(true);
     
     try {
-      const newOffset = currentOffset + ITEMS_PER_PAGE;
-      const cacheKey = `preload_${user?.id}_${newOffset}`;
+      const nextPage = currentPage + 1;
+      const newOffset = (nextPage - 1) * ITEMS_PER_PAGE;
       
-      // Check if we have preloaded data
-      const preloadedData = preloadCache.get(cacheKey);
+      const friendsData = await getFriendsData();
       
-      if (preloadedData && preloadedData.length > 0) {
-        console.log('📦 Using preloaded data:', preloadedData.length, 'restaurants');
-        // Use preloaded data for instant loading
-        setFriendsRestaurants(prev => {
-          // Deduplicate by ID to prevent duplicates
-          const existingIds = new Set(prev.map(r => r.id));
-          const newRestaurants = preloadedData.filter(r => !existingIds.has(r.id));
-          console.log('🔄 Adding', newRestaurants.length, 'new restaurants to existing', prev.length);
-          return [...prev, ...newRestaurants];
-        });
-        setCurrentOffset(newOffset);
-        preloadCache.delete(cacheKey);
-        
-        // Check if we got fewer results than requested
-        if (preloadedData.length < ITEMS_PER_PAGE) {
-          console.log('🚫 Setting hasMore to false - preloaded data < ITEMS_PER_PAGE');
-          setHasMore(false);
-        } else {
-          // Preload next batch in background
-          const friendsData = await getFriendsData();
-          setTimeout(() => {
-            preloadNextBatch(allFriendIds, friendsData, newOffset + ITEMS_PER_PAGE);
-          }, 100);
-        }
-      } else {
-        console.log('🗃️ No preloaded data, loading from database...');
-        // Fallback to loading from database
-        const friendsData = await getFriendsData();
-        
-        if (!friendsData.length) {
-          console.log('❌ No friends data available');
-          setHasMore(false);
-          return;
-        }
-
-        await loadRestaurantBatch(allFriendIds, friendsData, newOffset, false);
-        setCurrentOffset(newOffset);
-        
-        // Preload next batch
-        setTimeout(() => {
-          preloadNextBatch(allFriendIds, friendsData, newOffset + ITEMS_PER_PAGE);
-        }, 100);
+      if (!friendsData.length) {
+        setHasMore(false);
+        return;
       }
+
+      // Load the next page and replace all restaurants (pagination behavior)
+      await loadRestaurantBatch(allFriendIds, friendsData, newOffset, true);
+      setCurrentPage(nextPage);
+      
     } catch (error) {
-      console.error('❌ Error loading more restaurants:', error);
-      toast.error('Failed to load more restaurants');
+      console.error('❌ Error loading next page:', error);
+      toast.error('Failed to load next page');
     } finally {
-      console.log('✅ loadMoreRestaurants completed');
       setIsLoadingMore(false);
-      isLoadingRef.current = false;
     }
   };
 
@@ -1213,20 +1116,32 @@ export function FriendsActivityPage() {
             )}
             </div>
 
-            {/* Loading trigger - invisible element that triggers more loading */}
-            {hasMore && !isLoadingMore && (
-              <div 
-                ref={loadingTriggerRef}
-                className="h-1 w-full opacity-0"
-                style={{ gridColumn: '1 / -1' }}
-              />
-            )}
-
-            {!hasMore && friendsRestaurants.length > 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                <p>You've reached the end of the list!</p>
-              </div>
-            )}
+            {/* Pagination Controls */}
+            <div className="flex justify-center items-center gap-4 pt-8">
+              {hasMore && (
+                <Button 
+                  onClick={loadNextPage}
+                  disabled={isLoadingMore}
+                  size="lg"
+                  className="min-w-32"
+                >
+                  {isLoadingMore ? 'Loading...' : `Next Page (${currentPage + 1})`}
+                </Button>
+              )}
+              
+              {!hasMore && friendsRestaurants.length > 0 && (
+                <div className="text-center text-muted-foreground">
+                  <p>You've reached the end of the list!</p>
+                  <p className="text-sm mt-1">Page {currentPage} • {friendsRestaurants.length} total restaurants</p>
+                </div>
+              )}
+              
+              {currentPage > 1 && (
+                <div className="text-sm text-muted-foreground">
+                  Page {currentPage}
+                </div>
+              )}
+            </div>
           </>
         )}
       </div>
