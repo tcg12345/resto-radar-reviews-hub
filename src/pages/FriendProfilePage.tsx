@@ -100,7 +100,7 @@ export default function FriendProfilePage() {
       
       setIsLoading(false);
       
-      // Load full restaurant data in background
+      // Load complete profile data with restaurants and wishlist
       loadFullRestaurantData();
     } else if (!isPreloading) {
       // Profile not in cache and not preloading, fetch it
@@ -134,47 +134,49 @@ export default function FriendProfilePage() {
     
     setIsLoadingFullData(true);
     try {
-      console.log('Loading full restaurant data in background...');
+      console.log('Loading complete profile data with restaurants...');
       
-      // Load first batch of restaurants
-      const { data: initialRestaurants } = await supabase
-        .from('restaurants')
-        .select('*')
-        .eq('user_id', actualUserId)
-        .eq('is_wishlist', false)
-        .order('created_at', { ascending: false })
-        .limit(50);
+      // Use the cached profile RPC function which includes all restaurant data
+      const { data: completeProfile, error } = await supabase
+        .rpc('get_cached_friend_profile', { 
+          target_user_id: actualUserId,
+          requesting_user_id: user.id 
+        });
 
-      const restaurantData = initialRestaurants || [];
-      setRestaurants(restaurantData.slice(0, 10));
-      setAllRestaurants(restaurantData);
-      setDisplayedRestaurants(Math.min(10, restaurantData.length));
+      if (error) {
+        console.error('Error loading complete profile:', error);
+        return;
+      }
 
-      // Load wishlist
-      const { data: wishlistData } = await supabase
-        .from('restaurants')
-        .select('*')
-        .eq('user_id', actualUserId)
-        .eq('is_wishlist', true)
-        .order('created_at', { ascending: false })
-        .limit(20);
+      if (completeProfile) {
+        const profileData = completeProfile as any;
+        
+        if (profileData.restaurants && Array.isArray(profileData.restaurants)) {
+          const restaurantData = profileData.restaurants;
+          setRestaurants(restaurantData.slice(0, 10));
+          setAllRestaurants(restaurantData);
+          setDisplayedRestaurants(Math.min(10, restaurantData.length));
 
-      const wishlist = wishlistData || [];
-      setWishlist(wishlist.slice(0, 10));
-      setAllWishlist(wishlist);
-      setDisplayedWishlist(Math.min(10, wishlist.length));
+          // Update stats with full data
+          setStats(prev => ({
+            ...prev,
+            topCuisines: calculateTopCuisines(restaurantData),
+            ratingDistribution: calculateRatingDistribution(restaurantData),
+            michelinCount: restaurantData.filter(r => r.michelin_stars > 0).length
+          }));
+        }
 
-      // Update stats with full data
-      setStats(prev => ({
-        ...prev,
-        topCuisines: calculateTopCuisines(restaurantData),
-        ratingDistribution: calculateRatingDistribution(restaurantData),
-        michelinCount: restaurantData.filter(r => r.michelin_stars > 0).length
-      }));
+        if (profileData.wishlist && Array.isArray(profileData.wishlist)) {
+          const wishlistData = profileData.wishlist;
+          setWishlist(wishlistData.slice(0, 10));
+          setAllWishlist(wishlistData);
+          setDisplayedWishlist(Math.min(10, wishlistData.length));
+        }
+      }
 
-      console.log('✅ Full restaurant data loaded');
+      console.log('✅ Complete profile data loaded');
     } catch (error) {
-      console.error('Error loading full restaurant data:', error);
+      console.error('Error loading complete profile data:', error);
     } finally {
       setIsLoadingFullData(false);
     }
