@@ -335,14 +335,14 @@ export function FriendsActivityPage() {
     // Sort changes don't require data reload, just re-sorting
   }, [sortBy, filterBy]);
 
-  // Reset to page 1 when filters change
+  // Reset to page 1 when search or selection filters change (but not when data loads initially)
   useEffect(() => {
     if (dataFetched.current) {
       setCurrentPage(1);
       setHasMore(true);
-      loadInitialData();
+      // Don't reload data here - just reset pagination
     }
-  }, [debouncedSearchQuery, selectedCuisines, selectedCities, selectedFriends]); // Reset pagination when filters change
+  }, [debouncedSearchQuery, selectedCuisines, selectedCities, selectedFriends]);
 
   const getFriendsData = async () => {
     const cacheKey = `friends_${user?.id}`;
