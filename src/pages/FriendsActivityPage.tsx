@@ -76,7 +76,10 @@ export function FriendsActivityPage() {
   const [filterBy, setFilterBy] = useState<FilterOption>('all');
   const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
   const [selectedCities, setSelectedCities] = useState<string[]>([]);
+  const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [isCuisineDropdownOpen, setIsCuisineDropdownOpen] = useState(false);
+  const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
+  const [isFriendsDropdownOpen, setIsFriendsDropdownOpen] = useState(false);
   const [currentOffset, setCurrentOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [allFriendIds, setAllFriendIds] = useState<string[]>([]);
@@ -178,6 +181,24 @@ export function FriendsActivityPage() {
     return [...new Set(friendsRestaurants.map(r => r.city))].sort();
   }, [restaurantMetadata, friendsRestaurants]);
 
+  const uniqueFriends = React.useMemo(() => {
+    const friendsMap = new Map();
+    friendsRestaurants.forEach(r => {
+      if (!friendsMap.has(r.friend.id)) {
+        friendsMap.set(r.friend.id, {
+          id: r.friend.id,
+          name: r.friend.name,
+          username: r.friend.username,
+          count: 1
+        });
+      } else {
+        const friend = friendsMap.get(r.friend.id);
+        friend.count += 1;
+      }
+    });
+    return Array.from(friendsMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [friendsRestaurants]);
+
   // Debounce search query
   useEffect(() => {
     if (searchTimeoutRef.current) {
@@ -223,6 +244,11 @@ export function FriendsActivityPage() {
       filtered = filtered.filter(r => selectedCities.includes(r.city));
     }
 
+    // Apply friend filter
+    if (selectedFriends.length > 0) {
+      filtered = filtered.filter(r => selectedFriends.includes(r.friend.id));
+    }
+
     // Apply cuisine filter
     if (selectedCuisines.length > 0) {
       filtered = filtered.filter(r =>
@@ -250,7 +276,7 @@ export function FriendsActivityPage() {
     });
 
     return filtered;
-  }, [friendsRestaurants, debouncedSearchQuery, sortBy, filterBy, selectedCuisines, selectedCities]);
+  }, [friendsRestaurants, debouncedSearchQuery, sortBy, filterBy, selectedCuisines, selectedCities, selectedFriends]);
 
   useEffect(() => {
     if (user && !dataFetched.current) {
@@ -262,7 +288,7 @@ export function FriendsActivityPage() {
   useEffect(() => {
     if (dataFetched.current && user) {
       // For simple filters (all/rated/wishlist), don't reload - just filter locally
-      if (debouncedSearchQuery || selectedCuisines.length > 0 || selectedCities.length > 0) {
+      if (debouncedSearchQuery || selectedCuisines.length > 0 || selectedCities.length > 0 || selectedFriends.length > 0) {
         // Complex filters require database query
         setFriendsRestaurants([]);
         setCurrentOffset(0);
@@ -273,7 +299,7 @@ export function FriendsActivityPage() {
       // For filterBy (all/rated/wishlist), just update the local filtering
       // The filteredRestaurants will handle this automatically
     }
-  }, [debouncedSearchQuery, selectedCuisines, selectedCities]);
+  }, [debouncedSearchQuery, selectedCuisines, selectedCities, selectedFriends]);
 
   // Separate effect for sort changes that don't require reload
   useEffect(() => {
@@ -790,7 +816,7 @@ export function FriendsActivityPage() {
           </div>
 
           {/* Clear All Filters Button */}
-          {(selectedCuisines.length > 0 || selectedCities.length > 0 || debouncedSearchQuery) && (
+          {(selectedCuisines.length > 0 || selectedCities.length > 0 || selectedFriends.length > 0 || debouncedSearchQuery) && (
             <div className="flex justify-end">
               <Button
                 variant="outline"
@@ -798,6 +824,7 @@ export function FriendsActivityPage() {
                 onClick={() => {
                   setSelectedCuisines([]);
                   setSelectedCities([]);
+                  setSelectedFriends([]);
                   setSearchQuery('');
                   setDebouncedSearchQuery('');
                 }}
@@ -808,49 +835,138 @@ export function FriendsActivityPage() {
             </div>
           )}
 
-          {/* City Checkbox Filter */}
-          <div className="space-y-2">
-            <p className="text-sm font-medium">Filter by City:</p>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-64 overflow-y-auto">
-              {uniqueCities.map(city => (
-                <div key={city} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={city}
-                    checked={selectedCities.includes(city)}
-                    onCheckedChange={(checked) => {
-                      if (checked) {
-                        setSelectedCities(prev => [...prev, city]);
-                      } else {
-                        setSelectedCities(prev => prev.filter(c => c !== city));
-                      }
-                    }}
-                  />
-                  <label
-                    htmlFor={city}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                  >
-                    {city} ({filterCounts.cities[city] || 0})
-                  </label>
-                </div>
-              ))}
-            </div>
-
-            {/* Selected City Tags */}
-            {selectedCities.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {selectedCities.map(city => (
-                  <Badge
-                    key={city}
-                    variant="default"
-                    className="cursor-pointer hover:bg-primary/80"
-                    onClick={() => setSelectedCities(prev => prev.filter(c => c !== city))}
-                  >
-                    {city} ×
-                  </Badge>
+          {/* Friends Dropdown Filter */}
+          <Collapsible 
+            open={isFriendsDropdownOpen} 
+            onOpenChange={setIsFriendsDropdownOpen}
+            className="space-y-2"
+          >
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-between bg-background border-border"
+              >
+                <span className="text-sm font-medium">
+                  Filter by Friend
+                  {selectedFriends.length > 0 && (
+                    <span className="ml-2 text-primary">
+                      ({selectedFriends.length} selected)
+                    </span>
+                  )}
+                </span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${isFriendsDropdownOpen ? 'rotate-180' : ''}`} />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-64 overflow-y-auto p-2 border rounded-md bg-background">
+                {uniqueFriends.map(friend => (
+                  <div key={friend.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`friend-${friend.id}`}
+                      checked={selectedFriends.includes(friend.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedFriends(prev => [...prev, friend.id]);
+                        } else {
+                          setSelectedFriends(prev => prev.filter(f => f !== friend.id));
+                        }
+                      }}
+                    />
+                    <label
+                      htmlFor={`friend-${friend.id}`}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      {friend.name} ({friend.count})
+                    </label>
+                  </div>
                 ))}
               </div>
-            )}
-          </div>
+            </CollapsibleContent>
+          </Collapsible>
+
+          {/* Selected Friends Tags */}
+          {selectedFriends.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {selectedFriends.map(friendId => {
+                const friend = uniqueFriends.find(f => f.id === friendId);
+                return (
+                  <Badge
+                    key={friendId}
+                    variant="default"
+                    className="cursor-pointer hover:bg-primary/80"
+                    onClick={() => setSelectedFriends(prev => prev.filter(f => f !== friendId))}
+                  >
+                    {friend?.name} ×
+                  </Badge>
+                );
+              })}
+            </div>
+          )}
+
+          {/* City Dropdown Filter */}
+          <Collapsible 
+            open={isCityDropdownOpen} 
+            onOpenChange={setIsCityDropdownOpen}
+            className="space-y-2"
+          >
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-between bg-background border-border"
+              >
+                <span className="text-sm font-medium">
+                  Filter by City
+                  {selectedCities.length > 0 && (
+                    <span className="ml-2 text-primary">
+                      ({selectedCities.length} selected)
+                    </span>
+                  )}
+                </span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${isCityDropdownOpen ? 'rotate-180' : ''}`} />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-2">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-64 overflow-y-auto p-2 border rounded-md bg-background">
+                {uniqueCities.map(city => (
+                  <div key={city} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`city-${city}`}
+                      checked={selectedCities.includes(city)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedCities(prev => [...prev, city]);
+                        } else {
+                          setSelectedCities(prev => prev.filter(c => c !== city));
+                        }
+                      }}
+                    />
+                    <label
+                      htmlFor={`city-${city}`}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      {city} ({filterCounts.cities[city] || 0})
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
+          {/* Selected City Tags */}
+          {selectedCities.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {selectedCities.map(city => (
+                <Badge
+                  key={city}
+                  variant="default"
+                  className="cursor-pointer hover:bg-primary/80"
+                  onClick={() => setSelectedCities(prev => prev.filter(c => c !== city))}
+                >
+                  {city} ×
+                </Badge>
+              ))}
+            </div>
+          )}
 
           {/* Cuisine Dropdown Filter */}
           <Collapsible 
