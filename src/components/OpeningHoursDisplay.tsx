@@ -35,10 +35,6 @@ export function OpeningHoursDisplay({ hours, className = "" }: OpeningHoursDispl
 
   return (
     <div className={className}>
-      <h4 className="font-semibold mb-3 flex items-center">
-        <Clock className="mr-1 h-4 w-4" />
-        Opening Hours
-      </h4>
       <div className="space-y-2">
         {hours.map((hour, index) => {
           const day = getDayName(hour);
