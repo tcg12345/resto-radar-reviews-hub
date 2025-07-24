@@ -629,6 +629,18 @@ export function ItineraryBuilder() {
         </CardContent>
       </Card>
 
+      {/* Hotels and Flights Section - Moved to top */}
+      <HotelFlightSection
+        locations={currentItinerary?.locations || []}
+        isMultiCity={currentItinerary?.isMultiCity || false}
+        hotels={hotels}
+        flights={flights}
+        onAddHotel={handleAddHotel}
+        onAddFlight={handleAddFlight}
+        onRemoveHotel={handleRemoveHotel}
+        onRemoveFlight={handleRemoveFlight}
+      />
+
       {/* Trip Calendar */}
       <TripCalendar
         startDate={dateRange.start!}
@@ -639,18 +651,6 @@ export function ItineraryBuilder() {
         onAddEvent={handleAddEvent}
         onEditEvent={handleEditEvent}
         onDeleteEvent={handleDeleteEvent}
-      />
-
-      {/* Hotels and Flights Section */}
-      <HotelFlightSection
-        locations={currentItinerary?.locations || []}
-        isMultiCity={currentItinerary?.isMultiCity || false}
-        hotels={hotels}
-        flights={flights}
-        onAddHotel={handleAddHotel}
-        onAddFlight={handleAddFlight}
-        onRemoveHotel={handleRemoveHotel}
-        onRemoveFlight={handleRemoveFlight}
       />
 
       {/* Event Dialog */}

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Hotel, Plane, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { HotelSearchDialog } from '@/components/HotelSearchDialog';
 import { FlightSearchDialog } from '@/components/FlightSearchDialog';
@@ -75,48 +75,46 @@ export function HotelFlightSection({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
       {/* Hotels Section */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Hotel className="w-5 h-5" />
-                Hotels
-              </CardTitle>
-              <CardDescription>
-                Book accommodations for your trip
-              </CardDescription>
+      <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800/30">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/50">
+                <Hotel className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-sm text-blue-900 dark:text-blue-100">Hotels</h3>
+                <p className="text-xs text-blue-700 dark:text-blue-300">Accommodations</p>
+              </div>
             </div>
             <Button
               onClick={() => setIsHotelDialogOpen(true)}
-              className="flex items-center gap-2"
+              size="sm"
+              variant="outline"
+              className="h-8 text-xs border-blue-300 text-blue-700 hover:bg-blue-100 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-900/50"
             >
-              <Plus className="w-4 h-4" />
-              Add Hotel
+              <Plus className="w-3 h-3 mr-1" />
+              Add
             </Button>
           </div>
-        </CardHeader>
-        <CardContent>
+          
           {hotels.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-2 max-h-32 overflow-y-auto">
               {hotels.map((booking) => (
-                <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex-1">
+                <div key={booking.id} className="flex items-center justify-between p-2 bg-white/60 dark:bg-blue-950/40 rounded-md border border-blue-200 dark:border-blue-800/50">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-semibold">{booking.hotel.name}</h4>
+                      <p className="font-medium text-xs text-blue-900 dark:text-blue-100 truncate">{booking.hotel.name}</p>
                       {booking.hotel.rating && (
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge variant="secondary" className="text-xs px-1 py-0 h-4">
                           ⭐ {booking.hotel.rating}
                         </Badge>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {booking.hotel.address}
-                    </p>
                     {(booking.checkIn || booking.checkOut) && (
-                      <div className="text-sm text-muted-foreground">
+                      <p className="text-xs text-blue-600 dark:text-blue-400">
                         {booking.checkIn && booking.checkOut ? (
                           `${booking.checkIn.toLocaleDateString()} - ${booking.checkOut.toLocaleDateString()}`
                         ) : booking.checkIn ? (
@@ -124,20 +122,21 @@ export function HotelFlightSection({
                         ) : booking.checkOut ? (
                           `Check-out: ${booking.checkOut.toLocaleDateString()}`
                         ) : null}
-                      </div>
+                      </p>
                     )}
                     {booking.location && (
-                      <Badge variant="outline" className="text-xs mt-1">
+                      <Badge variant="outline" className="text-xs h-4 mt-1">
                         {booking.location}
                       </Badge>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 ml-2">
                     {booking.hotel.bookingUrl && (
                       <Button
                         size="sm"
-                        variant="outline"
+                        variant="ghost"
                         onClick={() => window.open(booking.hotel.bookingUrl, '_blank')}
+                        className="h-6 px-2 text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200"
                       >
                         Book
                       </Button>
@@ -146,73 +145,76 @@ export function HotelFlightSection({
                       size="sm"
                       variant="ghost"
                       onClick={() => onRemoveHotel(booking.id)}
-                      className="text-destructive hover:text-destructive"
+                      className="h-6 px-2 text-xs text-red-500 hover:text-red-700 dark:hover:text-red-400"
                     >
-                      Remove
+                      ×
                     </Button>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <Hotel className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p>No hotels added yet</p>
-              <p className="text-sm">Click "Add Hotel" to search for accommodations</p>
+            <div className="text-center py-4 text-blue-600 dark:text-blue-400">
+              <Hotel className="w-6 h-6 mx-auto mb-1 opacity-50" />
+              <p className="text-xs">No hotels added</p>
             </div>
           )}
         </CardContent>
       </Card>
 
       {/* Flights Section */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Plane className="w-5 h-5" />
-                Flights
-              </CardTitle>
-              <CardDescription>
-                Book flights for your trip
-              </CardDescription>
+      <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-950/30 dark:to-purple-900/20 border-purple-200 dark:border-purple-800/30">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-purple-100 dark:bg-purple-900/50">
+                <Plane className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-sm text-purple-900 dark:text-purple-100">Flights</h3>
+                <p className="text-xs text-purple-700 dark:text-purple-300">Transportation</p>
+              </div>
             </div>
             <Button
               onClick={() => setIsFlightDialogOpen(true)}
-              className="flex items-center gap-2"
+              size="sm"
+              variant="outline"
+              className="h-8 text-xs border-purple-300 text-purple-700 hover:bg-purple-100 dark:border-purple-700 dark:text-purple-300 dark:hover:bg-purple-900/50"
             >
-              <Plus className="w-4 h-4" />
-              Add Flight
+              <Plus className="w-3 h-3 mr-1" />
+              Add
             </Button>
           </div>
-        </CardHeader>
-        <CardContent>
+          
           {flights.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-2 max-h-32 overflow-y-auto">
               {flights.map((flight) => (
-                <div key={flight.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex-1">
+                <div key={flight.id} className="flex items-center justify-between p-2 bg-white/60 dark:bg-purple-950/40 rounded-md border border-purple-200 dark:border-purple-800/50">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-semibold">{flight.airline} {flight.flightNumber}</h4>
+                      <p className="font-medium text-xs text-purple-900 dark:text-purple-100 truncate">
+                        {flight.airline} {flight.flightNumber}
+                      </p>
+                      {flight.price && (
+                        <Badge variant="secondary" className="text-xs px-1 py-0 h-4">
+                          {flight.price}
+                        </Badge>
+                      )}
                     </div>
-                    <p className="text-sm text-muted-foreground mb-2">
+                    <p className="text-xs text-purple-600 dark:text-purple-400 truncate">
                       {flight.departure.airport} → {flight.arrival.airport}
                     </p>
-                    <div className="text-sm text-muted-foreground">
-                      Departs: {flight.departure.time} | Arrives: {flight.arrival.time}
-                    </div>
-                    {flight.price && (
-                      <Badge variant="outline" className="text-xs mt-1">
-                        {flight.price}
-                      </Badge>
-                    )}
+                    <p className="text-xs text-purple-500 dark:text-purple-400">
+                      {flight.departure.time} | {flight.arrival.time}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 ml-2">
                     {flight.bookingUrl && (
                       <Button
                         size="sm"
-                        variant="outline"
+                        variant="ghost"
                         onClick={() => window.open(flight.bookingUrl, '_blank')}
+                        className="h-6 px-2 text-xs text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-200"
                       >
                         Book
                       </Button>
@@ -221,19 +223,18 @@ export function HotelFlightSection({
                       size="sm"
                       variant="ghost"
                       onClick={() => onRemoveFlight(flight.id)}
-                      className="text-destructive hover:text-destructive"
+                      className="h-6 px-2 text-xs text-red-500 hover:text-red-700 dark:hover:text-red-400"
                     >
-                      Remove
+                      ×
                     </Button>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <Plane className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p>No flights added yet</p>
-              <p className="text-sm">Click "Add Flight" to search for flights</p>
+            <div className="text-center py-4 text-purple-600 dark:text-purple-400">
+              <Plane className="w-6 h-6 mx-auto mb-1 opacity-50" />
+              <p className="text-xs">No flights added</p>
             </div>
           )}
         </CardContent>
