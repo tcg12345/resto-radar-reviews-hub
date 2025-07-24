@@ -234,13 +234,13 @@ export default function MobileRestaurantDetailsPage() {
                 onClick={addToWishlist}
                 disabled={isAdding || isAdded}
                 size="sm"
-                variant="ghost"
-                className="h-8 w-8 p-0"
+                variant="outline"
+                className="h-10 w-10 p-0 bg-red-500 border-red-500 hover:bg-red-600 hover:border-red-600"
               >
                 {isAdded ? (
-                  <Heart className="h-4 w-4 fill-red-500 text-red-500" />
+                  <Heart className="h-5 w-5 fill-white text-white" />
                 ) : (
-                  <Heart className="h-4 w-4 text-red-500" />
+                  <Heart className="h-5 w-5 text-white" />
                 )}
               </Button>
             )}
