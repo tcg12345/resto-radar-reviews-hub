@@ -24,6 +24,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
+import { PriceRange } from '@/components/PriceRange';
+import { MichelinStars } from '@/components/MichelinStars';
 
 export default function MobileFriendProfilePage() {
   const { friendId, userId } = useParams();
@@ -261,7 +263,7 @@ export default function MobileFriendProfilePage() {
         )}
         <div className="flex-1 min-w-0">
           <h4 className="font-medium text-sm truncate">{restaurant.name}</h4>
-          <div className="flex items-center gap-2 mt-0.5">
+          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
             <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">
               {restaurant.cuisine}
             </Badge>
@@ -270,6 +272,12 @@ export default function MobileFriendProfilePage() {
                 <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
                 <span className="text-xs">{restaurant.rating}</span>
               </div>
+            )}
+            {restaurant.price_range && (
+              <PriceRange priceRange={restaurant.price_range} readonly size="sm" />
+            )}
+            {restaurant.michelin_stars && (
+              <MichelinStars stars={restaurant.michelin_stars} readonly size="sm" />
             )}
           </div>
           <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
