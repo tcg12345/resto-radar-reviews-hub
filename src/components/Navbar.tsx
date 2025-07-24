@@ -109,7 +109,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
       </nav>
 
       {/* Mobile Top Bar */}
-      <nav className="lg:hidden sticky top-0 z-50 w-full bg-background border-b border-border/50 pt-10">
+      <nav className="lg:hidden sticky top-0 z-50 w-full bg-background border-b border-border/50 pt-3">
         <div className="flex h-14 items-center justify-between px-4">
           <div className="cursor-pointer" onClick={() => onTabChange('home')}>
             <GrubbyLogo size="sm" />
