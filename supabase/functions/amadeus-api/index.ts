@@ -202,10 +202,13 @@ async function searchFlights(apiKey: string, params: FlightSearchRequest) {
         const destPlace = placesMap.get(leg.destination_place_id);
         const carrier = carriersMap.get(leg.marketing_carrier_ids[0]);
         
-        // Get segment for flight number
-        const segment = Array.from(segmentsMap.values()).find(s => 
-          s.marketing_carrier_id === leg.marketing_carrier_ids[0]
-        );
+        // Get the correct segment for this specific leg
+        // Find segments that match this leg's carrier and are likely part of this routing
+        const legSegments = data.segments?.filter(s => 
+          leg.marketing_carrier_ids.includes(s.marketing_carrier_id)
+        ) || [];
+        
+        const primarySegment = legSegments[0]; // Use the first matching segment
         
         // Apply airline filter
         if (params.airline && carrier) {
@@ -244,7 +247,7 @@ async function searchFlights(apiKey: string, params: FlightSearchRequest) {
         
         return {
           id: itinerary.id,
-          flightNumber: segment?.marketing_flight_number || `${carrier?.iata_code || 'XX'}000`,
+          flightNumber: primarySegment?.marketing_flight_number || `${carrier?.iata_code || 'XX'}000`,
           airline: carrier?.name || 'Unknown Airline',
           departure: {
             airport: originPlace?.iata_code || params.origin,
