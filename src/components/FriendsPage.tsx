@@ -558,11 +558,19 @@ export function FriendsPage({
   const handleViewProfile = (friend: any) => {
     console.log(`🎯 handleViewProfile called for: ${friend.username}`);
     
-    // Use local state instead of URL navigation for better performance
-    setViewingFriend(friend);
-    setCurrentView('profile');
-    setProfileLoadedRef(friend.id);
-    loadFriendProfile(friend);
+    // Check if we're on mobile
+    const isMobile = window.innerWidth <= 768;
+    
+    if (isMobile) {
+      // Mobile: Navigate to the mobile-optimized friend profile page
+      navigate(`/profile/${friend.id}`);
+    } else {
+      // Desktop: Use local state for modal system
+      setViewingFriend(friend);
+      setCurrentView('profile');
+      setProfileLoadedRef(friend.id);
+      loadFriendProfile(friend);
+    }
   };
 
   const handleBackToList = () => {
