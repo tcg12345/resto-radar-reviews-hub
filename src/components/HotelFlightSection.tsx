@@ -136,22 +136,36 @@ export function HotelFlightSection({
     setTripAdvisorLocationId(null);
 
     try {
-      // Search for the hotel on TripAdvisor
       const searchQuery = `${hotelName} ${hotelAddress}`;
-      const locations = await searchLocations(searchQuery);
+      
+      // Start search immediately and show optimistic loading
+      const searchPromise = searchLocations(searchQuery);
+      
+      // Wait for search result
+      const locations = await searchPromise;
       
       if (locations && locations.length > 0) {
-        const location = locations[0]; // Use the first match
+        const location = locations[0];
         setTripAdvisorLocationId(location.location_id);
         
-        // Load photos and reviews in parallel
-        const [photos, reviews] = await Promise.all([
+        // Immediately start loading photos and reviews in parallel
+        // Don't wait for state to update
+        const [photosPromise, reviewsPromise] = [
           getLocationPhotos(location.location_id, 20),
           getLocationReviews(location.location_id, 10)
-        ]);
+        ];
         
-        setTripAdvisorPhotos(photos || []);
-        setTripAdvisorReviews(reviews || []);
+        // Start both requests simultaneously and update state as soon as each completes
+        photosPromise.then(photos => {
+          if (photos) setTripAdvisorPhotos(photos);
+        }).catch(err => console.error('Error loading photos:', err));
+        
+        reviewsPromise.then(reviews => {
+          if (reviews) setTripAdvisorReviews(reviews);
+        }).catch(err => console.error('Error loading reviews:', err));
+        
+        // Wait for both to complete before hiding loading
+        await Promise.allSettled([photosPromise, reviewsPromise]);
       }
     } catch (error) {
       console.error('Error loading TripAdvisor data:', error);
