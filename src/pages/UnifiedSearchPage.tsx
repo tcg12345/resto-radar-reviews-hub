@@ -646,29 +646,21 @@ export default function UnifiedSearchPage() {
                     setShowLiveResults(false);
                   }}
                 >
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-base mb-1">{place.name}</h3>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          {place.formatted_address}
-                        </p>
-                        <div className="flex items-center gap-2">
+                  <CardContent className="p-3">
+                    <div className="flex justify-between items-center">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-sm truncate pr-2">{place.name}</h3>
+                        <div className="flex items-center gap-2 mt-1">
                           {place.rating && (
                             <div className="flex items-center gap-1">
-                              <span className="text-yellow-500">★</span>
-                              <span className="text-sm font-medium">{place.rating}</span>
+                              <span className="text-yellow-500 text-sm">★</span>
+                              <span className="text-xs font-medium">{place.rating}</span>
                             </div>
                           )}
                           {place.price_level && (
-                            <span className="text-sm text-green-600">
+                            <span className="text-xs text-green-600 font-medium">
                               {getPriceDisplay(place.price_level)}
                             </span>
-                          )}
-                          {place.opening_hours?.open_now !== undefined && (
-                            <Badge variant={place.opening_hours.open_now ? "default" : "destructive"} className="text-xs">
-                              {place.opening_hours.open_now ? "Open" : "Closed"}
-                            </Badge>
                           )}
                         </div>
                       </div>
@@ -679,7 +671,7 @@ export default function UnifiedSearchPage() {
                           e.stopPropagation();
                           handleQuickAdd(place);
                         }} 
-                        className="ml-2"
+                        className="h-7 px-2 text-xs ml-2 flex-shrink-0"
                       >
                         <Plus className="h-3 w-3 mr-1" />
                         Add
