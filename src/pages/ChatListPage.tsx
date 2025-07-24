@@ -440,7 +440,7 @@ export function ChatListPage() {
   return (
     <>
       {/* Mobile status bar spacer */}
-      <div className="lg:hidden h-8 bg-background"></div>
+      <div className="lg:hidden h-[35px] bg-background"></div>
       <div className="flex h-screen bg-background">
       {/* Chat List Sidebar */}
       <div className="w-80 border-r border-border flex flex-col">

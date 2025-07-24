@@ -306,7 +306,7 @@ export default function MobileFriendProfilePage() {
     return (
       <>
         {/* Mobile status bar spacer */}
-        <div className="lg:hidden h-8 bg-background"></div>
+        <div className="lg:hidden h-[35px] bg-background"></div>
         <div className="min-h-screen bg-background">
         <div className="flex items-center gap-3 p-3 border-b">
           <Button variant="ghost" size="sm" onClick={() => navigate('/friends')}>
@@ -331,7 +331,7 @@ export default function MobileFriendProfilePage() {
   return (
     <>
       {/* Mobile status bar spacer */}
-      <div className="lg:hidden h-8 bg-background"></div>
+      <div className="lg:hidden h-[35px] bg-background"></div>
       <div className="min-h-screen bg-background">
       {/* Compact Header */}
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
