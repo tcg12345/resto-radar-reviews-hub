@@ -243,7 +243,7 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
           {/* Stats Cards - Mobile Optimized */}
           <div className="grid grid-cols-2 gap-3">
             {stats.slice(0, 4).map((stat, index) => (
-              <Card key={index} className="bg-white/50 backdrop-blur-sm border border-primary/10 shadow-sm">
+              <Card key={index} className="bg-card/90 backdrop-blur-sm border border-border shadow-sm">
                 <CardContent className="p-3">
                   <div className="flex items-center justify-between mb-2">
                     <div className={`p-2 rounded-lg ${stat.bgColor}`}>
@@ -264,7 +264,7 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
               {quickActions.slice(0, 6).map((action, index) => (
                 <Card 
                   key={index} 
-                  className="cursor-pointer active:scale-95 transition-all duration-200 bg-white/60 backdrop-blur-sm border border-primary/10 shadow-sm hover:shadow-md"
+                  className="cursor-pointer active:scale-95 transition-all duration-200 bg-card/90 backdrop-blur-sm border border-border shadow-sm hover:shadow-md"
                   onClick={action.action}
                 >
                   <CardContent className="p-4">
