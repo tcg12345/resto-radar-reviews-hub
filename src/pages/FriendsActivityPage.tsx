@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Users, Star, Heart, MapPin, Clock, Filter, SortAsc, List, ChevronDown, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Users, Star, Heart, MapPin, Clock, Filter, SortAsc, List, ChevronDown, ChevronRight, ChevronLeft, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -853,8 +854,187 @@ export function FriendsActivityPage() {
         </div>
       </div>
 
-      {/* Filters and Search */}
-      <Card>
+      {/* Mobile-Optimized Search and Filters */}
+      <div className="block md:hidden space-y-4">
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search restaurants, friends..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                if (searchTimeoutRef.current) {
+                  clearTimeout(searchTimeoutRef.current);
+                }
+                setDebouncedSearchQuery(searchQuery);
+              }
+            }}
+            className="pl-10 h-12 text-base"
+          />
+        </div>
+
+        {/* Filters and Sort Row */}
+        <div className="flex gap-3">
+          {/* Single Filters Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="outline" 
+                className="flex-1 h-12 flex items-center justify-between"
+              >
+                <span className="flex items-center gap-2">
+                  <Filter className="h-4 w-4" />
+                  Filters
+                  {(selectedCuisines.length + selectedCities.length + selectedFriends.length > 0) && (
+                    <Badge variant="secondary" className="ml-1 h-5 px-2 text-xs">
+                      {selectedCuisines.length + selectedCities.length + selectedFriends.length}
+                    </Badge>
+                  )}
+                </span>
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-72 max-h-80 overflow-y-auto">
+              {/* Friends Filter */}
+              <DropdownMenuLabel>Friends</DropdownMenuLabel>
+              {uniqueFriends.slice(0, 8).map((friend) => (
+                <DropdownMenuCheckboxItem
+                  key={friend.id}
+                  checked={selectedFriends.includes(friend.id)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedFriends(prev => [...prev, friend.id]);
+                    } else {
+                      setSelectedFriends(prev => prev.filter(f => f !== friend.id));
+                    }
+                  }}
+                >
+                  {friend.name} ({friend.count})
+                </DropdownMenuCheckboxItem>
+              ))}
+              
+              <DropdownMenuSeparator />
+              
+              {/* City Filter */}
+              <DropdownMenuLabel>Cities</DropdownMenuLabel>
+              {uniqueCities.slice(0, 8).map((city) => (
+                <DropdownMenuCheckboxItem
+                  key={city}
+                  checked={selectedCities.includes(city)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedCities(prev => [...prev, city]);
+                    } else {
+                      setSelectedCities(prev => prev.filter(c => c !== city));
+                    }
+                  }}
+                >
+                  {city} ({filterCounts.cities[city] || 0})
+                </DropdownMenuCheckboxItem>
+              ))}
+              
+              <DropdownMenuSeparator />
+              
+              {/* Cuisine Filter */}
+              <DropdownMenuLabel>Cuisines</DropdownMenuLabel>
+              {uniqueCuisines.slice(0, 8).map((cuisine) => (
+                <DropdownMenuCheckboxItem
+                  key={cuisine}
+                  checked={selectedCuisines.includes(cuisine)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedCuisines(prev => [...prev, cuisine]);
+                    } else {
+                      setSelectedCuisines(prev => prev.filter(c => c !== cuisine));
+                    }
+                  }}
+                >
+                  {cuisine} ({filterCounts.cuisines[cuisine] || 0})
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Sort Dropdown */}
+          <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
+            <SelectTrigger className="w-32 h-12 bg-background border-border">
+              <SelectValue placeholder="Sort" />
+            </SelectTrigger>
+            <SelectContent className="bg-background border-border z-50">
+              <SelectItem value="recent">Recent</SelectItem>
+              <SelectItem value="rating">Rating</SelectItem>
+              <SelectItem value="alphabetical">A-Z</SelectItem>
+              <SelectItem value="friend">Friend</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Selected Filter Tags */}
+        {(selectedFriends.length > 0 || selectedCities.length > 0 || selectedCuisines.length > 0) && (
+          <div className="flex flex-wrap gap-2">
+            {selectedFriends.map(friendId => {
+              const friend = uniqueFriends.find(f => f.id === friendId);
+              return (
+                <Badge
+                  key={`friend-${friendId}`}
+                  variant="default"
+                  className="cursor-pointer hover:bg-primary/80 text-xs h-6 px-2"
+                  onClick={() => setSelectedFriends(prev => prev.filter(f => f !== friendId))}
+                >
+                  {friend?.name} ×
+                </Badge>
+              );
+            })}
+            
+            {selectedCities.map(city => (
+              <Badge
+                key={`city-${city}`}
+                variant="default"
+                className="cursor-pointer hover:bg-primary/80 text-xs h-6 px-2"
+                onClick={() => setSelectedCities(prev => prev.filter(c => c !== city))}
+              >
+                {city} ×
+              </Badge>
+            ))}
+            
+            {selectedCuisines.map(cuisine => (
+              <Badge
+                key={`cuisine-${cuisine}`}
+                variant="default"
+                className="cursor-pointer hover:bg-primary/80 text-xs h-6 px-2"
+                onClick={() => setSelectedCuisines(prev => prev.filter(c => c !== cuisine))}
+              >
+                {cuisine} ×
+              </Badge>
+            ))}
+          </div>
+        )}
+
+        {/* Clear All Filters Button */}
+        {(selectedCuisines.length > 0 || selectedCities.length > 0 || selectedFriends.length > 0 || debouncedSearchQuery) && (
+          <div className="flex justify-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSelectedCuisines([]);
+                setSelectedCities([]);
+                setSelectedFriends([]);
+                setSearchQuery('');
+                setDebouncedSearchQuery('');
+              }}
+              className="text-xs"
+            >
+              Clear All Filters
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Filters (Hidden on Mobile) */}
+      <Card className="hidden md:block">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Filter className="h-5 w-5" />
@@ -869,7 +1049,6 @@ export function FriendsActivityPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
-                  // Clear timeout and trigger search immediately on Enter
                   if (searchTimeoutRef.current) {
                     clearTimeout(searchTimeoutRef.current);
                   }
@@ -899,7 +1078,6 @@ export function FriendsActivityPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  console.log('Clearing all filters...');
                   setSelectedCuisines([]);
                   setSelectedCities([]);
                   setSelectedFriends([]);
