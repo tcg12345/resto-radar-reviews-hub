@@ -367,13 +367,21 @@ export function NotificationsPanel() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 p-0 max-h-[500px] overflow-hidden flex flex-col">
-        <div className="flex items-center justify-between p-4">
+      <PopoverContent 
+        align="end" 
+        className={`
+          p-0 overflow-hidden flex flex-col
+          md:w-80 md:max-h-[500px]
+          w-[95vw] max-w-sm max-h-[70vh]
+        `}
+      >
+        <div className="flex items-center justify-between p-3 md:p-4 bg-muted/30">
           <h3 className="font-semibold text-sm">Notifications</h3>
           {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={markAllAsRead}>
-              <Check className="h-3.5 w-3.5 mr-1" />
-              Mark all read
+            <Button variant="ghost" size="sm" className="h-7 text-xs px-2 md:h-8 md:px-3" onClick={markAllAsRead}>
+              <Check className="h-3 w-3 mr-1 md:h-3.5 md:w-3.5" />
+              <span className="hidden md:inline">Mark all read</span>
+              <span className="md:hidden">Read all</span>
             </Button>
           )}
         </div>
@@ -387,8 +395,8 @@ export function NotificationsPanel() {
               <p className="text-sm mt-2 text-muted-foreground">Loading notifications...</p>
             </div>
           ) : notifications.length === 0 ? (
-            <div className="p-8 text-center">
-              <Bell className="h-8 w-8 mx-auto opacity-50" />
+            <div className="p-6 md:p-8 text-center">
+              <Bell className="h-6 w-6 md:h-8 md:w-8 mx-auto opacity-50" />
               <p className="mt-2 text-sm text-muted-foreground">No notifications yet</p>
             </div>
           ) : (
@@ -396,11 +404,11 @@ export function NotificationsPanel() {
               {notifications.map((notification) => (
                 <div 
                   key={notification.id} 
-                  className={`relative p-4 border-l-4 ${!notification.read_at 
+                  className={`relative p-3 md:p-4 border-l-2 md:border-l-4 ${!notification.read_at 
                     ? 'border-l-primary bg-primary/5' 
                     : 'border-l-muted bg-background'
                   } ${notification.type === 'restaurant_share' 
-                    ? 'cursor-pointer hover:bg-muted/30 transition-all duration-200' 
+                    ? 'cursor-pointer hover:bg-muted/30 transition-all duration-200 active:bg-muted/40' 
                     : ''
                   }`}
                   onClick={() => notification.type === 'restaurant_share' && handleViewRestaurant(notification.id, notification.data?.restaurant_id)}
@@ -410,96 +418,98 @@ export function NotificationsPanel() {
                     <div className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full"></div>
                   )}
                   
-                  <div className="flex items-start gap-3">
-                    {/* Avatar */}
-                    <Avatar className="h-10 w-10 ring-2 ring-background shadow-sm">
+                  <div className="flex items-start gap-2 md:gap-3">
+                    {/* Avatar - Smaller on mobile */}
+                    <Avatar className="h-8 w-8 md:h-10 md:w-10 ring-1 md:ring-2 ring-background shadow-sm flex-shrink-0">
                       <AvatarImage src={''} />
-                      <AvatarFallback className="text-sm bg-primary/10 text-primary font-semibold">
+                      <AvatarFallback className="text-xs md:text-sm bg-primary/10 text-primary font-semibold">
                         {notification.data?.sender_name?.charAt(0).toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
 
-                    <div className="flex-1 min-w-0 space-y-2 -mx-1">
-                      {/* Header with sender name */}
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-foreground">
+                    <div className="flex-1 min-w-0 space-y-1.5 md:space-y-2">
+                      {/* Header with sender name - More compact on mobile */}
+                      <div className="flex items-center gap-1.5 md:gap-2">
+                        <span className="text-xs md:text-sm font-semibold text-foreground truncate">
                           {notification.data?.sender_name || 'Someone'}
                         </span>
-                        <span className="text-xs text-muted-foreground">shared a restaurant</span>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">shared</span>
                       </div>
                       
-                      {/* Restaurant card */}
+                      {/* Restaurant card - More compact on mobile */}
                       {notification.type === 'restaurant_share' && (
-                        <div className="bg-background rounded-lg border p-3 shadow-sm w-full">
-                          <div className="flex items-center justify-between">
+                        <div className="bg-background rounded-md md:rounded-lg border p-2 md:p-3 shadow-sm w-full">
+                          <div className="flex items-center justify-between gap-2">
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-foreground text-sm truncate">
+                              <h4 className="font-semibold text-foreground text-xs md:text-sm truncate">
                                 {notification.data?.restaurant_name || 'Restaurant'}
                               </h4>
                             </div>
                             <Button
                               variant="outline"
                               size="sm"
-                              className="h-8 text-xs px-3 ml-3 pointer-events-none shrink-0"
+                              className="h-6 md:h-8 text-xs px-2 md:px-3 pointer-events-none shrink-0"
                             >
-                              <Eye className="h-3 w-3 mr-1" />
-                              View
+                              <Eye className="h-2.5 w-2.5 md:h-3 md:w-3 mr-1" />
+                              <span className="hidden md:inline">View</span>
+                              <span className="md:hidden">Tap</span>
                             </Button>
                           </div>
                         </div>
                       )}
 
-                      {/* Footer with time and actions */}
-                      <div className="flex justify-between items-center pt-1">
+                      {/* Footer with time and actions - More compact on mobile */}
+                      <div className="flex justify-between items-center pt-0.5 md:pt-1">
                         <span className="text-xs text-muted-foreground flex items-center">
-                          <Clock className="h-3 w-3 mr-1" />
+                          <Clock className="h-2.5 w-2.5 md:h-3 md:w-3 mr-1" />
                           {formatTimeAgo(notification.created_at)}
                         </span>
                         
                         <div className="flex items-center gap-1">
                           {/* Show message button if there's a message */}
                           {notification.data?.share_message && (
-                            <div className="flex items-center gap-2 p-2 rounded-lg border border-border bg-background/50">
+                            <div className="flex items-center gap-1 md:gap-2">
                               <Button 
                                 variant="outline" 
                                 size="sm"
-                                className="h-7 px-2 text-xs border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary font-medium"
+                                className="h-6 md:h-7 px-1.5 md:px-2 text-xs border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary font-medium"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   showFullMessage(notification.data.share_message, notification);
                                 }}
                               >
-                                <MessageSquare className="h-3 w-3 mr-1" />
-                                <span className="text-xs">View Message</span>
+                                <MessageSquare className="h-2.5 w-2.5 md:h-3 md:w-3 mr-0.5 md:mr-1" />
+                                <span className="text-xs hidden md:inline">Message</span>
+                                <span className="text-xs md:hidden">Msg</span>
                               </Button>
                               
                               <Button 
                                 variant="outline" 
                                 size="sm"
-                                className="h-7 w-7 p-0 border-destructive/20 bg-destructive/5 hover:bg-destructive/10 text-destructive"
+                                className="h-6 w-6 md:h-7 md:w-7 p-0 border-destructive/20 bg-destructive/5 hover:bg-destructive/10 text-destructive"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   deleteNotification(notification.id);
                                 }}
                               >
-                                <Trash2 className="h-3 w-3" />
+                                <Trash2 className="h-2.5 w-2.5 md:h-3 md:w-3" />
                                 <span className="sr-only">Delete notification</span>
                               </Button>
                             </div>
                           )}
                           
                           {!notification.data?.share_message && (
-                            <div className="flex items-center gap-2 p-2 rounded-lg border border-border bg-background/50">
+                            <div className="flex items-center gap-1 md:gap-2">
                               <Button 
                                 variant="outline" 
                                 size="sm"
-                                className="h-7 w-7 p-0 border-destructive/20 bg-destructive/5 hover:bg-destructive/10 text-destructive"
+                                className="h-6 w-6 md:h-7 md:w-7 p-0 border-destructive/20 bg-destructive/5 hover:bg-destructive/10 text-destructive"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   deleteNotification(notification.id);
                                 }}
                               >
-                                <Trash2 className="h-3 w-3" />
+                                <Trash2 className="h-2.5 w-2.5 md:h-3 md:w-3" />
                                 <span className="sr-only">Delete notification</span>
                               </Button>
                               
@@ -507,13 +517,13 @@ export function NotificationsPanel() {
                                 <Button 
                                   variant="outline" 
                                   size="sm"
-                                  className="h-7 w-7 p-0 border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary"
+                                  className="h-6 w-6 md:h-7 md:w-7 p-0 border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     markAsRead(notification.id);
                                   }}
                                 >
-                                  <Check className="h-3 w-3" />
+                                  <Check className="h-2.5 w-2.5 md:h-3 md:w-3" />
                                   <span className="sr-only">Mark as read</span>
                                 </Button>
                               )}
