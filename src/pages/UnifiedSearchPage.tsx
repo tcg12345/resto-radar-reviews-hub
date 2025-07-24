@@ -462,9 +462,9 @@ export default function UnifiedSearchPage() {
                       </button>
                     )}
                     
-                    {/* Live Search Results Dropdown - Positioned below search bar */}
-                    {showLiveResults && (liveSearchResults.length > 0 || isLiveSearching) && (
-                      <div className="absolute top-full left-0 right-0 bg-card border border-border rounded-xl shadow-2xl animate-fade-in" style={{
+                     {/* Live Search Results Dropdown - Hide on mobile, will show in results area */}
+                     {showLiveResults && (liveSearchResults.length > 0 || isLiveSearching) && (
+                       <div className="hidden lg:block absolute top-full left-0 right-0 bg-card border border-border rounded-xl shadow-2xl animate-fade-in" style={{
                         position: 'absolute',
                         zIndex: 99999,
                         marginTop: '8px'
@@ -619,6 +619,87 @@ export default function UnifiedSearchPage() {
           </div>
         </div>
       </div>
+      
+      {/* Mobile Live Search Suggestions - Show below search form */}
+      {showLiveResults && (liveSearchResults.length > 0 || isLiveSearching) && (
+        <div className="lg:hidden mt-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-muted-foreground">Suggestions as you type</h3>
+            <Badge variant="secondary" className="text-xs">Live</Badge>
+          </div>
+          
+          {isLiveSearching ? (
+            <div className="text-center py-8">
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                <span className="text-sm text-muted-foreground">Searching restaurants...</span>
+              </div>
+            </div>
+          ) : (
+            <div className="grid gap-3">
+              {liveSearchResults.map((place, index) => (
+                <Card 
+                  key={place.place_id}
+                  className="cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => {
+                    handlePlaceClick(place);
+                    setShowLiveResults(false);
+                  }}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-base mb-1">{place.name}</h3>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          {place.formatted_address}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          {place.rating && (
+                            <div className="flex items-center gap-1">
+                              <span className="text-yellow-500">★</span>
+                              <span className="text-sm font-medium">{place.rating}</span>
+                            </div>
+                          )}
+                          {place.price_level && (
+                            <span className="text-sm text-green-600">
+                              {getPriceDisplay(place.price_level)}
+                            </span>
+                          )}
+                          {place.opening_hours?.open_now !== undefined && (
+                            <Badge variant={place.opening_hours.open_now ? "default" : "destructive"} className="text-xs">
+                              {place.opening_hours.open_now ? "Open" : "Closed"}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={e => {
+                          e.stopPropagation();
+                          handleQuickAdd(place);
+                        }} 
+                        className="ml-2"
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              
+              {!isLiveSearching && liveSearchResults.length === 0 && searchQuery.length > 2 && (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground text-sm">
+                    No restaurants found. Try a different search term.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Results Section */}
       {(isLoading || searchResults.length > 0) && (
