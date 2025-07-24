@@ -255,7 +255,10 @@ export default function MobileFriendProfilePage() {
         className="flex items-center gap-3 py-2 px-1 cursor-pointer hover:bg-accent transition-colors rounded-lg"
         onClick={handleRestaurantClick}
       >
-        <div className="w-12 h-12 bg-muted rounded-lg flex-shrink-0"></div>
+        {/* Only show placeholder image for rated restaurants, not wishlist items */}
+        {activeView === 'restaurants' && (
+          <div className="w-12 h-12 bg-muted rounded-lg flex-shrink-0"></div>
+        )}
         <div className="flex-1 min-w-0">
           <h4 className="font-medium text-sm truncate">{restaurant.name}</h4>
           <div className="flex items-center gap-2 mt-0.5">
