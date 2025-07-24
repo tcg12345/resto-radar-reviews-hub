@@ -740,46 +740,46 @@ export default function UnifiedSearchPage() {
                        {/* Mobile Layout - Compact like suggestions */}
                        <div className="lg:hidden">
                          <div className="flex justify-between items-center">
-                           <div className="flex-1 min-w-0">
-                             <div className="flex items-center gap-2 mb-1">
-                               <h3 className="font-semibold text-sm truncate">{place.name}</h3>
-                               <span className="text-xs text-muted-foreground truncate">
-                                 {(() => {
-                                   const parts = place.formatted_address?.split(', ') || [];
-                                   if (parts.length >= 2) {
-                                     // For US addresses, show "City, State" without zip code
-                                     if (parts[parts.length - 1] === 'United States') {
-                                       const city = parts[parts.length - 3] || '';
-                                       const stateWithZip = parts[parts.length - 2] || '';
-                                       // Remove zip code from state (any digits and spaces at the end)
-                                       const state = stateWithZip.replace(/\s+\d{5}(-\d{4})?$/, '');
-                                       return parts.length >= 3 ? `${city}, ${state}` : state;
-                                     }
-                                     // For international, show "City, Country" without postal codes
-                                     const city = parts[parts.length - 2] || '';
-                                     const country = parts[parts.length - 1] || '';
-                                     // Remove postal codes from city (various international formats)
-                                     const cleanCity = city.replace(/\s+[A-Z0-9]{2,10}$/, '');
-                                     return `${cleanCity}, ${country}`;
-                                   }
-                                   return parts[0] || '';
-                                 })()}
-                               </span>
-                             </div>
-                             <div className="flex items-center gap-2">
-                               {place.rating && (
-                                 <div className="flex items-center gap-1">
-                                   <span className="text-yellow-500 text-sm">★</span>
-                                   <span className="text-xs font-medium">{place.rating}</span>
-                                 </div>
-                               )}
-                               {place.price_level && (
-                                 <span className="text-xs text-green-600 font-medium">
-                                   {getPriceDisplay(place.price_level)}
-                                 </span>
-                               )}
-                             </div>
-                           </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="mb-1">
+                                <h3 className="font-semibold text-sm truncate">{place.name}</h3>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {place.rating && (
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-yellow-500 text-sm">★</span>
+                                    <span className="text-xs font-medium">{place.rating}</span>
+                                  </div>
+                                )}
+                                {place.price_level && (
+                                  <span className="text-xs text-green-600 font-medium">
+                                    {getPriceDisplay(place.price_level)}
+                                  </span>
+                                )}
+                                <span className="text-xs text-muted-foreground truncate">
+                                  {(() => {
+                                    const parts = place.formatted_address?.split(', ') || [];
+                                    if (parts.length >= 2) {
+                                      // For US addresses, show "City, State" without zip code
+                                      if (parts[parts.length - 1] === 'United States') {
+                                        const city = parts[parts.length - 3] || '';
+                                        const stateWithZip = parts[parts.length - 2] || '';
+                                        // Remove zip code from state (any digits and spaces at the end)
+                                        const state = stateWithZip.replace(/\s+\d{5}(-\d{4})?$/, '');
+                                        return parts.length >= 3 ? `${city}, ${state}` : state;
+                                      }
+                                      // For international, show "City, Country" without postal codes
+                                      const city = parts[parts.length - 2] || '';
+                                      const country = parts[parts.length - 1] || '';
+                                      // Remove postal codes from city (various international formats)
+                                      const cleanCity = city.replace(/\s+[A-Z0-9]{2,10}$/, '');
+                                      return `${cleanCity}, ${country}`;
+                                    }
+                                    return parts[0] || '';
+                                  })()}
+                                </span>
+                              </div>
+                            </div>
                            <Button 
                              size="sm" 
                              variant="outline" 
