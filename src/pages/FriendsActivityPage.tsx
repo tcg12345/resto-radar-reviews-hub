@@ -724,7 +724,45 @@ export function FriendsActivityPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <Card className="md:hidden">
+        <CardContent className="p-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex items-center gap-2">
+              <Star className="h-5 w-5 text-yellow-500" />
+              <div>
+                <p className="text-xs text-muted-foreground">Total Rated</p>
+                <p className="text-lg font-bold">{filterCounts.rated}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Heart className="h-5 w-5 text-red-500" />
+              <div>
+                <p className="text-xs text-muted-foreground">Wishlist Items</p>
+                <p className="text-lg font-bold">{filterCounts.wishlist}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-blue-500" />
+              <div>
+                <p className="text-xs text-muted-foreground">Active Friends</p>
+                <p className="text-lg font-bold">{new Set(friendsRestaurants.map(r => r.friend.id)).size}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-green-500" />
+              <div>
+                <p className="text-xs text-muted-foreground">Cities</p>
+                <p className="text-lg font-bold">{new Set(friendsRestaurants.map(r => r.city)).size}</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="hidden md:grid grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
