@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, Heart, Search, User, MapPin, Calendar, MessageCircle } from 'lucide-react';
+import { Home, Heart, Search, User, MapPin, Calendar, MessageCircle, Settings } from 'lucide-react';
 import { NotificationsPanel } from './NotificationsPanel';
 
 interface NavbarProps {
@@ -14,31 +14,37 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
       id: 'home', 
       icon: Home, 
       label: 'Home',
-      gradient: 'from-blue-500 to-indigo-600'
+      gradient: 'from-cyan-400 to-blue-500'
     },
     { 
       id: 'search', 
       icon: Search, 
       label: 'Search',
-      gradient: 'from-purple-500 to-pink-600'
+      gradient: 'from-purple-400 to-pink-500'
     },
     { 
       id: 'rated', 
       icon: MapPin, 
       label: 'Rated',
-      gradient: 'from-green-500 to-emerald-600'
+      gradient: 'from-green-400 to-emerald-500'
     },
     { 
       id: 'wishlist', 
       icon: Heart, 
       label: 'Wishlist',
-      gradient: 'from-red-500 to-rose-600'
+      gradient: 'from-red-400 to-rose-500'
     },
     { 
       id: 'friends', 
       icon: MessageCircle, 
-      label: 'Friends',
-      gradient: 'from-orange-500 to-amber-600'
+      label: 'Chat',
+      gradient: 'from-orange-400 to-amber-500'
+    },
+    { 
+      id: 'settings', 
+      icon: Settings, 
+      label: 'Settings',
+      gradient: 'from-slate-400 to-gray-500'
     },
   ];
 
