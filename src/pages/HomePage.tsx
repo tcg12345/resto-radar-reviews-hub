@@ -346,7 +346,7 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
           <div className="space-y-3">
             <h2 className="text-lg font-semibold text-foreground">Your Favorites</h2>
             <Card className="bg-white/60 backdrop-blur-sm border border-primary/10 shadow-sm">
-              <CardContent className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
+              <CardContent className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-lg">
                 {topCuisines.length > 0 ? (
                   <div className="space-y-4">
                     {topCuisines.slice(0, 3).map(([cuisine, count], index) => (
