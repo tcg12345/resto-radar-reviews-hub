@@ -8,6 +8,7 @@ import { ConfirmDialog } from '@/components/Dialog/ConfirmDialog';
 import { Restaurant, RestaurantFormData } from '@/types/restaurant';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 interface WishlistPageProps {
   restaurants: Restaurant[];
@@ -35,8 +36,8 @@ export function WishlistPage({
 
   const wishlistRestaurants = restaurants.filter((r) => r.isWishlist);
   
-  // Get unique cities
-  const cities = Array.from(new Set(wishlistRestaurants.map(r => r.city)));
+  // Get unique cities and sort alphabetically
+  const cities = Array.from(new Set(wishlistRestaurants.map(r => r.city))).sort();
 
   // Filter restaurants
   const filteredRestaurants = wishlistRestaurants
@@ -148,14 +149,17 @@ export function WishlistPage({
         </div>
       ) : (
         <Tabs defaultValue="all" onValueChange={setActiveCity} value={activeCity}>
-          <TabsList className="mb-8">
-            <TabsTrigger value="all">All Cities</TabsTrigger>
-            {cities.map((city) => (
-              <TabsTrigger key={city} value={city}>
-                {city}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+          <ScrollArea className="w-full whitespace-nowrap mb-8">
+            <TabsList className="inline-flex w-max">
+              <TabsTrigger value="all">All Cities</TabsTrigger>
+              {cities.map((city) => (
+                <TabsTrigger key={city} value={city}>
+                  {city}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
           
           <TabsContent value={activeCity}>
             {filteredRestaurants.length === 0 ? (
