@@ -558,11 +558,8 @@ export function FriendsPage({
   const handleViewProfile = (friend: any) => {
     console.log(`🎯 handleViewProfile called for: ${friend.username}`);
     
-    // Use local state instead of URL navigation for better performance
-    setViewingFriend(friend);
-    setCurrentView('profile');
-    setProfileLoadedRef(friend.id);
-    loadFriendProfile(friend);
+    // Navigate to the mobile friend profile page
+    navigate(`/profile/${friend.id}`);
   };
 
   const handleBackToList = () => {
