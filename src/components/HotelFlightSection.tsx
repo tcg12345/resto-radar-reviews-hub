@@ -669,17 +669,24 @@ export function HotelFlightSection({
                   Get Directions
                 </Button>
                  
-                {/* Show TripAdvisor website if available, otherwise fall back to original hotel website */}
-                {(hotelWebsite || selectedHotel.hotel.website) && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.open(hotelWebsite || selectedHotel.hotel.website, '_blank')}
-                  >
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Hotel Website
-                  </Button>
-                )}
+                {/* Hotel Website - prioritize TripAdvisor, then hotel data, or fallback to Google search */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const websiteUrl = hotelWebsite || selectedHotel.hotel.website;
+                    if (websiteUrl) {
+                      window.open(websiteUrl, '_blank');
+                    } else {
+                      // Fallback to Google search for hotel website
+                      const searchQuery = encodeURIComponent(`${selectedHotel.hotel.name} ${selectedHotel.hotel.address} official website`);
+                      window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+                    }
+                  }}
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  {hotelWebsite || selectedHotel.hotel.website ? 'Hotel Website' : 'Find Website'}
+                </Button>
                 
                 {selectedHotel.hotel.phone && (
                   <Button
