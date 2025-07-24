@@ -217,7 +217,7 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
   return (
     <>
       {/* Mobile Layout - Completely Redesigned */}
-      <div className="md:hidden min-h-screen bg-background pt-10">
+      <div className="md:hidden min-h-screen bg-background">
         {/* Mobile Header */}
         <div className="bg-background/95 backdrop-blur-sm px-4 py-4">
           <div className="flex items-center justify-between">
