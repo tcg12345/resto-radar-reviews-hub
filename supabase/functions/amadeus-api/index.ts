@@ -96,8 +96,18 @@ serve(async (req) => {
   try {
     console.log('Amadeus API function called')
     
-    const url = new URL(req.url);
-    const endpoint = url.pathname.split('/').pop();
+    // Parse request body to get endpoint type
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch (e) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON in request body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    const { endpoint } = requestBody;
     
     // Get access token
     const token = await getAmadeusToken();
@@ -105,15 +115,16 @@ serve(async (req) => {
 
     switch (endpoint) {
       case 'points-of-interest': {
-        if (req.method !== 'POST') {
+        const { latitude, longitude, radius, categories } = requestBody;
+        
+        if (!latitude || !longitude) {
           return new Response(
-            JSON.stringify({ error: 'Method not allowed' }),
-            { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            JSON.stringify({ error: 'Latitude and longitude are required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
 
-        const body: PointOfInterestRequest = await req.json();
-        const data = await getPointsOfInterest(token, body);
+        const data = await getPointsOfInterest(token, { latitude, longitude, radius, categories });
         
         return new Response(
           JSON.stringify(data),
@@ -125,17 +136,11 @@ serve(async (req) => {
       }
 
       case 'search-cities': {
-        if (req.method !== 'GET') {
-          return new Response(
-            JSON.stringify({ error: 'Method not allowed' }),
-            { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        const keyword = url.searchParams.get('keyword');
+        const { keyword } = requestBody;
+        
         if (!keyword) {
           return new Response(
-            JSON.stringify({ error: 'Keyword parameter is required' }),
+            JSON.stringify({ error: 'Keyword is required' }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
@@ -154,14 +159,14 @@ serve(async (req) => {
       default:
         return new Response(
           JSON.stringify({ 
-            error: 'Endpoint not found',
+            error: 'Invalid endpoint',
             available_endpoints: [
-              'POST /points-of-interest - Get restaurants and POIs near a location',
-              'GET /search-cities?keyword=query - Search for cities'
+              'points-of-interest - Get restaurants and POIs near a location',
+              'search-cities - Search for cities'
             ]
           }),
           { 
-            status: 404, 
+            status: 400, 
             headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
           }
         );
