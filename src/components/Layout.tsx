@@ -48,9 +48,9 @@ export function Layout({
   };
 
   return (
-    <div className={`flex min-h-screen flex-col bg-background mobile-viewport`}>
+    <div className="flex min-h-screen flex-col bg-background">
       {/* Mobile status bar spacer - creates blank space at top */}
-      <div className="lg:hidden h-[35px] bg-background"></div>
+      <div className="lg:hidden h-[35px] bg-gradient-to-b from-primary/5 to-transparent"></div>
       
       {showNavbar && (
         <Navbar 
@@ -59,8 +59,8 @@ export function Layout({
         />
       )}
       
-      <main className={`flex-1 pb-20 lg:pb-0 mobile-scroll`}>
-        <div className={`min-h-full lg:mobile-container`}>
+      <main className="flex-1 lg:pb-0">
+        <div className="min-h-full">
           {children}
         </div>
       </main>

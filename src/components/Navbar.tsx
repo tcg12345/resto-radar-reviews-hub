@@ -1,13 +1,7 @@
 
-import { useState } from 'react';
-import { MapPin, Star, Heart, Home, Search, Settings, Users, MessageCircle, Calendar } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { useTheme } from '@/hooks/useTheme';
-import { useAuth } from '@/contexts/AuthContext';
-import { GrubbyLogo } from '@/components/GrubbyLogo';
-import { NotificationsPanel } from '@/components/NotificationsPanel';
-import { useUnreadMessageCount } from '@/hooks/useUnreadMessageCount';
+import React from 'react';
+import { Home, Heart, Search, User, MapPin, Calendar, MessageCircle } from 'lucide-react';
+import { NotificationsPanel } from './NotificationsPanel';
 
 interface NavbarProps {
   activeTab: 'home' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'itinerary';
@@ -15,180 +9,130 @@ interface NavbarProps {
 }
 
 export function Navbar({ activeTab, onTabChange }: NavbarProps) {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const unreadMessageCount = useUnreadMessageCount();
-
-  const tabs = [
-    { id: 'home' as const, label: 'Home', icon: Home, shortLabel: 'Home' },
-    { id: 'search' as const, label: 'Search & Discover', icon: Search, shortLabel: 'Search' },
-    { id: 'rated' as const, label: 'My Ratings', icon: Star, shortLabel: 'Rated' },
-    { id: 'wishlist' as const, label: 'Wishlist', icon: Heart, shortLabel: 'Wishlist' },
-    { id: 'itinerary' as const, label: 'Itinerary', icon: Calendar, shortLabel: 'Itinerary' },
-    { id: 'friends' as const, label: 'Friends', icon: Users, shortLabel: 'Friends' },
+  const navItems = [
+    { 
+      id: 'home', 
+      icon: Home, 
+      label: 'Home',
+      gradient: 'from-blue-500 to-indigo-600'
+    },
+    { 
+      id: 'search', 
+      icon: Search, 
+      label: 'Search',
+      gradient: 'from-purple-500 to-pink-600'
+    },
+    { 
+      id: 'rated', 
+      icon: MapPin, 
+      label: 'Rated',
+      gradient: 'from-green-500 to-emerald-600'
+    },
+    { 
+      id: 'wishlist', 
+      icon: Heart, 
+      label: 'Wishlist',
+      gradient: 'from-red-500 to-rose-600'
+    },
+    { 
+      id: 'friends', 
+      icon: MessageCircle, 
+      label: 'Friends',
+      gradient: 'from-orange-500 to-amber-600'
+    },
   ];
 
   return (
     <>
-      {/* Desktop Navigation */}
-      <nav className="hidden lg:block sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center">
-          <div className="cursor-pointer mr-8" onClick={() => onTabChange('home')}>
-            <GrubbyLogo size="md" />
-          </div>
-
-          <div className="flex-1 flex justify-center">
-            <div className="flex items-center space-x-1 rounded-lg bg-muted/50 p-1">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <Button
-                    key={tab.id}
-                    variant={activeTab === tab.id ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => onTabChange(tab.id)}
-                    className={`relative px-4 py-2 transition-all duration-200 ${
-                      activeTab === tab.id 
-                        ? 'bg-primary text-primary-foreground shadow-sm' 
-                        : 'hover:bg-muted'
-                    }`}
-                  >
-                    <Icon className="mr-2 h-4 w-4" />
-                    {tab.label}
-                    {activeTab === tab.id && (
-                      <div className="absolute inset-x-0 -bottom-1 h-0.5 bg-primary-foreground/20 rounded-full" />
-                    )}
-                  </Button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            {user ? (
-              <>
-                <Button
-                  variant="ghost"
-                  size="lg"
-                  onClick={() => navigate('/chat-list')}
-                  className="h-12 w-12 relative"
-                  title="Messages"
-                >
-                  <MessageCircle className="h-6 w-6" />
-                  {unreadMessageCount > 0 && (
-                    <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-                      {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
-                    </span>
-                  )}
-                  <span className="sr-only">Messages</span>
-                </Button>
-                <NotificationsPanel />
-                <Button
-                  variant="ghost"
-                  size="lg"
-                  onClick={() => onTabChange('settings')}
-                  className="h-12 w-12"
-                >
-                  <Settings className="h-8 w-8" />
-                  <span className="sr-only">Settings</span>
-                </Button>
-              </>
-            ) : (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => navigate('/auth')}
-                className="flex items-center gap-2"
+      {/* Mobile Bottom Navigation */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-xl border-t border-border/50 z-50 pb-safe-area-inset-bottom">
+        <div className="flex items-center justify-around px-2 pt-2 pb-1">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            
+            return (
+              <button
+                key={item.id}
+                onClick={() => onTabChange(item.id as any)}
+                className={`relative flex flex-col items-center justify-center p-2 rounded-2xl transition-all duration-300 min-w-[60px] group ${
+                  isActive 
+                    ? 'bg-primary/10 scale-105' 
+                    : 'hover:bg-muted/50 active:scale-95'
+                }`}
               >
-                <Settings className="h-4 w-4" />
-                Sign In
-              </Button>
-            )}
-          </div>
-        </div>
-      </nav>
-
-      {/* Mobile Top Bar */}
-      <nav className="lg:hidden sticky top-0 z-50 w-full bg-background border-b border-border/50">
-        <div className="flex h-14 items-center justify-between px-4">
-          <div className="cursor-pointer" onClick={() => onTabChange('home')}>
-            <GrubbyLogo size="sm" />
-          </div>
-          
-          <div className="flex items-center space-x-3">
-            {user ? (
-              <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate('/chat-list')}
-                  className="h-9 w-9 relative mobile-tap-target rounded-full"
-                >
-                  <MessageCircle className="h-5 w-5" />
-                  {unreadMessageCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
-                      {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
-                    </span>
-                  )}
-                </Button>
-                <NotificationsPanel />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onTabChange('settings')}
-                  className="h-9 w-9 mobile-tap-target rounded-full"
-                >
-                  <Settings className="h-5 w-5" />
-                </Button>
-              </>
-            ) : (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => navigate('/auth')}
-                className="mobile-tap-target rounded-full px-4"
-              >
-                Sign In
-              </Button>
-            )}
-          </div>
-        </div>
-      </nav>
-
-      {/* Mobile Bottom Navigation - Much Larger and Touch-Friendly */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border/50">
-        <div className="pb-safe-area-bottom">
-          <div className="grid grid-cols-6 gap-0 p-2">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <Button
-                  key={tab.id}
-                  variant="ghost"
-                  size="lg"
-                  onClick={() => onTabChange(tab.id)}
-                  className={`relative flex flex-col items-center justify-center h-16 w-full mobile-tap-target transition-all duration-300 rounded-2xl ${
+                <div className={`relative mb-1 ${isActive ? 'animate-mobile-scale-in' : ''}`}>
+                  <div className={`p-2 rounded-xl transition-all duration-300 ${
                     isActive 
-                      ? 'text-primary bg-primary/15 shadow-sm' 
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
+                      ? `bg-gradient-to-br ${item.gradient} shadow-lg shadow-primary/25` 
+                      : 'bg-muted/30 group-hover:bg-muted/50'
+                  }`}>
+                    <Icon 
+                      className={`h-5 w-5 transition-colors duration-300 ${
+                        isActive ? 'text-white' : 'text-muted-foreground group-hover:text-foreground'
+                      }`}
+                    />
+                  </div>
+                  {isActive && (
+                    <div className="absolute -inset-1 bg-gradient-to-br from-primary/20 to-transparent rounded-xl blur-sm"></div>
+                  )}
+                </div>
+                <span className={`text-xs font-medium transition-colors duration-300 ${
+                  isActive ? 'text-primary' : 'text-muted-foreground'
+                }`}>
+                  {item.label}
+                </span>
+                {isActive && (
+                  <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-primary rounded-full animate-mobile-scale-in"></div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+
+      {/* Desktop Navigation */}
+      <nav className="hidden lg:flex items-center justify-between p-6 bg-card border-b border-border">
+        <div className="flex items-center space-x-8">
+          <div className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+            Grubby
+          </div>
+          <div className="flex items-center space-x-4">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onTabChange(item.id as any)}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-200 ${
+                    isActive 
+                      ? 'bg-primary text-primary-foreground shadow-lg' 
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                   }`}
                 >
-                  <Icon className={`h-6 w-6 mb-1 transition-all duration-300 ${
-                    isActive ? 'text-primary scale-110' : ''
-                  }`} />
-                  <span className={`text-xs font-medium leading-tight line-clamp-1 transition-all duration-300 ${
-                    isActive ? 'text-primary' : ''
-                  }`}>
-                    {tab.shortLabel}
-                  </span>
-                  {isActive && (
-                    <div className="absolute inset-x-3 top-1 h-1 bg-primary rounded-full" />
-                  )}
-                </Button>
+                  <Icon className="h-4 w-4" />
+                  <span className="font-medium">{item.label}</span>
+                </button>
               );
             })}
           </div>
+        </div>
+        
+        <div className="flex items-center space-x-4">
+          <NotificationsPanel />
+          <button
+            onClick={() => onTabChange('settings')}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-200 ${
+              activeTab === 'settings'
+                ? 'bg-primary text-primary-foreground shadow-lg' 
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+            }`}
+          >
+            <User className="h-4 w-4" />
+            <span className="font-medium">Profile</span>
+          </button>
         </div>
       </nav>
     </>
