@@ -26,7 +26,7 @@ import MapPageWrapper from "./pages/MapPageWrapper";
 import UnifiedSearchPage from "./pages/UnifiedSearchPage";
 import SettingsPageWrapper from "./pages/SettingsPageWrapper";
 import SearchTabsPage from "./pages/SearchTabsPage";
-import UserProfilePage from "./pages/UserProfilePage";
+import MobileFriendProfilePage from "./pages/mobile/MobileFriendProfilePage";
 import ItineraryPage from "./pages/ItineraryPage";
 
 
@@ -64,8 +64,8 @@ const App = () => (
                 <Route path="/friends" element={<RequireAuth><Layout activeTab="friends"><FriendsPage /></Layout></RequireAuth>} />
                 
                 {/* User profile routes */}
-                <Route path="/user/:userId" element={<RequireAuth><UserProfilePage /></RequireAuth>} />
-                <Route path="/profile/:userId" element={<RequireAuth><UserProfilePage /></RequireAuth>} />
+                <Route path="/user/:userId" element={<RequireAuth><MobileFriendProfilePage /></RequireAuth>} />
+                <Route path="/profile/:userId" element={<RequireAuth><MobileFriendProfilePage /></RequireAuth>} />
                 
                 {/* Legacy friends activity route - redirect to search/friends */}
                 <Route path="/friends-activity" element={<RequireAuth><Layout activeTab="search"><SearchTabsPage /></Layout></RequireAuth>} />
