@@ -94,10 +94,14 @@ export function WishlistPage({
       <div className="mb-3 lg:mb-6 flex flex-col items-start justify-between mobile-grid-compact lg:gap-4 sm:flex-row sm:items-center">
         <h2 className="hidden lg:block text-xl lg:text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mobile-truncate">Restaurant Wishlist</h2>
         <div className="flex items-center mobile-grid-compact">
+          <Button size="sm" onClick={() => setIsAddDialogOpen(true)} className="mobile-button">
+            <Plus className="mr-1 lg:mr-2 h-3 w-3 lg:h-4 lg:w-4" />
+            Add Restaurant
+          </Button>
           {onNavigateToMap && (
             <Button variant="outline" size="sm" onClick={onNavigateToMap} className="mobile-button">
               <MapPin className="h-3 w-3 lg:h-4 lg:w-4" />
-              <span className="hidden sm:inline ml-1">Map</span>
+              <span className="ml-1">Map</span>
             </Button>
           )}
           {onRefresh && (
@@ -105,11 +109,6 @@ export function WishlistPage({
               <RotateCcw className="h-3 w-3 lg:h-4 lg:w-4" />
             </Button>
           )}
-          <Button size="sm" onClick={() => setIsAddDialogOpen(true)} className="mobile-button">
-            <Plus className="mr-1 lg:mr-2 h-3 w-3 lg:h-4 lg:w-4" />
-            <span className="hidden sm:inline">Add Restaurant</span>
-            <span className="sm:hidden">Add Restaurant</span>
-          </Button>
         </div>
       </div>
 
