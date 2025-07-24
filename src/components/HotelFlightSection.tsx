@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Hotel, Plane, Plus, MapPin, ExternalLink, Phone, Navigation, Eye, Radar, Star, Camera } from 'lucide-react';
 import { RestaurantLocationMap } from '@/components/RestaurantLocationMap';
 import { useTripAdvisorApi } from '@/hooks/useTripAdvisorApi';
+import { PhotoGallery } from '@/components/PhotoGallery';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -76,6 +77,8 @@ export function HotelFlightSection({
   const [tripAdvisorReviews, setTripAdvisorReviews] = useState<any[]>([]);
   const [tripAdvisorLocationId, setTripAdvisorLocationId] = useState<string | null>(null);
   const [loadingTripAdvisorData, setLoadingTripAdvisorData] = useState(false);
+  const [isPhotoGalleryOpen, setIsPhotoGalleryOpen] = useState(false);
+  const [photoGalleryIndex, setPhotoGalleryIndex] = useState(0);
 
   const { searchLocations, getLocationPhotos, getLocationReviews } = useTripAdvisorApi();
 
@@ -167,6 +170,20 @@ export function HotelFlightSection({
 
   const getFlightTrackingUrl = (airline: string, flightNumber: string) => {
     return `https://www.flightradar24.com/data/flights/${airline}${flightNumber}`;
+  };
+
+  const handlePhotoClick = (index: number) => {
+    setPhotoGalleryIndex(index);
+    setIsPhotoGalleryOpen(true);
+  };
+
+  const getPhotoUrls = () => {
+    return tripAdvisorPhotos.map(photo => 
+      photo.images?.large?.url || 
+      photo.images?.medium?.url || 
+      photo.images?.small?.url || 
+      photo.images?.thumbnail?.url
+    ).filter(Boolean);
   };
 
   return (
@@ -547,12 +564,7 @@ export function HotelFlightSection({
                       <div 
                         key={photo.id || index} 
                         className="relative aspect-video rounded-lg overflow-hidden bg-muted cursor-pointer group"
-                        onClick={() => {
-                          const imageUrl = photo.images?.large?.url || photo.images?.medium?.url || photo.images?.small?.url;
-                          if (imageUrl) {
-                            window.open(imageUrl, '_blank');
-                          }
-                        }}
+                         onClick={() => handlePhotoClick(index)}
                       >
                         <img
                           src={photo.images?.medium?.url || photo.images?.small?.url || photo.images?.thumbnail?.url}
@@ -775,6 +787,15 @@ export function HotelFlightSection({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Photo Gallery Modal */}
+      <PhotoGallery
+        photos={getPhotoUrls()}
+        initialIndex={photoGalleryIndex}
+        isOpen={isPhotoGalleryOpen}
+        onClose={() => setIsPhotoGalleryOpen(false)}
+        restaurantName={selectedHotel?.hotel.name}
+      />
     </div>
   );
 }
