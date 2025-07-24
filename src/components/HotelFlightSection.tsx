@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { Hotel, Plane, Plus, MapPin, ExternalLink, Phone, Navigation, Eye, Radar } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Hotel, Plane, Plus, MapPin, ExternalLink, Phone, Navigation, Eye, Radar, Star, Camera } from 'lucide-react';
 import { RestaurantLocationMap } from '@/components/RestaurantLocationMap';
+import { useTripAdvisorApi } from '@/hooks/useTripAdvisorApi';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -71,6 +72,12 @@ export function HotelFlightSection({
   const [selectedFlight, setSelectedFlight] = useState<FlightBooking | null>(null);
   const [isHotelDetailsOpen, setIsHotelDetailsOpen] = useState(false);
   const [isFlightDetailsOpen, setIsFlightDetailsOpen] = useState(false);
+  const [tripAdvisorPhotos, setTripAdvisorPhotos] = useState<any[]>([]);
+  const [tripAdvisorReviews, setTripAdvisorReviews] = useState<any[]>([]);
+  const [tripAdvisorLocationId, setTripAdvisorLocationId] = useState<string | null>(null);
+  const [loadingTripAdvisorData, setLoadingTripAdvisorData] = useState(false);
+
+  const { searchLocations, getLocationPhotos, getLocationReviews } = useTripAdvisorApi();
 
   const handleHotelSelect = (hotel: HotelType, location?: string, checkIn?: Date, checkOut?: Date) => {
     onAddHotel(hotel, location, checkIn, checkOut);
@@ -111,11 +118,43 @@ export function HotelFlightSection({
   const handleHotelCardClick = (booking: HotelBooking) => {
     setSelectedHotel(booking);
     setIsHotelDetailsOpen(true);
+    loadTripAdvisorData(booking.hotel.name, booking.hotel.address);
   };
 
   const handleFlightCardClick = (flight: FlightBooking) => {
     setSelectedFlight(flight);
     setIsFlightDetailsOpen(true);
+  };
+
+  const loadTripAdvisorData = async (hotelName: string, hotelAddress: string) => {
+    setLoadingTripAdvisorData(true);
+    setTripAdvisorPhotos([]);
+    setTripAdvisorReviews([]);
+    setTripAdvisorLocationId(null);
+
+    try {
+      // Search for the hotel on TripAdvisor
+      const searchQuery = `${hotelName} ${hotelAddress}`;
+      const locations = await searchLocations(searchQuery);
+      
+      if (locations && locations.length > 0) {
+        const location = locations[0]; // Use the first match
+        setTripAdvisorLocationId(location.location_id);
+        
+        // Load photos and reviews in parallel
+        const [photos, reviews] = await Promise.all([
+          getLocationPhotos(location.location_id, 15),
+          getLocationReviews(location.location_id, 5)
+        ]);
+        
+        setTripAdvisorPhotos(photos || []);
+        setTripAdvisorReviews(reviews || []);
+      }
+    } catch (error) {
+      console.error('Error loading TripAdvisor data:', error);
+    } finally {
+      setLoadingTripAdvisorData(false);
+    }
   };
 
   const getDirectionsUrl = (address: string) => {
@@ -496,6 +535,78 @@ export function HotelFlightSection({
                 </div>
               )}
 
+              {/* TripAdvisor Photos */}
+              {tripAdvisorPhotos.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Camera className="w-4 h-4 text-blue-600" />
+                    <h4 className="font-medium text-sm">Photos from TripAdvisor</h4>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
+                    {tripAdvisorPhotos.slice(0, 6).map((photo, index) => (
+                      <div key={photo.id || index} className="relative aspect-video rounded-lg overflow-hidden bg-muted">
+                        <img
+                          src={photo.images?.medium?.url || photo.images?.small?.url || photo.images?.thumbnail?.url}
+                          alt={photo.caption || 'Hotel photo'}
+                          className="w-full h-full object-cover transition-transform hover:scale-105"
+                          loading="lazy"
+                        />
+                        {photo.caption && (
+                          <div className="absolute inset-x-0 bottom-0 bg-black/60 text-white p-1">
+                            <p className="text-xs truncate">{photo.caption}</p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* TripAdvisor Reviews */}
+              {tripAdvisorReviews.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Star className="w-4 h-4 text-yellow-500" />
+                    <h4 className="font-medium text-sm">Reviews from TripAdvisor</h4>
+                  </div>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {tripAdvisorReviews.slice(0, 2).map((review, index) => (
+                      <div key={review.id || index} className="p-2 bg-muted/50 rounded-lg">
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-1">
+                            <div className="flex items-center">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-3 h-3 ${
+                                    i < review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-xs font-medium">{review.user?.username}</span>
+                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(review.published_date).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground line-clamp-2">{review.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Loading state for TripAdvisor data */}
+              {loadingTripAdvisorData && (
+                <div className="flex items-center justify-center py-2">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    Loading TripAdvisor content...
+                  </div>
+                </div>
+              )}
+
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-2">
                 <Button
@@ -535,6 +646,17 @@ export function HotelFlightSection({
                     onClick={() => window.open(selectedHotel.hotel.bookingUrl, '_blank')}
                   >
                     Book Now
+                  </Button>
+                )}
+
+                {tripAdvisorLocationId && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open(`https://www.tripadvisor.com/Hotel_Review-g${tripAdvisorLocationId}`, '_blank')}
+                  >
+                    <ExternalLink className="w-4 h-4 mr-1" />
+                    TripAdvisor
                   </Button>
                 )}
               </div>
