@@ -649,8 +649,21 @@ export default function UnifiedSearchPage() {
                   <CardContent className="p-3">
                     <div className="flex justify-between items-center">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="mb-1">
                           <h3 className="font-semibold text-sm truncate">{place.name}</h3>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {place.rating && (
+                            <div className="flex items-center gap-1">
+                              <span className="text-yellow-500 text-sm">★</span>
+                              <span className="text-xs font-medium">{place.rating}</span>
+                            </div>
+                          )}
+                          {place.price_level && (
+                            <span className="text-xs text-green-600 font-medium">
+                              {getPriceDisplay(place.price_level)}
+                            </span>
+                          )}
                           <span className="text-xs text-muted-foreground truncate">
                             {(() => {
                               const parts = place.formatted_address?.split(', ') || [];
@@ -673,19 +686,6 @@ export default function UnifiedSearchPage() {
                               return parts[0] || '';
                             })()}
                           </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {place.rating && (
-                            <div className="flex items-center gap-1">
-                              <span className="text-yellow-500 text-sm">★</span>
-                              <span className="text-xs font-medium">{place.rating}</span>
-                            </div>
-                          )}
-                          {place.price_level && (
-                            <span className="text-xs text-green-600 font-medium">
-                              {getPriceDisplay(place.price_level)}
-                            </span>
-                          )}
                         </div>
                       </div>
                       <Button 
