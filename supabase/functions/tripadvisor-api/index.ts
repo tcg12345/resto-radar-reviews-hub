@@ -113,7 +113,7 @@ serve(async (req) => {
   }
 
   try {
-    const { action, query, locationId, limit = 10 } = await req.json();
+    const { action, query, locationId, limit = 10, checkIn, checkOut, guests = 2 } = await req.json();
     const apiKey = Deno.env.get('TRIPADVISOR_API_KEY');
 
     if (!apiKey) {
@@ -223,8 +223,6 @@ serve(async (req) => {
           );
         }
         
-        const bookingParams = await req.json();
-        const { checkIn, checkOut, guests = 2 } = bookingParams;
         
         if (!checkIn || !checkOut) {
           return new Response(
