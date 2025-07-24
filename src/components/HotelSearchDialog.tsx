@@ -9,7 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { useAmadeusApi } from '@/hooks/useAmadeusApi';
+import { useGooglePlacesHotelSearch } from '@/hooks/useGooglePlacesHotelSearch';
 import { AmadeusCitySearch } from '@/components/AmadeusCitySearch';
 
 import { toast } from 'sonner';
@@ -53,12 +53,10 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, selectedDate }: H
   const [priceRange, setPriceRange] = useState('');
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const { searchHotels } = useAmadeusApi();
+  const { searchHotels } = useGooglePlacesHotelSearch();
 
   const handleSearch = async () => {
-    const locationCode = location;
-    
-    if (!locationCode || !checkInDate || !checkOutDate) {
+    if (!location || !checkInDate || !checkOutDate) {
       toast.error('Please enter location, check-in and check-out dates');
       return;
     }
@@ -71,7 +69,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, selectedDate }: H
     setIsSearching(true);
     try {
       const searchParams = {
-        location: locationCode,
+        location: selectedCity?.description || location,
         checkInDate,
         checkOutDate,
         guests: parseInt(guests),
