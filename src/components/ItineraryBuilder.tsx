@@ -391,7 +391,7 @@ export function ItineraryBuilder() {
 
             {/* Create itinerary button */}
             {canCreateItinerary && (
-              <div className="text-center pt-4">
+              <div className="flex justify-center pt-4">
                 <Button 
                   onClick={isMultiCity ? () => {
                     createMultiCityItinerary();
