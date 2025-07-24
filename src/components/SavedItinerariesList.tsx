@@ -69,8 +69,6 @@ ${itinerary.events.map(event => `
 ${event.date} ${event.time} - ${event.title}
 ${event.description || ''}
 ${event.type === 'restaurant' && event.restaurantData ? `📍 ${event.restaurantData.address}` : ''}
-${event.type === 'flight' && event.flightData ? `✈️ ${event.flightData.departure.airport} → ${event.flightData.arrival.airport}` : ''}
-${event.type === 'hotel' && event.hotelData ? `🏨 ${event.hotelData.name}, ${event.hotelData.address}` : ''}
 `).join('\n')}
     `.trim();
 
