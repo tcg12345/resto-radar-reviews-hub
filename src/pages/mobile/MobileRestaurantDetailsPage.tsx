@@ -213,15 +213,7 @@ export default function MobileRestaurantDetailsPage() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                // Try to go back in history, but fallback to a safe route if no history
-                if (window.history.length > 1) {
-                  navigate(-1);
-                } else {
-                  // Fallback to friends page since this is likely where they came from
-                  navigate('/friends');
-                }
-              }}
+              onClick={() => navigate(-1)}
               className="h-8 w-8 p-0"
             >
               <ArrowLeft className="h-4 w-4" />
