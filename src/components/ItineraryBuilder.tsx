@@ -19,13 +19,29 @@ export interface ItineraryEvent {
   description?: string;
   time: string;
   date: string;
-  type: 'restaurant' | 'activity' | 'other';
+  type: 'restaurant' | 'activity' | 'flight' | 'other';
   restaurantData?: {
     name: string;
     address: string;
     placeId?: string;
     phone?: string;
     website?: string;
+  };
+  flightData?: {
+    flightNumber: string;
+    airline: string;
+    departure: {
+      airport: string;
+      time: string;
+      date: string;
+    };
+    arrival: {
+      airport: string;
+      time: string;
+      date: string;
+    };
+    duration?: string;
+    price?: string;
   };
 }
 

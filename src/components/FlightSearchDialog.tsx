@@ -1,0 +1,216 @@
+import { useState } from 'react';
+import { format, parseISO } from 'date-fns';
+import { Search, Plane, Clock, MapPin } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { useAmadeusApi } from '@/hooks/useAmadeusApi';
+import { toast } from 'sonner';
+
+interface FlightSearchDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSelect: (flight: any) => void;
+  selectedDate: string | null;
+}
+
+interface Flight {
+  id: string;
+  flightNumber: string;
+  airline: string;
+  departure: {
+    airport: string;
+    time: string;
+    date: string;
+  };
+  arrival: {
+    airport: string;
+    time: string;
+    date: string;
+  };
+  duration?: string;
+  price?: string;
+}
+
+export function FlightSearchDialog({ isOpen, onClose, onSelect, selectedDate }: FlightSearchDialogProps) {
+  const [departureAirport, setDepartureAirport] = useState('');
+  const [arrivalAirport, setArrivalAirport] = useState('');
+  const [flightNumber, setFlightNumber] = useState('');
+  const [airline, setAirline] = useState('');
+  const [flights, setFlights] = useState<Flight[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const { searchFlights } = useAmadeusApi();
+
+  const handleSearch = async () => {
+    if (!departureAirport || !arrivalAirport || !selectedDate) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const searchParams = {
+        origin: departureAirport.toUpperCase(),
+        destination: arrivalAirport.toUpperCase(),
+        departureDate: selectedDate,
+        flightNumber: flightNumber || undefined,
+        airline: airline || undefined,
+      };
+
+      const results = await searchFlights(searchParams);
+      setFlights(results);
+
+      if (results.length === 0) {
+        toast.info('No flights found for the specified criteria');
+      }
+    } catch (error) {
+      console.error('Error searching flights:', error);
+      toast.error('Failed to search flights. Please try again.');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleFlightSelect = (flight: Flight) => {
+    onSelect({
+      flightNumber: flight.flightNumber,
+      airline: flight.airline,
+      departure: flight.departure,
+      arrival: flight.arrival,
+      duration: flight.duration,
+      price: flight.price,
+    });
+    onClose();
+  };
+
+  const handleClose = () => {
+    setDepartureAirport('');
+    setArrivalAirport('');
+    setFlightNumber('');
+    setAirline('');
+    setFlights([]);
+    onClose();
+  };
+
+  const formattedDate = selectedDate ? format(parseISO(selectedDate), 'EEEE, MMMM do') : '';
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Plane className="w-5 h-5" />
+            Search Flights
+          </DialogTitle>
+          <DialogDescription>
+            {formattedDate && `Search flights for ${formattedDate}`}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-6">
+          {/* Search Form */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="departure">Departure Airport *</Label>
+              <Input
+                id="departure"
+                value={departureAirport}
+                onChange={(e) => setDepartureAirport(e.target.value)}
+                placeholder="e.g., JFK, LAX"
+                className="uppercase"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="arrival">Arrival Airport *</Label>
+              <Input
+                id="arrival"
+                value={arrivalAirport}
+                onChange={(e) => setArrivalAirport(e.target.value)}
+                placeholder="e.g., LHR, CDG"
+                className="uppercase"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="flightNumber">Flight Number (Optional)</Label>
+              <Input
+                id="flightNumber"
+                value={flightNumber}
+                onChange={(e) => setFlightNumber(e.target.value)}
+                placeholder="e.g., AA123, BA456"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="airline">Airline (Optional)</Label>
+              <Input
+                id="airline"
+                value={airline}
+                onChange={(e) => setAirline(e.target.value)}
+                placeholder="e.g., American, British Airways"
+              />
+            </div>
+          </div>
+
+          <Button
+            onClick={handleSearch}
+            disabled={isSearching || !departureAirport || !arrivalAirport}
+            className="w-full flex items-center gap-2"
+          >
+            <Search className="w-4 h-4" />
+            {isSearching ? 'Searching...' : 'Search Flights'}
+          </Button>
+
+          {/* Search Results */}
+          {flights.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Available Flights</h3>
+              <div className="space-y-3 max-h-60 overflow-y-auto">
+                {flights.map((flight) => (
+                  <Card key={flight.id} className="cursor-pointer hover:bg-accent/50 transition-colors">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <CardTitle className="text-base flex items-center gap-2">
+                            {flight.airline} {flight.flightNumber}
+                            <Badge variant="outline">{flight.duration}</Badge>
+                          </CardTitle>
+                          <CardDescription className="flex items-center gap-4">
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              {flight.departure.airport} → {flight.arrival.airport}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {flight.departure.time} - {flight.arrival.time}
+                            </span>
+                          </CardDescription>
+                        </div>
+                        {flight.price && (
+                          <Badge variant="secondary">{flight.price}</Badge>
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <Button
+                        size="sm"
+                        onClick={() => handleFlightSelect(flight)}
+                        className="w-full"
+                      >
+                        Select Flight
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

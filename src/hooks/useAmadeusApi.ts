@@ -44,32 +44,50 @@ export interface AmadeusCity {
   };
 }
 
+export interface FlightSearchParams {
+  origin: string;
+  destination: string;
+  departureDate: string;
+  flightNumber?: string;
+  airline?: string;
+}
+
+export interface FlightOffer {
+  id: string;
+  flightNumber: string;
+  airline: string;
+  departure: {
+    airport: string;
+    time: string;
+    date: string;
+  };
+  arrival: {
+    airport: string;
+    time: string;
+    date: string;
+  };
+  duration?: string;
+  price?: string;
+}
+
 export const useAmadeusApi = () => {
-  const getPointsOfInterest = async (
-    latitude: number,
-    longitude: number,
-    radius: number = 5,
-    categories: string[] = ['RESTAURANT']
-  ): Promise<PointOfInterest[]> => {
+  const searchFlights = async (params: FlightSearchParams): Promise<FlightOffer[]> => {
     try {
       const { data, error } = await supabase.functions.invoke('amadeus-api', {
         body: {
-          endpoint: 'points-of-interest',
-          latitude,
-          longitude,
-          radius,
-          categories
+          endpoint: 'search-flights',
+          ...params
         }
       });
 
       if (error) {
-        console.error('Error fetching points of interest:', error);
+        console.error('Error searching flights:', error);
         throw error;
       }
 
       return data?.data || [];
     } catch (error) {
-      console.error('Failed to fetch points of interest:', error);
+      console.error('Failed to search flights:', error);
       throw error;
     }
   };
@@ -96,7 +114,7 @@ export const useAmadeusApi = () => {
   };
 
   return {
-    getPointsOfInterest,
+    searchFlights,
     searchCities
   };
 };

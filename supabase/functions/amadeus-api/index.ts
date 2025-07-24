@@ -18,6 +18,14 @@ interface PointOfInterestRequest {
   categories?: string[];
 }
 
+interface FlightSearchRequest {
+  origin: string;
+  destination: string;
+  departureDate: string;
+  flightNumber?: string;
+  airline?: string;
+}
+
 // Get Amadeus access token
 async function getAmadeusToken(): Promise<string> {
   const apiKey = Deno.env.get('AMADEUS_API_KEY');
@@ -89,6 +97,77 @@ async function getPointsOfInterest(token: string, params: PointOfInterestRequest
   return data;
 }
 
+// Search flights using Amadeus API
+async function searchFlights(token: string, params: FlightSearchRequest) {
+  console.log('✈️ Searching flights with params:', params);
+  
+  // For demo purposes, return mock flight data
+  // In production, you would call the actual Amadeus Flight Offers Search API
+  const mockFlights = [
+    {
+      id: '1',
+      flightNumber: `${params.airline || 'AA'}123`,
+      airline: params.airline || 'American Airlines',
+      departure: {
+        airport: params.origin,
+        time: '08:00',
+        date: params.departureDate
+      },
+      arrival: {
+        airport: params.destination,
+        time: '14:30',
+        date: params.departureDate
+      },
+      duration: '6h 30m',
+      price: '$299'
+    },
+    {
+      id: '2',
+      flightNumber: `${params.airline || 'UA'}456`,
+      airline: params.airline || 'United Airlines',
+      departure: {
+        airport: params.origin,
+        time: '12:15',
+        date: params.departureDate
+      },
+      arrival: {
+        airport: params.destination,
+        time: '18:45',
+        date: params.departureDate
+      },
+      duration: '6h 30m',
+      price: '$325'
+    },
+    {
+      id: '3',
+      flightNumber: `${params.airline || 'DL'}789`,
+      airline: params.airline || 'Delta Airlines',
+      departure: {
+        airport: params.origin,
+        time: '16:20',
+        date: params.departureDate
+      },
+      arrival: {
+        airport: params.destination,
+        time: '22:50',
+        date: params.departureDate
+      },
+      duration: '6h 30m',
+      price: '$280'
+    }
+  ];
+
+  // Filter by flight number if provided
+  const filteredFlights = params.flightNumber 
+    ? mockFlights.filter(flight => 
+        flight.flightNumber.toLowerCase().includes(params.flightNumber!.toLowerCase())
+      )
+    : mockFlights;
+
+  console.log('✅ Flight search successful:', filteredFlights.length, 'flights found');
+  return { data: filteredFlights };
+}
+
 // Search for cities (for location autocomplete)
 async function searchCities(token: string, keyword: string) {
   const url = new URL('https://test.api.amadeus.com/v1/reference-data/locations/cities');
@@ -138,17 +217,17 @@ serve(async (req) => {
     console.log('Successfully obtained Amadeus access token')
 
     switch (endpoint) {
-      case 'points-of-interest': {
-        const { latitude, longitude, radius, categories } = requestBody;
+      case 'search-flights': {
+        const { origin, destination, departureDate, flightNumber, airline } = requestBody;
         
-        if (!latitude || !longitude) {
+        if (!origin || !destination || !departureDate) {
           return new Response(
-            JSON.stringify({ error: 'Latitude and longitude are required' }),
+            JSON.stringify({ error: 'Origin, destination, and departure date are required' }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
 
-        const data = await getPointsOfInterest(token, { latitude, longitude, radius, categories });
+        const data = await searchFlights(token, { origin, destination, departureDate, flightNumber, airline });
         
         return new Response(
           JSON.stringify(data),
@@ -185,7 +264,7 @@ serve(async (req) => {
           JSON.stringify({ 
             error: 'Invalid endpoint',
             available_endpoints: [
-              'points-of-interest - Get restaurants and POIs near a location',
+              'search-flights - Search for flights between airports',
               'search-cities - Search for cities'
             ]
           }),
