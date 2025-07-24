@@ -105,9 +105,9 @@ export function AmadeusCitySearch({
             <div
               key={location.place_id}
               onClick={() => handleLocationSelect(location)}
-              className="px-4 py-2 hover:bg-accent cursor-pointer border-b border-border last:border-b-0"
+              className="px-4 py-2 hover:bg-accent hover:text-accent-foreground cursor-pointer border-b border-border last:border-b-0"
             >
-              <div className="font-medium">
+              <div className="font-medium text-foreground">
                 {location.main_text}
               </div>
               <div className="text-sm text-muted-foreground">

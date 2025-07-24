@@ -140,11 +140,12 @@ export function ItineraryBuilder() {
   };
 
   const handleLocationSelect = (location: LocationSuggestion) => {
+    const secondaryText = location.secondary_text || '';
     const newLocation: TripLocation = {
       id: location.place_id,
       name: location.main_text,
-      country: location.secondary_text.split(',').pop()?.trim() || '',
-      state: location.secondary_text.split(',')[0]?.trim(),
+      country: secondaryText.split(',').pop()?.trim() || '',
+      state: secondaryText.split(',')[0]?.trim(),
     };
 
     if (!isMultiCity) {
