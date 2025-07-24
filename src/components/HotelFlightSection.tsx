@@ -19,8 +19,8 @@ interface TripLocation {
 interface HotelBooking {
   id: string;
   hotel: HotelType;
-  checkIn?: Date;
-  checkOut?: Date;
+  checkIn?: Date | string;
+  checkOut?: Date | string;
   location?: string;
 }
 
@@ -75,13 +75,29 @@ export function HotelFlightSection({
   };
 
   // Helper function to safely format dates
-  const formatDate = (date: Date | string | undefined) => {
+  const formatDate = (date: Date | string | undefined | null) => {
     if (!date) return '';
     try {
-      const dateObj = typeof date === 'string' ? new Date(date) : date;
+      let dateObj: Date;
+      
+      if (typeof date === 'string') {
+        // Handle various string formats
+        dateObj = new Date(date);
+      } else if (date instanceof Date) {
+        dateObj = date;
+      } else {
+        return '';
+      }
+      
+      // Check if the date is valid
+      if (isNaN(dateObj.getTime())) {
+        console.error('Invalid date:', date);
+        return '';
+      }
+      
       return dateObj.toLocaleDateString();
     } catch (error) {
-      console.error('Error formatting date:', error);
+      console.error('Error formatting date:', error, 'Original date:', date);
       return '';
     }
   };
