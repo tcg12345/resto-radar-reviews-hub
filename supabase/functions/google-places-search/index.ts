@@ -13,6 +13,7 @@ interface SearchRequest {
   radius?: number;
   type?: 'search' | 'details' | 'nearby';
   placeId?: string;
+  searchType?: 'restaurant' | 'lodging'; // Add this to specify what type of place to search for
 }
 
 interface PlaceDetails {
@@ -60,7 +61,7 @@ serve(async (req) => {
       throw new Error('Google Places API key not configured');
     }
 
-    const { query, location, radius = 50000, type = 'search', placeId }: SearchRequest = await req.json();
+    const { query, location, radius = 50000, type = 'search', placeId, searchType = 'restaurant' }: SearchRequest = await req.json();
 
     let url: string;
     let params: URLSearchParams;
@@ -70,7 +71,7 @@ serve(async (req) => {
         url = 'https://maps.googleapis.com/maps/api/place/textsearch/json';
         params = new URLSearchParams({
           query: query,
-          type: 'restaurant',
+          type: searchType, // Use the dynamic searchType instead of hardcoded 'restaurant'
           key: apiKey,
         });
         if (location) {
@@ -102,7 +103,7 @@ serve(async (req) => {
         params = new URLSearchParams({
           location: location,
           radius: radius.toString(),
-          type: 'restaurant',
+          type: searchType, // Use the dynamic searchType instead of hardcoded 'restaurant'
           key: apiKey,
         });
         break;

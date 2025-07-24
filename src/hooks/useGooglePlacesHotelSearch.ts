@@ -34,7 +34,8 @@ export const useGooglePlacesHotelSearch = () => {
           query: searchQuery,
           location: params.location,
           radius: 50000,
-          type: 'search'
+          type: 'search',
+          searchType: 'lodging' // Specify we're searching for hotels/lodging
         }
       });
 
