@@ -59,10 +59,11 @@ interface FlightSearchRequest {
 function getFlightAPIKey(): string {
   const apiKey = Deno.env.get('FLIGHTAPI_IO_API_KEY');
   
-  console.log('FlightAPI.io API Key exists:', !!apiKey);
+  console.log('🔑 FlightAPI.io API Key exists:', !!apiKey);
+  console.log('🔑 API Key length:', apiKey ? apiKey.length : 0);
   
   if (!apiKey) {
-    console.error('Missing FlightAPI.io API key');
+    console.error('❌ Missing FlightAPI.io API key');
     throw new Error('FlightAPI.io API key not configured');
   }
 
@@ -116,126 +117,158 @@ async function searchAirportsAndCities(keyword: string) {
 
 // Search flights using FlightAPI.io
 async function searchFlights(apiKey: string, params: FlightSearchRequest) {
-  console.log('✈️ Searching flights with FlightAPI.io params:', params);
+  console.log('✈️ Starting flight search with FlightAPI.io');
+  console.log('📊 Search params:', JSON.stringify(params, null, 2));
+  
+  // Validate parameters
+  if (!params.origin || !params.destination || !params.departureDate) {
+    console.error('❌ Missing required parameters:', { 
+      origin: !!params.origin, 
+      destination: !!params.destination, 
+      departureDate: !!params.departureDate 
+    });
+    throw new Error('Missing required search parameters');
+  }
   
   // FlightAPI.io URL structure: 
   // /onewaytrip/{api-key}/{departure_code}/{arrival_code}/{departure_date}/{adults}/{children}/{infants}/{cabin_class}/{currency}
   const url = `https://api.flightapi.io/onewaytrip/${apiKey}/${params.origin}/${params.destination}/${params.departureDate}/1/0/0/Economy/USD`;
   
-  console.log('FlightAPI.io request URL:', url.replace(apiKey, '[API_KEY]'));
+  console.log('🌐 FlightAPI.io request URL:', url.replace(apiKey, '[API_KEY]'));
   
-  const response = await fetch(url);
-  console.log('FlightAPI.io response status:', response.status);
+  try {
+    console.log('📡 Making API request to FlightAPI.io...');
+    const response = await fetch(url);
+    console.log('📨 Response received - Status:', response.status);
+    console.log('📨 Response headers:', JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2));
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('FlightAPI.io request failed:', response.status, errorText);
-    
-    if (response.status === 404 || response.status === 410) {
-      console.log('No flights found for this route/date');
-      return { data: [] };
-    }
-    
-    if (response.status === 429) {
-      console.error('❌ FlightAPI.io: Rate limit exceeded');
-    }
-    
-    throw new Error(`FlightAPI.io API error: ${response.status} - ${errorText}`);
-  }
-
-  const data: FlightAPIResponse = await response.json();
-  console.log('FlightAPI.io data received');
-  console.log('Itineraries:', data.itineraries?.length || 0);
-  console.log('Legs:', data.legs?.length || 0);
-  console.log('Carriers:', data.carriers?.length || 0);
-  
-  if (!data.itineraries || data.itineraries.length === 0) {
-    console.log('No flight itineraries found');
-    return { data: [] };
-  }
-  
-  // Create lookup maps for efficient data access
-  const placesMap = new Map(data.places?.map(p => [p.id, p]) || []);
-  const carriersMap = new Map(data.carriers?.map(c => [c.id, c]) || []);
-  const legsMap = new Map(data.legs?.map(l => [l.id, l]) || []);
-  const segmentsMap = new Map(data.segments?.map(s => [s.id, s]) || []);
-  
-  // Transform FlightAPI.io data to our format
-  const transformedFlights = data.itineraries
-    .map((itinerary, index) => {
-      if (!itinerary.leg_ids || itinerary.leg_ids.length === 0) return null;
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ FlightAPI.io request failed');
+      console.error('❌ Status:', response.status);
+      console.error('❌ Error response body:', errorText);
       
-      const legId = itinerary.leg_ids[0]; // First leg for one-way trip
-      const leg = legsMap.get(legId);
-      
-      if (!leg) return null;
-      
-      const originPlace = placesMap.get(leg.origin_place_id);
-      const destPlace = placesMap.get(leg.destination_place_id);
-      const carrier = carriersMap.get(leg.marketing_carrier_ids[0]);
-      
-      // Get segment for flight number
-      const segment = Array.from(segmentsMap.values()).find(s => 
-        s.marketing_carrier_id === leg.marketing_carrier_ids[0]
-      );
-      
-      // Apply airline filter
-      if (params.airline) {
-        const airlineMatch = carrier?.name.toLowerCase().includes(params.airline.toLowerCase()) ||
-                           carrier?.iata_code.toLowerCase() === params.airline.toLowerCase();
-        if (!airlineMatch) return null;
+      if (response.status === 404 || response.status === 410) {
+        console.log('ℹ️ No flights found for this route/date - returning empty results');
+        return { data: [] };
       }
       
-      // Apply flight type filter
-      if (params.flightType === 'nonstop' && leg.stop_count > 0) return null;
-      if (params.flightType === 'onestop' && leg.stop_count !== 1) return null;
+      if (response.status === 429) {
+        console.error('❌ FlightAPI.io: Rate limit exceeded');
+        throw new Error('Rate limit exceeded - please try again later');
+      }
       
-      // Format times
-      const depTime = new Date(leg.departure).toLocaleTimeString('en-US', { 
-        hour12: false, 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      });
-      const arrTime = new Date(leg.arrival).toLocaleTimeString('en-US', { 
-        hour12: false, 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      });
+      if (response.status === 401) {
+        console.error('❌ FlightAPI.io: Unauthorized - check API key');
+        throw new Error('Invalid API key - please check your FlightAPI.io credentials');
+      }
       
-      // Format duration
-      const durationHours = Math.floor(leg.duration / 60);
-      const durationMinutes = leg.duration % 60;
-      const durationString = `${durationHours}h ${durationMinutes}m`;
-      
-      // Get price from pricing options
-      const price = itinerary.pricing_options[0]?.price?.amount || 0;
-      const bookingUrl = itinerary.pricing_options[0]?.items[0]?.url || '';
-      
-      return {
-        id: itinerary.id,
-        flightNumber: segment?.marketing_flight_number || `${carrier?.iata_code || 'XX'}000`,
-        airline: carrier?.name || 'Unknown Airline',
-        departure: {
-          airport: originPlace?.iata_code || params.origin,
-          time: depTime,
-          date: params.departureDate
-        },
-        arrival: {
-          airport: destPlace?.iata_code || params.destination,
-          time: arrTime,
-          date: new Date(leg.arrival).toISOString().split('T')[0]
-        },
-        duration: durationString,
-        price: price > 0 ? `$${Math.round(price)}` : 'Price on request',
-        stops: leg.stop_count,
-        stopLocations: [], // FlightAPI.io doesn't provide stop details in this response
-        bookingUrl: bookingUrl
-      };
-    })
-    .filter(Boolean); // Remove null entries
-  
-  console.log('✅ FlightAPI.io search successful:', transformedFlights.length, 'flights found');
-  return { data: transformedFlights };
+      throw new Error(`FlightAPI.io API error: ${response.status} - ${errorText}`);
+    }
+
+    console.log('✅ Response OK, parsing JSON...');
+    const data: FlightAPIResponse = await response.json();
+    console.log('📊 FlightAPI.io data received successfully');
+    console.log('📊 Response data structure:', {
+      itineraries: data.itineraries?.length || 0,
+      legs: data.legs?.length || 0,
+      carriers: data.carriers?.length || 0,
+      places: data.places?.length || 0,
+      segments: data.segments?.length || 0
+    });
+    
+    if (!data.itineraries || data.itineraries.length === 0) {
+      console.log('ℹ️ No flight itineraries found in response');
+      return { data: [] };
+    }
+
+    // Create lookup maps for efficient data access
+    const placesMap = new Map(data.places?.map(p => [p.id, p]) || []);
+    const carriersMap = new Map(data.carriers?.map(c => [c.id, c]) || []);
+    const legsMap = new Map(data.legs?.map(l => [l.id, l]) || []);
+    const segmentsMap = new Map(data.segments?.map(s => [s.id, s]) || []);
+    
+    // Transform FlightAPI.io data to our format
+    const transformedFlights = data.itineraries
+      .map((itinerary, index) => {
+        if (!itinerary.leg_ids || itinerary.leg_ids.length === 0) return null;
+        
+        const legId = itinerary.leg_ids[0]; // First leg for one-way trip
+        const leg = legsMap.get(legId);
+        
+        if (!leg) return null;
+        
+        const originPlace = placesMap.get(leg.origin_place_id);
+        const destPlace = placesMap.get(leg.destination_place_id);
+        const carrier = carriersMap.get(leg.marketing_carrier_ids[0]);
+        
+        // Get segment for flight number
+        const segment = Array.from(segmentsMap.values()).find(s => 
+          s.marketing_carrier_id === leg.marketing_carrier_ids[0]
+        );
+        
+        // Apply airline filter
+        if (params.airline) {
+          const airlineMatch = carrier?.name.toLowerCase().includes(params.airline.toLowerCase()) ||
+                             carrier?.iata_code.toLowerCase() === params.airline.toLowerCase();
+          if (!airlineMatch) return null;
+        }
+        
+        // Apply flight type filter
+        if (params.flightType === 'nonstop' && leg.stop_count > 0) return null;
+        if (params.flightType === 'onestop' && leg.stop_count !== 1) return null;
+        
+        // Format times
+        const depTime = new Date(leg.departure).toLocaleTimeString('en-US', { 
+          hour12: false, 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        });
+        const arrTime = new Date(leg.arrival).toLocaleTimeString('en-US', { 
+          hour12: false, 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        });
+        
+        // Format duration
+        const durationHours = Math.floor(leg.duration / 60);
+        const durationMinutes = leg.duration % 60;
+        const durationString = `${durationHours}h ${durationMinutes}m`;
+        
+        // Get price from pricing options
+        const price = itinerary.pricing_options[0]?.price?.amount || 0;
+        const bookingUrl = itinerary.pricing_options[0]?.items[0]?.url || '';
+        
+        return {
+          id: itinerary.id,
+          flightNumber: segment?.marketing_flight_number || `${carrier?.iata_code || 'XX'}000`,
+          airline: carrier?.name || 'Unknown Airline',
+          departure: {
+            airport: originPlace?.iata_code || params.origin,
+            time: depTime,
+            date: params.departureDate
+          },
+          arrival: {
+            airport: destPlace?.iata_code || params.destination,
+            time: arrTime,
+            date: new Date(leg.arrival).toISOString().split('T')[0]
+          },
+          duration: durationString,
+          price: price > 0 ? `$${Math.round(price)}` : 'Price on request',
+          stops: leg.stop_count,
+          stopLocations: [], // FlightAPI.io doesn't provide stop details in this response
+          bookingUrl: bookingUrl
+        };
+      })
+      .filter(Boolean); // Remove null entries
+    
+    console.log('✅ FlightAPI.io search successful:', transformedFlights.length, 'flights found');
+    return { data: transformedFlights };
+  } catch (fetchError) {
+    console.error('❌ Network/Fetch error:', fetchError.message);
+    console.error('❌ Full error:', fetchError);
+    throw new Error(`Network error: ${fetchError.message}`);
+  }
 }
 
 
@@ -264,9 +297,18 @@ serve(async (req) => {
     
     const { endpoint } = requestBody;
     
-    // Get FlightAPI.io API key
-    const apiKey = getFlightAPIKey();
-    console.log('Successfully obtained FlightAPI.io API key')
+    // Get FlightAPI.io API key with detailed logging
+    let apiKey;
+    try {
+      apiKey = getFlightAPIKey();
+      console.log('✅ Successfully obtained FlightAPI.io API key');
+    } catch (keyError) {
+      console.error('❌ Failed to get API key:', keyError.message);
+      return new Response(
+        JSON.stringify({ error: 'API key configuration error', details: keyError.message }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     switch (endpoint) {
       case 'search-flights': {
