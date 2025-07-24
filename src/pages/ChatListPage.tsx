@@ -455,10 +455,10 @@ export function ChatListPage() {
     <>
       {/* Mobile status bar spacer */}
       <div className="lg:hidden h-[35px] bg-background"></div>
-      <div className="flex h-screen bg-background">
+      <div className="flex h-screen bg-background overflow-hidden">
       {/* Chat List Sidebar - Full width on mobile, sidebar on desktop */}
-      <div className="w-full lg:w-80 border-r border-border flex flex-col lg:border-r-border">
-        <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm p-4 border-b border-border flex items-center justify-between">
+      <div className="w-full lg:w-80 border-r border-border flex flex-col lg:border-r-border overflow-hidden">
+        <div className="flex-shrink-0 bg-background p-4 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
