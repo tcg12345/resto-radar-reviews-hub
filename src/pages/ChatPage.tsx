@@ -318,7 +318,7 @@ export function ChatPage() {
     <>
       {/* Mobile status bar spacer */}
       <div className="lg:hidden h-[35px] bg-background"></div>
-      <div className="flex flex-col h-screen bg-background">
+      <div className="flex flex-col h-screen bg-background lg:max-w-4xl lg:mx-auto lg:border-x">
       {/* Header */}
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b">
         <div className="flex items-center justify-between p-4">
