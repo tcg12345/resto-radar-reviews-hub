@@ -229,12 +229,6 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
                 Your AI culinary companion
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <Bot className="h-5 w-5 text-primary" />
-              <Badge variant="secondary" className="bg-primary/10 text-primary text-xs">
-                AI Ready
-              </Badge>
-            </div>
           </div>
         </div>
 
