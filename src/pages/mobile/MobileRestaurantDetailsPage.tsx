@@ -23,6 +23,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { LazyImage } from '@/components/LazyImage';
+import { RestaurantLocationMap } from '@/components/RestaurantLocationMap';
 
 interface Restaurant {
   id: string;
@@ -467,6 +468,24 @@ export default function MobileRestaurantDetailsPage() {
                       />
                     </div>
                   ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Interactive Map */}
+          {restaurant.latitude && restaurant.longitude && (
+            <>
+              <Separator />
+              <div>
+                <p className="font-medium mb-3">Location</p>
+                <div className="h-48 rounded-lg overflow-hidden border">
+                  <RestaurantLocationMap
+                    latitude={restaurant.latitude}
+                    longitude={restaurant.longitude}
+                    name={restaurant.name}
+                    address={`${restaurant.address}, ${restaurant.city}`}
+                  />
                 </div>
               </div>
             </>
