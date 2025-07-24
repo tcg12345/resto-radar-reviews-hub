@@ -320,24 +320,22 @@ export default function MobileRestaurantDetailsPage() {
               </a>
             )}
 
-            {/* Directions Button */}
-            {(restaurant.latitude && restaurant.longitude) || restaurant.address && (
-              <a
-                href={
-                  restaurant.latitude && restaurant.longitude
-                    ? `https://www.google.com/maps/dir/?api=1&destination=${restaurant.latitude},${restaurant.longitude}`
-                    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                        `${restaurant.name} ${restaurant.address} ${restaurant.city}`
-                      )}`
-                }
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex flex-col items-center justify-center p-4 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-600/20 border border-blue-500/30 hover:from-blue-500/30 hover:to-blue-600/30 transition-all duration-200 active:scale-95"
-              >
-                <Navigation className="h-6 w-6 text-blue-500 mb-2" />
-                <span className="text-sm font-medium text-foreground">Directions</span>
-              </a>
-            )}
+            {/* Directions Button - Always show in fourth corner */}
+            <a
+              href={
+                restaurant.latitude && restaurant.longitude
+                  ? `https://www.google.com/maps/dir/?api=1&destination=${restaurant.latitude},${restaurant.longitude}`
+                  : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                      `${restaurant.name} ${restaurant.address} ${restaurant.city}`
+                    )}`
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center justify-center p-4 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-600/20 border border-blue-500/30 hover:from-blue-500/30 hover:to-blue-600/30 transition-all duration-200 active:scale-95"
+            >
+              <Navigation className="h-6 w-6 text-blue-500 mb-2" />
+              <span className="text-sm font-medium text-foreground">Directions</span>
+            </a>
 
             {/* Reviews Button */}
             <a
