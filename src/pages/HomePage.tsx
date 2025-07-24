@@ -258,7 +258,7 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
                   className="cursor-pointer active:scale-95 transition-all duration-200 bg-card/90 backdrop-blur-sm border border-border shadow-sm hover:shadow-md"
                   onClick={action.action}
                 >
-                  <CardContent className="p-4">
+                  <CardContent className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-lg">
                     <div className="text-center space-y-3">
                       <div className={`p-3 rounded-2xl ${action.color} text-white mx-auto w-fit shadow-lg`}>
                         <action.icon className="h-6 w-6" />
