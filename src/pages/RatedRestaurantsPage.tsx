@@ -262,7 +262,7 @@ export function RatedRestaurantsPage({
 
   return (
     <div className="container py-6 mobile-container px-4 sm:px-6">
-      <div className="mb-3 lg:mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+      <div className="mb-1 lg:mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <h2 className="hidden lg:block text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Rated Restaurants</h2>
         <div className="flex gap-2">
           <Button size="sm" onClick={() => setIsAddDialogOpen(true)} className="mobile-button">
