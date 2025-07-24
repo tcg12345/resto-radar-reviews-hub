@@ -265,15 +265,16 @@ export function RatedRestaurantsPage({
       <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <h2 className="hidden lg:block text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Rated Restaurants</h2>
         <div className="flex gap-2">
-          {onNavigateToMap && (
-            <Button variant="outline" onClick={onNavigateToMap}>
-              <MapPin className="h-4 w-4" />
-            </Button>
-          )}
           <Button onClick={() => setIsAddDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Add Restaurant
           </Button>
+          {onNavigateToMap && (
+            <Button variant="outline" onClick={onNavigateToMap}>
+              <MapPin className="h-4 w-4" />
+              <span className="ml-1">Map</span>
+            </Button>
+          )}
         </div>
       </div>
 
