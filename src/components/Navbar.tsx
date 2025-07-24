@@ -10,8 +10,8 @@ import { NotificationsPanel } from '@/components/NotificationsPanel';
 import { useUnreadMessageCount } from '@/hooks/useUnreadMessageCount';
 
 interface NavbarProps {
-  activeTab: 'home' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'itinerary';
-  onTabChange: (tab: 'home' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'itinerary') => void;
+  activeTab: 'home' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'trips';
+  onTabChange: (tab: 'home' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'trips') => void;
 }
 
 export function Navbar({ activeTab, onTabChange }: NavbarProps) {
@@ -24,7 +24,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
     { id: 'search' as const, label: 'Search & Discover', icon: Search, shortLabel: 'Search' },
     { id: 'rated' as const, label: 'My Ratings', icon: Star, shortLabel: 'Rated' },
     { id: 'wishlist' as const, label: 'Wishlist', icon: Heart, shortLabel: 'Wishlist' },
-    { id: 'itinerary' as const, label: 'Itinerary', icon: Calendar, shortLabel: 'Itinerary' },
+    { id: 'trips' as const, label: 'Trips', icon: Calendar, shortLabel: 'Trips' },
     { id: 'friends' as const, label: 'Friends', icon: Users, shortLabel: 'Friends' },
   ];
 

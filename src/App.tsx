@@ -28,7 +28,7 @@ import SettingsPageWrapper from "./pages/SettingsPageWrapper";
 import SearchTabsPage from "./pages/SearchTabsPage";
 import MobileFriendProfilePage from "./pages/mobile/MobileFriendProfilePage";
 import MobileRestaurantDetailsPage from "./pages/mobile/MobileRestaurantDetailsPage";
-import ItineraryPage from "./pages/ItineraryPage";
+import TripsPage from "./pages/TripsPage";
 
 
 const queryClient = new QueryClient();
@@ -55,7 +55,7 @@ const App = () => (
                 <Route path="/rated" element={<RequireAuth><Layout activeTab="rated"><RatedRestaurantsPageWrapper /></Layout></RequireAuth>} />
                 <Route path="/wishlist" element={<RequireAuth><Layout activeTab="wishlist"><WishlistPageWrapper /></Layout></RequireAuth>} />
                 <Route path="/map" element={<RequireAuth><Layout activeTab="search" showChatbot={false}><MapPageWrapper /></Layout></RequireAuth>} />
-                <Route path="/itinerary" element={<RequireAuth><Layout activeTab="itinerary"><ItineraryPage /></Layout></RequireAuth>} />
+                <Route path="/trips" element={<RequireAuth><Layout activeTab="trips"><TripsPage /></Layout></RequireAuth>} />
                 
                 {/* Search section with sub-tabs */}
                 <Route path="/search" element={<RequireAuth><Layout activeTab="search"><SearchTabsPage /></Layout></RequireAuth>} />

@@ -5,7 +5,7 @@ import { AIChatbot } from '@/components/AIChatbot';
 
 interface LayoutProps {
   children: ReactNode;
-  activeTab?: 'home' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'itinerary';
+  activeTab?: 'home' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'trips';
   showNavbar?: boolean;
   showChatbot?: boolean;
 }
@@ -18,7 +18,7 @@ export function Layout({
 }: LayoutProps) {
   const navigate = useNavigate();
 
-  const handleTabChange = (tab: 'home' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'itinerary') => {
+  const handleTabChange = (tab: 'home' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'trips') => {
     // Navigate to the appropriate route for each tab
     switch (tab) {
       case 'home':
@@ -39,8 +39,8 @@ export function Layout({
       case 'friends':
         navigate('/friends');
         break;
-      case 'itinerary':
-        navigate('/itinerary');
+      case 'trips':
+        navigate('/trips');
         break;
       default:
         navigate('/home');
