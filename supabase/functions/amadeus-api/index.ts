@@ -106,10 +106,23 @@ async function searchFlights(apiKey: string, params: FlightSearchRequest) {
   url.searchParams.set('dep_iata', params.origin);
   url.searchParams.set('arr_iata', params.destination);
   url.searchParams.set('flight_date', params.departureDate);
-  url.searchParams.set('limit', '20');
+  url.searchParams.set('limit', '100'); // Increase limit for paid subscription
   
+  // For future dates, search for scheduled flights
+  const searchDate = new Date(params.departureDate);
+  const today = new Date();
+  if (searchDate > today) {
+    url.searchParams.set('flight_status', 'scheduled');
+  }
+  
+  // Add airline filtering
   if (params.airline) {
-    url.searchParams.set('airline_name', params.airline);
+    // Try both airline_name and airline_iata for better filtering
+    if (params.airline.length <= 3) {
+      url.searchParams.set('airline_iata', params.airline.toUpperCase());
+    } else {
+      url.searchParams.set('airline_name', params.airline);
+    }
   }
   
   if (params.flightNumber) {
@@ -229,7 +242,19 @@ function getFallbackFlightData(params: FlightSearchRequest) {
   }
   
   for (let i = 0; i < numFlights; i++) {
-    const airline = airlines[i % airlines.length];
+    // Filter airlines based on user selection
+    let selectedAirlines = airlines;
+    if (params.airline) {
+      selectedAirlines = airlines.filter(a => 
+        a.name.toLowerCase().includes(params.airline.toLowerCase()) ||
+        a.code.toLowerCase() === params.airline.toLowerCase()
+      );
+      if (selectedAirlines.length === 0) {
+        selectedAirlines = airlines; // Fallback if no match
+      }
+    }
+    
+    const airline = selectedAirlines[i % selectedAirlines.length];
     const flightNum = Math.floor(Math.random() * 9000) + 1000;
     
     // Determine stops based on flightType
