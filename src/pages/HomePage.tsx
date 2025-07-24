@@ -291,7 +291,7 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
             </div>
             
             <Card className="bg-white/60 backdrop-blur-sm border border-primary/10 shadow-sm overflow-hidden">
-              <CardContent className="p-4">
+              <CardContent className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="p-2 rounded-lg bg-primary/10">
                     <currentCardData.icon className="h-5 w-5 text-primary" />
