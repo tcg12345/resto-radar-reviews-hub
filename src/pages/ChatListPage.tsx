@@ -201,7 +201,14 @@ export function ChatListPage() {
       }
 
       setIsNewChatOpen(false);
-      setSelectedRoomId(roomId);
+      
+      // On mobile, navigate to chat page. On desktop, select in sidebar
+      if (window.innerWidth < 1024) { // lg breakpoint
+        navigate(`/chat/${roomId}`);
+      } else {
+        setSelectedRoomId(roomId);
+      }
+      
       fetchChatRooms(); // Refresh to show new room
     } catch (error) {
       console.error('Error starting chat:', error);
@@ -263,7 +270,14 @@ export function ChatListPage() {
       setSelectedFriends([]);
       setGroupChatName('');
       setIsNewChatOpen(false);
-      setSelectedRoomId(room.id);
+      
+      // On mobile, navigate to chat page. On desktop, select in sidebar
+      if (window.innerWidth < 1024) { // lg breakpoint
+        navigate(`/chat/${room.id}`);
+      } else {
+        setSelectedRoomId(room.id);
+      }
+      
       fetchChatRooms(); // Refresh to show new room
       toast('Group chat created successfully!');
     } catch (error) {
@@ -442,8 +456,8 @@ export function ChatListPage() {
       {/* Mobile status bar spacer */}
       <div className="lg:hidden h-[35px] bg-background"></div>
       <div className="flex h-screen bg-background">
-      {/* Chat List Sidebar */}
-      <div className="w-80 border-r border-border flex flex-col">
+      {/* Chat List Sidebar - Full width on mobile, sidebar on desktop */}
+      <div className="w-full lg:w-80 border-r border-border flex flex-col lg:border-r-border">
         <div className="p-4 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button
@@ -631,7 +645,14 @@ export function ChatListPage() {
                      className={`mb-2 cursor-pointer transition-all duration-200 hover:bg-accent/50 relative group ${
                        isSelected ? 'bg-accent border-primary' : ''
                      }`}
-                     onClick={() => setSelectedRoomId(room.id)}
+                     onClick={() => {
+                       // On mobile, navigate to chat page. On desktop, select in sidebar
+                       if (window.innerWidth < 1024) { // lg breakpoint
+                         navigate(`/chat/${room.id}`);
+                       } else {
+                         setSelectedRoomId(room.id);
+                       }
+                     }}
                    >
                      <CardContent className="p-3">
                        <div className="flex items-center space-x-3">
@@ -700,8 +721,8 @@ export function ChatListPage() {
         </ScrollArea>
       </div>
 
-      {/* Chat Window */}
-      <div className="flex-1 flex flex-col">
+      {/* Chat Window - Only visible on desktop */}
+      <div className="hidden lg:flex flex-1 flex-col">
         {selectedRoomId ? (
           <ChatWindow roomId={selectedRoomId} />
         ) : (
