@@ -85,36 +85,38 @@ export default function MobileFriendProfilePage() {
     console.log('🔍 Loading restaurant data for user:', actualUserId);
     
     try {
-      const { data: completeProfile, error } = await supabase
-        .rpc('get_friend_profile_data', { 
-          target_user_id: actualUserId,
-          requesting_user_id: user.id,
-          restaurant_limit: 500
-        });
+      // Get ALL restaurants for this user (both rated and wishlist)
+      const { data: allRestaurantsData, error: restaurantsError } = await supabase
+        .from('restaurants')
+        .select('*')
+        .eq('user_id', actualUserId)
+        .order('created_at', { ascending: false });
 
-      console.log('📊 Complete profile data:', completeProfile);
-      console.log('❌ Profile error:', error);
+      console.log('🍽️ All restaurants from direct query:', allRestaurantsData);
+      console.log('❌ Restaurants error:', restaurantsError);
 
-      if (error) {
-        console.error('Error loading restaurant data:', error);
+      if (restaurantsError) {
+        console.error('Error loading restaurants:', restaurantsError);
         return;
       }
 
-      if (completeProfile?.[0]?.recent_restaurants) {
-        const restaurantData = completeProfile[0].recent_restaurants as any[];
-        console.log('🍽️ Restaurant data:', restaurantData);
+      if (allRestaurantsData) {
+        const ratedRestaurants = allRestaurantsData.filter(r => r.is_wishlist === false);
+        const wishlistRestaurants = allRestaurantsData.filter(r => r.is_wishlist === true);
         
-        const ratedRestaurants = restaurantData.filter((r: any) => r.is_wishlist === false);
-        const wishlistRestaurants = restaurantData.filter((r: any) => r.is_wishlist === true);
-        
-        console.log('⭐ Rated restaurants:', ratedRestaurants.length);
-        console.log('❤️ Wishlist restaurants:', wishlistRestaurants.length);
+        console.log('⭐ Rated restaurants:', ratedRestaurants.length, ratedRestaurants);
+        console.log('❤️ Wishlist restaurants:', wishlistRestaurants.length, wishlistRestaurants);
         
         setAllRestaurants(ratedRestaurants);
         setAllWishlist(wishlistRestaurants);
         
         const topCuisines = calculateTopCuisines(ratedRestaurants);
-        setStats(prev => ({ ...prev, topCuisines }));
+        setStats(prev => ({ 
+          ...prev, 
+          topCuisines,
+          totalRated: ratedRestaurants.length,
+          totalWishlist: wishlistRestaurants.length
+        }));
       } else {
         console.log('📭 No restaurant data found');
       }
