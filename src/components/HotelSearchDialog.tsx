@@ -198,7 +198,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, selectedDate }: H
                   <SelectValue placeholder="Any price" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any price</SelectItem>
+                  <SelectItem value="any">Any price</SelectItem>
                   <SelectItem value="budget">Budget ($0-100)</SelectItem>
                   <SelectItem value="mid-range">Mid-range ($100-300)</SelectItem>
                   <SelectItem value="luxury">Luxury ($300+)</SelectItem>
