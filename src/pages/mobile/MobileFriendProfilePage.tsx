@@ -376,16 +376,6 @@ export default function MobileFriendProfilePage() {
             </div>
           </div>
 
-          {/* Top Cuisines - Horizontal */}
-          {stats.topCuisines && stats.topCuisines.length > 0 && (
-            <div className="flex flex-wrap gap-1">
-              {stats.topCuisines.map((item: any, index: number) => (
-                <Badge key={index} variant="outline" className="text-[10px] px-1.5 py-0 h-5">
-                  {item.cuisine}
-                </Badge>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Toggle Buttons */}
