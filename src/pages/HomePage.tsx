@@ -217,7 +217,7 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
   return (
     <>
       {/* Mobile Layout - Completely Redesigned */}
-      <div className="md:hidden min-h-screen bg-background pt-10">
+      <div className="md:hidden min-h-screen bg-background">
         {/* Mobile Header */}
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm px-4 py-4">
           <div className="flex items-center justify-between">
@@ -230,7 +230,7 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
         </div>
 
         {/* Mobile Content */}
-        <div className="p-4 space-y-6 pb-20">
+        <div className="px-4 pt-10 pb-20 space-y-6">
           {/* Stats Cards - Mobile Optimized */}
           <div className="grid grid-cols-2 gap-3">
             {stats.slice(0, 4).map((stat, index) => (
