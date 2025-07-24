@@ -422,9 +422,13 @@ export default function MobileRestaurantDetailsPage() {
                 <Clock className="h-5 w-5 mt-0.5 text-muted-foreground shrink-0" />
                 <div className="flex-1">
                   <p className="font-medium">Opening Hours</p>
-                  <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
-                    {restaurant.opening_hours}
-                  </p>
+                  <div className="space-y-2 mt-2">
+                    {restaurant.opening_hours.split('\n').filter(Boolean).map((hour, index) => (
+                      <div key={index} className="text-sm text-muted-foreground py-1 border-b border-border/30 last:border-b-0">
+                        {hour.trim()}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </>
