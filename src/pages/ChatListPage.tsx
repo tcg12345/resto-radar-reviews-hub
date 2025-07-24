@@ -458,7 +458,7 @@ export function ChatListPage() {
       <div className="flex h-screen bg-background">
       {/* Chat List Sidebar - Full width on mobile, sidebar on desktop */}
       <div className="w-full lg:w-80 border-r border-border flex flex-col lg:border-r-border">
-        <div className="p-4 border-b border-border flex items-center justify-between">
+        <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm p-4 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
