@@ -8,7 +8,9 @@ import {
   Search,
   SlidersHorizontal,
   Grid3X3,
-  List
+  List,
+  Filter,
+  Sliders
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +21,9 @@ import { useFriendProfiles } from '@/contexts/FriendProfilesContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Slider } from '@/components/ui/slider';
 
 export default function MobileFriendProfilePage() {
   const { friendId, userId } = useParams();
@@ -38,6 +43,12 @@ export default function MobileFriendProfilePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  
+  // Filter states
+  const [ratingRange, setRatingRange] = useState([0, 10]);
+  const [selectedPriceRanges, setSelectedPriceRanges] = useState<number[]>([]);
+  const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
+  const [selectedCities, setSelectedCities] = useState<string[]>([]);
 
   useEffect(() => {
     if (!actualUserId || !user) return;
@@ -139,12 +150,44 @@ export default function MobileFriendProfilePage() {
       .slice(0, 2);
   };
 
-  const getFilteredData = (data: any[]) => {
-    let filtered = data.filter(item => 
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.cuisine.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  const currentData = activeView === 'restaurants' ? allRestaurants : allWishlist;
+  
+  // Get unique values for filter options
+  const getUniqueValues = (data: any[], key: string) => {
+    return [...new Set(data.map(item => item[key]).filter(Boolean))].sort();
+  };
 
+  const availablePriceRanges = getUniqueValues(currentData, 'price_range');
+  const availableCuisines = getUniqueValues(currentData, 'cuisine');
+  const availableCities = getUniqueValues(currentData, 'city');
+
+  const getFilteredData = (data: any[]) => {
+    let filtered = data.filter(item => {
+      // Text search
+      const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.cuisine.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Rating filter (only for rated restaurants)
+      const matchesRating = activeView === 'wishlist' || 
+        !item.rating || 
+        (item.rating >= ratingRange[0] && item.rating <= ratingRange[1]);
+      
+      // Price range filter
+      const matchesPriceRange = selectedPriceRanges.length === 0 || 
+        selectedPriceRanges.includes(item.price_range);
+      
+      // Cuisine filter
+      const matchesCuisine = selectedCuisines.length === 0 || 
+        selectedCuisines.includes(item.cuisine);
+      
+      // City filter
+      const matchesCity = selectedCities.length === 0 || 
+        selectedCities.includes(item.city);
+
+      return matchesSearch && matchesRating && matchesPriceRange && matchesCuisine && matchesCity;
+    });
+
+    // Sort
     if (sortBy === 'rating') {
       filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
     } else if (sortBy === 'name') {
@@ -156,7 +199,6 @@ export default function MobileFriendProfilePage() {
     return filtered;
   };
 
-  const currentData = activeView === 'restaurants' ? allRestaurants : allWishlist;
   const filteredData = getFilteredData(currentData);
 
   const addToWishlist = async (restaurant: any) => {
@@ -346,16 +388,108 @@ export default function MobileFriendProfilePage() {
               className="pl-8 h-8 text-sm"
             />
           </div>
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-24 h-8">
-              <SlidersHorizontal className="h-3.5 w-3.5" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">Newest</SelectItem>
-              <SelectItem value="rating">Rating</SelectItem>
-              <SelectItem value="name">Name</SelectItem>
-            </SelectContent>
-          </Select>
+          
+          {/* Rating Filter Button (only for rated restaurants) */}
+          {activeView === 'restaurants' && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                  <Sliders className="h-3.5 w-3.5" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-56 p-3" align="end">
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium">Rating Range</label>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+                      <span>{ratingRange[0]}</span>
+                      <span>{ratingRange[1]}</span>
+                    </div>
+                    <Slider
+                      value={ratingRange}
+                      onValueChange={setRatingRange}
+                      max={10}
+                      min={0}
+                      step={0.1}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
+          
+          {/* Filters Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                <Filter className="h-3.5 w-3.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Filters</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              
+              {/* Price Range Filter */}
+              <DropdownMenuLabel className="text-xs">Price Range</DropdownMenuLabel>
+              {availablePriceRanges.map((priceRange) => (
+                <DropdownMenuCheckboxItem
+                  key={priceRange}
+                  checked={selectedPriceRanges.includes(priceRange)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedPriceRanges([...selectedPriceRanges, priceRange]);
+                    } else {
+                      setSelectedPriceRanges(selectedPriceRanges.filter(p => p !== priceRange));
+                    }
+                  }}
+                >
+                  {'$'.repeat(priceRange)}
+                </DropdownMenuCheckboxItem>
+              ))}
+              
+              <DropdownMenuSeparator />
+              
+              {/* Cuisine Filter */}
+              <DropdownMenuLabel className="text-xs">Cuisine</DropdownMenuLabel>
+              {availableCuisines.slice(0, 8).map((cuisine) => (
+                <DropdownMenuCheckboxItem
+                  key={cuisine}
+                  checked={selectedCuisines.includes(cuisine)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedCuisines([...selectedCuisines, cuisine]);
+                    } else {
+                      setSelectedCuisines(selectedCuisines.filter(c => c !== cuisine));
+                    }
+                  }}
+                >
+                  {cuisine}
+                </DropdownMenuCheckboxItem>
+              ))}
+              
+              <DropdownMenuSeparator />
+              
+              {/* City Filter */}
+              <DropdownMenuLabel className="text-xs">City</DropdownMenuLabel>
+              {availableCities.slice(0, 8).map((city) => (
+                <DropdownMenuCheckboxItem
+                  key={city}
+                  checked={selectedCities.includes(city)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedCities([...selectedCities, city]);
+                    } else {
+                      setSelectedCities(selectedCities.filter(c => c !== city));
+                    }
+                  }}
+                >
+                  {city}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
           <Button
             variant="outline"
             size="sm"
