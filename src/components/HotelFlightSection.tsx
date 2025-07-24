@@ -79,8 +79,9 @@ export function HotelFlightSection({
   const [loadingTripAdvisorData, setLoadingTripAdvisorData] = useState(false);
   const [isPhotoGalleryOpen, setIsPhotoGalleryOpen] = useState(false);
   const [photoGalleryIndex, setPhotoGalleryIndex] = useState(0);
+  const [hotelWebsite, setHotelWebsite] = useState<string | null>(null);
 
-  const { searchLocations, getLocationPhotos, getLocationReviews } = useTripAdvisorApi();
+  const { searchLocations, getLocationPhotos, getLocationReviews, getLocationDetails } = useTripAdvisorApi();
 
   const handleHotelSelect = (hotel: HotelType, location?: string, checkIn?: Date, checkOut?: Date) => {
     onAddHotel(hotel, location, checkIn, checkOut);
@@ -134,11 +135,12 @@ export function HotelFlightSection({
     setTripAdvisorPhotos([]);
     setTripAdvisorReviews([]);
     setTripAdvisorLocationId(null);
+    setHotelWebsite(null);
 
     try {
       const searchQuery = `${hotelName} ${hotelAddress}`;
       
-      // Start search immediately and show optimistic loading
+      // Start search immediately
       const searchPromise = searchLocations(searchQuery);
       
       // Wait for search result
@@ -148,24 +150,32 @@ export function HotelFlightSection({
         const location = locations[0];
         setTripAdvisorLocationId(location.location_id);
         
-        // Immediately start loading photos and reviews in parallel
-        // Don't wait for state to update
-        const [photosPromise, reviewsPromise] = [
+        // Start loading details, photos and reviews in parallel
+        const [detailsPromise, photosPromise, reviewsPromise] = [
+          getLocationDetails(location.location_id),
           getLocationPhotos(location.location_id, 20),
           getLocationReviews(location.location_id, 10)
         ];
         
-        // Start both requests simultaneously and update state as soon as each completes
+        // Handle details (for website) as soon as they're available
+        detailsPromise.then(details => {
+          if (details?.website) {
+            setHotelWebsite(details.website);
+          }
+        }).catch(err => console.error('Error loading details:', err));
+        
+        // Handle photos as soon as they're available
         photosPromise.then(photos => {
           if (photos) setTripAdvisorPhotos(photos);
         }).catch(err => console.error('Error loading photos:', err));
         
+        // Handle reviews as soon as they're available
         reviewsPromise.then(reviews => {
           if (reviews) setTripAdvisorReviews(reviews);
         }).catch(err => console.error('Error loading reviews:', err));
         
-        // Wait for both to complete before hiding loading
-        await Promise.allSettled([photosPromise, reviewsPromise]);
+        // Wait for all to complete before hiding loading
+        await Promise.allSettled([detailsPromise, photosPromise, reviewsPromise]);
       }
     } catch (error) {
       console.error('Error loading TripAdvisor data:', error);
@@ -658,15 +668,16 @@ export function HotelFlightSection({
                   <Navigation className="w-4 h-4 mr-2" />
                   Get Directions
                 </Button>
-                
-                {selectedHotel.hotel.website && (
+                 
+                {/* Show TripAdvisor website if available, otherwise fall back to original hotel website */}
+                {(hotelWebsite || selectedHotel.hotel.website) && (
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => window.open(selectedHotel.hotel.website, '_blank')}
+                    onClick={() => window.open(hotelWebsite || selectedHotel.hotel.website, '_blank')}
                   >
                     <ExternalLink className="w-4 h-4 mr-2" />
-                    Visit Website
+                    Hotel Website
                   </Button>
                 )}
                 
