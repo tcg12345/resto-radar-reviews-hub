@@ -225,9 +225,6 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
               <h1 className="text-xl font-bold text-primary">
                 {getGreeting()}, {getFirstName()}! 👋
               </h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Your AI culinary companion
-              </p>
             </div>
           </div>
         </div>
