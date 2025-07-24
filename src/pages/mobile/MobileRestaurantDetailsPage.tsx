@@ -11,7 +11,8 @@ import {
   Check, 
   Heart,
   Share2,
-  ExternalLink
+  ExternalLink,
+  Navigation
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -288,6 +289,71 @@ export default function MobileRestaurantDetailsPage() {
                 </Badge>
               )}
             </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Call Button */}
+            {restaurant.phone_number && (
+              <a
+                href={`tel:${restaurant.phone_number}`}
+                className="flex flex-col items-center justify-center p-4 rounded-xl bg-gradient-to-br from-green-500/20 to-green-600/20 border border-green-500/30 hover:from-green-500/30 hover:to-green-600/30 transition-all duration-200 active:scale-95"
+              >
+                <Phone className="h-6 w-6 text-green-500 mb-2" />
+                <span className="text-sm font-medium text-foreground">Call</span>
+              </a>
+            )}
+
+            {/* Website Button */}
+            {restaurant.website && (
+              <a
+                href={restaurant.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center p-4 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-600/20 border border-blue-500/30 hover:from-blue-500/30 hover:to-blue-600/30 transition-all duration-200 active:scale-95"
+              >
+                <Globe className="h-6 w-6 text-blue-500 mb-2" />
+                <span className="text-sm font-medium text-foreground">Website</span>
+              </a>
+            )}
+
+            {/* Directions Button */}
+            {(restaurant.latitude && restaurant.longitude) || restaurant.address && (
+              <a
+                href={
+                  restaurant.latitude && restaurant.longitude
+                    ? `https://www.google.com/maps/dir/?api=1&destination=${restaurant.latitude},${restaurant.longitude}`
+                    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                        `${restaurant.name} ${restaurant.address} ${restaurant.city}`
+                      )}`
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center p-4 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-600/20 border border-blue-500/30 hover:from-blue-500/30 hover:to-blue-600/30 transition-all duration-200 active:scale-95"
+              >
+                <Navigation className="h-6 w-6 text-blue-500 mb-2" />
+                <span className="text-sm font-medium text-foreground">Directions</span>
+              </a>
+            )}
+
+            {/* Reviews Button */}
+            <a
+              href={
+                restaurant.website
+                  ? `https://www.google.com/search?q=${encodeURIComponent(
+                      `${restaurant.name} ${restaurant.city} reviews`
+                    )}`
+                  : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                      `${restaurant.name} ${restaurant.address} ${restaurant.city}`
+                    )}`
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center justify-center p-4 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30 hover:from-amber-500/30 hover:to-orange-500/30 transition-all duration-200 active:scale-95"
+            >
+              <Star className="h-6 w-6 text-amber-500 mb-2" />
+              <span className="text-sm font-medium text-foreground">Reviews</span>
+            </a>
           </div>
 
           <Separator />
