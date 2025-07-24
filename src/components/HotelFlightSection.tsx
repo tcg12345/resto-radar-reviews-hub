@@ -74,6 +74,18 @@ export function HotelFlightSection({
     onAddFlight(flight);
   };
 
+  // Helper function to safely format dates
+  const formatDate = (date: Date | string | undefined) => {
+    if (!date) return '';
+    try {
+      const dateObj = typeof date === 'string' ? new Date(date) : date;
+      return dateObj.toLocaleDateString();
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return '';
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
       {/* Hotels Section */}
@@ -116,11 +128,11 @@ export function HotelFlightSection({
                     {(booking.checkIn || booking.checkOut) && (
                       <p className="text-xs text-blue-600 dark:text-blue-400">
                         {booking.checkIn && booking.checkOut ? (
-                          `${booking.checkIn.toLocaleDateString()} - ${booking.checkOut.toLocaleDateString()}`
+                          `${formatDate(booking.checkIn)} - ${formatDate(booking.checkOut)}`
                         ) : booking.checkIn ? (
-                          `Check-in: ${booking.checkIn.toLocaleDateString()}`
+                          `Check-in: ${formatDate(booking.checkIn)}`
                         ) : booking.checkOut ? (
-                          `Check-out: ${booking.checkOut.toLocaleDateString()}`
+                          `Check-out: ${formatDate(booking.checkOut)}`
                         ) : null}
                       </p>
                     )}
