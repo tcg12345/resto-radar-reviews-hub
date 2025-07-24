@@ -196,12 +196,7 @@ export function ItineraryBuilder() {
     ));
   };
 
-  // Auto-create multi-city itinerary when all locations have dates
-  useEffect(() => {
-    if (isMultiCity && locations.length > 0 && locations.every(loc => loc.startDate && loc.endDate)) {
-      createMultiCityItinerary();
-    }
-  }, [locations, isMultiCity]);
+  // Removed auto-creation - now requires manual button click
 
   const canCreateItinerary = isMultiCity 
     ? locations.length > 0 && locations.every(loc => loc.startDate && loc.endDate)
@@ -353,43 +348,26 @@ export function ItineraryBuilder() {
                                   size="sm"
                                   className={cn(
                                     "text-xs",
-                                    !location.startDate && "text-muted-foreground"
+                                    (!location.startDate || !location.endDate) && "text-muted-foreground"
                                   )}
                                 >
                                   <CalendarIcon className="w-3 h-3 mr-1" />
-                                  {location.startDate ? format(location.startDate, 'MMM dd') : 'Start'}
+                                  {location.startDate && location.endDate 
+                                    ? `${format(location.startDate, 'MMM dd')} - ${format(location.endDate, 'MMM dd')}`
+                                    : 'Select dates'
+                                  }
                                 </Button>
                               </PopoverTrigger>
                               <PopoverContent className="w-auto p-0" align="start">
                                 <CalendarComponent
-                                  mode="single"
-                                  selected={location.startDate}
-                                  onSelect={(date) => updateLocationDates(location.id, date, location.endDate)}
-                                  initialFocus
-                                  className={cn("p-3 pointer-events-auto")}
-                                />
-                              </PopoverContent>
-                            </Popover>
-                            <span className="text-muted-foreground">-</span>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className={cn(
-                                    "text-xs",
-                                    !location.endDate && "text-muted-foreground"
-                                  )}
-                                >
-                                  <CalendarIcon className="w-3 h-3 mr-1" />
-                                  {location.endDate ? format(location.endDate, 'MMM dd') : 'End'}
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
-                                <CalendarComponent
-                                  mode="single"
-                                  selected={location.endDate}
-                                  onSelect={(date) => updateLocationDates(location.id, location.startDate, date)}
+                                  mode="range"
+                                  selected={{
+                                    from: location.startDate,
+                                    to: location.endDate
+                                  }}
+                                  onSelect={(range) => {
+                                    updateLocationDates(location.id, range?.from || null, range?.to || null);
+                                  }}
                                   initialFocus
                                   className={cn("p-3 pointer-events-auto")}
                                 />
@@ -423,6 +401,35 @@ export function ItineraryBuilder() {
                     onDateRangeChange={handleDateRangeChange}
                   />
                 </div>
+              </div>
+            )}
+
+            {/* Create itinerary button */}
+            {canCreateItinerary && (
+              <div className="text-center pt-4">
+                <Button 
+                  onClick={isMultiCity ? createMultiCityItinerary : () => {
+                    if (dateRange.start && dateRange.end && locations.length > 0) {
+                      const locationNames = locations.map(loc => loc.name).join(' → ');
+                      const title = `${locationNames} Trip`;
+                      
+                      const newItinerary: Itinerary = {
+                        title,
+                        startDate: dateRange.start,
+                        endDate: dateRange.end,
+                        locations,
+                        isMultiCity,
+                        events: [],
+                        userId: user?.id,
+                      };
+                      setCurrentItinerary(newItinerary);
+                    }
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <CalendarDays className="w-4 h-4" />
+                  Create Itinerary
+                </Button>
               </div>
             )}
 
@@ -522,9 +529,11 @@ export function ItineraryBuilder() {
 
       {/* Trip Calendar */}
       <TripCalendar
-        startDate={dateRange.start}
-        endDate={dateRange.end}
+        startDate={dateRange.start!}
+        endDate={dateRange.end!}
         events={events}
+        locations={currentItinerary?.locations || []}
+        isMultiCity={currentItinerary?.isMultiCity || false}
         onAddEvent={handleAddEvent}
         onEditEvent={handleEditEvent}
         onDeleteEvent={handleDeleteEvent}

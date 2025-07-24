@@ -7,10 +7,19 @@ import { Separator } from '@/components/ui/separator';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ItineraryEvent } from '@/components/ItineraryBuilder';
 
+interface TripLocation {
+  id: string;
+  name: string;
+  startDate?: Date;
+  endDate?: Date;
+}
+
 interface TripCalendarProps {
   startDate: Date;
   endDate: Date;
   events: ItineraryEvent[];
+  locations: TripLocation[];
+  isMultiCity: boolean;
   onAddEvent: (date: string) => void;
   onEditEvent: (event: ItineraryEvent) => void;
   onDeleteEvent: (eventId: string) => void;
@@ -58,8 +67,23 @@ const getAirportDirectionsUrl = (airportCode: string): string => {
   return `https://www.google.com/maps/dir/?api=1&destination=${airportCode}+Airport&travelmode=driving`;
 };
 
-export function TripCalendar({ startDate, endDate, events, onAddEvent, onEditEvent, onDeleteEvent }: TripCalendarProps) {
+export function TripCalendar({ startDate, endDate, events, locations, isMultiCity, onAddEvent, onEditEvent, onDeleteEvent }: TripCalendarProps) {
   const days = eachDayOfInterval({ start: startDate, end: endDate });
+
+  const getCityForDate = (date: Date) => {
+    if (!isMultiCity || !locations.length) return null;
+    
+    for (const location of locations) {
+      if (location.startDate && location.endDate) {
+        const start = new Date(location.startDate);
+        const end = new Date(location.endDate);
+        if (date >= start && date <= end) {
+          return location.name;
+        }
+      }
+    }
+    return null;
+  };
 
   const getEventsForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
@@ -112,11 +136,19 @@ export function TripCalendar({ startDate, endDate, events, onAddEvent, onEditEve
                   <CardTitle className="text-lg">
                     Day {index + 1} - {format(day, 'EEEE, MMMM do')}
                   </CardTitle>
-                  <CardDescription>
-                    {dayEvents.length > 0 
-                      ? `${dayEvents.length} ${dayEvents.length === 1 ? 'event' : 'events'} planned`
-                      : 'No events planned'
-                    }
+                  <CardDescription className="space-y-1">
+                    {isMultiCity && getCityForDate(day) && (
+                      <div className="flex items-center gap-1 text-primary font-medium">
+                        <MapPin className="w-3 h-3" />
+                        {getCityForDate(day)}
+                      </div>
+                    )}
+                    <div>
+                      {dayEvents.length > 0 
+                        ? `${dayEvents.length} ${dayEvents.length === 1 ? 'event' : 'events'} planned`
+                        : 'No events planned'
+                      }
+                    </div>
                   </CardDescription>
                 </div>
                 <Button
