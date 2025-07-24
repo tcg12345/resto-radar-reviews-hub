@@ -1,5 +1,5 @@
 import { format, eachDayOfInterval, isSameDay } from 'date-fns';
-import { Plus, MapPin, Clock, Utensils, Activity, Plane, MoreVertical, Trash2, Edit } from 'lucide-react';
+import { Plus, MapPin, Clock, Utensils, Activity, Plane, MoreVertical, Trash2, Edit, Navigation, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +15,48 @@ interface TripCalendarProps {
   onEditEvent: (event: ItineraryEvent) => void;
   onDeleteEvent: (eventId: string) => void;
 }
+
+// Function to get airline website URL
+const getAirlineWebsite = (airline: string): string => {
+  const airlineName = airline.toLowerCase();
+  
+  const airlineWebsites: { [key: string]: string } = {
+    'american': 'https://www.aa.com',
+    'delta': 'https://www.delta.com',
+    'united': 'https://www.united.com',
+    'southwest': 'https://www.southwest.com',
+    'jetblue': 'https://www.jetblue.com',
+    'alaska': 'https://www.alaskaair.com',
+    'frontier': 'https://www.flyfrontier.com',
+    'spirit': 'https://www.spirit.com',
+    'lufthansa': 'https://www.lufthansa.com',
+    'british airways': 'https://www.britishairways.com',
+    'air france': 'https://www.airfrance.com',
+    'klm': 'https://www.klm.com',
+    'emirates': 'https://www.emirates.com',
+    'qatar': 'https://www.qatarairways.com',
+    'singapore': 'https://www.singaporeair.com',
+    'cathay pacific': 'https://www.cathaypacific.com',
+    'japan airlines': 'https://www.jal.com',
+    'ana': 'https://www.ana.co.jp',
+    'korean air': 'https://www.koreanair.com',
+  };
+  
+  // Try to find exact match or partial match
+  for (const [key, url] of Object.entries(airlineWebsites)) {
+    if (airlineName.includes(key) || key.includes(airlineName)) {
+      return url;
+    }
+  }
+  
+  // Default to flight tracking if no specific airline website found
+  return `https://www.flightradar24.com/data/airlines`;
+};
+
+// Function to generate Google Maps directions URL to airport
+const getAirportDirectionsUrl = (airportCode: string): string => {
+  return `https://www.google.com/maps/dir/?api=1&destination=${airportCode}+Airport&travelmode=driving`;
+};
 
 export function TripCalendar({ startDate, endDate, events, onAddEvent, onEditEvent, onDeleteEvent }: TripCalendarProps) {
   const days = eachDayOfInterval({ start: startDate, end: endDate });
@@ -118,14 +160,47 @@ export function TripCalendar({ startDate, endDate, events, onAddEvent, onEditEve
                                 </div>
                               )}
                               {event.flightData && (
-                                <div className="space-y-1 text-sm opacity-90">
-                                  <div className="flex items-center gap-1">
-                                    <MapPin className="w-3 h-3" />
-                                    <span>{event.flightData.departure.airport} → {event.flightData.arrival.airport}</span>
+                                <div className="space-y-2">
+                                  <div className="space-y-1 text-sm opacity-90">
+                                    <div className="flex items-center gap-1">
+                                      <MapPin className="w-3 h-3" />
+                                      <span>{event.flightData.departure.airport} → {event.flightData.arrival.airport}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <Clock className="w-3 h-3" />
+                                      <span>Departs: {event.flightData.departure.time} | Arrives: {event.flightData.arrival.time}</span>
+                                    </div>
                                   </div>
-                                  <div className="flex items-center gap-1">
-                                    <Clock className="w-3 h-3" />
-                                    <span>Departs: {event.flightData.departure.time} | Arrives: {event.flightData.arrival.time}</span>
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-7 text-xs"
+                                      onClick={() => window.open(getAirportDirectionsUrl(event.flightData!.departure.airport), '_blank')}
+                                    >
+                                      <Navigation className="w-3 h-3 mr-1" />
+                                      Directions to {event.flightData.departure.airport}
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-7 text-xs"
+                                      onClick={() => window.open(getAirlineWebsite(event.flightData!.airline), '_blank')}
+                                    >
+                                      <ExternalLink className="w-3 h-3 mr-1" />
+                                      {event.flightData.airline}
+                                    </Button>
+                                    {event.flightData.bookingUrl && (
+                                      <Button
+                                        size="sm"
+                                        variant="default"
+                                        className="h-7 text-xs"
+                                        onClick={() => window.open(event.flightData!.bookingUrl, '_blank')}
+                                      >
+                                        <ExternalLink className="w-3 h-3 mr-1" />
+                                        Book Flight
+                                      </Button>
+                                    )}
                                   </div>
                                 </div>
                               )}

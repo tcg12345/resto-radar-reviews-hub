@@ -42,6 +42,7 @@ export interface ItineraryEvent {
     };
     duration?: string;
     price?: string;
+    bookingUrl?: string;
   };
 }
 

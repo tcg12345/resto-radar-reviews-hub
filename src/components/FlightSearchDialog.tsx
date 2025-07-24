@@ -38,6 +38,7 @@ interface Flight {
   price?: string;
   stops?: number;
   stopLocations?: string[];
+  bookingUrl?: string;
 }
 
 export function FlightSearchDialog({ isOpen, onClose, onSelect, selectedDate }: FlightSearchDialogProps) {
@@ -105,6 +106,7 @@ export function FlightSearchDialog({ isOpen, onClose, onSelect, selectedDate }: 
       arrival: flight.arrival,
       duration: flight.duration,
       price: flight.price,
+      bookingUrl: flight.bookingUrl,
     });
     handleClose();
     toast.success('Flight added to your itinerary!');
