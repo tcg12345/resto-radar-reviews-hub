@@ -21,6 +21,7 @@ import { PhotoGallery } from '@/components/PhotoGallery';
 import { OpeningHoursDisplay } from '@/components/OpeningHoursDisplay';
 import { AIReviewAssistant } from '@/components/AIReviewAssistant';
 import { ShareRestaurantDialog } from '@/components/ShareRestaurantDialog';
+import { MenuButton } from '@/components/MenuButton';
 
 import { Restaurant } from '@/types/restaurant';
 import { useRestaurants } from '@/contexts/RestaurantContext';
@@ -490,6 +491,13 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
             </div>
           </DialogContent>
         </Dialog>
+        
+        <MenuButton 
+          restaurantName={restaurant.name}
+          restaurantAddress={restaurant.address}
+          className="flex-1 h-6 lg:h-7 px-1.5 lg:px-2 text-[10px] lg:text-xs mobile-button"
+          size="sm"
+        />
         
         <Button 
           size="sm" 

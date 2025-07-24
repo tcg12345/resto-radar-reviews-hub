@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MapPin, Star, Plus } from 'lucide-react';
 import { SharedRestaurantDetailsModal } from './SharedRestaurantDetailsModal';
+import { MenuButton } from '@/components/MenuButton';
 
 interface SharedRestaurant {
   id: string;
@@ -97,10 +98,13 @@ export function SharedRestaurantCard({ restaurantData, isOwnMessage }: SharedRes
             </div>
           </div>
           
-          <div className="flex items-center justify-between mt-3">
-            <span className="text-xs text-muted-foreground">
-              Click to view details
-            </span>
+          <div className="flex items-center gap-2 mt-3">
+            <MenuButton 
+              restaurantName={restaurant.name}
+              restaurantAddress={restaurant.address}
+              className="h-6 px-2 text-xs"
+              size="sm"
+            />
             {!isOwnMessage && (
               <Button 
                 size="sm" 

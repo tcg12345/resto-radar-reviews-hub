@@ -17,6 +17,7 @@ import { useRestaurants } from "@/contexts/RestaurantContext";
 import { RestaurantDialog } from "./Dialog/RestaurantDialog";
 import { RestaurantFormData } from "@/types/restaurant";
 import { GlobalSearchMap } from "@/components/GlobalSearchMap";
+import { MenuButton } from "@/components/MenuButton";
 interface PlaceDetails {
   place_id: string;
   name: string;
@@ -428,6 +429,12 @@ export function RestaurantProfileModal({
                       <Globe className="h-4 w-4 mr-2" />
                       Website
                     </Button>
+                    <MenuButton 
+                      restaurantName={place.name}
+                      restaurantAddress={place.formatted_address}
+                      className="w-full"
+                      size="default"
+                    />
                     <Button variant="outline" onClick={handleAddToWishlist} disabled={isAddingToWishlist || !user} className="w-full">
                       <Heart className="h-4 w-4 mr-2" />
                       Wishlist
