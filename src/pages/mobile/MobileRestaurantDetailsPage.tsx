@@ -14,6 +14,8 @@ import {
   ExternalLink,
   Navigation
 } from 'lucide-react';
+import { PriceRange } from '@/components/PriceRange';
+import { MichelinStars } from '@/components/MichelinStars';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -275,12 +277,13 @@ export default function MobileRestaurantDetailsPage() {
               )}
               {restaurant.michelin_stars && (
                 <Badge variant="outline" className="flex items-center gap-1">
-                  {'⭐'.repeat(restaurant.michelin_stars)} Michelin
+                  <MichelinStars stars={restaurant.michelin_stars} readonly size="sm" />
+                  Michelin
                 </Badge>
               )}
               {restaurant.price_range && (
-                <Badge variant="outline">
-                  {getPriceRangeDisplay(restaurant.price_range)}
+                <Badge variant="outline" className="flex items-center gap-1">
+                  <PriceRange priceRange={restaurant.price_range} readonly size="sm" />
                 </Badge>
               )}
               {restaurant.date_visited && (
