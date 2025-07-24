@@ -75,16 +75,20 @@ export const useAmadeusApi = () => {
 
   const searchCities = async (keyword: string): Promise<AmadeusCity[]> => {
     try {
-      const { data, error } = await supabase.functions.invoke(
-        `amadeus-api/search-cities?keyword=${encodeURIComponent(keyword)}`,
-        { method: 'GET' }
-      );
+      // Use a GET request by invoking the function with the path parameter
+      const response = await fetch(`https://ocpmhsquwsdaauflbygf.supabase.co/functions/v1/amadeus-api/search-cities?keyword=${encodeURIComponent(keyword)}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcG1oc3F1d3NkYWF1ZmxieWdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3OTExOTYsImV4cCI6MjA2ODM2NzE5Nn0.Xf7eNeuD37Vve1jpTyuBTdWqPdqnRXN0jFU84O-4H20`,
+          'Content-Type': 'application/json',
+        },
+      });
 
-      if (error) {
-        console.error('Error searching cities:', error);
-        throw error;
+      if (!response.ok) {
+        throw new Error(`HTTP error ${response.status}`);
       }
 
+      const data = await response.json();
       return data?.data || [];
     } catch (error) {
       console.error('Failed to search cities:', error);

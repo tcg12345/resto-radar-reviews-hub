@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, MapPin, Star, Heart, Phone, Globe, Navigation, Clock } from 'lucide-react';
+import { Search, MapPin, Star, Heart, Phone, Globe, Navigation, Clock, Plane } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { GlobalSearchMap } from '@/components/GlobalSearchMap';
 import { PersonalizedRecommendations } from '@/components/PersonalizedRecommendations';
 import { RestaurantProfileModal } from '@/components/RestaurantProfileModal';
+import { AmadeusCitySearch } from '@/components/AmadeusCitySearch';
 
 interface GooglePlaceResult {
   place_id: string;
@@ -246,50 +247,16 @@ export default function GlobalSearchPage() {
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">
+              <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 Location (optional)
+                <Plane className="h-3 w-3 text-amber-500" />
               </label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="City or neighborhood"
-                  value={locationQuery}
-                  onChange={(e) => {
-                    setLocationQuery(e.target.value);
-                    generateLocationSuggestions(e.target.value);
-                    setShowLocationSuggestions(e.target.value.length > 1);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleSearch();
-                      setShowLocationSuggestions(false);
-                    } else if (e.key === 'Escape') {
-                      setShowLocationSuggestions(false);
-                    }
-                  }}
-                  onFocus={() => locationQuery.length > 1 && setShowLocationSuggestions(true)}
-                  onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 150)}
-                  className="pl-10 h-12"
-                />
-                
-                {/* Location Suggestions Dropdown */}
-                {showLocationSuggestions && locationSuggestions.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 z-[9999] bg-background border border-border rounded-md shadow-2xl mt-1 max-h-48 overflow-y-auto backdrop-blur-sm">
-                    {locationSuggestions.map((suggestion, index) => (
-                      <div
-                        key={index}
-                        className="px-3 py-2 hover:bg-muted cursor-pointer border-b border-border last:border-b-0 transition-colors"
-                        onClick={() => handleLocationSuggestionClick(suggestion)}
-                      >
-                        <div className="font-medium text-sm">{suggestion.mainText}</div>
-                        {suggestion.secondaryText && (
-                          <div className="text-xs text-muted-foreground">{suggestion.secondaryText}</div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <AmadeusCitySearch
+                value={locationQuery}
+                onChange={setLocationQuery}
+                placeholder="Search cities worldwide for travel context..."
+                className="h-12"
+              />
             </div>
             
             <div className="flex items-end">

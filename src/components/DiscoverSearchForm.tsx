@@ -4,7 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Sparkles, MapPin, Filter, Loader2 } from 'lucide-react';
+import { Search, Sparkles, MapPin, Filter, Loader2, Plane } from 'lucide-react';
+import { AmadeusCitySearch } from '@/components/AmadeusCitySearch';
+import type { AmadeusCity } from '@/hooks/useAmadeusApi';
 export type SearchType = 'name' | 'cuisine' | 'description';
 interface SearchFormProps {
   searchQuery: string;
@@ -99,13 +101,16 @@ export function DiscoverSearchForm({
           </div>
           
           <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground">
+            <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               Location (optional)
+              <Plane className="h-3 w-3 text-amber-500" />
             </label>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="City or neighborhood" value={locationQuery} onChange={e => setLocationQuery(e.target.value)} onKeyDown={handleKeyPress} className="pl-10 h-12 bg-background/50 border-muted-foreground/20 focus:border-primary" />
-            </div>
+            <AmadeusCitySearch
+              value={locationQuery}
+              onChange={setLocationQuery}
+              placeholder="Search cities worldwide..."
+              className="h-12 bg-background/50 border-muted-foreground/20 focus:border-primary"
+            />
           </div>
         </div>
 
@@ -140,11 +145,12 @@ export function DiscoverSearchForm({
 
         {/* Quick Location Shortcuts */}
         <div className="space-y-3">
-          <p className="text-sm font-medium text-muted-foreground">
-            Popular locations:
+          <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+            Popular destinations:
+            <Plane className="h-3 w-3 text-amber-500" />
           </p>
           <div className="flex flex-wrap gap-2">
-            {['New York, NY', 'Los Angeles, CA', 'Chicago, IL', 'San Francisco, CA', 'Miami, FL'].map(location => <Badge key={location} variant="outline" className="cursor-pointer hover:bg-accent transition-colors px-3 py-1 text-xs" onClick={() => setLocationQuery(location)}>
+            {['New York, United States', 'Paris, France', 'London, United Kingdom', 'Tokyo, Japan', 'Rome, Italy', 'Barcelona, Spain'].map(location => <Badge key={location} variant="outline" className="cursor-pointer hover:bg-accent transition-colors px-3 py-1 text-xs" onClick={() => setLocationQuery(location)}>
                 {location}
               </Badge>)}
           </div>
