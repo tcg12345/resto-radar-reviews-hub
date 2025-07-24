@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Hotel, Plane, Plus, MapPin, ExternalLink, Phone, Navigation, Eye, Radar } from 'lucide-react';
+import { RestaurantLocationMap } from '@/components/RestaurantLocationMap';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
