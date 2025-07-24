@@ -406,28 +406,29 @@ export default function UnifiedSearchPage() {
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary-glow/5 opacity-50" />
         
-        <div className="relative p-4 lg:p-8">
-          {/* Header Section */}
-          <div className="mb-8 text-center">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-2">
+        <div className="relative p-3 sm:p-4 lg:p-8">
+          {/* Header Section - More compact on mobile */}
+          <div className="mb-4 sm:mb-8 text-center">
+            <h2 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-1 sm:mb-2">
               Discover Your Next Favorite Restaurant
             </h2>
-            <p className="text-muted-foreground">Search by name, cuisine, or let us help you find something new</p>
+            <p className="text-sm sm:text-base text-muted-foreground">Search by name, cuisine, or let us help you find something new</p>
           </div>
 
-          {/* Combined Search Header - Always Active */}
-          <div className="mb-8">
+          {/* Combined Search Header - More compact on mobile */}
+          <div className="mb-4 sm:mb-8">
             <div className="flex justify-center">
-              <div className="px-6 py-3 rounded-full text-base font-medium bg-primary text-primary-foreground shadow-lg flex items-center gap-3">
+              <div className="px-3 sm:px-6 py-2 sm:py-3 rounded-full text-sm sm:text-base font-medium bg-primary text-primary-foreground shadow-lg flex items-center gap-2 sm:gap-3">
                 <span>🔍</span>
-                <span>Restaurant Search</span>
+                <span className="hidden sm:inline">Restaurant Search</span>
+                <span className="sm:hidden">Search</span>
               </div>
             </div>
           </div>
 
-          {/* Search Form - Modern Layout with Button on Right */}
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+          {/* Search Form - More compact spacing on mobile */}
+          <div className="space-y-3 sm:space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 sm:gap-6 items-start">
               {/* Main Search Input */}
               <div className="lg:col-span-2 space-y-2 relative" ref={searchRef}>
                 <div className="relative group">
@@ -450,7 +451,7 @@ export default function UnifiedSearchPage() {
                           handleSearch();
                         }
                       }} 
-                      className="pl-12 pr-10 h-14 bg-transparent border-none text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none" 
+                      className="pl-12 pr-10 h-12 sm:h-14 bg-transparent border-none text-base sm:text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none" 
                     />
                     {searchQuery && (
                       <button 
@@ -565,7 +566,7 @@ export default function UnifiedSearchPage() {
                       }} 
                       onFocus={() => locationQuery.length > 1 && setShowLocationSuggestions(true)} 
                       onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 150)} 
-                      className="pl-12 pr-4 h-14 bg-transparent border-none text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none" 
+                      className="pl-12 pr-4 h-12 sm:h-14 bg-transparent border-none text-base sm:text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none" 
                     />
                     
                     {/* Modern Location Suggestions */}
@@ -585,10 +586,10 @@ export default function UnifiedSearchPage() {
                 </div>
               </div>
               
-              {/* Search Button - Repositioned to the Right */}
+              {/* Search Button - More compact on mobile */}
               <div className="space-y-2">
-                <div className="h-14 flex items-end">
-                  <Button onClick={handleSearch} disabled={isLoading} className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-primary to-primary-glow hover:from-primary-glow hover:to-primary shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:transform-none disabled:scale-100">
+                <div className="h-12 sm:h-14 flex items-end">
+                  <Button onClick={handleSearch} disabled={isLoading} className="w-full h-12 sm:h-14 text-base sm:text-lg font-semibold bg-gradient-to-r from-primary to-primary-glow hover:from-primary-glow hover:to-primary shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:transform-none disabled:scale-100">
                     {isLoading ? (
                       <div className="flex items-center gap-2">
                         <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
