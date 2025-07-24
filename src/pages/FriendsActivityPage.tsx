@@ -1355,8 +1355,86 @@ export function FriendsActivityPage() {
                   navigate(`/restaurant/${restaurant.id}?friendId=${restaurant.friend.id}&fromFriendsActivity=true&returnUrl=${encodeURIComponent(returnUrl)}`);
                 }}
               >
-                <CardContent className="p-6">
-                  <div className="space-y-4">
+                <CardContent className="p-3 md:p-6">
+                  {/* Mobile Layout - Optimized for small screens */}
+                  <div className="md:hidden space-y-3">
+                    {/* Friend Info Header - Compact */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <Avatar className="h-6 w-6 flex-shrink-0">
+                          <AvatarImage src={restaurant.friend.avatar_url} />
+                          <AvatarFallback className="text-xs">
+                            {restaurant.friend.name.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-xs truncate">{restaurant.friend.name}</p>
+                        </div>
+                      </div>
+                      <Badge 
+                        variant="outline" 
+                        className={`text-xs px-2 py-0.5 flex-shrink-0 ${
+                          restaurant.is_wishlist 
+                            ? 'text-red-600 border-red-200' 
+                            : 'text-green-600 border-green-200'
+                        }`}
+                      >
+                        {restaurant.is_wishlist ? (
+                          <><Heart className="h-2.5 w-2.5 mr-1" />Want</>
+                        ) : (
+                          <><Star className="h-2.5 w-2.5 mr-1" />Been</>
+                        )}
+                      </Badge>
+                    </div>
+
+                    {/* Restaurant Name & Basic Info */}
+                    <div>
+                      <h3 className="font-semibold text-sm leading-tight mb-1 line-clamp-1">{restaurant.name}</h3>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                        <span className="truncate">{restaurant.cuisine}</span>
+                        <span>•</span>
+                        <span className="truncate">{restaurant.city}</span>
+                      </div>
+                    </div>
+
+                    {/* Rating & Details Row */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        {restaurant.rating && !restaurant.is_wishlist && (
+                          <div className="flex items-center gap-1">
+                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                            <span className="text-xs font-medium">{restaurant.rating}</span>
+                          </div>
+                        )}
+                        {restaurant.price_range && (
+                          <span className="text-xs text-green-600 font-medium">
+                            {'$'.repeat(restaurant.price_range)}
+                          </span>
+                        )}
+                        {restaurant.michelin_stars && restaurant.michelin_stars > 0 && (
+                          <div className="flex items-center">
+                            {Array.from({ length: restaurant.michelin_stars }).map((_, i) => (
+                              <span key={i} className="text-xs">⭐</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        <span>{formatDate(restaurant.date_visited || restaurant.created_at)}</span>
+                      </div>
+                    </div>
+
+                    {/* Notes Preview - Mobile Only */}
+                    {restaurant.notes && (
+                      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                        "{restaurant.notes}"
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Desktop Layout - Unchanged */}
+                  <div className="hidden md:block space-y-4">
                     {/* Header with friend info */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
