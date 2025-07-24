@@ -108,7 +108,7 @@ export function WishlistPage({
           <Button size="sm" onClick={() => setIsAddDialogOpen(true)} className="mobile-button">
             <Plus className="mr-1 lg:mr-2 h-3 w-3 lg:h-4 lg:w-4" />
             <span className="hidden sm:inline">Add Restaurant</span>
-            <span className="sm:hidden">Add</span>
+            <span className="sm:hidden">Add Restaurant</span>
           </Button>
         </div>
       </div>
