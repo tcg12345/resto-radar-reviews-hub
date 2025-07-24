@@ -1,17 +1,22 @@
 import { useState, useEffect } from 'react';
 import { addDays, format, startOfDay, differenceInDays } from 'date-fns';
-import { Calendar, Plus, Download, Share2, Save, CalendarDays } from 'lucide-react';
+import { Calendar, Plus, Download, Share2, Save, CalendarDays, MapPin, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { DateRangePicker } from '@/components/DateRangePicker';
 import { TripCalendar } from '@/components/TripCalendar';
 import { EventDialog } from '@/components/EventDialog';
 import { ShareItineraryDialog } from '@/components/ShareItineraryDialog';
 import { ExportItineraryDialog } from '@/components/ExportItineraryDialog';
 import { SaveItineraryDialog } from '@/components/SaveItineraryDialog';
+import { AmadeusCitySearch } from '@/components/AmadeusCitySearch';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { AmadeusCity } from '@/hooks/useAmadeusApi';
 
 export interface ItineraryEvent {
   id: string;
@@ -58,11 +63,21 @@ export interface ItineraryEvent {
   };
 }
 
+export interface TripLocation {
+  id: string;
+  name: string;
+  iataCode?: string;
+  country: string;
+  state?: string;
+}
+
 export interface Itinerary {
   id?: string;
   title: string;
   startDate: Date;
   endDate: Date;
+  locations: TripLocation[];
+  isMultiCity: boolean;
   events: ItineraryEvent[];
   userId?: string;
   createdAt?: string;
@@ -83,6 +98,9 @@ export function ItineraryBuilder() {
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [editingEvent, setEditingEvent] = useState<ItineraryEvent | null>(null);
+  const [locations, setLocations] = useState<TripLocation[]>([]);
+  const [isMultiCity, setIsMultiCity] = useState(false);
+  const [currentLocationSearch, setCurrentLocationSearch] = useState('');
 
   const tripDays = dateRange.start && dateRange.end 
     ? differenceInDays(dateRange.end, dateRange.start) + 1 
@@ -90,23 +108,54 @@ export function ItineraryBuilder() {
 
   const handleDateRangeChange = (start: Date | null, end: Date | null) => {
     setDateRange({ start, end });
-    if (start && end) {
+    if (start && end && locations.length > 0) {
       // Clear events that are outside the new date range
       const startStr = format(start, 'yyyy-MM-dd');
       const endStr = format(end, 'yyyy-MM-dd');
       setEvents(prev => prev.filter(event => event.date >= startStr && event.date <= endStr));
       
+      // Create itinerary title with locations
+      const locationNames = locations.map(loc => loc.name).join(' → ');
+      const title = isMultiCity 
+        ? `Multi-City: ${locationNames}`
+        : `${locationNames} Trip`;
+      
       // Create new itinerary
       const newItinerary: Itinerary = {
-        title: `Trip ${format(start, 'MMM dd')} - ${format(end, 'MMM dd')}`,
+        title,
         startDate: start,
         endDate: end,
+        locations,
+        isMultiCity,
         events: [],
         userId: user?.id,
       };
       setCurrentItinerary(newItinerary);
     }
   };
+
+  const handleLocationSelect = (city: AmadeusCity) => {
+    const newLocation: TripLocation = {
+      id: city.id,
+      name: city.name,
+      iataCode: city.iataCode,
+      country: city.address.countryName,
+      state: city.address.stateCode,
+    };
+
+    if (!isMultiCity) {
+      setLocations([newLocation]);
+    } else {
+      setLocations(prev => [...prev, newLocation]);
+    }
+    setCurrentLocationSearch('');
+  };
+
+  const removeLocation = (locationId: string) => {
+    setLocations(prev => prev.filter(loc => loc.id !== locationId));
+  };
+
+  const canCreateItinerary = dateRange.start && dateRange.end && locations.length > 0;
 
   const handleAddEvent = (date: string) => {
     setSelectedDate(date);
@@ -190,7 +239,7 @@ export function ItineraryBuilder() {
     }
   }, [events]);
 
-  if (!dateRange.start || !dateRange.end) {
+  if (!canCreateItinerary) {
     return (
       <div className="space-y-6">
         <Card>
@@ -200,15 +249,66 @@ export function ItineraryBuilder() {
             </div>
             <CardTitle>Start Planning Your Trip</CardTitle>
             <CardDescription>
-              Select your travel dates to begin creating your itinerary
+              Select your destination(s) and travel dates to begin creating your itinerary
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex justify-center">
-            <DateRangePicker
-              startDate={dateRange.start}
-              endDate={dateRange.end}
-              onDateRangeChange={handleDateRangeChange}
-            />
+          <CardContent className="space-y-6">
+            {/* Multi-city toggle */}
+            <div className="flex items-center justify-center space-x-2">
+              <Switch
+                id="multi-city"
+                checked={isMultiCity}
+                onCheckedChange={setIsMultiCity}
+              />
+              <Label htmlFor="multi-city">Multi-city trip</Label>
+            </div>
+
+            {/* Location selection */}
+            <div className="space-y-4">
+              <div className="text-center">
+                <h3 className="font-medium mb-2">
+                  {isMultiCity ? 'Add destinations' : 'Select destination'}
+                </h3>
+                <AmadeusCitySearch
+                  value={currentLocationSearch}
+                  onChange={setCurrentLocationSearch}
+                  onCitySelect={handleLocationSelect}
+                  placeholder={isMultiCity ? "Add another city or airport..." : "Enter city or airport name"}
+                  className="max-w-md mx-auto"
+                />
+              </div>
+
+              {/* Selected locations */}
+              {locations.length > 0 && (
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {locations.map((location, index) => (
+                    <Badge key={location.id} variant="secondary" className="flex items-center gap-2">
+                      <MapPin className="w-3 h-3" />
+                      {location.name}
+                      {location.iataCode && ` (${location.iataCode})`}
+                      <button
+                        onClick={() => removeLocation(location.id)}
+                        className="ml-1 hover:text-destructive"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Date selection */}
+            {locations.length > 0 && (
+              <div className="text-center">
+                <h3 className="font-medium mb-2">Select travel dates</h3>
+                <DateRangePicker
+                  startDate={dateRange.start}
+                  endDate={dateRange.end}
+                  onDateRangeChange={handleDateRangeChange}
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -221,15 +321,29 @@ export function ItineraryBuilder() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <div>
+            <div className="space-y-2">
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="w-5 h-5" />
                 {currentItinerary?.title}
               </CardTitle>
-              <CardDescription>
-                {format(dateRange.start, 'EEEE, MMMM do')} - {format(dateRange.end, 'EEEE, MMMM do')} 
-                ({tripDays} {tripDays === 1 ? 'day' : 'days'})
-              </CardDescription>
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <span>
+                  {format(dateRange.start!, 'MMM do')} - {format(dateRange.end!, 'MMM do')} 
+                  ({tripDays} {tripDays === 1 ? 'day' : 'days'})
+                </span>
+                {currentItinerary?.isMultiCity && (
+                  <Badge variant="outline">Multi-city</Badge>
+                )}
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                {currentItinerary?.locations.map((location, index) => (
+                  <Badge key={location.id} variant="secondary" className="flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />
+                    {location.name}
+                    {location.iataCode && ` (${location.iataCode})`}
+                  </Badge>
+                ))}
+              </div>
             </div>
             
             <div className="flex items-center gap-2">
