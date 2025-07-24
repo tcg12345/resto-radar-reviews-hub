@@ -247,16 +247,11 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
                                       <MapPin className="w-3 h-3" />
                                       <span>{event.hotelData.address}</span>
                                     </div>
-                                    <div className="flex items-center gap-1">
-                                      <Calendar className="w-3 h-3" />
-                                      <span>
-                                        {format(new Date(event.hotelData.checkInDate), 'MMM do')} - {format(new Date(event.hotelData.checkOutDate), 'MMM do')}
-                                      </span>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                      <Users className="w-3 h-3" />
-                                      <span>{event.hotelData.guests} {event.hotelData.guests === 1 ? 'Guest' : 'Guests'}</span>
-                                    </div>
+                                     {event.hotelData.priceRange && (
+                                       <div className="flex items-center gap-1">
+                                         <span className="text-xs">{event.hotelData.priceRange}</span>
+                                       </div>
+                                     )}
                                     {event.hotelData.rating && (
                                       <div className="flex items-center gap-1">
                                         <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />

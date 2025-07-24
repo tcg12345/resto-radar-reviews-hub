@@ -60,9 +60,6 @@ export interface ItineraryEvent {
   hotelData?: {
     name: string;
     address: string;
-    checkInDate: string;
-    checkOutDate: string;
-    guests: number;
     rating?: number;
     priceRange?: string;
     amenities?: string[];

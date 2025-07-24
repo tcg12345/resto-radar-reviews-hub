@@ -25,7 +25,7 @@ interface HotelSearchDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (hotel: any) => void;
-  selectedDate: string | null;
+  itineraryLocation?: string;
 }
 
 interface Hotel {
@@ -44,43 +44,30 @@ interface Hotel {
   bookingUrl?: string;
 }
 
-export function HotelSearchDialog({ isOpen, onClose, onSelect, selectedDate }: HotelSearchDialogProps) {
-  const [location, setLocation] = useState('');
-  const [selectedCity, setSelectedCity] = useState<LocationSuggestion | null>(null);
-  const [checkInDate, setCheckInDate] = useState(selectedDate || '');
-  const [checkOutDate, setCheckOutDate] = useState('');
-  const [guests, setGuests] = useState('2');
-  const [priceRange, setPriceRange] = useState('');
+export function HotelSearchDialog({ isOpen, onClose, onSelect, itineraryLocation }: HotelSearchDialogProps) {
+  const [searchQuery, setSearchQuery] = useState('');
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const { searchHotels } = useGooglePlacesHotelSearch();
 
   const handleSearch = async () => {
-    if (!location || !checkInDate || !checkOutDate) {
-      toast.error('Please enter location, check-in and check-out dates');
-      return;
-    }
-
-    if (new Date(checkOutDate) <= new Date(checkInDate)) {
-      toast.error('Check-out date must be after check-in date');
+    if (!searchQuery.trim()) {
+      toast.error('Please enter a hotel name or location to search');
       return;
     }
 
     setIsSearching(true);
     try {
       const searchParams = {
-        location: selectedCity?.description || location,
-        checkInDate,
-        checkOutDate,
-        guests: parseInt(guests),
-        priceRange: priceRange || undefined,
+        query: searchQuery.trim(),
+        location: itineraryLocation,
       };
 
       const results = await searchHotels(searchParams);
       setHotels(results);
 
       if (results.length === 0) {
-        toast.info('No hotels found for the specified criteria');
+        toast.info('No hotels found matching your search');
       } else {
         toast.success(`Found ${results.length} hotels`);
       }
@@ -96,9 +83,6 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, selectedDate }: H
     onSelect({
       name: hotel.name,
       address: hotel.address,
-      checkInDate,
-      checkOutDate,
-      guests: parseInt(guests),
       rating: hotel.rating,
       priceRange: hotel.priceRange,
       amenities: hotel.amenities,
@@ -110,18 +94,16 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, selectedDate }: H
   };
 
   const handleClose = () => {
-    setLocation('');
-    setSelectedCity(null);
-    setCheckInDate(selectedDate || '');
-    setCheckOutDate('');
-    setGuests('2');
-    setPriceRange('');
+    setSearchQuery('');
     setHotels([]);
     onClose();
   };
 
-  const formattedCheckIn = checkInDate ? format(parseISO(checkInDate), 'MMM do') : '';
-  const formattedCheckOut = checkOutDate ? format(parseISO(checkOutDate), 'MMM do') : '';
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -134,93 +116,40 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, selectedDate }: H
             Hotel Search
           </DialogTitle>
           <DialogDescription className="text-lg">
-            {formattedCheckIn && formattedCheckOut && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Calendar className="w-4 h-4" />
-                {formattedCheckIn} - {formattedCheckOut}
-              </div>
-            )}
+            Search for hotels {itineraryLocation ? `in ${itineraryLocation} or anywhere else` : 'anywhere in the world'}
           </DialogDescription>
         </DialogHeader>
 
         {/* Search Form */}
-        <div className="space-y-6 border-b pb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium flex items-center gap-2">
-                <MapPin className="w-4 h-4" />
-                Location
-              </Label>
-              <AmadeusCitySearch
-                value={location}
-                onChange={setLocation}
-                onCitySelect={setSelectedCity}
-                placeholder="New York, Paris, Tokyo..."
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-medium flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                Guests
-              </Label>
-              <Select value={guests} onValueChange={setGuests}>
-                <SelectTrigger className="bg-background/60">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {[1,2,3,4,5,6,7,8].map(num => (
-                    <SelectItem key={num} value={num.toString()}>
-                      {num} {num === 1 ? 'Guest' : 'Guests'}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Check-in Date</Label>
+        <div className="space-y-4 border-b pb-6">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <Search className="w-4 h-4" />
+              Search Hotels
+            </Label>
+            <div className="flex gap-2">
               <Input
-                type="date"
-                value={checkInDate}
-                onChange={(e) => setCheckInDate(e.target.value)}
-                className="bg-background/60"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Search by hotel name or location (e.g., Marriott, Hilton, luxury hotels Paris)"
+                className="bg-background/60 flex-1"
               />
+              <Button
+                onClick={handleSearch}
+                disabled={isSearching || !searchQuery.trim()}
+                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg px-6"
+              >
+                <Search className="w-4 h-4 mr-2" />
+                {isSearching ? 'Searching...' : 'Search'}
+              </Button>
             </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Check-out Date</Label>
-              <Input
-                type="date"
-                value={checkOutDate}
-                onChange={(e) => setCheckOutDate(e.target.value)}
-                className="bg-background/60"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Price Range (Optional)</Label>
-              <Select value={priceRange} onValueChange={setPriceRange}>
-                <SelectTrigger className="bg-background/60">
-                  <SelectValue placeholder="Any price" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="any">Any price</SelectItem>
-                  <SelectItem value="budget">Budget ($0-100)</SelectItem>
-                  <SelectItem value="mid-range">Mid-range ($100-300)</SelectItem>
-                  <SelectItem value="luxury">Luxury ($300+)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {itineraryLocation && (
+              <p className="text-xs text-muted-foreground">
+                💡 Leave blank to search in {itineraryLocation}, or specify a different location
+              </p>
+            )}
           </div>
-
-          <Button
-            onClick={handleSearch}
-            disabled={isSearching || !location || !checkInDate || !checkOutDate}
-            className="w-full h-12 text-lg bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg"
-          >
-            <Search className="w-5 h-5 mr-2" />
-            {isSearching ? 'Searching Hotels...' : 'Search Hotels'}
-          </Button>
         </div>
 
         {/* Search Results */}
@@ -233,7 +162,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, selectedDate }: H
                   {hotels.length} Available Hotels
                 </h3>
                 <Badge variant="secondary" className="px-3 py-1">
-                  {selectedCity?.mainText || location}
+                  Search: "{searchQuery}"
                 </Badge>
               </div>
               
@@ -294,14 +223,12 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, selectedDate }: H
 
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4" />
-                            {formattedCheckIn} - {formattedCheckOut}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Users className="w-4 h-4" />
-                            {guests} {parseInt(guests) === 1 ? 'Guest' : 'Guests'}
-                          </span>
+                          {hotel.website && (
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-4 h-4" />
+                              View Details
+                            </span>
+                          )}
                         </div>
                         <Button
                           onClick={() => handleHotelSelect(hotel)}

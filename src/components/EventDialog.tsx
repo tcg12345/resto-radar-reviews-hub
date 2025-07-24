@@ -52,9 +52,6 @@ interface FlightData {
 interface HotelData {
   name: string;
   address: string;
-  checkInDate: string;
-  checkOutDate: string;
-  guests: number;
   rating?: number;
   priceRange?: string;
   amenities?: string[];
@@ -283,11 +280,11 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
                               <MapPin className="w-3 h-3" />
                               {hotelData.address}
                             </CardDescription>
-                            <CardDescription className="text-xs mt-1">
-                              Check-in: {format(new Date(hotelData.checkInDate), 'MMM do')} | 
-                              Check-out: {format(new Date(hotelData.checkOutDate), 'MMM do')} | 
-                              {hotelData.guests} {hotelData.guests === 1 ? 'Guest' : 'Guests'}
-                            </CardDescription>
+                            {hotelData.rating && (
+                              <CardDescription className="text-xs mt-1">
+                                Rating: {hotelData.rating}/5 {hotelData.priceRange && `| ${hotelData.priceRange}`}
+                              </CardDescription>
+                            )}
                           </div>
                           <Badge variant="secondary">Hotel</Badge>
                         </div>
@@ -395,7 +392,6 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
         isOpen={isHotelSearchOpen}
         onClose={() => setIsHotelSearchOpen(false)}
         onSelect={handleHotelSelect}
-        selectedDate={selectedDate}
       />
     </>
   );

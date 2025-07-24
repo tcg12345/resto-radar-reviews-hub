@@ -1,11 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export interface HotelSearchParams {
-  location: string;
-  checkInDate: string;
-  checkOutDate: string;
-  guests: number;
-  priceRange?: string;
+  query: string;
+  location?: string;
 }
 
 export interface Hotel {
@@ -27,10 +24,14 @@ export interface Hotel {
 export const useGooglePlacesHotelSearch = () => {
   const searchHotels = async (params: HotelSearchParams): Promise<Hotel[]> => {
     try {
-      // First search for hotels using Google Places
+      // Search for hotels using the query
+      const searchQuery = params.location ? 
+        `${params.query} hotels in ${params.location}` : 
+        `${params.query} hotels`;
+
       const { data: searchData, error: searchError } = await supabase.functions.invoke('google-places-search', {
         body: {
-          query: `hotels in ${params.location}`,
+          query: searchQuery,
           location: params.location,
           radius: 50000,
           type: 'search'
@@ -106,15 +107,7 @@ export const useGooglePlacesHotelSearch = () => {
               priceRange = 'Price varies';
           }
 
-          // Apply price filter if specified
-          if (params.priceRange && params.priceRange !== 'any') {
-            const skipHotel = 
-              (params.priceRange === 'budget' && details.price_level > 2) ||
-              (params.priceRange === 'mid-range' && (details.price_level < 2 || details.price_level > 3)) ||
-              (params.priceRange === 'luxury' && details.price_level < 3);
-            
-            if (skipHotel) continue;
-          }
+          // No price filtering needed anymore
 
           const hotel: Hotel = {
             id: details.place_id,
@@ -124,9 +117,7 @@ export const useGooglePlacesHotelSearch = () => {
             rating: details.rating,
             priceRange,
             amenities: amenities.slice(0, 6), // Limit amenities display
-            photos: details.photos?.slice(0, 3)?.map((photo: any) => 
-              `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo.photo_reference}&key=${process.env.GOOGLE_PLACES_API_KEY}`
-            ) || [],
+            photos: [], // Photos will be handled by backend if needed
             latitude: details.geometry?.location?.lat,
             longitude: details.geometry?.location?.lng,
             website: details.website,
