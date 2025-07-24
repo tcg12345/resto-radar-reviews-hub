@@ -274,11 +274,11 @@ export default function GlobalSearchPage() {
                 
                 {/* Location Suggestions Dropdown */}
                 {showLocationSuggestions && locationSuggestions.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 z-50 bg-card border border-border rounded-md shadow-lg mt-1 max-h-48 overflow-y-auto">
+                  <div className="absolute top-full left-0 right-0 z-[9999] bg-background border border-border rounded-md shadow-2xl mt-1 max-h-48 overflow-y-auto backdrop-blur-sm">
                     {locationSuggestions.map((suggestion, index) => (
                       <div
                         key={index}
-                        className="px-3 py-2 hover:bg-muted cursor-pointer border-b border-border last:border-b-0"
+                        className="px-3 py-2 hover:bg-muted cursor-pointer border-b border-border last:border-b-0 transition-colors"
                         onClick={() => handleLocationSuggestionClick(suggestion)}
                       >
                         <div className="font-medium text-sm">{suggestion.mainText}</div>
