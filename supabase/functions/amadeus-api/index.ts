@@ -221,6 +221,13 @@ function getFallbackFlightData(params: FlightSearchRequest) {
   const flights = [];
   const numFlights = Math.floor(Math.random() * 8) + 5; // 5-12 flights
   
+  // Validate departure date
+  const departureDate = new Date(params.departureDate + 'T00:00:00.000Z');
+  if (isNaN(departureDate.getTime())) {
+    console.error('Invalid departure date:', params.departureDate);
+    return { data: [] };
+  }
+  
   for (let i = 0; i < numFlights; i++) {
     const airline = airlines[i % airlines.length];
     const flightNum = Math.floor(Math.random() * 9000) + 1000;
@@ -239,8 +246,12 @@ function getFallbackFlightData(params: FlightSearchRequest) {
     const minutes = Math.floor(Math.random() * 4) * 15;
     const durationString = `${durationWithStops}h ${minutes}m`;
     
-    const departureDate = new Date(`${params.departureDate}T${departureTime}:00`);
-    const arrivalDate = new Date(departureDate.getTime() + (durationWithStops * 60 + minutes) * 60000);
+    // Create proper departure datetime
+    const flightDepartureDate = new Date(departureDate);
+    flightDepartureDate.setHours(departureHour, departureMinute, 0, 0);
+    
+    // Calculate arrival datetime
+    const arrivalDate = new Date(flightDepartureDate.getTime() + (durationWithStops * 60 + minutes) * 60000);
     const arrivalTime = `${arrivalDate.getHours().toString().padStart(2, '0')}:${arrivalDate.getMinutes().toString().padStart(2, '0')}`;
     
     const basePrice = stops === 0 ? 300 + Math.floor(Math.random() * 500) : 200 + Math.floor(Math.random() * 400);
