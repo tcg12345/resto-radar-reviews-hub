@@ -82,24 +82,44 @@ export default function MobileFriendProfilePage() {
   const loadFullRestaurantData = async () => {
     if (!actualUserId || !user) return;
     
+    console.log('🔍 Loading restaurant data for user:', actualUserId);
+    
     try {
-      const { data: completeProfile } = await supabase
+      const { data: completeProfile, error } = await supabase
         .rpc('get_friend_profile_data', { 
           target_user_id: actualUserId,
           requesting_user_id: user.id,
           restaurant_limit: 500
         });
 
+      console.log('📊 Complete profile data:', completeProfile);
+      console.log('❌ Profile error:', error);
+
+      if (error) {
+        console.error('Error loading restaurant data:', error);
+        return;
+      }
+
       if (completeProfile?.[0]?.recent_restaurants) {
         const restaurantData = completeProfile[0].recent_restaurants as any[];
-        setAllRestaurants(restaurantData.filter((r: any) => !r.is_wishlist));
-        setAllWishlist(restaurantData.filter((r: any) => r.is_wishlist));
+        console.log('🍽️ Restaurant data:', restaurantData);
         
-        const topCuisines = calculateTopCuisines(restaurantData.filter(r => !r.is_wishlist));
+        const ratedRestaurants = restaurantData.filter((r: any) => r.is_wishlist === false);
+        const wishlistRestaurants = restaurantData.filter((r: any) => r.is_wishlist === true);
+        
+        console.log('⭐ Rated restaurants:', ratedRestaurants.length);
+        console.log('❤️ Wishlist restaurants:', wishlistRestaurants.length);
+        
+        setAllRestaurants(ratedRestaurants);
+        setAllWishlist(wishlistRestaurants);
+        
+        const topCuisines = calculateTopCuisines(ratedRestaurants);
         setStats(prev => ({ ...prev, topCuisines }));
+      } else {
+        console.log('📭 No restaurant data found');
       }
     } catch (error) {
-      console.error('Error loading restaurant data:', error);
+      console.error('💥 Error loading restaurant data:', error);
     }
   };
 
