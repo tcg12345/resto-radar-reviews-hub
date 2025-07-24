@@ -667,6 +667,18 @@ export function ItineraryBuilder() {
         onDeleteEvent={handleDeleteEvent}
       />
 
+      {/* Hotels and Flights Section */}
+      <HotelFlightSection
+        locations={currentItinerary?.locations || []}
+        isMultiCity={currentItinerary?.isMultiCity || false}
+        hotels={hotels}
+        flights={flights}
+        onAddHotel={handleAddHotel}
+        onAddFlight={handleAddFlight}
+        onRemoveHotel={handleRemoveHotel}
+        onRemoveFlight={handleRemoveFlight}
+      />
+
       {/* Event Dialog */}
       <EventDialog
         isOpen={isEventDialogOpen}
