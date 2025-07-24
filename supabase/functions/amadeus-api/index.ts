@@ -208,10 +208,13 @@ async function searchFlights(apiKey: string, params: FlightSearchRequest) {
         );
         
         // Apply airline filter
-        if (params.airline) {
-          const airlineMatch = carrier?.name.toLowerCase().includes(params.airline.toLowerCase()) ||
-                             carrier?.iata_code.toLowerCase() === params.airline.toLowerCase();
+        if (params.airline && carrier) {
+          const airlineMatch = carrier.name?.toLowerCase().includes(params.airline.toLowerCase()) ||
+                             carrier.iata_code?.toLowerCase() === params.airline.toLowerCase();
           if (!airlineMatch) return null;
+        } else if (params.airline && !carrier) {
+          // If airline filter is specified but no carrier info available, skip this flight
+          return null;
         }
         
         // Apply flight type filter
