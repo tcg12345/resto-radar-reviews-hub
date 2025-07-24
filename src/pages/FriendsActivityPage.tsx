@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuCheckboxItem, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -896,64 +896,93 @@ export function FriendsActivityPage() {
                 <ChevronDown className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-72 max-h-80 overflow-y-auto">
-              {/* Friends Filter */}
-              <DropdownMenuLabel>Friends</DropdownMenuLabel>
-              {uniqueFriends.slice(0, 8).map((friend) => (
-                <DropdownMenuCheckboxItem
-                  key={friend.id}
-                  checked={selectedFriends.includes(friend.id)}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      setSelectedFriends(prev => [...prev, friend.id]);
-                    } else {
-                      setSelectedFriends(prev => prev.filter(f => f !== friend.id));
-                    }
-                  }}
-                >
-                  {friend.name} ({friend.count})
-                </DropdownMenuCheckboxItem>
-              ))}
+            <DropdownMenuContent align="start" className="w-72">
+              {/* Friends Filter Sub-Dropdown */}
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className="flex items-center justify-between">
+                  <span>Friends</span>
+                  {selectedFriends.length > 0 && (
+                    <Badge variant="secondary" className="ml-2 h-4 px-1.5 text-xs">
+                      {selectedFriends.length}
+                    </Badge>
+                  )}
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="w-56 max-h-64 overflow-y-auto">
+                  {uniqueFriends.map((friend) => (
+                    <DropdownMenuCheckboxItem
+                      key={friend.id}
+                      checked={selectedFriends.includes(friend.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedFriends(prev => [...prev, friend.id]);
+                        } else {
+                          setSelectedFriends(prev => prev.filter(f => f !== friend.id));
+                        }
+                      }}
+                    >
+                      {friend.name} ({friend.count})
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
               
-              <DropdownMenuSeparator />
+              {/* City Filter Sub-Dropdown */}
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className="flex items-center justify-between">
+                  <span>Cities</span>
+                  {selectedCities.length > 0 && (
+                    <Badge variant="secondary" className="ml-2 h-4 px-1.5 text-xs">
+                      {selectedCities.length}
+                    </Badge>
+                  )}
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="w-56 max-h-64 overflow-y-auto">
+                  {uniqueCities.map((city) => (
+                    <DropdownMenuCheckboxItem
+                      key={city}
+                      checked={selectedCities.includes(city)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedCities(prev => [...prev, city]);
+                        } else {
+                          setSelectedCities(prev => prev.filter(c => c !== city));
+                        }
+                      }}
+                    >
+                      {city} ({filterCounts.cities[city] || 0})
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
               
-              {/* City Filter */}
-              <DropdownMenuLabel>Cities</DropdownMenuLabel>
-              {uniqueCities.slice(0, 8).map((city) => (
-                <DropdownMenuCheckboxItem
-                  key={city}
-                  checked={selectedCities.includes(city)}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      setSelectedCities(prev => [...prev, city]);
-                    } else {
-                      setSelectedCities(prev => prev.filter(c => c !== city));
-                    }
-                  }}
-                >
-                  {city} ({filterCounts.cities[city] || 0})
-                </DropdownMenuCheckboxItem>
-              ))}
-              
-              <DropdownMenuSeparator />
-              
-              {/* Cuisine Filter */}
-              <DropdownMenuLabel>Cuisines</DropdownMenuLabel>
-              {uniqueCuisines.slice(0, 8).map((cuisine) => (
-                <DropdownMenuCheckboxItem
-                  key={cuisine}
-                  checked={selectedCuisines.includes(cuisine)}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      setSelectedCuisines(prev => [...prev, cuisine]);
-                    } else {
-                      setSelectedCuisines(prev => prev.filter(c => c !== cuisine));
-                    }
-                  }}
-                >
-                  {cuisine} ({filterCounts.cuisines[cuisine] || 0})
-                </DropdownMenuCheckboxItem>
-              ))}
+              {/* Cuisine Filter Sub-Dropdown */}
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className="flex items-center justify-between">
+                  <span>Cuisines</span>
+                  {selectedCuisines.length > 0 && (
+                    <Badge variant="secondary" className="ml-2 h-4 px-1.5 text-xs">
+                      {selectedCuisines.length}
+                    </Badge>
+                  )}
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="w-56 max-h-64 overflow-y-auto">
+                  {uniqueCuisines.map((cuisine) => (
+                    <DropdownMenuCheckboxItem
+                      key={cuisine}
+                      checked={selectedCuisines.includes(cuisine)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedCuisines(prev => [...prev, cuisine]);
+                        } else {
+                          setSelectedCuisines(prev => prev.filter(c => c !== cuisine));
+                        }
+                      }}
+                    >
+                      {cuisine} ({filterCounts.cuisines[cuisine] || 0})
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
             </DropdownMenuContent>
           </DropdownMenu>
 
