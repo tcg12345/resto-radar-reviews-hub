@@ -461,6 +461,7 @@ export function ChatPage() {
           </div>
         </div>
       </div>
+      </div>
     </>
   );
 }

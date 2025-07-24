@@ -323,6 +323,7 @@ export default function MobileFriendProfilePage() {
             ))}
           </div>
         </div>
+        </div>
       </>
     );
   }
@@ -544,6 +545,7 @@ export default function MobileFriendProfilePage() {
             ))
           )}
         </div>
+      </div>
       </div>
     </>
   );

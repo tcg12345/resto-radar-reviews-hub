@@ -719,6 +719,9 @@ export function ChatListPage() {
       </div>
 
       {/* Delete Confirmation Dialog */}
+      </div>
+
+      {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!chatToDelete} onOpenChange={() => setChatToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

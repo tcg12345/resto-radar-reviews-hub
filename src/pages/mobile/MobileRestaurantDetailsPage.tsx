@@ -507,6 +507,7 @@ export default function MobileRestaurantDetailsPage() {
           )}
         </div>
       </div>
+      </div>
     </>
   );
 }
