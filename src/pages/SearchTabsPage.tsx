@@ -42,10 +42,7 @@ export default function SearchTabsPage() {
     <>
       {/* Mobile Version - Simplified */}
       <div className="lg:hidden w-full mobile-container py-3">
-        <div className="mb-4">
-          <h1 className="text-xl font-bold mb-2 bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-            Search
-          </h1>
+        <div className="mb-4 hidden">
         </div>
 
         <Tabs value={activeTab} onValueChange={handleTabChange}>
