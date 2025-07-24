@@ -23,11 +23,17 @@ async function getAmadeusToken(): Promise<string> {
   const apiKey = Deno.env.get('AMADEUS_API_KEY');
   const apiSecret = Deno.env.get('AMADEUS_API_SECRET');
   
+  console.log('API Key exists:', !!apiKey);
+  console.log('API Secret exists:', !!apiSecret);
+  
   if (!apiKey || !apiSecret) {
+    console.error('Missing Amadeus credentials - API Key:', !!apiKey, 'API Secret:', !!apiSecret);
     throw new Error('Amadeus API credentials not configured');
   }
 
   const tokenUrl = 'https://test.api.amadeus.com/v1/security/oauth2/token';
+  
+  console.log('Requesting token from:', tokenUrl);
   
   const response = await fetch(tokenUrl, {
     method: 'POST',
@@ -37,11 +43,16 @@ async function getAmadeusToken(): Promise<string> {
     body: `grant_type=client_credentials&client_id=${apiKey}&client_secret=${apiSecret}`,
   });
 
+  console.log('Token response status:', response.status);
+  
   if (!response.ok) {
-    throw new Error(`Failed to get Amadeus token: ${response.statusText}`);
+    const errorText = await response.text();
+    console.error('Token request failed:', response.status, errorText);
+    throw new Error(`Failed to get Amadeus token: ${response.status} - ${errorText}`);
   }
 
   const tokenData: AmadeusTokenResponse = await response.json();
+  console.log('Token obtained successfully, expires in:', tokenData.expires_in);
   return tokenData.access_token;
 }
 
@@ -49,11 +60,15 @@ async function getAmadeusToken(): Promise<string> {
 async function getPointsOfInterest(token: string, params: PointOfInterestRequest) {
   const { latitude, longitude, radius = 5, categories = ['RESTAURANT'] } = params;
   
+  console.log('Getting POI with params:', { latitude, longitude, radius, categories });
+  
   const url = new URL('https://test.api.amadeus.com/v1/reference-data/locations/pois');
   url.searchParams.set('latitude', latitude.toString());
   url.searchParams.set('longitude', longitude.toString());
   url.searchParams.set('radius', radius.toString());
   url.searchParams.set('categories', categories.join(','));
+  
+  console.log('POI API URL:', url.toString());
   
   const response = await fetch(url.toString(), {
     headers: {
@@ -61,11 +76,17 @@ async function getPointsOfInterest(token: string, params: PointOfInterestRequest
     },
   });
 
+  console.log('POI response status:', response.status);
+
   if (!response.ok) {
-    throw new Error(`Failed to get points of interest: ${response.statusText}`);
+    const errorText = await response.text();
+    console.error('POI request failed:', response.status, errorText);
+    throw new Error(`Failed to get points of interest: ${response.status} - ${errorText}`);
   }
 
-  return await response.json();
+  const data = await response.json();
+  console.log('POI data received, count:', data?.data?.length || 0);
+  return data;
 }
 
 // Search for cities (for location autocomplete)
@@ -94,13 +115,16 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Amadeus API function called')
+    console.log('Amadeus API function called, method:', req.method);
+    console.log('Request URL:', req.url);
     
     // Parse request body to get endpoint type
     let requestBody;
     try {
       requestBody = await req.json();
+      console.log('Request body parsed:', JSON.stringify(requestBody, null, 2));
     } catch (e) {
+      console.error('Failed to parse JSON:', e);
       return new Response(
         JSON.stringify({ error: 'Invalid JSON in request body' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
