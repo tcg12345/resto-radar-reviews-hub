@@ -91,7 +91,7 @@ export function WishlistPage({
   return (
     <div className="py-3 lg:py-6 mobile-container">
       <div className="mb-3 lg:mb-6 flex flex-col items-start justify-between mobile-grid-compact lg:gap-4 sm:flex-row sm:items-center">
-        <h2 className="text-xl lg:text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mobile-truncate">Restaurant Wishlist</h2>
+        <h2 className="hidden lg:block text-xl lg:text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mobile-truncate">Restaurant Wishlist</h2>
         <div className="flex items-center mobile-grid-compact">
           {onNavigateToMap && (
             <Button variant="outline" size="sm" onClick={onNavigateToMap} className="mobile-button">
