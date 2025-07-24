@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { addDays, format, startOfDay, differenceInDays } from 'date-fns';
-import { Calendar, Plus, Download, Share2, Save, CalendarDays, MapPin, X } from 'lucide-react';
+import { Calendar, Plus, Download, Share2, Save, CalendarDays, MapPin, X, CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
 import { DateRangePicker } from '@/components/DateRangePicker';
 import { TripCalendar } from '@/components/TripCalendar';
@@ -16,6 +18,7 @@ import { AmadeusCitySearch } from '@/components/AmadeusCitySearch';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 interface LocationSuggestion {
   id: string;
   description: string;
@@ -74,6 +77,8 @@ export interface TripLocation {
   iataCode?: string;
   country: string;
   state?: string;
+  startDate?: Date;
+  endDate?: Date;
 }
 
 export interface Itinerary {
@@ -113,17 +118,15 @@ export function ItineraryBuilder() {
 
   const handleDateRangeChange = (start: Date | null, end: Date | null) => {
     setDateRange({ start, end });
-    if (start && end && locations.length > 0) {
-      // Clear events that are outside the new date range
+    if (start && end && locations.length > 0 && !isMultiCity) {
+      // Clear events that are outside the new date range for single city
       const startStr = format(start, 'yyyy-MM-dd');
       const endStr = format(end, 'yyyy-MM-dd');
       setEvents(prev => prev.filter(event => event.date >= startStr && event.date <= endStr));
       
       // Create itinerary title with locations
       const locationNames = locations.map(loc => loc.name).join(' → ');
-      const title = isMultiCity 
-        ? `Multi-City: ${locationNames}`
-        : `${locationNames} Trip`;
+      const title = `${locationNames} Trip`;
       
       // Create new itinerary
       const newItinerary: Itinerary = {
@@ -137,6 +140,31 @@ export function ItineraryBuilder() {
       };
       setCurrentItinerary(newItinerary);
     }
+  };
+
+  const createMultiCityItinerary = () => {
+    if (!locations.every(loc => loc.startDate && loc.endDate)) return;
+    
+    // Calculate overall trip dates from all locations
+    const allStartDates = locations.map(loc => loc.startDate!);
+    const allEndDates = locations.map(loc => loc.endDate!);
+    const overallStart = new Date(Math.min(...allStartDates.map(d => d.getTime())));
+    const overallEnd = new Date(Math.max(...allEndDates.map(d => d.getTime())));
+    
+    const locationNames = locations.map(loc => loc.name).join(' → ');
+    const title = `Multi-City: ${locationNames}`;
+    
+    const newItinerary: Itinerary = {
+      title,
+      startDate: overallStart,
+      endDate: overallEnd,
+      locations,
+      isMultiCity: true,
+      events: [],
+      userId: user?.id,
+    };
+    setCurrentItinerary(newItinerary);
+    setDateRange({ start: overallStart, end: overallEnd });
   };
 
   const handleLocationSelect = (location: LocationSuggestion) => {
@@ -160,7 +188,24 @@ export function ItineraryBuilder() {
     setLocations(prev => prev.filter(loc => loc.id !== locationId));
   };
 
-  const canCreateItinerary = dateRange.start && dateRange.end && locations.length > 0;
+  const updateLocationDates = (locationId: string, startDate: Date | null, endDate: Date | null) => {
+    setLocations(prev => prev.map(loc => 
+      loc.id === locationId 
+        ? { ...loc, startDate: startDate || undefined, endDate: endDate || undefined }
+        : loc
+    ));
+  };
+
+  // Auto-create multi-city itinerary when all locations have dates
+  useEffect(() => {
+    if (isMultiCity && locations.length > 0 && locations.every(loc => loc.startDate && loc.endDate)) {
+      createMultiCityItinerary();
+    }
+  }, [locations, isMultiCity]);
+
+  const canCreateItinerary = isMultiCity 
+    ? locations.length > 0 && locations.every(loc => loc.startDate && loc.endDate)
+    : dateRange.start && dateRange.end && locations.length > 0;
 
   const handleAddEvent = (date: string) => {
     setSelectedDate(date);
@@ -283,35 +328,111 @@ export function ItineraryBuilder() {
                 />
               </div>
 
-              {/* Selected locations */}
+              {/* Selected locations display */}
               {locations.length > 0 && (
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {locations.map((location, index) => (
-                    <Badge key={location.id} variant="secondary" className="flex items-center gap-2">
-                      <MapPin className="w-3 h-3" />
-                      {location.name}
-                      {location.iataCode && ` (${location.iataCode})`}
-                      <button
-                        onClick={() => removeLocation(location.id)}
-                        className="ml-1 hover:text-destructive"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </Badge>
+                <div className="space-y-3">
+                  <h4 className="font-medium text-sm text-center">Selected destinations:</h4>
+                  {locations.map((location) => (
+                    <div key={location.id} className="flex items-center justify-between p-3 bg-accent/50 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-muted-foreground" />
+                        <div>
+                          <div className="font-medium">{location.name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {location.country}{location.state && `, ${location.state}`}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {isMultiCity && (
+                          <div className="flex items-center gap-2">
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className={cn(
+                                    "text-xs",
+                                    !location.startDate && "text-muted-foreground"
+                                  )}
+                                >
+                                  <CalendarIcon className="w-3 h-3 mr-1" />
+                                  {location.startDate ? format(location.startDate, 'MMM dd') : 'Start'}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <CalendarComponent
+                                  mode="single"
+                                  selected={location.startDate}
+                                  onSelect={(date) => updateLocationDates(location.id, date, location.endDate)}
+                                  initialFocus
+                                  className={cn("p-3 pointer-events-auto")}
+                                />
+                              </PopoverContent>
+                            </Popover>
+                            <span className="text-muted-foreground">-</span>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className={cn(
+                                    "text-xs",
+                                    !location.endDate && "text-muted-foreground"
+                                  )}
+                                >
+                                  <CalendarIcon className="w-3 h-3 mr-1" />
+                                  {location.endDate ? format(location.endDate, 'MMM dd') : 'End'}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <CalendarComponent
+                                  mode="single"
+                                  selected={location.endDate}
+                                  onSelect={(date) => updateLocationDates(location.id, location.startDate, date)}
+                                  initialFocus
+                                  className={cn("p-3 pointer-events-auto")}
+                                />
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeLocation(location.id)}
+                          className="text-muted-foreground hover:text-destructive"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Date selection */}
-            {locations.length > 0 && (
-              <div className="text-center">
-                <h3 className="font-medium mb-2">Select travel dates</h3>
-                <DateRangePicker
-                  startDate={dateRange.start}
-                  endDate={dateRange.end}
-                  onDateRangeChange={handleDateRangeChange}
-                />
+            {/* Date selection for single city trips */}
+            {!isMultiCity && locations.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="font-medium text-center">Select travel dates</h3>
+                <div className="max-w-md mx-auto">
+                  <DateRangePicker
+                    startDate={dateRange.start}
+                    endDate={dateRange.end}
+                    onDateRangeChange={handleDateRangeChange}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Status message */}
+            {!canCreateItinerary && locations.length > 0 && (
+              <div className="text-center text-muted-foreground text-sm">
+                {isMultiCity 
+                  ? "Select dates for each destination to create your itinerary"
+                  : "Select travel dates to create your itinerary"
+                }
               </div>
             )}
           </CardContent>
