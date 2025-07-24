@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Hotel, Star, MapPin, Wifi, Car, Coffee, Dumbbell, Waves, Utensils, Calendar, Users, Filter } from 'lucide-react';
+import { Search, Hotel, Star, MapPin, Wifi, Car, Coffee, Dumbbell, Waves, Utensils, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -44,8 +44,8 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
   const [selectedLocation, setSelectedLocation] = useState<string>('');
   const [checkInDate, setCheckInDate] = useState<Date>();
   const [checkOutDate, setCheckOutDate] = useState<Date>();
-  const [guests, setGuests] = useState('2');
-  const [priceRange, setPriceRange] = useState<string>('any');
+  const [isCheckInOpen, setIsCheckInOpen] = useState(false);
+  const [isCheckOutOpen, setIsCheckOutOpen] = useState(false);
   
   const { searchHotels } = useGooglePlacesHotelSearch();
 
@@ -116,8 +116,8 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
     setSelectedLocation('');
     setCheckInDate(undefined);
     setCheckOutDate(undefined);
-    setGuests('2');
-    setPriceRange('any');
+    setIsCheckInOpen(false);
+    setIsCheckOutOpen(false);
     onClose();
   };
 
@@ -143,6 +143,23 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
     if (rating >= 4.0) return 'bg-blue-100 text-blue-800 border-blue-300';
     if (rating >= 3.5) return 'bg-yellow-100 text-yellow-800 border-yellow-300';
     return 'bg-gray-100 text-gray-800 border-gray-300';
+  };
+  const handleCheckInSelect = (date: Date | undefined) => {
+    setCheckInDate(date);
+    if (date) {
+      setIsCheckInOpen(false);
+      // If check-out date is before or equal to check-in, clear it
+      if (checkOutDate && checkOutDate <= date) {
+        setCheckOutDate(undefined);
+      }
+    }
+  };
+
+  const handleCheckOutSelect = (date: Date | undefined) => {
+    setCheckOutDate(date);
+    if (date) {
+      setIsCheckOutOpen(false);
+    }
   };
 
   return (
@@ -198,13 +215,13 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-sm font-medium flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
                 Check-in Date
               </Label>
-              <Popover>
+              <Popover open={isCheckInOpen} onOpenChange={setIsCheckInOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -221,7 +238,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
                   <CalendarComponent
                     mode="single"
                     selected={checkInDate}
-                    onSelect={setCheckInDate}
+                    onSelect={handleCheckInSelect}
                     initialFocus
                     className={cn("p-3 pointer-events-auto")}
                   />
@@ -234,7 +251,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
                 <Calendar className="w-4 h-4" />
                 Check-out Date
               </Label>
-              <Popover>
+              <Popover open={isCheckOutOpen} onOpenChange={setIsCheckOutOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -251,51 +268,13 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
                   <CalendarComponent
                     mode="single"
                     selected={checkOutDate}
-                    onSelect={setCheckOutDate}
+                    onSelect={handleCheckOutSelect}
                     initialFocus
                     disabled={(date) => checkInDate ? date <= checkInDate : false}
                     className={cn("p-3 pointer-events-auto")}
                   />
                 </PopoverContent>
               </Popover>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                Guests
-              </Label>
-              <Select value={guests} onValueChange={setGuests}>
-                <SelectTrigger className="bg-background/60">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1 Guest</SelectItem>
-                  <SelectItem value="2">2 Guests</SelectItem>
-                  <SelectItem value="3">3 Guests</SelectItem>
-                  <SelectItem value="4">4 Guests</SelectItem>
-                  <SelectItem value="5">5+ Guests</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium flex items-center gap-2">
-                <Filter className="w-4 h-4" />
-                Price Range
-              </Label>
-              <Select value={priceRange} onValueChange={setPriceRange}>
-                <SelectTrigger className="bg-background/60">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="any">Any Price</SelectItem>
-                  <SelectItem value="budget">Budget ($)</SelectItem>
-                  <SelectItem value="mid">Mid-range ($$)</SelectItem>
-                  <SelectItem value="luxury">Luxury ($$$)</SelectItem>
-                  <SelectItem value="ultra">Ultra-luxury ($$$$)</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
 
