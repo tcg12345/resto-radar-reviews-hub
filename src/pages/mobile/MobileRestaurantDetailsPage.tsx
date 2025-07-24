@@ -75,7 +75,11 @@ export default function MobileRestaurantDetailsPage() {
         if (error) {
           console.error('Error fetching restaurant:', error);
           toast({ title: "Error loading restaurant", variant: "destructive" });
-          navigate(-1);
+          if (window.history.length > 1) {
+            navigate(-1);
+          } else {
+            navigate('/');
+          }
           return;
         }
 
@@ -83,7 +87,11 @@ export default function MobileRestaurantDetailsPage() {
       } catch (error) {
         console.error('Error:', error);
         toast({ title: "Error loading restaurant", variant: "destructive" });
-        navigate(-1);
+        if (window.history.length > 1) {
+          navigate(-1);
+        } else {
+          navigate('/');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -166,7 +174,13 @@ export default function MobileRestaurantDetailsPage() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                if (window.history.length > 1) {
+                  navigate(-1);
+                } else {
+                  navigate('/');
+                }
+              }}
               className="h-8 w-8 p-0"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -192,7 +206,13 @@ export default function MobileRestaurantDetailsPage() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <p className="text-muted-foreground">Restaurant not found</p>
-          <Button onClick={() => navigate(-1)} className="mt-4">
+          <Button onClick={() => {
+            if (window.history.length > 1) {
+              navigate(-1);
+            } else {
+              navigate('/');
+            }
+          }} className="mt-4">
             Go Back
           </Button>
         </div>
@@ -214,7 +234,15 @@ export default function MobileRestaurantDetailsPage() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                // Check if there's history to go back to
+                if (window.history.length > 1) {
+                  navigate(-1);
+                } else {
+                  // Fallback to home page if no history
+                  navigate('/');
+                }
+              }}
               className="h-8 w-8 p-0"
             >
               <ArrowLeft className="h-4 w-4" />
