@@ -438,7 +438,10 @@ export function ChatListPage() {
   }
 
   return (
-    <div className="flex h-screen bg-background">
+    <>
+      {/* Mobile status bar spacer */}
+      <div className="lg:hidden h-8 bg-background"></div>
+      <div className="flex h-screen bg-background">
       {/* Chat List Sidebar */}
       <div className="w-80 border-r border-border flex flex-col">
         <div className="p-4 border-b border-border flex items-center justify-between">
@@ -747,6 +750,6 @@ export function ChatListPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
   );
 }

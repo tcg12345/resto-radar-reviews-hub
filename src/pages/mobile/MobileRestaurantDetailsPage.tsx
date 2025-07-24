@@ -202,7 +202,10 @@ export default function MobileRestaurantDetailsPage() {
   const canAddToWishlist = user && restaurant.user_id !== user.id && !restaurant.is_wishlist;
 
   return (
-    <div className="min-h-screen bg-background">
+    <>
+      {/* Mobile status bar spacer */}
+      <div className="lg:hidden h-8 bg-background"></div>
+      <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b px-4 py-3">
         <div className="flex items-center justify-between">
@@ -504,6 +507,6 @@ export default function MobileRestaurantDetailsPage() {
           )}
         </div>
       </div>
-    </div>
+    </>
   );
 }
