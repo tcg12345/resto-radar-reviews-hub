@@ -9,8 +9,15 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { useAmadeusApi, AmadeusCity } from '@/hooks/useAmadeusApi';
+import { useAmadeusApi } from '@/hooks/useAmadeusApi';
 import { AmadeusCitySearch } from '@/components/AmadeusCitySearch';
+
+interface LocationSuggestion {
+  place_id: string;
+  description: string;
+  main_text: string;
+  secondary_text: string;
+}
 import { toast } from 'sonner';
 
 interface HotelSearchDialogProps {
@@ -38,7 +45,7 @@ interface Hotel {
 
 export function HotelSearchDialog({ isOpen, onClose, onSelect, selectedDate }: HotelSearchDialogProps) {
   const [location, setLocation] = useState('');
-  const [selectedCity, setSelectedCity] = useState<AmadeusCity | null>(null);
+  const [selectedCity, setSelectedCity] = useState<LocationSuggestion | null>(null);
   const [checkInDate, setCheckInDate] = useState(selectedDate || '');
   const [checkOutDate, setCheckOutDate] = useState('');
   const [guests, setGuests] = useState('2');
@@ -48,7 +55,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, selectedDate }: H
   const { searchHotels } = useAmadeusApi();
 
   const handleSearch = async () => {
-    const locationCode = selectedCity?.iataCode || location.match(/\(([A-Z]{3})\)/)?.[1] || location.toUpperCase();
+    const locationCode = location;
     
     if (!locationCode || !checkInDate || !checkOutDate) {
       toast.error('Please enter location, check-in and check-out dates');
@@ -227,7 +234,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, selectedDate }: H
                   {hotels.length} Available Hotels
                 </h3>
                 <Badge variant="secondary" className="px-3 py-1">
-                  {selectedCity?.name || location}
+                  {selectedCity?.main_text || location}
                 </Badge>
               </div>
               

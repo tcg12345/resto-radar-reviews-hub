@@ -16,7 +16,12 @@ import { AmadeusCitySearch } from '@/components/AmadeusCitySearch';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { AmadeusCity } from '@/hooks/useAmadeusApi';
+interface LocationSuggestion {
+  place_id: string;
+  description: string;
+  main_text: string;
+  secondary_text: string;
+}
 
 export interface ItineraryEvent {
   id: string;
@@ -134,13 +139,12 @@ export function ItineraryBuilder() {
     }
   };
 
-  const handleLocationSelect = (city: AmadeusCity) => {
+  const handleLocationSelect = (location: LocationSuggestion) => {
     const newLocation: TripLocation = {
-      id: city.id,
-      name: city.name,
-      iataCode: city.iataCode,
-      country: city.address.countryName,
-      state: city.address.stateCode,
+      id: location.place_id,
+      name: location.main_text,
+      country: location.secondary_text.split(',').pop()?.trim() || '',
+      state: location.secondary_text.split(',')[0]?.trim(),
     };
 
     if (!isMultiCity) {
@@ -273,7 +277,7 @@ export function ItineraryBuilder() {
                   value={currentLocationSearch}
                   onChange={setCurrentLocationSearch}
                   onCitySelect={handleLocationSelect}
-                  placeholder={isMultiCity ? "Add another city or airport..." : "Enter city or airport name"}
+                  placeholder={isMultiCity ? "Add another city..." : "Enter city name"}
                   className="max-w-md mx-auto"
                 />
               </div>

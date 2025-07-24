@@ -9,8 +9,15 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { useAmadeusApi, AmadeusCity } from '@/hooks/useAmadeusApi';
+import { useAmadeusApi } from '@/hooks/useAmadeusApi';
 import { AmadeusCitySearch } from '@/components/AmadeusCitySearch';
+
+interface LocationSuggestion {
+  place_id: string;
+  description: string;
+  main_text: string;
+  secondary_text: string;
+}
 import { toast } from 'sonner';
 
 interface FlightSearchDialogProps {
@@ -44,8 +51,8 @@ interface Flight {
 export function FlightSearchDialog({ isOpen, onClose, onSelect, selectedDate }: FlightSearchDialogProps) {
   const [departureAirport, setDepartureAirport] = useState('');
   const [arrivalAirport, setArrivalAirport] = useState('');
-  const [departureCity, setDepartureCity] = useState<AmadeusCity | null>(null);
-  const [arrivalCity, setArrivalCity] = useState<AmadeusCity | null>(null);
+  const [departureCity, setDepartureCity] = useState<LocationSuggestion | null>(null);
+  const [arrivalCity, setArrivalCity] = useState<LocationSuggestion | null>(null);
   const [flightNumber, setFlightNumber] = useState('');
   const [airline, setAirline] = useState('');
   const [flightType, setFlightType] = useState<'nonstop' | 'onestop' | 'any'>('any');
@@ -56,8 +63,8 @@ export function FlightSearchDialog({ isOpen, onClose, onSelect, selectedDate }: 
   const { searchFlights } = useAmadeusApi();
 
   const handleSearch = async () => {
-    const originCode = departureCity?.iataCode || departureAirport.match(/\(([A-Z]{3})\)/)?.[1] || departureAirport.toUpperCase();
-    const destinationCode = arrivalCity?.iataCode || arrivalAirport.match(/\(([A-Z]{3})\)/)?.[1] || arrivalAirport.toUpperCase();
+    const originCode = departureAirport.match(/\(([A-Z]{3})\)/)?.[1] || departureAirport.slice(-3).toUpperCase();
+    const destinationCode = arrivalAirport.match(/\(([A-Z]{3})\)/)?.[1] || arrivalAirport.slice(-3).toUpperCase();
     
     if (!originCode || !destinationCode || !selectedDate) {
       toast.error('Please select departure and arrival airports and date');
@@ -261,7 +268,7 @@ export function FlightSearchDialog({ isOpen, onClose, onSelect, selectedDate }: 
                   {flights.length} Available Flights
                 </h3>
                 <Badge variant="secondary" className="px-3 py-1">
-                  {departureCity?.iataCode || departureAirport} → {arrivalCity?.iataCode || arrivalAirport}
+                  {departureAirport} → {arrivalAirport}
                 </Badge>
               </div>
               
