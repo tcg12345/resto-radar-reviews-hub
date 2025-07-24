@@ -143,8 +143,8 @@ export function HotelFlightSection({
         
         // Load photos and reviews in parallel
         const [photos, reviews] = await Promise.all([
-          getLocationPhotos(location.location_id, 15),
-          getLocationReviews(location.location_id, 5)
+          getLocationPhotos(location.location_id, 20),
+          getLocationReviews(location.location_id, 10)
         ]);
         
         setTripAdvisorPhotos(photos || []);
@@ -542,15 +542,27 @@ export function HotelFlightSection({
                     <Camera className="w-4 h-4 text-blue-600" />
                     <h4 className="font-medium text-sm">Photos from TripAdvisor</h4>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
-                    {tripAdvisorPhotos.slice(0, 6).map((photo, index) => (
-                      <div key={photo.id || index} className="relative aspect-video rounded-lg overflow-hidden bg-muted">
+                  <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">
+                    {tripAdvisorPhotos.slice(0, 12).map((photo, index) => (
+                      <div 
+                        key={photo.id || index} 
+                        className="relative aspect-video rounded-lg overflow-hidden bg-muted cursor-pointer group"
+                        onClick={() => {
+                          const imageUrl = photo.images?.large?.url || photo.images?.medium?.url || photo.images?.small?.url;
+                          if (imageUrl) {
+                            window.open(imageUrl, '_blank');
+                          }
+                        }}
+                      >
                         <img
                           src={photo.images?.medium?.url || photo.images?.small?.url || photo.images?.thumbnail?.url}
                           alt={photo.caption || 'Hotel photo'}
-                          className="w-full h-full object-cover transition-transform hover:scale-105"
+                          className="w-full h-full object-cover transition-transform group-hover:scale-105"
                           loading="lazy"
                         />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                          <Eye className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
                         {photo.caption && (
                           <div className="absolute inset-x-0 bottom-0 bg-black/60 text-white p-1">
                             <p className="text-xs truncate">{photo.caption}</p>
@@ -569,8 +581,8 @@ export function HotelFlightSection({
                     <Star className="w-4 h-4 text-yellow-500" />
                     <h4 className="font-medium text-sm">Reviews from TripAdvisor</h4>
                   </div>
-                  <div className="space-y-2 max-h-32 overflow-y-auto">
-                    {tripAdvisorReviews.slice(0, 2).map((review, index) => (
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {tripAdvisorReviews.slice(0, 6).map((review, index) => (
                       <div key={review.id || index} className="p-2 bg-muted/50 rounded-lg">
                         <div className="flex items-center justify-between mb-1">
                           <div className="flex items-center gap-1">
@@ -590,7 +602,10 @@ export function HotelFlightSection({
                             {new Date(review.published_date).toLocaleDateString()}
                           </span>
                         </div>
-                        <p className="text-xs text-muted-foreground line-clamp-2">{review.text}</p>
+                        {review.title && (
+                          <h5 className="font-medium text-xs mb-1">{review.title}</h5>
+                        )}
+                        <p className="text-xs text-muted-foreground line-clamp-3">{review.text}</p>
                       </div>
                     ))}
                   </div>
@@ -653,7 +668,7 @@ export function HotelFlightSection({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => window.open(`https://www.tripadvisor.com/Hotel_Review-g${tripAdvisorLocationId}`, '_blank')}
+                    onClick={() => window.open(`https://www.tripadvisor.com/Hotel_Review-d${tripAdvisorLocationId}`, '_blank')}
                   >
                     <ExternalLink className="w-4 h-4 mr-1" />
                     TripAdvisor
