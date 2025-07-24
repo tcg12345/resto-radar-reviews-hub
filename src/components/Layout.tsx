@@ -49,6 +49,9 @@ export function Layout({
 
   return (
     <div className={`flex min-h-screen flex-col bg-background mobile-viewport`}>
+      {/* Mobile safe area top spacer - pushes entire UI down on mobile */}
+      <div className="lg:hidden pt-safe-area-top pt-3 sm:pt-safe-area-top bg-background"></div>
+      
       {showNavbar && (
         <Navbar 
           activeTab={activeTab} 

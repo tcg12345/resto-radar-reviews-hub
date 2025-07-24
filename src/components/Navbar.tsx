@@ -108,51 +108,49 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
         </div>
       </nav>
 
-      {/* Mobile Top Bar - Enhanced spacing to avoid iPhone notch and status bars */}
+      {/* Mobile Top Bar */}
       <nav className="lg:hidden sticky top-0 z-50 w-full bg-background border-b border-border/50">
-        <div className="pt-safe-area-top pt-3 sm:pt-safe-area-top">
-          <div className="flex h-14 items-center justify-between px-4">
-            <div className="cursor-pointer" onClick={() => onTabChange('home')}>
-              <GrubbyLogo size="sm" />
-            </div>
-            
-            <div className="flex items-center space-x-3">
-              {user ? (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate('/chat-list')}
-                    className="h-9 w-9 relative mobile-tap-target rounded-full"
-                  >
-                    <MessageCircle className="h-5 w-5" />
-                    {unreadMessageCount > 0 && (
-                      <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
-                        {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
-                      </span>
-                    )}
-                  </Button>
-                  <NotificationsPanel />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onTabChange('settings')}
-                    className="h-9 w-9 mobile-tap-target rounded-full"
-                  >
-                    <Settings className="h-5 w-5" />
-                  </Button>
-                </>
-              ) : (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => navigate('/auth')}
-                  className="mobile-tap-target rounded-full px-4"
+        <div className="flex h-14 items-center justify-between px-4">
+          <div className="cursor-pointer" onClick={() => onTabChange('home')}>
+            <GrubbyLogo size="sm" />
+          </div>
+          
+          <div className="flex items-center space-x-3">
+            {user ? (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate('/chat-list')}
+                  className="h-9 w-9 relative mobile-tap-target rounded-full"
                 >
-                  Sign In
+                  <MessageCircle className="h-5 w-5" />
+                  {unreadMessageCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
+                      {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
+                    </span>
+                  )}
                 </Button>
-              )}
-            </div>
+                <NotificationsPanel />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onTabChange('settings')}
+                  className="h-9 w-9 mobile-tap-target rounded-full"
+                >
+                  <Settings className="h-5 w-5" />
+                </Button>
+              </>
+            ) : (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => navigate('/auth')}
+                className="mobile-tap-target rounded-full px-4"
+              >
+                Sign In
+              </Button>
+            )}
           </div>
         </div>
       </nav>
