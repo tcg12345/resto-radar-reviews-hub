@@ -21,6 +21,7 @@ interface EventDialogProps {
   onSave: (event: Omit<ItineraryEvent, 'id'>) => void;
   selectedDate: string | null;
   editingEvent: ItineraryEvent | null;
+  itineraryLocation?: string;
 }
 
 interface RestaurantData {
@@ -59,7 +60,7 @@ interface HotelData {
   bookingUrl?: string;
 }
 
-export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEvent }: EventDialogProps) {
+export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEvent, itineraryLocation }: EventDialogProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [time, setTime] = useState('');
@@ -386,12 +387,14 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
         isOpen={isFlightSearchOpen}
         onClose={() => setIsFlightSearchOpen(false)}
         onSelect={handleFlightSelect}
-        selectedDate={selectedDate}
+        locations={[{ id: '1', name: itineraryLocation || 'Unknown', country: '', state: '' }]}
       />
       <HotelSearchDialog
         isOpen={isHotelSearchOpen}
         onClose={() => setIsHotelSearchOpen(false)}
-        onSelect={handleHotelSelect}
+        onSelect={(hotel) => handleHotelSelect(hotel)}
+        locations={[{ id: '1', name: itineraryLocation || 'Unknown', country: '', state: '' }]}
+        isMultiCity={false}
       />
     </>
   );

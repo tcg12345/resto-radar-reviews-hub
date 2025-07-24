@@ -24,18 +24,18 @@ export interface Hotel {
 export const useGooglePlacesHotelSearch = () => {
   const searchHotels = async (params: HotelSearchParams): Promise<Hotel[]> => {
     try {
-      // Search for hotels using the query
+      // Search for hotels using the query - more targeted search
       const searchQuery = params.location ? 
-        `${params.query} hotels in ${params.location}` : 
+        `hotels in ${params.location} ${params.query}`.trim() : 
         `${params.query} hotels`;
 
       const { data: searchData, error: searchError } = await supabase.functions.invoke('google-places-search', {
         body: {
           query: searchQuery,
           location: params.location,
-          radius: 50000,
+          radius: 25000, // Smaller radius for faster results
           type: 'search',
-          searchType: 'lodging' // Specify we're searching for hotels/lodging
+          searchType: 'lodging'
         }
       });
 
@@ -48,90 +48,63 @@ export const useGooglePlacesHotelSearch = () => {
         return [];
       }
 
-      // Filter results to only include lodging establishments
-      const hotelResults = searchData.results.filter((place: any) => 
-        place.types?.some((type: string) => 
-          ['lodging', 'establishment'].includes(type)
+      // Filter and process results more efficiently
+      const hotelResults = searchData.results
+        .filter((place: any) => 
+          place.types?.some((type: string) => 
+            ['lodging', 'establishment'].includes(type)
+          )
         )
-      );
+        .slice(0, 10); // Reduce to 10 for faster loading
 
-      // Get detailed information for each hotel
-      const hotels: Hotel[] = [];
-      
-      for (const place of hotelResults.slice(0, 20)) { // Limit to 20 results
-        try {
-          const { data: detailsData, error: detailsError } = await supabase.functions.invoke('google-places-search', {
-            body: {
-              type: 'details',
-              placeId: place.place_id
-            }
-          });
-
-          if (detailsError || !detailsData?.result) {
-            continue;
-          }
-
-          const details = detailsData.result;
-          
-          // Extract amenities from types and other data
-          const amenities = [];
-          if (details.types?.includes('restaurant')) amenities.push('Restaurant');
-          if (details.types?.includes('gym')) amenities.push('Fitness Center');
-          if (details.types?.includes('spa')) amenities.push('Spa');
-          if (details.types?.includes('swimming_pool')) amenities.push('Pool');
-          
-          // Add common hotel amenities based on rating and price level
-          if (details.price_level >= 3) {
-            amenities.push('WiFi', 'Room Service', 'Concierge');
-          } else if (details.price_level >= 2) {
-            amenities.push('WiFi', 'Breakfast');
-          } else {
-            amenities.push('WiFi');
-          }
-
-          // Generate price range based on Google's price_level
-          let priceRange = '';
-          switch (details.price_level) {
-            case 1:
-              priceRange = '$50-100';
-              break;
-            case 2:
-              priceRange = '$100-200';
-              break;
-            case 3:
-              priceRange = '$200-350';
-              break;
-            case 4:
-              priceRange = '$350+';
-              break;
-            default:
-              priceRange = 'Price varies';
-          }
-
-          // No price filtering needed anymore
-
-          const hotel: Hotel = {
-            id: details.place_id,
-            name: details.name,
-            address: details.formatted_address,
-            description: details.reviews?.[0]?.text || 'A comfortable hotel in a great location.',
-            rating: details.rating,
-            priceRange,
-            amenities: amenities.slice(0, 6), // Limit amenities display
-            photos: [], // Photos will be handled by backend if needed
-            latitude: details.geometry?.location?.lat,
-            longitude: details.geometry?.location?.lng,
-            website: details.website,
-            phone: details.formatted_phone_number,
-            bookingUrl: details.website // Use website as booking URL for now
-          };
-
-          hotels.push(hotel);
-        } catch (error) {
-          console.error('Error getting hotel details:', error);
-          continue;
+      // Process hotels with basic info first, then enhance with details only when needed
+      const hotels: Hotel[] = hotelResults.map((place: any) => {
+        // Generate price range based on Google's price_level
+        let priceRange = '';
+        switch (place.price_level) {
+          case 1:
+            priceRange = '$50-100';
+            break;
+          case 2:
+            priceRange = '$100-200';
+            break;
+          case 3:
+            priceRange = '$200-350';
+            break;
+          case 4:
+            priceRange = '$350+';
+            break;
+          default:
+            priceRange = 'Price varies';
         }
-      }
+
+        // Extract basic amenities from types
+        const amenities = [];
+        if (place.types?.includes('restaurant')) amenities.push('Restaurant');
+        if (place.price_level >= 3) {
+          amenities.push('WiFi', 'Room Service', 'Concierge');
+        } else if (place.price_level >= 2) {
+          amenities.push('WiFi', 'Breakfast');
+        } else {
+          amenities.push('WiFi');
+        }
+
+        return {
+          id: place.place_id,
+          name: place.name,
+          address: place.formatted_address,
+          description: 'A comfortable hotel in a great location.',
+          rating: place.rating,
+          priceRange,
+          amenities: amenities.slice(0, 4),
+          photos: [],
+          latitude: place.geometry?.location?.lat,
+          longitude: place.geometry?.location?.lng,
+          website: place.website,
+          phone: place.formatted_phone_number,
+          bookingUrl: place.website
+        };
+      });
 
       // Sort by rating (highest first)
       hotels.sort((a, b) => (b.rating || 0) - (a.rating || 0));

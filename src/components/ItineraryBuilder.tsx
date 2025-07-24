@@ -15,6 +15,8 @@ import { ShareItineraryDialog } from '@/components/ShareItineraryDialog';
 import { ExportItineraryDialog } from '@/components/ExportItineraryDialog';
 import { SaveItineraryDialog } from '@/components/SaveItineraryDialog';
 import { AmadeusCitySearch } from '@/components/AmadeusCitySearch';
+import { HotelFlightSection } from '@/components/HotelFlightSection';
+import { Hotel as HotelType } from '@/hooks/useGooglePlacesHotelSearch';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -78,6 +80,32 @@ export interface TripLocation {
   endDate?: Date;
 }
 
+interface HotelBooking {
+  id: string;
+  hotel: HotelType;
+  checkIn?: Date;
+  checkOut?: Date;
+  location?: string;
+}
+
+interface FlightBooking {
+  id: string;
+  flightNumber: string;
+  airline: string;
+  departure: {
+    airport: string;
+    time: string;
+    date: string;
+  };
+  arrival: {
+    airport: string;
+    time: string;
+    date: string;
+  };
+  price?: string;
+  bookingUrl?: string;
+}
+
 export interface Itinerary {
   id?: string;
   title: string;
@@ -86,6 +114,8 @@ export interface Itinerary {
   locations: TripLocation[];
   isMultiCity: boolean;
   events: ItineraryEvent[];
+  hotels: HotelBooking[];
+  flights: FlightBooking[];
   userId?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -116,6 +146,8 @@ export function ItineraryBuilder() {
             })),
           } : null,
           events: parsed.events || [],
+          hotels: parsed.hotels || [],
+          flights: parsed.flights || [],
           locations: parsed.locations.map((loc: any) => ({
             ...loc,
             startDate: loc.startDate ? new Date(loc.startDate) : undefined,
@@ -140,6 +172,8 @@ export function ItineraryBuilder() {
     persistedState?.currentItinerary || null
   );
   const [events, setEvents] = useState<ItineraryEvent[]>(persistedState?.events || []);
+  const [hotels, setHotels] = useState<HotelBooking[]>(persistedState?.hotels || []);
+  const [flights, setFlights] = useState<FlightBooking[]>(persistedState?.flights || []);
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
@@ -157,12 +191,14 @@ export function ItineraryBuilder() {
       dateRange,
       currentItinerary,
       events,
+      hotels,
+      flights,
       locations,
       isMultiCity,
       hasCreatedItinerary,
     };
     localStorage.setItem('currentItineraryBuilder', JSON.stringify(stateToSave));
-  }, [dateRange, currentItinerary, events, locations, isMultiCity, hasCreatedItinerary]);
+  }, [dateRange, currentItinerary, events, hotels, flights, locations, isMultiCity, hasCreatedItinerary]);
 
   const tripDays = dateRange.start && dateRange.end
     ? differenceInDays(dateRange.end, dateRange.start) + 1 
@@ -197,6 +233,8 @@ export function ItineraryBuilder() {
       locations,
       isMultiCity: true,
       events: [],
+      hotels: [],
+      flights: [],
       userId: user?.id,
     };
     setCurrentItinerary(newItinerary);
@@ -292,6 +330,8 @@ export function ItineraryBuilder() {
         title,
         id: currentItinerary.id || crypto.randomUUID(),
         events,
+        hotels,
+        flights,
         userId: user.id,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -313,12 +353,39 @@ export function ItineraryBuilder() {
     }
   };
 
-  // Update current itinerary events when events change
+  // Update current itinerary when events, hotels, or flights change
   useEffect(() => {
     if (currentItinerary) {
-      setCurrentItinerary(prev => prev ? { ...prev, events } : null);
+      setCurrentItinerary(prev => prev ? { ...prev, events, hotels, flights } : null);
     }
-  }, [events]);
+  }, [events, hotels, flights]);
+
+  const handleAddHotel = (hotel: HotelType, location?: string, checkIn?: Date, checkOut?: Date) => {
+    const newBooking: HotelBooking = {
+      id: crypto.randomUUID(),
+      hotel,
+      checkIn,
+      checkOut,
+      location
+    };
+    setHotels(prev => [...prev, newBooking]);
+  };
+
+  const handleAddFlight = (flight: any) => {
+    const newFlight: FlightBooking = {
+      id: crypto.randomUUID(),
+      ...flight
+    };
+    setFlights(prev => [...prev, newFlight]);
+  };
+
+  const handleRemoveHotel = (hotelId: string) => {
+    setHotels(prev => prev.filter(hotel => hotel.id !== hotelId));
+  };
+
+  const handleRemoveFlight = (flightId: string) => {
+    setFlights(prev => prev.filter(flight => flight.id !== flightId));
+  };
 
   if (!hasCreatedItinerary) {
     return (
@@ -459,6 +526,8 @@ export function ItineraryBuilder() {
                         locations,
                         isMultiCity,
                         events: [],
+                        hotels: [],
+                        flights: [],
                         userId: user?.id,
                       };
                       setCurrentItinerary(newItinerary);

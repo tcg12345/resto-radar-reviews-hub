@@ -21,11 +21,20 @@ interface LocationSuggestion {
   secondaryText: string;
 }
 
+interface TripLocation {
+  id: string;
+  name: string;
+  country: string;
+  state?: string;
+  startDate?: Date;
+  endDate?: Date;
+}
+
 interface FlightSearchDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (flight: any) => void;
-  selectedDate: string | null;
+  locations: TripLocation[];
 }
 
 interface Flight {
@@ -49,7 +58,7 @@ interface Flight {
   bookingUrl?: string;
 }
 
-export function FlightSearchDialog({ isOpen, onClose, onSelect, selectedDate }: FlightSearchDialogProps) {
+export function FlightSearchDialog({ isOpen, onClose, onSelect, locations }: FlightSearchDialogProps) {
   const [departureAirport, setDepartureAirport] = useState('');
   const [arrivalAirport, setArrivalAirport] = useState('');
   const [departureCity, setDepartureCity] = useState<LocationSuggestion | null>(null);
@@ -61,6 +70,7 @@ export function FlightSearchDialog({ isOpen, onClose, onSelect, selectedDate }: 
   const [departureTimeTo, setDepartureTimeTo] = useState('');
   const [flights, setFlights] = useState<Flight[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string>('');
   const { searchFlights } = useAmadeusApi();
 
   const handleSearch = async () => {
@@ -130,6 +140,7 @@ export function FlightSearchDialog({ isOpen, onClose, onSelect, selectedDate }: 
     setFlightType('any');
     setDepartureTimeFrom('');
     setDepartureTimeTo('');
+    setSelectedDate('');
     setFlights([]);
     onClose();
   };
@@ -147,12 +158,7 @@ export function FlightSearchDialog({ isOpen, onClose, onSelect, selectedDate }: 
             Flight Search
           </DialogTitle>
           <DialogDescription className="text-lg">
-            {formattedDate && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Clock className="w-4 h-4" />
-                Searching flights for {formattedDate}
-              </div>
-            )}
+            Find and book flights for your trip
           </DialogDescription>
         </DialogHeader>
 
@@ -185,7 +191,16 @@ export function FlightSearchDialog({ isOpen, onClose, onSelect, selectedDate }: 
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Departure Date</Label>
+              <Input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="bg-background/60"
+              />
+            </div>
             <div className="space-y-2">
               <Label className="text-sm font-medium flex items-center gap-2">
                 <Filter className="w-4 h-4" />
