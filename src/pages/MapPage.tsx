@@ -14,7 +14,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
-import { Filter, X, Star, DollarSign, MapPin, ChevronDown, GripVertical } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Filter, X, Star, DollarSign, MapPin, ChevronDown, GripVertical, ArrowLeft } from 'lucide-react';
 
 interface MapPageProps {
   restaurants: Restaurant[];
@@ -23,6 +24,7 @@ interface MapPageProps {
 }
 
 export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: MapPageProps) {
+  const navigate = useNavigate();
   const [selectedRestaurantId, setSelectedRestaurantId] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -200,6 +202,23 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
 
   return (
     <div className="relative h-[calc(100vh-64px)] w-full overflow-hidden">
+      {/* Back Arrow */}
+      <Button
+        onClick={() => {
+          // Try to go back in history, but fallback to rated restaurants if no history
+          if (window.history.length > 1) {
+            navigate(-1);
+          } else {
+            navigate('/rated');
+          }
+        }}
+        className="absolute top-4 left-4 z-30 flex items-center gap-2"
+        variant="secondary"
+        size="sm"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        <span className="hidden sm:inline">Back</span>
+      </Button>
       {/* Filter Panel - draggable positioned filter box */}
       {showFilters && (
         <Card 
@@ -363,7 +382,7 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
         </Card>
       )}
 
-      {/* Filter Toggle Button - moved to bottom-left to avoid overlapping with search bar */}
+      {/* Filter Toggle Button - moved to bottom-left to avoid overlapping with back arrow */}
       <Button
         onClick={() => setShowFilters(!showFilters)}
         className="absolute bottom-4 left-4 z-20 flex items-center gap-2"
@@ -371,6 +390,11 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
       >
         <Filter className="h-4 w-4" />
         Filters
+        {getActiveFilterCount() > 0 && (
+          <Badge variant="destructive" className="ml-1 h-5 w-5 rounded-full p-0 text-xs">
+            {getActiveFilterCount()}
+          </Badge>
+        )}
       </Button>
 
       <MapView 
