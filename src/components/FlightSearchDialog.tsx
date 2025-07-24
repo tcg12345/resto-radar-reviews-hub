@@ -12,13 +12,14 @@ import { Separator } from '@/components/ui/separator';
 import { useAmadeusApi } from '@/hooks/useAmadeusApi';
 import { AmadeusCitySearch } from '@/components/AmadeusCitySearch';
 
-interface LocationSuggestion {
-  place_id: string;
-  description: string;
-  main_text: string;
-  secondary_text: string;
-}
 import { toast } from 'sonner';
+
+interface LocationSuggestion {
+  id: string;
+  description: string;
+  mainText: string;
+  secondaryText: string;
+}
 
 interface FlightSearchDialogProps {
   isOpen: boolean;

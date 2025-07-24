@@ -12,13 +12,14 @@ import { Separator } from '@/components/ui/separator';
 import { useAmadeusApi } from '@/hooks/useAmadeusApi';
 import { AmadeusCitySearch } from '@/components/AmadeusCitySearch';
 
-interface LocationSuggestion {
-  place_id: string;
-  description: string;
-  main_text: string;
-  secondary_text: string;
-}
 import { toast } from 'sonner';
+
+interface LocationSuggestion {
+  id: string;
+  description: string;
+  mainText: string;
+  secondaryText: string;
+}
 
 interface HotelSearchDialogProps {
   isOpen: boolean;
@@ -234,7 +235,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, selectedDate }: H
                   {hotels.length} Available Hotels
                 </h3>
                 <Badge variant="secondary" className="px-3 py-1">
-                  {selectedCity?.main_text || location}
+                  {selectedCity?.mainText || location}
                 </Badge>
               </div>
               

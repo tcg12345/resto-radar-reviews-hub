@@ -17,10 +17,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 interface LocationSuggestion {
-  place_id: string;
+  id: string;
   description: string;
-  main_text: string;
-  secondary_text: string;
+  mainText: string;
+  secondaryText: string;
 }
 
 export interface ItineraryEvent {
@@ -140,10 +140,10 @@ export function ItineraryBuilder() {
   };
 
   const handleLocationSelect = (location: LocationSuggestion) => {
-    const secondaryText = location.secondary_text || '';
+    const secondaryText = location.secondaryText || '';
     const newLocation: TripLocation = {
-      id: location.place_id,
-      name: location.main_text,
+      id: location.id,
+      name: location.mainText,
       country: secondaryText.split(',').pop()?.trim() || '',
       state: secondaryText.split(',')[0]?.trim(),
     };
