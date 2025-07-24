@@ -279,16 +279,15 @@ serve(async (req) => {
   }
 
   try {
-    console.log('FlightAPI.io function called, method:', req.method);
-    console.log('Request URL:', req.url);
+    console.log('🚀 FlightAPI.io function called, method:', req.method);
     
     // Parse request body to get endpoint type
     let requestBody;
     try {
       requestBody = await req.json();
-      console.log('Request body parsed:', JSON.stringify(requestBody, null, 2));
+      console.log('📝 Request body:', JSON.stringify(requestBody, null, 2));
     } catch (e) {
-      console.error('Failed to parse JSON:', e);
+      console.error('❌ Failed to parse JSON:', e);
       return new Response(
         JSON.stringify({ error: 'Invalid JSON in request body' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -296,14 +295,15 @@ serve(async (req) => {
     }
     
     const { endpoint } = requestBody;
+    console.log('🎯 Endpoint requested:', endpoint);
     
     // Get FlightAPI.io API key with detailed logging
     let apiKey;
     try {
       apiKey = getFlightAPIKey();
-      console.log('✅ Successfully obtained FlightAPI.io API key');
+      console.log('✅ FlightAPI.io API key obtained successfully');
     } catch (keyError) {
-      console.error('❌ Failed to get API key:', keyError.message);
+      console.error('❌ API key error:', keyError.message);
       return new Response(
         JSON.stringify({ error: 'API key configuration error', details: keyError.message }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -315,21 +315,41 @@ serve(async (req) => {
         const { origin, destination, departureDate, flightNumber, airline, flightType } = requestBody;
         
         if (!origin || !destination || !departureDate) {
+          console.error('❌ Missing required flight search parameters');
           return new Response(
             JSON.stringify({ error: 'Origin, destination, and departure date are required' }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
 
-        const data = await searchFlights(apiKey, { origin, destination, departureDate, flightNumber, airline, flightType });
-        
-        return new Response(
-          JSON.stringify(data),
-          { 
-            status: 200, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
+        try {
+          console.log('🔍 Starting flight search...');
+          const data = await searchFlights(apiKey, { origin, destination, departureDate, flightNumber, airline, flightType });
+          console.log('✅ Flight search completed successfully');
+          
+          return new Response(
+            JSON.stringify(data),
+            { 
+              status: 200, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          );
+        } catch (searchError) {
+          console.error('❌ Flight search failed:', searchError.message);
+          console.error('❌ Search error details:', searchError);
+          
+          return new Response(
+            JSON.stringify({ 
+              error: 'Flight search failed', 
+              details: searchError.message,
+              params: { origin, destination, departureDate, flightNumber, airline, flightType }
+            }),
+            { 
+              status: 500, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          );
+        }
       }
 
       case 'search-cities': {
