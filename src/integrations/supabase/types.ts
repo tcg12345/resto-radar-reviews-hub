@@ -331,6 +331,80 @@ export type Database = {
         }
         Relationships: []
       }
+      place_ratings: {
+        Row: {
+          address: string | null
+          category_ratings: Json | null
+          created_at: string
+          date_visited: string | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          notes: string | null
+          overall_rating: number | null
+          phone_number: string | null
+          photos: string[] | null
+          place_id: string | null
+          place_name: string
+          place_type: string
+          price_range: number | null
+          trip_id: string
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          category_ratings?: Json | null
+          created_at?: string
+          date_visited?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          notes?: string | null
+          overall_rating?: number | null
+          phone_number?: string | null
+          photos?: string[] | null
+          place_id?: string | null
+          place_name: string
+          place_type: string
+          price_range?: number | null
+          trip_id: string
+          updated_at?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          category_ratings?: Json | null
+          created_at?: string
+          date_visited?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          notes?: string | null
+          overall_rating?: number | null
+          phone_number?: string | null
+          photos?: string[] | null
+          place_id?: string | null
+          place_name?: string
+          place_type?: string
+          price_range?: number | null
+          trip_id?: string
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_place_ratings_trip_id"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           address: string | null
@@ -603,6 +677,45 @@ export type Database = {
           updated_at?: string
           user_id?: string
           value?: string
+        }
+        Relationships: []
+      }
+      trips: {
+        Row: {
+          created_at: string
+          description: string | null
+          destination: string
+          end_date: string | null
+          id: string
+          is_public: boolean | null
+          start_date: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          destination: string
+          end_date?: string | null
+          id?: string
+          is_public?: boolean | null
+          start_date?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          destination?: string
+          end_date?: string | null
+          id?: string
+          is_public?: boolean | null
+          start_date?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
