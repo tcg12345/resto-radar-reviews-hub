@@ -61,6 +61,25 @@ interface TripAdvisorLocation {
     name: string;
     localized_name: string;
   }>;
+  menu?: {
+    web_url?: string;
+    pdf_url?: string;
+    sections?: Array<{
+      section_name: string;
+      items: Array<{
+        name: string;
+        description?: string;
+        price?: string;
+      }>;
+    }>;
+  };
+  hours?: {
+    periods?: Array<{
+      open: { day: number; time: string };
+      close: { day: number; time: string };
+    }>;
+    weekday_text?: string[];
+  };
 }
 
 interface TripAdvisorPhoto {
@@ -239,9 +258,24 @@ serve(async (req) => {
         console.log('Getting booking offers for location:', locationId, 'from', checkIn, 'to', checkOut);
         break;
 
+      case 'menu':
+        if (!locationId) {
+          return new Response(
+            JSON.stringify({ error: 'Location ID required for menu' }),
+            { 
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            }
+          );
+        }
+        
+        apiUrl = `${baseUrl}/location/${locationId}/menu?key=${apiKey}&language=en`;
+        console.log('Getting TripAdvisor menu for location:', locationId);
+        break;
+
       default:
         return new Response(
-          JSON.stringify({ error: 'Invalid action. Use: search, details, photos, reviews, nearby, or booking' }),
+          JSON.stringify({ error: 'Invalid action. Use: search, details, photos, reviews, nearby, booking, or menu' }),
           { 
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
