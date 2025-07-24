@@ -181,7 +181,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
                       <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 blur-sm" />
                     )}
                   </Button>
-                  <span className={`text-[9px] font-medium transition-all duration-300 pb-[7px] ${
+                  <span className={`text-[9px] font-medium transition-all duration-300 pb-[10px] ${
                     isActive ? 'text-primary' : 'text-muted-foreground'
                   }`}>
                     {tab.shortLabel}
