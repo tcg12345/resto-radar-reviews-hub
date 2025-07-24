@@ -215,299 +215,545 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
   };
 
   return (
-    <div className="container py-6 space-y-8 mobile-container px-4 sm:px-6">
-      {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-          {getGreeting()}, {getFirstName()}! 👋
-        </h1>
-        <p className="text-muted-foreground text-lg">
-          Welcome back to your AI-powered culinary discovery dashboard
-        </p>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Bot className="h-4 w-4" />
-          <span>Your personal AI assistant is ready to help you discover amazing restaurants</span>
+    <>
+      {/* Mobile Layout - Completely Redesigned */}
+      <div className="md:hidden min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+        {/* Mobile Header */}
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-xl font-bold text-primary">
+                {getGreeting()}, {getFirstName()}! 👋
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Your AI culinary companion
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Bot className="h-5 w-5 text-primary" />
+              <Badge variant="secondary" className="bg-primary/10 text-primary text-xs">
+                AI Ready
+              </Badge>
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
-        {stats.map((stat, index) => (
-          <Card key={index} className="relative overflow-hidden">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 lg:pb-2">
-              <CardTitle className="text-xs lg:text-sm font-medium text-muted-foreground">
-                {stat.title}
-              </CardTitle>
-              <div className={`p-1.5 lg:p-2 rounded-full ${stat.bgColor}`}>
-                <stat.icon className={`h-3 w-3 lg:h-4 lg:w-4 ${stat.color}`} />
+        {/* Mobile Content */}
+        <div className="p-4 space-y-6 pb-20">
+          {/* Stats Cards - Mobile Optimized */}
+          <div className="grid grid-cols-2 gap-3">
+            {stats.slice(0, 4).map((stat, index) => (
+              <Card key={index} className="bg-white/50 backdrop-blur-sm border border-primary/10 shadow-sm">
+                <CardContent className="p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className={`p-2 rounded-lg ${stat.bgColor}`}>
+                      <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-foreground mb-1">{stat.value}</div>
+                  <div className="text-xs text-muted-foreground leading-tight">{stat.title}</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Quick Actions - Mobile Grid */}
+          <div className="space-y-3">
+            <h2 className="text-lg font-semibold text-foreground">Quick Actions</h2>
+            <div className="grid grid-cols-2 gap-3">
+              {quickActions.slice(0, 6).map((action, index) => (
+                <Card 
+                  key={index} 
+                  className="cursor-pointer active:scale-95 transition-all duration-200 bg-white/60 backdrop-blur-sm border border-primary/10 shadow-sm hover:shadow-md"
+                  onClick={action.action}
+                >
+                  <CardContent className="p-4">
+                    <div className="text-center space-y-3">
+                      <div className={`p-3 rounded-2xl ${action.color} text-white mx-auto w-fit shadow-lg`}>
+                        <action.icon className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-sm text-foreground">{action.title}</h3>
+                        <p className="text-xs text-muted-foreground leading-tight mt-1">{action.description}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          {/* Featured Content - Mobile Carousel Style */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-foreground">Featured</h2>
+              <div className="flex space-x-1">
+                {cardRotationData.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`h-1.5 w-6 rounded-full transition-all duration-300 ${
+                      index === rotatingCardIndex ? 'bg-primary' : 'bg-muted'
+                    }`}
+                  />
+                ))}
               </div>
-            </CardHeader>
-            <CardContent className="pt-0 pb-3 lg:pb-4">
-              <div className="text-lg lg:text-2xl font-bold">{stat.value}</div>
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-primary/5 pointer-events-none" />
+            </div>
+            
+            <Card className="bg-white/60 backdrop-blur-sm border border-primary/10 shadow-sm overflow-hidden">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <currentCardData.icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-sm text-foreground">{currentCardData.title}</h3>
+                    <p className="text-xs text-muted-foreground">{currentCardData.description}</p>
+                  </div>
+                </div>
+                
+                {currentCardData.restaurants.length > 0 ? (
+                  <div className="space-y-3">
+                    {currentCardData.restaurants.slice(0, 3).map((restaurant) => (
+                      <div key={restaurant.id} className="flex items-center space-x-3 p-3 rounded-xl bg-background/50 border border-primary/5">
+                        <div className="flex-shrink-0">
+                          <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/70 rounded-lg flex items-center justify-center">
+                            <ChefHat className="h-5 w-5 text-white" />
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-sm text-foreground truncate">{restaurant.name}</h4>
+                          <p className="text-xs text-muted-foreground">{restaurant.cuisine} • {restaurant.city}</p>
+                        </div>
+                        {restaurant.rating && (
+                          <div className="flex items-center space-x-1 bg-yellow-50 px-2 py-1 rounded-lg">
+                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                            <span className="font-semibold text-xs text-yellow-700">{restaurant.rating}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    <Button 
+                      variant="outline" 
+                      className="w-full mt-3 border-primary/20 text-primary hover:bg-primary/5"
+                      onClick={() => onNavigate('rated')}
+                    >
+                      View All
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground">
+                    <Utensils className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                    <p className="text-sm">No restaurants yet</p>
+                    <p className="text-xs">Start your journey!</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Cuisine Insights - Mobile Optimized */}
+          <div className="space-y-3">
+            <h2 className="text-lg font-semibold text-foreground">Your Favorites</h2>
+            <Card className="bg-white/60 backdrop-blur-sm border border-primary/10 shadow-sm">
+              <CardContent className="p-4">
+                {topCuisines.length > 0 ? (
+                  <div className="space-y-4">
+                    {topCuisines.slice(0, 3).map(([cuisine, count], index) => (
+                      <div key={cuisine} className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium text-sm text-foreground">{cuisine}</span>
+                          <span className="text-xs text-muted-foreground">{count} places</span>
+                        </div>
+                        <Progress 
+                          value={(count / ratedRestaurants.length) * 100} 
+                          className="h-2"
+                        />
+                      </div>
+                    ))}
+                    
+                    <div className="flex items-center justify-between pt-3 border-t border-primary/10">
+                      <div className="text-center flex-1">
+                        <div className="text-lg font-bold text-primary">{averageRating.toFixed(1)}</div>
+                        <div className="text-xs text-muted-foreground">Avg Rating</div>
+                      </div>
+                      {michelinRestaurants.length > 0 && (
+                        <div className="text-center flex-1 border-l border-primary/10">
+                          <div className="text-lg font-bold text-yellow-600">{michelinRestaurants.length}</div>
+                          <div className="text-xs text-muted-foreground">Michelin ⭐</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground">
+                    <ChefHat className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                    <p className="text-sm">No cuisine data yet</p>
+                    <p className="text-xs">Rate restaurants to see insights!</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* AI Features Highlight - Mobile */}
+          <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/10 border border-primary/20 shadow-lg">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
+                  <Bot className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-sm text-foreground">AI-Powered Discovery</h3>
+                  <p className="text-xs text-muted-foreground">Smart restaurant recommendations</p>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3 p-3 rounded-lg bg-background/50">
+                  <Search className="h-4 w-4 text-primary" />
+                  <div>
+                    <div className="font-medium text-xs text-foreground">Smart Search</div>
+                    <div className="text-xs text-muted-foreground">Natural language queries</div>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3 p-3 rounded-lg bg-background/50">
+                  <TrendingUp className="h-4 w-4 text-primary" />
+                  <div>
+                    <div className="font-medium text-xs text-foreground">Personal Recommendations</div>
+                    <div className="text-xs text-muted-foreground">AI-curated for you</div>
+                  </div>
+                </div>
+              </div>
+              
+              <Button 
+                className="w-full mt-4 bg-primary hover:bg-primary/90 text-white font-medium"
+                onClick={() => onNavigate('search')}
+              >
+                <Bot className="h-4 w-4 mr-2" />
+                Try AI Discovery
+              </Button>
             </CardContent>
           </Card>
-        ))}
+
+          {/* Motivational Section - Mobile */}
+          {ratedRestaurants.length > 0 ? (
+            <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 shadow-sm">
+              <CardContent className="p-4 text-center">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center mx-auto mb-3">
+                  <TrendingUp className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="font-semibold text-sm text-green-800 mb-2">
+                  Great Progress!
+                </h3>
+                <p className="text-xs text-green-700 mb-3">
+                  You've explored {ratedRestaurants.length} restaurants. Keep discovering!
+                </p>
+                <Button 
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  onClick={onOpenAddRestaurant}
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  Add Another
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border border-primary/20 shadow-sm">
+              <CardContent className="p-4 text-center">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center mx-auto mb-3">
+                  <Utensils className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="font-semibold text-sm text-foreground mb-2">
+                  Start Your Culinary Journey
+                </h3>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Rate your first restaurant and unlock personalized AI recommendations
+                </p>
+                <Button 
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90 text-white"
+                  onClick={onOpenAddRestaurant}
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  Add First Restaurant
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="space-y-3 lg:space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl lg:text-2xl font-semibold">Quick Actions</h2>
-          <Badge variant="secondary" className="bg-primary/10 text-primary text-xs">
-            <Bot className="h-2.5 w-2.5 lg:h-3 lg:w-3 mr-1" />
-            AI-Enhanced
-          </Badge>
+      {/* Desktop Layout - Unchanged */}
+      <div className="hidden md:block container py-6 space-y-8 mobile-container px-4 sm:px-6">
+        {/* Header */}
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+            {getGreeting()}, {getFirstName()}! 👋
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            Welcome back to your AI-powered culinary discovery dashboard
+          </p>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Bot className="h-4 w-4" />
+            <span>Your personal AI assistant is ready to help you discover amazing restaurants</span>
+          </div>
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
-          {quickActions.map((action, index) => (
-            <Card 
-              key={index} 
-              className="cursor-pointer hover:shadow-lg transition-all duration-200 group border-2 hover:border-primary/20"
-              onClick={action.action}
-            >
-              <CardContent className="p-3 lg:p-6">
-                <div className="flex lg:items-center space-x-2 lg:space-x-4 flex-col lg:flex-row">
-                  <div className={`p-2 lg:p-3 rounded-full ${action.color} text-white group-hover:scale-110 transition-transform shadow-lg self-start lg:self-auto`}>
-                    <action.icon className="h-4 w-4 lg:h-6 lg:w-6" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-sm lg:text-base group-hover:text-primary transition-colors">{action.title}</h3>
-                    <p className="text-xs lg:text-sm text-muted-foreground">{action.description}</p>
-                  </div>
-                  <ArrowRight className="h-3 w-3 lg:h-4 lg:w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all hidden lg:block" />
+
+        {/* Stats Overview */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
+          {stats.map((stat, index) => (
+            <Card key={index} className="relative overflow-hidden">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 lg:pb-2">
+                <CardTitle className="text-xs lg:text-sm font-medium text-muted-foreground">
+                  {stat.title}
+                </CardTitle>
+                <div className={`p-1.5 lg:p-2 rounded-full ${stat.bgColor}`}>
+                  <stat.icon className={`h-3 w-3 lg:h-4 lg:w-4 ${stat.color}`} />
                 </div>
+              </CardHeader>
+              <CardContent className="pt-0 pb-3 lg:pb-4">
+                <div className="text-lg lg:text-2xl font-bold">{stat.value}</div>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent to-primary/5 pointer-events-none" />
               </CardContent>
             </Card>
           ))}
         </div>
-      </div>
 
-      {/* AI Features Highlight */}
-      <Card className="hidden lg:block bg-gradient-to-r from-primary/5 via-primary/5 to-secondary/5 border-primary/20">
-        <CardContent className="p-4 lg:p-6">
-          <div className="flex items-center justify-between mb-3 lg:mb-4">
-            <div className="flex items-center space-x-2 lg:space-x-3">
-              <div className="w-8 h-8 lg:w-12 lg:h-12 rounded-full bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center">
-                <Bot className="h-4 w-4 lg:h-6 lg:w-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-base lg:text-lg font-semibold">AI-Powered Features</h3>
-                <p className="text-xs lg:text-sm text-muted-foreground">Discover the smart way to find restaurants</p>
-              </div>
-            </div>
+        {/* Quick Actions */}
+        <div className="space-y-3 lg:space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl lg:text-2xl font-semibold">Quick Actions</h2>
+            <Badge variant="secondary" className="bg-primary/10 text-primary text-xs">
+              <Bot className="h-2.5 w-2.5 lg:h-3 lg:w-3 mr-1" />
+              AI-Enhanced
+            </Badge>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 lg:gap-4">
-            <div className="flex items-center space-x-2 lg:space-x-3 p-2 lg:p-3 rounded-lg bg-background/50">
-              <Search className="h-4 w-4 lg:h-5 lg:w-5 text-primary" />
-              <div>
-                <div className="font-medium text-xs lg:text-sm">Smart Discovery</div>
-                <div className="text-xs text-muted-foreground hidden lg:block">Natural language search</div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2 lg:space-x-3 p-2 lg:p-3 rounded-lg bg-background/50">
-              <TrendingUp className="h-4 w-4 lg:h-5 lg:w-5 text-primary" />
-              <div>
-                <div className="font-medium text-xs lg:text-sm">Personalized Recs</div>
-                <div className="text-xs text-muted-foreground hidden lg:block">AI-curated suggestions</div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2 lg:space-x-3 p-2 lg:p-3 rounded-lg bg-background/50">
-              <Mic className="h-4 w-4 lg:h-5 lg:w-5 text-primary" />
-              <div>
-                <div className="font-medium text-xs lg:text-sm">Voice Assistant</div>
-                <div className="text-xs text-muted-foreground hidden lg:block">Hands-free search</div>
-              </div>
-            </div>
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
+            {quickActions.map((action, index) => (
+              <Card 
+                key={index} 
+                className="cursor-pointer hover:shadow-lg transition-all duration-200 group border-2 hover:border-primary/20"
+                onClick={action.action}
+              >
+                <CardContent className="p-3 lg:p-6">
+                  <div className="flex lg:items-center space-x-2 lg:space-x-4 flex-col lg:flex-row">
+                    <div className={`p-2 lg:p-3 rounded-full ${action.color} text-white group-hover:scale-110 transition-transform shadow-lg self-start lg:self-auto`}>
+                      <action.icon className="h-4 w-4 lg:h-6 lg:w-6" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-sm lg:text-base group-hover:text-primary transition-colors">{action.title}</h3>
+                      <p className="text-xs lg:text-sm text-muted-foreground">{action.description}</p>
+                    </div>
+                    <ArrowRight className="h-3 w-3 lg:h-4 lg:w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all hidden lg:block" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-          <Button 
-            variant="outline" 
-            className="w-full mt-3 lg:mt-4 border-primary/30 hover:bg-primary/10 text-sm"
-            onClick={() => onNavigate('search')}
-          >
-            Try AI Discovery Now
-          </Button>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Recent Activity & Insights */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Rotating Restaurant Card */}
-        <Card className="transition-all duration-500 ease-in-out">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <currentCardData.icon className="h-5 w-5" />
-              {currentCardData.title}
-            </CardTitle>
-            <CardDescription>
-              {currentCardData.description}
-            </CardDescription>
-            <div className="flex space-x-1 mt-2">
-              {cardRotationData.map((_, index) => (
-                <div
-                  key={index}
-                  className={`h-1 w-8 rounded-full transition-all duration-300 ${
-                    index === rotatingCardIndex ? 'bg-primary' : 'bg-muted'
-                  }`}
-                />
-              ))}
+        {/* AI Features Highlight */}
+        <Card className="bg-gradient-to-r from-primary/5 via-primary/5 to-secondary/5 border-primary/20">
+          <CardContent className="p-4 lg:p-6">
+            <div className="flex items-center justify-between mb-3 lg:mb-4">
+              <div className="flex items-center space-x-2 lg:space-x-3">
+                <div className="w-8 h-8 lg:w-12 lg:h-12 rounded-full bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center">
+                  <Bot className="h-4 w-4 lg:h-6 lg:w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-base lg:text-lg font-semibold">AI-Powered Features</h3>
+                  <p className="text-xs lg:text-sm text-muted-foreground">Discover the smart way to find restaurants</p>
+                </div>
+              </div>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {currentCardData.restaurants.length > 0 ? (
-              <>
-                {currentCardData.restaurants.map((restaurant) => (
-                  <div key={restaurant.id} className="flex items-center space-x-4 p-3 rounded-lg bg-muted/50">
-                    <div className="flex-shrink-0">
-                      <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
-                        <ChefHat className="h-6 w-6 text-white" />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 lg:gap-4">
+              <div className="flex items-center space-x-2 lg:space-x-3 p-2 lg:p-3 rounded-lg bg-background/50">
+                <Search className="h-4 w-4 lg:h-5 lg:w-5 text-primary" />
+                <div>
+                  <div className="font-medium text-xs lg:text-sm">Smart Discovery</div>
+                  <div className="text-xs text-muted-foreground hidden lg:block">Natural language search</div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2 lg:space-x-3 p-2 lg:p-3 rounded-lg bg-background/50">
+                <TrendingUp className="h-4 w-4 lg:h-5 lg:w-5 text-primary" />
+                <div>
+                  <div className="font-medium text-xs lg:text-sm">Personalized Recs</div>
+                  <div className="text-xs text-muted-foreground hidden lg:block">AI-curated suggestions</div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2 lg:space-x-3 p-2 lg:p-3 rounded-lg bg-background/50">
+                <Mic className="h-4 w-4 lg:h-5 lg:w-5 text-primary" />
+                <div>
+                  <div className="font-medium text-xs lg:text-sm">Voice Assistant</div>
+                  <div className="text-xs text-muted-foreground hidden lg:block">Hands-free search</div>
+                </div>
+              </div>
+            </div>
+            <Button 
+              variant="outline" 
+              className="w-full mt-3 lg:mt-4 border-primary/30 hover:bg-primary/10 text-sm"
+              onClick={() => onNavigate('search')}
+            >
+              Try AI Discovery Now
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Recent Activity & Insights */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Rotating Restaurant Card */}
+          <Card className="transition-all duration-500 ease-in-out">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <currentCardData.icon className="h-5 w-5" />
+                {currentCardData.title}
+              </CardTitle>
+              <CardDescription>
+                {currentCardData.description}
+              </CardDescription>
+              <div className="flex space-x-1 mt-2">
+                {cardRotationData.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`h-1 w-8 rounded-full transition-all duration-300 ${
+                      index === rotatingCardIndex ? 'bg-primary' : 'bg-muted'
+                    }`}
+                  />
+                ))}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {currentCardData.restaurants.length > 0 ? (
+                <>
+                  {currentCardData.restaurants.map((restaurant) => (
+                    <div key={restaurant.id} className="flex items-center space-x-4 p-3 rounded-lg bg-muted/50">
+                      <div className="flex-shrink-0">
+                        <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+                          <ChefHat className="h-6 w-6 text-white" />
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold truncate">{restaurant.name}</h4>
+                        <p className="text-sm text-muted-foreground">{restaurant.cuisine} • {restaurant.city}</p>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        <span className="font-semibold">{restaurant.rating}</span>
                       </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold truncate">{restaurant.name}</h4>
-                      <p className="text-sm text-muted-foreground">{restaurant.cuisine} • {restaurant.city}</p>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="font-semibold">{restaurant.rating}</span>
-                    </div>
-                  </div>
-                ))}
-                <Button 
-                  variant="outline" 
-                  className="w-full mt-4"
-                  onClick={() => onNavigate('rated')}
-                >
-                  View All Ratings
-                </Button>
-              </>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <Utensils className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No restaurants rated yet</p>
-                <p className="text-sm">Start your culinary journey!</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  ))}
+                  <Button 
+                    variant="outline" 
+                    className="w-full mt-4"
+                    onClick={() => onNavigate('rated')}
+                  >
+                    View All Ratings
+                  </Button>
+                </>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Utensils className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No restaurants rated yet</p>
+                  <p className="text-sm">Start your culinary journey!</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-        {/* Cuisine Insights */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Your Cuisine Preferences
-            </CardTitle>
-            <CardDescription>
-              Most visited cuisine types
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {topCuisines.length > 0 ? (
-              <>
-                {topCuisines.map(([cuisine, count], index) => (
-                  <div key={cuisine} className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium">{cuisine}</span>
-                      <span className="text-sm text-muted-foreground">{count} restaurants</span>
+          {/* Cuisine Insights */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Your Cuisine Preferences
+              </CardTitle>
+              <CardDescription>
+                Most visited cuisine types
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {topCuisines.length > 0 ? (
+                <>
+                  {topCuisines.map(([cuisine, count], index) => (
+                    <div key={cuisine} className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">{cuisine}</span>
+                        <span className="text-sm text-muted-foreground">{count} restaurants</span>
+                      </div>
+                      <Progress 
+                        value={(count / ratedRestaurants.length) * 100} 
+                        className="h-2"
+                      />
                     </div>
-                    <Progress 
-                      value={(count / ratedRestaurants.length) * 100} 
-                      className="h-2"
-                    />
-                  </div>
-                ))}
-                <div className="pt-4 space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span>Average Rating</span>
-                    <Badge variant="secondary" className="bg-green-100 text-green-800">
-                      {averageRating.toFixed(1)} ⭐
-                    </Badge>
-                  </div>
-                  {michelinRestaurants.length > 0 && (
+                  ))}
+                  <div className="pt-4 space-y-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span>Michelin Experience</span>
-                      <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                        {michelinRestaurants.length} starred
+                      <span>Average Rating</span>
+                      <Badge variant="secondary" className="bg-green-100 text-green-800">
+                        {averageRating.toFixed(1)} ⭐
                       </Badge>
                     </div>
-                  )}
+                    {michelinRestaurants.length > 0 && (
+                      <div className="flex items-center justify-between text-sm">
+                        <span>Michelin Experience</span>
+                        <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                          {michelinRestaurants.length} starred
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <ChefHat className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No cuisine data yet</p>
+                  <p className="text-sm">Start rating restaurants to see insights!</p>
                 </div>
-              </>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <ChefHat className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No cuisine data yet</p>
-                <p className="text-sm">Start rating restaurants to see insights!</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Enhanced Motivational Section */}
-      {ratedRestaurants.length > 0 ? (
-        <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
-          <CardContent className="hidden lg:block lg:p-6">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0">
-              <div className="space-y-2">
-                <h3 className="text-base lg:text-lg font-semibold flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 lg:h-5 lg:w-5" />
-                  Keep Exploring! 🍽️
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  You've rated {ratedRestaurants.length} restaurants. 
-                  {wishlistRestaurants.length > 0 && ` ${wishlistRestaurants.length} more waiting in your wishlist!`}
-                </p>
-                <div className="flex flex-wrap items-center gap-2 text-sm">
-                  <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
-                    Average: {averageRating.toFixed(1)} ⭐
-                  </Badge>
-                  {michelinRestaurants.length > 0 && (
-                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 text-xs">
-                      {michelinRestaurants.length} Michelin ⭐
-                    </Badge>
-                  )}
+        {/* Enhanced Motivational Section */}
+        {ratedRestaurants.length > 0 ? (
+          <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
+            <CardContent className="p-6">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0">
+                <div className="space-y-2">
+                  <h3 className="text-base lg:text-lg font-semibold flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 lg:h-5 lg:w-5" />
+                    You're Building an Amazing Collection!
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {ratedRestaurants.length} restaurants rated • {wishlistRestaurants.length} on your wishlist
+                  </p>
                 </div>
-              </div>
-              <div className="flex gap-2">
-                <Button onClick={() => onNavigate('wishlist')} variant="outline" size="sm">
-                  <Heart className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
-                  <span className="text-xs lg:text-sm">Wishlist</span>
-                </Button>
-                <Button onClick={() => onNavigate('search')} className="bg-gradient-to-r from-primary to-primary-glow" size="sm">
-                  <Bot className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
-                  <span className="text-xs lg:text-sm">AI Discovery</span>
+                <Button onClick={onOpenAddRestaurant} className="bg-primary hover:bg-primary/90 text-white">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Another Restaurant
                 </Button>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
-          <CardContent className="p-6 lg:p-8 text-center">
-            <div className="space-y-3 lg:space-y-4">
-              <div className="w-12 h-12 lg:w-16 lg:h-16 mx-auto rounded-full bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center">
-                <Bot className="h-6 w-6 lg:h-8 lg:w-8 text-white" />
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
+            <CardContent className="p-6 text-center">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center mx-auto mb-4">
+                <Utensils className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-lg lg:text-xl font-semibold">Start Your Culinary Journey!</h3>
-              <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                Use our AI-powered discovery to find amazing restaurants, or add your first dining experience to get personalized recommendations.
+              <h3 className="text-lg font-semibold mb-2">Start Your Culinary Journey</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Rate your first restaurant and unlock personalized AI recommendations
               </p>
-              <div className="flex flex-col sm:flex-row gap-2 lg:gap-3 justify-center">
-                <Button onClick={() => onNavigate('search')} className="bg-gradient-to-r from-primary to-primary-glow" size="sm">
-                  <Search className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
-                  <span className="text-xs lg:text-sm">Try AI Discovery</span>
-                </Button>
-                <Button onClick={onOpenAddRestaurant} variant="outline" size="sm">
-                  <Plus className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
-                  <span className="text-xs lg:text-sm">Add First Restaurant</span>
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+              <Button onClick={onOpenAddRestaurant} size="lg" className="bg-primary hover:bg-primary/90 text-white">
+                <Plus className="h-5 w-5 mr-2" />
+                Add Your First Restaurant
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </>
   );
 }
