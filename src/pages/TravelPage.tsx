@@ -1,9 +1,33 @@
-import { ItineraryBuilder } from '@/components/ItineraryBuilder';
+import { useState } from 'react';
+import { ItineraryBuilder, Itinerary } from '@/components/ItineraryBuilder';
 import { TripPlanner } from '@/components/TripPlanner';
+import { SavedItinerariesList } from '@/components/SavedItinerariesList';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, MapPin } from 'lucide-react';
+import { Calendar, MapPin, BookOpen } from 'lucide-react';
 
 export default function TravelPage() {
+  const [activeTab, setActiveTab] = useState('itinerary');
+  const [itineraryBuilderKey, setItineraryBuilderKey] = useState(0);
+
+  const handleLoadItinerary = (itinerary: Itinerary) => {
+    // Clear current itinerary builder state and load the selected one
+    localStorage.setItem('currentItineraryBuilder', JSON.stringify({
+      dateRange: {
+        start: itinerary.startDate,
+        end: itinerary.endDate,
+      },
+      currentItinerary: itinerary,
+      events: itinerary.events,
+      locations: itinerary.locations,
+      isMultiCity: itinerary.isMultiCity,
+      hasCreatedItinerary: true,
+    }));
+    
+    // Force re-render of ItineraryBuilder and switch to it
+    setItineraryBuilderKey(prev => prev + 1);
+    setActiveTab('itinerary');
+  };
+
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
       <div className="mb-8 hidden lg:block">
@@ -15,11 +39,15 @@ export default function TravelPage() {
         </p>
       </div>
       
-      <Tabs defaultValue="itinerary" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="itinerary" className="flex items-center gap-2">
             <Calendar className="w-4 h-4" />
             Itinerary Builder
+          </TabsTrigger>
+          <TabsTrigger value="saved" className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4" />
+            Saved Itineraries
           </TabsTrigger>
           <TabsTrigger value="trip-planner" className="flex items-center gap-2">
             <MapPin className="w-4 h-4" />
@@ -28,7 +56,11 @@ export default function TravelPage() {
         </TabsList>
         
         <TabsContent value="itinerary" className="mt-6">
-          <ItineraryBuilder />
+          <ItineraryBuilder key={itineraryBuilderKey} />
+        </TabsContent>
+        
+        <TabsContent value="saved" className="mt-6">
+          <SavedItinerariesList onLoadItinerary={handleLoadItinerary} />
         </TabsContent>
         
         <TabsContent value="trip-planner" className="mt-6">
