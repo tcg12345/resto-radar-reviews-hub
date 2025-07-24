@@ -649,8 +649,24 @@ export default function UnifiedSearchPage() {
                   <CardContent className="p-3">
                     <div className="flex justify-between items-center">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-sm truncate pr-2">{place.name}</h3>
-                        <div className="flex items-center gap-2 mt-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-sm truncate">{place.name}</h3>
+                          <span className="text-xs text-muted-foreground truncate">
+                            {(() => {
+                              const parts = place.formatted_address?.split(', ') || [];
+                              if (parts.length >= 2) {
+                                // For US addresses, show "City, State"
+                                if (parts[parts.length - 1] === 'United States') {
+                                  return parts.length >= 3 ? `${parts[parts.length - 3]}, ${parts[parts.length - 2]}` : parts[parts.length - 2];
+                                }
+                                // For international, show "City, Country"
+                                return `${parts[parts.length - 2]}, ${parts[parts.length - 1]}`;
+                              }
+                              return parts[0] || '';
+                            })()}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
                           {place.rating && (
                             <div className="flex items-center gap-1">
                               <span className="text-yellow-500 text-sm">★</span>
