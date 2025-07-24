@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useAmadeusApi } from '@/hooks/useAmadeusApi';
+import { useAmadeusApi, AmadeusCity } from '@/hooks/useAmadeusApi';
+import { AmadeusCitySearch } from '@/components/AmadeusCitySearch';
 import { toast } from 'sonner';
 
 interface FlightSearchDialogProps {
@@ -38,6 +39,8 @@ interface Flight {
 export function FlightSearchDialog({ isOpen, onClose, onSelect, selectedDate }: FlightSearchDialogProps) {
   const [departureAirport, setDepartureAirport] = useState('');
   const [arrivalAirport, setArrivalAirport] = useState('');
+  const [departureCity, setDepartureCity] = useState<AmadeusCity | null>(null);
+  const [arrivalCity, setArrivalCity] = useState<AmadeusCity | null>(null);
   const [flightNumber, setFlightNumber] = useState('');
   const [airline, setAirline] = useState('');
   const [flights, setFlights] = useState<Flight[]>([]);
@@ -45,16 +48,25 @@ export function FlightSearchDialog({ isOpen, onClose, onSelect, selectedDate }: 
   const { searchFlights } = useAmadeusApi();
 
   const handleSearch = async () => {
-    if (!departureAirport || !arrivalAirport || !selectedDate) {
-      toast.error('Please fill in all required fields');
+    // Extract IATA codes from selected cities or use direct input
+    const originCode = departureCity?.iataCode || departureAirport.match(/\(([A-Z]{3})\)/)?.[1] || departureAirport.toUpperCase();
+    const destinationCode = arrivalCity?.iataCode || arrivalAirport.match(/\(([A-Z]{3})\)/)?.[1] || arrivalAirport.toUpperCase();
+    
+    if (!originCode || !destinationCode || !selectedDate) {
+      toast.error('Please select departure and arrival airports and date');
+      return;
+    }
+
+    if (originCode.length !== 3 || destinationCode.length !== 3) {
+      toast.error('Please select valid airports with IATA codes');
       return;
     }
 
     setIsSearching(true);
     try {
       const searchParams = {
-        origin: departureAirport.toUpperCase(),
-        destination: arrivalAirport.toUpperCase(),
+        origin: originCode,
+        destination: destinationCode,
         departureDate: selectedDate,
         flightNumber: flightNumber || undefined,
         airline: airline || undefined,
@@ -89,6 +101,8 @@ export function FlightSearchDialog({ isOpen, onClose, onSelect, selectedDate }: 
   const handleClose = () => {
     setDepartureAirport('');
     setArrivalAirport('');
+    setDepartureCity(null);
+    setArrivalCity(null);
     setFlightNumber('');
     setAirline('');
     setFlights([]);
@@ -115,22 +129,20 @@ export function FlightSearchDialog({ isOpen, onClose, onSelect, selectedDate }: 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="departure">Departure Airport *</Label>
-              <Input
-                id="departure"
+              <AmadeusCitySearch
                 value={departureAirport}
-                onChange={(e) => setDepartureAirport(e.target.value)}
-                placeholder="e.g., JFK, LAX"
-                className="uppercase"
+                onChange={setDepartureAirport}
+                onCitySelect={setDepartureCity}
+                placeholder="e.g., New York, JFK, London"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="arrival">Arrival Airport *</Label>
-              <Input
-                id="arrival"
+              <AmadeusCitySearch
                 value={arrivalAirport}
-                onChange={(e) => setArrivalAirport(e.target.value)}
-                placeholder="e.g., LHR, CDG"
-                className="uppercase"
+                onChange={setArrivalAirport}
+                onCitySelect={setArrivalCity}
+                placeholder="e.g., Paris, CDG, Tokyo"
               />
             </div>
           </div>

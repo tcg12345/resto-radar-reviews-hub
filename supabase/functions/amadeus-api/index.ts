@@ -101,61 +101,62 @@ async function getPointsOfInterest(token: string, params: PointOfInterestRequest
 async function searchFlights(token: string, params: FlightSearchRequest) {
   console.log('✈️ Searching flights with params:', params);
   
-  // For demo purposes, return mock flight data
+  // For demo purposes, return mock flight data with more variety
   // In production, you would call the actual Amadeus Flight Offers Search API
-  const mockFlights = [
-    {
-      id: '1',
-      flightNumber: `${params.airline || 'AA'}123`,
-      airline: params.airline || 'American Airlines',
+  const airlines = params.airline ? [params.airline] : ['American Airlines', 'United Airlines', 'Delta Airlines', 'Air France', 'British Airways', 'Lufthansa', 'Emirates', 'Qatar Airways'];
+  const mockFlights = [];
+
+  // Generate 8-12 flights with realistic variations
+  const flightCount = Math.floor(Math.random() * 5) + 8; // 8-12 flights
+  
+  for (let i = 0; i < flightCount; i++) {
+    const airline = airlines[i % airlines.length];
+    const flightNumberSuffix = String(Math.floor(Math.random() * 9000) + 1000);
+    const airlineCode = airline.includes('American') ? 'AA' : 
+                       airline.includes('United') ? 'UA' :
+                       airline.includes('Delta') ? 'DL' :
+                       airline.includes('Air France') ? 'AF' :
+                       airline.includes('British') ? 'BA' :
+                       airline.includes('Lufthansa') ? 'LH' :
+                       airline.includes('Emirates') ? 'EK' : 'QR';
+    
+    // Generate realistic departure times throughout the day
+    const departureHour = Math.floor(Math.random() * 24);
+    const departureMinute = Math.floor(Math.random() * 4) * 15; // 0, 15, 30, 45
+    const departureTime = `${departureHour.toString().padStart(2, '0')}:${departureMinute.toString().padStart(2, '0')}`;
+    
+    // Calculate realistic flight duration based on route
+    const baseDuration = 6 + Math.floor(Math.random() * 8); // 6-13 hours base
+    const minutes = Math.floor(Math.random() * 4) * 15; // 0, 15, 30, 45 minutes
+    const durationString = `${baseDuration}h ${minutes > 0 ? minutes + 'm' : ''}`.trim();
+    
+    // Calculate arrival time
+    const departureDate = new Date(`${params.departureDate}T${departureTime}:00`);
+    const arrivalDate = new Date(departureDate.getTime() + (baseDuration * 60 + minutes) * 60000);
+    const arrivalTime = `${arrivalDate.getHours().toString().padStart(2, '0')}:${arrivalDate.getMinutes().toString().padStart(2, '0')}`;
+    
+    // Generate realistic prices
+    const basePrice = 200 + Math.floor(Math.random() * 600); // $200-800
+    const price = `$${basePrice}`;
+
+    mockFlights.push({
+      id: `flight-${i + 1}`,
+      flightNumber: `${airlineCode}${flightNumberSuffix}`,
+      airline: airline,
       departure: {
         airport: params.origin,
-        time: '08:00',
+        time: departureTime,
         date: params.departureDate
       },
       arrival: {
         airport: params.destination,
-        time: '14:30',
-        date: params.departureDate
+        time: arrivalTime,
+        date: arrivalDate.toISOString().split('T')[0]
       },
-      duration: '6h 30m',
-      price: '$299'
-    },
-    {
-      id: '2',
-      flightNumber: `${params.airline || 'UA'}456`,
-      airline: params.airline || 'United Airlines',
-      departure: {
-        airport: params.origin,
-        time: '12:15',
-        date: params.departureDate
-      },
-      arrival: {
-        airport: params.destination,
-        time: '18:45',
-        date: params.departureDate
-      },
-      duration: '6h 30m',
-      price: '$325'
-    },
-    {
-      id: '3',
-      flightNumber: `${params.airline || 'DL'}789`,
-      airline: params.airline || 'Delta Airlines',
-      departure: {
-        airport: params.origin,
-        time: '16:20',
-        date: params.departureDate
-      },
-      arrival: {
-        airport: params.destination,
-        time: '22:50',
-        date: params.departureDate
-      },
-      duration: '6h 30m',
-      price: '$280'
-    }
-  ];
+      duration: durationString,
+      price: price
+    });
+  }
 
   // Filter by flight number if provided
   const filteredFlights = params.flightNumber 
@@ -168,23 +169,86 @@ async function searchFlights(token: string, params: FlightSearchRequest) {
   return { data: filteredFlights };
 }
 
-// Search for cities (for location autocomplete)
+// Search for cities and airports (for location autocomplete)
 async function searchCities(token: string, keyword: string) {
-  const url = new URL('https://test.api.amadeus.com/v1/reference-data/locations/cities');
-  url.searchParams.set('keyword', keyword);
-  url.searchParams.set('max', '10');
+  console.log('🏙️ Searching cities/airports with keyword:', keyword);
   
-  const response = await fetch(url.toString(), {
-    headers: {
-      'Authorization': `Bearer ${token}`,
+  // For demo purposes, return mock city/airport data
+  // In production, you would call the actual Amadeus Location API
+  const mockCities = [
+    {
+      id: 'CNYC',
+      name: 'New York',
+      iataCode: 'NYC',
+      geoCode: { latitude: 40.7128, longitude: -74.0060 },
+      address: { countryCode: 'US', countryName: 'United States', stateCode: 'NY' }
     },
-  });
+    {
+      id: 'AJFK',
+      name: 'John F Kennedy International Airport',
+      iataCode: 'JFK',
+      geoCode: { latitude: 40.6413, longitude: -73.7781 },
+      address: { countryCode: 'US', countryName: 'United States', stateCode: 'NY' }
+    },
+    {
+      id: 'ALGA',
+      name: 'LaGuardia Airport',
+      iataCode: 'LGA',
+      geoCode: { latitude: 40.7769, longitude: -73.8740 },
+      address: { countryCode: 'US', countryName: 'United States', stateCode: 'NY' }
+    },
+    {
+      id: 'CLOND',
+      name: 'London',
+      iataCode: 'LON',
+      geoCode: { latitude: 51.5074, longitude: -0.1278 },
+      address: { countryCode: 'GB', countryName: 'United Kingdom' }
+    },
+    {
+      id: 'ALHR',
+      name: 'London Heathrow Airport',
+      iataCode: 'LHR',
+      geoCode: { latitude: 51.4700, longitude: -0.4543 },
+      address: { countryCode: 'GB', countryName: 'United Kingdom' }
+    },
+    {
+      id: 'CPARIS',
+      name: 'Paris',
+      iataCode: 'PAR',
+      geoCode: { latitude: 48.8566, longitude: 2.3522 },
+      address: { countryCode: 'FR', countryName: 'France' }
+    },
+    {
+      id: 'ACDG',
+      name: 'Charles de Gaulle Airport',
+      iataCode: 'CDG',
+      geoCode: { latitude: 49.0097, longitude: 2.5479 },
+      address: { countryCode: 'FR', countryName: 'France' }
+    },
+    {
+      id: 'CTOKYO',
+      name: 'Tokyo',
+      iataCode: 'TYO',
+      geoCode: { latitude: 35.6762, longitude: 139.6503 },
+      address: { countryCode: 'JP', countryName: 'Japan' }
+    },
+    {
+      id: 'ANRT',
+      name: 'Narita International Airport',
+      iataCode: 'NRT',
+      geoCode: { latitude: 35.7720, longitude: 140.3929 },
+      address: { countryCode: 'JP', countryName: 'Japan' }
+    }
+  ];
 
-  if (!response.ok) {
-    throw new Error(`Failed to search cities: ${response.statusText}`);
-  }
+  // Filter based on keyword (case insensitive)
+  const filteredCities = mockCities.filter(city => 
+    city.name.toLowerCase().includes(keyword.toLowerCase()) ||
+    city.iataCode.toLowerCase().includes(keyword.toLowerCase())
+  );
 
-  return await response.json();
+  console.log('✅ City search successful:', filteredCities.length, 'results found');
+  return { data: filteredCities };
 }
 
 serve(async (req) => {
