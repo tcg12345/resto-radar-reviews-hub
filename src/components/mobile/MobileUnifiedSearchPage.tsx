@@ -51,6 +51,8 @@ export function MobileUnifiedSearchPage() {
   const [locationQuery, setLocationQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [currentExample, setCurrentExample] = useState(0);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState<SearchFilters>({
@@ -68,6 +70,35 @@ export function MobileUnifiedSearchPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // Debounced search suggestions
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (searchQuery.length >= 2) {
+        try {
+          const { data, error } = await supabase.functions.invoke('google-places-search', {
+            body: { 
+              query: searchQuery,
+              location: locationQuery || 'worldwide'
+            }
+          });
+
+          if (!error && data?.results) {
+            setSuggestions(data.results.slice(0, 5)); // Show top 5 suggestions
+            setShowSuggestions(true);
+          }
+        } catch (error) {
+          console.error('Error fetching suggestions:', error);
+        }
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    };
+
+    const timeoutId = setTimeout(fetchSuggestions, 300); // 300ms debounce
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, locationQuery]);
+
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
       toast('Please enter a search query');
@@ -75,6 +106,7 @@ export function MobileUnifiedSearchPage() {
     }
 
     setIsLoading(true);
+    setShowSuggestions(false); // Hide suggestions when doing actual search
     try {
       const { data, error } = await supabase.functions.invoke('restaurant-search', {
         body: { 
@@ -105,6 +137,13 @@ export function MobileUnifiedSearchPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSuggestionClick = (suggestion: any) => {
+    setSearchQuery(suggestion.name);
+    setShowSuggestions(false);
+    // Auto-search when clicking a suggestion
+    setTimeout(() => handleSearch(), 100);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -309,7 +348,54 @@ export function MobileUnifiedSearchPage() {
         {activeTab === 'search' ? (
           <ScrollArea className="h-full px-4">
             <div className="pb-4">
-              {results.length > 0 ? (
+              {/* Show suggestions as you type */}
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="space-y-3 mb-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-medium text-muted-foreground">Suggestions</h3>
+                    <Badge variant="secondary" className="text-xs">As you type</Badge>
+                  </div>
+                  <div className="grid gap-3">
+                    {suggestions.map((suggestion, index) => (
+                      <Card 
+                        key={suggestion.place_id || index}
+                        className="cursor-pointer hover:shadow-md transition-shadow"
+                        onClick={() => handleSuggestionClick(suggestion)}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-base mb-1">{suggestion.name}</h3>
+                              <p className="text-sm text-muted-foreground mb-2">
+                                {suggestion.formatted_address || suggestion.vicinity}
+                              </p>
+                              <div className="flex items-center gap-2">
+                                {suggestion.rating && (
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-yellow-500">★</span>
+                                    <span className="text-sm font-medium">{suggestion.rating}</span>
+                                  </div>
+                                )}
+                                {suggestion.price_level && (
+                                  <span className="text-sm text-green-600">
+                                    {'$'.repeat(suggestion.price_level)}
+                                  </span>
+                                )}
+                                {suggestion.types && suggestion.types.includes('restaurant') && (
+                                  <Badge variant="outline" className="text-xs">Restaurant</Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Show actual search results */}
+              {results.length > 0 && !showSuggestions ? (
                 <DiscoverResultsGrid 
                   restaurants={results}
                   onToggleWishlist={() => {}}
@@ -318,7 +404,7 @@ export function MobileUnifiedSearchPage() {
                   isLoading={isLoading}
                   hasSearched={!!searchQuery}
                 />
-              ) : (
+              ) : !showSuggestions && (
                 <div className="text-center py-12">
                   <p className="text-muted-foreground mb-4">
                     {searchQuery ? 'No results found. Try adjusting your search.' : 'Start by searching for restaurants above.'}
