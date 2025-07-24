@@ -655,12 +655,20 @@ export default function UnifiedSearchPage() {
                             {(() => {
                               const parts = place.formatted_address?.split(', ') || [];
                               if (parts.length >= 2) {
-                                // For US addresses, show "City, State"
+                                // For US addresses, show "City, State" without zip code
                                 if (parts[parts.length - 1] === 'United States') {
-                                  return parts.length >= 3 ? `${parts[parts.length - 3]}, ${parts[parts.length - 2]}` : parts[parts.length - 2];
+                                  const city = parts[parts.length - 3] || '';
+                                  const stateWithZip = parts[parts.length - 2] || '';
+                                  // Remove zip code from state (any digits and spaces at the end)
+                                  const state = stateWithZip.replace(/\s+\d{5}(-\d{4})?$/, '');
+                                  return parts.length >= 3 ? `${city}, ${state}` : state;
                                 }
-                                // For international, show "City, Country"
-                                return `${parts[parts.length - 2]}, ${parts[parts.length - 1]}`;
+                                // For international, show "City, Country" without postal codes
+                                const city = parts[parts.length - 2] || '';
+                                const country = parts[parts.length - 1] || '';
+                                // Remove postal codes from city (various international formats)
+                                const cleanCity = city.replace(/\s+[A-Z0-9]{2,10}$/, '');
+                                return `${cleanCity}, ${country}`;
                               }
                               return parts[0] || '';
                             })()}
