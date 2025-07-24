@@ -406,7 +406,7 @@ export default function UnifiedSearchPage() {
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary-glow/5 opacity-50" />
         
-        <div className="relative p-8">
+        <div className="relative p-4 lg:p-8">
           {/* Header Section */}
           <div className="mb-8 text-center">
             <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-2">
