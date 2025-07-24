@@ -48,6 +48,8 @@ export function FlightSearchDialog({ isOpen, onClose, onSelect, selectedDate }: 
   const [flightNumber, setFlightNumber] = useState('');
   const [airline, setAirline] = useState('');
   const [flightType, setFlightType] = useState<'nonstop' | 'onestop' | 'any'>('any');
+  const [departureTimeFrom, setDepartureTimeFrom] = useState('');
+  const [departureTimeTo, setDepartureTimeTo] = useState('');
   const [flights, setFlights] = useState<Flight[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const { searchFlights } = useAmadeusApi();
@@ -75,6 +77,8 @@ export function FlightSearchDialog({ isOpen, onClose, onSelect, selectedDate }: 
         flightNumber: flightNumber || undefined,
         airline: airline || undefined,
         flightType: flightType,
+        departureTimeFrom: departureTimeFrom || undefined,
+        departureTimeTo: departureTimeTo || undefined,
       };
 
       const results = await searchFlights(searchParams);
@@ -114,6 +118,8 @@ export function FlightSearchDialog({ isOpen, onClose, onSelect, selectedDate }: 
     setFlightNumber('');
     setAirline('');
     setFlightType('any');
+    setDepartureTimeFrom('');
+    setDepartureTimeTo('');
     setFlights([]);
     onClose();
   };
@@ -201,6 +207,33 @@ export function FlightSearchDialog({ isOpen, onClose, onSelect, selectedDate }: 
                 value={airline}
                 onChange={(e) => setAirline(e.target.value)}
                 placeholder="American, British Airways..."
+                className="bg-background/60"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                Departure Time From
+              </Label>
+              <Input
+                type="time"
+                value={departureTimeFrom}
+                onChange={(e) => setDepartureTimeFrom(e.target.value)}
+                className="bg-background/60"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                Departure Time To
+              </Label>
+              <Input
+                type="time"
+                value={departureTimeTo}
+                onChange={(e) => setDepartureTimeTo(e.target.value)}
                 className="bg-background/60"
               />
             </div>

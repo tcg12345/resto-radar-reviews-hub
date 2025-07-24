@@ -51,6 +51,8 @@ export interface FlightSearchParams {
   flightNumber?: string;
   airline?: string;
   flightType?: 'nonstop' | 'onestop' | 'any';
+  departureTimeFrom?: string;
+  departureTimeTo?: string;
 }
 
 export interface FlightOffer {

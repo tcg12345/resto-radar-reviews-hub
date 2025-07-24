@@ -53,6 +53,8 @@ interface FlightSearchRequest {
   flightNumber?: string;
   airline?: string;
   flightType?: 'nonstop' | 'onestop' | 'any';
+  departureTimeFrom?: string;
+  departureTimeTo?: string;
 }
 
 // Get FlightAPI.io API access
@@ -258,12 +260,18 @@ async function searchFlights(apiKey: string, params: FlightSearchRequest) {
         const carrier = carriersMap.get(leg.marketing_carrier_ids[0]);
         
         // Get the correct segment for this specific leg
-        // Find segments that match this leg's carrier and are likely part of this routing
-        const legSegments = data.segments?.filter(s => 
-          leg.marketing_carrier_ids.includes(s.marketing_carrier_id)
-        ) || [];
+        // Try to find segments that belong to this specific leg by matching the leg's route
+        const legSegments = data.segments?.filter(s => {
+          const segmentCarrier = carriersMap.get(s.marketing_carrier_id);
+          const legCarrier = carriersMap.get(leg.marketing_carrier_ids[0]);
+          return segmentCarrier && legCarrier && 
+                 segmentCarrier.iata_code === legCarrier.iata_code &&
+                 leg.marketing_carrier_ids.includes(s.marketing_carrier_id);
+        }) || [];
         
-        const primarySegment = legSegments[0]; // Use the first matching segment
+        // If multiple segments for this carrier, try to pick the one that best matches this leg
+        const primarySegment = legSegments.length > 0 ? legSegments[0] : 
+                              data.segments?.find(s => leg.marketing_carrier_ids.includes(s.marketing_carrier_id));
         
         // Apply airline filter
         if (params.airline && carrier) {
@@ -278,6 +286,23 @@ async function searchFlights(apiKey: string, params: FlightSearchRequest) {
         // Apply flight type filter
         if (params.flightType === 'nonstop' && leg.stop_count > 0) return null;
         if (params.flightType === 'onestop' && leg.stop_count !== 1) return null;
+        
+        // Apply time filter if specified
+        if (params.departureTimeFrom || params.departureTimeTo) {
+          const depTime = new Date(leg.departure).getHours() * 60 + new Date(leg.departure).getMinutes();
+          
+          if (params.departureTimeFrom) {
+            const [fromHours, fromMinutes] = params.departureTimeFrom.split(':').map(Number);
+            const fromTime = fromHours * 60 + fromMinutes;
+            if (depTime < fromTime) return null;
+          }
+          
+          if (params.departureTimeTo) {
+            const [toHours, toMinutes] = params.departureTimeTo.split(':').map(Number);
+            const toTime = toHours * 60 + toMinutes;
+            if (depTime > toTime) return null;
+          }
+        }
         
         // Format times
         const depTime = new Date(leg.departure).toLocaleTimeString('en-US', { 
@@ -373,7 +398,7 @@ serve(async (req) => {
 
     switch (endpoint) {
       case 'search-flights': {
-        const { origin, destination, departureDate, flightNumber, airline, flightType } = requestBody;
+        const { origin, destination, departureDate, flightNumber, airline, flightType, departureTimeFrom, departureTimeTo } = requestBody;
         
         if (!origin || !destination || !departureDate) {
           console.error('❌ Missing required flight search parameters');
@@ -385,7 +410,7 @@ serve(async (req) => {
 
         try {
           console.log('🔍 Starting flight search...');
-          const data = await searchFlights(apiKey, { origin, destination, departureDate, flightNumber, airline, flightType });
+          const data = await searchFlights(apiKey, { origin, destination, departureDate, flightNumber, airline, flightType, departureTimeFrom, departureTimeTo });
           console.log('✅ Flight search completed successfully');
           
           return new Response(
@@ -403,7 +428,7 @@ serve(async (req) => {
             JSON.stringify({ 
               error: 'Flight search failed', 
               details: searchError.message,
-              params: { origin, destination, departureDate, flightNumber, airline, flightType }
+              params: { origin, destination, departureDate, flightNumber, airline, flightType, departureTimeFrom, departureTimeTo }
             }),
             { 
               status: 500, 
