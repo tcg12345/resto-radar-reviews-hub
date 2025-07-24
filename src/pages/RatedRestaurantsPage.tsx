@@ -278,7 +278,7 @@ export function RatedRestaurantsPage({
         </div>
       </div>
 
-      <div className="mb-6 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+      <div className="mb-2 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
         <div className="flex w-full items-center gap-2 sm:w-auto">
           <Input
             placeholder="Search restaurants..."
