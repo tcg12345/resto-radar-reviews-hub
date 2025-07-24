@@ -234,7 +234,7 @@ export function RestaurantSearchSelect({
       </div>
 
       {showResults && searchResults.length > 0 && (
-        <Card className="absolute z-50 w-full mt-1 max-h-80 overflow-y-auto shadow-lg">
+        <Card className="absolute z-[9999] w-full mt-1 max-h-80 overflow-y-auto shadow-2xl backdrop-blur-sm bg-background">
           <CardContent className="p-0">
             {searchResults.map((place, index) => (
               <div
@@ -280,7 +280,7 @@ export function RestaurantSearchSelect({
       )}
 
       {showResults && searchResults.length === 0 && searchQuery.length >= 2 && !isSearching && (
-        <Card className="absolute z-50 w-full mt-1 shadow-lg">
+        <Card className="absolute z-[9999] w-full mt-1 shadow-2xl backdrop-blur-sm bg-background">
           <CardContent className="p-4 text-center text-sm text-muted-foreground">
             No restaurants found. Try a different search term.
           </CardContent>
