@@ -111,6 +111,7 @@ export function ItineraryBuilder() {
   const [locations, setLocations] = useState<TripLocation[]>([]);
   const [isMultiCity, setIsMultiCity] = useState(false);
   const [currentLocationSearch, setCurrentLocationSearch] = useState('');
+  const [hasCreatedItinerary, setHasCreatedItinerary] = useState(false);
 
   const tripDays = dateRange.start && dateRange.end 
     ? differenceInDays(dateRange.end, dateRange.start) + 1 
@@ -118,27 +119,11 @@ export function ItineraryBuilder() {
 
   const handleDateRangeChange = (start: Date | null, end: Date | null) => {
     setDateRange({ start, end });
-    if (start && end && locations.length > 0 && !isMultiCity) {
+    if (start && end && currentItinerary && !isMultiCity) {
       // Clear events that are outside the new date range for single city
       const startStr = format(start, 'yyyy-MM-dd');
       const endStr = format(end, 'yyyy-MM-dd');
       setEvents(prev => prev.filter(event => event.date >= startStr && event.date <= endStr));
-      
-      // Create itinerary title with locations
-      const locationNames = locations.map(loc => loc.name).join(' → ');
-      const title = `${locationNames} Trip`;
-      
-      // Create new itinerary
-      const newItinerary: Itinerary = {
-        title,
-        startDate: start,
-        endDate: end,
-        locations,
-        isMultiCity,
-        events: [],
-        userId: user?.id,
-      };
-      setCurrentItinerary(newItinerary);
     }
   };
 
@@ -284,7 +269,7 @@ export function ItineraryBuilder() {
     }
   }, [events]);
 
-  if (!canCreateItinerary) {
+  if (!hasCreatedItinerary) {
     return (
       <div className="space-y-6">
         <Card>
@@ -408,7 +393,10 @@ export function ItineraryBuilder() {
             {canCreateItinerary && (
               <div className="text-center pt-4">
                 <Button 
-                  onClick={isMultiCity ? createMultiCityItinerary : () => {
+                  onClick={isMultiCity ? () => {
+                    createMultiCityItinerary();
+                    setHasCreatedItinerary(true);
+                  } : () => {
                     if (dateRange.start && dateRange.end && locations.length > 0) {
                       const locationNames = locations.map(loc => loc.name).join(' → ');
                       const title = `${locationNames} Trip`;
@@ -423,6 +411,7 @@ export function ItineraryBuilder() {
                         userId: user?.id,
                       };
                       setCurrentItinerary(newItinerary);
+                      setHasCreatedItinerary(true);
                     }
                   }}
                   className="flex items-center gap-2"
