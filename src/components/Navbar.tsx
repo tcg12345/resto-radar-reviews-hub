@@ -155,37 +155,38 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
         </div>
       </nav>
 
-      {/* Mobile Bottom Navigation - Much Larger and Touch-Friendly */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border/50">
+      {/* Mobile Bottom Navigation - Modern Circular Design */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t border-border/20">
         <div className="pb-safe-area-bottom">
-          <div className="grid grid-cols-6 gap-0 p-2">
+          <div className="flex justify-around items-center px-4 py-3">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (
-                <Button
-                  key={tab.id}
-                  variant="ghost"
-                  size="lg"
-                  onClick={() => onTabChange(tab.id)}
-                  className={`relative flex flex-col items-center justify-center h-16 w-full mobile-tap-target transition-all duration-300 rounded-2xl ${
-                    isActive 
-                      ? 'text-primary bg-primary/15 shadow-sm' 
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
-                  }`}
-                >
-                  <Icon className={`h-6 w-6 mb-1 transition-all duration-300 ${
-                    isActive ? 'text-primary scale-110' : ''
-                  }`} />
-                  <span className={`text-xs font-medium leading-tight line-clamp-1 transition-all duration-300 ${
-                    isActive ? 'text-primary' : ''
+                <div key={tab.id} className="flex flex-col items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onTabChange(tab.id)}
+                    className={`relative h-12 w-12 rounded-full mobile-tap-target transition-all duration-300 transform ${
+                      isActive 
+                        ? 'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg scale-110 shadow-primary/25' 
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/40 hover:scale-105'
+                    }`}
+                  >
+                    <Icon className={`h-5 w-5 transition-all duration-300 ${
+                      isActive ? 'text-primary-foreground' : ''
+                    }`} />
+                    {isActive && (
+                      <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 blur-sm" />
+                    )}
+                  </Button>
+                  <span className={`text-[10px] font-medium transition-all duration-300 ${
+                    isActive ? 'text-primary' : 'text-muted-foreground'
                   }`}>
                     {tab.shortLabel}
                   </span>
-                  {isActive && (
-                    <div className="absolute inset-x-3 top-1 h-1 bg-primary rounded-full" />
-                  )}
-                </Button>
+                </div>
               );
             })}
           </div>
