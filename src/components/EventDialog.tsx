@@ -1,18 +1,15 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { Clock, MapPin, Search, Utensils, Activity, Plane, Hotel } from 'lucide-react';
+import { Clock, MapPin, Search, Utensils, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { RestaurantSearchDialog } from '@/components/RestaurantSearchDialog';
-import { FlightSearchDialog } from '@/components/FlightSearchDialog';
-import { HotelSearchDialog } from '@/components/HotelSearchDialog';
 import { ItineraryEvent } from '@/components/ItineraryBuilder';
 
 interface EventDialogProps {
@@ -32,64 +29,31 @@ interface RestaurantData {
   website?: string;
 }
 
-interface FlightData {
-  flightNumber: string;
-  airline: string;
-  departure: {
-    airport: string;
-    time: string;
-    date: string;
-  };
-  arrival: {
-    airport: string;
-    time: string;
-    date: string;
-  };
-  duration?: string;
-  price?: string;
-  bookingUrl?: string;
-}
-
-interface HotelData {
-  name: string;
-  address: string;
-  rating?: number;
-  priceRange?: string;
-  amenities?: string[];
-  website?: string;
-  bookingUrl?: string;
-}
-
 export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEvent, itineraryLocation }: EventDialogProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [time, setTime] = useState('');
-  const [type, setType] = useState<'restaurant' | 'activity' | 'flight' | 'hotel' | 'other'>('other');
+  const [type, setType] = useState<'restaurant' | 'activity' | 'other'>('other');
   const [restaurantData, setRestaurantData] = useState<RestaurantData | null>(null);
-  const [flightData, setFlightData] = useState<FlightData | null>(null);
-  const [hotelData, setHotelData] = useState<HotelData | null>(null);
   const [isRestaurantSearchOpen, setIsRestaurantSearchOpen] = useState(false);
-  const [isFlightSearchOpen, setIsFlightSearchOpen] = useState(false);
-  const [isHotelSearchOpen, setIsHotelSearchOpen] = useState(false);
 
   // Reset form when dialog opens/closes or editing event changes
   useEffect(() => {
     if (isOpen && editingEvent) {
-      setTitle(editingEvent.title);
-      setDescription(editingEvent.description || '');
-      setTime(editingEvent.time);
-      setType(editingEvent.type);
-      setRestaurantData(editingEvent.restaurantData || null);
-      setFlightData(editingEvent.flightData || null);
-      setHotelData(editingEvent.hotelData || null);
+      // Only handle restaurant, activity, and other event types
+      if (editingEvent.type === 'restaurant' || editingEvent.type === 'activity' || editingEvent.type === 'other') {
+        setTitle(editingEvent.title);
+        setDescription(editingEvent.description || '');
+        setTime(editingEvent.time);
+        setType(editingEvent.type);
+        setRestaurantData(editingEvent.restaurantData || null);
+      }
     } else if (isOpen) {
       setTitle('');
       setDescription('');
       setTime('');
       setType('other');
       setRestaurantData(null);
-      setFlightData(null);
-      setHotelData(null);
     }
   }, [isOpen, editingEvent]);
 
@@ -103,8 +67,6 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
       date: selectedDate,
       type,
       restaurantData: type === 'restaurant' ? restaurantData : undefined,
-      flightData: type === 'flight' ? flightData : undefined,
-      hotelData: type === 'hotel' ? hotelData : undefined,
     };
 
     onSave(eventData);
@@ -117,8 +79,6 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
     setTime('');
     setType('other');
     setRestaurantData(null);
-    setFlightData(null);
-    setHotelData(null);
     onClose();
   };
 
@@ -133,22 +93,6 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
     setTitle(restaurant.name);
     setType('restaurant');
     setIsRestaurantSearchOpen(false);
-  };
-
-  const handleFlightSelect = (flight: any) => {
-    setFlightData(flight);
-    setTitle(`${flight.airline} ${flight.flightNumber}`);
-    setType('flight');
-    setTime(flight.departure.time);
-    setIsFlightSearchOpen(false);
-  };
-
-  const handleHotelSelect = (hotel: any) => {
-    setHotelData(hotel);
-    setTitle(hotel.name);
-    setType('hotel');
-    setTime('15:00'); // Standard check-in time
-    setIsHotelSearchOpen(false);
   };
 
   const formattedDate = selectedDate ? format(new Date(selectedDate), 'EEEE, MMMM do') : '';
@@ -171,7 +115,7 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
             <div className="space-y-3">
               <Label>Event Type</Label>
               <Tabs value={type} onValueChange={(value) => setType(value as typeof type)}>
-                <TabsList className="grid w-full grid-cols-5">
+                <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="restaurant" className="flex items-center gap-1 text-xs">
                     <Utensils className="w-3 h-3" />
                     Restaurant
@@ -179,14 +123,6 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
                   <TabsTrigger value="activity" className="flex items-center gap-1 text-xs">
                     <Activity className="w-3 h-3" />
                     Activity
-                  </TabsTrigger>
-                  <TabsTrigger value="flight" className="flex items-center gap-1 text-xs">
-                    <Plane className="w-3 h-3" />
-                    Flight
-                  </TabsTrigger>
-                  <TabsTrigger value="hotel" className="flex items-center gap-1 text-xs">
-                    <Hotel className="w-3 h-3" />
-                    Hotel
                   </TabsTrigger>
                   <TabsTrigger value="other" className="flex items-center gap-1 text-xs">
                     <Clock className="w-3 h-3" />
@@ -227,87 +163,6 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
                     >
                       <Search className="w-4 h-4" />
                       Search for Restaurant
-                    </Button>
-                  )}
-                </TabsContent>
-
-                <TabsContent value="flight" className="space-y-4">
-                  {flightData ? (
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <CardTitle className="text-base">{flightData.airline} {flightData.flightNumber}</CardTitle>
-                            <CardDescription className="mt-1">
-                              {flightData.departure.airport} → {flightData.arrival.airport}
-                            </CardDescription>
-                            <CardDescription className="text-xs mt-1">
-                              Departs: {flightData.departure.time} | Arrives: {flightData.arrival.time}
-                            </CardDescription>
-                          </div>
-                          <Badge variant="secondary">Flight</Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setIsFlightSearchOpen(true)}
-                        >
-                          Change Flight
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      className="w-full flex items-center gap-2"
-                      onClick={() => setIsFlightSearchOpen(true)}
-                    >
-                      <Search className="w-4 h-4" />
-                      Search for Flight
-                    </Button>
-                  )}
-                </TabsContent>
-
-                <TabsContent value="hotel" className="space-y-4">
-                  {hotelData ? (
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <CardTitle className="text-base">{hotelData.name}</CardTitle>
-                            <CardDescription className="flex items-center gap-1 mt-1">
-                              <MapPin className="w-3 h-3" />
-                              {hotelData.address}
-                            </CardDescription>
-                            {hotelData.rating && (
-                              <CardDescription className="text-xs mt-1">
-                                Rating: {hotelData.rating}/5 {hotelData.priceRange && `| ${hotelData.priceRange}`}
-                              </CardDescription>
-                            )}
-                          </div>
-                          <Badge variant="secondary">Hotel</Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setIsHotelSearchOpen(true)}
-                        >
-                          Change Hotel
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      className="w-full flex items-center gap-2"
-                      onClick={() => setIsHotelSearchOpen(true)}
-                    >
-                      <Search className="w-4 h-4" />
-                      Search for Hotel
                     </Button>
                   )}
                 </TabsContent>
@@ -381,20 +236,6 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
         isOpen={isRestaurantSearchOpen}
         onClose={() => setIsRestaurantSearchOpen(false)}
         onSelect={handleRestaurantSelect}
-      />
-
-      <FlightSearchDialog
-        isOpen={isFlightSearchOpen}
-        onClose={() => setIsFlightSearchOpen(false)}
-        onSelect={handleFlightSelect}
-        locations={[{ id: '1', name: itineraryLocation || 'Unknown', country: '', state: '' }]}
-      />
-      <HotelSearchDialog
-        isOpen={isHotelSearchOpen}
-        onClose={() => setIsHotelSearchOpen(false)}
-        onSelect={(hotel) => handleHotelSelect(hotel)}
-        locations={[{ id: '1', name: itineraryLocation || 'Unknown', country: '', state: '' }]}
-        isMultiCity={false}
       />
     </>
   );
