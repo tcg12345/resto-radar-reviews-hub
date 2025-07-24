@@ -49,7 +49,7 @@ function getAviationstackApiKey(): string {
 async function searchAirportsAndCities(apiKey: string, keyword: string) {
   console.log('🏙️ Searching airports/cities with keyword:', keyword);
   
-  const url = new URL('http://api.aviationstack.com/v1/airports');
+  const url = new URL('https://api.aviationstack.com/v1/airports');
   url.searchParams.set('access_key', apiKey);
   url.searchParams.set('search', keyword);
   url.searchParams.set('limit', '10');
@@ -62,6 +62,16 @@ async function searchAirportsAndCities(apiKey: string, keyword: string) {
   if (!response.ok) {
     const errorText = await response.text();
     console.error('Airports request failed:', response.status, errorText);
+    
+    // Log specific error details for debugging
+    if (response.status === 401) {
+      console.error('❌ Aviationstack API: Unauthorized - check API key');
+    } else if (response.status === 403) {
+      console.error('❌ Aviationstack API: Forbidden - check API permissions or quota');  
+    } else if (response.status === 429) {
+      console.error('❌ Aviationstack API: Rate limit exceeded');
+    }
+    
     throw new Error(`Failed to search airports: ${response.status} - ${errorText}`);
   }
 
@@ -91,7 +101,7 @@ async function searchAirportsAndCities(apiKey: string, keyword: string) {
 async function searchFlights(apiKey: string, params: FlightSearchRequest) {
   console.log('✈️ Searching flights with params:', params);
   
-  const url = new URL('http://api.aviationstack.com/v1/flights');
+  const url = new URL('https://api.aviationstack.com/v1/flights');
   url.searchParams.set('access_key', apiKey);
   url.searchParams.set('dep_iata', params.origin);
   url.searchParams.set('arr_iata', params.destination);
@@ -114,7 +124,16 @@ async function searchFlights(apiKey: string, params: FlightSearchRequest) {
   if (!response.ok) {
     const errorText = await response.text();
     console.error('Flights request failed:', response.status, errorText);
-    // If API fails, return fallback data
+    
+    // Log specific error details for debugging
+    if (response.status === 401) {
+      console.error('❌ Aviationstack API: Unauthorized - check API key');
+    } else if (response.status === 403) {
+      console.error('❌ Aviationstack API: Forbidden - check API permissions or quota');
+    } else if (response.status === 429) {
+      console.error('❌ Aviationstack API: Rate limit exceeded');
+    }
+    
     return getFallbackFlightData(params);
   }
 
