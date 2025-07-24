@@ -199,7 +199,7 @@ export default function MobileRestaurantDetailsPage() {
     );
   }
 
-  const canAddToWishlist = user && restaurant.user_id !== user.id && !restaurant.is_wishlist;
+  const canAddToWishlist = user && restaurant.user_id !== user.id;
 
   return (
     <>
