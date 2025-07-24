@@ -96,24 +96,78 @@ export interface Itinerary {
 
 export function ItineraryBuilder() {
   const { user } = useAuth();
-  const [dateRange, setDateRange] = useState<{ start: Date | null; end: Date | null }>({
-    start: null,
-    end: null,
-  });
-  const [currentItinerary, setCurrentItinerary] = useState<Itinerary | null>(null);
-  const [events, setEvents] = useState<ItineraryEvent[]>([]);
+  
+  // Load state from localStorage on mount
+  const loadPersistedState = () => {
+    try {
+      const savedState = localStorage.getItem('currentItineraryBuilder');
+      if (savedState) {
+        const parsed = JSON.parse(savedState);
+        return {
+          dateRange: {
+            start: parsed.dateRange.start ? new Date(parsed.dateRange.start) : null,
+            end: parsed.dateRange.end ? new Date(parsed.dateRange.end) : null,
+          },
+          currentItinerary: parsed.currentItinerary ? {
+            ...parsed.currentItinerary,
+            startDate: new Date(parsed.currentItinerary.startDate),
+            endDate: new Date(parsed.currentItinerary.endDate),
+            locations: parsed.currentItinerary.locations.map((loc: any) => ({
+              ...loc,
+              startDate: loc.startDate ? new Date(loc.startDate) : undefined,
+              endDate: loc.endDate ? new Date(loc.endDate) : undefined,
+            })),
+          } : null,
+          events: parsed.events || [],
+          locations: parsed.locations.map((loc: any) => ({
+            ...loc,
+            startDate: loc.startDate ? new Date(loc.startDate) : undefined,
+            endDate: loc.endDate ? new Date(loc.endDate) : undefined,
+          })),
+          isMultiCity: parsed.isMultiCity || false,
+          hasCreatedItinerary: parsed.hasCreatedItinerary || false,
+        };
+      }
+    } catch (error) {
+      console.error('Error loading persisted state:', error);
+    }
+    return null;
+  };
+
+  const persistedState = loadPersistedState();
+  
+  const [dateRange, setDateRange] = useState<{ start: Date | null; end: Date | null }>(
+    persistedState?.dateRange || { start: null, end: null }
+  );
+  const [currentItinerary, setCurrentItinerary] = useState<Itinerary | null>(
+    persistedState?.currentItinerary || null
+  );
+  const [events, setEvents] = useState<ItineraryEvent[]>(persistedState?.events || []);
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [editingEvent, setEditingEvent] = useState<ItineraryEvent | null>(null);
-  const [locations, setLocations] = useState<TripLocation[]>([]);
-  const [isMultiCity, setIsMultiCity] = useState(false);
+  const [locations, setLocations] = useState<TripLocation[]>(persistedState?.locations || []);
+  const [isMultiCity, setIsMultiCity] = useState(persistedState?.isMultiCity || false);
   const [currentLocationSearch, setCurrentLocationSearch] = useState('');
-  const [hasCreatedItinerary, setHasCreatedItinerary] = useState(false);
+  const [hasCreatedItinerary, setHasCreatedItinerary] = useState(persistedState?.hasCreatedItinerary || false);
 
-  const tripDays = dateRange.start && dateRange.end 
+  // Persist state to localStorage whenever key state changes
+  useEffect(() => {
+    const stateToSave = {
+      dateRange,
+      currentItinerary,
+      events,
+      locations,
+      isMultiCity,
+      hasCreatedItinerary,
+    };
+    localStorage.setItem('currentItineraryBuilder', JSON.stringify(stateToSave));
+  }, [dateRange, currentItinerary, events, locations, isMultiCity, hasCreatedItinerary]);
+
+  const tripDays = dateRange.start && dateRange.end
     ? differenceInDays(dateRange.end, dateRange.start) + 1 
     : 0;
 
@@ -511,6 +565,25 @@ export function ItineraryBuilder() {
             >
               <Download className="w-4 h-4" />
               Export PDF
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                // Clear persisted state and reset to initial setup
+                localStorage.removeItem('currentItineraryBuilder');
+                setDateRange({ start: null, end: null });
+                setCurrentItinerary(null);
+                setEvents([]);
+                setLocations([]);
+                setIsMultiCity(false);
+                setHasCreatedItinerary(false);
+                setCurrentLocationSearch('');
+              }}
+              className="flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Start New Itinerary
             </Button>
           </div>
         </CardContent>
