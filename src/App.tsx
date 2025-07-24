@@ -27,6 +27,7 @@ import UnifiedSearchPage from "./pages/UnifiedSearchPage";
 import SettingsPageWrapper from "./pages/SettingsPageWrapper";
 import SearchTabsPage from "./pages/SearchTabsPage";
 import MobileFriendProfilePage from "./pages/mobile/MobileFriendProfilePage";
+import MobileRestaurantDetailsPage from "./pages/mobile/MobileRestaurantDetailsPage";
 import ItineraryPage from "./pages/ItineraryPage";
 
 
@@ -75,8 +76,9 @@ const App = () => (
                 <Route path="/chat" element={<RequireAuth><ChatListPage /></RequireAuth>} />
                 <Route path="/chat/:roomId" element={<RequireAuth><ChatPage /></RequireAuth>} />
                 
-                {/* Restaurant detail route */}
+                {/* Restaurant detail routes */}
                 <Route path="/restaurant/:restaurantId" element={<RequireAuth><RestaurantDetailPage /></RequireAuth>} />
+                <Route path="/mobile/restaurant/:restaurantId" element={<RequireAuth><MobileRestaurantDetailsPage /></RequireAuth>} />
                 
                 {/* Main route - shows landing page or dashboard based on auth */}
                 <Route path="/" element={<Index />} />

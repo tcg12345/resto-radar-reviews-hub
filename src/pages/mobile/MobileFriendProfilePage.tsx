@@ -223,9 +223,16 @@ export default function MobileFriendProfilePage() {
   };
 
   const RestaurantItem = ({ restaurant }: { restaurant: any }) => {
+    const handleRestaurantClick = () => {
+      navigate(`/mobile/restaurant/${restaurant.id}`);
+    };
+
     if (viewMode === 'grid') {
       return (
-        <div className="bg-card rounded-lg border p-2">
+        <div 
+          className="bg-card rounded-lg border p-2 cursor-pointer hover:bg-accent transition-colors"
+          onClick={handleRestaurantClick}
+        >
           <div className="aspect-square bg-muted rounded mb-2"></div>
           <h4 className="font-medium text-xs truncate mb-1">{restaurant.name}</h4>
           <div className="flex items-center justify-between">
@@ -244,7 +251,10 @@ export default function MobileFriendProfilePage() {
     }
 
     return (
-      <div className="flex items-center gap-3 py-2 px-1">
+      <div 
+        className="flex items-center gap-3 py-2 px-1 cursor-pointer hover:bg-accent transition-colors rounded-lg"
+        onClick={handleRestaurantClick}
+      >
         <div className="w-12 h-12 bg-muted rounded-lg flex-shrink-0"></div>
         <div className="flex-1 min-w-0">
           <h4 className="font-medium text-sm truncate">{restaurant.name}</h4>
@@ -268,7 +278,10 @@ export default function MobileFriendProfilePage() {
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => addToWishlist(restaurant)}
+            onClick={(e) => {
+              e.stopPropagation();
+              addToWishlist(restaurant);
+            }}
             className="h-8 w-8 p-0"
           >
             <Heart className="h-4 w-4" />
