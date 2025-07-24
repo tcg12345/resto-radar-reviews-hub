@@ -57,18 +57,6 @@ interface TripAdvisorLocation {
     name: string;
     localized_name: string;
   }>;
-  menu?: {
-    web_url?: string;
-    pdf_url?: string;
-    sections?: Array<{
-      section_name: string;
-      items: Array<{
-        name: string;
-        description?: string;
-        price?: string;
-      }>;
-    }>;
-  };
 }
 
 interface TripAdvisorPhoto {
@@ -119,7 +107,7 @@ export const useTripAdvisorApi = () => {
   const [error, setError] = useState<string | null>(null);
 
   const callTripAdvisorApi = async (params: {
-    action: 'search' | 'details' | 'photos' | 'reviews' | 'nearby' | 'booking' | 'menu';
+    action: 'search' | 'details' | 'photos' | 'reviews' | 'nearby' | 'booking';
     query?: string;
     locationId?: string;
     limit?: number;
@@ -190,11 +178,6 @@ export const useTripAdvisorApi = () => {
     return result.data || [];
   };
 
-  const getLocationMenu = async (locationId: string): Promise<any> => {
-    const result = await callTripAdvisorApi({ action: 'menu', locationId });
-    return result;
-  };
-
   return {
     isLoading,
     error,
@@ -204,6 +187,5 @@ export const useTripAdvisorApi = () => {
     getLocationReviews,
     getNearbyLocations,
     getBookingOffers,
-    getLocationMenu,
   };
 };

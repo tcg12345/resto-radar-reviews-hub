@@ -7,7 +7,6 @@ import { MapPin, Star, Globe, Phone, Clock, Plus, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { MenuButton } from '@/components/MenuButton';
 
 interface SharedRestaurant {
   id: string;
@@ -199,16 +198,6 @@ export function SharedRestaurantDetailsModal({
                     </div>
                   </div>
                 )}
-              </div>
-              
-              {/* Menu Button */}
-              <div className="pt-2">
-                <MenuButton 
-                  restaurantName={restaurant.name}
-                  restaurantAddress={restaurant.address}
-                  className="w-full"
-                  size="default"
-                />
               </div>
             </>
           )}
