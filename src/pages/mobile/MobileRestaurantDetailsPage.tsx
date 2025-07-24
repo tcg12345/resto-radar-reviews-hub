@@ -244,21 +244,6 @@ export default function MobileRestaurantDetailsPage() {
             >
               <Share2 className="h-4 w-4" />
             </Button>
-            {canAddToWishlist && (
-              <Button
-                onClick={addToWishlist}
-                disabled={isAdding || isAdded}
-                variant="outline"
-                size="sm"
-                className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
-              >
-                {isAdded ? (
-                  <Heart className="h-4 w-4 fill-red-500" />
-                ) : (
-                  <Heart className="h-4 w-4" />
-                )}
-              </Button>
-            )}
           </div>
         </div>
       </div>
