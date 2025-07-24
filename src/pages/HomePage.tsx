@@ -219,7 +219,7 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
       {/* Mobile Layout - Completely Redesigned */}
       <div className="md:hidden min-h-screen bg-background">
         {/* Mobile Header */}
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b px-4 py-4">
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-bold text-primary">
