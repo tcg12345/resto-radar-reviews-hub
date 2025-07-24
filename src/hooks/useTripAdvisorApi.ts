@@ -107,10 +107,13 @@ export const useTripAdvisorApi = () => {
   const [error, setError] = useState<string | null>(null);
 
   const callTripAdvisorApi = async (params: {
-    action: 'search' | 'details' | 'photos' | 'reviews' | 'nearby';
+    action: 'search' | 'details' | 'photos' | 'reviews' | 'nearby' | 'booking';
     query?: string;
     locationId?: string;
     limit?: number;
+    checkIn?: string;
+    checkOut?: string;
+    guests?: number;
   }) => {
     setIsLoading(true);
     setError(null);
@@ -164,6 +167,17 @@ export const useTripAdvisorApi = () => {
     return result.data || [];
   };
 
+  const getBookingOffers = async (locationId: string, checkIn: string, checkOut: string, guests = 2): Promise<any[]> => {
+    const result = await callTripAdvisorApi({ 
+      action: 'booking', 
+      locationId, 
+      checkIn, 
+      checkOut, 
+      guests 
+    });
+    return result.data || [];
+  };
+
   return {
     isLoading,
     error,
@@ -172,5 +186,6 @@ export const useTripAdvisorApi = () => {
     getLocationPhotos,
     getLocationReviews,
     getNearbyLocations,
+    getBookingOffers,
   };
 };

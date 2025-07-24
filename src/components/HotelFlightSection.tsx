@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Hotel, Plane, Plus, MapPin, ExternalLink, Phone, Navigation, Eye, Radar, Star, Camera } from 'lucide-react';
+import { Hotel, Plane, Plus, MapPin, ExternalLink, Phone, Navigation, Eye, Radar, Star, Camera, Calendar, Users } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RestaurantLocationMap } from '@/components/RestaurantLocationMap';
 import { useTripAdvisorApi } from '@/hooks/useTripAdvisorApi';
 import { PhotoGallery } from '@/components/PhotoGallery';
@@ -81,7 +84,13 @@ export function HotelFlightSection({
   const [photoGalleryIndex, setPhotoGalleryIndex] = useState(0);
   const [hotelWebsite, setHotelWebsite] = useState<string | null>(null);
 
-  const { searchLocations, getLocationPhotos, getLocationReviews, getLocationDetails } = useTripAdvisorApi();
+  const { searchLocations, getLocationPhotos, getLocationReviews, getLocationDetails, getBookingOffers } = useTripAdvisorApi();
+
+  const [bookingOffers, setBookingOffers] = useState<any[]>([]);
+  const [loadingBooking, setLoadingBooking] = useState(false);
+  const [checkInDate, setCheckInDate] = useState<string>('');
+  const [checkOutDate, setCheckOutDate] = useState<string>('');
+  const [guests, setGuests] = useState(2);
 
   const handleHotelSelect = (hotel: HotelType, location?: string, checkIn?: Date, checkOut?: Date) => {
     onAddHotel(hotel, location, checkIn, checkOut);
@@ -646,6 +655,133 @@ export function HotelFlightSection({
                     ))}
                   </div>
                 </div>
+                )}
+
+              {/* Hotel Booking from TripAdvisor */}
+              {tripAdvisorLocationId && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-green-600" />
+                    <h4 className="font-medium text-sm">Book This Hotel</h4>
+                  </div>
+                  
+                  {/* Booking Search Form */}
+                  <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label htmlFor="checkin" className="text-xs">Check-in</Label>
+                        <Input
+                          id="checkin"
+                          type="date"
+                          value={checkInDate}
+                          onChange={(e) => setCheckInDate(e.target.value)}
+                          className="h-8 text-xs"
+                          min={new Date().toISOString().split('T')[0]}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="checkout" className="text-xs">Check-out</Label>
+                        <Input
+                          id="checkout"
+                          type="date"
+                          value={checkOutDate}
+                          onChange={(e) => setCheckOutDate(e.target.value)}
+                          className="h-8 text-xs"
+                          min={checkInDate || new Date().toISOString().split('T')[0]}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1">
+                        <Label htmlFor="guests" className="text-xs">Guests</Label>
+                        <Select value={guests.toString()} onValueChange={(value) => setGuests(parseInt(value))}>
+                          <SelectTrigger className="h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {[1, 2, 3, 4, 5, 6].map(num => (
+                              <SelectItem key={num} value={num.toString()}>
+                                {num} Guest{num > 1 ? 's' : ''}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <Button
+                        size="sm"
+                        onClick={async () => {
+                          if (!checkInDate || !checkOutDate || !tripAdvisorLocationId) {
+                            alert('Please select check-in and check-out dates');
+                            return;
+                          }
+                          
+                          setLoadingBooking(true);
+                          try {
+                            const offers = await getBookingOffers(tripAdvisorLocationId, checkInDate, checkOutDate, guests);
+                            setBookingOffers(offers || []);
+                          } catch (error) {
+                            console.error('Error fetching booking offers:', error);
+                            alert('Unable to fetch booking offers at the moment');
+                          } finally {
+                            setLoadingBooking(false);
+                          }
+                        }}
+                        disabled={loadingBooking || !checkInDate || !checkOutDate}
+                        className="mt-4"
+                      >
+                        {loadingBooking ? (
+                          <>
+                            <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin mr-1" />
+                            Searching...
+                          </>
+                        ) : (
+                          <>
+                            <Calendar className="w-3 h-3 mr-1" />
+                            Search Deals
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {/* Booking Offers */}
+                  {bookingOffers.length > 0 && (
+                    <div className="space-y-2">
+                      <h5 className="text-sm font-medium text-green-700 dark:text-green-300">Available Deals</h5>
+                      <div className="space-y-2 max-h-48 overflow-y-auto">
+                        {bookingOffers.slice(0, 5).map((offer, index) => (
+                          <div key={index} className="p-3 bg-white dark:bg-green-950/40 rounded-lg border border-green-200 dark:border-green-800/50">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="text-sm font-medium">{offer.partner_name || 'Booking Partner'}</div>
+                                {offer.price && (
+                                  <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                                    ${offer.price}
+                                    <span className="text-xs text-muted-foreground ml-1">per night</span>
+                                  </div>
+                                )}
+                                {offer.total_price && (
+                                  <div className="text-sm text-muted-foreground">
+                                    Total: ${offer.total_price}
+                                  </div>
+                                )}
+                              </div>
+                              <Button
+                                size="sm"
+                                onClick={() => window.open(offer.booking_url || `https://www.tripadvisor.com/Hotel_Review-d${tripAdvisorLocationId}`, '_blank')}
+                                className="bg-green-600 hover:bg-green-700"
+                              >
+                                Book Now
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
 
               {/* Loading state for TripAdvisor data */}
@@ -654,6 +790,16 @@ export function HotelFlightSection({
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                     Loading TripAdvisor content...
+                  </div>
+                </div>
+              )}
+
+              {/* Loading state for booking offers */}
+              {loadingBooking && (
+                <div className="flex items-center justify-center py-2">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+                    Searching for booking deals...
                   </div>
                 </div>
               )}

@@ -212,9 +212,38 @@ serve(async (req) => {
         console.log('Getting nearby locations for:', locationId);
         break;
 
+      case 'booking':
+        if (!locationId) {
+          return new Response(
+            JSON.stringify({ error: 'Location ID required for booking' }),
+            { 
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            }
+          );
+        }
+        
+        const bookingParams = await req.json();
+        const { checkIn, checkOut, guests = 2 } = bookingParams;
+        
+        if (!checkIn || !checkOut) {
+          return new Response(
+            JSON.stringify({ error: 'Check-in and check-out dates are required for booking' }),
+            { 
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            }
+          );
+        }
+        
+        // TripAdvisor booking offers endpoint
+        apiUrl = `${baseUrl}/location/${locationId}/offers?key=${apiKey}&checkin=${checkIn}&checkout=${checkOut}&adults=${guests}&currency=USD`;
+        console.log('Getting booking offers for location:', locationId, 'from', checkIn, 'to', checkOut);
+        break;
+
       default:
         return new Response(
-          JSON.stringify({ error: 'Invalid action. Use: search, details, photos, reviews, or nearby' }),
+          JSON.stringify({ error: 'Invalid action. Use: search, details, photos, reviews, nearby, or booking' }),
           { 
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
