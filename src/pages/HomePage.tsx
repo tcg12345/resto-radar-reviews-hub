@@ -448,7 +448,7 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
       {/* Enhanced Motivational Section */}
       {ratedRestaurants.length > 0 ? (
         <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
-          <CardContent className="p-4 lg:p-6">
+          <CardContent className="hidden lg:block lg:p-6">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0">
               <div className="space-y-2">
                 <h3 className="text-base lg:text-lg font-semibold flex items-center gap-2">
