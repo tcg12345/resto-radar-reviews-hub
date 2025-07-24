@@ -454,8 +454,14 @@ export function ItineraryBuilder() {
               </CardTitle>
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <span>
-                  {format(dateRange.start!, 'MMM do')} - {format(dateRange.end!, 'MMM do')} 
-                  ({tripDays} {tripDays === 1 ? 'day' : 'days'})
+                  {dateRange.start && dateRange.end ? (
+                    <>
+                      {format(dateRange.start, 'MMM do')} - {format(dateRange.end, 'MMM do')} 
+                      ({tripDays} {tripDays === 1 ? 'day' : 'days'})
+                    </>
+                  ) : (
+                    'Dates not set'
+                  )}
                 </span>
                 {currentItinerary?.isMultiCity && (
                   <Badge variant="outline">Multi-city</Badge>
