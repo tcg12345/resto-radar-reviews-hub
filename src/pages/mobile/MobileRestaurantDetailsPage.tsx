@@ -450,32 +450,6 @@ export default function MobileRestaurantDetailsPage() {
             </>
           )}
 
-          {/* Reservation */}
-          {restaurant.reservable && (
-            <>
-              <Separator />
-              <div className="space-y-3">
-                <p className="font-medium">Reservations Available</p>
-                {restaurant.reservation_url ? (
-                  <Button variant="outline" className="w-full" asChild>
-                    <a 
-                      href={restaurant.reservation_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2"
-                    >
-                      Make Reservation
-                      <ExternalLink className="h-4 w-4" />
-                    </a>
-                  </Button>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Call or visit their website to make a reservation
-                  </p>
-                )}
-              </div>
-            </>
-          )}
 
           {/* Additional Photos */}
           {restaurant.photos && restaurant.photos.length > 1 && (
