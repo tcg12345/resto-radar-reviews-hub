@@ -55,6 +55,30 @@ export interface FlightSearchParams {
   departureTimeTo?: string;
 }
 
+export interface HotelSearchParams {
+  location: string;
+  checkInDate: string;
+  checkOutDate: string;
+  guests: number;
+  priceRange?: string;
+}
+
+export interface Hotel {
+  id: string;
+  name: string;
+  address: string;
+  description?: string;
+  rating?: number;
+  priceRange?: string;
+  amenities?: string[];
+  photos?: string[];
+  latitude?: number;
+  longitude?: number;
+  website?: string;
+  phone?: string;
+  bookingUrl?: string;
+}
+
 export interface FlightOffer {
   id: string;
   flightNumber: string;
@@ -118,8 +142,30 @@ export const useAmadeusApi = () => {
     }
   };
 
+  const searchHotels = async (params: HotelSearchParams): Promise<Hotel[]> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('amadeus-api', {
+        body: {
+          endpoint: 'search-hotels',
+          ...params
+        }
+      });
+
+      if (error) {
+        console.error('Error searching hotels:', error);
+        throw error;
+      }
+
+      return data?.data || [];
+    } catch (error) {
+      console.error('Failed to search hotels:', error);
+      throw error;
+    }
+  };
+
   return {
     searchFlights,
-    searchCities
+    searchCities,
+    searchHotels
   };
 };

@@ -1,5 +1,5 @@
 import { format, eachDayOfInterval, isSameDay } from 'date-fns';
-import { Plus, MapPin, Clock, Utensils, Activity, Plane, MoreVertical, Trash2, Edit, Navigation, ExternalLink } from 'lucide-react';
+import { Plus, MapPin, Clock, Utensils, Activity, Plane, Hotel, MoreVertical, Trash2, Edit, Navigation, ExternalLink, Star, Users, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -76,6 +76,8 @@ export function TripCalendar({ startDate, endDate, events, onAddEvent, onEditEve
         return <Activity className="w-4 h-4" />;
       case 'flight':
         return <Plane className="w-4 h-4" />;
+      case 'hotel':
+        return <Hotel className="w-4 h-4" />;
       default:
         return <Clock className="w-4 h-4" />;
     }
@@ -89,6 +91,8 @@ export function TripCalendar({ startDate, endDate, events, onAddEvent, onEditEve
         return 'bg-blue-100 border-blue-200 text-blue-800 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-300';
       case 'flight':
         return 'bg-purple-100 border-purple-200 text-purple-800 dark:bg-purple-900/20 dark:border-purple-800 dark:text-purple-300';
+      case 'hotel':
+        return 'bg-green-100 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-300';
       default:
         return 'bg-gray-100 border-gray-200 text-gray-800 dark:bg-gray-900/20 dark:border-gray-800 dark:text-gray-300';
     }
@@ -199,6 +203,65 @@ export function TripCalendar({ startDate, endDate, events, onAddEvent, onEditEve
                                       >
                                         <ExternalLink className="w-3 h-3 mr-1" />
                                         Book Flight
+                                      </Button>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                              {event.hotelData && (
+                                <div className="space-y-2">
+                                  <div className="space-y-1 text-sm opacity-90">
+                                    <div className="flex items-center gap-1">
+                                      <MapPin className="w-3 h-3" />
+                                      <span>{event.hotelData.address}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <Calendar className="w-3 h-3" />
+                                      <span>
+                                        {format(new Date(event.hotelData.checkInDate), 'MMM do')} - {format(new Date(event.hotelData.checkOutDate), 'MMM do')}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <Users className="w-3 h-3" />
+                                      <span>{event.hotelData.guests} {event.hotelData.guests === 1 ? 'Guest' : 'Guests'}</span>
+                                    </div>
+                                    {event.hotelData.rating && (
+                                      <div className="flex items-center gap-1">
+                                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                                        <span>{event.hotelData.rating}/5</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-7 text-xs"
+                                      onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(event.hotelData!.address)}`, '_blank')}
+                                    >
+                                      <Navigation className="w-3 h-3 mr-1" />
+                                      Directions
+                                    </Button>
+                                    {event.hotelData.website && (
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-7 text-xs"
+                                        onClick={() => window.open(event.hotelData!.website, '_blank')}
+                                      >
+                                        <ExternalLink className="w-3 h-3 mr-1" />
+                                        Website
+                                      </Button>
+                                    )}
+                                    {event.hotelData.bookingUrl && (
+                                      <Button
+                                        size="sm"
+                                        variant="default"
+                                        className="h-7 text-xs"
+                                        onClick={() => window.open(event.hotelData!.bookingUrl, '_blank')}
+                                      >
+                                        <ExternalLink className="w-3 h-3 mr-1" />
+                                        Book Hotel
                                       </Button>
                                     )}
                                   </div>
