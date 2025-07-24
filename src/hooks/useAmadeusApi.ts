@@ -50,6 +50,7 @@ export interface FlightSearchParams {
   departureDate: string;
   flightNumber?: string;
   airline?: string;
+  flightType?: 'nonstop' | 'onestop' | 'any';
 }
 
 export interface FlightOffer {
@@ -68,6 +69,8 @@ export interface FlightOffer {
   };
   duration?: string;
   price?: string;
+  stops?: number;
+  stopLocations?: string[];
 }
 
 export const useAmadeusApi = () => {

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAmadeusApi, AmadeusCity } from '@/hooks/useAmadeusApi';
 import { AmadeusCitySearch } from '@/components/AmadeusCitySearch';
 import { toast } from 'sonner';
@@ -34,6 +35,8 @@ interface Flight {
   };
   duration?: string;
   price?: string;
+  stops?: number;
+  stopLocations?: string[];
 }
 
 export function FlightSearchDialog({ isOpen, onClose, onSelect, selectedDate }: FlightSearchDialogProps) {
@@ -43,6 +46,7 @@ export function FlightSearchDialog({ isOpen, onClose, onSelect, selectedDate }: 
   const [arrivalCity, setArrivalCity] = useState<AmadeusCity | null>(null);
   const [flightNumber, setFlightNumber] = useState('');
   const [airline, setAirline] = useState('');
+  const [flightType, setFlightType] = useState<'nonstop' | 'onestop' | 'any'>('any');
   const [flights, setFlights] = useState<Flight[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const { searchFlights } = useAmadeusApi();
@@ -70,6 +74,7 @@ export function FlightSearchDialog({ isOpen, onClose, onSelect, selectedDate }: 
         departureDate: selectedDate,
         flightNumber: flightNumber || undefined,
         airline: airline || undefined,
+        flightType: flightType,
       };
 
       const results = await searchFlights(searchParams);
@@ -105,6 +110,7 @@ export function FlightSearchDialog({ isOpen, onClose, onSelect, selectedDate }: 
     setArrivalCity(null);
     setFlightNumber('');
     setAirline('');
+    setFlightType('any');
     setFlights([]);
     onClose();
   };
@@ -168,6 +174,20 @@ export function FlightSearchDialog({ isOpen, onClose, onSelect, selectedDate }: 
             </div>
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="flightType">Flight Type</Label>
+            <Select value={flightType} onValueChange={(value: 'nonstop' | 'onestop' | 'any') => setFlightType(value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select flight type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">Any (Nonstop + One Stop)</SelectItem>
+                <SelectItem value="nonstop">Nonstop Only</SelectItem>
+                <SelectItem value="onestop">One Stop Only</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <Button
             onClick={handleSearch}
             disabled={isSearching || !departureAirport || !arrivalAirport}
@@ -190,6 +210,11 @@ export function FlightSearchDialog({ isOpen, onClose, onSelect, selectedDate }: 
                           <CardTitle className="text-base flex items-center gap-2">
                             {flight.airline} {flight.flightNumber}
                             <Badge variant="outline">{flight.duration}</Badge>
+                            {flight.stops === 0 ? (
+                              <Badge variant="secondary">Nonstop</Badge>
+                            ) : (
+                              <Badge variant="outline">1 Stop in {flight.stopLocations?.[0]}</Badge>
+                            )}
                           </CardTitle>
                           <CardDescription className="flex items-center gap-4">
                             <span className="flex items-center gap-1">

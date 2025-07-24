@@ -24,6 +24,7 @@ interface FlightSearchRequest {
   departureDate: string;
   flightNumber?: string;
   airline?: string;
+  flightType?: 'nonstop' | 'onestop' | 'any';
 }
 
 // Get Amadeus access token
@@ -101,33 +102,65 @@ async function getPointsOfInterest(token: string, params: PointOfInterestRequest
 async function searchFlights(token: string, params: FlightSearchRequest) {
   console.log('✈️ Searching flights with params:', params);
   
-  // For demo purposes, return mock flight data with more variety
-  // In production, you would call the actual Amadeus Flight Offers Search API
-  const airlines = params.airline ? [params.airline] : ['American Airlines', 'United Airlines', 'Delta Airlines', 'Air France', 'British Airways', 'Lufthansa', 'Emirates', 'Qatar Airways'];
-  const mockFlights = [];
+  // Generate realistic flight data with proper airline codes and flight numbers
+  const airlineData = [
+    { name: 'American Airlines', code: 'AA', flightRange: [1, 9999] },
+    { name: 'United Airlines', code: 'UA', flightRange: [1, 9999] },
+    { name: 'Delta Air Lines', code: 'DL', flightRange: [1, 9999] },
+    { name: 'Air France', code: 'AF', flightRange: [1, 9999] },
+    { name: 'British Airways', code: 'BA', flightRange: [1, 999] },
+    { name: 'Lufthansa', code: 'LH', flightRange: [400, 2999] },
+    { name: 'Emirates', code: 'EK', flightRange: [200, 699] },
+    { name: 'Qatar Airways', code: 'QR', flightRange: [700, 999] }
+  ];
 
-  // Generate 8-12 flights with realistic variations
+  // Filter airlines if specified
+  const filteredAirlines = params.airline 
+    ? airlineData.filter(airline => 
+        airline.name.toLowerCase().includes(params.airline!.toLowerCase()) ||
+        airline.code.toLowerCase().includes(params.airline!.toLowerCase())
+      )
+    : airlineData;
+
+  const mockFlights = [];
   const flightCount = Math.floor(Math.random() * 5) + 8; // 8-12 flights
   
   for (let i = 0; i < flightCount; i++) {
-    const airline = airlines[i % airlines.length];
-    const flightNumberSuffix = String(Math.floor(Math.random() * 9000) + 1000);
-    const airlineCode = airline.includes('American') ? 'AA' : 
-                       airline.includes('United') ? 'UA' :
-                       airline.includes('Delta') ? 'DL' :
-                       airline.includes('Air France') ? 'AF' :
-                       airline.includes('British') ? 'BA' :
-                       airline.includes('Lufthansa') ? 'LH' :
-                       airline.includes('Emirates') ? 'EK' : 'QR';
+    const airline = filteredAirlines[i % filteredAirlines.length];
     
-    // Generate realistic departure times throughout the day
+    // Generate realistic flight numbers within airline's range
+    const flightNum = Math.floor(Math.random() * (airline.flightRange[1] - airline.flightRange[0]) + airline.flightRange[0]);
+    const flightNumber = `${airline.code}${flightNum}`;
+    
+    // Determine if this is nonstop or one stop based on flightType preference
+    let isNonstop = true;
+    let stopLocation = '';
+    
+    if (params.flightType === 'onestop') {
+      isNonstop = false;
+    } else if (params.flightType === 'any') {
+      isNonstop = Math.random() > 0.3; // 70% nonstop, 30% one stop
+    }
+    
+    // Add realistic stop locations for one-stop flights
+    const commonStops = ['ATL', 'ORD', 'DFW', 'DEN', 'LAX', 'PHX', 'CLT', 'MIA', 'SEA', 'LAS'];
+    if (!isNonstop) {
+      stopLocation = commonStops[Math.floor(Math.random() * commonStops.length)];
+    }
+    
+    // Generate realistic departure times
     const departureHour = Math.floor(Math.random() * 24);
-    const departureMinute = Math.floor(Math.random() * 4) * 15; // 0, 15, 30, 45
+    const departureMinute = Math.floor(Math.random() * 4) * 15;
     const departureTime = `${departureHour.toString().padStart(2, '0')}:${departureMinute.toString().padStart(2, '0')}`;
     
-    // Calculate realistic flight duration based on route
-    const baseDuration = 6 + Math.floor(Math.random() * 8); // 6-13 hours base
-    const minutes = Math.floor(Math.random() * 4) * 15; // 0, 15, 30, 45 minutes
+    // Calculate realistic flight duration
+    let baseDuration = 6; // Base duration in hours
+    if (!isNonstop) {
+      baseDuration += 2 + Math.floor(Math.random() * 4); // Add 2-5 hours for layover
+    }
+    baseDuration += Math.floor(Math.random() * 4); // Add 0-3 hours variation
+    
+    const minutes = Math.floor(Math.random() * 4) * 15;
     const durationString = `${baseDuration}h ${minutes > 0 ? minutes + 'm' : ''}`.trim();
     
     // Calculate arrival time
@@ -135,14 +168,14 @@ async function searchFlights(token: string, params: FlightSearchRequest) {
     const arrivalDate = new Date(departureDate.getTime() + (baseDuration * 60 + minutes) * 60000);
     const arrivalTime = `${arrivalDate.getHours().toString().padStart(2, '0')}:${arrivalDate.getMinutes().toString().padStart(2, '0')}`;
     
-    // Generate realistic prices
-    const basePrice = 200 + Math.floor(Math.random() * 600); // $200-800
+    // Generate realistic prices (higher for nonstop, lower for one-stop)
+    const basePrice = isNonstop ? 300 + Math.floor(Math.random() * 500) : 200 + Math.floor(Math.random() * 400);
     const price = `$${basePrice}`;
 
     mockFlights.push({
       id: `flight-${i + 1}`,
-      flightNumber: `${airlineCode}${flightNumberSuffix}`,
-      airline: airline,
+      flightNumber: flightNumber,
+      airline: airline.name,
       departure: {
         airport: params.origin,
         time: departureTime,
@@ -154,7 +187,9 @@ async function searchFlights(token: string, params: FlightSearchRequest) {
         date: arrivalDate.toISOString().split('T')[0]
       },
       duration: durationString,
-      price: price
+      price: price,
+      stops: isNonstop ? 0 : 1,
+      stopLocations: isNonstop ? [] : [stopLocation]
     });
   }
 
@@ -282,7 +317,7 @@ serve(async (req) => {
 
     switch (endpoint) {
       case 'search-flights': {
-        const { origin, destination, departureDate, flightNumber, airline } = requestBody;
+        const { origin, destination, departureDate, flightNumber, airline, flightType } = requestBody;
         
         if (!origin || !destination || !departureDate) {
           return new Response(
@@ -291,7 +326,7 @@ serve(async (req) => {
           );
         }
 
-        const data = await searchFlights(token, { origin, destination, departureDate, flightNumber, airline });
+        const data = await searchFlights(token, { origin, destination, departureDate, flightNumber, airline, flightType });
         
         return new Response(
           JSON.stringify(data),
