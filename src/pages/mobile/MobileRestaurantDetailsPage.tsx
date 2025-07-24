@@ -223,13 +223,13 @@ export default function MobileRestaurantDetailsPage() {
                 onClick={addToWishlist}
                 disabled={isAdding || isAdded}
                 size="sm"
-                variant={isAdded ? "outline" : "default"}
-                className="h-8"
+                variant="ghost"
+                className="h-8 w-8 p-0"
               >
                 {isAdded ? (
-                  <Check className="h-4 w-4" />
+                  <Heart className="h-4 w-4 fill-red-500 text-red-500" />
                 ) : (
-                  <Plus className="h-4 w-4" />
+                  <Heart className="h-4 w-4 text-red-500" />
                 )}
               </Button>
             )}
