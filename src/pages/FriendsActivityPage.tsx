@@ -907,7 +907,7 @@ export function FriendsActivityPage() {
                     </Badge>
                   )}
                 </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent className="w-56 max-h-64 overflow-y-auto">
+                <DropdownMenuSubContent className="w-64 max-h-64 overflow-y-auto [&[data-side=right]]:translate-x-[-100%] [&[data-side=right]]:left-0">
                   {uniqueFriends.map((friend) => (
                     <DropdownMenuCheckboxItem
                       key={friend.id}
@@ -936,7 +936,7 @@ export function FriendsActivityPage() {
                     </Badge>
                   )}
                 </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent className="w-56 max-h-64 overflow-y-auto">
+                <DropdownMenuSubContent className="w-64 max-h-64 overflow-y-auto [&[data-side=right]]:translate-x-[-100%] [&[data-side=right]]:left-0">
                   {uniqueCities.map((city) => (
                     <DropdownMenuCheckboxItem
                       key={city}
@@ -965,7 +965,7 @@ export function FriendsActivityPage() {
                     </Badge>
                   )}
                 </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent className="w-56 max-h-64 overflow-y-auto">
+                <DropdownMenuSubContent className="w-64 max-h-64 overflow-y-auto [&[data-side=right]]:translate-x-[-100%] [&[data-side=right]]:left-0">
                   {uniqueCuisines.map((cuisine) => (
                     <DropdownMenuCheckboxItem
                       key={cuisine}
