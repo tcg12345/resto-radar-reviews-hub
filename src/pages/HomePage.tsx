@@ -235,7 +235,7 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
           <div className="grid grid-cols-2 gap-3">
             {stats.slice(0, 4).map((stat, index) => (
               <Card key={index} className="bg-card/90 backdrop-blur-sm border border-border shadow-sm">
-                <CardContent className="p-3">
+                <CardContent className="p-3 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <div className={`p-2 rounded-lg ${stat.bgColor}`}>
                       <stat.icon className={`h-4 w-4 ${stat.color}`} />
