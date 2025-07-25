@@ -15,6 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Restaurant } from '@/types/restaurant';
 import { SharedRestaurantCard } from './SharedRestaurantCard';
+import { SharedItineraryCard } from './SharedItineraryCard';
 
 interface Message {
   id: string;
@@ -679,51 +680,68 @@ export function ChatWindow({ roomId }: ChatWindowProps) {
                      </Avatar>
                    )}
                    
-                    {message.message_type === 'restaurant' ? (
-                      <div className={`${isOwnMessage ? 'flex justify-end' : 'flex justify-start'} relative`}>
-                        <SharedRestaurantCard 
-                          restaurantData={message.content}
-                          isOwnMessage={isOwnMessage}
-                        />
-                        {isOwnMessage && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-background border shadow-sm hover:bg-destructive hover:text-destructive-foreground"
-                            onClick={() => setMessageToDelete(message.id)}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="relative">
-                        <div
-                          className={`max-w-xs px-3 py-2 rounded-lg ${
-                            isOwnMessage
-                              ? 'bg-primary text-primary-foreground'
-                              : 'bg-muted'
-                          }`}
-                        >
-                          <p className="text-sm">{message.content}</p>
-                          <p className={`text-xs mt-1 ${
-                            isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground'
-                          }`}>
-                            {formatMessageTime(message.created_at)}
-                          </p>
-                        </div>
-                        {isOwnMessage && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-background border shadow-sm hover:bg-destructive hover:text-destructive-foreground"
-                            onClick={() => setMessageToDelete(message.id)}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        )}
-                      </div>
-                    )}
+                     {message.message_type === 'restaurant' ? (
+                       <div className={`${isOwnMessage ? 'flex justify-end' : 'flex justify-start'} relative`}>
+                         <SharedRestaurantCard 
+                           restaurantData={message.content}
+                           isOwnMessage={isOwnMessage}
+                         />
+                         {isOwnMessage && (
+                           <Button
+                             variant="ghost"
+                             size="sm"
+                             className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-background border shadow-sm hover:bg-destructive hover:text-destructive-foreground"
+                             onClick={() => setMessageToDelete(message.id)}
+                           >
+                             <Trash2 className="h-3 w-3" />
+                           </Button>
+                         )}
+                       </div>
+                     ) : message.message_type === 'itinerary' ? (
+                       <div className={`${isOwnMessage ? 'flex justify-end' : 'flex justify-start'} relative`}>
+                         <SharedItineraryCard 
+                           itineraryData={message.content}
+                           isOwnMessage={isOwnMessage}
+                         />
+                         {isOwnMessage && (
+                           <Button
+                             variant="ghost"
+                             size="sm"
+                             className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-background border shadow-sm hover:bg-destructive hover:text-destructive-foreground"
+                             onClick={() => setMessageToDelete(message.id)}
+                           >
+                             <Trash2 className="h-3 w-3" />
+                           </Button>
+                         )}
+                       </div>
+                     ) : (
+                       <div className="relative">
+                         <div
+                           className={`max-w-xs px-3 py-2 rounded-lg ${
+                             isOwnMessage
+                               ? 'bg-primary text-primary-foreground'
+                               : 'bg-muted'
+                           }`}
+                         >
+                           <p className="text-sm">{message.content}</p>
+                           <p className={`text-xs mt-1 ${
+                             isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                           }`}>
+                             {formatMessageTime(message.created_at)}
+                           </p>
+                         </div>
+                         {isOwnMessage && (
+                           <Button
+                             variant="ghost"
+                             size="sm"
+                             className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-background border shadow-sm hover:bg-destructive hover:text-destructive-foreground"
+                             onClick={() => setMessageToDelete(message.id)}
+                           >
+                             <Trash2 className="h-3 w-3" />
+                           </Button>
+                         )}
+                       </div>
+                     )}
                  </div>
               );
             })}

@@ -15,6 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Restaurant } from '@/types/restaurant';
 import { SharedRestaurantCard } from '../SharedRestaurantCard';
+import { SharedItineraryCard } from '../SharedItineraryCard';
 
 interface Message {
   id: string;
@@ -648,6 +649,13 @@ export function MobileChatWindow({ roomId, onBack }: MobileChatWindowProps) {
                           <div className="max-w-sm">
                             <SharedRestaurantCard 
                               restaurantData={message.content}
+                              isOwnMessage={message.sender_id === user?.id}
+                            />
+                          </div>
+                        ) : message.message_type === 'itinerary' ? (
+                          <div className="max-w-sm">
+                            <SharedItineraryCard 
+                              itineraryData={message.content}
                               isOwnMessage={message.sender_id === user?.id}
                             />
                           </div>
