@@ -464,30 +464,29 @@ export function TripPlacesList({
             )}
 
             {displayMode === 'expanded' && (
-              /* Expanded Mode - Full card with all details and photos */
-              <div className="space-y-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-4 min-w-0 flex-1">
-                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center text-2xl flex-shrink-0 shadow-lg">
+              /* Expanded Mode - Compact card with all details */
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center text-lg flex-shrink-0 shadow-sm">
                       {getPlaceIcon(rating.place_type)}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-bold text-xl text-foreground line-clamp-1 mb-3 leading-tight">
+                      <h3 className="font-semibold text-base text-foreground mb-1 leading-tight">
                         {rating.place_name}
                       </h3>
-                      <div className="flex items-center gap-3 flex-wrap mb-3">
-                        <Badge variant="secondary" className="text-sm px-4 py-1 bg-muted/70 hover:bg-muted transition-colors">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-muted/70 hover:bg-muted transition-colors">
                           {rating.place_type}
                         </Badge>
                         {rating.overall_rating && (
-                          <div className="flex items-center gap-2 bg-yellow-50 px-4 py-2 rounded-full">
-                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm font-bold text-yellow-700">{rating.overall_rating}/10</span>
+                          <div className="flex items-center gap-1 bg-yellow-50 px-2 py-0.5 rounded-full">
+                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                            <span className="text-xs font-semibold text-yellow-700">{rating.overall_rating}/10</span>
                           </div>
                         )}
                         {rating.price_range && (
-                          <div className="flex items-center text-sm font-medium text-muted-foreground px-4 py-2 bg-muted/50 rounded-full">
-                            <DollarSign className="w-4 h-4 mr-1" />
+                          <div className="flex items-center text-xs font-medium text-muted-foreground px-2 py-0.5 bg-muted/50 rounded-full">
                             {getPriceDisplay(rating.price_range)}
                           </div>
                         )}
@@ -495,7 +494,7 @@ export function TripPlacesList({
                     </div>
                   </div>
                   
-                  <div className="flex gap-3 flex-shrink-0">
+                  <div className="flex gap-2 flex-shrink-0">
                     <Button
                       variant="outline"
                       size="sm"
@@ -503,10 +502,10 @@ export function TripPlacesList({
                         e.stopPropagation();
                         onPlaceDetails(rating.id);
                       }}
-                      className="h-11 px-5 text-sm border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 transition-colors"
+                      className="h-8 px-3 text-xs border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 transition-colors"
                     >
-                      <Info className="h-4 w-4 mr-2" />
-                      View Details
+                      <Info className="h-3 w-3 mr-1" />
+                      Details
                     </Button>
                     <Button
                       variant="outline"
@@ -515,26 +514,26 @@ export function TripPlacesList({
                         e.stopPropagation();
                         onEditPlace(rating.id);
                       }}
-                      className="h-11 px-5 text-sm border-muted-foreground/20 hover:bg-muted/50 hover:border-muted-foreground/30 transition-colors"
+                      className="h-8 px-3 text-xs border-muted-foreground/20 hover:bg-muted/50 hover:border-muted-foreground/30 transition-colors"
                     >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Place
+                      <Edit className="h-3 w-3 mr-1" />
+                      Edit
                     </Button>
                   </div>
                 </div>
 
-                <div className="space-y-4 pl-20">
+                <div className="space-y-2 pl-15">
                   {rating.address && (
-                    <div className="flex items-start gap-3 text-sm text-muted-foreground">
-                      <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-muted-foreground/70" />
-                      <span className="leading-relaxed">{rating.address}</span>
+                    <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                      <MapPin className="w-3 h-3 flex-shrink-0 mt-0.5 text-muted-foreground/70" />
+                      <span className="line-clamp-1 leading-relaxed">{rating.address}</span>
                     </div>
                   )}
 
-                  <div className="flex items-center gap-6 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
                     {rating.date_visited && (
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
                         <span>Visited {format(new Date(rating.date_visited), 'MMM d, yyyy')}</span>
                       </div>
                     )}
@@ -543,77 +542,47 @@ export function TripPlacesList({
                         href={rating.website} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
+                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800 transition-colors"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <Globe className="w-4 h-4" />
+                        <Globe className="w-3 h-3" />
                         <span>Website</span>
                       </a>
                     )}
                     {rating.phone_number && (
                       <a 
                         href={`tel:${rating.phone_number}`}
-                        className="flex items-center gap-2 text-green-600 hover:text-green-800 transition-colors"
+                        className="flex items-center gap-1 text-green-600 hover:text-green-800 transition-colors"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <Phone className="w-4 h-4" />
+                        <Phone className="w-3 h-3" />
                         <span>Call</span>
                       </a>
                     )}
                   </div>
 
                   {rating.category_ratings && Object.keys(rating.category_ratings).length > 0 && (
-                    <div className="space-y-3">
-                      <h4 className="text-base font-semibold text-foreground">Category Ratings</h4>
-                      <div className="grid grid-cols-2 gap-3">
-                        {Object.entries(rating.category_ratings).map(([category, score]) => (
-                          <div key={category} className="flex items-center justify-between bg-muted/30 px-4 py-3 rounded-lg">
-                            <span className="text-sm font-medium text-muted-foreground">{category}</span>
-                            <div className="flex items-center gap-1">
+                    <div className="space-y-1">
+                      <h4 className="text-xs font-medium text-foreground">Category Ratings</h4>
+                      <div className="flex flex-wrap gap-1">
+                        {Object.entries(rating.category_ratings).slice(0, 3).map(([category, score]) => (
+                          <div key={category} className="flex items-center gap-1 bg-muted/30 px-2 py-1 rounded-md">
+                            <span className="text-xs font-medium text-muted-foreground">{category}</span>
+                            <div className="flex items-center gap-0.5">
                               {[...Array(5)].map((_, i) => (
                                 <Star
                                   key={i}
-                                  className={`w-3 h-3 ${
+                                  className={`w-2 h-2 ${
                                     i < Math.floor((score as number) / 2)
                                       ? 'fill-yellow-400 text-yellow-400'
                                       : 'text-gray-300'
                                   }`}
                                 />
                               ))}
-                              <span className="ml-2 text-sm font-medium text-muted-foreground">
+                              <span className="ml-1 text-xs text-muted-foreground">
                                 {score as number}/10
                               </span>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {rating.notes && rating.notes.trim() && (
-                    <div className="space-y-3">
-                      <h4 className="text-base font-semibold text-foreground">Notes</h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed bg-muted/20 p-4 rounded-lg">
-                        {rating.notes}
-                      </p>
-                    </div>
-                  )}
-
-                  {rating.photos && rating.photos.length > 0 && (
-                    <div className="space-y-3">
-                      <h4 className="text-base font-semibold text-foreground">Photos</h4>
-                      <div className="grid grid-cols-3 gap-3">
-                        {rating.photos.slice(0, 6).map((photo, index) => (
-                          <div key={index} className="aspect-square rounded-lg overflow-hidden bg-muted shadow-sm">
-                            <img
-                              src={photo}
-                              alt={`${rating.place_name} photo ${index + 1}`}
-                              className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                window.open(photo, '_blank');
-                              }}
-                            />
                           </div>
                         ))}
                       </div>
