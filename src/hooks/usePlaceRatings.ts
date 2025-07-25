@@ -98,9 +98,6 @@ export function usePlaceRatings(tripId?: string) {
     if (!user) return null;
 
     try {
-      console.log('Adding restaurant to trip - restaurantData:', restaurantData);
-      console.log('Restaurant photos:', restaurantData.photos);
-      
       const ratingData = {
         trip_id: tripId,
         place_name: restaurantData.name,
@@ -114,13 +111,11 @@ export function usePlaceRatings(tripId?: string) {
         notes: restaurantData.notes,
         photos: restaurantData.photos || [],
         website: restaurantData.website,
-        phone_number: restaurantData.phone_number,
+        phone_number: restaurantData.phoneNumber || restaurantData.phone_number,
         price_range: restaurantData.priceRange,
         michelin_stars: restaurantData.michelinStars,
         date_visited: restaurantData.dateVisited,
       };
-
-      console.log('Rating data being saved:', ratingData);
 
       return await addRating(ratingData);
     } catch (error) {
