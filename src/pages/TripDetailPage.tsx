@@ -10,6 +10,7 @@ import { usePlaceRatings } from '@/hooks/usePlaceRatings';
 import { TripPlacesList } from '@/components/TripPlacesList';
 import { TripMapView } from '@/components/TripMapView';
 import { PlaceRatingDialog } from '@/components/PlaceRatingDialog';
+import { PlaceDetailsModal } from '@/components/PlaceDetailsModal';
 import { AddRestaurantToTripDialog } from '@/components/AddRestaurantToTripDialog';
 import { format } from 'date-fns';
 
@@ -21,6 +22,7 @@ export default function TripDetailPage() {
   const [isPlaceRatingDialogOpen, setIsPlaceRatingDialogOpen] = useState(false);
   const [isAddRestaurantDialogOpen, setIsAddRestaurantDialogOpen] = useState(false);
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
+  const [isPlaceDetailsModalOpen, setIsPlaceDetailsModalOpen] = useState(false);
   
   const trip = trips.find(t => t.id === tripId);
 
@@ -49,6 +51,11 @@ export default function TripDetailPage() {
 
   const handlePlaceSelect = (placeId: string) => {
     setSelectedPlaceId(placeId);
+  };
+
+  const handlePlaceClick = (placeId: string) => {
+    setSelectedPlaceId(placeId);
+    setIsPlaceDetailsModalOpen(true);
   };
 
   return (
@@ -137,6 +144,7 @@ export default function TripDetailPage() {
               ratings={ratings}
               selectedPlaceId={selectedPlaceId}
               onPlaceSelect={handlePlaceSelect}
+              onPlaceClick={handlePlaceClick}
               onEditPlace={setIsPlaceRatingDialogOpen}
             />
           </div>
@@ -163,6 +171,16 @@ export default function TripDetailPage() {
         isOpen={isAddRestaurantDialogOpen}
         onClose={() => setIsAddRestaurantDialogOpen(false)}
         tripId={tripId}
+      />
+
+      <PlaceDetailsModal
+        place={ratings.find(r => r.id === selectedPlaceId) || null}
+        isOpen={isPlaceDetailsModalOpen}
+        onClose={() => setIsPlaceDetailsModalOpen(false)}
+        onEdit={() => {
+          setIsPlaceDetailsModalOpen(false);
+          setIsPlaceRatingDialogOpen(true);
+        }}
       />
     </div>
   );

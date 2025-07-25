@@ -25,10 +25,11 @@ interface TripPlacesListProps {
   ratings: PlaceRating[];
   selectedPlaceId: string | null;
   onPlaceSelect: (placeId: string) => void;
+  onPlaceClick: (placeId: string) => void;
   onEditPlace: (open: boolean) => void;
 }
 
-export function TripPlacesList({ ratings, selectedPlaceId, onPlaceSelect, onEditPlace }: TripPlacesListProps) {
+export function TripPlacesList({ ratings, selectedPlaceId, onPlaceSelect, onPlaceClick, onEditPlace }: TripPlacesListProps) {
   const getPriceDisplay = (priceRange?: number) => {
     if (!priceRange) return null;
     return '$'.repeat(priceRange);
@@ -78,7 +79,8 @@ export function TripPlacesList({ ratings, selectedPlaceId, onPlaceSelect, onEdit
               ? 'ring-2 ring-primary bg-primary/5' 
               : 'hover:bg-muted/50'
           }`}
-          onClick={() => onPlaceSelect(rating.id)}
+          onClick={() => onPlaceClick(rating.id)}
+          onMouseEnter={() => onPlaceSelect(rating.id)}
         >
           <CardContent className="p-4">
             <div className="space-y-3">
