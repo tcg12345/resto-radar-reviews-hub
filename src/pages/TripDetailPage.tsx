@@ -167,8 +167,7 @@ export default function TripDetailPage() {
                 onPlaceClick={handlePlaceClick}
                 onPlaceDetails={handlePlaceDetails}
                 onEditPlace={setIsPlaceRatingDialogOpen}
-                compactMode={listPanelSize < 25}
-                veryCompactMode={listPanelSize < 20}
+                panelSize={listPanelSize}
               />
             </div>
           </ResizablePanel>
