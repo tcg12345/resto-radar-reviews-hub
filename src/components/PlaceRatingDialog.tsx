@@ -40,13 +40,25 @@ const RATING_CATEGORIES = {
   restaurant: ['Food Quality', 'Service', 'Atmosphere', 'Value for Money'],
   attraction: ['Experience', 'Crowds', 'Value for Money', 'Accessibility'],
   hotel: ['Cleanliness', 'Service', 'Location', 'Value for Money'],
+  museum: ['Exhibits', 'Educational Value', 'Facilities', 'Value for Money'],
+  park: ['Nature/Beauty', 'Facilities', 'Cleanliness', 'Accessibility'],
+  shopping: ['Selection', 'Prices', 'Service', 'Atmosphere'],
+  entertainment: ['Quality', 'Atmosphere', 'Value for Money', 'Experience'],
+  transport: ['Cleanliness', 'Punctuality', 'Comfort', 'Value for Money'],
+  spa: ['Service', 'Facilities', 'Ambiance', 'Value for Money'],
+  bar: ['Drinks Quality', 'Service', 'Atmosphere', 'Value for Money'],
+  cafe: ['Coffee Quality', 'Service', 'Atmosphere', 'Value for Money'],
+  beach: ['Water Quality', 'Cleanliness', 'Facilities', 'Beauty'],
+  landmark: ['Historical Value', 'Accessibility', 'Views', 'Experience'],
+  activity: ['Fun Factor', 'Safety', 'Organization', 'Value for Money'],
+  other: ['Quality', 'Service', 'Experience', 'Value for Money'],
 };
 
 export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPlaceData }: PlaceRatingDialogProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<GooglePlace[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<GooglePlace | null>(null);
-  const [placeType, setPlaceType] = useState<'restaurant' | 'attraction' | 'hotel'>('restaurant');
+  const [placeType, setPlaceType] = useState<keyof typeof RATING_CATEGORIES>('restaurant');
   const [overallRating, setOverallRating] = useState(0);
   const [categoryRatings, setCategoryRatings] = useState<Record<string, number>>({});
   const [notes, setNotes] = useState('');
@@ -104,6 +116,26 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
       setPlaceType('restaurant');
     } else if (place.types.some(type => ['lodging', 'hotel'].includes(type))) {
       setPlaceType('hotel');
+    } else if (place.types.some(type => ['museum'].includes(type))) {
+      setPlaceType('museum');
+    } else if (place.types.some(type => ['park', 'campground'].includes(type))) {
+      setPlaceType('park');
+    } else if (place.types.some(type => ['shopping_mall', 'store'].includes(type))) {
+      setPlaceType('shopping');
+    } else if (place.types.some(type => ['movie_theater', 'amusement_park'].includes(type))) {
+      setPlaceType('entertainment');
+    } else if (place.types.some(type => ['transit_station', 'airport'].includes(type))) {
+      setPlaceType('transport');
+    } else if (place.types.some(type => ['spa', 'beauty_salon'].includes(type))) {
+      setPlaceType('spa');
+    } else if (place.types.some(type => ['bar', 'night_club'].includes(type))) {
+      setPlaceType('bar');
+    } else if (place.types.some(type => ['cafe'].includes(type))) {
+      setPlaceType('cafe');
+    } else if (place.types.some(type => ['natural_feature'].includes(type))) {
+      setPlaceType('beach');
+    } else if (place.types.some(type => ['tourist_attraction', 'point_of_interest'].includes(type))) {
+      setPlaceType('landmark');
     } else {
       setPlaceType('attraction');
     }
@@ -346,8 +378,20 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="restaurant">Restaurant</SelectItem>
-                    <SelectItem value="attraction">Attraction</SelectItem>
                     <SelectItem value="hotel">Hotel</SelectItem>
+                    <SelectItem value="attraction">Attraction</SelectItem>
+                    <SelectItem value="museum">Museum</SelectItem>
+                    <SelectItem value="park">Park</SelectItem>
+                    <SelectItem value="shopping">Shopping</SelectItem>
+                    <SelectItem value="entertainment">Entertainment</SelectItem>
+                    <SelectItem value="transport">Transport</SelectItem>
+                    <SelectItem value="spa">Spa & Wellness</SelectItem>
+                    <SelectItem value="bar">Bar & Nightlife</SelectItem>
+                    <SelectItem value="cafe">Cafe</SelectItem>
+                    <SelectItem value="beach">Beach & Nature</SelectItem>
+                    <SelectItem value="landmark">Landmark</SelectItem>
+                    <SelectItem value="activity">Activity</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
