@@ -194,21 +194,21 @@ export function TripDetailHeader({
           {/* Stats in Middle - Flexible Layout */}
           <div className="flex-1 flex justify-center px-6">
             {totalPlaces > 0 && (
-              <div className="bg-background rounded-lg border border-border/50 p-3 max-w-4xl w-full">
-                <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+              <div className="bg-background rounded-lg border border-border/50 p-3 w-full">
+                <div className="flex items-center justify-between gap-4">
                   {allStats.map((stat, index) => {
                     const Icon = stat.icon;
                     let hideClass = '';
                     
                     // Progressive show based on screen size
-                    if (index >= 6) hideClass = '2xl:flex hidden';
-                    else if (index >= 5) hideClass = 'xl:flex hidden';
-                    else if (index >= 4) hideClass = 'lg:flex hidden';
-                    else if (index >= 3) hideClass = 'md:flex hidden';
+                    if (index >= 6) hideClass = 'hidden 2xl:flex';
+                    else if (index >= 5) hideClass = 'hidden xl:flex';
+                    else if (index >= 4) hideClass = 'hidden lg:flex';
+                    else if (index >= 3) hideClass = 'hidden md:flex';
                     else if (index >= 2) hideClass = '';
                     
                     return (
-                      <div key={stat.label} className={`flex items-center gap-2 min-w-0 ${hideClass}`}>
+                      <div key={stat.label} className={`flex items-center gap-2 min-w-0 flex-1 ${hideClass}`}>
                         <div className={`p-1.5 rounded ${stat.color} flex-shrink-0`}>
                           <Icon className="w-3 h-3" />
                         </div>
