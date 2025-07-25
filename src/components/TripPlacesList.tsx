@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, MapPin, Calendar, Clock, Edit, Camera, DollarSign } from 'lucide-react';
+import { Star, MapPin, Calendar, Clock, Edit, Camera, DollarSign, Info } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -26,10 +26,11 @@ interface TripPlacesListProps {
   selectedPlaceId: string | null;
   onPlaceSelect: (placeId: string) => void;
   onPlaceClick: (placeId: string) => void;
+  onPlaceDetails: (placeId: string) => void;
   onEditPlace: (open: boolean) => void;
 }
 
-export function TripPlacesList({ ratings, selectedPlaceId, onPlaceSelect, onPlaceClick, onEditPlace }: TripPlacesListProps) {
+export function TripPlacesList({ ratings, selectedPlaceId, onPlaceSelect, onPlaceClick, onPlaceDetails, onEditPlace }: TripPlacesListProps) {
   const getPriceDisplay = (priceRange?: number) => {
     if (!priceRange) return null;
     return '$'.repeat(priceRange);
@@ -108,17 +109,31 @@ export function TripPlacesList({ ratings, selectedPlaceId, onPlaceSelect, onPlac
                     )}
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEditPlace(true);
-                  }}
-                  className="h-8 w-8 p-0"
-                >
-                  <Edit className="h-3 w-3" />
-                </Button>
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onPlaceDetails(rating.id);
+                    }}
+                    className="h-8 px-2 text-xs"
+                  >
+                    <Info className="h-3 w-3 mr-1" />
+                    Details
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditPlace(true);
+                    }}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Edit className="h-3 w-3" />
+                  </Button>
+                </div>
               </div>
 
               {/* Address */}

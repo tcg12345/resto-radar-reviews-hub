@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Star, MapPin, Calendar, Users, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useTrips } from '@/hooks/useTrips';
 import { usePlaceRatings } from '@/hooks/usePlaceRatings';
 import { TripPlacesList } from '@/components/TripPlacesList';
-import { TripMapView } from '@/components/TripMapView';
+import { TripMapView, TripMapViewRef } from '@/components/TripMapView';
 import { PlaceRatingDialog } from '@/components/PlaceRatingDialog';
 import { PlaceDetailsModal } from '@/components/PlaceDetailsModal';
 import { AddRestaurantToTripDialog } from '@/components/AddRestaurantToTripDialog';
@@ -23,6 +23,7 @@ export default function TripDetailPage() {
   const [isAddRestaurantDialogOpen, setIsAddRestaurantDialogOpen] = useState(false);
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
   const [isPlaceDetailsModalOpen, setIsPlaceDetailsModalOpen] = useState(false);
+  const mapRef = useRef<TripMapViewRef>(null);
   
   const trip = trips.find(t => t.id === tripId);
 
@@ -54,6 +55,13 @@ export default function TripDetailPage() {
   };
 
   const handlePlaceClick = (placeId: string) => {
+    // This will zoom to the place on the map and select it
+    setSelectedPlaceId(placeId);
+    mapRef.current?.zoomToPlace(placeId);
+  };
+
+  const handlePlaceDetails = (placeId: string) => {
+    // This opens the details modal
     setSelectedPlaceId(placeId);
     setIsPlaceDetailsModalOpen(true);
   };
@@ -145,6 +153,7 @@ export default function TripDetailPage() {
               selectedPlaceId={selectedPlaceId}
               onPlaceSelect={handlePlaceSelect}
               onPlaceClick={handlePlaceClick}
+              onPlaceDetails={handlePlaceDetails}
               onEditPlace={setIsPlaceRatingDialogOpen}
             />
           </div>
@@ -153,6 +162,7 @@ export default function TripDetailPage() {
         {/* Right Side - Map */}
         <div className="flex-1 h-full">
           <TripMapView
+            ref={mapRef}
             ratings={ratings}
             selectedPlaceId={selectedPlaceId}
             onPlaceSelect={handlePlaceSelect}

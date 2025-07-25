@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useMapboxToken } from '@/hooks/useMapboxToken';
@@ -31,7 +31,11 @@ interface TripMapViewProps {
   onPlaceSelect: (placeId: string) => void;
 }
 
-export function TripMapView({ ratings, selectedPlaceId, onPlaceSelect }: TripMapViewProps) {
+export interface TripMapViewRef {
+  zoomToPlace: (placeId: string) => void;
+}
+
+export const TripMapView = forwardRef<TripMapViewRef, TripMapViewProps>(({ ratings, selectedPlaceId, onPlaceSelect }, ref) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<mapboxgl.Marker[]>([]);
@@ -46,11 +50,24 @@ export function TripMapView({ ratings, selectedPlaceId, onPlaceSelect }: TripMap
     { id: 'mapbox://styles/mapbox/outdoors-v12', name: 'Outdoors', icon: '🏔️' },
   ];
 
+  // Function to zoom to a specific place
+  const zoomToPlace = (placeId: string) => {
+    const place = ratings.find(r => r.id === placeId);
+    if (place && place.latitude && place.longitude && map.current) {
+      map.current.flyTo({
+        center: [place.longitude, place.latitude],
+        zoom: 16,
+        duration: 1000
+      });
+      onPlaceSelect(placeId);
+    }
+  };
+
   // Function to create icon SVG based on place type
   const createIconSVG = (placeType: string): string => {
     const type = placeType.toLowerCase();
     const iconColor = 'white';
-    const iconSize = 16;
+    const iconSize = 14;
     
     // Hotels and accommodation - Bed icon
     if (type.includes('hotel') || type.includes('accommodation') || type.includes('lodge') || type.includes('resort')) {
@@ -80,6 +97,11 @@ export function TripMapView({ ratings, selectedPlaceId, onPlaceSelect }: TripMap
     // Default icon for other attractions - FerrisWheel icon
     return `<svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M12 2v4"/><path d="m6.8 6.8 2.8 2.8"/><path d="M2 12h4"/><path d="m6.8 17.2 2.8-2.8"/><path d="M12 18v4"/><path d="m17.2 17.2-2.8-2.8"/><path d="M22 12h-4"/><path d="m17.2 6.8-2.8 2.8"/></svg>`;
   };
+
+  // Expose the zoomToPlace function via ref
+  useImperativeHandle(ref, () => ({
+    zoomToPlace
+  }));
 
   useEffect(() => {
     if (!mapContainer.current || !token) return;
@@ -139,9 +161,9 @@ export function TripMapView({ ratings, selectedPlaceId, onPlaceSelect }: TripMap
           </div>
         `;
 
-        // Add click handler
+        // Add click handler to zoom and select
         markerElement.addEventListener('click', () => {
-          onPlaceSelect(rating.id);
+          zoomToPlace(rating.id);
         });
 
         // Create marker with proper anchor
@@ -255,4 +277,4 @@ export function TripMapView({ ratings, selectedPlaceId, onPlaceSelect }: TripMap
       </div>
     </div>
   );
-}
+});
