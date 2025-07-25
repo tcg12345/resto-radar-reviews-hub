@@ -211,7 +211,7 @@ export default function TripDetailPage() {
               defaultSize={25} 
               minSize={15} 
               maxSize={60}
-              className="bg-background flex flex-col"
+              className="bg-background flex flex-col h-full"
             >
               <div className="p-4 border-b flex-shrink-0">
                 <div className="flex items-center justify-between">
@@ -223,19 +223,17 @@ export default function TripDetailPage() {
                 )}
               </div>
               
-              <div className="flex-1 min-h-0" style={{ border: '2px solid red' }}>
-                <div className="h-full overflow-y-auto bg-blue-100" style={{ border: '2px solid blue' }}>
-                  <div style={{ border: '2px solid green', minHeight: '200px' }}>
-                    <TripPlacesList
-                      ratings={ratings}
-                      selectedPlaceId={selectedPlaceId}
-                      onPlaceSelect={handlePlaceSelect}
-                      onPlaceClick={handlePlaceClick}
-                      onPlaceDetails={handlePlaceDetails}
-                      onEditPlace={setIsPlaceRatingDialogOpen}
-                      panelSize={listPanelSize}
-                    />
-                  </div>
+              <div className="flex-1 overflow-hidden">
+                <div className="h-full overflow-y-scroll">
+                  <TripPlacesList
+                    ratings={ratings}
+                    selectedPlaceId={selectedPlaceId}
+                    onPlaceSelect={handlePlaceSelect}
+                    onPlaceClick={handlePlaceClick}
+                    onPlaceDetails={handlePlaceDetails}
+                    onEditPlace={setIsPlaceRatingDialogOpen}
+                    panelSize={listPanelSize}
+                  />
                 </div>
               </div>
             </ResizablePanel>
