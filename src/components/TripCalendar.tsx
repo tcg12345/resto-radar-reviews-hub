@@ -1,5 +1,5 @@
 import { format, eachDayOfInterval, isSameDay } from 'date-fns';
-import { Plus, MapPin, Clock, Utensils, Activity, MoreVertical, Trash2, Edit } from 'lucide-react';
+import { Plus, MapPin, Clock, Utensils, MapPinIcon, MoreVertical, Trash2, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -55,8 +55,8 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
     switch (type) {
       case 'restaurant':
         return <Utensils className="w-4 h-4" />;
-      case 'activity':
-        return <Activity className="w-4 h-4" />;
+      case 'attraction':
+        return <MapPinIcon className="w-4 h-4" />;
       default:
         return <Clock className="w-4 h-4" />;
     }
@@ -66,8 +66,8 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
     switch (type) {
       case 'restaurant':
         return 'bg-orange-100 border-orange-200 text-orange-800 dark:bg-orange-900/20 dark:border-orange-800 dark:text-orange-300';
-      case 'activity':
-        return 'bg-blue-100 border-blue-200 text-blue-800 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-300';
+      case 'attraction':
+        return 'bg-green-100 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-300';
       default:
         return 'bg-gray-100 border-gray-200 text-gray-800 dark:bg-gray-900/20 border-gray-800 dark:text-gray-300';
     }
@@ -144,6 +144,19 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
                                 <div className="flex items-center gap-1 text-sm opacity-90">
                                   <MapPin className="w-3 h-3" />
                                   <span className="break-words">{event.restaurantData.address}</span>
+                                </div>
+                              )}
+                              {event.attractionData && (
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-1 text-sm opacity-90">
+                                    <MapPin className="w-3 h-3" />
+                                    <span className="break-words">{event.attractionData.address}</span>
+                                  </div>
+                                  {event.attractionData.category && (
+                                    <Badge variant="outline" className="text-xs">
+                                      {event.attractionData.category}
+                                    </Badge>
+                                  )}
                                 </div>
                               )}
                             </div>

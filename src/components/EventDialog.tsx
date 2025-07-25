@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { Clock, MapPin, Search, Utensils, Activity } from 'lucide-react';
+import { Clock, MapPin, Search, Utensils, MapPinIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { RestaurantSearchDialog } from '@/components/RestaurantSearchDialog';
+import { AttractionsSearch } from '@/components/AttractionsSearch';
 import { ItineraryEvent } from '@/components/ItineraryBuilder';
 
 interface EventDialogProps {
@@ -29,24 +30,38 @@ interface RestaurantData {
   website?: string;
 }
 
+interface AttractionData {
+  id: string;
+  name: string;
+  address: string;
+  category?: string;
+  rating?: number;
+  website?: string;
+  phone?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
 export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEvent, itineraryLocation }: EventDialogProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [time, setTime] = useState('');
-  const [type, setType] = useState<'restaurant' | 'activity' | 'other'>('other');
+  const [type, setType] = useState<'restaurant' | 'attraction' | 'other'>('other');
   const [restaurantData, setRestaurantData] = useState<RestaurantData | null>(null);
+  const [attractionData, setAttractionData] = useState<AttractionData | null>(null);
   const [isRestaurantSearchOpen, setIsRestaurantSearchOpen] = useState(false);
 
   // Reset form when dialog opens/closes or editing event changes
   useEffect(() => {
     if (isOpen && editingEvent) {
-      // Only handle restaurant, activity, and other event types
-      if (editingEvent.type === 'restaurant' || editingEvent.type === 'activity' || editingEvent.type === 'other') {
+      // Handle restaurant, attraction, and other event types
+      if (editingEvent.type === 'restaurant' || editingEvent.type === 'attraction' || editingEvent.type === 'other') {
         setTitle(editingEvent.title);
         setDescription(editingEvent.description || '');
         setTime(editingEvent.time);
         setType(editingEvent.type);
         setRestaurantData(editingEvent.restaurantData || null);
+        setAttractionData(editingEvent.attractionData || null);
       }
     } else if (isOpen) {
       setTitle('');
@@ -54,6 +69,7 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
       setTime('');
       setType('other');
       setRestaurantData(null);
+      setAttractionData(null);
     }
   }, [isOpen, editingEvent]);
 
@@ -67,6 +83,7 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
       date: selectedDate,
       type,
       restaurantData: type === 'restaurant' ? restaurantData : undefined,
+      attractionData: type === 'attraction' ? attractionData : undefined,
     };
 
     onSave(eventData);
@@ -79,6 +96,7 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
     setTime('');
     setType('other');
     setRestaurantData(null);
+    setAttractionData(null);
     onClose();
   };
 
@@ -93,6 +111,14 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
     setTitle(restaurant.name);
     setType('restaurant');
     setIsRestaurantSearchOpen(false);
+  };
+
+  const handleAttractionSelect = (attraction: AttractionData | null) => {
+    setAttractionData(attraction);
+    if (attraction) {
+      setTitle(attraction.name);
+      setType('attraction');
+    }
   };
 
   const formattedDate = selectedDate ? format(new Date(selectedDate), 'EEEE, MMMM do') : '';
@@ -120,9 +146,9 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
                     <Utensils className="w-3 h-3" />
                     Restaurant
                   </TabsTrigger>
-                  <TabsTrigger value="activity" className="flex items-center gap-1 text-xs">
-                    <Activity className="w-3 h-3" />
-                    Activity
+                  <TabsTrigger value="attraction" className="flex items-center gap-1 text-xs">
+                    <MapPinIcon className="w-3 h-3" />
+                    Places
                   </TabsTrigger>
                   <TabsTrigger value="other" className="flex items-center gap-1 text-xs">
                     <Clock className="w-3 h-3" />
@@ -167,10 +193,44 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
                   )}
                 </TabsContent>
 
-                <TabsContent value="activity">
-                  <p className="text-sm text-muted-foreground">
-                    Add details about your planned activity below.
-                  </p>
+                <TabsContent value="attraction" className="space-y-4">
+                  {attractionData ? (
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle className="text-base">{attractionData.name}</CardTitle>
+                            <CardDescription className="flex items-center gap-1 mt-1">
+                              <MapPin className="w-3 h-3" />
+                              {attractionData.address}
+                            </CardDescription>
+                          </div>
+                          <Badge variant="secondary">{attractionData.category || 'Attraction'}</Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setAttractionData(null)}
+                        >
+                          Change Place
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <div className="space-y-3">
+                      <p className="text-sm text-muted-foreground">
+                        Search for attractions, museums, landmarks, and places to visit.
+                      </p>
+                      <AttractionsSearch
+                        value={attractionData}
+                        onChange={handleAttractionSelect}
+                        location={itineraryLocation}
+                        placeholder="Search Louvre, Eiffel Tower, Central Park..."
+                      />
+                    </div>
+                  )}
                 </TabsContent>
 
                 <TabsContent value="other">

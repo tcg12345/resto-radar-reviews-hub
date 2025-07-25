@@ -34,13 +34,24 @@ export interface ItineraryEvent {
   description?: string;
   time: string;
   date: string;
-  type: 'restaurant' | 'activity' | 'other';
+  type: 'restaurant' | 'attraction' | 'other';
   restaurantData?: {
     name: string;
     address: string;
     placeId?: string;
     phone?: string;
     website?: string;
+  };
+  attractionData?: {
+    id: string;
+    name: string;
+    address: string;
+    category?: string;
+    rating?: number;
+    website?: string;
+    phone?: string;
+    latitude?: number;
+    longitude?: number;
   };
 }
 
