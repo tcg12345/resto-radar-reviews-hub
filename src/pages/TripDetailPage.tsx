@@ -224,7 +224,13 @@ export default function TripDetailPage() {
               </div>
               
               <div className="flex-1 min-h-0">
-                <div className="h-full overflow-y-scroll">
+                <div 
+                  className="overflow-y-scroll"
+                  style={{ 
+                    height: '400px',
+                    maxHeight: '400px'
+                  }}
+                >
                   <TripPlacesList
                     ratings={ratings}
                     selectedPlaceId={selectedPlaceId}
