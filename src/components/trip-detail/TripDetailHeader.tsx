@@ -195,7 +195,7 @@ export function TripDetailHeader({
           <div className="flex-1 flex justify-center px-6">
             {totalPlaces > 0 && (
               <div className="bg-background rounded-lg border border-border/50 p-3 w-full">
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center justify-evenly gap-4">
                   {allStats.map((stat, index) => {
                     const Icon = stat.icon;
                     let hideClass = '';
@@ -208,7 +208,7 @@ export function TripDetailHeader({
                     else if (index >= 2) hideClass = '';
                     
                     return (
-                      <div key={stat.label} className={`flex items-center gap-2 min-w-0 flex-1 ${hideClass}`}>
+                      <div key={stat.label} className={`flex items-center gap-2 min-w-0 ${hideClass}`}>
                         <div className={`p-1.5 rounded ${stat.color} flex-shrink-0`}>
                           <Icon className="w-3 h-3" />
                         </div>
