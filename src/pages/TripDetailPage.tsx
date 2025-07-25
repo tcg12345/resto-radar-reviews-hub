@@ -211,7 +211,7 @@ export default function TripDetailPage() {
               defaultSize={25} 
               minSize={15} 
               maxSize={60}
-              className="bg-background flex flex-col h-full"
+              className="flex flex-col h-full"
             >
               <div className="p-4 border-b flex-shrink-0">
                 <div className="flex items-center justify-between">
@@ -223,7 +223,7 @@ export default function TripDetailPage() {
                 )}
               </div>
               
-              <div className="overflow-y-auto max-h-[calc(100vh-300px)]">
+              <div className="overflow-auto">
                 <TripPlacesList
                   ratings={ratings}
                   selectedPlaceId={selectedPlaceId}
