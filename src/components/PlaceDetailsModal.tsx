@@ -116,7 +116,10 @@ export function PlaceDetailsModal({ place, isOpen, onClose, onEdit, onDelete }: 
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => onDelete(place.id)}
+                  onClick={() => {
+                    onClose();
+                    onDelete(place.id);
+                  }}
                   className="border-destructive/20 bg-destructive/5 hover:bg-destructive/10 text-destructive hover:text-destructive"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
