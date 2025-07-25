@@ -83,100 +83,83 @@ export function TripPlacesList({ ratings, selectedPlaceId, onPlaceSelect, onPlac
           onClick={() => onPlaceClick(rating.id)}
           onMouseEnter={() => onPlaceSelect(rating.id)}
         >
-          <CardContent className="p-4">
-            <div className="space-y-3">
-              {/* Header */}
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-lg">{getPlaceIcon(rating.place_type)}</span>
-                    <h3 className="font-semibold text-sm line-clamp-1">{rating.place_name}</h3>
-                  </div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Badge variant="secondary" className="text-xs">
+          <CardContent className="p-3">
+            {/* Main Header Row */}
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <span className="text-lg flex-shrink-0">{getPlaceIcon(rating.place_type)}</span>
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-semibold text-sm line-clamp-1 mb-1">{rating.place_name}</h3>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge variant="secondary" className="text-xs flex-shrink-0">
                       {rating.place_type}
                     </Badge>
                     {rating.overall_rating && (
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 flex-shrink-0">
                         <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                         <span className="text-xs font-medium">{rating.overall_rating}/10</span>
                       </div>
                     )}
                     {rating.price_range && (
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs flex-shrink-0">
                         {getPriceDisplay(rating.price_range)}
                       </Badge>
                     )}
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onPlaceDetails(rating.id);
-                    }}
-                    className="h-8 px-3 text-xs border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/30"
-                  >
-                    <Info className="h-3 w-3 mr-1" />
-                    Details
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onEditPlace(true);
-                    }}
-                    className="h-8 px-3 text-xs border-muted-foreground/20 hover:bg-muted/50 hover:border-muted-foreground/30"
-                  >
-                    <Edit className="h-3 w-3 mr-1" />
-                    Edit
-                  </Button>
-                </div>
               </div>
+              
+              {/* Action Buttons */}
+              <div className="flex gap-1 flex-shrink-0">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onPlaceDetails(rating.id);
+                  }}
+                  className="h-7 px-2 text-xs border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/30"
+                >
+                  <Info className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditPlace(true);
+                  }}
+                  className="h-7 px-2 text-xs border-muted-foreground/20 hover:bg-muted/50 hover:border-muted-foreground/30"
+                >
+                  <Edit className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
 
-              {/* Address */}
+            {/* Secondary Info Row */}
+            <div className="space-y-1">
               {rating.address && (
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <MapPin className="w-3 h-3" />
-                  <span className="line-clamp-1">{rating.address}</span>
+                  <MapPin className="w-3 h-3 flex-shrink-0" />
+                  <span className="line-clamp-1 min-w-0">{rating.address}</span>
                 </div>
               )}
 
-              {/* Date Visited */}
-              {rating.date_visited && (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Calendar className="w-3 h-3" />
-                  <span>Visited {format(new Date(rating.date_visited), 'MMM d, yyyy')}</span>
-                </div>
-              )}
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                {rating.date_visited && (
+                  <div className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    <span>Visited {format(new Date(rating.date_visited), 'MMM d, yyyy')}</span>
+                  </div>
+                )}
 
-
-              {/* Photos Preview */}
-              {rating.photos && rating.photos.length > 0 && (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Camera className="w-3 h-3" />
-                  <span>{rating.photos.length} photo{rating.photos.length > 1 ? 's' : ''}</span>
-                </div>
-              )}
-
-              {/* Category Ratings Preview */}
-              {rating.category_ratings && Object.keys(rating.category_ratings).length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {Object.entries(rating.category_ratings).slice(0, 2).map(([category, score]) => (
-                    <Badge key={category} variant="outline" className="text-xs">
-                      {category}: {score as number}/10
-                    </Badge>
-                  ))}
-                  {Object.keys(rating.category_ratings).length > 2 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{Object.keys(rating.category_ratings).length - 2} more
-                    </Badge>
-                  )}
-                </div>
-              )}
+                {rating.photos && rating.photos.length > 0 && (
+                  <div className="flex items-center gap-1">
+                    <Camera className="w-3 h-3" />
+                    <span>{rating.photos.length} photo{rating.photos.length > 1 ? 's' : ''}</span>
+                  </div>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
