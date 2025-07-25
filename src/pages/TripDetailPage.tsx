@@ -168,7 +168,7 @@ export default function TripDetailPage() {
 
       {/* Stats Overview */}
       <div className="border-b bg-muted/30">
-        <div className="container mx-auto px-4 py-3">
+        <div className="container mx-auto px-4 py-1">
           <TripDetailStats ratings={ratings} />
         </div>
       </div>
