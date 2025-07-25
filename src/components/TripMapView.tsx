@@ -265,16 +265,6 @@ export const TripMapView = forwardRef<TripMapViewRef, TripMapViewProps>(({ ratin
         </DropdownMenu>
       </div>
       
-      {/* Map overlay info */}
-      <div className="absolute top-4 left-4 bg-background/95 backdrop-blur-sm rounded-lg p-3 shadow-lg">
-        <h3 className="font-semibold text-sm mb-1 flex items-center gap-2">
-          <Map className="w-4 h-4" />
-          Trip Map
-        </h3>
-        <p className="text-xs text-muted-foreground">
-          {ratings.filter(r => r.latitude && r.longitude).length} of {ratings.length} places have locations
-        </p>
-      </div>
     </div>
   );
 });
