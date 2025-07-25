@@ -23,6 +23,7 @@ export function TripDetailHeader({
   const totalPlaces = ratings.length;
   const restaurantCount = ratings.filter(r => r.place_type === 'restaurant').length;
   const attractionCount = ratings.filter(r => r.place_type === 'attraction').length;
+  const hotelCount = ratings.filter(r => r.place_type === 'hotel').length;
   
   const avgRating = totalPlaces > 0 
     ? ratings.reduce((acc, r) => acc + (r.overall_rating || 0), 0) / totalPlaces
@@ -31,7 +32,19 @@ export function TripDetailHeader({
   const ratedPlaces = ratings.filter(r => r.overall_rating && r.overall_rating > 0).length;
   const highRatedPlaces = ratings.filter(r => r.overall_rating && r.overall_rating >= 4).length;
 
-  const stats = [
+  // Calculate trip duration
+  const getTripDuration = () => {
+    if (!trip.start_date || !trip.end_date) return null;
+    const start = new Date(trip.start_date);
+    const end = new Date(trip.end_date);
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  const tripDuration = getTripDuration();
+
+  const allStats = [
     {
       label: 'Total Places',
       value: totalPlaces,
@@ -59,7 +72,21 @@ export function TripDetailHeader({
       subtext: totalPlaces > 0 ? `${Math.round((attractionCount / totalPlaces) * 100)}%` : '0%',
       icon: TrendingUp,
       color: 'text-purple-600 bg-purple-50'
-    }
+    },
+    ...(tripDuration ? [{
+      label: 'Duration',
+      value: tripDuration,
+      subtext: tripDuration === 1 ? 'day' : 'days',
+      icon: Calendar,
+      color: 'text-orange-600 bg-orange-50'
+    }] : []),
+    ...(hotelCount > 0 ? [{
+      label: 'Hotels',
+      value: hotelCount,
+      subtext: totalPlaces > 0 ? `${Math.round((hotelCount / totalPlaces) * 100)}%` : '0%',
+      icon: Settings,
+      color: 'text-indigo-600 bg-indigo-50'
+    }] : [])
   ];
   return (
     <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b">
@@ -164,34 +191,39 @@ export function TripDetailHeader({
             </div>
           </div>
 
-          {/* Stats in Middle */}
-          {totalPlaces > 0 && (
-            <div className="bg-background rounded-lg border border-border/50 p-2 lg:block hidden">
-              <div className="flex items-center justify-between gap-1">
-                {stats.map((stat, index) => {
-                  const Icon = stat.icon;
-                  // Show all 4 on 2xl+, first 2 on xl+, first 1 on lg+
-                  const hideClass = 
-                    index >= 3 ? '2xl:flex hidden' : 
-                    index >= 2 ? 'xl:flex hidden' : 
-                    index >= 1 ? 'lg:flex hidden' : '';
-                  
-                  return (
-                    <div key={stat.label} className={`flex items-center gap-1 min-w-0 flex-1 ${hideClass}`}>
-                      <div className={`p-1 rounded ${stat.color}`}>
-                        <Icon className="w-3 h-3" />
+          {/* Stats in Middle - Flexible Layout */}
+          <div className="flex-1 flex justify-center px-6">
+            {totalPlaces > 0 && (
+              <div className="bg-background rounded-lg border border-border/50 p-3 max-w-4xl w-full">
+                <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+                  {allStats.map((stat, index) => {
+                    const Icon = stat.icon;
+                    let hideClass = '';
+                    
+                    // Progressive show based on screen size
+                    if (index >= 6) hideClass = '2xl:flex hidden';
+                    else if (index >= 5) hideClass = 'xl:flex hidden';
+                    else if (index >= 4) hideClass = 'lg:flex hidden';
+                    else if (index >= 3) hideClass = 'md:flex hidden';
+                    else if (index >= 2) hideClass = '';
+                    
+                    return (
+                      <div key={stat.label} className={`flex items-center gap-2 min-w-0 ${hideClass}`}>
+                        <div className={`p-1.5 rounded ${stat.color} flex-shrink-0`}>
+                          <Icon className="w-3 h-3" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-xs font-medium text-muted-foreground truncate">{stat.label}</div>
+                          <div className="text-sm font-bold">{stat.value}</div>
+                          <div className="text-xs text-muted-foreground truncate">{stat.subtext}</div>
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <div className="text-xs font-medium text-muted-foreground">{stat.label}</div>
-                        <div className="text-sm font-bold">{stat.value}</div>
-                        <div className="text-xs text-muted-foreground">{stat.subtext}</div>
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           <div className="flex items-center gap-3">
             <Button
