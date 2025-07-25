@@ -119,10 +119,10 @@ export default function TripDetailPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex h-[calc(100vh-120px)]">
+      <div className="flex h-[calc(100vh-120px)] overflow-hidden">
         {/* Left Sidebar - Places List */}
-        <div className="w-96 border-r bg-background">
-          <div className="p-4 border-b">
+        <div className="w-96 border-r bg-background flex flex-col">
+          <div className="p-4 border-b flex-shrink-0">
             <div className="flex items-center justify-between">
               <h2 className="font-semibold">Places & Experiences</h2>
               <Badge variant="outline">{ratings.length}</Badge>
@@ -132,18 +132,18 @@ export default function TripDetailPage() {
             )}
           </div>
           
-          <ScrollArea className="h-full">
+          <div className="flex-1 overflow-y-auto">
             <TripPlacesList
               ratings={ratings}
               selectedPlaceId={selectedPlaceId}
               onPlaceSelect={handlePlaceSelect}
               onEditPlace={setIsPlaceRatingDialogOpen}
             />
-          </ScrollArea>
+          </div>
         </div>
 
         {/* Right Side - Map */}
-        <div className="flex-1">
+        <div className="flex-1 h-full">
           <TripMapView
             ratings={ratings}
             selectedPlaceId={selectedPlaceId}
