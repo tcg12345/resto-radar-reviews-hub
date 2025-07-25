@@ -9,8 +9,7 @@ interface TripDetailHeaderProps {
   tripStatus: { status: string; label: string; color: string } | null;
   totalPlaces: number;
   onBack: () => void;
-  onAddRestaurant: () => void;
-  onRatePlace: () => void;
+  onAddPlace: () => void;
 }
 
 export function TripDetailHeader({ 
@@ -18,8 +17,7 @@ export function TripDetailHeader({
   tripStatus, 
   totalPlaces, 
   onBack, 
-  onAddRestaurant, 
-  onRatePlace 
+  onAddPlace 
 }: TripDetailHeaderProps) {
   return (
     <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b">
@@ -36,26 +34,15 @@ export function TripDetailHeader({
               <ArrowLeft size={32} />
             </Button>
             
-            <div className="flex items-center gap-1">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onAddRestaurant}
-                className="flex items-center gap-1"
-              >
-                <Plus className="w-3 h-3" />
-                <span className="text-xs">Add</span>
-              </Button>
-              <Button
-                variant="outline" 
-                size="sm"
-                onClick={onRatePlace}
-                className="flex items-center gap-1"
-              >
-                <Star className="w-3 h-3" />
-                <span className="text-xs">Rate</span>
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onAddPlace}
+              className="flex items-center gap-1"
+            >
+              <Plus className="w-3 h-3" />
+              <span className="text-xs">Add Place</span>
+            </Button>
           </div>
           
           <div className="text-center">
@@ -141,19 +128,11 @@ export function TripDetailHeader({
           <div className="flex items-center gap-3">
             <Button
               variant="outline"
-              onClick={onAddRestaurant}
+              onClick={onAddPlace}
               className="flex items-center gap-2 hover:border-primary/30"
             >
               <Plus className="w-4 h-4" />
-              Add Restaurant
-            </Button>
-            <Button
-              variant="outline"
-              onClick={onRatePlace}
-              className="flex items-center gap-2 hover:border-primary/30"
-            >
-              <Star className="w-4 h-4" />
-              Rate Place
+              Add Place
             </Button>
             <Button 
               variant="outline" 

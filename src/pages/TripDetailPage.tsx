@@ -162,8 +162,7 @@ export default function TripDetailPage() {
         tripStatus={tripStatus}
         totalPlaces={ratings.length}
         onBack={() => navigate('/travel')}
-        onAddRestaurant={() => setIsAddRestaurantDialogOpen(true)}
-        onRatePlace={() => setIsPlaceRatingDialogOpen(true)}
+        onAddPlace={() => setIsPlaceRatingDialogOpen(true)}
       />
 
       {/* Stats Overview */}
