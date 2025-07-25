@@ -225,7 +225,7 @@ export default function TripDetailPage() {
               
                <div 
                  style={{
-                   height: '300px',
+                   height: '150px',
                    overflowY: 'scroll'
                  }}
                >
