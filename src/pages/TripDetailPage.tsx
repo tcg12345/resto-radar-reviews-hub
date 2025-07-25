@@ -227,8 +227,7 @@ export default function TripDetailPage() {
                 <div 
                   className="overflow-y-scroll"
                   style={{ 
-                    height: '400px',
-                    maxHeight: '400px'
+                    maxHeight: 'calc(100vh - 300px)'
                   }}
                 >
                   <TripPlacesList
