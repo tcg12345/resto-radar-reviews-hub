@@ -84,81 +84,120 @@ function getFlightAPIKey(): string {
 async function searchAirportsAndCities(keyword: string) {
   console.log('🏙️ Searching airports/cities with keyword:', keyword);
   
-  // Extended airport list for better search coverage
+  // Extended airport list for better search coverage with city mappings
   const commonAirports = [
-    // Major US Airports
-    { iata_code: 'JFK', airport_name: 'John F. Kennedy International Airport', country_name: 'United States', latitude: 40.6413, longitude: -73.7781 },
-    { iata_code: 'LAX', airport_name: 'Los Angeles International Airport', country_name: 'United States', latitude: 33.9425, longitude: -118.4081 },
-    { iata_code: 'EWR', airport_name: 'Newark Liberty International Airport', country_name: 'United States', latitude: 40.6895, longitude: -74.1745 },
-    { iata_code: 'ORD', airport_name: 'Chicago O\'Hare International Airport', country_name: 'United States', latitude: 41.9742, longitude: -87.9073 },
-    { iata_code: 'ATL', airport_name: 'Hartsfield-Jackson Atlanta International Airport', country_name: 'United States', latitude: 33.6407, longitude: -84.4277 },
-    { iata_code: 'DFW', airport_name: 'Dallas/Fort Worth International Airport', country_name: 'United States', latitude: 32.8998, longitude: -97.0403 },
-    { iata_code: 'DEN', airport_name: 'Denver International Airport', country_name: 'United States', latitude: 39.8561, longitude: -104.6737 },
-    { iata_code: 'SFO', airport_name: 'San Francisco International Airport', country_name: 'United States', latitude: 37.6213, longitude: -122.3790 },
-    { iata_code: 'SEA', airport_name: 'Seattle-Tacoma International Airport', country_name: 'United States', latitude: 47.4502, longitude: -122.3088 },
-    { iata_code: 'LAS', airport_name: 'Harry Reid International Airport', country_name: 'United States', latitude: 36.0840, longitude: -115.1537 },
-    { iata_code: 'MCO', airport_name: 'Orlando International Airport', country_name: 'United States', latitude: 28.4312, longitude: -81.3081 },
-    { iata_code: 'MIA', airport_name: 'Miami International Airport', country_name: 'United States', latitude: 25.7959, longitude: -80.2870 },
-    { iata_code: 'PHX', airport_name: 'Phoenix Sky Harbor International Airport', country_name: 'United States', latitude: 33.4373, longitude: -112.0078 },
-    { iata_code: 'IAH', airport_name: 'George Bush Intercontinental Airport', country_name: 'United States', latitude: 29.9902, longitude: -95.3368 },
-    { iata_code: 'BOS', airport_name: 'Logan International Airport', country_name: 'United States', latitude: 42.3656, longitude: -71.0096 },
-    { iata_code: 'MSP', airport_name: 'Minneapolis-Saint Paul International Airport', country_name: 'United States', latitude: 44.8848, longitude: -93.2223 },
-    { iata_code: 'DTW', airport_name: 'Detroit Metropolitan Wayne County Airport', country_name: 'United States', latitude: 42.2162, longitude: -83.3554 },
-    { iata_code: 'PHL', airport_name: 'Philadelphia International Airport', country_name: 'United States', latitude: 39.8744, longitude: -75.2424 },
-    { iata_code: 'LGA', airport_name: 'LaGuardia Airport', country_name: 'United States', latitude: 40.7769, longitude: -73.8740 },
-    { iata_code: 'DCA', airport_name: 'Ronald Reagan Washington National Airport', country_name: 'United States', latitude: 38.8512, longitude: -77.0402 },
-    { iata_code: 'IAD', airport_name: 'Washington Dulles International Airport', country_name: 'United States', latitude: 38.9531, longitude: -77.4565 },
-    { iata_code: 'BWI', airport_name: 'Baltimore/Washington International Airport', country_name: 'United States', latitude: 39.1774, longitude: -76.6684 },
+    // New York Area
+    { iata_code: 'JFK', airport_name: 'John F. Kennedy International Airport', city_name: 'New York', country_name: 'United States', latitude: 40.6413, longitude: -73.7781 },
+    { iata_code: 'EWR', airport_name: 'Newark Liberty International Airport', city_name: 'New York', country_name: 'United States', latitude: 40.6895, longitude: -74.1745 },
+    { iata_code: 'LGA', airport_name: 'LaGuardia Airport', city_name: 'New York', country_name: 'United States', latitude: 40.7769, longitude: -73.8740 },
+    
+    // Los Angeles Area
+    { iata_code: 'LAX', airport_name: 'Los Angeles International Airport', city_name: 'Los Angeles', country_name: 'United States', latitude: 33.9425, longitude: -118.4081 },
+    { iata_code: 'BUR', airport_name: 'Hollywood Burbank Airport', city_name: 'Los Angeles', country_name: 'United States', latitude: 34.2007, longitude: -118.3587 },
+    { iata_code: 'LGB', airport_name: 'Long Beach Airport', city_name: 'Los Angeles', country_name: 'United States', latitude: 33.8177, longitude: -118.1516 },
+    
+    // Chicago Area
+    { iata_code: 'ORD', airport_name: 'Chicago O\'Hare International Airport', city_name: 'Chicago', country_name: 'United States', latitude: 41.9742, longitude: -87.9073 },
+    { iata_code: 'MDW', airport_name: 'Chicago Midway International Airport', city_name: 'Chicago', country_name: 'United States', latitude: 41.7868, longitude: -87.7522 },
+    
+    // San Francisco Area
+    { iata_code: 'SFO', airport_name: 'San Francisco International Airport', city_name: 'San Francisco', country_name: 'United States', latitude: 37.6213, longitude: -122.3790 },
+    { iata_code: 'OAK', airport_name: 'Oakland International Airport', city_name: 'San Francisco', country_name: 'United States', latitude: 37.7214, longitude: -122.2197 },
+    { iata_code: 'SJC', airport_name: 'Norman Y. Mineta San José International Airport', city_name: 'San Francisco', country_name: 'United States', latitude: 37.3639, longitude: -121.9289 },
+    
+    // Washington DC Area
+    { iata_code: 'DCA', airport_name: 'Ronald Reagan Washington National Airport', city_name: 'Washington DC', country_name: 'United States', latitude: 38.8512, longitude: -77.0402 },
+    { iata_code: 'IAD', airport_name: 'Washington Dulles International Airport', city_name: 'Washington DC', country_name: 'United States', latitude: 38.9531, longitude: -77.4565 },
+    { iata_code: 'BWI', airport_name: 'Baltimore/Washington International Airport', city_name: 'Washington DC', country_name: 'United States', latitude: 39.1774, longitude: -76.6684 },
+    
+    // London Area
+    { iata_code: 'LHR', airport_name: 'London Heathrow Airport', city_name: 'London', country_name: 'United Kingdom', latitude: 51.4700, longitude: -0.4543 },
+    { iata_code: 'LGW', airport_name: 'London Gatwick Airport', city_name: 'London', country_name: 'United Kingdom', latitude: 51.1537, longitude: -0.1821 },
+    { iata_code: 'STN', airport_name: 'London Stansted Airport', city_name: 'London', country_name: 'United Kingdom', latitude: 51.8860, longitude: 0.2389 },
+    { iata_code: 'LTN', airport_name: 'London Luton Airport', city_name: 'London', country_name: 'United Kingdom', latitude: 51.8747, longitude: -0.3683 },
+    
+    // Paris Area
+    { iata_code: 'CDG', airport_name: 'Charles de Gaulle Airport', city_name: 'Paris', country_name: 'France', latitude: 49.0097, longitude: 2.5479 },
+    { iata_code: 'ORY', airport_name: 'Orly Airport', city_name: 'Paris', country_name: 'France', latitude: 48.7262, longitude: 2.3656 },
+    
+    // Other Major US Airports
+    { iata_code: 'ATL', airport_name: 'Hartsfield-Jackson Atlanta International Airport', city_name: 'Atlanta', country_name: 'United States', latitude: 33.6407, longitude: -84.4277 },
+    { iata_code: 'DFW', airport_name: 'Dallas/Fort Worth International Airport', city_name: 'Dallas', country_name: 'United States', latitude: 32.8998, longitude: -97.0403 },
+    { iata_code: 'DEN', airport_name: 'Denver International Airport', city_name: 'Denver', country_name: 'United States', latitude: 39.8561, longitude: -104.6737 },
+    { iata_code: 'SEA', airport_name: 'Seattle-Tacoma International Airport', city_name: 'Seattle', country_name: 'United States', latitude: 47.4502, longitude: -122.3088 },
+    { iata_code: 'LAS', airport_name: 'Harry Reid International Airport', city_name: 'Las Vegas', country_name: 'United States', latitude: 36.0840, longitude: -115.1537 },
+    { iata_code: 'MCO', airport_name: 'Orlando International Airport', city_name: 'Orlando', country_name: 'United States', latitude: 28.4312, longitude: -81.3081 },
+    { iata_code: 'MIA', airport_name: 'Miami International Airport', city_name: 'Miami', country_name: 'United States', latitude: 25.7959, longitude: -80.2870 },
+    { iata_code: 'PHX', airport_name: 'Phoenix Sky Harbor International Airport', city_name: 'Phoenix', country_name: 'United States', latitude: 33.4373, longitude: -112.0078 },
+    { iata_code: 'IAH', airport_name: 'George Bush Intercontinental Airport', city_name: 'Houston', country_name: 'United States', latitude: 29.9902, longitude: -95.3368 },
+    { iata_code: 'BOS', airport_name: 'Logan International Airport', city_name: 'Boston', country_name: 'United States', latitude: 42.3656, longitude: -71.0096 },
+    { iata_code: 'MSP', airport_name: 'Minneapolis-Saint Paul International Airport', city_name: 'Minneapolis', country_name: 'United States', latitude: 44.8848, longitude: -93.2223 },
+    { iata_code: 'DTW', airport_name: 'Detroit Metropolitan Wayne County Airport', city_name: 'Detroit', country_name: 'United States', latitude: 42.2162, longitude: -83.3554 },
+    { iata_code: 'PHL', airport_name: 'Philadelphia International Airport', city_name: 'Philadelphia', country_name: 'United States', latitude: 39.8744, longitude: -75.2424 },
     
     // Major International Airports
-    { iata_code: 'LHR', airport_name: 'London Heathrow Airport', country_name: 'United Kingdom', latitude: 51.4700, longitude: -0.4543 },
-    { iata_code: 'LGW', airport_name: 'London Gatwick Airport', country_name: 'United Kingdom', latitude: 51.1537, longitude: -0.1821 },
-    { iata_code: 'CDG', airport_name: 'Charles de Gaulle Airport', country_name: 'France', latitude: 49.0097, longitude: 2.5479 },
-    { iata_code: 'ORY', airport_name: 'Orly Airport', country_name: 'France', latitude: 48.7262, longitude: 2.3656 },
-    { iata_code: 'FRA', airport_name: 'Frankfurt Airport', country_name: 'Germany', latitude: 50.0379, longitude: 8.5622 },
-    { iata_code: 'AMS', airport_name: 'Amsterdam Airport Schiphol', country_name: 'Netherlands', latitude: 52.3080, longitude: 4.7639 },
-    { iata_code: 'MAD', airport_name: 'Madrid-Barajas Airport', country_name: 'Spain', latitude: 40.4839, longitude: -3.5680 },
-    { iata_code: 'BCN', airport_name: 'Barcelona-El Prat Airport', country_name: 'Spain', latitude: 41.2971, longitude: 2.0833 },
-    { iata_code: 'FCO', airport_name: 'Rome Fiumicino Airport', country_name: 'Italy', latitude: 41.8003, longitude: 12.2389 },
-    { iata_code: 'MXP', airport_name: 'Milan Malpensa Airport', country_name: 'Italy', latitude: 45.6306, longitude: 8.7281 },
-    { iata_code: 'ZUR', airport_name: 'Zurich Airport', country_name: 'Switzerland', latitude: 47.4647, longitude: 8.5492 },
-    { iata_code: 'VIE', airport_name: 'Vienna International Airport', country_name: 'Austria', latitude: 48.1103, longitude: 16.5697 },
-    { iata_code: 'CPH', airport_name: 'Copenhagen Airport', country_name: 'Denmark', latitude: 55.6181, longitude: 12.6558 },
-    { iata_code: 'ARN', airport_name: 'Stockholm Arlanda Airport', country_name: 'Sweden', latitude: 59.6519, longitude: 17.9186 },
-    { iata_code: 'OSL', airport_name: 'Oslo Airport', country_name: 'Norway', latitude: 60.1939, longitude: 11.1004 },
+    { iata_code: 'FRA', airport_name: 'Frankfurt Airport', city_name: 'Frankfurt', country_name: 'Germany', latitude: 50.0379, longitude: 8.5622 },
+    { iata_code: 'AMS', airport_name: 'Amsterdam Airport Schiphol', city_name: 'Amsterdam', country_name: 'Netherlands', latitude: 52.3080, longitude: 4.7639 },
+    { iata_code: 'MAD', airport_name: 'Madrid-Barajas Airport', city_name: 'Madrid', country_name: 'Spain', latitude: 40.4839, longitude: -3.5680 },
+    { iata_code: 'BCN', airport_name: 'Barcelona-El Prat Airport', city_name: 'Barcelona', country_name: 'Spain', latitude: 41.2971, longitude: 2.0833 },
+    { iata_code: 'FCO', airport_name: 'Rome Fiumicino Airport', city_name: 'Rome', country_name: 'Italy', latitude: 41.8003, longitude: 12.2389 },
+    { iata_code: 'MXP', airport_name: 'Milan Malpensa Airport', city_name: 'Milan', country_name: 'Italy', latitude: 45.6306, longitude: 8.7281 },
+    { iata_code: 'ZUR', airport_name: 'Zurich Airport', city_name: 'Zurich', country_name: 'Switzerland', latitude: 47.4647, longitude: 8.5492 },
+    { iata_code: 'VIE', airport_name: 'Vienna International Airport', city_name: 'Vienna', country_name: 'Austria', latitude: 48.1103, longitude: 16.5697 },
+    { iata_code: 'CPH', airport_name: 'Copenhagen Airport', city_name: 'Copenhagen', country_name: 'Denmark', latitude: 55.6181, longitude: 12.6558 },
+    { iata_code: 'ARN', airport_name: 'Stockholm Arlanda Airport', city_name: 'Stockholm', country_name: 'Sweden', latitude: 59.6519, longitude: 17.9186 },
+    { iata_code: 'OSL', airport_name: 'Oslo Airport', city_name: 'Oslo', country_name: 'Norway', latitude: 60.1939, longitude: 11.1004 },
     
     // Asia-Pacific
-    { iata_code: 'NRT', airport_name: 'Narita International Airport', country_name: 'Japan', latitude: 35.7647, longitude: 140.3864 },
-    { iata_code: 'HND', airport_name: 'Tokyo Haneda Airport', country_name: 'Japan', latitude: 35.5494, longitude: 139.7798 },
-    { iata_code: 'ICN', airport_name: 'Seoul Incheon International Airport', country_name: 'South Korea', latitude: 37.4602, longitude: 126.4407 },
-    { iata_code: 'PEK', airport_name: 'Beijing Capital International Airport', country_name: 'China', latitude: 40.0799, longitude: 116.6031 },
-    { iata_code: 'PVG', airport_name: 'Shanghai Pudong International Airport', country_name: 'China', latitude: 31.1443, longitude: 121.8083 },
-    { iata_code: 'SIN', airport_name: 'Singapore Changi Airport', country_name: 'Singapore', latitude: 1.3644, longitude: 103.9915 },
-    { iata_code: 'SYD', airport_name: 'Sydney Kingsford Smith Airport', country_name: 'Australia', latitude: -33.9399, longitude: 151.1753 },
-    { iata_code: 'MEL', airport_name: 'Melbourne Airport', country_name: 'Australia', latitude: -37.6690, longitude: 144.8410 },
-    { iata_code: 'BKK', airport_name: 'Suvarnabhumi Airport', country_name: 'Thailand', latitude: 13.6900, longitude: 100.7501 },
-    { iata_code: 'KUL', airport_name: 'Kuala Lumpur International Airport', country_name: 'Malaysia', latitude: 2.7456, longitude: 101.7072 },
-    { iata_code: 'HKG', airport_name: 'Hong Kong International Airport', country_name: 'Hong Kong', latitude: 22.3080, longitude: 113.9185 },
+    { iata_code: 'NRT', airport_name: 'Narita International Airport', city_name: 'Tokyo', country_name: 'Japan', latitude: 35.7647, longitude: 140.3864 },
+    { iata_code: 'HND', airport_name: 'Tokyo Haneda Airport', city_name: 'Tokyo', country_name: 'Japan', latitude: 35.5494, longitude: 139.7798 },
+    { iata_code: 'ICN', airport_name: 'Seoul Incheon International Airport', city_name: 'Seoul', country_name: 'South Korea', latitude: 37.4602, longitude: 126.4407 },
+    { iata_code: 'PEK', airport_name: 'Beijing Capital International Airport', city_name: 'Beijing', country_name: 'China', latitude: 40.0799, longitude: 116.6031 },
+    { iata_code: 'PVG', airport_name: 'Shanghai Pudong International Airport', city_name: 'Shanghai', country_name: 'China', latitude: 31.1443, longitude: 121.8083 },
+    { iata_code: 'SIN', airport_name: 'Singapore Changi Airport', city_name: 'Singapore', country_name: 'Singapore', latitude: 1.3644, longitude: 103.9915 },
+    { iata_code: 'SYD', airport_name: 'Sydney Kingsford Smith Airport', city_name: 'Sydney', country_name: 'Australia', latitude: -33.9399, longitude: 151.1753 },
+    { iata_code: 'MEL', airport_name: 'Melbourne Airport', city_name: 'Melbourne', country_name: 'Australia', latitude: -37.6690, longitude: 144.8410 },
+    { iata_code: 'BKK', airport_name: 'Suvarnabhumi Airport', city_name: 'Bangkok', country_name: 'Thailand', latitude: 13.6900, longitude: 100.7501 },
+    { iata_code: 'KUL', airport_name: 'Kuala Lumpur International Airport', city_name: 'Kuala Lumpur', country_name: 'Malaysia', latitude: 2.7456, longitude: 101.7072 },
+    { iata_code: 'HKG', airport_name: 'Hong Kong International Airport', city_name: 'Hong Kong', country_name: 'Hong Kong', latitude: 22.3080, longitude: 113.9185 },
     
     // Middle East & Africa
-    { iata_code: 'DXB', airport_name: 'Dubai International Airport', country_name: 'United Arab Emirates', latitude: 25.2532, longitude: 55.3657 },
-    { iata_code: 'DOH', airport_name: 'Hamad International Airport', country_name: 'Qatar', latitude: 25.2731, longitude: 51.6086 },
-    { iata_code: 'AUH', airport_name: 'Abu Dhabi International Airport', country_name: 'United Arab Emirates', latitude: 24.4330, longitude: 54.6511 },
-    { iata_code: 'CAI', airport_name: 'Cairo International Airport', country_name: 'Egypt', latitude: 30.1219, longitude: 31.4056 },
-    { iata_code: 'JNB', airport_name: 'OR Tambo International Airport', country_name: 'South Africa', latitude: -26.1392, longitude: 28.2460 },
+    { iata_code: 'DXB', airport_name: 'Dubai International Airport', city_name: 'Dubai', country_name: 'United Arab Emirates', latitude: 25.2532, longitude: 55.3657 },
+    { iata_code: 'DOH', airport_name: 'Hamad International Airport', city_name: 'Doha', country_name: 'Qatar', latitude: 25.2731, longitude: 51.6086 },
+    { iata_code: 'AUH', airport_name: 'Abu Dhabi International Airport', city_name: 'Abu Dhabi', country_name: 'United Arab Emirates', latitude: 24.4330, longitude: 54.6511 },
+    { iata_code: 'CAI', airport_name: 'Cairo International Airport', city_name: 'Cairo', country_name: 'Egypt', latitude: 30.1219, longitude: 31.4056 },
+    { iata_code: 'JNB', airport_name: 'OR Tambo International Airport', city_name: 'Johannesburg', country_name: 'South Africa', latitude: -26.1392, longitude: 28.2460 },
     
     // Canada
-    { iata_code: 'YYZ', airport_name: 'Toronto Pearson International Airport', country_name: 'Canada', latitude: 43.6777, longitude: -79.6248 },
-    { iata_code: 'YVR', airport_name: 'Vancouver International Airport', country_name: 'Canada', latitude: 49.1967, longitude: -123.1815 },
-    { iata_code: 'YUL', airport_name: 'Montreal-Pierre Elliott Trudeau International Airport', country_name: 'Canada', latitude: 45.4657, longitude: -73.7401 }
+    { iata_code: 'YYZ', airport_name: 'Toronto Pearson International Airport', city_name: 'Toronto', country_name: 'Canada', latitude: 43.6777, longitude: -79.6248 },
+    { iata_code: 'YVR', airport_name: 'Vancouver International Airport', city_name: 'Vancouver', country_name: 'Canada', latitude: 49.1967, longitude: -123.1815 },
+    { iata_code: 'YUL', airport_name: 'Montreal-Pierre Elliott Trudeau International Airport', city_name: 'Montreal', country_name: 'Canada', latitude: 45.4657, longitude: -73.7401 }
   ];
   
-  // Filter airports by keyword
+  const lowercaseKeyword = keyword.toLowerCase();
+  
+  // Filter airports by keyword - search in IATA code, airport name, city name, or country
   const filtered = commonAirports.filter(airport => 
-    airport.iata_code.toLowerCase().includes(keyword.toLowerCase()) ||
-    airport.airport_name.toLowerCase().includes(keyword.toLowerCase()) ||
-    airport.country_name.toLowerCase().includes(keyword.toLowerCase())
+    airport.iata_code.toLowerCase().includes(lowercaseKeyword) ||
+    airport.airport_name.toLowerCase().includes(lowercaseKeyword) ||
+    airport.city_name.toLowerCase().includes(lowercaseKeyword) ||
+    airport.country_name.toLowerCase().includes(lowercaseKeyword)
   );
+  
+  // Sort results: exact IATA matches first, then city matches, then others
+  filtered.sort((a, b) => {
+    const aExactIATA = a.iata_code.toLowerCase() === lowercaseKeyword;
+    const bExactIATA = b.iata_code.toLowerCase() === lowercaseKeyword;
+    const aCityMatch = a.city_name.toLowerCase().includes(lowercaseKeyword);
+    const bCityMatch = b.city_name.toLowerCase().includes(lowercaseKeyword);
+    
+    if (aExactIATA && !bExactIATA) return -1;
+    if (!aExactIATA && bExactIATA) return 1;
+    if (aCityMatch && !bCityMatch) return -1;
+    if (!aCityMatch && bCityMatch) return 1;
+    
+    return a.city_name.localeCompare(b.city_name);
+  });
   
   // Transform to expected format
   const transformedData = filtered.map((airport) => ({
@@ -172,12 +211,14 @@ async function searchAirportsAndCities(keyword: string) {
     address: {
       countryCode: airport.country_name === 'United States' ? 'US' : 'XX',
       countryName: airport.country_name,
-      stateCode: ''
+      stateCode: '',
+      cityName: airport.city_name
     }
   }));
   
   console.log('Airport search results:', transformedData.length);
   return transformedData;
+}
 }
 
 // Mock flight data for when quota is exceeded

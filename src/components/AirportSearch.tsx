@@ -77,7 +77,7 @@ export function AirportSearch({
           name: airport.name,
           cityName: airport.address?.cityName || airport.name,
           countryName: airport.address?.countryName || '',
-          description: `${airport.name} (${airport.iataCode || airport.id}) - ${airport.address?.countryName || ''}`
+          description: `${airport.name} (${airport.iataCode || airport.id})`
         }));
 
         setAirports(transformedAirports);
@@ -169,7 +169,10 @@ export function AirportSearch({
                 </div>
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <MapPin className="w-3 h-3" />
-                  {airport.countryName}
+                  <span>{airport.cityName}</span>
+                  {airport.cityName !== airport.countryName && (
+                    <span>• {airport.countryName}</span>
+                  )}
                 </div>
               </div>
             </div>
