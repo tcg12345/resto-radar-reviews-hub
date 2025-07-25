@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MapPin, Calendar, Users, Settings, Plus, Star, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,11 @@ interface TripListProps {
 }
 
 export function TripList({ trips, selectedTripId, onSelectTrip, onAddPlace }: TripListProps) {
+  const navigate = useNavigate();
+
+  const handleTripClick = (tripId: string) => {
+    navigate(`/trip/${tripId}`);
+  };
   return (
     <div className="space-y-4 h-full overflow-y-auto">
       <div className="flex items-center justify-between">
@@ -44,6 +50,7 @@ interface TripCardProps {
 }
 
 function TripCard({ trip, isSelected, onSelect, onAddPlace }: TripCardProps) {
+  const navigate = useNavigate();
   const { ratings } = usePlaceRatings(trip.id);
   
   const restaurantCount = ratings.filter(r => r.place_type === 'restaurant').length;
@@ -56,7 +63,7 @@ function TripCard({ trip, isSelected, onSelect, onAddPlace }: TripCardProps) {
         "cursor-pointer transition-all hover:shadow-md",
         isSelected && "ring-2 ring-primary bg-primary/5"
       )}
-      onClick={onSelect}
+      onClick={() => navigate(`/trip/${trip.id}`)}
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
