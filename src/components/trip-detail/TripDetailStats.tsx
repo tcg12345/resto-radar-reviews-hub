@@ -59,22 +59,24 @@ export function TripDetailStats({ ratings }: TripDetailStatsProps) {
   }
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      {stats.map((stat) => {
-        const Icon = stat.icon;
-        return (
-          <div key={stat.label} className="flex items-center gap-3 p-3 bg-background rounded-lg border border-border/50">
-            <div className={`p-2 rounded-lg ${stat.color}`}>
-              <Icon className="w-4 h-4" />
+    <div className="bg-background rounded-lg border border-border/50 p-3">
+      <div className="flex items-center justify-between gap-2">
+        {stats.map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <div key={stat.label} className="flex items-center gap-2 min-w-0 flex-1">
+              <div className={`p-1 rounded ${stat.color}`}>
+                <Icon className="w-3 h-3" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-medium text-muted-foreground">{stat.label}</div>
+                <div className="text-sm font-bold">{stat.value}</div>
+                <div className="text-xs text-muted-foreground">{stat.subtext}</div>
+              </div>
             </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-medium text-muted-foreground">{stat.label}</div>
-              <div className="text-lg font-bold">{stat.value}</div>
-              <div className="text-xs text-muted-foreground">{stat.subtext}</div>
-            </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }
