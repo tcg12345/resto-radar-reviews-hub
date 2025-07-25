@@ -237,7 +237,6 @@ export default function TripDetailPage() {
                       onPlaceClick={handlePlaceClick}
                       onPlaceDetails={handlePlaceDetails}
                       onEditPlace={setIsPlaceRatingDialogOpen}
-                      onDeletePlace={handleDeletePlace}
                       panelSize={listPanelSize}
                     />
                  </div>
@@ -281,7 +280,6 @@ export default function TripDetailPage() {
                     onPlaceClick={handlePlaceClick}
                     onPlaceDetails={handlePlaceDetails}
                     onEditPlace={setIsPlaceRatingDialogOpen}
-                    onDeletePlace={handleDeletePlace}
                     panelSize={100} // Full width on mobile
                   />
                 </div>
@@ -323,6 +321,7 @@ export default function TripDetailPage() {
           setIsPlaceDetailsModalOpen(false);
           setIsPlaceRatingDialogOpen(true);
         }}
+        onDelete={handleDeletePlace}
       />
 
       {/* Delete Confirmation Dialog */}

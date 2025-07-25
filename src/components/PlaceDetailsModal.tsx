@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, MapPin, Calendar, Globe, Phone, Clock, DollarSign, Edit, X, Navigation } from 'lucide-react';
+import { Star, MapPin, Calendar, Globe, Phone, Clock, DollarSign, Edit, X, Navigation, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -29,9 +29,10 @@ interface PlaceDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onEdit?: () => void;
+  onDelete?: (placeId: string) => void;
 }
 
-export function PlaceDetailsModal({ place, isOpen, onClose, onEdit }: PlaceDetailsModalProps) {
+export function PlaceDetailsModal({ place, isOpen, onClose, onEdit, onDelete }: PlaceDetailsModalProps) {
   if (!place) return null;
 
   const getPriceDisplay = (priceRange?: number) => {
@@ -109,6 +110,17 @@ export function PlaceDetailsModal({ place, isOpen, onClose, onEdit }: PlaceDetai
                 <Button variant="outline" size="sm" onClick={onEdit}>
                   <Edit className="w-4 h-4 mr-2" />
                   Edit
+                </Button>
+              )}
+              {onDelete && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => onDelete(place.id)}
+                  className="border-destructive/20 bg-destructive/5 hover:bg-destructive/10 text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
                 </Button>
               )}
             </div>

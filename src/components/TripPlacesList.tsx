@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, MapPin, Calendar, Clock, Edit, Camera, DollarSign, Info, Globe, Navigation, Trash2 } from 'lucide-react';
+import { Star, MapPin, Calendar, Clock, Edit, Camera, DollarSign, Info, Globe, Navigation } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -29,7 +29,6 @@ interface TripPlacesListProps {
   onPlaceClick: (placeId: string) => void;
   onPlaceDetails: (placeId: string) => void;
   onEditPlace: (open: boolean) => void;
-  onDeletePlace: (placeId: string) => void;
   panelSize: number; // Panel size as percentage
 }
 
@@ -40,7 +39,6 @@ export function TripPlacesList({
   onPlaceClick, 
   onPlaceDetails, 
   onEditPlace,
-  onDeletePlace,
   panelSize
 }: TripPlacesListProps) {
   const getPriceDisplay = (priceRange?: number) => {
@@ -182,17 +180,6 @@ export function TripPlacesList({
                     >
                       <Info className="h-3 w-3" />
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeletePlace(rating.id);
-                      }}
-                      className="h-6 px-1.5 text-xs border-destructive/20 bg-destructive/5 hover:bg-destructive/10"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
                   </div>
                 </div>
                 
@@ -244,30 +231,6 @@ export function TripPlacesList({
                     >
                       <Info className="h-3 w-3 mr-1" />
                       Details
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEditPlace(true);
-                      }}
-                      className="h-7 px-2 text-xs border-muted-foreground/20 hover:bg-muted/50 hover:border-muted-foreground/30"
-                    >
-                      <Edit className="h-3 w-3 mr-1" />
-                      Edit
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeletePlace(rating.id);
-                      }}
-                      className="h-7 px-2 text-xs border-destructive/20 bg-destructive/5 hover:bg-destructive/10"
-                    >
-                      <Trash2 className="h-3 w-3 mr-1" />
-                      Delete
                     </Button>
                   </div>
                 </div>
@@ -361,18 +324,6 @@ export function TripPlacesList({
                     >
                       <Edit className="h-3 w-3 mr-1" />
                       Edit
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeletePlace(rating.id);
-                      }}
-                      className="h-7 px-2 text-xs border-destructive/20 bg-destructive/5 hover:bg-destructive/10"
-                    >
-                      <Trash2 className="h-3 w-3 mr-1" />
-                      Delete
                     </Button>
                   </div>
                 </div>
@@ -496,18 +447,6 @@ export function TripPlacesList({
                     >
                       <Edit className="h-4 w-4 mr-2" />
                       Edit Place
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeletePlace(rating.id);
-                      }}
-                      className="h-8 px-3 text-sm border-destructive/20 bg-destructive/5 hover:bg-destructive/10"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
                     </Button>
                   </div>
                 </div>
