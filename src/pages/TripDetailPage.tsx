@@ -9,6 +9,7 @@ import { useTrips } from '@/hooks/useTrips';
 import { useUpdatePlaceWebsites } from '@/hooks/useUpdatePlaceWebsites';
 import { usePlaceRatings } from '@/hooks/usePlaceRatings';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TripPlacesList } from '@/components/TripPlacesList';
 import { TripMapView, TripMapViewRef } from '@/components/TripMapView';
 import { PlaceRatingDialog } from '@/components/PlaceRatingDialog';
@@ -74,8 +75,58 @@ export default function TripDetailPage() {
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+        <div className="container mx-auto px-4 py-2 lg:py-4">
+          {/* Mobile Header */}
+          <div className="lg:hidden">
+            <div className="flex items-center justify-between mb-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/travel')}
+                className="flex items-center gap-1"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span className="text-sm">Back</span>
+              </Button>
+              
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsAddRestaurantDialogOpen(true)}
+                  className="flex items-center gap-1"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span className="text-xs">Add</span>
+                </Button>
+                <Button
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setIsPlaceRatingDialogOpen(true)}
+                  className="flex items-center gap-1"
+                >
+                  <Star className="w-3 h-3" />
+                  <span className="text-xs">Rate</span>
+                </Button>
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <h1 className="text-lg font-bold text-foreground truncate">{trip.title}</h1>
+              <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground mt-1">
+                <div className="flex items-center gap-1">
+                  <MapPin className="w-3 h-3" />
+                  <span className="truncate max-w-[120px]">{trip.destination}</span>
+                </div>
+                <Badge variant="secondary" className="text-xs">
+                  {ratings.length} places
+                </Badge>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Header */}
+          <div className="hidden lg:flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
@@ -146,55 +197,100 @@ export default function TripDetailPage() {
         </div>
       </div>
 
-      {/* Main Content - Resizable Layout */}
+      {/* Main Content */}
       <div className="flex-1">
-        <ResizablePanelGroup 
-          direction="horizontal" 
-          className="h-full"
-          onLayout={(sizes) => setListPanelSize(sizes[0])}
-        >
-          {/* Left Panel - Places List */}
-          <ResizablePanel 
-            defaultSize={25} 
-            minSize={15} 
-            maxSize={60}
-            className="bg-background flex flex-col"
+        {/* Desktop Layout - Resizable Panels */}
+        <div className="hidden lg:block h-full">
+          <ResizablePanelGroup 
+            direction="horizontal" 
+            className="h-full"
+            onLayout={(sizes) => setListPanelSize(sizes[0])}
           >
-            <div className="p-4 border-b flex-shrink-0">
-              <div className="flex items-center justify-between">
-                <h2 className="font-semibold">Places & Experiences</h2>
-                <Badge variant="outline">{ratings.length}</Badge>
+            {/* Left Panel - Places List */}
+            <ResizablePanel 
+              defaultSize={25} 
+              minSize={15} 
+              maxSize={60}
+              className="bg-background flex flex-col"
+            >
+              <div className="p-4 border-b flex-shrink-0">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-semibold">Places & Experiences</h2>
+                  <Badge variant="outline">{ratings.length}</Badge>
+                </div>
+                {trip.description && listPanelSize > 20 && (
+                  <p className="text-sm text-muted-foreground mt-2 animate-fade-in">{trip.description}</p>
+                )}
               </div>
-              {trip.description && listPanelSize > 20 && (
-                <p className="text-sm text-muted-foreground mt-2 animate-fade-in">{trip.description}</p>
-              )}
-            </div>
+              
+              <div className="flex-1 overflow-y-auto">
+                <TripPlacesList
+                  ratings={ratings}
+                  selectedPlaceId={selectedPlaceId}
+                  onPlaceSelect={handlePlaceSelect}
+                  onPlaceClick={handlePlaceClick}
+                  onPlaceDetails={handlePlaceDetails}
+                  onEditPlace={setIsPlaceRatingDialogOpen}
+                  panelSize={listPanelSize}
+                />
+              </div>
+            </ResizablePanel>
             
-            <div className="flex-1 overflow-y-auto">
-              <TripPlacesList
+            <ResizableHandle withHandle />
+            
+            {/* Right Panel - Map */}
+            <ResizablePanel defaultSize={75} className="h-full">
+              <TripMapView
+                ref={mapRef}
                 ratings={ratings}
                 selectedPlaceId={selectedPlaceId}
                 onPlaceSelect={handlePlaceSelect}
-                onPlaceClick={handlePlaceClick}
-                onPlaceDetails={handlePlaceDetails}
-                onEditPlace={setIsPlaceRatingDialogOpen}
-                panelSize={listPanelSize}
               />
-            </div>
-          </ResizablePanel>
-          
-          <ResizableHandle withHandle />
-          
-          {/* Right Panel - Map */}
-          <ResizablePanel defaultSize={75} className="h-full">
-            <TripMapView
-              ref={mapRef}
-              ratings={ratings}
-              selectedPlaceId={selectedPlaceId}
-              onPlaceSelect={handlePlaceSelect}
-            />
-          </ResizablePanel>
-        </ResizablePanelGroup>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </div>
+
+        {/* Mobile Layout - Tabs */}
+        <div className="lg:hidden h-full">
+          <Tabs defaultValue="places" className="h-full flex flex-col">
+            <TabsList className="grid w-full grid-cols-2 mx-4 mt-2">
+              <TabsTrigger value="places">Places ({ratings.length})</TabsTrigger>
+              <TabsTrigger value="map">Map</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="places" className="flex-1 mt-2 overflow-hidden">
+              <div className="h-full flex flex-col">
+                {trip.description && (
+                  <div className="px-4 pb-2">
+                    <p className="text-sm text-muted-foreground">{trip.description}</p>
+                  </div>
+                )}
+                <div className="flex-1 overflow-y-auto">
+                  <TripPlacesList
+                    ratings={ratings}
+                    selectedPlaceId={selectedPlaceId}
+                    onPlaceSelect={handlePlaceSelect}
+                    onPlaceClick={handlePlaceClick}
+                    onPlaceDetails={handlePlaceDetails}
+                    onEditPlace={setIsPlaceRatingDialogOpen}
+                    panelSize={100} // Full width on mobile
+                  />
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="map" className="flex-1 mt-2 overflow-hidden">
+              <div className="h-full">
+                <TripMapView
+                  ref={mapRef}
+                  ratings={ratings}
+                  selectedPlaceId={selectedPlaceId}
+                  onPlaceSelect={handlePlaceSelect}
+                />
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
 
       {/* Dialogs */}
