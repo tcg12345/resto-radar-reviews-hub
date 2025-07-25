@@ -166,16 +166,6 @@ export function PlaceDetailsModal({ place, isOpen, onClose, onEdit, onDelete }: 
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Debug info - remove after testing */}
-          {process.env.NODE_ENV === 'development' && (
-            <div className="p-2 bg-gray-100 rounded text-xs">
-              <p>Photos: {place.photos ? JSON.stringify(place.photos) : 'No photos'}</p>
-              <p>Address: {place.address || 'No address'}</p>
-              <p>Cuisine: {place.cuisine || 'No cuisine'}</p>
-              <p>Michelin: {place.michelin_stars || 'No stars'}</p>
-            </div>
-          )}
-
           {/* Photos Section */}
           {place.photos && place.photos.length > 0 && (
             <Card>
