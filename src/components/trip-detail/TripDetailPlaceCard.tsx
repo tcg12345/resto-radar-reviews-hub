@@ -1,0 +1,165 @@
+import { useState } from 'react';
+import { Star, MapPin, Calendar, MoreVertical, Eye, Edit, ExternalLink, Phone } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { PlaceRating } from '@/hooks/useTrips';
+import { format } from 'date-fns';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
+interface TripDetailPlaceCardProps {
+  place: PlaceRating;
+  isSelected: boolean;
+  onSelect: (placeId: string) => void;
+  onClick: (placeId: string) => void;
+  onDetails: (placeId: string) => void;
+  onEdit: (placeId: string) => void;
+  compact?: boolean;
+}
+
+export function TripDetailPlaceCard({ 
+  place, 
+  isSelected, 
+  onSelect, 
+  onClick, 
+  onDetails, 
+  onEdit,
+  compact = false 
+}: TripDetailPlaceCardProps) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  const getPlaceIcon = (placeType: string) => {
+    switch (placeType) {
+      case 'restaurant': return '🍽️';
+      case 'attraction': return '🎯';
+      case 'hotel': return '🏨';
+      default: return '📍';
+    }
+  };
+
+  const renderStars = (rating?: number) => {
+    if (!rating) return null;
+    
+    return (
+      <div className="flex items-center gap-1">
+        {Array.from({ length: 5 }, (_, i) => (
+          <Star
+            key={i}
+            className={`w-3 h-3 ${
+              i < rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+            }`}
+          />
+        ))}
+        <span className="text-xs font-medium ml-1">{rating.toFixed(1)}</span>
+      </div>
+    );
+  };
+
+  const getPriceDisplay = (priceRange?: number) => {
+    if (!priceRange) return null;
+    return '$'.repeat(priceRange);
+  };
+
+  return (
+    <Card
+      className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
+        isSelected ? 'ring-2 ring-primary shadow-md' : 'hover:border-primary/30'
+      }`}
+      onClick={() => onClick(place.id)}
+      onMouseEnter={() => {
+        setIsHovered(true);
+        onSelect(place.id);
+      }}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <CardContent className="p-3">
+        <div className="flex items-start justify-between mb-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <span className="text-lg">{getPlaceIcon(place.place_type)}</span>
+            <div className="min-w-0 flex-1">
+              <h3 className={`font-medium line-clamp-1 ${compact ? 'text-sm' : 'text-base'}`}>
+                {place.place_name}
+              </h3>
+              {place.overall_rating && (
+                <div className="mt-1">
+                  {renderStars(place.overall_rating)}
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <MoreVertical className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDetails(place.id); }}>
+                <Eye className="w-4 h-4 mr-2" />
+                View Details
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(place.id); }}>
+                <Edit className="w-4 h-4 mr-2" />
+                Edit Rating
+              </DropdownMenuItem>
+              {place.website && (
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); window.open(place.website, '_blank'); }}>
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Visit Website
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {!compact && (
+          <>
+            {place.address && (
+              <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+                <MapPin className="w-3 h-3" />
+                <span className="line-clamp-1">{place.address}</span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="text-xs capitalize">
+                  {place.place_type}
+                </Badge>
+                {place.price_range && (
+                  <Badge variant="outline" className="text-xs">
+                    {getPriceDisplay(place.price_range)}
+                  </Badge>
+                )}
+              </div>
+              
+              {place.date_visited && (
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Calendar className="w-3 h-3" />
+                  <span>{format(new Date(place.date_visited), 'MMM d')}</span>
+                </div>
+              )}
+            </div>
+
+            {place.notes && (
+              <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
+                {place.notes}
+              </p>
+            )}
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
