@@ -8,19 +8,11 @@ import {
   Map, 
   Layers, 
   Utensils, 
-  Building2, 
-  Camera, 
-  Dumbbell, 
-  Music, 
-  ShoppingBag, 
+  Bed, 
   TreePine, 
-  MapPin,
-  Plane,
-  Car,
-  Mountain,
-  Waves,
-  Landmark,
-  Coffee
+  ShoppingCart, 
+  FerrisWheel,
+  MapPin
 } from 'lucide-react';
 
 interface PlaceRating {
@@ -54,52 +46,34 @@ export function TripMapView({ ratings, selectedPlaceId, onPlaceSelect }: TripMap
     { id: 'mapbox://styles/mapbox/outdoors-v12', name: 'Outdoors', icon: '🏔️' },
   ];
 
-  // Function to get icon based on place type
-  const getPlaceIcon = (placeType: string): string => {
+  // Function to create icon SVG based on place type
+  const createIconSVG = (placeType: string): string => {
     const type = placeType.toLowerCase();
+    const iconColor = 'white';
+    const iconSize = 16;
     
-    // Hotels and accommodation
+    // Hotels and accommodation - Bed icon
     if (type.includes('hotel') || type.includes('accommodation') || type.includes('lodge') || type.includes('resort')) {
-      return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V4a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3h5a1 1 0 0 1 1 1v13M9 21v-9h4v9"/></svg>';
+      return `<svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10"/><path d="M2 17h20"/><path d="M6 8V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4"/></svg>`;
     }
     
-    // Restaurants, cafes, food
+    // Restaurants, cafes, food - Utensils icon
     if (type.includes('restaurant') || type.includes('cafe') || type.includes('food') || type.includes('dining') || type.includes('bar') || type.includes('coffee')) {
-      return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 11 4-4v3a6 6 0 0 1-6 6H4a6 6 0 0 1-6-6v-3l4 4"/><path d="M6 7 8 5l2 2"/><path d="m8 13 2-2"/></svg>';
+      return `<svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>`;
     }
     
-    // Museums, galleries, cultural sites
-    if (type.includes('museum') || type.includes('gallery') || type.includes('cultural') || type.includes('historic') || type.includes('monument') || type.includes('landmark')) {
-      return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 14.2 0L21 21"/><path d="m12 13-1-1 2-2-1-1"/></svg>';
+    // Shopping - ShoppingCart icon
+    if (type.includes('shop') || type.includes('store') || type.includes('market') || type.includes('mall') || type.includes('shopping')) {
+      return `<svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>`;
     }
     
-    // Sports and fitness
-    if (type.includes('sport') || type.includes('gym') || type.includes('fitness') || type.includes('stadium') || type.includes('arena')) {
-      return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/></svg>';
-    }
-    
-    // Entertainment, music, theaters
-    if (type.includes('music') || type.includes('theater') || type.includes('entertainment') || type.includes('concert') || type.includes('cinema')) {
-      return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
-    }
-    
-    // Shopping
-    if (type.includes('shop') || type.includes('store') || type.includes('market') || type.includes('mall')) {
-      return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="m16 10a4 4 0 0 1-8 0"/></svg>';
-    }
-    
-    // Nature, parks, outdoors
+    // Nature, parks, outdoors - TreePine icon
     if (type.includes('park') || type.includes('nature') || type.includes('garden') || type.includes('outdoor') || type.includes('beach') || type.includes('mountain')) {
-      return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 14 3 3.3a1 1 0 0 1-.7 1.7H4.7a1 1 0 0 1-.7-1.7L7 14h-.3a1 1 0 0 1-.7-1.7L9 9h-.2A1 1 0 0 1 8 7.3L11 4h2l3 3.3a1 1 0 0 1-.8 1.7H15l3 3.3a1 1 0 0 1-.7 1.7H17Z"/><path d="M12 22V4"/></svg>';
+      return `<svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 14 3 3.3a1 1 0 0 1-.7 1.7H4.7a1 1 0 0 1-.7-1.7L7 14h-.3a1 1 0 0 1-.7-1.7L9 9h-.2A1 1 0 0 1 8 7.3L11 4h2l3 3.3a1 1 0 0 1-.8 1.7H15l3 3.3a1 1 0 0 1-.7 1.7H17Z"/><path d="M12 22V4"/></svg>`;
     }
     
-    // Transportation
-    if (type.includes('airport') || type.includes('transport') || type.includes('station')) {
-      return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>';
-    }
-    
-    // Default icon for other types
-    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>';
+    // Default icon for other attractions - FerrisWheel icon
+    return `<svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M12 2v4"/><path d="m6.8 6.8 2.8 2.8"/><path d="M2 12h4"/><path d="m6.8 17.2 2.8-2.8"/><path d="M12 18v4"/><path d="m17.2 17.2-2.8-2.8"/><path d="M22 12h-4"/><path d="m17.2 6.8-2.8 2.8"/></svg>`;
   };
 
   useEffect(() => {
@@ -154,7 +128,7 @@ export function TripMapView({ ratings, selectedPlaceId, onPlaceSelect }: TripMap
         markerElement.innerHTML = `
           <div class="marker-pin ${isSelected ? 'selected' : ''}">
             <div class="marker-content">
-              <div class="marker-icon">${getPlaceIcon(rating.place_type)}</div>
+              <div class="marker-icon">${createIconSVG(rating.place_type)}</div>
             </div>
             <div class="marker-point"></div>
           </div>
