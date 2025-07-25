@@ -57,19 +57,34 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId }: PlaceRatingDialog
   const searchPlaces = async () => {
     if (!searchQuery.trim()) return;
 
+    console.log('Starting place search for:', searchQuery);
     setIsSearching(true);
     try {
       const { data, error } = await supabase.functions.invoke('google-places-search', {
         body: {
           query: searchQuery,
-          type: 'search'
+          type: 'search',
+          searchType: placeType === 'hotel' ? 'lodging' : placeType
         }
       });
 
-      if (error) throw error;
-      setSearchResults(data?.candidates || []);
+      console.log('Search response:', { data, error });
+
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
+      
+      const results = data?.results || data?.candidates || [];
+      console.log('Search results:', results);
+      setSearchResults(results);
+      
+      if (results.length === 0) {
+        console.warn('No search results found');
+      }
     } catch (error) {
       console.error('Error searching places:', error);
+      alert(`Search failed: ${error.message || 'Unknown error'}`);
     } finally {
       setIsSearching(false);
     }
