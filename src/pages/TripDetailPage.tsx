@@ -164,10 +164,9 @@ export default function TripDetailPage() {
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate('/travel')}
-                className="flex items-center gap-2"
+                className="p-2"
               >
-                <ArrowLeft className="w-4 h-4" />
-                Back to Trips
+                <ArrowLeft className="w-6 h-6" />
               </Button>
               
               <div>
