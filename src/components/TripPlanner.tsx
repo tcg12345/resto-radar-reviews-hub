@@ -7,7 +7,7 @@ import { CreateTripDialog } from '@/components/CreateTripDialog';
 import { TripOverviewCard } from '@/components/TripOverviewCard';
 
 export function TripPlanner() {
-  const { trips, loading: tripsLoading } = useTrips();
+  const { trips, loading: tripsLoading, deleteTrip } = useTrips();
   const [isCreateTripDialogOpen, setIsCreateTripDialogOpen] = useState(false);
 
   if (tripsLoading) {
@@ -79,7 +79,7 @@ export function TripPlanner() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {trips.map((trip) => (
-                <TripOverviewCard key={trip.id} trip={trip} />
+                <TripOverviewCard key={trip.id} trip={trip} onDeleteTrip={deleteTrip} />
               ))}
             </div>
           </CardContent>
