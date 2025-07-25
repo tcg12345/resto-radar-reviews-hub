@@ -114,12 +114,14 @@ export function TripDetailPlaceCard({
               </h3>
               
               {/* Cuisine and Price Range Row */}
-              {!compact && place.place_type === 'restaurant' && (
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full">
-                    Restaurant
-                  </span>
-                  {getPriceDisplay(place.price_range) && (
+              {!compact && (
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  {place.place_type === 'restaurant' && (
+                    <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full">
+                      Restaurant
+                    </span>
+                  )}
+                  {place.price_range && (
                     <span className="text-xs font-medium text-green-600">
                       {getPriceDisplay(place.price_range)}
                     </span>
