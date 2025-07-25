@@ -112,9 +112,6 @@ export function TripDetailHeader({
                   <MapPin className="w-4 h-4" />
                   {trip.destination}
                 </div>
-                <Badge variant="secondary" className="bg-primary/10 text-primary">
-                  {totalPlaces} places documented
-                </Badge>
               </div>
               
               {trip.description && (
