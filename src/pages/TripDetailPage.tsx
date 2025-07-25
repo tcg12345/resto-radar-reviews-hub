@@ -226,16 +226,16 @@ export default function TripDetailPage() {
               <div 
                 className="flex-1"
                 style={{ 
-                  height: 'calc(100vh - 200px)', // Fixed height calculation
+                  height: 'calc(100vh - 200px)',
                   maxHeight: 'calc(100vh - 200px)',
                   overflow: 'hidden'
                 }}
               >
                 <div 
-                  className="h-full overflow-y-scroll border border-gray-300"
+                  className="h-full overflow-y-auto"
                   style={{ 
                     height: '100%',
-                    overflowY: 'scroll'
+                    overflowY: 'auto'
                   }}
                 >
                   <TripPlacesList
