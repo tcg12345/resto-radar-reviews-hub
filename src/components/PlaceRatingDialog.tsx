@@ -217,17 +217,33 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId }: PlaceRatingDialog
           <div className="space-y-2">
             <Label htmlFor="search">Search for a place</Label>
             <div className="relative">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="search"
-                  value={searchQuery}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  placeholder="Search restaurants, attractions, hotels, shops..."
-                  className="pl-10"
-                  onFocus={() => searchQuery.length > 2 && setShowSuggestions(true)}
-                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                />
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="search"
+                    value={searchQuery}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    placeholder="Search restaurants, attractions, hotels, shops..."
+                    className="pl-10"
+                    onFocus={() => searchQuery.length > 2 && setShowSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        searchPlaces();
+                      }
+                    }}
+                  />
+                </div>
+                <Button 
+                  type="button" 
+                  onClick={() => searchPlaces()}
+                  disabled={!searchQuery.trim() || isSearching}
+                  className="shrink-0"
+                >
+                  {isSearching ? "Searching..." : "Search"}
+                </Button>
               </div>
               
               {/* Suggestions Dropdown */}
