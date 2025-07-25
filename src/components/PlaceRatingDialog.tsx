@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, Star, MapPin, Calendar, Camera } from 'lucide-react';
+import { Search, Star, MapPin, Calendar, Camera, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -62,6 +62,8 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
   const [placeType, setPlaceType] = useState<keyof typeof RATING_CATEGORIES>('restaurant');
   const [overallRating, setOverallRating] = useState(0);
   const [categoryRatings, setCategoryRatings] = useState<Record<string, number>>({});
+  const [customCategories, setCustomCategories] = useState<string[]>([]);
+  const [newCustomCategory, setNewCustomCategory] = useState('');
   const [notes, setNotes] = useState('');
   const [dateVisited, setDateVisited] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -183,7 +185,14 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
       setSearchQuery(editPlaceData.place_name);
       setPlaceType(editPlaceData.place_type);
       setOverallRating(editPlaceData.overall_rating || 0);
-      setCategoryRatings(editPlaceData.category_ratings || {});
+      const ratings = editPlaceData.category_ratings || {};
+      setCategoryRatings(ratings);
+      
+      // Extract custom categories (ones not in predefined categories)
+      const predefinedCategories = RATING_CATEGORIES[editPlaceData.place_type] || [];
+      const customCats = Object.keys(ratings).filter(cat => !predefinedCategories.includes(cat));
+      setCustomCategories(customCats);
+      
       setNotes(editPlaceData.notes || '');
       setDateVisited(editPlaceData.date_visited || '');
     }
@@ -240,10 +249,28 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
     setPlaceType('restaurant');
     setOverallRating(0);
     setCategoryRatings({});
+    setCustomCategories([]);
+    setNewCustomCategory('');
     setNotes('');
     setDateVisited('');
     setShowSuggestions(false);
     onClose();
+  };
+
+  const addCustomCategory = () => {
+    if (newCustomCategory.trim() && !customCategories.includes(newCustomCategory.trim())) {
+      setCustomCategories(prev => [...prev, newCustomCategory.trim()]);
+      setNewCustomCategory('');
+    }
+  };
+
+  const removeCustomCategory = (categoryToRemove: string) => {
+    setCustomCategories(prev => prev.filter(cat => cat !== categoryToRemove));
+    setCategoryRatings(prev => {
+      const newRatings = { ...prev };
+      delete newRatings[categoryToRemove];
+      return newRatings;
+    });
   };
 
   const renderStarRating = (rating: number, onRate: (rating: number) => void) => {
@@ -406,6 +433,8 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
               {/* Category Ratings */}
               <div className="space-y-3">
                 <Label>Category Ratings</Label>
+                
+                {/* Predefined Categories */}
                 {RATING_CATEGORIES[placeType].map((category) => (
                   <div key={category} className="flex items-center justify-between">
                     <span className="text-sm font-medium">{category}</span>
@@ -415,6 +444,51 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
                     )}
                   </div>
                 ))}
+
+                {/* Custom Categories */}
+                {customCategories.map((category) => (
+                  <div key={category} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">{category}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeCustomCategory(category)}
+                        className="text-red-500 hover:text-red-700 transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    {renderStarRating(
+                      categoryRatings[category] || 0,
+                      (rating) => setCategoryRatings(prev => ({ ...prev, [category]: rating }))
+                    )}
+                  </div>
+                ))}
+
+                {/* Add Custom Category */}
+                <div className="flex items-center gap-2 pt-2 border-t">
+                  <Input
+                    value={newCustomCategory}
+                    onChange={(e) => setNewCustomCategory(e.target.value)}
+                    placeholder="Add custom rating category..."
+                    className="flex-1"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addCustomCategory();
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    onClick={addCustomCategory}
+                    disabled={!newCustomCategory.trim()}
+                    size="sm"
+                    variant="outline"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
 
               {/* Date Visited */}
