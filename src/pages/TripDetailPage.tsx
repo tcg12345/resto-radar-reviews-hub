@@ -25,10 +25,12 @@ export default function TripDetailPage() {
   const trip = trips.find(t => t.id === tripId);
 
   useEffect(() => {
-    if (!loading && !trip) {
+    // Only redirect if loading is complete AND trip is not found
+    if (!loading && trips.length > 0 && !trip) {
+      console.log('Trip not found, redirecting to /travel');
       navigate('/travel');
     }
-  }, [trip, loading, navigate]);
+  }, [trip, loading, navigate, trips.length]);
 
   if (loading) {
     return (
