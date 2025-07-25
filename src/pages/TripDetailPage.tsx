@@ -9,12 +9,12 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useTrips } from '@/hooks/useTrips';
 import { usePlaceRatings } from '@/hooks/usePlaceRatings';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TripPlacesList } from '@/components/TripPlacesList';
 import { TripMapView, TripMapViewRef } from '@/components/TripMapView';
 import { PlaceRatingDialog } from '@/components/PlaceRatingDialog';
 import { PlaceDetailsModal } from '@/components/PlaceDetailsModal';
 import { AddRestaurantToTripDialog } from '@/components/AddRestaurantToTripDialog';
+import { MobileTripSwipePanel } from '@/components/mobile/MobileTripSwipePanel';
 import { format } from 'date-fns';
 
 export default function TripDetailPage() {
@@ -275,46 +275,26 @@ export default function TripDetailPage() {
           </ResizablePanelGroup>
         </div>
 
-        {/* Mobile Layout - Tabs */}
-        <div className="lg:hidden h-full">
-          <Tabs defaultValue="places" className="h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-2 mx-4 mt-2">
-              <TabsTrigger value="places">Places ({ratings.length})</TabsTrigger>
-              <TabsTrigger value="map">Map</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="places" className="flex-1 mt-2">
-              <ScrollArea className="h-full">
-                <div className="pb-4">
-                  {trip.description && (
-                    <div className="px-4 pb-2">
-                      <p className="text-sm text-muted-foreground">{trip.description}</p>
-                    </div>
-                  )}
-                  <TripPlacesList
-                    ratings={ratings}
-                    selectedPlaceId={selectedPlaceId}
-                    onPlaceSelect={handlePlaceSelect}
-                    onPlaceClick={handlePlaceClick}
-                    onPlaceDetails={handlePlaceDetails}
-                    onEditPlace={handleEditPlace}
-                    panelSize={100} // Full width on mobile
-                  />
-                </div>
-              </ScrollArea>
-            </TabsContent>
-            
-            <TabsContent value="map" className="flex-1 mt-2 overflow-hidden">
-              <div className="h-full">
-                <TripMapView
-                  ref={mapRef}
-                  ratings={ratings}
-                  selectedPlaceId={selectedPlaceId}
-                  onPlaceSelect={handlePlaceSelect}
-                />
-              </div>
-            </TabsContent>
-          </Tabs>
+        {/* Mobile Layout - Full Screen Map with Swipe Panel */}
+        <div className="lg:hidden h-full relative">
+          {/* Full Screen Map */}
+          <TripMapView
+            ref={mapRef}
+            ratings={ratings}
+            selectedPlaceId={selectedPlaceId}
+            onPlaceSelect={handlePlaceSelect}
+          />
+          
+          {/* Mobile Swipe Panel */}
+          <MobileTripSwipePanel
+            places={ratings}
+            onPlaceDetails={handlePlaceDetails}
+            onPlaceClick={handlePlaceClick}
+            onEditPlace={handleEditPlace}
+            onAddRestaurant={() => setIsAddRestaurantDialogOpen(true)}
+            onRatePlace={() => setIsPlaceRatingDialogOpen(true)}
+            tripTitle={trip.title}
+          />
         </div>
       </div>
 
