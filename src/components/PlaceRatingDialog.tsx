@@ -5,11 +5,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { usePlaceRatings } from '@/hooks/usePlaceRatings';
 import { PlaceRating } from '@/hooks/useTrips';
+import { useRestaurants } from '@/contexts/RestaurantContext';
 import { supabase } from '@/integrations/supabase/client';
 
 interface PlaceRatingDialogProps {
@@ -69,9 +71,11 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
   const [isSearching, setIsSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [activeTab, setActiveTab] = useState('search');
   const debounceRef = useRef<NodeJS.Timeout>();
 
-  const { addRating, updateRating } = usePlaceRatings(tripId || undefined);
+  const { addRating, updateRating, addRestaurantToTrip } = usePlaceRatings(tripId || undefined);
+  const { restaurants } = useRestaurants();
 
   const isEditMode = Boolean(editPlaceId && editPlaceData);
 
@@ -273,6 +277,30 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
     });
   };
 
+  const handleAddRestaurantToTrip = async (restaurant: any) => {
+    if (!tripId) return;
+    
+    setIsLoading(true);
+    try {
+      await addRestaurantToTrip(tripId, {
+        name: restaurant.name,
+        address: restaurant.address,
+        latitude: restaurant.latitude,
+        longitude: restaurant.longitude,
+        rating: restaurant.rating,
+        notes: restaurant.notes,
+        photos: restaurant.photos,
+        website: restaurant.website,
+        phone_number: restaurant.phone_number,
+        priceRange: restaurant.price_range,
+        dateVisited: restaurant.date_visited,
+      });
+      handleClose();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const renderStarRating = (rating: number, onRate: (rating: number) => void) => {
     return (
       <div className="flex items-center gap-1">
@@ -313,9 +341,16 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Place Search */}
-          <div className="space-y-2">
-            <Label htmlFor="search">Search for a place</Label>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="search">Search Places</TabsTrigger>
+              <TabsTrigger value="restaurants">My Restaurants</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="search" className="space-y-6">
+              {/* Place Search */}
+              <div className="space-y-2">
+                <Label htmlFor="search">Search for a place</Label>
             <div className="relative">
               <div className="flex gap-2">
                 <div className="relative flex-1">
@@ -382,9 +417,54 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
               )}
             </div>
           </div>
+            </TabsContent>
 
+            <TabsContent value="restaurants" className="space-y-4">
+              <div className="space-y-2">
+                <Label>Select from your rated restaurants</Label>
+                <div className="max-h-64 overflow-y-auto space-y-2">
+                  {restaurants?.filter(r => !r.isWishlist).map((restaurant) => (
+                    <Card key={restaurant.id} className="cursor-pointer hover:bg-accent transition-colors">
+                      <CardContent className="p-3">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h4 className="font-medium text-sm">{restaurant.name}</h4>
+                            <p className="text-xs text-muted-foreground">{restaurant.address}, {restaurant.city}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              {restaurant.rating && (
+                                <div className="flex items-center gap-1">
+                                  <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                                  <span className="text-xs">{restaurant.rating}</span>
+                                </div>
+                              )}
+                              <Badge variant="secondary" className="text-xs px-1 py-0">
+                                {restaurant.cuisine}
+                              </Badge>
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={() => handleAddRestaurantToTrip(restaurant)}
+                            disabled={isLoading}
+                          >
+                            Add to Trip
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                  {(!restaurants || restaurants.filter(r => !r.isWishlist).length === 0) && (
+                    <p className="text-center text-muted-foreground py-8">
+                      No rated restaurants found. Rate some restaurants first to add them to your trips.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
 
-          {selectedPlace && (
+          {selectedPlace && activeTab === 'search' && (
             <>
               {/* Selected Place */}
               <div className="space-y-2">
@@ -524,12 +604,14 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
             <Button variant="outline" onClick={handleClose} disabled={isLoading}>
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={isLoading || !selectedPlace || !tripId}
-            >
-              {isLoading ? 'Saving...' : 'Save Rating'}
-            </Button>
+            {activeTab === 'search' && (
+              <Button
+                type="submit"
+                disabled={isLoading || !selectedPlace || !tripId}
+              >
+                {isLoading ? 'Saving...' : 'Save Rating'}
+              </Button>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>
