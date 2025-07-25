@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { usePlaceRatings } from '@/hooks/usePlaceRatings';
+import { PlaceRating } from '@/hooks/useTrips';
 import { supabase } from '@/integrations/supabase/client';
 
 interface PlaceRatingDialogProps {
@@ -207,7 +208,7 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
         trip_id: tripId,
         place_id: selectedPlace.place_id,
         place_name: selectedPlace.name,
-        place_type: placeType,
+        place_type: placeType as PlaceRating['place_type'],
         address: selectedPlace.formatted_address,
         latitude: selectedPlace.geometry.location.lat,
         longitude: selectedPlace.geometry.location.lng,
