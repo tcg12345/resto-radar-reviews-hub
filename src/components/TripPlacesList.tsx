@@ -87,6 +87,43 @@ export function TripPlacesList({
     displayMode = 'expanded';
   }
 
+  // Calculate grid columns and aspect ratio based on available space
+  const getCardLayout = () => {
+    if (displayMode === 'minimal') {
+      return { 
+        gridCols: 'grid-cols-1',
+        aspectRatio: 'aspect-[6/1]', // Very wide
+        maxHeight: 'max-h-16'
+      };
+    } else if (displayMode === 'compact') {
+      return { 
+        gridCols: 'grid-cols-1',
+        aspectRatio: 'aspect-[5/1]', // Wide
+        maxHeight: 'max-h-20'
+      };
+    } else if (displayMode === 'medium') {
+      return { 
+        gridCols: 'grid-cols-1 lg:grid-cols-2',
+        aspectRatio: 'aspect-[4/1]', // Wide
+        maxHeight: 'max-h-24'
+      };
+    } else if (displayMode === 'full') {
+      return { 
+        gridCols: 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3',
+        aspectRatio: 'aspect-[3/1]', // Landscape
+        maxHeight: 'max-h-32'
+      };
+    } else {
+      return { 
+        gridCols: 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4',
+        aspectRatio: 'aspect-[3/1]', // Landscape
+        maxHeight: 'max-h-36'
+      };
+    }
+  };
+
+  const cardLayout = getCardLayout();
+
   if (ratings.length === 0) {
     return (
       <div className="p-6 text-center">
@@ -105,11 +142,11 @@ export function TripPlacesList({
   }
 
   return (
-    <div className={`space-y-3 ${displayMode === 'minimal' ? 'p-2' : 'px-4 pt-4'}`}>
+    <div className={`${cardLayout.gridCols} gap-4 ${displayMode === 'minimal' ? 'p-2' : 'px-4 pt-4'}`}>
       {ratings.map((rating) => (
         <Card
           key={rating.id}
-          className={`group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 border-border/50 hover:border-primary/30 bg-gradient-to-br from-card via-card to-card/80 backdrop-blur-sm ${
+          className={`group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 border-border/50 hover:border-primary/30 bg-gradient-to-br from-card via-card to-card/80 backdrop-blur-sm ${cardLayout.aspectRatio} ${cardLayout.maxHeight} ${
             selectedPlaceId === rating.id 
               ? 'ring-2 ring-primary/50 bg-primary/5 shadow-lg shadow-primary/20' 
               : 'hover:bg-gradient-to-br hover:from-card hover:via-muted/20 hover:to-card'
