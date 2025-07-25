@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { Star, MapPin, Calendar, MoreVertical, Eye, Edit, ExternalLink, Phone } from 'lucide-react';
+import { MichelinStarIcon } from '@/components/MichelinStarIcon';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -36,6 +36,17 @@ export function TripDetailPlaceListItem({
       case 'restaurant': return '🍽️';
       case 'attraction': return '🎯';
       case 'hotel': return '🏨';
+      case 'museum': return '🏛️';
+      case 'park': return '🌳';
+      case 'shopping': return '🛍️';
+      case 'entertainment': return '🎭';
+      case 'transport': return '🚌';
+      case 'spa': return '💆';
+      case 'bar': return '🍷';
+      case 'cafe': return '☕';
+      case 'beach': return '🏖️';
+      case 'landmark': return '🗿';
+      case 'activity': return '⚡';
       default: return '📍';
     }
   };
@@ -63,6 +74,18 @@ export function TripDetailPlaceListItem({
     return '$'.repeat(priceRange);
   };
 
+  const renderMichelinStars = (michelinStars?: number) => {
+    if (!michelinStars || michelinStars === 0) return null;
+    return (
+      <div className="flex items-center gap-1">
+        <span className="text-xs font-medium text-yellow-600">Michelin</span>
+        {Array.from({ length: michelinStars }, (_, i) => (
+          <MichelinStarIcon key={i} className="w-3 h-3 text-yellow-500 fill-current" />
+        ))}
+      </div>
+    );
+  };
+
   return (
     <Card
       className={`cursor-pointer transition-all duration-200 hover:shadow-sm group ${
@@ -72,56 +95,66 @@ export function TripDetailPlaceListItem({
       onMouseEnter={() => onSelect(place.id)}
     >
       <CardContent className="p-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between">
           {/* Left section */}
-          <div className="flex items-center gap-3 min-w-0 flex-1">
-            <span className="text-lg flex-shrink-0">{getPlaceIcon(place.place_type)}</span>
+          <div className="flex items-start gap-3 min-w-0 flex-1">
+            <span className="text-lg flex-shrink-0 mt-1">{getPlaceIcon(place.place_type)}</span>
             
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className={`font-medium line-clamp-1 ${compact ? 'text-sm' : 'text-base'}`}>
-                  {place.place_name}
-                </h3>
-                <Badge variant="secondary" className="text-xs capitalize flex-shrink-0">
-                  {place.place_type}
-                </Badge>
+              <h3 className={`font-medium line-clamp-1 ${compact ? 'text-sm' : 'text-base'}`}>
+                {place.place_name}
+              </h3>
+              
+              {/* Cuisine, Type, and Price Row */}
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                {place.cuisine && (
+                  <span className="text-xs text-white bg-primary px-2 py-1 rounded-full font-medium">
+                    {place.cuisine}
+                  </span>
+                )}
+                {place.place_type && !place.cuisine && (
+                  <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full capitalize">
+                    {place.place_type}
+                  </span>
+                )}
+                {place.price_range && (
+                  <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                    {getPriceDisplay(place.price_range)}
+                  </span>
+                )}
+              </div>
+
+              {/* Rating and Michelin Stars */}
+              <div className="flex items-center gap-3 mt-1 flex-wrap">
+                {place.overall_rating && renderStars(place.overall_rating)}
+                {renderMichelinStars(place.michelin_stars)}
               </div>
               
-              <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                {place.address && (
-                  <div className="flex items-center gap-1 min-w-0 flex-1">
-                    <MapPin className="w-3 h-3 flex-shrink-0" />
-                    <span className="line-clamp-1">{place.address}</span>
-                  </div>
-                )}
-                
-                {place.date_visited && (
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <Calendar className="w-3 h-3" />
-                    <span>{format(new Date(place.date_visited), 'MMM d')}</span>
-                  </div>
-                )}
-              </div>
+              {/* Address and Date */}
+              {!compact && (
+                <div className="mt-2 space-y-1">
+                  {place.address && (
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <MapPin className="w-3 h-3 flex-shrink-0" />
+                      <span className="line-clamp-1">{place.address}</span>
+                    </div>
+                  )}
+                  {place.date_visited && (
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Calendar className="w-3 h-3 flex-shrink-0" />
+                      <span>Visited: {new Date(place.date_visited).toLocaleDateString()}</span>
+                    </div>
+                  )}
+                  {place.notes && (
+                    <p className="text-xs text-muted-foreground line-clamp-2">{place.notes}</p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Right section */}
-          <div className="flex items-center gap-3 flex-shrink-0">
-            {!compact && (
-              <div className="text-right">
-                {place.overall_rating ? (
-                  renderStars(place.overall_rating)
-                ) : (
-                  <span className="text-xs text-muted-foreground">Not rated</span>
-                )}
-                {place.price_range && (
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {getPriceDisplay(place.price_range)}
-                  </div>
-                )}
-              </div>
-            )}
-            
+          {/* Right section - Dropdown Menu */}
+          <div className="flex items-start flex-shrink-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button 
@@ -152,12 +185,6 @@ export function TripDetailPlaceListItem({
             </DropdownMenu>
           </div>
         </div>
-
-        {!compact && place.notes && (
-          <p className="text-xs text-muted-foreground mt-2 line-clamp-1 ml-8">
-            {place.notes}
-          </p>
-        )}
       </CardContent>
     </Card>
   );

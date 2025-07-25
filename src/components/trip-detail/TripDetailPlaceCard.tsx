@@ -67,11 +67,12 @@ export function TripDetailPlaceCard({
   };
 
   const renderMichelinStars = (michelinStars?: number) => {
-    if (!michelinStars) return null;
+    if (!michelinStars || michelinStars === 0) return null;
     return (
       <div className="flex items-center gap-1">
+        <span className="text-xs font-medium text-yellow-600">Michelin</span>
         {Array.from({ length: michelinStars }, (_, i) => (
-          <MichelinStarIcon key={i} className="w-3 h-3" />
+          <MichelinStarIcon key={i} className="w-4 h-4 text-yellow-500 fill-current" />
         ))}
       </div>
     );
@@ -116,13 +117,18 @@ export function TripDetailPlaceCard({
               {/* Cuisine and Price Range Row */}
               {!compact && (
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  {place.place_type === 'restaurant' && (
-                    <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full">
-                      Restaurant
+                  {place.cuisine && (
+                    <span className="text-xs text-white bg-primary px-2 py-1 rounded-full font-medium">
+                      {place.cuisine}
+                    </span>
+                  )}
+                  {place.place_type && place.place_type !== 'restaurant' && (
+                    <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full capitalize">
+                      {place.place_type}
                     </span>
                   )}
                   {place.price_range && (
-                    <span className="text-xs font-medium text-green-600">
+                    <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">
                       {getPriceDisplay(place.price_range)}
                     </span>
                   )}
@@ -130,7 +136,7 @@ export function TripDetailPlaceCard({
               )}
 
               {/* Rating and Michelin Stars */}
-              <div className="flex items-center gap-2 mt-1">
+              <div className="flex items-center gap-3 mt-1 flex-wrap">
                 {place.overall_rating && renderStars(place.overall_rating)}
                 {renderMichelinStars(place.michelin_stars)}
               </div>

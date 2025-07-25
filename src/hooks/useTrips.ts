@@ -23,6 +23,7 @@ export interface PlaceRating {
   place_id?: string;
   place_name: string;
   place_type: 'restaurant' | 'attraction' | 'hotel' | 'museum' | 'park' | 'shopping' | 'entertainment' | 'transport' | 'spa' | 'bar' | 'cafe' | 'beach' | 'landmark' | 'activity' | 'other';
+  cuisine?: string;
   address?: string;
   latitude?: number;
   longitude?: number;

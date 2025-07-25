@@ -1,5 +1,6 @@
 import React from 'react';
 import { Star, MapPin, Calendar, Globe, Phone, Clock, DollarSign, Edit, X, Navigation, Trash2 } from 'lucide-react';
+import { MichelinStarIcon } from '@/components/MichelinStarIcon';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,7 @@ interface PlaceRating {
   id: string;
   place_name: string;
   place_type: string;
+  cuisine?: string;
   address?: string;
   overall_rating?: number;
   category_ratings?: any;
@@ -18,6 +20,7 @@ interface PlaceRating {
   notes?: string;
   photos?: string[];
   price_range?: number;
+  michelin_stars?: number;
   latitude?: number;
   longitude?: number;
   website?: string;
@@ -42,26 +45,43 @@ export function PlaceDetailsModal({ place, isOpen, onClose, onEdit, onDelete }: 
 
   const getPlaceIcon = (placeType: string) => {
     switch (placeType.toLowerCase()) {
-      case 'restaurant':
-        return '🍽️';
-      case 'hotel':
-        return '🏨';
-      case 'attraction':
-        return '🎯';
-      case 'museum':
-        return '🏛️';
-      case 'park':
-        return '🌳';
-      default:
-        return '📍';
+      case 'restaurant': return '🍽️';
+      case 'hotel': return '🏨';
+      case 'attraction': return '🎯';
+      case 'museum': return '🏛️';
+      case 'park': return '🌳';
+      case 'shopping': return '🛍️';
+      case 'entertainment': return '🎭';
+      case 'transport': return '🚌';
+      case 'spa': return '💆';
+      case 'bar': return '🍷';
+      case 'cafe': return '☕';
+      case 'beach': return '🏖️';
+      case 'landmark': return '🗿';
+      case 'activity': return '⚡';
+      default: return '📍';
     }
+  };
+
+  const renderMichelinStars = (michelinStars?: number) => {
+    if (!michelinStars || michelinStars === 0) return null;
+    return (
+      <div className="flex items-center gap-2 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+        <span className="text-sm font-semibold text-yellow-800">Michelin Guide</span>
+        <div className="flex items-center gap-1">
+          {Array.from({ length: michelinStars }, (_, i) => (
+            <MichelinStarIcon key={i} className="w-5 h-5 text-yellow-600 fill-current" />
+          ))}
+        </div>
+      </div>
+    );
   };
 
   const renderStarRating = (rating?: number) => {
     if (!rating) return null;
     
-    const fullStars = Math.floor(rating / 2);
-    const halfStar = rating % 2 >= 1;
+    const fullStars = Math.floor(rating);
+    const halfStar = rating % 1 >= 0.5;
     const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
 
     return (
@@ -73,7 +93,7 @@ export function PlaceDetailsModal({ place, isOpen, onClose, onEdit, onDelete }: 
         {[...Array(emptyStars)].map((_, i) => (
           <Star key={i} className="w-4 h-4 text-gray-300" />
         ))}
-        <span className="ml-2 text-sm font-medium">{rating}/10</span>
+        <span className="ml-2 text-sm font-medium">{rating}/5</span>
       </div>
     );
   };
@@ -100,9 +120,21 @@ export function PlaceDetailsModal({ place, isOpen, onClose, onEdit, onDelete }: 
               <span className="text-3xl">{getPlaceIcon(place.place_type)}</span>
               <div>
                 <DialogTitle className="text-xl font-bold">{place.place_name}</DialogTitle>
-                <Badge variant="secondary" className="mt-1">
-                  {place.place_type}
-                </Badge>
+                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                  {place.cuisine && (
+                    <Badge variant="default" className="bg-primary text-primary-foreground">
+                      {place.cuisine}
+                    </Badge>
+                  )}
+                  <Badge variant="secondary" className="capitalize">
+                    {place.place_type}
+                  </Badge>
+                  {place.price_range && (
+                    <Badge variant="outline" className="text-green-600 border-green-600">
+                      {getPriceDisplay(place.price_range)}
+                    </Badge>
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -131,6 +163,35 @@ export function PlaceDetailsModal({ place, isOpen, onClose, onEdit, onDelete }: 
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Photos Section */}
+          {place.photos && place.photos.length > 0 && (
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-semibold mb-3 flex items-center gap-2">
+                  📸 Photos ({place.photos.length})
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {place.photos.map((photo, index) => (
+                    <div key={index} className="aspect-square rounded-lg overflow-hidden bg-muted">
+                      <img
+                        src={photo}
+                        alt={`${place.place_name} photo ${index + 1}`}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
+                        onClick={() => window.open(photo, '_blank')}
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Michelin Stars */}
+          {renderMichelinStars(place.michelin_stars)}
+
           {/* Rating Section */}
           {place.overall_rating && (
             <Card>
@@ -158,14 +219,14 @@ export function PlaceDetailsModal({ place, isOpen, onClose, onEdit, onDelete }: 
                           <Star
                             key={i}
                             className={`w-3 h-3 ${
-                              i < Math.floor((score as number) / 2)
+                              i < Math.floor(score as number)
                                 ? 'fill-yellow-400 text-yellow-400'
                                 : 'text-gray-300'
                             }`}
                           />
                         ))}
                         <span className="ml-1 text-xs text-muted-foreground">
-                          {score as number}/10
+                          {score as number}/5
                         </span>
                       </div>
                     </div>
@@ -272,29 +333,6 @@ export function PlaceDetailsModal({ place, isOpen, onClose, onEdit, onDelete }: 
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   {place.notes}
                 </p>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Photos */}
-          {place.photos && place.photos.length > 0 && (
-            <Card>
-              <CardContent className="p-4">
-                <h3 className="font-semibold mb-3 flex items-center gap-2">
-                  📸 Photos ({place.photos.length})
-                </h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {place.photos.map((photo, index) => (
-                    <div key={index} className="aspect-square rounded-lg overflow-hidden bg-muted">
-                      <img
-                        src={photo}
-                        alt={`${place.place_name} photo ${index + 1}`}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
-                        onClick={() => window.open(photo, '_blank')}
-                      />
-                    </div>
-                  ))}
-                </div>
               </CardContent>
             </Card>
           )}
