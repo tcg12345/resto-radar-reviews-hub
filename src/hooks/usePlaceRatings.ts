@@ -124,6 +124,45 @@ export function usePlaceRatings(tripId?: string) {
 
   useEffect(() => {
     loadRatings();
+
+    // Set up real-time subscription for place ratings
+    if (user && tripId) {
+      const channel = supabase
+        .channel('place-ratings-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'place_ratings',
+            filter: `trip_id=eq.${tripId}`
+          },
+          (payload) => {
+            console.log('Real-time place rating change:', payload);
+            if (payload.eventType === 'INSERT') {
+              setRatings(prev => {
+                // Check if we already have this rating to avoid duplicates
+                const exists = prev.find(r => r.id === payload.new.id);
+                if (!exists) {
+                  return [payload.new as PlaceRating, ...prev];
+                }
+                return prev;
+              });
+            } else if (payload.eventType === 'UPDATE') {
+              setRatings(prev => prev.map(rating => 
+                rating.id === payload.new.id ? payload.new as PlaceRating : rating
+              ));
+            } else if (payload.eventType === 'DELETE') {
+              setRatings(prev => prev.filter(rating => rating.id !== payload.old.id));
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
   }, [user, tripId]);
 
   return {
