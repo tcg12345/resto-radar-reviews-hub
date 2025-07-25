@@ -160,17 +160,11 @@ export default function TripDetailPage() {
       <TripDetailHeader 
         trip={trip}
         tripStatus={tripStatus}
-        totalPlaces={ratings.length}
+        ratings={ratings}
         onBack={() => navigate('/travel')}
         onAddPlace={() => setIsPlaceRatingDialogOpen(true)}
       />
 
-      {/* Stats Overview */}
-      <div className="border-b bg-muted/30">
-        <div className="container mx-auto px-4 py-1">
-          <TripDetailStats ratings={ratings} />
-        </div>
-      </div>
 
       {/* Main Content */}
       <div className="flex-1">

@@ -1,13 +1,14 @@
-import { ArrowLeft, Plus, Star, MapPin, Calendar, Users, Share2, Settings } from 'lucide-react';
+import { ArrowLeft, Plus, Star, MapPin, Calendar, Users, Share2, Settings, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Trip } from '@/hooks/useTrips';
+import { PlaceRating } from '@/hooks/useTrips';
 import { format } from 'date-fns';
 
 interface TripDetailHeaderProps {
   trip: Trip;
   tripStatus: { status: string; label: string; color: string } | null;
-  totalPlaces: number;
+  ratings: PlaceRating[];
   onBack: () => void;
   onAddPlace: () => void;
 }
@@ -15,10 +16,51 @@ interface TripDetailHeaderProps {
 export function TripDetailHeader({ 
   trip, 
   tripStatus, 
-  totalPlaces, 
+  ratings, 
   onBack, 
   onAddPlace 
 }: TripDetailHeaderProps) {
+  const totalPlaces = ratings.length;
+  const restaurantCount = ratings.filter(r => r.place_type === 'restaurant').length;
+  const attractionCount = ratings.filter(r => r.place_type === 'attraction').length;
+  
+  const avgRating = totalPlaces > 0 
+    ? ratings.reduce((acc, r) => acc + (r.overall_rating || 0), 0) / totalPlaces
+    : 0;
+    
+  const ratedPlaces = ratings.filter(r => r.overall_rating && r.overall_rating > 0).length;
+  const highRatedPlaces = ratings.filter(r => r.overall_rating && r.overall_rating >= 4).length;
+
+  const stats = [
+    {
+      label: 'Total Places',
+      value: totalPlaces,
+      subtext: `${ratedPlaces} rated`,
+      icon: MapPin,
+      color: 'text-blue-600 bg-blue-50'
+    },
+    {
+      label: 'Avg Rating',
+      value: avgRating > 0 ? avgRating.toFixed(1) : '—',
+      subtext: `${highRatedPlaces} excellent`,
+      icon: Star,
+      color: 'text-yellow-600 bg-yellow-50'
+    },
+    {
+      label: 'Restaurants',
+      value: restaurantCount,
+      subtext: totalPlaces > 0 ? `${Math.round((restaurantCount / totalPlaces) * 100)}%` : '0%',
+      icon: Users,
+      color: 'text-green-600 bg-green-50'
+    },
+    {
+      label: 'Attractions',
+      value: attractionCount,
+      subtext: totalPlaces > 0 ? `${Math.round((attractionCount / totalPlaces) * 100)}%` : '0%',
+      icon: TrendingUp,
+      color: 'text-purple-600 bg-purple-50'
+    }
+  ];
   return (
     <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b">
       <div className="container mx-auto px-4 py-3 lg:py-4">
@@ -113,6 +155,29 @@ export function TripDetailHeader({
                   {trip.destination}
                 </div>
               </div>
+              
+              {/* Stats in Header */}
+              {totalPlaces > 0 && (
+                <div className="bg-background rounded-lg border border-border/50 p-2 mt-3">
+                  <div className="flex items-center justify-between gap-1">
+                    {stats.map((stat) => {
+                      const Icon = stat.icon;
+                      return (
+                        <div key={stat.label} className="flex items-center gap-1 min-w-0 flex-1">
+                          <div className={`p-1 rounded ${stat.color}`}>
+                            <Icon className="w-3 h-3" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-xs font-medium text-muted-foreground">{stat.label}</div>
+                            <div className="text-sm font-bold">{stat.value}</div>
+                            <div className="text-xs text-muted-foreground">{stat.subtext}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
               
               {trip.description && (
                 <p className="text-sm text-muted-foreground max-w-2xl mt-2">
