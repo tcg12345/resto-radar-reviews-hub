@@ -109,7 +109,7 @@ export function usePlaceRatings(tripId?: string) {
         notes: restaurantData.notes,
         photos: restaurantData.photos,
         website: restaurantData.website,
-        phone_number: restaurantData.phoneNumber,
+        phone_number: restaurantData.phone_number,
         price_range: restaurantData.priceRange,
         date_visited: restaurantData.dateVisited,
       };
