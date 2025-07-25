@@ -223,7 +223,7 @@ export default function TripDetailPage() {
                 )}
               </div>
               
-               <ScrollArea className="flex-1 overflow-y-auto h-full">
+               <ScrollArea className="flex-1">
                  <TripPlacesList
                    ratings={ratings}
                    selectedPlaceId={selectedPlaceId}
