@@ -191,16 +191,22 @@ export function PlaceDetailsModal({ place, isOpen, onClose, onEdit }: PlaceDetai
               )}
 
               {place.website && (
-                <div className="flex items-center gap-3">
-                  <Globe className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                  <a
-                    href={place.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-primary hover:underline"
+                <div className="pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                    className="w-full justify-start gap-3 h-10 border-blue-200 bg-blue-50 hover:bg-blue-100 hover:border-blue-300 text-blue-700 hover:text-blue-800"
                   >
-                    Visit Website
-                  </a>
+                    <a
+                      href={place.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Globe className="w-4 h-4" />
+                      Visit Website
+                    </a>
+                  </Button>
                 </div>
               )}
 
@@ -216,17 +222,23 @@ export function PlaceDetailsModal({ place, isOpen, onClose, onEdit }: PlaceDetai
                 </div>
               )}
 
-              {/* Directions Link */}
-              <div className="flex items-center gap-3">
-                <Navigation className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                <a
-                  href={getDirectionsUrl()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-primary hover:underline font-medium"
+              {/* Directions Button */}
+              <div className="pt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className="w-full justify-start gap-3 h-10 border-green-200 bg-green-50 hover:bg-green-100 hover:border-green-300 text-green-700 hover:text-green-800"
                 >
-                  Get Directions
-                </a>
+                  <a
+                    href={getDirectionsUrl()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Navigation className="w-4 h-4" />
+                    Get Directions
+                  </a>
+                </Button>
               </div>
             </CardContent>
           </Card>
