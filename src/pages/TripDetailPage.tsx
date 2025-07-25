@@ -223,7 +223,7 @@ export default function TripDetailPage() {
                 )}
               </div>
               
-              <div className="flex-1 overflow-y-auto">
+              <ScrollArea className="flex-1">
                 <TripPlacesList
                   ratings={ratings}
                   selectedPlaceId={selectedPlaceId}
@@ -233,7 +233,7 @@ export default function TripDetailPage() {
                   onEditPlace={setIsPlaceRatingDialogOpen}
                   panelSize={listPanelSize}
                 />
-              </div>
+              </ScrollArea>
             </ResizablePanel>
             
             <ResizableHandle withHandle />
