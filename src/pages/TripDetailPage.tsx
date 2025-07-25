@@ -21,7 +21,7 @@ export default function TripDetailPage() {
   const { tripId } = useParams<{ tripId: string }>();
   const navigate = useNavigate();
   const { trips, loading } = useTrips();
-  const { ratings, deleteRating } = usePlaceRatings(tripId);
+  const { ratings } = usePlaceRatings(tripId);
   const { updatePlaceWebsites, isUpdating } = useUpdatePlaceWebsites();
   const [isPlaceRatingDialogOpen, setIsPlaceRatingDialogOpen] = useState(false);
   const [isAddRestaurantDialogOpen, setIsAddRestaurantDialogOpen] = useState(false);
@@ -69,14 +69,6 @@ export default function TripDetailPage() {
     // This opens the details modal
     setSelectedPlaceId(placeId);
     setIsPlaceDetailsModalOpen(true);
-  };
-
-  const handleDeletePlace = (placeId: string) => {
-    deleteRating(placeId);
-    // Clear selection if the deleted place was selected
-    if (selectedPlaceId === placeId) {
-      setSelectedPlaceId(null);
-    }
   };
 
   return (
@@ -239,7 +231,6 @@ export default function TripDetailPage() {
                   onPlaceClick={handlePlaceClick}
                   onPlaceDetails={handlePlaceDetails}
                   onEditPlace={setIsPlaceRatingDialogOpen}
-                  onDeletePlace={handleDeletePlace}
                   panelSize={listPanelSize}
                 />
               </div>
@@ -282,7 +273,6 @@ export default function TripDetailPage() {
                     onPlaceClick={handlePlaceClick}
                     onPlaceDetails={handlePlaceDetails}
                     onEditPlace={setIsPlaceRatingDialogOpen}
-                    onDeletePlace={handleDeletePlace}
                     panelSize={100} // Full width on mobile
                   />
                 </div>
