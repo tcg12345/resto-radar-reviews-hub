@@ -29,6 +29,8 @@ export default function TripDetailPage() {
   const [listPanelSize, setListPanelSize] = useState(25); // Default to 25% for the list
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [placeToDelete, setPlaceToDelete] = useState<string | null>(null);
+  const [editPlaceId, setEditPlaceId] = useState<string | null>(null);
+  const [editPlaceData, setEditPlaceData] = useState<any>(null);
   const mapRef = useRef<TripMapViewRef>(null);
   
   const trip = trips.find(t => t.id === tripId);
@@ -75,6 +77,22 @@ export default function TripDetailPage() {
   const handleDeletePlace = (placeId: string) => {
     setPlaceToDelete(placeId);
     setDeleteDialogOpen(true);
+  };
+
+  const handleEditPlace = (placeId: string) => {
+    if (placeId === "") {
+      // New place mode
+      setEditPlaceId(null);
+      setEditPlaceData(null);
+    } else {
+      // Edit existing place mode
+      const placeToEdit = ratings.find(r => r.id === placeId);
+      if (placeToEdit) {
+        setEditPlaceId(placeId);
+        setEditPlaceData(placeToEdit);
+      }
+    }
+    setIsPlaceRatingDialogOpen(true);
   };
 
   const confirmDelete = async () => {
@@ -236,7 +254,7 @@ export default function TripDetailPage() {
                       onPlaceSelect={handlePlaceSelect}
                       onPlaceClick={handlePlaceClick}
                       onPlaceDetails={handlePlaceDetails}
-                      onEditPlace={setIsPlaceRatingDialogOpen}
+                       onEditPlace={handleEditPlace}
                       panelSize={listPanelSize}
                     />
                  </div>
@@ -279,7 +297,7 @@ export default function TripDetailPage() {
                     onPlaceSelect={handlePlaceSelect}
                     onPlaceClick={handlePlaceClick}
                     onPlaceDetails={handlePlaceDetails}
-                    onEditPlace={setIsPlaceRatingDialogOpen}
+                    onEditPlace={handleEditPlace}
                     panelSize={100} // Full width on mobile
                   />
                 </div>
@@ -303,8 +321,14 @@ export default function TripDetailPage() {
       {/* Dialogs */}
       <PlaceRatingDialog
         isOpen={isPlaceRatingDialogOpen}
-        onClose={() => setIsPlaceRatingDialogOpen(false)}
+        onClose={() => {
+          setIsPlaceRatingDialogOpen(false);
+          setEditPlaceId(null);
+          setEditPlaceData(null);
+        }}
         tripId={tripId}
+        editPlaceId={editPlaceId}
+        editPlaceData={editPlaceData}
       />
       
       <AddRestaurantToTripDialog

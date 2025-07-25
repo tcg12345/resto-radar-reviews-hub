@@ -15,6 +15,8 @@ interface PlaceRatingDialogProps {
   isOpen: boolean;
   onClose: () => void;
   tripId?: string | null;
+  editPlaceId?: string | null;
+  editPlaceData?: any;
 }
 
 interface GooglePlace {
@@ -40,7 +42,7 @@ const RATING_CATEGORIES = {
   hotel: ['Cleanliness', 'Service', 'Location', 'Value for Money'],
 };
 
-export function PlaceRatingDialog({ isOpen, onClose, tripId }: PlaceRatingDialogProps) {
+export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPlaceData }: PlaceRatingDialogProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<GooglePlace[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<GooglePlace | null>(null);
@@ -54,7 +56,9 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId }: PlaceRatingDialog
   const [showSuggestions, setShowSuggestions] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout>();
 
-  const { addRating } = usePlaceRatings(tripId || undefined);
+  const { addRating, updateRating } = usePlaceRatings(tripId || undefined);
+
+  const isEditMode = Boolean(editPlaceId && editPlaceData);
 
   const searchPlaces = async (query: string = searchQuery) => {
     if (!query.trim()) {
@@ -125,6 +129,33 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId }: PlaceRatingDialog
     }
   };
 
+  // Initialize form with edit data
+  useEffect(() => {
+    if (isEditMode && editPlaceData) {
+      setSelectedPlace({
+        place_id: editPlaceData.place_id || '',
+        name: editPlaceData.place_name,
+        formatted_address: editPlaceData.address || '',
+        geometry: {
+          location: {
+            lat: editPlaceData.latitude || 0,
+            lng: editPlaceData.longitude || 0
+          }
+        },
+        types: [],
+        website: editPlaceData.website,
+        formatted_phone_number: editPlaceData.phone_number,
+        price_level: editPlaceData.price_range
+      });
+      setSearchQuery(editPlaceData.place_name);
+      setPlaceType(editPlaceData.place_type);
+      setOverallRating(editPlaceData.overall_rating || 0);
+      setCategoryRatings(editPlaceData.category_ratings || {});
+      setNotes(editPlaceData.notes || '');
+      setDateVisited(editPlaceData.date_visited || '');
+    }
+  }, [isEditMode, editPlaceData]);
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
@@ -140,7 +171,7 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId }: PlaceRatingDialog
 
     setIsLoading(true);
     try {
-      await addRating({
+      const ratingData = {
         trip_id: tripId,
         place_id: selectedPlace.place_id,
         place_name: selectedPlace.name,
@@ -155,7 +186,13 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId }: PlaceRatingDialog
         website: selectedPlace.website,
         phone_number: selectedPlace.formatted_phone_number,
         price_range: selectedPlace.price_level,
-      });
+      };
+
+      if (isEditMode && editPlaceId) {
+        await updateRating(editPlaceId, ratingData);
+      } else {
+        await addRating(ratingData);
+      }
 
       handleClose();
     } finally {
@@ -205,10 +242,13 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId }: PlaceRatingDialog
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MapPin className="w-5 h-5" />
-            Rate a Place
+            {isEditMode ? 'Edit Place Rating' : 'Rate a Place'}
           </DialogTitle>
           <DialogDescription>
-            Search for and rate places you've visited on your trip
+            {isEditMode 
+              ? 'Update your rating and details for this place'
+              : 'Search for and rate places you\'ve visited on your trip'
+            }
           </DialogDescription>
         </DialogHeader>
 

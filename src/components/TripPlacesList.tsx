@@ -28,7 +28,7 @@ interface TripPlacesListProps {
   onPlaceSelect: (placeId: string) => void;
   onPlaceClick: (placeId: string) => void;
   onPlaceDetails: (placeId: string) => void;
-  onEditPlace: (open: boolean) => void;
+  onEditPlace: (placeId: string) => void;
   panelSize: number; // Panel size as percentage
 }
 
@@ -94,7 +94,7 @@ export function TripPlacesList({
         <p className="text-sm text-muted-foreground mb-4">
           Start rating places you've visited on this trip
         </p>
-        <Button onClick={() => onEditPlace(true)} size="sm">
+        <Button onClick={() => onEditPlace("")} size="sm">
           Add Your First Place
         </Button>
       </div>
@@ -318,7 +318,7 @@ export function TripPlacesList({
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onEditPlace(true);
+                        onEditPlace(rating.id);
                       }}
                       className="h-7 px-2 text-xs border-muted-foreground/20 hover:bg-muted/50 hover:border-muted-foreground/30"
                     >
@@ -441,7 +441,7 @@ export function TripPlacesList({
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onEditPlace(true);
+                        onEditPlace(rating.id);
                       }}
                       className="h-8 px-3 text-sm border-muted-foreground/20 hover:bg-muted/50 hover:border-muted-foreground/30"
                     >
