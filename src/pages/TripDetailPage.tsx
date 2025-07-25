@@ -258,14 +258,14 @@ export default function TripDetailPage() {
               <TabsTrigger value="map">Map</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="places" className="flex-1 mt-2 overflow-hidden">
-              <div className="h-full flex flex-col">
-                {trip.description && (
-                  <div className="px-4 pb-2">
-                    <p className="text-sm text-muted-foreground">{trip.description}</p>
-                  </div>
-                )}
-                <div className="flex-1 overflow-y-auto">
+            <TabsContent value="places" className="flex-1 mt-2">
+              <ScrollArea className="h-full">
+                <div className="pb-4">
+                  {trip.description && (
+                    <div className="px-4 pb-2">
+                      <p className="text-sm text-muted-foreground">{trip.description}</p>
+                    </div>
+                  )}
                   <TripPlacesList
                     ratings={ratings}
                     selectedPlaceId={selectedPlaceId}
@@ -276,7 +276,7 @@ export default function TripDetailPage() {
                     panelSize={100} // Full width on mobile
                   />
                 </div>
-              </div>
+              </ScrollArea>
             </TabsContent>
             
             <TabsContent value="map" className="flex-1 mt-2 overflow-hidden">
