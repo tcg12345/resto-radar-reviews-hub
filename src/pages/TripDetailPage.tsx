@@ -52,7 +52,7 @@ export default function TripDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b">
         <div className="container mx-auto px-4 py-4">
@@ -119,7 +119,7 @@ export default function TripDetailPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex h-[calc(100vh-120px)] overflow-hidden">
+      <div className="flex flex-1 overflow-hidden">
         {/* Left Sidebar - Places List */}
         <div className="w-96 border-r bg-background flex flex-col">
           <div className="p-4 border-b flex-shrink-0">
