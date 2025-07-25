@@ -24,8 +24,8 @@ export function TripOverviewCard({ trip }: TripOverviewCardProps) {
     ? ratings.reduce((acc, r) => acc + (r.overall_rating || 0), 0) / ratings.length
     : 0;
 
-  const handleViewTrip = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleViewTrip = () => {
+    console.log('Navigating to trip:', trip.id); // Debug log
     navigate(`/trip/${trip.id}`);
   };
 
@@ -95,7 +95,7 @@ export function TripOverviewCard({ trip }: TripOverviewCardProps) {
         )}
 
         {/* View Button */}
-        <Button onClick={handleViewTrip} className="w-full" size="sm">
+        <Button onClick={(e) => { e.stopPropagation(); handleViewTrip(); }} className="w-full" size="sm">
           <Eye className="w-4 h-4 mr-2" />
           View Trip Details
         </Button>
