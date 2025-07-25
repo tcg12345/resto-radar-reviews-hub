@@ -1,0 +1,189 @@
+import { useState, useEffect, useRef } from 'react';
+import { Search, Plane, MapPin } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+
+interface AirportSuggestion {
+  id: string;
+  iataCode: string;
+  name: string;
+  cityName: string;
+  countryName: string;
+  description: string;
+}
+
+interface AirportSearchProps {
+  value: string;
+  onChange: (value: string) => void;
+  onAirportSelect?: (airport: AirportSuggestion) => void;
+  placeholder?: string;
+  className?: string;
+}
+
+export function AirportSearch({ 
+  value, 
+  onChange, 
+  onAirportSelect, 
+  placeholder = "Search airports or enter IATA code...",
+  className 
+}: AirportSearchProps) {
+  const [airports, setAirports] = useState<AirportSuggestion[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(value);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Debounced search
+  useEffect(() => {
+    if (!searchQuery || searchQuery.length < 2) {
+      setAirports([]);
+      setShowResults(false);
+      return;
+    }
+
+    const searchTimer = setTimeout(async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('amadeus-api', {
+          body: {
+            endpoint: 'search-cities',
+            keyword: searchQuery
+          }
+        });
+
+        if (error) {
+          console.error('Error searching airports:', error);
+          setAirports([]);
+          return;
+        }
+
+        const transformedAirports: AirportSuggestion[] = (data?.data || []).map((airport: any) => ({
+          id: airport.id,
+          iataCode: airport.iataCode || airport.id,
+          name: airport.name,
+          cityName: airport.address?.cityName || airport.name,
+          countryName: airport.address?.countryName || '',
+          description: `${airport.name} (${airport.iataCode || airport.id}) - ${airport.address?.countryName || ''}`
+        }));
+
+        setAirports(transformedAirports);
+        setShowResults(true);
+      } catch (error) {
+        console.error('Airport search failed:', error);
+        setAirports([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(searchTimer);
+  }, [searchQuery]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setSearchQuery(newValue);
+    onChange(newValue);
+    
+    // If user types exactly 3 capital letters, treat as IATA code
+    if (/^[A-Z]{3}$/.test(newValue)) {
+      const iataAirport: AirportSuggestion = {
+        id: newValue,
+        iataCode: newValue,
+        name: `${newValue} Airport`,
+        cityName: newValue,
+        countryName: '',
+        description: `${newValue} (IATA Code)`
+      };
+      setAirports([iataAirport]);
+      setShowResults(true);
+    }
+  };
+
+  const handleAirportSelect = (airport: AirportSuggestion) => {
+    const displayValue = `${airport.name} (${airport.iataCode})`;
+    setSearchQuery(displayValue);
+    onChange(displayValue);
+    setShowResults(false);
+    onAirportSelect?.(airport);
+  };
+
+  const handleInputFocus = () => {
+    if (airports.length > 0) {
+      setShowResults(true);
+    }
+  };
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+        <Input
+          ref={inputRef}
+          type="text"
+          value={searchQuery}
+          onChange={handleInputChange}
+          onFocus={handleInputFocus}
+          placeholder={placeholder}
+          className={cn("pl-10", className)}
+        />
+        {isLoading && (
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+            <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
+      </div>
+
+      {showResults && airports.length > 0 && (
+        <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
+          {airports.map((airport) => (
+            <div
+              key={airport.id}
+              onClick={() => handleAirportSelect(airport)}
+              className="flex items-center gap-3 p-3 hover:bg-accent cursor-pointer transition-colors"
+            >
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Plane className="w-4 h-4 text-primary" />
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-sm">{airport.name}</span>
+                  <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded font-mono">
+                    {airport.iataCode}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <MapPin className="w-3 h-3" />
+                  {airport.countryName}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {showResults && searchQuery.length >= 2 && airports.length === 0 && !isLoading && (
+        <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg p-3">
+          <div className="text-sm text-muted-foreground text-center">
+            No airports found. Try searching by city name or IATA code.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

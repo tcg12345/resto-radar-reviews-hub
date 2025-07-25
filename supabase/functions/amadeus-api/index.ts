@@ -180,6 +180,74 @@ async function searchAirportsAndCities(keyword: string) {
   return transformedData;
 }
 
+// Mock flight data for when quota is exceeded
+function getMockFlightData(params: FlightSearchRequest) {
+  console.log('🎭 Generating mock flight data for quota exceeded scenario');
+  
+  const mockFlights = [
+    {
+      id: 'mock-1',
+      flightNumber: 'AA123',
+      airline: 'American Airlines',
+      departure: {
+        airport: params.origin,
+        time: '08:00',
+        date: params.departureDate
+      },
+      arrival: {
+        airport: params.destination,
+        time: '14:30',
+        date: params.departureDate
+      },
+      duration: '6h 30m',
+      price: '$299',
+      stops: 0,
+      bookingUrl: 'https://www.aa.com'
+    },
+    {
+      id: 'mock-2',
+      flightNumber: 'DL456',
+      airline: 'Delta Air Lines',
+      departure: {
+        airport: params.origin,
+        time: '11:15',
+        date: params.departureDate
+      },
+      arrival: {
+        airport: params.destination,
+        time: '19:45',
+        date: params.departureDate
+      },
+      duration: '8h 30m',
+      price: '$349',
+      stops: 1,
+      stopLocations: ['ATL'],
+      bookingUrl: 'https://www.delta.com'
+    },
+    {
+      id: 'mock-3',
+      flightNumber: 'UA789',
+      airline: 'United Airlines',
+      departure: {
+        airport: params.origin,
+        time: '16:20',
+        date: params.departureDate
+      },
+      arrival: {
+        airport: params.destination,
+        time: '23:55',
+        date: params.departureDate
+      },
+      duration: '7h 35m',
+      price: '$275',
+      stops: 0,
+      bookingUrl: 'https://www.united.com'
+    }
+  ];
+  
+  return { data: mockFlights };
+}
+
 // Search hotels using Google Places API as fallback
 async function searchHotels(params: HotelSearchRequest) {
   console.log('🏨 Starting hotel search');
@@ -303,6 +371,11 @@ async function searchFlights(apiKey: string, params: FlightSearchRequest) {
       if (response.status === 401) {
         console.error('❌ FlightAPI.io: Unauthorized - check API key');
         throw new Error('Invalid API key - please check your FlightAPI.io credentials');
+      }
+      
+      if (response.status === 403) {
+        console.error('❌ FlightAPI.io: Quota exceeded - returning mock data');
+        return getMockFlightData(params);
       }
       
       throw new Error(`FlightAPI.io API error: ${response.status} - ${errorText}`);

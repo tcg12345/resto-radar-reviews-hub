@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { useAmadeusApi } from '@/hooks/useAmadeusApi';
-import { AmadeusCitySearch } from '@/components/AmadeusCitySearch';
+import { AirportSearch } from '@/components/AirportSearch';
 
 import { toast } from 'sonner';
 
@@ -170,10 +170,9 @@ export function FlightSearchDialog({ isOpen, onClose, onSelect, locations }: Fli
                 <MapPin className="w-4 h-4" />
                 From
               </Label>
-              <AmadeusCitySearch
+              <AirportSearch
                 value={departureAirport}
                 onChange={setDepartureAirport}
-                onCitySelect={setDepartureCity}
                 placeholder="New York (JFK), London (LHR)..."
               />
             </div>
@@ -182,10 +181,9 @@ export function FlightSearchDialog({ isOpen, onClose, onSelect, locations }: Fli
                 <MapPin className="w-4 h-4" />
                 To
               </Label>
-              <AmadeusCitySearch
+              <AirportSearch
                 value={arrivalAirport}
                 onChange={setArrivalAirport}
-                onCitySelect={setArrivalCity}
                 placeholder="Paris (CDG), Tokyo (NRT)..."
               />
             </div>
