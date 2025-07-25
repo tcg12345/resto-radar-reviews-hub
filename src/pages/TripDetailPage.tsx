@@ -225,7 +225,7 @@ export default function TripDetailPage() {
               
                <div className="flex-1 overflow-hidden">
                  <ScrollArea className="h-full">
-                   <div className="min-h-full overflow-y-auto pr-2">
+                   <div className="space-y-4 p-4" style={{ minHeight: '800px' }}>
                      <TripPlacesList
                        ratings={ratings}
                        selectedPlaceId={selectedPlaceId}
