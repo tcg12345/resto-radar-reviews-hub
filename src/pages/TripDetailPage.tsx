@@ -223,20 +223,18 @@ export default function TripDetailPage() {
                 )}
               </div>
               
-               <div className="flex-1 overflow-hidden">
-                 <ScrollArea className="h-full">
-                   <div className="space-y-4 p-4" style={{ minHeight: '800px' }}>
-                     <TripPlacesList
-                       ratings={ratings}
-                       selectedPlaceId={selectedPlaceId}
-                       onPlaceSelect={handlePlaceSelect}
-                       onPlaceClick={handlePlaceClick}
-                       onPlaceDetails={handlePlaceDetails}
-                       onEditPlace={setIsPlaceRatingDialogOpen}
-                       panelSize={listPanelSize}
-                     />
-                   </div>
-                 </ScrollArea>
+               <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+                 <div className="space-y-4 p-4">
+                   <TripPlacesList
+                     ratings={ratings}
+                     selectedPlaceId={selectedPlaceId}
+                     onPlaceSelect={handlePlaceSelect}
+                     onPlaceClick={handlePlaceClick}
+                     onPlaceDetails={handlePlaceDetails}
+                     onEditPlace={setIsPlaceRatingDialogOpen}
+                     panelSize={listPanelSize}
+                   />
+                 </div>
                </div>
             </ResizablePanel>
             
