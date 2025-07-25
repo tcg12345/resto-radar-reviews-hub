@@ -1,5 +1,5 @@
 import { format, eachDayOfInterval, isSameDay } from 'date-fns';
-import { Plus, MapPin, Clock, Utensils, MapPinIcon, MoreVertical, Trash2, Edit } from 'lucide-react';
+import { Plus, MapPin, Clock, Utensils, MapPinIcon, MoreVertical, Trash2, Edit, Navigation, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -173,6 +173,32 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                              {event.attractionData && (
+                                <>
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      const { latitude, longitude, address } = event.attractionData;
+                                      const query = latitude && longitude 
+                                        ? `${latitude},${longitude}` 
+                                        : encodeURIComponent(address || event.attractionData.name);
+                                      window.open(`https://www.google.com/maps/dir/?api=1&destination=${query}`, '_blank');
+                                    }}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <Navigation className="w-4 h-4" />
+                                    Get Directions
+                                  </DropdownMenuItem>
+                                  {event.attractionData.website && (
+                                    <DropdownMenuItem
+                                      onClick={() => window.open(event.attractionData.website, '_blank')}
+                                      className="flex items-center gap-2"
+                                    >
+                                      <ExternalLink className="w-4 h-4" />
+                                      Visit Website
+                                    </DropdownMenuItem>
+                                  )}
+                                </>
+                              )}
                               <DropdownMenuItem
                                 onClick={() => onEditEvent(event)}
                                 className="flex items-center gap-2"
