@@ -226,14 +226,20 @@ export function PlaceDetailsModal({ place, isOpen, onClose, onEdit, onDelete }: 
               )}
 
               {place.phone_number && (
-                <div className="flex items-center gap-3">
-                  <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                  <a
-                    href={`tel:${place.phone_number}`}
-                    className="text-sm text-primary hover:underline"
+                <div className="pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                    className="w-full justify-start gap-3 h-10 border-orange-200 bg-orange-50 hover:bg-orange-100 hover:border-orange-300 text-orange-700 hover:text-orange-800"
                   >
-                    {place.phone_number}
-                  </a>
+                    <a
+                      href={`tel:${place.phone_number}`}
+                    >
+                      <Phone className="w-4 h-4" />
+                      Call {place.phone_number}
+                    </a>
+                  </Button>
                 </div>
               )}
 
