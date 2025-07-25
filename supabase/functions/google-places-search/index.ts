@@ -71,7 +71,6 @@ serve(async (req) => {
         url = 'https://maps.googleapis.com/maps/api/place/textsearch/json';
         params = new URLSearchParams({
           query: query,
-          type: searchType, // Use the dynamic searchType instead of hardcoded 'restaurant'
           key: apiKey,
         });
         if (location) {
@@ -103,7 +102,6 @@ serve(async (req) => {
         params = new URLSearchParams({
           location: location,
           radius: radius.toString(),
-          type: searchType, // Use the dynamic searchType instead of hardcoded 'restaurant'
           key: apiKey,
         });
         break;
@@ -112,10 +110,13 @@ serve(async (req) => {
         throw new Error('Invalid search type');
     }
 
+    console.log(`Making request to: ${url}?${params.toString()}`);
     const response = await fetch(`${url}?${params.toString()}`);
     const data = await response.json();
 
+    console.log(`Google Places API response status: ${data.status}`);
     if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
+      console.error(`Google Places API error: ${data.status} - ${data.error_message || 'Unknown error'}`);
       throw new Error(`Google Places API error: ${data.status} - ${data.error_message || 'Unknown error'}`);
     }
 
