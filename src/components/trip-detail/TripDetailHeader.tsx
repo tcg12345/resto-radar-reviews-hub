@@ -166,12 +166,18 @@ export function TripDetailHeader({
 
           {/* Stats in Middle */}
           {totalPlaces > 0 && (
-            <div className="bg-background rounded-lg border border-border/50 p-2 xl:block hidden">
+            <div className="bg-background rounded-lg border border-border/50 p-2 lg:block hidden">
               <div className="flex items-center justify-between gap-1">
                 {stats.map((stat, index) => {
                   const Icon = stat.icon;
+                  // Show all 4 on 2xl+, first 2 on xl+, first 1 on lg+
+                  const hideClass = 
+                    index >= 3 ? '2xl:flex hidden' : 
+                    index >= 2 ? 'xl:flex hidden' : 
+                    index >= 1 ? 'lg:flex hidden' : '';
+                  
                   return (
-                    <div key={stat.label} className={`flex items-center gap-1 min-w-0 flex-1 ${index > 1 ? 'lg:flex hidden' : ''}`}>
+                    <div key={stat.label} className={`flex items-center gap-1 min-w-0 flex-1 ${hideClass}`}>
                       <div className={`p-1 rounded ${stat.color}`}>
                         <Icon className="w-3 h-3" />
                       </div>
