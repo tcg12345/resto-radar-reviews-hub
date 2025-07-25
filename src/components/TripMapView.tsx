@@ -80,41 +80,60 @@ export function TripMapView({ ratings, selectedPlaceId, onPlaceSelect }: TripMap
         hasValidCoordinates = true;
         bounds.extend([rating.longitude, rating.latitude]);
 
-        // Create marker element
+        // Create custom marker element with pin design
         const markerElement = document.createElement('div');
-        markerElement.className = `
-          w-8 h-8 rounded-full border-2 cursor-pointer transition-all
-          ${selectedPlaceId === rating.id 
-            ? 'bg-primary border-primary-foreground scale-110 shadow-lg' 
-            : 'bg-background border-primary hover:scale-105'
-          }
-        `;
+        markerElement.className = 'custom-map-marker';
+        
+        const isSelected = selectedPlaceId === rating.id;
+        
         markerElement.innerHTML = `
-          <div class="w-full h-full flex items-center justify-center text-xs font-bold">
-            ${rating.overall_rating || '?'}
+          <div class="marker-pin ${isSelected ? 'selected' : ''}">
+            <div class="marker-content">
+              <div class="marker-rating">${rating.overall_rating ? Math.round(rating.overall_rating) : '?'}</div>
+            </div>
+            <div class="marker-point"></div>
           </div>
         `;
 
+        // Add click handler
         markerElement.addEventListener('click', () => {
           onPlaceSelect(rating.id);
         });
 
-        const marker = new mapboxgl.Marker(markerElement)
+        // Create marker with proper anchor
+        const marker = new mapboxgl.Marker({
+          element: markerElement,
+          anchor: 'bottom' // Anchor at the bottom point of the pin
+        })
           .setLngLat([rating.longitude, rating.latitude])
           .addTo(map.current!);
 
-        // Add popup
-        const popup = new mapboxgl.Popup({ offset: 25 })
+        // Add popup with hover
+        const popup = new mapboxgl.Popup({ 
+          offset: [0, -40], // Offset above the marker
+          closeButton: false,
+          closeOnClick: false
+        })
           .setHTML(`
-            <div class="p-2">
-              <h3 class="font-semibold text-sm">${rating.place_name}</h3>
-              <p class="text-xs text-gray-600">${rating.place_type}</p>
-              ${rating.overall_rating ? `<p class="text-xs">★ ${rating.overall_rating}/10</p>` : ''}
-              ${rating.address ? `<p class="text-xs text-gray-500">${rating.address}</p>` : ''}
+            <div class="marker-popup">
+              <h3 class="popup-title">${rating.place_name}</h3>
+              <p class="popup-type">${rating.place_type}</p>
+              ${rating.overall_rating ? `<p class="popup-rating">★ ${rating.overall_rating}/10</p>` : ''}
+              ${rating.address ? `<p class="popup-address">${rating.address}</p>` : ''}
             </div>
           `);
 
-        marker.setPopup(popup);
+        // Show popup on hover
+        markerElement.addEventListener('mouseenter', () => {
+          popup.addTo(map.current!);
+          marker.setPopup(popup);
+          popup.addTo(map.current!);
+        });
+
+        markerElement.addEventListener('mouseleave', () => {
+          popup.remove();
+        });
+
         markers.current.push(marker);
       }
     });
