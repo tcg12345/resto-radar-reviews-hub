@@ -223,31 +223,23 @@ export default function TripDetailPage() {
                 )}
               </div>
               
-              <div 
-                className="flex-1 min-h-0"
-                style={{ 
-                  height: '100%',
-                  overflow: 'hidden'
-                }}
-              >
-                <div 
-                  style={{ 
-                    height: '100%',
-                    overflowY: 'scroll',
-                    paddingRight: '4px'
-                  }}
-                >
-                  <TripPlacesList
-                    ratings={ratings}
-                    selectedPlaceId={selectedPlaceId}
-                    onPlaceSelect={handlePlaceSelect}
-                    onPlaceClick={handlePlaceClick}
-                    onPlaceDetails={handlePlaceDetails}
-                    onEditPlace={setIsPlaceRatingDialogOpen}
-                    panelSize={listPanelSize}
-                  />
-                </div>
-              </div>
+               <div 
+                 style={{
+                   height: '500px',
+                   overflowY: 'scroll',
+                   border: '1px solid red'
+                 }}
+               >
+                 <TripPlacesList
+                   ratings={ratings}
+                   selectedPlaceId={selectedPlaceId}
+                   onPlaceSelect={handlePlaceSelect}
+                   onPlaceClick={handlePlaceClick}
+                   onPlaceDetails={handlePlaceDetails}
+                   onEditPlace={setIsPlaceRatingDialogOpen}
+                   panelSize={listPanelSize}
+                 />
+               </div>
             </ResizablePanel>
             
             <ResizableHandle withHandle />
