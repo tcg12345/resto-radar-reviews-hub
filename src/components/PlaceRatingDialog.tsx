@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Search, Star, MapPin, Calendar, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -51,24 +51,28 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId }: PlaceRatingDialog
   const [dateVisited, setDateVisited] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const debounceRef = useRef<NodeJS.Timeout>();
 
   const { addRating } = usePlaceRatings(tripId || undefined);
 
-  const searchPlaces = async () => {
-    if (!searchQuery.trim()) return;
+  const searchPlaces = async (query: string = searchQuery) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      setShowSuggestions(false);
+      return;
+    }
 
-    console.log('Starting place search for:', searchQuery);
     setIsSearching(true);
+    setShowSuggestions(true);
     try {
       const { data, error } = await supabase.functions.invoke('google-places-search', {
         body: {
-          query: searchQuery,
-          type: 'search',
-          searchType: placeType === 'hotel' ? 'lodging' : placeType
+          query: query,
+          type: 'search'
+          // Remove searchType restriction to allow all types of places
         }
       });
-
-      console.log('Search response:', { data, error });
 
       if (error) {
         console.error('Edge function error:', error);
@@ -76,15 +80,9 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId }: PlaceRatingDialog
       }
       
       const results = data?.results || data?.candidates || [];
-      console.log('Search results:', results);
       setSearchResults(results);
-      
-      if (results.length === 0) {
-        console.warn('No search results found');
-      }
     } catch (error) {
       console.error('Error searching places:', error);
-      alert(`Search failed: ${error.message || 'Unknown error'}`);
     } finally {
       setIsSearching(false);
     }
@@ -93,6 +91,7 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId }: PlaceRatingDialog
   const handlePlaceSelect = (place: GooglePlace) => {
     setSelectedPlace(place);
     setSearchResults([]);
+    setShowSuggestions(false);
     setSearchQuery(place.name);
     
     // Auto-detect place type
@@ -104,6 +103,35 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId }: PlaceRatingDialog
       setPlaceType('attraction');
     }
   };
+
+  // Debounced search for autocomplete
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    
+    // Clear existing timeout
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    
+    if (value.trim().length > 2) {
+      // Debounce the search to avoid too many API calls
+      debounceRef.current = setTimeout(() => {
+        searchPlaces(value);
+      }, 300);
+    } else {
+      setSearchResults([]);
+      setShowSuggestions(false);
+    }
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,6 +171,7 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId }: PlaceRatingDialog
     setCategoryRatings({});
     setNotes('');
     setDateVisited('');
+    setShowSuggestions(false);
     onClose();
   };
 
@@ -186,55 +215,43 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId }: PlaceRatingDialog
           {/* Place Search */}
           <div className="space-y-2">
             <Label htmlFor="search">Search for a place</Label>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
+            <div className="relative">
+              <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="search"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Restaurant, attraction, hotel..."
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  placeholder="Search restaurants, attractions, hotels, shops..."
                   className="pl-10"
-                  onKeyPress={(e) => e.key === 'Enter' && e.preventDefault()}
+                  onFocus={() => searchQuery.length > 2 && setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                 />
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={searchPlaces}
-                disabled={isSearching || !searchQuery.trim()}
-              >
-                {isSearching ? 'Searching...' : 'Search'}
-              </Button>
-            </div>
-          </div>
-
-          {/* Search Results */}
-          {searchResults.length > 0 && (
-            <div className="space-y-2">
-              <Label>Search Results</Label>
-              <div className="space-y-2 max-h-48 overflow-y-auto">
-                {searchResults.map((place) => (
-                  <Card
-                    key={place.place_id}
-                    className="cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => handlePlaceSelect(place)}
-                  >
-                    <CardContent className="p-3">
+              
+              {/* Suggestions Dropdown */}
+              {showSuggestions && searchResults.length > 0 && (
+                <div className="absolute top-full left-0 right-0 z-50 mt-1 max-h-64 overflow-y-auto bg-background border rounded-md shadow-lg">
+                  {searchResults.map((place) => (
+                    <div
+                      key={place.place_id}
+                      className="p-3 hover:bg-accent cursor-pointer border-b last:border-b-0"
+                      onClick={() => handlePlaceSelect(place)}
+                    >
                       <div className="flex justify-between items-start">
-                        <div>
-                          <h4 className="font-medium">{place.name}</h4>
-                          <p className="text-sm text-muted-foreground">{place.formatted_address}</p>
+                        <div className="flex-1">
+                          <h4 className="font-medium text-sm">{place.name}</h4>
+                          <p className="text-xs text-muted-foreground line-clamp-1">{place.formatted_address}</p>
                           <div className="flex items-center gap-2 mt-1">
                             {place.rating && (
                               <div className="flex items-center gap-1">
                                 <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                                <span className="text-sm">{place.rating}</span>
+                                <span className="text-xs">{place.rating}</span>
                               </div>
                             )}
                             <div className="flex gap-1">
                               {place.types.slice(0, 2).map((type) => (
-                                <Badge key={type} variant="secondary" className="text-xs">
+                                <Badge key={type} variant="secondary" className="text-xs px-1 py-0">
                                   {type.replace(/_/g, ' ')}
                                 </Badge>
                               ))}
@@ -242,12 +259,13 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId }: PlaceRatingDialog
                           </div>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
+          </div>
+
 
           {selectedPlace && (
             <>
