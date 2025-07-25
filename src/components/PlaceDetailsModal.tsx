@@ -78,22 +78,25 @@ export function PlaceDetailsModal({ place, isOpen, onClose, onEdit, onDelete }: 
   };
 
   const renderStarRating = (rating?: number) => {
-    if (!rating) return null;
+    if (!rating || typeof rating !== 'number' || isNaN(rating)) return null;
     
-    const fullStars = Math.floor(rating);
-    const halfStar = rating % 1 >= 0.5;
-    const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+    // Clamp rating between 0 and 5 to prevent invalid array lengths
+    const clampedRating = Math.max(0, Math.min(5, rating));
+    
+    const fullStars = Math.floor(clampedRating);
+    const halfStar = clampedRating % 1 >= 0.5;
+    const emptyStars = Math.max(0, 5 - fullStars - (halfStar ? 1 : 0));
 
     return (
       <div className="flex items-center gap-1">
-        {[...Array(fullStars)].map((_, i) => (
+        {fullStars > 0 && [...Array(fullStars)].map((_, i) => (
           <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
         ))}
         {halfStar && <Star className="w-4 h-4 fill-yellow-400/50 text-yellow-400" />}
-        {[...Array(emptyStars)].map((_, i) => (
-          <Star key={i} className="w-4 h-4 text-gray-300" />
+        {emptyStars > 0 && [...Array(emptyStars)].map((_, i) => (
+          <Star key={i + fullStars + (halfStar ? 1 : 0)} className="w-4 h-4 text-gray-300" />
         ))}
-        <span className="ml-2 text-sm font-medium">{rating}/5</span>
+        <span className="ml-2 text-sm font-medium">{clampedRating.toFixed(1)}/5</span>
       </div>
     );
   };
