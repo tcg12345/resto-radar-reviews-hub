@@ -103,7 +103,7 @@ export function TripPlacesList({
   console.log('TripPlacesList render - panelSize:', panelSize, 'displayMode:', displayMode, Date.now());
 
   return (
-    <div className={`space-y-3 ${displayMode === 'minimal' ? 'p-2' : 'p-4'}`}>
+    <div className={`space-y-3 ${displayMode === 'minimal' ? 'p-2' : 'px-4 pt-4'}`}>
       {ratings.map((rating) => (
         <Card
           key={rating.id}
