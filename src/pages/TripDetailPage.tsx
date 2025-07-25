@@ -223,8 +223,21 @@ export default function TripDetailPage() {
                 )}
               </div>
               
-              <div className="flex-1 overflow-hidden">
-                <div className="h-full overflow-y-scroll">
+              <div 
+                className="flex-1"
+                style={{ 
+                  height: 'calc(100vh - 200px)', // Fixed height calculation
+                  maxHeight: 'calc(100vh - 200px)',
+                  overflow: 'hidden'
+                }}
+              >
+                <div 
+                  className="h-full overflow-y-scroll border border-gray-300"
+                  style={{ 
+                    height: '100%',
+                    overflowY: 'scroll'
+                  }}
+                >
                   <TripPlacesList
                     ratings={ratings}
                     selectedPlaceId={selectedPlaceId}
