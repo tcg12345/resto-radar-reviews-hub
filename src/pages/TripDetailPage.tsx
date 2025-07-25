@@ -166,7 +166,7 @@ export default function TripDetailPage() {
                 onClick={() => navigate('/travel')}
                 className="p-2"
               >
-                <ArrowLeft className="w-6 h-6" />
+                <ArrowLeft className="w-8 h-8" />
               </Button>
               
               <div>
