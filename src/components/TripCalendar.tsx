@@ -1,5 +1,5 @@
 import { format, eachDayOfInterval, isSameDay } from 'date-fns';
-import { Plus, MapPin, Clock, Utensils, MapPinIcon, MoreVertical, Trash2, Edit, Navigation, ExternalLink } from 'lucide-react';
+import { Plus, MapPin, Clock, Utensils, MapPinIcon, MoreVertical, Trash2, Edit, Compass, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -185,7 +185,7 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
                                     }}
                                     className="flex items-center gap-2"
                                   >
-                                    <Navigation className="w-4 h-4" />
+                                    <Compass className="w-4 h-4" />
                                     Get Directions
                                   </DropdownMenuItem>
                                   {event.attractionData.website && (
