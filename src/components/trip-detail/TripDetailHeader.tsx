@@ -156,29 +156,6 @@ export function TripDetailHeader({
                 </div>
               </div>
               
-              {/* Stats in Header */}
-              {totalPlaces > 0 && (
-                <div className="bg-background rounded-lg border border-border/50 p-2 mt-3">
-                  <div className="flex items-center justify-between gap-1">
-                    {stats.map((stat) => {
-                      const Icon = stat.icon;
-                      return (
-                        <div key={stat.label} className="flex items-center gap-1 min-w-0 flex-1">
-                          <div className={`p-1 rounded ${stat.color}`}>
-                            <Icon className="w-3 h-3" />
-                          </div>
-                          <div className="min-w-0">
-                            <div className="text-xs font-medium text-muted-foreground">{stat.label}</div>
-                            <div className="text-sm font-bold">{stat.value}</div>
-                            <div className="text-xs text-muted-foreground">{stat.subtext}</div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-              
               {trip.description && (
                 <p className="text-sm text-muted-foreground max-w-2xl mt-2">
                   {trip.description}
@@ -186,6 +163,29 @@ export function TripDetailHeader({
               )}
             </div>
           </div>
+
+          {/* Stats in Middle */}
+          {totalPlaces > 0 && (
+            <div className="bg-background rounded-lg border border-border/50 p-2 xl:block hidden">
+              <div className="flex items-center justify-between gap-1">
+                {stats.map((stat, index) => {
+                  const Icon = stat.icon;
+                  return (
+                    <div key={stat.label} className={`flex items-center gap-1 min-w-0 flex-1 ${index > 1 ? 'lg:flex hidden' : ''}`}>
+                      <div className={`p-1 rounded ${stat.color}`}>
+                        <Icon className="w-3 h-3" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs font-medium text-muted-foreground">{stat.label}</div>
+                        <div className="text-sm font-bold">{stat.value}</div>
+                        <div className="text-xs text-muted-foreground">{stat.subtext}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <div className="flex items-center gap-3">
             <Button
