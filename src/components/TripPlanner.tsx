@@ -3,22 +3,12 @@ import { Plus, MapPin, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTrips } from '@/hooks/useTrips';
-import { usePlaceRatings } from '@/hooks/usePlaceRatings';
-import { TripMap } from '@/components/TripMap';
-import { TripList } from '@/components/TripList';
 import { CreateTripDialog } from '@/components/CreateTripDialog';
-import { PlaceRatingDialog } from '@/components/PlaceRatingDialog';
-import { AddRestaurantToTripDialog } from '@/components/AddRestaurantToTripDialog';
+import { TripOverviewCard } from '@/components/TripOverviewCard';
 
 export function TripPlanner() {
   const { trips, loading: tripsLoading } = useTrips();
-  const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
   const [isCreateTripDialogOpen, setIsCreateTripDialogOpen] = useState(false);
-  const [isPlaceRatingDialogOpen, setIsPlaceRatingDialogOpen] = useState(false);
-  const [isAddRestaurantDialogOpen, setIsAddRestaurantDialogOpen] = useState(false);
-  
-  const selectedTrip = trips.find(trip => trip.id === selectedTripId);
-  const { ratings } = usePlaceRatings(selectedTripId || undefined);
 
   if (tripsLoading) {
     return (
@@ -65,64 +55,41 @@ export function TripPlanner() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">My Trips</h2>
-          <p className="text-muted-foreground">Rate places and track your travels</p>
+          <h2 className="text-2xl font-bold text-foreground">Trip Planner</h2>
+          <p className="text-muted-foreground">Create trips and rate the places you visit</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setIsAddRestaurantDialogOpen(true)}
-            disabled={!selectedTripId}
-            className="flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Add Restaurant
-          </Button>
-          <Button onClick={() => setIsCreateTripDialogOpen(true)} className="flex items-center gap-2">
-            <Plus className="w-4 h-4" />
-            New Trip
-          </Button>
-        </div>
+        <Button onClick={() => setIsCreateTripDialogOpen(true)} className="flex items-center gap-2">
+          <Plus className="w-4 h-4" />
+          Create New Trip
+        </Button>
       </div>
 
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-12rem)]">
-        {/* Trip List - Mobile: full width, Desktop: 1 column */}
-        <div className="lg:col-span-1">
-          <TripList
-            trips={trips}
-            selectedTripId={selectedTripId}
-            onSelectTrip={setSelectedTripId}
-            onAddPlace={() => setIsPlaceRatingDialogOpen(true)}
-          />
-        </div>
-
-        {/* Map - Mobile: full width, Desktop: 3 columns */}
-        <div className="lg:col-span-3">
-          <TripMap
-            trip={selectedTrip}
-            ratings={ratings}
-            onAddPlace={() => setIsPlaceRatingDialogOpen(true)}
-          />
-        </div>
+      {/* Main Content - Completely New Layout */}
+      <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="w-5 h-5" />
+              My Trips
+            </CardTitle>
+            <CardDescription>
+              Click on any trip to view detailed places and map
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {trips.map((trip) => (
+                <TripOverviewCard key={trip.id} trip={trip} />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Dialogs */}
       <CreateTripDialog
         isOpen={isCreateTripDialogOpen}
         onClose={() => setIsCreateTripDialogOpen(false)}
-      />
-
-      <PlaceRatingDialog
-        isOpen={isPlaceRatingDialogOpen}
-        onClose={() => setIsPlaceRatingDialogOpen(false)}
-        tripId={selectedTripId}
-      />
-
-      <AddRestaurantToTripDialog
-        isOpen={isAddRestaurantDialogOpen}
-        onClose={() => setIsAddRestaurantDialogOpen(false)}
-        tripId={selectedTripId}
       />
     </div>
   );

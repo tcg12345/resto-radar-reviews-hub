@@ -17,11 +17,6 @@ interface TripListProps {
 }
 
 export function TripList({ trips, selectedTripId, onSelectTrip, onAddPlace }: TripListProps) {
-  const navigate = useNavigate();
-
-  const handleTripClick = (tripId: string) => {
-    navigate(`/trip/${tripId}`);
-  };
   return (
     <div className="space-y-4 h-full overflow-y-auto">
       <div className="flex items-center justify-between">
@@ -34,7 +29,6 @@ export function TripList({ trips, selectedTripId, onSelectTrip, onAddPlace }: Tr
           key={trip.id}
           trip={trip}
           isSelected={trip.id === selectedTripId}
-          onSelect={() => onSelectTrip(trip.id)}
           onAddPlace={onAddPlace}
         />
       ))}
@@ -45,11 +39,10 @@ export function TripList({ trips, selectedTripId, onSelectTrip, onAddPlace }: Tr
 interface TripCardProps {
   trip: Trip;
   isSelected: boolean;
-  onSelect: () => void;
   onAddPlace: () => void;
 }
 
-function TripCard({ trip, isSelected, onSelect, onAddPlace }: TripCardProps) {
+function TripCard({ trip, isSelected, onAddPlace }: TripCardProps) {
   const navigate = useNavigate();
   const { ratings } = usePlaceRatings(trip.id);
   
