@@ -225,9 +225,8 @@ export default function TripDetailPage() {
               
                <div 
                  style={{
-                   height: '500px',
-                   overflowY: 'scroll',
-                   border: '1px solid red'
+                   height: '300px',
+                   overflowY: 'scroll'
                  }}
                >
                  <TripPlacesList
