@@ -340,6 +340,7 @@ export type Database = {
           id: string
           latitude: number | null
           longitude: number | null
+          michelin_stars: number | null
           notes: string | null
           overall_rating: number | null
           phone_number: string | null
@@ -361,6 +362,7 @@ export type Database = {
           id?: string
           latitude?: number | null
           longitude?: number | null
+          michelin_stars?: number | null
           notes?: string | null
           overall_rating?: number | null
           phone_number?: string | null
@@ -382,6 +384,7 @@ export type Database = {
           id?: string
           latitude?: number | null
           longitude?: number | null
+          michelin_stars?: number | null
           notes?: string | null
           overall_rating?: number | null
           phone_number?: string | null

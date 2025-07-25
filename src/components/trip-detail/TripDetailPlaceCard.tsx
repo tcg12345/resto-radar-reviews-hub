@@ -130,7 +130,7 @@ export function TripDetailPlaceCard({
               {/* Rating and Michelin Stars */}
               <div className="flex items-center gap-2 mt-1">
                 {place.overall_rating && renderStars(place.overall_rating)}
-                {renderMichelinStars(place.category_ratings?.michelin_stars)}
+                {renderMichelinStars(place.michelin_stars)}
               </div>
             </div>
           </div>
@@ -164,42 +164,24 @@ export function TripDetailPlaceCard({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-
+        
+        {/* Address and additional info */}
         {!compact && (
-          <>
+          <div className="space-y-1 text-xs text-muted-foreground">
             {place.address && (
-              <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
-                <MapPin className="w-3 h-3" />
-                <span className="line-clamp-1">{place.address}</span>
-              </div>
+              <p className="line-clamp-1">{place.address}</p>
             )}
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="text-xs capitalize">
-                  {place.place_type}
-                </Badge>
-                {place.price_range && (
-                  <Badge variant="outline" className="text-xs">
-                    {getPriceDisplay(place.price_range)}
-                  </Badge>
-                )}
-              </div>
-              
-              {place.date_visited && (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Calendar className="w-3 h-3" />
-                  <span>{format(new Date(place.date_visited), 'MMM d')}</span>
-                </div>
-              )}
-            </div>
-
-            {place.notes && (
-              <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
-                {place.notes}
-              </p>
+            {place.date_visited && (
+              <p>Visited: {new Date(place.date_visited).toLocaleDateString()}</p>
             )}
-          </>
+          </div>
+        )}
+
+        {/* Notes */}
+        {!compact && place.notes && (
+          <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
+            {place.notes}
+          </p>
         )}
       </CardContent>
     </Card>

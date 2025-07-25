@@ -112,6 +112,7 @@ export function usePlaceRatings(tripId?: string) {
         website: restaurantData.website,
         phone_number: restaurantData.phone_number,
         price_range: restaurantData.priceRange,
+        michelin_stars: restaurantData.michelinStars,
         date_visited: restaurantData.dateVisited,
       };
 

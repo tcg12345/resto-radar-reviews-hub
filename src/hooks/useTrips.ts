@@ -34,6 +34,7 @@ export interface PlaceRating {
   website?: string;
   phone_number?: string;
   price_range?: number;
+  michelin_stars?: number;
   created_at: string;
   updated_at: string;
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, Star, MapPin, Calendar, Camera, Plus, X } from 'lucide-react';
+import { MichelinStarIcon } from '@/components/MichelinStarIcon';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -435,7 +436,7 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
                           <div className="flex-1">
                             <h4 className="font-medium text-sm">{restaurant.name}</h4>
                             <p className="text-xs text-muted-foreground">{restaurant.address}, {restaurant.city}</p>
-                            <div className="flex items-center gap-2 mt-1">
+                            <div className="flex items-center gap-2 mt-1 flex-wrap">
                               {restaurant.rating && (
                                 <div className="flex items-center gap-1">
                                   <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
@@ -445,6 +446,18 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
                               <Badge variant="secondary" className="text-xs px-1 py-0">
                                 {restaurant.cuisine}
                               </Badge>
+                              {restaurant.priceRange && (
+                                <Badge variant="outline" className="text-xs px-1 py-0">
+                                  {'$'.repeat(restaurant.priceRange)}
+                                </Badge>
+                              )}
+                              {restaurant.michelinStars && (
+                                <div className="flex items-center gap-1">
+                                  {Array.from({ length: restaurant.michelinStars }, (_, i) => (
+                                    <MichelinStarIcon key={i} className="w-3 h-3" />
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           </div>
                           <Button
