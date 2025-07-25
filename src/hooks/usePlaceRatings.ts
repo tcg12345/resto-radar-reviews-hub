@@ -106,6 +106,7 @@ export function usePlaceRatings(tripId?: string) {
         latitude: restaurantData.latitude,
         longitude: restaurantData.longitude,
         overall_rating: restaurantData.rating,
+        category_ratings: restaurantData.categoryRatings,
         notes: restaurantData.notes,
         photos: restaurantData.photos,
         website: restaurantData.website,

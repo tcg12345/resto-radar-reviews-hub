@@ -285,6 +285,9 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
       await addRestaurantToTrip(tripId, {
         name: restaurant.name,
         address: restaurant.address,
+        city: restaurant.city,
+        country: restaurant.country,
+        cuisine: restaurant.cuisine,
         latitude: restaurant.latitude,
         longitude: restaurant.longitude,
         rating: restaurant.rating,
@@ -292,8 +295,10 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
         photos: restaurant.photos,
         website: restaurant.website,
         phone_number: restaurant.phone_number,
-        priceRange: restaurant.price_range,
-        dateVisited: restaurant.date_visited,
+        priceRange: restaurant.priceRange,
+        michelinStars: restaurant.michelinStars,
+        categoryRatings: restaurant.categoryRatings,
+        dateVisited: restaurant.dateVisited,
       });
       handleClose();
     } finally {

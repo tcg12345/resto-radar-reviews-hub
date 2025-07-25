@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Star, MapPin, Calendar, MoreVertical, Eye, Edit, ExternalLink, Phone } from 'lucide-react';
+import { MichelinStarIcon } from '@/components/MichelinStarIcon';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -65,6 +66,18 @@ export function TripDetailPlaceCard({
     return '$'.repeat(priceRange);
   };
 
+  const renderMichelinStars = (michelinStars?: number) => {
+    if (!michelinStars) return null;
+    return (
+      <div className="flex items-center gap-1">
+        {Array.from({ length: michelinStars }, (_, i) => (
+          <MichelinStarIcon key={i} className="w-3 h-3" />
+        ))}
+      </div>
+    );
+  };
+
+
   return (
     <Card
       className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
@@ -78,6 +91,20 @@ export function TripDetailPlaceCard({
       onMouseLeave={() => setIsHovered(false)}
     >
       <CardContent className="p-3">
+        {/* Photo if available */}
+        {place.photos && place.photos.length > 0 && !compact && (
+          <div className="mb-3">
+            <img
+              src={place.photos[0]}
+              alt={place.place_name}
+              className="w-full h-24 object-cover rounded-md"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          </div>
+        )}
+        
         <div className="flex items-start justify-between mb-2">
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <span className="text-lg">{getPlaceIcon(place.place_type)}</span>
@@ -85,11 +112,26 @@ export function TripDetailPlaceCard({
               <h3 className={`font-medium line-clamp-1 ${compact ? 'text-sm' : 'text-base'}`}>
                 {place.place_name}
               </h3>
-              {place.overall_rating && (
-                <div className="mt-1">
-                  {renderStars(place.overall_rating)}
+              
+              {/* Cuisine and Price Range Row */}
+              {!compact && place.place_type === 'restaurant' && (
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full">
+                    Restaurant
+                  </span>
+                  {getPriceDisplay(place.price_range) && (
+                    <span className="text-xs font-medium text-green-600">
+                      {getPriceDisplay(place.price_range)}
+                    </span>
+                  )}
                 </div>
               )}
+
+              {/* Rating and Michelin Stars */}
+              <div className="flex items-center gap-2 mt-1">
+                {place.overall_rating && renderStars(place.overall_rating)}
+                {renderMichelinStars(place.category_ratings?.michelin_stars)}
+              </div>
             </div>
           </div>
           
