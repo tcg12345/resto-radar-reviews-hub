@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Star, MapPin, Calendar, Users, Share2, Globe } from 'lucide-react';
+import { ArrowLeft, Plus, Star, MapPin, Calendar, Users, Share2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useTrips } from '@/hooks/useTrips';
-import { useUpdatePlaceWebsites } from '@/hooks/useUpdatePlaceWebsites';
 import { usePlaceRatings } from '@/hooks/usePlaceRatings';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -21,13 +21,14 @@ export default function TripDetailPage() {
   const { tripId } = useParams<{ tripId: string }>();
   const navigate = useNavigate();
   const { trips, loading } = useTrips();
-  const { ratings } = usePlaceRatings(tripId);
-  const { updatePlaceWebsites, isUpdating } = useUpdatePlaceWebsites();
+  const { ratings, deleteRating } = usePlaceRatings(tripId);
   const [isPlaceRatingDialogOpen, setIsPlaceRatingDialogOpen] = useState(false);
   const [isAddRestaurantDialogOpen, setIsAddRestaurantDialogOpen] = useState(false);
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
   const [isPlaceDetailsModalOpen, setIsPlaceDetailsModalOpen] = useState(false);
   const [listPanelSize, setListPanelSize] = useState(25); // Default to 25% for the list
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [placeToDelete, setPlaceToDelete] = useState<string | null>(null);
   const mapRef = useRef<TripMapViewRef>(null);
   
   const trip = trips.find(t => t.id === tripId);
@@ -69,6 +70,19 @@ export default function TripDetailPage() {
     // This opens the details modal
     setSelectedPlaceId(placeId);
     setIsPlaceDetailsModalOpen(true);
+  };
+
+  const handleDeletePlace = (placeId: string) => {
+    setPlaceToDelete(placeId);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (placeToDelete) {
+      await deleteRating(placeToDelete);
+      setDeleteDialogOpen(false);
+      setPlaceToDelete(null);
+    }
   };
 
   return (
@@ -165,15 +179,6 @@ export default function TripDetailPage() {
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
-                onClick={() => updatePlaceWebsites(tripId!)}
-                disabled={isUpdating}
-                className="flex items-center gap-2"
-              >
-                <Globe className="w-4 h-4" />
-                {isUpdating ? 'Updating...' : 'Update Websites'}
-              </Button>
-              <Button
-                variant="outline"
                 onClick={() => setIsAddRestaurantDialogOpen(true)}
                 className="flex items-center gap-2"
               >
@@ -225,15 +230,16 @@ export default function TripDetailPage() {
               
                <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
                  <div className="space-y-4 p-4">
-                   <TripPlacesList
-                     ratings={ratings}
-                     selectedPlaceId={selectedPlaceId}
-                     onPlaceSelect={handlePlaceSelect}
-                     onPlaceClick={handlePlaceClick}
-                     onPlaceDetails={handlePlaceDetails}
-                     onEditPlace={setIsPlaceRatingDialogOpen}
-                     panelSize={listPanelSize}
-                   />
+                    <TripPlacesList
+                      ratings={ratings}
+                      selectedPlaceId={selectedPlaceId}
+                      onPlaceSelect={handlePlaceSelect}
+                      onPlaceClick={handlePlaceClick}
+                      onPlaceDetails={handlePlaceDetails}
+                      onEditPlace={setIsPlaceRatingDialogOpen}
+                      onDeletePlace={handleDeletePlace}
+                      panelSize={listPanelSize}
+                    />
                  </div>
                </div>
             </ResizablePanel>
@@ -275,6 +281,7 @@ export default function TripDetailPage() {
                     onPlaceClick={handlePlaceClick}
                     onPlaceDetails={handlePlaceDetails}
                     onEditPlace={setIsPlaceRatingDialogOpen}
+                    onDeletePlace={handleDeletePlace}
                     panelSize={100} // Full width on mobile
                   />
                 </div>
@@ -317,6 +324,24 @@ export default function TripDetailPage() {
           setIsPlaceRatingDialogOpen(true);
         }}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Place</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this place from your trip? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
