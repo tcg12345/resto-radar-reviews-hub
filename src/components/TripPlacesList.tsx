@@ -109,29 +109,30 @@ export function TripPlacesList({ ratings, selectedPlaceId, onPlaceSelect, onPlac
                     )}
                   </div>
                 </div>
-                <div className="flex gap-1">
+                <div className="flex gap-2">
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
                       onPlaceDetails(rating.id);
                     }}
-                    className="h-8 px-2 text-xs"
+                    className="h-8 px-3 text-xs border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/30"
                   >
                     <Info className="h-3 w-3 mr-1" />
                     Details
                   </Button>
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
                       onEditPlace(true);
                     }}
-                    className="h-8 w-8 p-0"
+                    className="h-8 px-3 text-xs border-muted-foreground/20 hover:bg-muted/50 hover:border-muted-foreground/30"
                   >
-                    <Edit className="h-3 w-3" />
+                    <Edit className="h-3 w-3 mr-1" />
+                    Edit
                   </Button>
                 </div>
               </div>
@@ -152,12 +153,6 @@ export function TripPlacesList({ ratings, selectedPlaceId, onPlaceSelect, onPlac
                 </div>
               )}
 
-              {/* Notes Preview */}
-              {rating.notes && (
-                <p className="text-xs text-muted-foreground line-clamp-2 italic">
-                  "{rating.notes}"
-                </p>
-              )}
 
               {/* Photos Preview */}
               {rating.photos && rating.photos.length > 0 && (

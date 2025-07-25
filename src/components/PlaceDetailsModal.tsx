@@ -92,7 +92,7 @@ export function PlaceDetailsModal({ place, isOpen, onClose, onEdit }: PlaceDetai
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto z-[9999]">
         <DialogHeader className="space-y-4">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
