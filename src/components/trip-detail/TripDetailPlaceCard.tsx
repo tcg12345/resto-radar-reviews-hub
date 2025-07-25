@@ -174,16 +174,20 @@ export function TripDetailPlaceCard({
         </div>
         
         {/* Address and additional info */}
-        {!compact && (
-          <div className="space-y-1 text-xs text-muted-foreground">
-            {place.address && (
+        <div className="space-y-1 text-xs text-muted-foreground mt-2">
+          {place.address && (
+            <div className="flex items-center gap-1">
+              <MapPin className="w-3 h-3 flex-shrink-0" />
               <p className="line-clamp-1">{place.address}</p>
-            )}
-            {place.date_visited && (
+            </div>
+          )}
+          {place.date_visited && (
+            <div className="flex items-center gap-1">
+              <Calendar className="w-3 h-3 flex-shrink-0" />
               <p>Visited: {new Date(place.date_visited).toLocaleDateString()}</p>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
 
         {/* Notes */}
         {!compact && place.notes && (
