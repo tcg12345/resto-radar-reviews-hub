@@ -219,7 +219,6 @@ async function searchAirportsAndCities(keyword: string) {
   console.log('Airport search results:', transformedData.length);
   return transformedData;
 }
-}
 
 // Mock flight data for when quota is exceeded
 function getMockFlightData(params: FlightSearchRequest) {
