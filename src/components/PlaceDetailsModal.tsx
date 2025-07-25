@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, MapPin, Calendar, Globe, Phone, Clock, DollarSign, Edit, X } from 'lucide-react';
+import { Star, MapPin, Calendar, Globe, Phone, Clock, DollarSign, Edit, X, Navigation } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -75,6 +75,19 @@ export function PlaceDetailsModal({ place, isOpen, onClose, onEdit }: PlaceDetai
         <span className="ml-2 text-sm font-medium">{rating}/10</span>
       </div>
     );
+  };
+
+  const getDirectionsUrl = () => {
+    if (place.latitude && place.longitude) {
+      // Use coordinates for more accurate directions
+      return `https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}`;
+    } else if (place.address) {
+      // Fall back to address
+      return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(place.address)}`;
+    } else {
+      // Search for the place name as last resort
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.place_name)}`;
+    }
   };
 
   return (
@@ -202,6 +215,19 @@ export function PlaceDetailsModal({ place, isOpen, onClose, onEdit }: PlaceDetai
                   </a>
                 </div>
               )}
+
+              {/* Directions Link */}
+              <div className="flex items-center gap-3">
+                <Navigation className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <a
+                  href={getDirectionsUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary hover:underline font-medium"
+                >
+                  Get Directions
+                </a>
+              </div>
             </CardContent>
           </Card>
 
