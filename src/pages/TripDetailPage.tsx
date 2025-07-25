@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Star, MapPin, Calendar, Users, Share2 } from 'lucide-react';
+import { ArrowLeft, Plus, Star, MapPin, Calendar, Users, Share2, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useTrips } from '@/hooks/useTrips';
+import { useUpdatePlaceWebsites } from '@/hooks/useUpdatePlaceWebsites';
 import { usePlaceRatings } from '@/hooks/usePlaceRatings';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { TripPlacesList } from '@/components/TripPlacesList';
@@ -20,6 +21,7 @@ export default function TripDetailPage() {
   const navigate = useNavigate();
   const { trips, loading } = useTrips();
   const { ratings } = usePlaceRatings(tripId);
+  const { updatePlaceWebsites, isUpdating } = useUpdatePlaceWebsites();
   const [isPlaceRatingDialogOpen, setIsPlaceRatingDialogOpen] = useState(false);
   const [isAddRestaurantDialogOpen, setIsAddRestaurantDialogOpen] = useState(false);
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
@@ -110,6 +112,15 @@ export default function TripDetailPage() {
             </div>
 
             <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => updatePlaceWebsites(tripId!)}
+                disabled={isUpdating}
+                className="flex items-center gap-2"
+              >
+                <Globe className="w-4 h-4" />
+                {isUpdating ? 'Updating...' : 'Update Websites'}
+              </Button>
               <Button
                 variant="outline"
                 onClick={() => setIsAddRestaurantDialogOpen(true)}
