@@ -1,7 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useMapboxToken } from '@/hooks/useMapboxToken';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Map, Layers } from 'lucide-react';
 
 interface PlaceRating {
   id: string;
@@ -24,6 +27,15 @@ export function TripMapView({ ratings, selectedPlaceId, onPlaceSelect }: TripMap
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<mapboxgl.Marker[]>([]);
   const { token } = useMapboxToken();
+  const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/satellite-streets-v12');
+
+  const mapStyles = [
+    { id: 'mapbox://styles/mapbox/satellite-streets-v12', name: 'Satellite Streets', icon: '🛰️' },
+    { id: 'mapbox://styles/mapbox/streets-v12', name: 'Streets', icon: '🗺️' },
+    { id: 'mapbox://styles/mapbox/light-v11', name: 'Light', icon: '☀️' },
+    { id: 'mapbox://styles/mapbox/dark-v11', name: 'Dark', icon: '🌙' },
+    { id: 'mapbox://styles/mapbox/outdoors-v12', name: 'Outdoors', icon: '🏔️' },
+  ];
 
   useEffect(() => {
     if (!mapContainer.current || !token) return;
@@ -32,7 +44,7 @@ export function TripMapView({ ratings, selectedPlaceId, onPlaceSelect }: TripMap
     
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/light-v11',
+      style: mapStyle,
       center: [-74.006, 40.7128], // Default to NYC
       zoom: 10,
     });
@@ -44,7 +56,14 @@ export function TripMapView({ ratings, selectedPlaceId, onPlaceSelect }: TripMap
         map.current.remove();
       }
     };
-  }, [token]);
+  }, [token, mapStyle]);
+
+  const changeMapStyle = (styleId: string) => {
+    if (map.current) {
+      map.current.setStyle(styleId);
+      setMapStyle(styleId);
+    }
+  };
 
   useEffect(() => {
     if (!map.current || !ratings.length) return;
@@ -137,9 +156,36 @@ export function TripMapView({ ratings, selectedPlaceId, onPlaceSelect }: TripMap
     <div className="relative h-full">
       <div ref={mapContainer} className="w-full h-full" />
       
+      {/* Map Style Selector */}
+      <div className="absolute top-4 right-16 z-10">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="bg-background/95 backdrop-blur-sm shadow-lg">
+              <Layers className="w-4 h-4 mr-2" />
+              Map Style
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="bg-background/95 backdrop-blur-sm">
+            {mapStyles.map((style) => (
+              <DropdownMenuItem
+                key={style.id}
+                onClick={() => changeMapStyle(style.id)}
+                className={mapStyle === style.id ? 'bg-accent' : ''}
+              >
+                <span className="mr-2">{style.icon}</span>
+                {style.name}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      
       {/* Map overlay info */}
       <div className="absolute top-4 left-4 bg-background/95 backdrop-blur-sm rounded-lg p-3 shadow-lg">
-        <h3 className="font-semibold text-sm mb-1">Trip Map</h3>
+        <h3 className="font-semibold text-sm mb-1 flex items-center gap-2">
+          <Map className="w-4 h-4" />
+          Trip Map
+        </h3>
         <p className="text-xs text-muted-foreground">
           {ratings.filter(r => r.latitude && r.longitude).length} of {ratings.length} places have locations
         </p>

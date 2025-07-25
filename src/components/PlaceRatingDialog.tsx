@@ -70,19 +70,20 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId }: PlaceRatingDialog
         body: {
           query: query,
           type: 'search'
-          // Remove searchType restriction to allow all types of places
         }
       });
 
       if (error) {
-        console.error('Edge function error:', error);
-        throw error;
+        console.error('Search error:', error);
+        setSearchResults([]);
+        return;
       }
       
       const results = data?.results || data?.candidates || [];
       setSearchResults(results);
     } catch (error) {
       console.error('Error searching places:', error);
+      setSearchResults([]);
     } finally {
       setIsSearching(false);
     }
