@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useTrips } from '@/hooks/useTrips';
 import { usePlaceRatings } from '@/hooks/usePlaceRatings';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { TripPlacesList } from '@/components/TripPlacesList';
 import { TripMapView, TripMapViewRef } from '@/components/TripMapView';
 import { PlaceRatingDialog } from '@/components/PlaceRatingDialog';
@@ -23,6 +24,7 @@ export default function TripDetailPage() {
   const [isAddRestaurantDialogOpen, setIsAddRestaurantDialogOpen] = useState(false);
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
   const [isPlaceDetailsModalOpen, setIsPlaceDetailsModalOpen] = useState(false);
+  const [listPanelSize, setListPanelSize] = useState(25); // Default to 25% for the list
   const mapRef = useRef<TripMapViewRef>(null);
   
   const trip = trips.find(t => t.id === tripId);
@@ -133,41 +135,56 @@ export default function TripDetailPage() {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left Sidebar - Places List */}
-        <div className="w-96 border-r bg-background flex flex-col">
-          <div className="p-4 border-b flex-shrink-0">
-            <div className="flex items-center justify-between">
-              <h2 className="font-semibold">Places & Experiences</h2>
-              <Badge variant="outline">{ratings.length}</Badge>
+      {/* Main Content - Resizable Layout */}
+      <div className="flex-1">
+        <ResizablePanelGroup 
+          direction="horizontal" 
+          className="h-full"
+          onLayout={(sizes) => setListPanelSize(sizes[0])}
+        >
+          {/* Left Panel - Places List */}
+          <ResizablePanel 
+            defaultSize={25} 
+            minSize={15} 
+            maxSize={60}
+            className="bg-background flex flex-col"
+          >
+            <div className="p-4 border-b flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <h2 className="font-semibold">Places & Experiences</h2>
+                <Badge variant="outline">{ratings.length}</Badge>
+              </div>
+              {trip.description && listPanelSize > 20 && (
+                <p className="text-sm text-muted-foreground mt-2 animate-fade-in">{trip.description}</p>
+              )}
             </div>
-            {trip.description && (
-              <p className="text-sm text-muted-foreground mt-2">{trip.description}</p>
-            )}
-          </div>
+            
+            <div className="flex-1 overflow-y-auto">
+              <TripPlacesList
+                ratings={ratings}
+                selectedPlaceId={selectedPlaceId}
+                onPlaceSelect={handlePlaceSelect}
+                onPlaceClick={handlePlaceClick}
+                onPlaceDetails={handlePlaceDetails}
+                onEditPlace={setIsPlaceRatingDialogOpen}
+                compactMode={listPanelSize < 25}
+                veryCompactMode={listPanelSize < 20}
+              />
+            </div>
+          </ResizablePanel>
           
-          <div className="flex-1 overflow-y-auto">
-            <TripPlacesList
+          <ResizableHandle withHandle />
+          
+          {/* Right Panel - Map */}
+          <ResizablePanel defaultSize={75} className="h-full">
+            <TripMapView
+              ref={mapRef}
               ratings={ratings}
               selectedPlaceId={selectedPlaceId}
               onPlaceSelect={handlePlaceSelect}
-              onPlaceClick={handlePlaceClick}
-              onPlaceDetails={handlePlaceDetails}
-              onEditPlace={setIsPlaceRatingDialogOpen}
             />
-          </div>
-        </div>
-
-        {/* Right Side - Map */}
-        <div className="flex-1 h-full">
-          <TripMapView
-            ref={mapRef}
-            ratings={ratings}
-            selectedPlaceId={selectedPlaceId}
-            onPlaceSelect={handlePlaceSelect}
-          />
-        </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </div>
 
       {/* Dialogs */}

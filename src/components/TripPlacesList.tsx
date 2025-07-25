@@ -28,9 +28,20 @@ interface TripPlacesListProps {
   onPlaceClick: (placeId: string) => void;
   onPlaceDetails: (placeId: string) => void;
   onEditPlace: (open: boolean) => void;
+  compactMode?: boolean;
+  veryCompactMode?: boolean;
 }
 
-export function TripPlacesList({ ratings, selectedPlaceId, onPlaceSelect, onPlaceClick, onPlaceDetails, onEditPlace }: TripPlacesListProps) {
+export function TripPlacesList({ 
+  ratings, 
+  selectedPlaceId, 
+  onPlaceSelect, 
+  onPlaceClick, 
+  onPlaceDetails, 
+  onEditPlace,
+  compactMode = false,
+  veryCompactMode = false
+}: TripPlacesListProps) {
   const getPriceDisplay = (priceRange?: number) => {
     if (!priceRange) return null;
     return '$'.repeat(priceRange);
@@ -71,11 +82,11 @@ export function TripPlacesList({ ratings, selectedPlaceId, onPlaceSelect, onPlac
   }
 
   return (
-    <div className="space-y-3 p-4">
+    <div className={`space-y-3 ${veryCompactMode ? 'p-2' : 'p-4'}`}>
       {ratings.map((rating) => (
         <Card
           key={rating.id}
-          className={`cursor-pointer transition-all hover:shadow-md ${
+          className={`cursor-pointer transition-all duration-300 hover:shadow-md ${
             selectedPlaceId === rating.id 
               ? 'ring-2 ring-primary bg-primary/5' 
               : 'hover:bg-muted/50'
@@ -83,84 +94,157 @@ export function TripPlacesList({ ratings, selectedPlaceId, onPlaceSelect, onPlac
           onClick={() => onPlaceClick(rating.id)}
           onMouseEnter={() => onPlaceSelect(rating.id)}
         >
-          <CardContent className="p-3">
-            {/* Main Header Row */}
-            <div className="flex items-start justify-between gap-2 mb-2">
-              <div className="flex items-center gap-2 min-w-0 flex-1">
-                <span className="text-lg flex-shrink-0">{getPlaceIcon(rating.place_type)}</span>
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold text-sm line-clamp-1 mb-1">{rating.place_name}</h3>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="secondary" className="text-xs flex-shrink-0">
-                      {rating.place_type}
-                    </Badge>
+          <CardContent className={veryCompactMode ? "p-2" : compactMode ? "p-2.5" : "p-3"}>
+            {veryCompactMode ? (
+              /* Very Compact Mode - Minimal Information */
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <span className="text-sm flex-shrink-0">{getPlaceIcon(rating.place_type)}</span>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-medium text-xs line-clamp-1">{rating.place_name}</h3>
                     {rating.overall_rating && (
-                      <div className="flex items-center gap-1 flex-shrink-0">
-                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                        <span className="text-xs font-medium">{rating.overall_rating}/10</span>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />
+                        <span className="text-xs text-muted-foreground">{rating.overall_rating}</span>
                       </div>
-                    )}
-                    {rating.price_range && (
-                      <Badge variant="outline" className="text-xs flex-shrink-0">
-                        {getPriceDisplay(rating.price_range)}
-                      </Badge>
                     )}
                   </div>
                 </div>
-              </div>
-              
-              {/* Action Buttons */}
-              <div className="flex gap-1 flex-shrink-0">
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
                     onPlaceDetails(rating.id);
                   }}
-                  className="h-7 px-2 text-xs border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/30"
+                  className="h-6 w-6 p-0 flex-shrink-0"
                 >
-                  <Info className="h-3 w-3" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEditPlace(true);
-                  }}
-                  className="h-7 px-2 text-xs border-muted-foreground/20 hover:bg-muted/50 hover:border-muted-foreground/30"
-                >
-                  <Edit className="h-3 w-3" />
+                  <Info className="h-2.5 w-2.5" />
                 </Button>
               </div>
-            </div>
-
-            {/* Secondary Info Row */}
-            <div className="space-y-1">
-              {rating.address && (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <MapPin className="w-3 h-3 flex-shrink-0" />
-                  <span className="line-clamp-1 min-w-0">{rating.address}</span>
+            ) : compactMode ? (
+              /* Compact Mode - Essential Information */
+              <div className="space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <span className="text-base flex-shrink-0">{getPlaceIcon(rating.place_type)}</span>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-sm line-clamp-1 mb-1">{rating.place_name}</h3>
+                      <div className="flex items-center gap-1.5">
+                        <Badge variant="secondary" className="text-xs flex-shrink-0">
+                          {rating.place_type}
+                        </Badge>
+                        {rating.overall_rating && (
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                            <span className="text-xs font-medium">{rating.overall_rating}/10</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-1 flex-shrink-0">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onPlaceDetails(rating.id);
+                      }}
+                      className="h-6 px-1.5 text-xs border-primary/20 bg-primary/5 hover:bg-primary/10"
+                    >
+                      <Info className="h-3 w-3" />
+                    </Button>
+                  </div>
                 </div>
-              )}
-
-              <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                {rating.date_visited && (
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    <span>Visited {format(new Date(rating.date_visited), 'MMM d, yyyy')}</span>
-                  </div>
-                )}
-
-                {rating.photos && rating.photos.length > 0 && (
-                  <div className="flex items-center gap-1">
-                    <Camera className="w-3 h-3" />
-                    <span>{rating.photos.length} photo{rating.photos.length > 1 ? 's' : ''}</span>
+                
+                {rating.address && (
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground animate-fade-in">
+                    <MapPin className="w-3 h-3 flex-shrink-0" />
+                    <span className="line-clamp-1 min-w-0">{rating.address}</span>
                   </div>
                 )}
               </div>
-            </div>
+            ) : (
+              /* Full Mode - Complete Information */
+              <div className="space-y-2 animate-fade-in">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <span className="text-lg flex-shrink-0">{getPlaceIcon(rating.place_type)}</span>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-sm line-clamp-1 mb-1">{rating.place_name}</h3>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant="secondary" className="text-xs flex-shrink-0">
+                          {rating.place_type}
+                        </Badge>
+                        {rating.overall_rating && (
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                            <span className="text-xs font-medium">{rating.overall_rating}/10</span>
+                          </div>
+                        )}
+                        {rating.price_range && (
+                          <Badge variant="outline" className="text-xs flex-shrink-0">
+                            {getPriceDisplay(rating.price_range)}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-1 flex-shrink-0">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onPlaceDetails(rating.id);
+                      }}
+                      className="h-7 px-2 text-xs border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/30"
+                    >
+                      <Info className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEditPlace(true);
+                      }}
+                      className="h-7 px-2 text-xs border-muted-foreground/20 hover:bg-muted/50 hover:border-muted-foreground/30"
+                    >
+                      <Edit className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  {rating.address && (
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <MapPin className="w-3 h-3 flex-shrink-0" />
+                      <span className="line-clamp-1 min-w-0">{rating.address}</span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    {rating.date_visited && (
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        <span>Visited {format(new Date(rating.date_visited), 'MMM d, yyyy')}</span>
+                      </div>
+                    )}
+
+                    {rating.photos && rating.photos.length > 0 && (
+                      <div className="flex items-center gap-1">
+                        <Camera className="w-3 h-3" />
+                        <span>{rating.photos.length} photo{rating.photos.length > 1 ? 's' : ''}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       ))}
