@@ -98,6 +98,7 @@ export function usePlaceRatings(tripId?: string) {
     if (!user) return null;
 
     try {
+      console.log('Restaurant data being added:', restaurantData);
       const ratingData = {
         trip_id: tripId,
         place_name: restaurantData.name,
@@ -113,6 +114,7 @@ export function usePlaceRatings(tripId?: string) {
         price_range: restaurantData.priceRange,
         date_visited: restaurantData.dateVisited,
       };
+      console.log('Rating data being saved:', ratingData);
 
       return await addRating(ratingData);
     } catch (error) {
