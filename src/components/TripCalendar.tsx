@@ -146,8 +146,8 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
                                   <span className="break-words">{event.restaurantData.address}</span>
                                 </div>
                               )}
-                              {event.attractionData && (
-                                <div className="space-y-1">
+                               {event.attractionData && (
+                                <div className="space-y-2">
                                   <div className="flex items-center gap-1 text-sm opacity-90">
                                     <MapPin className="w-3 h-3" />
                                     <span className="break-words">{event.attractionData.address}</span>
@@ -157,6 +157,34 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
                                       {event.attractionData.category}
                                     </Badge>
                                   )}
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        const { latitude, longitude, address } = event.attractionData;
+                                        const query = latitude && longitude 
+                                          ? `${latitude},${longitude}` 
+                                          : encodeURIComponent(address || event.attractionData.name);
+                                        window.open(`https://www.google.com/maps/dir/?api=1&destination=${query}`, '_blank');
+                                      }}
+                                      className="flex items-center gap-1 h-8 px-3 text-xs"
+                                    >
+                                      <Compass className="w-3 h-3" />
+                                      Directions
+                                    </Button>
+                                    {event.attractionData.website && (
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => window.open(event.attractionData.website, '_blank')}
+                                        className="flex items-center gap-1 h-8 px-3 text-xs"
+                                      >
+                                        <ExternalLink className="w-3 h-3" />
+                                        Website
+                                      </Button>
+                                    )}
+                                  </div>
                                 </div>
                               )}
                             </div>
@@ -173,32 +201,6 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              {event.attractionData && (
-                                <>
-                                  <DropdownMenuItem
-                                    onClick={() => {
-                                      const { latitude, longitude, address } = event.attractionData;
-                                      const query = latitude && longitude 
-                                        ? `${latitude},${longitude}` 
-                                        : encodeURIComponent(address || event.attractionData.name);
-                                      window.open(`https://www.google.com/maps/dir/?api=1&destination=${query}`, '_blank');
-                                    }}
-                                    className="flex items-center gap-2"
-                                  >
-                                    <Compass className="w-4 h-4" />
-                                    Get Directions
-                                  </DropdownMenuItem>
-                                  {event.attractionData.website && (
-                                    <DropdownMenuItem
-                                      onClick={() => window.open(event.attractionData.website, '_blank')}
-                                      className="flex items-center gap-2"
-                                    >
-                                      <ExternalLink className="w-4 h-4" />
-                                      Visit Website
-                                    </DropdownMenuItem>
-                                  )}
-                                </>
-                              )}
                               <DropdownMenuItem
                                 onClick={() => onEditEvent(event)}
                                 className="flex items-center gap-2"
