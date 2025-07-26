@@ -4,6 +4,8 @@ import { Badge } from '@/components/ui/badge';
 import { Trip } from '@/hooks/useTrips';
 import { PlaceRating } from '@/hooks/useTrips';
 import { format } from 'date-fns';
+import { useState } from 'react';
+import { ShareTripDialog } from '@/components/ShareTripDialog';
 
 interface TripDetailHeaderProps {
   trip: Trip;
@@ -20,6 +22,7 @@ export function TripDetailHeader({
   onBack, 
   onAddPlace 
 }: TripDetailHeaderProps) {
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const totalPlaces = ratings.length;
   const restaurantCount = ratings.filter(r => r.place_type === 'restaurant').length;
   const attractionCount = ratings.filter(r => r.place_type === 'attraction').length;
@@ -89,7 +92,8 @@ export function TripDetailHeader({
     }] : [])
   ];
   return (
-    <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b">
+    <>
+      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b">
       <div className="container mx-auto px-4 py-3 lg:py-4">
         {/* Mobile Header */}
         <div className="lg:hidden">
@@ -236,6 +240,7 @@ export function TripDetailHeader({
             </Button>
             <Button 
               variant="outline" 
+              onClick={() => setIsShareDialogOpen(true)}
               className="flex items-center gap-2 hover:border-primary/30"
             >
               <Share2 className="w-4 h-4" />
@@ -244,6 +249,13 @@ export function TripDetailHeader({
           </div>
         </div>
       </div>
-    </div>
+      </div>
+      
+      <ShareTripDialog 
+        trip={trip}
+        isOpen={isShareDialogOpen}
+        onOpenChange={setIsShareDialogOpen}
+      />
+    </>
   );
 }
