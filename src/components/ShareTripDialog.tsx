@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Send, Users, Search, Copy, Mail, MessageSquare, Globe, ExternalLink, Link } from 'lucide-react';
+import { Send, Users, Search, Copy, Mail, MessageSquare, Globe, ExternalLink, Link, Smartphone } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -14,6 +14,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTrips, Trip } from '@/hooks/useTrips';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Share } from '@capacitor/share';
+import { Capacitor } from '@capacitor/core';
 
 interface ShareTripDialogProps {
   trip: Trip;
@@ -143,6 +145,48 @@ export function ShareTripDialog({ trip, isOpen, onOpenChange }: ShareTripDialogP
     
     if (shareUrl) {
       window.open(shareUrl, '_blank', 'width=600,height=400');
+    }
+  };
+
+  const handleNativeShare = async () => {
+    if (!trip.is_public) {
+      toast.error('Please make the trip public first to share it');
+      return;
+    }
+
+    const url = getShareUrl();
+    const text = `Check out my ${trip.destination} trip! ${trip.description || ''}`;
+
+    try {
+      if (Capacitor.isNativePlatform()) {
+        await Share.share({
+          title: `${trip.title} - ${trip.destination}`,
+          text: text,
+          url: url,
+          dialogTitle: 'Share Trip'
+        });
+        toast.success('Shared successfully!');
+      } else {
+        // Fallback for web - use Web Share API if available
+        if (navigator.share) {
+          await navigator.share({
+            title: `${trip.title} - ${trip.destination}`,
+            text: text,
+            url: url
+          });
+          toast.success('Shared successfully!');
+        } else {
+          // Fallback to copying to clipboard
+          await navigator.clipboard.writeText(`${text}\n\n${url}`);
+          toast.success('Trip details copied to clipboard!');
+        }
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      // If user cancels sharing, don't show error
+      if (error !== 'AbortError' && !error.toString().includes('cancel')) {
+        toast.error('Failed to share trip');
+      }
     }
   };
 
@@ -328,6 +372,16 @@ export function ShareTripDialog({ trip, isOpen, onOpenChange }: ShareTripDialogP
                   </div>
 
                   <Separator />
+
+                  {/* Native Share Button */}
+                  <Button
+                    onClick={handleNativeShare}
+                    disabled={!trip.is_public}
+                    className="w-full mb-3 bg-primary hover:bg-primary/90"
+                  >
+                    <Smartphone className="h-4 w-4 mr-2" />
+                    Share to Apps (iMessage, WhatsApp, etc.)
+                  </Button>
 
                   {/* External Sharing Options */}
                   <div className="space-y-3">
