@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { ItineraryBuilder, Itinerary } from '@/components/ItineraryBuilder';
 import { TripPlanner } from '@/components/TripPlanner';
-import { SavedItinerariesList } from '@/components/SavedItinerariesList';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, MapPin, BookOpen } from 'lucide-react';
+import { Calendar, MapPin } from 'lucide-react';
 
 export default function TravelPage() {
   const [activeTab, setActiveTab] = useState('itinerary');
@@ -40,14 +39,10 @@ export default function TravelPage() {
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="itinerary" className="flex items-center gap-2">
             <Calendar className="w-4 h-4" />
             Itinerary Builder
-          </TabsTrigger>
-          <TabsTrigger value="saved" className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4" />
-            Saved Itineraries
           </TabsTrigger>
           <TabsTrigger value="trip-planner" className="flex items-center gap-2">
             <MapPin className="w-4 h-4" />
@@ -56,11 +51,7 @@ export default function TravelPage() {
         </TabsList>
         
         <TabsContent value="itinerary" className="mt-6">
-          <ItineraryBuilder key={itineraryBuilderKey} />
-        </TabsContent>
-        
-        <TabsContent value="saved" className="mt-6">
-          <SavedItinerariesList onLoadItinerary={handleLoadItinerary} />
+          <ItineraryBuilder key={itineraryBuilderKey} onLoadItinerary={handleLoadItinerary} />
         </TabsContent>
         
         <TabsContent value="trip-planner" className="mt-6">

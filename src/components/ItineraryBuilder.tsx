@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { addDays, format, startOfDay, differenceInDays } from 'date-fns';
-import { Calendar, Plus, Download, Share2, Save, CalendarDays, MapPin, X, CalendarIcon } from 'lucide-react';
+import { Calendar, Plus, Download, Share2, Save, CalendarDays, MapPin, X, CalendarIcon, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -8,12 +8,14 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DateRangePicker } from '@/components/DateRangePicker';
 import { TripCalendar } from '@/components/TripCalendar';
 import { EventDialog } from '@/components/EventDialog';
 import { ShareItineraryDialog } from '@/components/ShareItineraryDialog';
 import { ExportItineraryDialog } from '@/components/ExportItineraryDialog';
 import { SaveItineraryDialog } from '@/components/SaveItineraryDialog';
+import { SavedItinerariesSection } from '@/components/SavedItinerariesSection';
 import { AmadeusCitySearch } from '@/components/AmadeusCitySearch';
 import { HotelFlightSection } from '@/components/HotelFlightSection';
 import { Hotel as HotelType } from '@/hooks/useGooglePlacesHotelSearch';
@@ -106,7 +108,7 @@ export interface Itinerary {
   updatedAt?: string;
 }
 
-export function ItineraryBuilder() {
+export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itinerary: Itinerary) => void }) {
   const { user } = useAuth();
   
   // Load state from localStorage on mount
@@ -372,117 +374,278 @@ export function ItineraryBuilder() {
     setFlights(prev => prev.filter(flight => flight.id !== flightId));
   };
 
+  const handleLoadItinerary = (itinerary: Itinerary) => {
+    // Load the selected itinerary into the builder
+    setCurrentItinerary(itinerary);
+    setDateRange({ start: itinerary.startDate, end: itinerary.endDate });
+    setEvents(itinerary.events);
+    setHotels(itinerary.hotels);
+    setFlights(itinerary.flights);
+    setLocations(itinerary.locations);
+    setIsMultiCity(itinerary.isMultiCity);
+    setHasCreatedItinerary(true);
+    
+    // Update localStorage
+    const stateToSave = {
+      dateRange: { start: itinerary.startDate, end: itinerary.endDate },
+      currentItinerary: itinerary,
+      events: itinerary.events,
+      hotels: itinerary.hotels,
+      flights: itinerary.flights,
+      locations: itinerary.locations,
+      isMultiCity: itinerary.isMultiCity,
+      hasCreatedItinerary: true,
+    };
+    localStorage.setItem('currentItineraryBuilder', JSON.stringify(stateToSave));
+    
+    toast.success('Itinerary loaded successfully');
+    
+    // If passed from parent, also call that handler
+    if (onLoadItinerary) {
+      onLoadItinerary(itinerary);
+    }
+  };
+
   if (!hasCreatedItinerary) {
     return (
       <div className="space-y-6">
-        <Card>
-          <CardHeader className="text-center">
-            <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-              <CalendarDays className="w-6 h-6 text-primary" />
-            </div>
-            <CardTitle>Start Planning Your Trip</CardTitle>
-            <CardDescription>
-              Select your destination(s) and travel dates to begin creating your itinerary
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Multi-city toggle */}
-            <div className="flex items-center justify-center space-x-2">
-              <Switch
-                id="multi-city"
-                checked={isMultiCity}
-                onCheckedChange={setIsMultiCity}
-              />
-              <Label htmlFor="multi-city">Multi-city trip</Label>
-            </div>
+        <Tabs defaultValue="create" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="create" className="flex items-center gap-2">
+              <Plus className="w-4 h-4" />
+              Create New
+            </TabsTrigger>
+            <TabsTrigger value="saved" className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4" />
+              Saved Itineraries
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="create" className="mt-6">
+            <Card>
+              <CardHeader className="text-center">
+                <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                  <CalendarDays className="w-6 h-6 text-primary" />
+                </div>
+                <CardTitle>Start Planning Your Trip</CardTitle>
+                <CardDescription>
+                  Select your destination(s) and travel dates to begin creating your itinerary
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Multi-city toggle */}
+                <div className="flex items-center justify-center space-x-2">
+                  <Switch
+                    id="multi-city"
+                    checked={isMultiCity}
+                    onCheckedChange={setIsMultiCity}
+                  />
+                  <Label htmlFor="multi-city">Multi-city trip</Label>
+                </div>
 
-            {/* Location selection */}
-            <div className="space-y-4">
-              <div className="text-center">
-                <h3 className="font-medium mb-2">
-                  {isMultiCity ? 'Add destinations' : 'Select destination'}
-                </h3>
-                <AmadeusCitySearch
-                  value={currentLocationSearch}
-                  onChange={setCurrentLocationSearch}
-                  onCitySelect={handleLocationSelect}
-                  placeholder={isMultiCity ? "Add another city..." : "Enter city name"}
-                  className="max-w-md mx-auto"
-                />
-              </div>
+                {/* Location selection */}
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <h3 className="font-medium mb-2">
+                      {isMultiCity ? 'Add destinations' : 'Select destination'}
+                    </h3>
+                    <AmadeusCitySearch
+                      value={currentLocationSearch}
+                      onChange={setCurrentLocationSearch}
+                      onCitySelect={handleLocationSelect}
+                      placeholder={isMultiCity ? "Add another city..." : "Enter city name"}
+                      className="max-w-md mx-auto"
+                    />
+                  </div>
 
-              {/* Selected locations display */}
-              {locations.length > 0 && (
-                <div className="space-y-3">
-                  <h4 className="font-medium text-sm text-center">Selected destinations:</h4>
-                  {locations.map((location) => (
-                    <div key={location.id} className="flex items-center justify-between p-3 bg-accent/50 rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-muted-foreground" />
-                        <div>
-                          <div className="font-medium">{location.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {location.country}{location.state && `, ${location.state}`}
+                  {/* Selected locations display */}
+                  {locations.length > 0 && (
+                    <div className="space-y-3">
+                      <h4 className="font-medium text-sm text-center">Selected destinations:</h4>
+                      {locations.map((location) => (
+                        <div key={location.id} className="flex items-center justify-between p-3 bg-accent/50 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-muted-foreground" />
+                            <div>
+                              <div className="font-medium">{location.name}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {location.country}{location.state && `, ${location.state}`}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {isMultiCity && (
+                              <div className="flex items-center gap-2">
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className={cn(
+                                        "text-xs",
+                                        (!location.startDate || !location.endDate) && "text-muted-foreground"
+                                      )}
+                                    >
+                                      <CalendarIcon className="w-3 h-3 mr-1" />
+                                      {location.startDate && location.endDate 
+                                        ? `${format(location.startDate, 'MMM dd')} - ${format(location.endDate, 'MMM dd')}`
+                                        : 'Select dates'
+                                      }
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0" align="start">
+                                    <CalendarComponent
+                                      mode="range"
+                                      selected={{
+                                        from: location.startDate,
+                                        to: location.endDate
+                                      }}
+                                      onSelect={(range) => {
+                                        updateLocationDates(location.id, range?.from || null, range?.to || null);
+                                      }}
+                                      initialFocus
+                                      className={cn("p-3 pointer-events-auto")}
+                                    />
+                                  </PopoverContent>
+                                </Popover>
+                              </div>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeLocation(location.id)}
+                              className="text-muted-foreground hover:text-destructive"
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
                           </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {isMultiCity && (
-                          <div className="flex items-center gap-2">
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className={cn(
-                                    "text-xs",
-                                    (!location.startDate || !location.endDate) && "text-muted-foreground"
-                                  )}
-                                >
-                                  <CalendarIcon className="w-3 h-3 mr-1" />
-                                  {location.startDate && location.endDate 
-                                    ? `${format(location.startDate, 'MMM dd')} - ${format(location.endDate, 'MMM dd')}`
-                                    : 'Select dates'
-                                  }
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
-                                <CalendarComponent
-                                  mode="range"
-                                  selected={{
-                                    from: location.startDate,
-                                    to: location.endDate
-                                  }}
-                                  onSelect={(range) => {
-                                    updateLocationDates(location.id, range?.from || null, range?.to || null);
-                                  }}
-                                  initialFocus
-                                  className={cn("p-3 pointer-events-auto")}
-                                />
-                              </PopoverContent>
-                            </Popover>
-                          </div>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeLocation(location.id)}
-                          className="text-muted-foreground hover:text-destructive"
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
-            </div>
 
-            {/* Date selection for single city trips */}
-            {!isMultiCity && locations.length > 0 && (
-              <div className="space-y-4">
-                <h3 className="font-medium text-center">Select travel dates</h3>
-                <div className="max-w-md mx-auto">
+                {/* Date selection for single city trips */}
+                {!isMultiCity && locations.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="font-medium text-center">Select travel dates</h3>
+                    <div className="max-w-md mx-auto">
+                      <DateRangePicker
+                        startDate={dateRange.start}
+                        endDate={dateRange.end}
+                        onDateRangeChange={handleDateRangeChange}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Create itinerary button */}
+                {canCreateItinerary && (
+                  <div className="flex justify-center pt-4">
+                    <Button 
+                      onClick={isMultiCity ? () => {
+                        createMultiCityItinerary();
+                        setHasCreatedItinerary(true);
+                      } : () => {
+                        if (dateRange.start && dateRange.end && locations.length > 0) {
+                          const locationNames = locations.map(loc => loc.name).join(' → ');
+                          const title = `${locationNames} Trip`;
+                          
+                          const newItinerary: Itinerary = {
+                            title,
+                            startDate: dateRange.start,
+                            endDate: dateRange.end,
+                            locations,
+                            isMultiCity,
+                            events: [],
+                            hotels: [],
+                            flights: [],
+                            userId: user?.id,
+                          };
+                          setCurrentItinerary(newItinerary);
+                          setHasCreatedItinerary(true);
+                        }
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <CalendarDays className="w-4 h-4" />
+                      Create Itinerary
+                    </Button>
+                  </div>
+                )}
+
+                {/* Status message */}
+                {!canCreateItinerary && locations.length > 0 && (
+                  <div className="text-center text-muted-foreground text-sm">
+                    {isMultiCity 
+                      ? "Select dates for each destination to create your itinerary"
+                      : "Select travel dates to create your itinerary"
+                    }
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="saved" className="mt-6">
+            <SavedItinerariesSection onLoadItinerary={handleLoadItinerary} />
+          </TabsContent>
+        </Tabs>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <Tabs defaultValue="builder" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="builder" className="flex items-center gap-2">
+            <Calendar className="w-4 h-4" />
+            Itinerary Builder
+          </TabsTrigger>
+          <TabsTrigger value="saved" className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4" />
+            Saved Itineraries
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="builder" className="mt-6 space-y-6">
+          {/* Header with date range and actions */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="w-5 h-5" />
+                    {currentItinerary?.title}
+                  </CardTitle>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <span>
+                      {dateRange.start && dateRange.end ? (
+                        <>
+                          {format(dateRange.start, 'MMM do')} - {format(dateRange.end, 'MMM do')} 
+                          ({tripDays} {tripDays === 1 ? 'day' : 'days'})
+                        </>
+                      ) : (
+                        'Dates not set'
+                      )}
+                    </span>
+                    {currentItinerary?.isMultiCity && (
+                      <Badge variant="outline">Multi-city</Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {currentItinerary?.locations.map((location, index) => (
+                      <Badge key={location.id} variant="secondary" className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {location.name}
+                        {location.iataCode && ` (${location.iataCode})`}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
                   <DateRangePicker
                     startDate={dateRange.start}
                     endDate={dateRange.end}
@@ -490,179 +653,88 @@ export function ItineraryBuilder() {
                   />
                 </div>
               </div>
-            )}
-
-            {/* Create itinerary button */}
-            {canCreateItinerary && (
-              <div className="flex justify-center pt-4">
-                <Button 
-                  onClick={isMultiCity ? () => {
-                    createMultiCityItinerary();
-                    setHasCreatedItinerary(true);
-                  } : () => {
-                    if (dateRange.start && dateRange.end && locations.length > 0) {
-                      const locationNames = locations.map(loc => loc.name).join(' → ');
-                      const title = `${locationNames} Trip`;
-                      
-                      const newItinerary: Itinerary = {
-                        title,
-                        startDate: dateRange.start,
-                        endDate: dateRange.end,
-                        locations,
-                        isMultiCity,
-                        events: [],
-                        hotels: [],
-                        flights: [],
-                        userId: user?.id,
-                      };
-                      setCurrentItinerary(newItinerary);
-                      setHasCreatedItinerary(true);
-                    }
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsSaveDialogOpen(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Save className="w-4 h-4" />
+                  Save Itinerary
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsShareDialogOpen(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Share2 className="w-4 h-4" />
+                  Share
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsExportDialogOpen(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Export PDF
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    // Clear persisted state and reset to initial setup
+                    localStorage.removeItem('currentItineraryBuilder');
+                    setDateRange({ start: null, end: null });
+                    setCurrentItinerary(null);
+                    setEvents([]);
+                    setLocations([]);
+                    setIsMultiCity(false);
+                    setHasCreatedItinerary(false);
+                    setCurrentLocationSearch('');
                   }}
                   className="flex items-center gap-2"
                 >
-                  <CalendarDays className="w-4 h-4" />
-                  Create Itinerary
+                  <Plus className="w-4 h-4" />
+                  Start New Itinerary
                 </Button>
               </div>
-            )}
+            </CardContent>
+          </Card>
 
-            {/* Status message */}
-            {!canCreateItinerary && locations.length > 0 && (
-              <div className="text-center text-muted-foreground text-sm">
-                {isMultiCity 
-                  ? "Select dates for each destination to create your itinerary"
-                  : "Select travel dates to create your itinerary"
-                }
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+          {/* Hotels and Flights Section - Moved to top */}
+          <HotelFlightSection
+            locations={currentItinerary?.locations || []}
+            isMultiCity={currentItinerary?.isMultiCity || false}
+            hotels={hotels}
+            flights={flights}
+            onAddHotel={handleAddHotel}
+            onAddFlight={handleAddFlight}
+            onRemoveHotel={handleRemoveHotel}
+            onRemoveFlight={handleRemoveFlight}
+          />
 
-  return (
-    <div className="space-y-6">
-      {/* Header with date range and actions */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="w-5 h-5" />
-                {currentItinerary?.title}
-              </CardTitle>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <span>
-                  {dateRange.start && dateRange.end ? (
-                    <>
-                      {format(dateRange.start, 'MMM do')} - {format(dateRange.end, 'MMM do')} 
-                      ({tripDays} {tripDays === 1 ? 'day' : 'days'})
-                    </>
-                  ) : (
-                    'Dates not set'
-                  )}
-                </span>
-                {currentItinerary?.isMultiCity && (
-                  <Badge variant="outline">Multi-city</Badge>
-                )}
-              </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                {currentItinerary?.locations.map((location, index) => (
-                  <Badge key={location.id} variant="secondary" className="flex items-center gap-1">
-                    <MapPin className="w-3 h-3" />
-                    {location.name}
-                    {location.iataCode && ` (${location.iataCode})`}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <DateRangePicker
-                startDate={dateRange.start}
-                endDate={dateRange.end}
-                onDateRangeChange={handleDateRangeChange}
-              />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsSaveDialogOpen(true)}
-              className="flex items-center gap-2"
-            >
-              <Save className="w-4 h-4" />
-              Save Itinerary
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsShareDialogOpen(true)}
-              className="flex items-center gap-2"
-            >
-              <Share2 className="w-4 h-4" />
-              Share
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsExportDialogOpen(true)}
-              className="flex items-center gap-2"
-            >
-              <Download className="w-4 h-4" />
-              Export PDF
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                // Clear persisted state and reset to initial setup
-                localStorage.removeItem('currentItineraryBuilder');
-                setDateRange({ start: null, end: null });
-                setCurrentItinerary(null);
-                setEvents([]);
-                setLocations([]);
-                setIsMultiCity(false);
-                setHasCreatedItinerary(false);
-                setCurrentLocationSearch('');
-              }}
-              className="flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Start New Itinerary
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Hotels and Flights Section - Moved to top */}
-      <HotelFlightSection
-        locations={currentItinerary?.locations || []}
-        isMultiCity={currentItinerary?.isMultiCity || false}
-        hotels={hotels}
-        flights={flights}
-        onAddHotel={handleAddHotel}
-        onAddFlight={handleAddFlight}
-        onRemoveHotel={handleRemoveHotel}
-        onRemoveFlight={handleRemoveFlight}
-      />
-
-      {/* Trip Calendar */}
-      <TripCalendar
-        startDate={dateRange.start!}
-        endDate={dateRange.end!}
-        events={events}
-        locations={currentItinerary?.locations || []}
-        isMultiCity={currentItinerary?.isMultiCity || false}
-        onAddEvent={handleAddEvent}
-        onEditEvent={handleEditEvent}
-        onDeleteEvent={handleDeleteEvent}
-      />
+          {/* Trip Calendar */}
+          <TripCalendar
+            startDate={dateRange.start!}
+            endDate={dateRange.end!}
+            events={events}
+            locations={currentItinerary?.locations || []}
+            isMultiCity={currentItinerary?.isMultiCity || false}
+            onAddEvent={handleAddEvent}
+            onEditEvent={handleEditEvent}
+            onDeleteEvent={handleDeleteEvent}
+          />
+        </TabsContent>
+        
+        <TabsContent value="saved" className="mt-6">
+          <SavedItinerariesSection onLoadItinerary={handleLoadItinerary} />
+        </TabsContent>
+      </Tabs>
 
       {/* Event Dialog */}
       <EventDialog
