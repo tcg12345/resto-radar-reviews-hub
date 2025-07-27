@@ -3,6 +3,8 @@ import { Plus, Check, ChevronDown, X, Sliders, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RestaurantCard } from '@/components/RestaurantCard';
+import { RestaurantCardList } from '@/components/RestaurantCardList';
+import { ViewToggle, useViewToggle } from '@/components/ViewToggle';
 import { RestaurantDialog } from '@/components/Dialog/RestaurantDialog';
 import { ConfirmDialog } from '@/components/Dialog/ConfirmDialog';
 import { Restaurant, RestaurantFormData } from '@/types/restaurant';
@@ -47,6 +49,7 @@ export function RatedRestaurantsPage({
   const [filterMichelins, setFilterMichelins] = useState<string[]>([]);
   const [ratingRange, setRatingRange] = useState<[number, number]>([0, 10]);
   const [tempRatingRange, setTempRatingRange] = useState<[number, number]>([0, 10]);
+  const { view, setView } = useViewToggle('rated-restaurants-view', 'grid');
 
   const ratedRestaurants = restaurants.filter((r) => !r.isWishlist);
 
@@ -264,7 +267,8 @@ export function RatedRestaurantsPage({
     <div className="w-full max-w-none py-6 mobile-container px-4 lg:px-6">
       <div className="mb-3 lg:mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <h2 className="hidden lg:block text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Rated Restaurants</h2>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          <ViewToggle currentView={view} onViewChange={setView} storageKey="rated-restaurants-view" />
           <Button size="sm" onClick={() => setIsAddDialogOpen(true)} className="mobile-button">
             <Plus className="mr-1 lg:mr-2 h-3 w-3 lg:h-4 lg:w-4" />
             Add Restaurant
@@ -550,15 +554,24 @@ export function RatedRestaurantsPage({
           </Button>
         </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className={view === 'grid' ? "grid gap-6 sm:grid-cols-2 lg:grid-cols-3" : "space-y-4"}>
             {filteredRestaurants.map((restaurant) => (
-              <RestaurantCard
-                key={restaurant.id}
-                restaurant={restaurant}
-                onEdit={handleOpenEditDialog}
-                onDelete={handleOpenDeleteDialog}
-                showAIReviewAssistant={true}
-              />
+              view === 'grid' ? (
+                <RestaurantCard
+                  key={restaurant.id}
+                  restaurant={restaurant}
+                  onEdit={handleOpenEditDialog}
+                  onDelete={handleOpenDeleteDialog}
+                  showAIReviewAssistant={true}
+                />
+              ) : (
+                <RestaurantCardList
+                  key={restaurant.id}
+                  restaurant={restaurant}
+                  onEdit={handleOpenEditDialog}
+                  onDelete={handleOpenDeleteDialog}
+                />
+              )
             ))}
           </div>
         )}

@@ -3,6 +3,8 @@ import { Plus, Heart, RotateCcw, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RestaurantCard } from '@/components/RestaurantCard';
+import { RestaurantCardList } from '@/components/RestaurantCardList';
+import { ViewToggle, useViewToggle } from '@/components/ViewToggle';
 import { RestaurantDialog } from '@/components/Dialog/RestaurantDialog';
 import { ConfirmDialog } from '@/components/Dialog/ConfirmDialog';
 import { Restaurant, RestaurantFormData } from '@/types/restaurant';
@@ -33,6 +35,7 @@ export function WishlistPage({
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCity, setActiveCity] = useState<string>('all');
+  const { view, setView } = useViewToggle('wishlist-view', 'grid');
 
   const wishlistRestaurants = restaurants.filter((r) => r.isWishlist);
   
@@ -94,6 +97,7 @@ export function WishlistPage({
       <div className="mb-3 lg:mb-6 flex flex-col items-start justify-between mobile-grid-compact lg:gap-4 sm:flex-row sm:items-center">
         <h2 className="hidden lg:block text-xl lg:text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mobile-truncate">Restaurant Wishlist</h2>
         <div className="flex items-center mobile-grid-compact">
+          <ViewToggle currentView={view} onViewChange={setView} storageKey="wishlist-view" />
           <Button size="sm" onClick={() => setIsAddDialogOpen(true)} className="mobile-button">
             <Plus className="mr-1 lg:mr-2 h-3 w-3 lg:h-4 lg:w-4" />
             Add Restaurant
@@ -175,22 +179,32 @@ export function WishlistPage({
                 </Button>
               </div>
             ) : (
-              <div className="grid gap-3 lg:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 mobile-grid-compact">
+              <div className={view === 'grid' ? "grid gap-3 lg:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 mobile-grid-compact" : "space-y-4"}>
                 {filteredRestaurants.map((restaurant) => (
                   <div key={restaurant.id} className="relative">
-                    <RestaurantCard
-                      restaurant={restaurant}
-                      onEdit={handleOpenEditDialog}
-                      onDelete={handleOpenDeleteDialog}
-                    />
-                    <Button
-                      size="icon"
-                      variant="secondary"
-                      className="absolute top-3 right-3 h-8 w-8 bg-red-500 hover:bg-red-600 text-white"
-                      onClick={() => handleOpenDeleteDialog(restaurant.id)}
-                    >
-                      <Heart className="h-4 w-4 fill-current" />
-                    </Button>
+                    {view === 'grid' ? (
+                      <RestaurantCard
+                        restaurant={restaurant}
+                        onEdit={handleOpenEditDialog}
+                        onDelete={handleOpenDeleteDialog}
+                      />
+                    ) : (
+                      <RestaurantCardList
+                        restaurant={restaurant}
+                        onEdit={handleOpenEditDialog}
+                        onDelete={handleOpenDeleteDialog}
+                      />
+                    )}
+                    {view === 'grid' && (
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        className="absolute top-3 right-3 h-8 w-8 bg-red-500 hover:bg-red-600 text-white"
+                        onClick={() => handleOpenDeleteDialog(restaurant.id)}
+                      >
+                        <Heart className="h-4 w-4 fill-current" />
+                      </Button>
+                    )}
                   </div>
                 ))}
               </div>
