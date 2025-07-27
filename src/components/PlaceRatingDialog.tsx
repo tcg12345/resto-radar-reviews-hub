@@ -10,6 +10,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { usePlaceRatings } from '@/hooks/usePlaceRatings';
 import { PlaceRating } from '@/hooks/useTrips';
@@ -76,7 +80,7 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
   const [customCategories, setCustomCategories] = useState<string[]>([]);
   const [newCustomCategory, setNewCustomCategory] = useState('');
   const [notes, setNotes] = useState('');
-  const [dateVisited, setDateVisited] = useState('');
+  const [dateVisited, setDateVisited] = useState<Date | undefined>();
   const [isSearching, setIsSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -243,7 +247,7 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
       setCustomCategories(customCats);
       
       setNotes(editPlaceData.notes || '');
-      setDateVisited(editPlaceData.date_visited || '');
+      setDateVisited(editPlaceData.date_visited ? new Date(editPlaceData.date_visited) : undefined);
       setPreviewImages(editPlaceData.photos || []);
     }
   }, [isEditMode, editPlaceData]);
@@ -274,7 +278,7 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
         overall_rating: overallRating || undefined,
         category_ratings: Object.keys(categoryRatings).length > 0 ? categoryRatings : undefined,
         notes: notes.trim() || undefined,
-        date_visited: dateVisited || undefined,
+        date_visited: dateVisited ? dateVisited.toISOString().split('T')[0] : undefined,
         website: selectedPlace.website,
         phone_number: selectedPlace.formatted_phone_number,
         price_range: selectedPlace.price_level,
@@ -303,7 +307,7 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
     setCustomCategories([]);
     setNewCustomCategory('');
     setNotes('');
-    setDateVisited('');
+    setDateVisited(undefined);
     setShowSuggestions(false);
     setPhotos([]);
     setPreviewImages([]);
@@ -811,17 +815,31 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
 
               {/* Date Visited */}
               <div className="space-y-2">
-                <Label htmlFor="dateVisited">Date Visited</Label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="dateVisited"
-                    type="date"
-                    value={dateVisited}
-                    onChange={(e) => setDateVisited(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
+                <Label>Date Visited</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !dateVisited && "text-muted-foreground"
+                      )}
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {dateVisited ? format(dateVisited, "PPP") : <span>Select a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={dateVisited}
+                      onSelect={setDateVisited}
+                      disabled={(date) => date > new Date()}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               {/* Photos */}
