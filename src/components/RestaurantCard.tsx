@@ -230,10 +230,10 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
         </div>
       ) : null}
       
-      <CardHeader className="pb-1 lg:pb-2 p-3 lg:p-6">
-        <div className="mobile-space-compact lg:space-y-2">
-          <CardTitle className="text-base lg:text-xl font-bold mobile-truncate-2">{restaurant.name}</CardTitle>
-          <div className="mobile-space-compact lg:space-y-2">
+      <CardHeader className="pb-1 lg:pb-1 p-2 lg:p-4">
+        <div className="mobile-space-compact lg:space-y-1">
+          <CardTitle className="text-sm lg:text-lg font-bold mobile-truncate-2">{restaurant.name}</CardTitle>
+          <div className="mobile-space-compact lg:space-y-1">
             {restaurant.rating !== undefined && (
               <div className="mobile-rating-container">
                       {restaurant.googleMapsUrl ? (
@@ -284,11 +284,11 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
         </CardDescription>
       </CardHeader>
       
-      <CardContent className="pb-1 lg:pb-2 p-3 lg:p-6 pt-0">
+      <CardContent className="pb-1 lg:pb-1 p-2 lg:p-4 pt-0">
         <div className="mobile-flex-nowrap lg:flex lg:flex-wrap mobile-grid-compact">
           {/* Current day hours display */}
           {restaurant.openingHours && (
-            <div className="w-full mb-1 lg:mb-2">
+            <div className="w-full mb-1 lg:mb-1">
               <div className="flex items-center text-xs lg:text-sm text-muted-foreground mobile-truncate">
                 <Clock className="mr-1 h-3 w-3 lg:h-3.5 lg:w-3.5 flex-shrink-0" />
                 <span className="mobile-truncate">{getCurrentDayHours(restaurant.openingHours)}</span>
@@ -297,7 +297,7 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
           )}
           
           {restaurant.dateVisited && (
-            <div className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 lg:px-2.5 lg:py-1 mobile-badge text-muted-foreground flex-shrink-0">
+            <div className="inline-flex items-center rounded-full bg-muted px-1.5 py-0.5 lg:px-2 lg:py-0.5 mobile-badge text-muted-foreground flex-shrink-0">
               <Clock className="mr-1 h-2.5 w-2.5 lg:h-3 lg:w-3" />
               <span className="hidden lg:inline">{format(new Date(restaurant.dateVisited), 'MMM d, yyyy')}</span>
               <span className="lg:hidden">{format(new Date(restaurant.dateVisited), 'MMM d')}</span>
@@ -305,20 +305,20 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
           )}
           
           {restaurant.isWishlist && (
-            <div className="inline-flex items-center rounded-full bg-accent/10 px-2 py-0.5 lg:px-2.5 lg:py-1 mobile-badge text-accent flex-shrink-0">
+            <div className="inline-flex items-center rounded-full bg-accent/10 px-1.5 py-0.5 lg:px-2 lg:py-0.5 mobile-badge text-accent flex-shrink-0">
               Wishlist
             </div>
           )}
         </div>
       </CardContent>
       
-      <CardFooter className="flex mobile-grid-compact pt-0 pb-2 lg:pb-3 p-3 lg:p-6">
+      <CardFooter className="flex mobile-grid-compact pt-0 pb-1 lg:pb-2 p-2 lg:p-4">
         <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
           <DialogTrigger asChild>
             <Button 
               size="sm" 
               variant="outline"
-              className="flex-1 h-6 lg:h-7 px-1.5 lg:px-2 text-[10px] lg:text-xs mobile-button"
+              className="flex-1 h-6 lg:h-7 px-1 lg:px-2 text-[10px] lg:text-xs mobile-button"
             >
               <Eye className="mr-0.5 lg:mr-1 h-2.5 w-2.5 lg:h-3 lg:w-3" />
               <span className="hidden sm:inline">Details</span>
