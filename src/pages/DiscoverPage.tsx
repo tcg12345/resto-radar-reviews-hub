@@ -148,11 +148,11 @@ export function DiscoverPage() {
   };
 
   return (
-    <div className="full-viewport bg-gradient-subtle">
-      <div className="page-container gap-section">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 mobile-container">
+      <div className="container py-8 space-y-8 mobile-container px-4 sm:px-6">
         {/* Header */}
-        <div className="text-center gap-content">
-          <h1 className="text-4xl lg:text-5xl font-bold text-gradient">
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-primary via-primary to-primary/70 bg-clip-text text-transparent">
             Discover Amazing Restaurants
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -162,37 +162,37 @@ export function DiscoverPage() {
 
         {/* Quick Stats */}
         {hasSearched && restaurants.length > 0 && (
-          <div className="grid-cards">
-            <Card className="glass-card border-success">
-              <CardContent className="card-container flex-start gap-content">
-                <TrendingUp className="h-8 w-8 text-success" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200">
+              <CardContent className="p-4 flex items-center gap-3">
+                <TrendingUp className="h-8 w-8 text-green-600" />
                 <div>
-                  <p className="text-sm text-success font-medium">Average Rating</p>
-                  <p className="text-2xl font-bold text-success">
+                  <p className="text-sm text-green-600 font-medium">Average Rating</p>
+                  <p className="text-2xl font-bold text-green-700">
                     {(restaurants.reduce((sum, r) => sum + r.rating, 0) / restaurants.length).toFixed(1)}
                   </p>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="glass-card border-warning">
-              <CardContent className="card-container flex-start gap-content">
-                <Award className="h-8 w-8 text-warning" />
+            <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 border-amber-200">
+              <CardContent className="p-4 flex items-center gap-3">
+                <Award className="h-8 w-8 text-amber-600" />
                 <div>
-                  <p className="text-sm text-warning font-medium">Michelin Starred</p>
-                  <p className="text-2xl font-bold text-warning">
+                  <p className="text-sm text-amber-600 font-medium">Michelin Starred</p>
+                  <p className="text-2xl font-bold text-amber-700">
                     {restaurants.filter(r => r.michelinStars).length}
                   </p>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="glass-card border-primary">
-              <CardContent className="card-container flex-start gap-content">
-                <MapPin className="h-8 w-8 text-primary" />
+            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200">
+              <CardContent className="p-4 flex items-center gap-3">
+                <MapPin className="h-8 w-8 text-blue-600" />
                 <div>
-                  <p className="text-sm text-primary font-medium">Unique Locations</p>
-                  <p className="text-2xl font-bold text-primary">
+                  <p className="text-sm text-blue-600 font-medium">Unique Locations</p>
+                  <p className="text-2xl font-bold text-blue-700">
                     {new Set(restaurants.map(r => r.location?.city || 'Unknown')).size}
                   </p>
                 </div>

@@ -261,18 +261,18 @@ export function RatedRestaurantsPage({
   };
 
   return (
-    <div className="page-container">
-      <div className="flex-between mb-section">
-        <h2 className="hidden lg:block text-3xl font-bold tracking-tight text-gradient">Rated Restaurants</h2>
-        <div className="flex gap-component">
-          <Button size="sm" onClick={() => setIsAddDialogOpen(true)} className="button-responsive">
-            <Plus className="mr-2 h-4 w-4" />
+    <div className="container py-6 mobile-container px-4 sm:px-6">
+      <div className="mb-3 lg:mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+        <h2 className="hidden lg:block text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Rated Restaurants</h2>
+        <div className="flex gap-2">
+          <Button size="sm" onClick={() => setIsAddDialogOpen(true)} className="mobile-button">
+            <Plus className="mr-1 lg:mr-2 h-3 w-3 lg:h-4 lg:w-4" />
             Add Restaurant
           </Button>
           {onNavigateToMap && (
-            <Button variant="outline" size="sm" onClick={onNavigateToMap} className="button-responsive">
-              <MapPin className="h-4 w-4" />
-              <span className="ml-2">Map</span>
+            <Button variant="outline" size="sm" onClick={onNavigateToMap} className="mobile-button">
+              <MapPin className="h-3 w-3 lg:h-4 lg:w-4" />
+              <span className="ml-1">Map</span>
             </Button>
           )}
         </div>
