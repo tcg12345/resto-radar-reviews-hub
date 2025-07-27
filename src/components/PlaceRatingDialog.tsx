@@ -38,6 +38,9 @@ interface GooglePlace {
   website?: string;
   formatted_phone_number?: string;
   price_level?: number;
+  user_ratings_total?: number;
+  opening_hours?: any;
+  photos?: any[];
 }
 
 const RATING_CATEGORIES = {
@@ -113,11 +116,41 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
     }
   };
 
-  const handlePlaceSelect = (place: GooglePlace) => {
+  const handlePlaceSelect = async (place: GooglePlace) => {
     setSelectedPlace(place);
     setSearchResults([]);
     setShowSuggestions(false);
     setSearchQuery(place.name);
+    
+    // Fetch detailed place information including website
+    try {
+      const { data, error } = await supabase.functions.invoke('google-places-search', {
+        body: {
+          placeId: place.place_id,
+          type: 'details'
+        }
+      });
+      
+      if (error) throw error;
+      
+      if (data.status === 'OK' && data.result) {
+        const detailedPlace = data.result;
+        // Update the selected place with detailed information including website
+        setSelectedPlace({
+          ...place,
+          website: detailedPlace.website,
+          formatted_phone_number: detailedPlace.formatted_phone_number,
+          price_level: detailedPlace.price_level,
+          rating: detailedPlace.rating,
+          user_ratings_total: detailedPlace.user_ratings_total,
+          opening_hours: detailedPlace.opening_hours,
+          photos: detailedPlace.photos
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching place details:', error);
+      // Continue with basic place info if details fetch fails
+    }
     
     // Auto-detect place type
     if (place.types.some(type => ['restaurant', 'food', 'meal_takeaway'].includes(type))) {
