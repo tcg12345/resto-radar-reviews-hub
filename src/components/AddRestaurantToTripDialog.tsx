@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 import { usePlaceRatings } from '@/hooks/usePlaceRatings';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface AddRestaurantToTripDialogProps {
   isOpen: boolean;
@@ -38,8 +39,14 @@ export function AddRestaurantToTripDialog({ isOpen, onClose, tripId }: AddRestau
 
     setIsLoading(true);
     try {
-      await addRestaurantToTrip(tripId, selectedRestaurant);
-      handleClose();
+      const result = await addRestaurantToTrip(tripId, selectedRestaurant);
+      if (result) {
+        toast.success(`${selectedRestaurant.name} added to trip!`);
+        handleClose();
+      }
+    } catch (error) {
+      console.error('Error adding restaurant to trip:', error);
+      toast.error('Failed to add restaurant to trip');
     } finally {
       setIsLoading(false);
     }
