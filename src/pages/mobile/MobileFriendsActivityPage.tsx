@@ -1,15 +1,10 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Users, Star, Heart, MapPin, Clock, Filter, SortAsc, List, ChevronDown, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Users, Star, Heart, MapPin, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -19,6 +14,7 @@ import { StarRating } from '@/components/StarRating';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ActivityFeedSkeleton } from '@/components/skeletons/ActivityFeedSkeleton';
 import { RestaurantActivityCardSkeleton } from '@/components/skeletons/RestaurantActivityCardSkeleton';
+import { MobileFriendsFilters } from '@/components/mobile/MobileFriendsFilters';
 
 interface FriendRestaurant {
   id: string;
@@ -88,9 +84,6 @@ export function MobileFriendsActivityPage() {
   const [selectedFriends, setSelectedFriends] = useState<string[]>(
     searchParams.get('friends') ? searchParams.get('friends')!.split(',') : []
   );
-  const [isCuisineDropdownOpen, setIsCuisineDropdownOpen] = useState(false);
-  const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
-  const [isFriendsDropdownOpen, setIsFriendsDropdownOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page') || '1'));
   const [hasMore, setHasMore] = useState(true);
   const [allFriendIds, setAllFriendIds] = useState<string[]>([]);
@@ -739,170 +732,26 @@ export function MobileFriendsActivityPage() {
           </Card>
         </div>
 
-        {/* Search and Filters */}
-        <div className="space-y-4">
-          {/* Search */}
-          <div className="relative">
-            <Input
-              placeholder="Search restaurants, cuisines, cities, or friends..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-4"
-            />
-          </div>
-
-          {/* Filter Tabs */}
-          <Tabs value={filterBy} onValueChange={(value) => setFilterBy(value as FilterOption)}>
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="all" className="flex items-center gap-2">
-                <List className="h-4 w-4" />
-                All ({filterCounts.total})
-              </TabsTrigger>
-              <TabsTrigger value="rated" className="flex items-center gap-2">
-                <Star className="h-4 w-4" />
-                Rated ({filterCounts.rated})
-              </TabsTrigger>
-              <TabsTrigger value="wishlist" className="flex items-center gap-2">
-                <Heart className="h-4 w-4" />
-                Wishlist ({filterCounts.wishlist})
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          {/* Sort and Advanced Filters */}
-          <div className="flex flex-col gap-3">
-            {/* Sort */}
-            <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
-              <SelectTrigger>
-                <div className="flex items-center gap-2">
-                  <SortAsc className="h-4 w-4" />
-                  <SelectValue placeholder="Sort by" />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="recent">Most Recent</SelectItem>
-                <SelectItem value="rating">Highest Rated</SelectItem>
-                <SelectItem value="alphabetical">Alphabetical</SelectItem>
-                <SelectItem value="friend">By Friend</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Advanced Filters */}
-            <div className="space-y-3">
-              {/* Cuisine Filter */}
-              <Collapsible open={isCuisineDropdownOpen} onOpenChange={setIsCuisineDropdownOpen}>
-                <CollapsibleTrigger asChild>
-                  <Button variant="outline" className="w-full justify-between">
-                    <div className="flex items-center gap-2">
-                      <Filter className="h-4 w-4" />
-                      Cuisines {selectedCuisines.length > 0 && `(${selectedCuisines.length})`}
-                    </div>
-                    {isCuisineDropdownOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-2 mt-2">
-                  <div className="max-h-48 overflow-y-auto space-y-2 p-2 border rounded">
-                    {uniqueCuisines.map((cuisine) => (
-                      <div key={cuisine} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`cuisine-${cuisine}`}
-                          checked={selectedCuisines.includes(cuisine)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedCuisines([...selectedCuisines, cuisine]);
-                            } else {
-                              setSelectedCuisines(selectedCuisines.filter(c => c !== cuisine));
-                            }
-                          }}
-                        />
-                        <label htmlFor={`cuisine-${cuisine}`} className="text-sm flex-1 cursor-pointer">
-                          {cuisine} ({filterCounts.cuisines[cuisine] || 0})
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-
-              {/* City Filter */}
-              <Collapsible open={isCityDropdownOpen} onOpenChange={setIsCityDropdownOpen}>
-                <CollapsibleTrigger asChild>
-                  <Button variant="outline" className="w-full justify-between">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4" />
-                      Cities {selectedCities.length > 0 && `(${selectedCities.length})`}
-                    </div>
-                    {isCityDropdownOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-2 mt-2">
-                  <div className="max-h-48 overflow-y-auto space-y-2 p-2 border rounded">
-                    {uniqueCities.map((city) => (
-                      <div key={city} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`city-${city}`}
-                          checked={selectedCities.includes(city)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedCities([...selectedCities, city]);
-                            } else {
-                              setSelectedCities(selectedCities.filter(c => c !== city));
-                            }
-                          }}
-                        />
-                        <label htmlFor={`city-${city}`} className="text-sm flex-1 cursor-pointer">
-                          {city} ({filterCounts.cities[city] || 0})
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-
-              {/* Friends Filter */}
-              <Collapsible open={isFriendsDropdownOpen} onOpenChange={setIsFriendsDropdownOpen}>
-                <CollapsibleTrigger asChild>
-                  <Button variant="outline" className="w-full justify-between">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4" />
-                      Friends {selectedFriends.length > 0 && `(${selectedFriends.length})`}
-                    </div>
-                    {isFriendsDropdownOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-2 mt-2">
-                  <div className="max-h-48 overflow-y-auto space-y-2 p-2 border rounded">
-                    {uniqueFriends.map((friend) => (
-                      <div key={friend.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`friend-${friend.id}`}
-                          checked={selectedFriends.includes(friend.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedFriends([...selectedFriends, friend.id]);
-                            } else {
-                              setSelectedFriends(selectedFriends.filter(f => f !== friend.id));
-                            }
-                          }}
-                        />
-                        <label htmlFor={`friend-${friend.id}`} className="text-sm flex-1 cursor-pointer">
-                          {friend.name} ({friend.count})
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-            </div>
-
-            {/* Clear Filters */}
-            {(searchQuery || sortBy !== 'recent' || filterBy !== 'all' || selectedCuisines.length > 0 || selectedCities.length > 0 || selectedFriends.length > 0) && (
-              <Button variant="outline" onClick={clearFilters} className="w-full">
-                Clear All Filters
-              </Button>
-            )}
-          </div>
-        </div>
+        {/* New Mobile-Friendly Filters */}
+        <MobileFriendsFilters
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          filterBy={filterBy}
+          setFilterBy={setFilterBy}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          selectedCuisines={selectedCuisines}
+          setSelectedCuisines={setSelectedCuisines}
+          selectedCities={selectedCities}
+          setSelectedCities={setSelectedCities}
+          selectedFriends={selectedFriends}
+          setSelectedFriends={setSelectedFriends}
+          uniqueCuisines={uniqueCuisines}
+          uniqueCities={uniqueCities}
+          uniqueFriends={uniqueFriends}
+          filterCounts={filterCounts}
+          onClearFilters={clearFilters}
+        />
 
         {/* Results */}
         <div className="space-y-4">
