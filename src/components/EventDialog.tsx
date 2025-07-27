@@ -9,6 +9,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 import { RestaurantSearchDialog } from '@/components/RestaurantSearchDialog';
 import { AttractionsSearch } from '@/components/AttractionsSearch';
 import { ItineraryEvent } from '@/components/ItineraryBuilder';
@@ -46,6 +49,10 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [time, setTime] = useState('');
+  const [selectedHour, setSelectedHour] = useState('12');
+  const [selectedMinute, setSelectedMinute] = useState('00');
+  const [selectedPeriod, setSelectedPeriod] = useState<'AM' | 'PM'>('PM');
+  const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
   const [type, setType] = useState<'restaurant' | 'attraction' | 'other'>('other');
   const [restaurantData, setRestaurantData] = useState<RestaurantData | null>(null);
   const [attractionData, setAttractionData] = useState<AttractionData | null>(null);
@@ -255,14 +262,117 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
 
             {/* Time */}
             <div className="space-y-2">
-              <Label htmlFor="time">Time *</Label>
-              <Input
-                id="time"
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="w-full"
-              />
+              <Label>Time *</Label>
+              <Popover open={isTimePickerOpen} onOpenChange={setIsTimePickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !time && "text-muted-foreground"
+                    )}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsTimePickerOpen(!isTimePickerOpen);
+                    }}
+                  >
+                    <Clock className="mr-2 h-4 w-4" />
+                    {time ? time : <span>Select time</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent 
+                  className="w-auto p-0 bg-background border shadow-lg" 
+                  align="start"
+                  side="bottom"
+                  sideOffset={4}
+                  style={{ zIndex: 9999 }}
+                >
+                  <div className="p-4 space-y-4">
+                    <div className="flex items-center space-x-2">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Hour</Label>
+                        <Select value={selectedHour} onValueChange={setSelectedHour}>
+                          <SelectTrigger className="w-16">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 12 }, (_, i) => {
+                              const hour = i + 1;
+                              return (
+                                <SelectItem key={hour} value={hour.toString().padStart(2, '0')}>
+                                  {hour.toString().padStart(2, '0')}
+                                </SelectItem>
+                              );
+                            })}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="text-xl font-bold">:</div>
+                      
+                      <div className="space-y-1">
+                        <Label className="text-xs">Minute</Label>
+                        <Select value={selectedMinute} onValueChange={setSelectedMinute}>
+                          <SelectTrigger className="w-16">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {['00', '15', '30', '45'].map((minute) => (
+                              <SelectItem key={minute} value={minute}>
+                                {minute}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <Label className="text-xs">Period</Label>
+                        <Select value={selectedPeriod} onValueChange={(value: 'AM' | 'PM') => setSelectedPeriod(value)}>
+                          <SelectTrigger className="w-16">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="AM">AM</SelectItem>
+                            <SelectItem value="PM">PM</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between pt-2 border-t">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setTime('');
+                          setSelectedHour('12');
+                          setSelectedMinute('00');
+                          setSelectedPeriod('PM');
+                          setIsTimePickerOpen(false);
+                        }}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        Clear
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => {
+                          const timeString = `${selectedHour}:${selectedMinute} ${selectedPeriod}`;
+                          setTime(timeString);
+                          setIsTimePickerOpen(false);
+                        }}
+                      >
+                        Set Time
+                      </Button>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
 
             {/* Description */}
