@@ -16,7 +16,6 @@ import { cn } from '@/lib/utils';
 import { RestaurantSearchDialog } from '@/components/RestaurantSearchDialog';
 import { AttractionsSearch } from '@/components/AttractionsSearch';
 import { ItineraryEvent } from '@/components/ItineraryBuilder';
-
 interface EventDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -25,7 +24,6 @@ interface EventDialogProps {
   editingEvent: ItineraryEvent | null;
   itineraryLocation?: string;
 }
-
 interface RestaurantData {
   name: string;
   address: string;
@@ -33,7 +31,6 @@ interface RestaurantData {
   phone?: string;
   website?: string;
 }
-
 interface AttractionData {
   id: string;
   name: string;
@@ -45,8 +42,14 @@ interface AttractionData {
   latitude?: number;
   longitude?: number;
 }
-
-export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEvent, itineraryLocation }: EventDialogProps) {
+export function EventDialog({
+  isOpen,
+  onClose,
+  onSave,
+  selectedDate,
+  editingEvent,
+  itineraryLocation
+}: EventDialogProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [time, setTime] = useState('');
@@ -81,10 +84,8 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
       setAttractionData(null);
     }
   }, [isOpen, editingEvent]);
-
   const handleSave = () => {
     if (!title.trim() || !time || !selectedDate) return;
-
     const eventData: Omit<ItineraryEvent, 'id'> = {
       title: title.trim(),
       description: description.trim() || undefined,
@@ -92,13 +93,11 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
       date: selectedDate,
       type,
       restaurantData: type === 'restaurant' ? restaurantData : undefined,
-      attractionData: type === 'attraction' ? attractionData : undefined,
+      attractionData: type === 'attraction' ? attractionData : undefined
     };
-
     onSave(eventData);
     handleClose();
   };
-
   const handleClose = () => {
     setTitle('');
     setDescription('');
@@ -108,20 +107,18 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
     setAttractionData(null);
     onClose();
   };
-
   const handleRestaurantSelect = (restaurant: any) => {
     setRestaurantData({
       name: restaurant.name,
       address: restaurant.formatted_address || restaurant.vicinity,
       placeId: restaurant.place_id,
       phone: restaurant.formatted_phone_number,
-      website: restaurant.website,
+      website: restaurant.website
     });
     setTitle(restaurant.name);
     setType('restaurant');
     setIsRestaurantSearchOpen(false);
   };
-
   const handleAttractionSelect = (attraction: AttractionData | null) => {
     setAttractionData(attraction);
     if (attraction) {
@@ -129,11 +126,8 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
       setType('attraction');
     }
   };
-
   const formattedDate = selectedDate ? format(new Date(selectedDate), 'EEEE, MMMM do') : '';
-
-  return (
-    <>
+  return <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -149,7 +143,7 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
             {/* Event Type Selection */}
             <div className="space-y-3">
               <Label>Event Type</Label>
-              <Tabs value={type} onValueChange={(value) => setType(value as typeof type)}>
+              <Tabs value={type} onValueChange={value => setType(value as typeof type)}>
                 <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="restaurant" className="flex items-center gap-1 text-xs">
                     <Utensils className="w-3 h-3" />
@@ -166,8 +160,7 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
                 </TabsList>
 
                 <TabsContent value="restaurant" className="space-y-4">
-                  {restaurantData ? (
-                    <Card>
+                  {restaurantData ? <Card>
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <div>
@@ -181,30 +174,18 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
                         </div>
                       </CardHeader>
                       <CardContent className="pt-0">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setIsRestaurantSearchOpen(true)}
-                        >
+                        <Button variant="outline" size="sm" onClick={() => setIsRestaurantSearchOpen(true)}>
                           Change Restaurant
                         </Button>
                       </CardContent>
-                    </Card>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      className="w-full flex items-center gap-2"
-                      onClick={() => setIsRestaurantSearchOpen(true)}
-                    >
+                    </Card> : <Button variant="outline" className="w-full flex items-center gap-2" onClick={() => setIsRestaurantSearchOpen(true)}>
                       <Search className="w-4 h-4" />
                       Search for Restaurant
-                    </Button>
-                  )}
+                    </Button>}
                 </TabsContent>
 
                 <TabsContent value="attraction" className="space-y-4">
-                  {attractionData ? (
-                    <Card>
+                  {attractionData ? <Card>
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <div>
@@ -218,28 +199,16 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
                         </div>
                       </CardHeader>
                       <CardContent className="pt-0">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setAttractionData(null)}
-                        >
+                        <Button variant="outline" size="sm" onClick={() => setAttractionData(null)}>
                           Change Place
                         </Button>
                       </CardContent>
-                    </Card>
-                  ) : (
-                    <div className="space-y-3">
+                    </Card> : <div className="space-y-3">
                       <p className="text-sm text-muted-foreground">
                         Search for attractions, museums, landmarks, and places to visit.
                       </p>
-                      <AttractionsSearch
-                        value={attractionData}
-                        onChange={handleAttractionSelect}
-                        location={itineraryLocation}
-                        placeholder="Search Louvre, Eiffel Tower, Central Park..."
-                      />
-                    </div>
-                  )}
+                      <AttractionsSearch value={attractionData} onChange={handleAttractionSelect} location={itineraryLocation} placeholder="Search Louvre, Eiffel Tower, Central Park..." />
+                    </div>}
                 </TabsContent>
 
                 <TabsContent value="other">
@@ -253,13 +222,7 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
             {/* Event Title */}
             <div className="space-y-2">
               <Label htmlFor="title">Event Title *</Label>
-              <Input
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter event title..."
-                className="w-full"
-              />
+              <Input id="title" value={title} onChange={e => setTitle(e.target.value)} placeholder="Enter event title..." className="w-full" />
             </div>
 
             {/* Time */}
@@ -267,60 +230,44 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
               <Label>Time *</Label>
               <Popover open={isTimePickerOpen} onOpenChange={setIsTimePickerOpen}>
                 <PopoverTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !time && "text-muted-foreground"
-                    )}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setIsTimePickerOpen(!isTimePickerOpen);
-                    }}
-                  >
+                  <Button type="button" variant="outline" className={cn("w-full justify-start text-left font-normal", !time && "text-muted-foreground")} onClick={e => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsTimePickerOpen(!isTimePickerOpen);
+                }}>
                     <Clock className="mr-2 h-4 w-4" />
                     {time ? time : <span>Select time</span>}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent 
-                  className="w-auto p-0 bg-background border shadow-lg" 
-                  align="start"
-                  side="bottom"
-                  sideOffset={4}
-                  style={{ zIndex: 9999 }}
-                >
+                <PopoverContent className="w-auto p-0 bg-background border shadow-lg" align="start" side="bottom" sideOffset={4} style={{
+                zIndex: 9999
+              }}>
                   <div className="p-4 space-y-4">
                     {/* 24-hour toggle */}
                     <div className="flex items-center justify-between pb-2 border-b">
-                      <Label className="text-sm font-medium">Time Format</Label>
+                      
                       <div className="flex items-center space-x-2">
                         <span className="text-xs">12h</span>
-                        <Switch
-                          checked={is24Hour}
-                          onCheckedChange={(checked) => {
-                            setIs24Hour(checked);
-                            if (checked) {
-                              // Convert 12-hour to 24-hour
-                              let hour24 = parseInt(selectedHour);
-                              if (selectedPeriod === 'PM' && hour24 !== 12) {
-                                hour24 += 12;
-                              } else if (selectedPeriod === 'AM' && hour24 === 12) {
-                                hour24 = 0;
-                              }
-                              setSelectedHour(hour24.toString().padStart(2, '0'));
-                            } else {
-                              // Convert 24-hour to 12-hour
-                              let hour12 = parseInt(selectedHour);
-                              const period = hour12 >= 12 ? 'PM' : 'AM';
-                              if (hour12 === 0) hour12 = 12;
-                              else if (hour12 > 12) hour12 -= 12;
-                              setSelectedHour(hour12.toString().padStart(2, '0'));
-                              setSelectedPeriod(period);
-                            }
-                          }}
-                        />
+                        <Switch checked={is24Hour} onCheckedChange={checked => {
+                        setIs24Hour(checked);
+                        if (checked) {
+                          // Convert 12-hour to 24-hour
+                          let hour24 = parseInt(selectedHour);
+                          if (selectedPeriod === 'PM' && hour24 !== 12) {
+                            hour24 += 12;
+                          } else if (selectedPeriod === 'AM' && hour24 === 12) {
+                            hour24 = 0;
+                          }
+                          setSelectedHour(hour24.toString().padStart(2, '0'));
+                        } else {
+                          // Convert 24-hour to 12-hour
+                          let hour12 = parseInt(selectedHour);
+                          const period = hour12 >= 12 ? 'PM' : 'AM';
+                          if (hour12 === 0) hour12 = 12;else if (hour12 > 12) hour12 -= 12;
+                          setSelectedHour(hour12.toString().padStart(2, '0'));
+                          setSelectedPeriod(period);
+                        }
+                      }} />
                         <span className="text-xs">24h</span>
                       </div>
                     </div>
@@ -333,24 +280,22 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {is24Hour ? (
-                              // 24-hour format: 00-23
-                              Array.from({ length: 24 }, (_, i) => (
-                                <SelectItem key={i} value={i.toString().padStart(2, '0')}>
+                            {is24Hour ?
+                          // 24-hour format: 00-23
+                          Array.from({
+                            length: 24
+                          }, (_, i) => <SelectItem key={i} value={i.toString().padStart(2, '0')}>
                                   {i.toString().padStart(2, '0')}
-                                </SelectItem>
-                              ))
-                            ) : (
-                              // 12-hour format: 01-12
-                              Array.from({ length: 12 }, (_, i) => {
-                                const hour = i + 1;
-                                return (
-                                  <SelectItem key={hour} value={hour.toString().padStart(2, '0')}>
+                                </SelectItem>) :
+                          // 12-hour format: 01-12
+                          Array.from({
+                            length: 12
+                          }, (_, i) => {
+                            const hour = i + 1;
+                            return <SelectItem key={hour} value={hour.toString().padStart(2, '0')}>
                                     {hour.toString().padStart(2, '0')}
-                                  </SelectItem>
-                                );
-                              })
-                            )}
+                                  </SelectItem>;
+                          })}
                           </SelectContent>
                         </Select>
                       </div>
@@ -364,17 +309,14 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {['00', '15', '30', '45'].map((minute) => (
-                              <SelectItem key={minute} value={minute}>
+                            {['00', '15', '30', '45'].map(minute => <SelectItem key={minute} value={minute}>
                                 {minute}
-                              </SelectItem>
-                            ))}
+                              </SelectItem>)}
                           </SelectContent>
                         </Select>
                       </div>
                       
-                      {!is24Hour && (
-                        <div className="space-y-1">
+                      {!is24Hour && <div className="space-y-1">
                           <Label className="text-xs">Period</Label>
                           <Select value={selectedPeriod} onValueChange={(value: 'AM' | 'PM') => setSelectedPeriod(value)}>
                             <SelectTrigger className="w-16">
@@ -385,37 +327,24 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
                               <SelectItem value="PM">PM</SelectItem>
                             </SelectContent>
                           </Select>
-                        </div>
-                      )}
+                        </div>}
                     </div>
                     
                     <div className="flex justify-between pt-2 border-t">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setTime('');
-                          setSelectedHour(is24Hour ? '12' : '12');
-                          setSelectedMinute('00');
-                          if (!is24Hour) setSelectedPeriod('PM');
-                          setIsTimePickerOpen(false);
-                        }}
-                        className="text-muted-foreground hover:text-foreground"
-                      >
+                      <Button type="button" variant="ghost" size="sm" onClick={() => {
+                      setTime('');
+                      setSelectedHour(is24Hour ? '12' : '12');
+                      setSelectedMinute('00');
+                      if (!is24Hour) setSelectedPeriod('PM');
+                      setIsTimePickerOpen(false);
+                    }} className="text-muted-foreground hover:text-foreground">
                         Clear
                       </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={() => {
-                          const timeString = is24Hour 
-                            ? `${selectedHour}:${selectedMinute}`
-                            : `${selectedHour}:${selectedMinute} ${selectedPeriod}`;
-                          setTime(timeString);
-                          setIsTimePickerOpen(false);
-                        }}
-                      >
+                      <Button type="button" size="sm" onClick={() => {
+                      const timeString = is24Hour ? `${selectedHour}:${selectedMinute}` : `${selectedHour}:${selectedMinute} ${selectedPeriod}`;
+                      setTime(timeString);
+                      setIsTimePickerOpen(false);
+                    }}>
                         Set Time
                       </Button>
                     </div>
@@ -427,13 +356,7 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
             {/* Description */}
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Add notes or additional details..."
-                rows={3}
-              />
+              <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Add notes or additional details..." rows={3} />
             </div>
           </div>
 
@@ -441,21 +364,13 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
             <Button variant="outline" onClick={handleClose}>
               Cancel
             </Button>
-            <Button 
-              onClick={handleSave}
-              disabled={!title.trim() || !time}
-            >
+            <Button onClick={handleSave} disabled={!title.trim() || !time}>
               {editingEvent ? 'Update Event' : 'Add Event'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <RestaurantSearchDialog
-        isOpen={isRestaurantSearchOpen}
-        onClose={() => setIsRestaurantSearchOpen(false)}
-        onSelect={handleRestaurantSelect}
-      />
-    </>
-  );
+      <RestaurantSearchDialog isOpen={isRestaurantSearchOpen} onClose={() => setIsRestaurantSearchOpen(false)} onSelect={handleRestaurantSelect} />
+    </>;
 }
