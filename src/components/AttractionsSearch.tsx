@@ -164,7 +164,7 @@ export function AttractionsSearch({
               const { data: googlePlacesData } = await supabase.functions.invoke('google-places-search', {
                 body: {
                   query: `${basicAttraction.name} ${basicAttraction.address}`,
-                  type: 'textSearch'
+                  type: 'search'
                 }
               });
 
@@ -212,10 +212,49 @@ export function AttractionsSearch({
     setSearchQuery(e.target.value);
   };
 
-  const handleAttractionSelect = (attraction: Attraction) => {
+  const handleAttractionSelect = async (attraction: Attraction) => {
     setSearchQuery(attraction.name);
     setShowResults(false);
-    onChange?.(attraction);
+    
+    // If website or phone is missing, try to get it from Google Places
+    let enrichedAttraction = { ...attraction };
+    
+    if (!attraction.website || !attraction.phone) {
+      try {
+        const { data: searchData } = await supabase.functions.invoke('google-places-search', {
+          body: {
+            query: `${attraction.name} ${attraction.address}`,
+            type: 'search'
+          }
+        });
+        
+        if (searchData?.results?.[0]) {
+          const googlePlace = searchData.results[0];
+          
+          // Get detailed information from Google Places
+          const { data: detailsData } = await supabase.functions.invoke('google-places-search', {
+            body: {
+              placeId: googlePlace.place_id,
+              type: 'details'
+            }
+          });
+          
+          if (detailsData?.result) {
+            const details = detailsData.result;
+            enrichedAttraction = {
+              ...enrichedAttraction,
+              website: enrichedAttraction.website || details.website,
+              phone: enrichedAttraction.phone || details.formatted_phone_number
+            };
+          }
+        }
+      } catch (error) {
+        console.error('Error enriching attraction data:', error);
+        // Continue with original data if enrichment fails
+      }
+    }
+    
+    onChange?.(enrichedAttraction);
   };
 
   const handleClearSelection = () => {
