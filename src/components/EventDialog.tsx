@@ -19,10 +19,11 @@ import { ItineraryEvent } from '@/components/ItineraryBuilder';
 interface EventDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (event: Omit<ItineraryEvent, 'id'>) => void;
+  onSave: (event: Omit<ItineraryEvent, 'id'>, selectedDates?: string[]) => void;
   selectedDate: string | null;
   editingEvent: ItineraryEvent | null;
   itineraryLocation?: string;
+  availableDates?: string[]; // Available trip dates for multi-day selection
 }
 interface RestaurantData {
   name: string;
@@ -48,7 +49,8 @@ export function EventDialog({
   onSave,
   selectedDate,
   editingEvent,
-  itineraryLocation
+  itineraryLocation,
+  availableDates = []
 }: EventDialogProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -62,6 +64,8 @@ export function EventDialog({
   const [restaurantData, setRestaurantData] = useState<RestaurantData | null>(null);
   const [attractionData, setAttractionData] = useState<AttractionData | null>(null);
   const [isRestaurantSearchOpen, setIsRestaurantSearchOpen] = useState(false);
+  const [selectedDates, setSelectedDates] = useState<string[]>([]);
+  const [isMultiDayEvent, setIsMultiDayEvent] = useState(false);
 
   // Reset form when dialog opens/closes or editing event changes
   useEffect(() => {
@@ -74,6 +78,8 @@ export function EventDialog({
         setType(editingEvent.type);
         setRestaurantData(editingEvent.restaurantData || null);
         setAttractionData(editingEvent.attractionData || null);
+        setSelectedDates([editingEvent.date]);
+        setIsMultiDayEvent(false);
       }
     } else if (isOpen) {
       setTitle('');
@@ -82,20 +88,37 @@ export function EventDialog({
       setType('other');
       setRestaurantData(null);
       setAttractionData(null);
+      // If selectedDate is empty, this is a main add event (multi-day capable)
+      if (!selectedDate) {
+        setSelectedDates([]);
+        setIsMultiDayEvent(true);
+      } else {
+        setSelectedDates([selectedDate]);
+        setIsMultiDayEvent(false);
+      }
     }
-  }, [isOpen, editingEvent]);
+  }, [isOpen, editingEvent, selectedDate]);
   const handleSave = () => {
-    if (!title.trim() || !time || !selectedDate) return;
+    if (!title.trim() || !time) return;
+    
+    // For multi-day events, require at least one date selection
+    if (isMultiDayEvent && selectedDates.length === 0) return;
+    
+    // For single-day events, require the selectedDate
+    if (!isMultiDayEvent && !selectedDate) return;
+    
     const eventData: Omit<ItineraryEvent, 'id'> = {
       title: title.trim(),
       description: description.trim() || undefined,
       time,
-      date: selectedDate,
+      date: isMultiDayEvent ? selectedDates[0] : selectedDate!, // Default to first selected date
       type,
       restaurantData: type === 'restaurant' ? restaurantData : undefined,
       attractionData: type === 'attraction' ? attractionData : undefined
     };
-    onSave(eventData);
+    
+    // Pass selected dates for multi-day events
+    onSave(eventData, isMultiDayEvent ? selectedDates : undefined);
     handleClose();
   };
   const handleClose = () => {
@@ -353,6 +376,47 @@ export function EventDialog({
               </Popover>
             </div>
 
+            {/* Date Selection for Multi-Day Events */}
+            {isMultiDayEvent && availableDates.length > 0 && (
+              <div className="space-y-3">
+                <Label>Select Days for Event *</Label>
+                <p className="text-sm text-muted-foreground">
+                  Choose which day(s) you want to add this event to
+                </p>
+                <div className="grid gap-2 max-h-32 overflow-y-auto">
+                  {availableDates.map((date) => {
+                    const formattedDate = format(new Date(date), 'EEEE, MMMM do');
+                    const isSelected = selectedDates.includes(date);
+                    return (
+                      <div key={date} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id={`date-${date}`}
+                          checked={isSelected}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedDates(prev => [...prev, date]);
+                            } else {
+                              setSelectedDates(prev => prev.filter(d => d !== date));
+                            }
+                          }}
+                          className="rounded border-border"
+                        />
+                        <Label htmlFor={`date-${date}`} className="text-sm cursor-pointer">
+                          {formattedDate}
+                        </Label>
+                      </div>
+                    );
+                  })}
+                </div>
+                {selectedDates.length > 0 && (
+                  <p className="text-xs text-primary">
+                    Selected {selectedDates.length} day{selectedDates.length !== 1 ? 's' : ''}
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Description */}
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
@@ -364,7 +428,10 @@ export function EventDialog({
             <Button variant="outline" onClick={handleClose}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={!title.trim() || !time}>
+            <Button 
+              onClick={handleSave} 
+              disabled={!title.trim() || !time || (isMultiDayEvent && selectedDates.length === 0)}
+            >
               {editingEvent ? 'Update Event' : 'Add Event'}
             </Button>
           </DialogFooter>

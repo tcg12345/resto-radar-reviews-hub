@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { addDays, format, startOfDay, differenceInDays } from 'date-fns';
+import { addDays, format, startOfDay, differenceInDays, eachDayOfInterval } from 'date-fns';
 import { Calendar, Plus, Download, Share2, Save, CalendarDays, MapPin, X, CalendarIcon, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -275,7 +275,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
     setIsEventDialogOpen(true);
   };
 
-  const handleSaveEvent = (eventData: Omit<ItineraryEvent, 'id'>) => {
+  const handleSaveEvent = (eventData: Omit<ItineraryEvent, 'id'>, selectedDates?: string[]) => {
     if (editingEvent) {
       // Update existing event
       setEvents(prev => prev.map(event => 
@@ -285,13 +285,25 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
       ));
       toast.success('Event updated successfully');
     } else {
-      // Add new event
-      const newEvent: ItineraryEvent = {
-        ...eventData,
-        id: crypto.randomUUID(),
-      };
-      setEvents(prev => [...prev, newEvent]);
-      toast.success('Event added successfully');
+      // Add new event(s)
+      if (selectedDates && selectedDates.length > 1) {
+        // Create multiple events for multiple dates
+        const newEvents: ItineraryEvent[] = selectedDates.map(date => ({
+          ...eventData,
+          id: crypto.randomUUID(),
+          date,
+        }));
+        setEvents(prev => [...prev, ...newEvents]);
+        toast.success(`Event added to ${selectedDates.length} days successfully`);
+      } else {
+        // Single event
+        const newEvent: ItineraryEvent = {
+          ...eventData,
+          id: crypto.randomUUID(),
+        };
+        setEvents(prev => [...prev, newEvent]);
+        toast.success('Event added successfully');
+      }
     }
     setIsEventDialogOpen(false);
     setEditingEvent(null);
@@ -747,6 +759,12 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
         onSave={handleSaveEvent}
         selectedDate={selectedDate}
         editingEvent={editingEvent}
+        availableDates={
+          dateRange.start && dateRange.end
+            ? eachDayOfInterval({ start: dateRange.start, end: dateRange.end })
+                .map(date => format(date, 'yyyy-MM-dd'))
+            : []
+        }
       />
 
       {/* Share Dialog */}

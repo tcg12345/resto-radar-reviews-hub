@@ -75,6 +75,28 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
 
   return (
     <div className="grid gap-4">
+      {/* Main Add Event Button */}
+      <Card className="bg-primary/5 border-primary/20">
+        <CardContent className="pt-6">
+          <div className="text-center space-y-3">
+            <div className="flex items-center justify-center gap-2">
+              <Plus className="w-5 h-5 text-primary" />
+              <h3 className="font-semibold text-lg">Add Event to Your Trip</h3>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Create events and choose which day(s) you want to add them to
+            </p>
+            <Button
+              onClick={() => onAddEvent('')} // Empty string indicates main add event
+              className="w-full max-w-xs"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Event
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {days.map((day, index) => {
         const dayEvents = getEventsForDate(day);
         const dateStr = format(day, 'yyyy-MM-dd');
