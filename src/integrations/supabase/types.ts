@@ -786,6 +786,17 @@ export type Database = {
           recent_restaurants: Json
         }[]
       }
+      get_friend_wishlist_data: {
+        Args: {
+          target_user_id: string
+          requesting_user_id?: string
+          wishlist_limit?: number
+        }
+        Returns: {
+          can_view: boolean
+          wishlist_items: Json
+        }[]
+      }
       get_friends_recent_activity: {
         Args: { requesting_user_id?: string; activity_limit?: number }
         Returns: {

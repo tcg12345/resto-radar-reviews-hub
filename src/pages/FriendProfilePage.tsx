@@ -120,25 +120,48 @@ export default function FriendProfilePage() {
     setIsLoadingFullData(true);
     
     try {
-      const { data: completeProfile, error } = await supabase
+      // Load restaurants with the optimized function
+      const { data: restaurantData, error: restaurantError } = await supabase
         .rpc('get_friend_profile_data', { 
           target_user_id: actualUserId,
           requesting_user_id: user.id,
-          restaurant_limit: 1000
+          restaurant_limit: 100 // Use reasonable limit for better performance
         });
 
-      if (error) {
-        console.error('Error loading complete profile:', error);
+      if (restaurantError) {
+        console.error('Error loading restaurants:', restaurantError);
+        toast({
+          title: "Error Loading Restaurants",
+          description: "Failed to load restaurant data. Please try again.",
+          variant: "destructive",
+        });
         return;
       }
 
-      if (completeProfile && completeProfile.length > 0) {
-        const profileData = completeProfile[0];
+      // Load wishlist separately for better performance
+      const { data: wishlistData, error: wishlistError } = await supabase
+        .rpc('get_friend_wishlist_data', { 
+          target_user_id: actualUserId,
+          requesting_user_id: user.id,
+          wishlist_limit: 100 // Use reasonable limit for better performance
+        });
+
+      if (wishlistError) {
+        console.error('Error loading wishlist:', wishlistError);
+        toast({
+          title: "Error Loading Wishlist",
+          description: "Failed to load wishlist data. Please try again.",
+          variant: "destructive",
+        });
+      }
+
+      if (restaurantData && restaurantData.length > 0) {
+        const profileData = restaurantData[0];
         
         if (profileData.recent_restaurants && Array.isArray(profileData.recent_restaurants)) {
-          const restaurantData = profileData.recent_restaurants as any[];
+          const restaurants = profileData.recent_restaurants as any[];
           
-          const ratedRestaurants = restaurantData.filter((r: any) => r.is_wishlist !== true);
+          const ratedRestaurants = restaurants.filter((r: any) => r.is_wishlist !== true);
           setRestaurants(ratedRestaurants);
           setAllRestaurants(ratedRestaurants);
 
@@ -148,14 +171,23 @@ export default function FriendProfilePage() {
             ratingDistribution: calculateRatingDistribution(ratedRestaurants),
             michelinCount: ratedRestaurants.filter((r: any) => r.michelin_stars > 0).length
           }));
-          
-          const wishlistData = restaurantData.filter((r: any) => r.is_wishlist === true);
-          setWishlist(wishlistData);
-          setAllWishlist(wishlistData);
         }
       }
+
+      // Handle wishlist data separately
+      if (wishlistData && wishlistData.length > 0 && wishlistData[0].can_view) {
+        const wishlistItems = wishlistData[0].wishlist_items as any[];
+        setWishlist(wishlistItems);
+        setAllWishlist(wishlistItems);
+      }
+
     } catch (error) {
       console.error('Error in loadFullRestaurantData:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while loading data.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoadingFullData(false);
     }
