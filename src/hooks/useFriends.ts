@@ -197,12 +197,68 @@ export function useFriends() {
   };
 
   useEffect(() => {
-    if (user) {
-      setIsLoading(true);
-      Promise.all([fetchFriends(), fetchFriendRequests()]).finally(() => {
-        setIsLoading(false);
-      });
+    if (!user) {
+      setFriends([]);
+      setPendingRequests([]);
+      setSentRequests([]);
+      return;
     }
+
+    setIsLoading(true);
+    
+    // Load initial data
+    Promise.all([fetchFriends(), fetchFriendRequests()]).finally(() => {
+      setIsLoading(false);
+    });
+
+    // Set up real-time subscriptions for friend requests only (not friends, as that table doesn't change often)
+    const friendRequestsChannel = supabase
+      .channel('friend-requests-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'friend_requests',
+          filter: `or(receiver_id.eq.${user.id},sender_id.eq.${user.id})`
+        },
+        (payload) => {
+          console.log('Friend request change:', payload);
+          // Refresh friend requests when they change
+          fetchFriendRequests();
+          
+          // If a request was accepted, refresh friends list too
+          if (payload.eventType === 'UPDATE' && 
+              payload.new && 
+              (payload.new as any).status === 'accepted') {
+            fetchFriends();
+          }
+        }
+      )
+      .subscribe();
+
+    // Set up real-time subscription for friends table
+    const friendsChannel = supabase
+      .channel('friends-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'friends',
+          filter: `or(user1_id.eq.${user.id},user2_id.eq.${user.id})`
+        },
+        (payload) => {
+          console.log('Friends change:', payload);
+          fetchFriends();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(friendRequestsChannel);
+      supabase.removeChannel(friendsChannel);
+    };
   }, [user]);
 
   return {

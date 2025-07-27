@@ -82,48 +82,61 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
 
   // Load restaurants from Supabase
   useEffect(() => {
+    let isSubscribed = true;
+    
     const loadRestaurants = async () => {
+      if (!isSubscribed) return;
+      
       setIsLoading(true);
       try {
         // Check if user is authenticated
         const { data: { session } } = await supabase.auth.getSession();
         
-        if (session?.user) {
-          // User is authenticated, fetch their restaurants
+        if (session?.user && isSubscribed) {
+          // User is authenticated, fetch their restaurants with optimized query (excluding photos for faster loading)
           const { data, error } = await supabase
             .from('restaurants')
-            .select('id, name, address, city, country, cuisine, rating, notes, date_visited, is_wishlist, latitude, longitude, category_ratings, use_weighted_rating, price_range, michelin_stars, created_at, updated_at, user_id, opening_hours, website, phone_number, reservable, reservation_url, photos')
+            .select('id, name, address, city, country, cuisine, rating, notes, date_visited, is_wishlist, latitude, longitude, category_ratings, use_weighted_rating, price_range, michelin_stars, created_at, updated_at, user_id, opening_hours, website, phone_number, reservable, reservation_url')
             .eq('user_id', session.user.id)
             .order('created_at', { ascending: false });
 
           if (error) throw error;
-          setRestaurants((data || []).map(restaurant => mapDbRestaurantToRestaurant({
-            ...restaurant,
-            photos: restaurant.photos || [] // Keep the actual photos from the database
-          })));
-        } else {
+          
+          if (isSubscribed) {
+            setRestaurants((data || []).map(restaurant => mapDbRestaurantToRestaurant({
+              ...restaurant,
+              photos: [] // Initialize with empty array, load photos lazily when needed
+            })));
+          }
+        } else if (isSubscribed) {
           // User is not authenticated, show empty list
           setRestaurants([]);
           console.log('User not authenticated. Please sign in to view your restaurants.');
         }
       } catch (error) {
-        console.error('Error loading restaurants:', error);
-        toast.error('Failed to load restaurants');
+        if (isSubscribed) {
+          console.error('Error loading restaurants:', error);
+          toast.error('Failed to load restaurants');
+        }
       } finally {
-        setIsLoading(false);
+        if (isSubscribed) {
+          setIsLoading(false);
+        }
       }
     };
 
     loadRestaurants();
     
     // Set up auth state listener to reload restaurants when auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      loadRestaurants();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+        loadRestaurants();
+      }
     });
     
-    // Set up real-time subscription for restaurant changes
+    // Set up real-time subscription for restaurant changes - but handle updates intelligently
     const channel = supabase
-      .channel('schema-db-changes')
+      .channel('restaurants-realtime')
       .on(
         'postgres_changes',
         {
@@ -133,13 +146,27 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         },
         (payload) => {
           console.log('Real-time restaurant change:', payload);
-          // Reload restaurants when changes occur
-          loadRestaurants();
+          
+          // Handle changes efficiently without full reload
+          if (payload.eventType === 'INSERT' && payload.new) {
+            const newRestaurant = mapDbRestaurantToRestaurant(payload.new as DbRestaurant);
+            setRestaurants(prev => [newRestaurant, ...prev]);
+          } else if (payload.eventType === 'UPDATE' && payload.new) {
+            const updatedRestaurant = mapDbRestaurantToRestaurant(payload.new as DbRestaurant);
+            setRestaurants(prev => 
+              prev.map(r => r.id === updatedRestaurant.id ? updatedRestaurant : r)
+            );
+          } else if (payload.eventType === 'DELETE' && payload.old) {
+            setRestaurants(prev => 
+              prev.filter(r => r.id !== (payload.old as DbRestaurant).id)
+            );
+          }
         }
       )
       .subscribe();
     
     return () => {
+      isSubscribed = false;
       subscription.unsubscribe();
       supabase.removeChannel(channel);
     };
