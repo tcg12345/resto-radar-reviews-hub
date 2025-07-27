@@ -829,15 +829,29 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
                       {dateVisited ? format(dateVisited, "PPP") : <span>Select a date</span>}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <CalendarComponent
-                      mode="single"
-                      selected={dateVisited}
-                      onSelect={setDateVisited}
-                      disabled={(date) => date > new Date()}
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                    />
+                  <PopoverContent className="w-auto p-0 bg-background border shadow-lg" align="start">
+                    <div className="p-3">
+                      <CalendarComponent
+                        mode="single"
+                        selected={dateVisited}
+                        onSelect={setDateVisited}
+                        disabled={(date) => date > new Date()}
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                      {dateVisited && (
+                        <div className="mt-3 pt-3 border-t flex justify-center">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setDateVisited(undefined)}
+                            className="text-muted-foreground hover:text-foreground"
+                          >
+                            Clear dates
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </PopoverContent>
                 </Popover>
               </div>
