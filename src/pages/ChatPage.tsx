@@ -315,12 +315,11 @@ export function ChatPage() {
   const messageGroups = groupMessagesByDate(messages);
 
   return (
-    <>
+    <div className="fixed inset-0 flex flex-col bg-background lg:max-w-4xl lg:mx-auto lg:border-x">
       {/* Mobile status bar spacer */}
-      <div className="lg:hidden h-[35px] bg-background"></div>
-      <div className="flex flex-col h-screen bg-background lg:max-w-4xl lg:mx-auto lg:border-x">
+      <div className="lg:hidden h-[35px] bg-background flex-shrink-0"></div>
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b">
+      <div className="flex-shrink-0 bg-background/95 backdrop-blur-sm border-b">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
             <Button
@@ -437,7 +436,7 @@ export function ChatPage() {
       </ScrollArea>
 
       {/* Message Input */}
-      <div className="border-t p-4">
+      <div className="flex-shrink-0 border-t p-4">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm">
             <Image className="h-4 w-4" />
@@ -461,7 +460,6 @@ export function ChatPage() {
           </div>
         </div>
       </div>
-      </div>
-    </>
+    </div>
   );
 }
