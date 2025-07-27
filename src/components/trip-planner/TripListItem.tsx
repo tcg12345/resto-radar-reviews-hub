@@ -1,12 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Calendar, Star, Users, Eye, Trash2, MoreVertical } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Trip, useTrips } from '@/hooks/useTrips';
-import { usePlaceRatings } from '@/hooks/usePlaceRatings';
 import { format, isBefore, isAfter, isWithinInterval } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,19 +28,51 @@ interface TripListItemProps {
   trip: Trip;
 }
 
+interface TripStats {
+  restaurantCount: number;
+  attractionCount: number;
+  totalPlaces: number;
+  avgRating: number;
+}
+
 export function TripListItem({ trip }: TripListItemProps) {
   const navigate = useNavigate();
   const { deleteTrip } = useTrips();
-  const { ratings } = usePlaceRatings(trip.id);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  
-  const restaurantCount = ratings.filter(r => r.place_type === 'restaurant').length;
-  const attractionCount = ratings.filter(r => r.place_type === 'attraction').length;
-  const totalPlaces = ratings.length;
-  
-  const avgRating = ratings.length > 0 
-    ? ratings.reduce((acc, r) => acc + (r.overall_rating || 0), 0) / ratings.length
-    : 0;
+  const [stats, setStats] = useState<TripStats>({
+    restaurantCount: 0,
+    attractionCount: 0,
+    totalPlaces: 0,
+    avgRating: 0
+  });
+
+  // Load basic stats efficiently without loading full place data
+  useEffect(() => {
+    const loadTripStats = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('place_ratings')
+          .select('place_type, overall_rating')
+          .eq('trip_id', trip.id);
+
+        if (error) throw error;
+
+        const restaurantCount = data.filter(r => r.place_type === 'restaurant').length;
+        const attractionCount = data.filter(r => r.place_type === 'attraction').length;
+        const totalPlaces = data.length;
+        const avgRating = totalPlaces > 0 
+          ? data.reduce((acc, r) => acc + (r.overall_rating || 0), 0) / totalPlaces
+          : 0;
+
+        setStats({ restaurantCount, attractionCount, totalPlaces, avgRating });
+      } catch (error) {
+        console.error('Error loading trip stats:', error);
+        // Keep default stats on error
+      }
+    };
+
+    loadTripStats();
+  }, [trip.id]);
 
   // Determine trip status
   const getTripStatus = () => {
@@ -126,23 +158,23 @@ export function TripListItem({ trip }: TripListItemProps) {
               {/* Stats */}
               <div className="hidden md:flex items-center gap-6">
                 <div className="text-center">
-                  <div className="text-lg font-bold text-primary">{totalPlaces}</div>
+                  <div className="text-lg font-bold text-primary">{stats.totalPlaces}</div>
                   <div className="text-xs text-muted-foreground">Places</div>
                 </div>
                 
                 <div className="text-center">
                   <div className="text-lg font-bold text-primary flex items-center justify-center gap-1">
-                    {avgRating > 0 ? avgRating.toFixed(1) : '—'}
-                    {avgRating > 0 && <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />}
+                    {stats.avgRating > 0 ? stats.avgRating.toFixed(1) : '—'}
+                    {stats.avgRating > 0 && <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />}
                   </div>
                   <div className="text-xs text-muted-foreground">Rating</div>
                 </div>
 
                 {/* Place breakdown */}
                 <div className="text-xs text-muted-foreground space-y-1">
-                  {restaurantCount > 0 && <div>{restaurantCount} restaurants</div>}
-                  {attractionCount > 0 && <div>{attractionCount} attractions</div>}
-                  {totalPlaces === 0 && <div>No places yet</div>}
+                  {stats.restaurantCount > 0 && <div>{stats.restaurantCount} restaurants</div>}
+                  {stats.attractionCount > 0 && <div>{stats.attractionCount} attractions</div>}
+                  {stats.totalPlaces === 0 && <div>No places yet</div>}
                 </div>
               </div>
 
