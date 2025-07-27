@@ -26,8 +26,7 @@ export function ViewToggle({ currentView, onViewChange, storageKey }: ViewToggle
           className="h-7 px-2 text-xs"
           onClick={() => onViewChange(type)}
         >
-          <Icon className="h-3.5 w-3.5 mr-1" />
-          <span className="hidden sm:inline">{label}</span>
+          <Icon className="h-3.5 w-3.5" />
         </Button>
       ))}
     </div>
