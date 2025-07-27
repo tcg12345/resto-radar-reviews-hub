@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Star, MapPin, Calendar, Globe, Phone, Clock, DollarSign, Edit, X, Navigation, Trash2 } from 'lucide-react';
 import { MichelinStarIcon } from '@/components/MichelinStarIcon';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { PhotoGallery } from '@/components/PhotoGallery';
 import { format } from 'date-fns';
 
 interface PlaceRating {
@@ -36,6 +37,9 @@ interface PlaceDetailsModalProps {
 }
 
 export function PlaceDetailsModal({ place, isOpen, onClose, onEdit, onDelete }: PlaceDetailsModalProps) {
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
+  
   if (!place) return null;
 
   const getPriceDisplay = (priceRange?: number) => {
@@ -180,7 +184,10 @@ export function PlaceDetailsModal({ place, isOpen, onClose, onEdit, onDelete }: 
                         src={photo}
                         alt={`${place.place_name} photo ${index + 1}`}
                         className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
-                        onClick={() => window.open(photo, '_blank')}
+                        onClick={() => {
+                          setSelectedPhotoIndex(index);
+                          setIsGalleryOpen(true);
+                        }}
                         onError={(e) => {
                           console.error('Failed to load image:', photo);
                           e.currentTarget.style.display = 'none';
@@ -341,6 +348,15 @@ export function PlaceDetailsModal({ place, isOpen, onClose, onEdit, onDelete }: 
             </Card>
           )}
         </div>
+
+        {/* Photo Gallery */}
+        <PhotoGallery
+          photos={place.photos || []}
+          initialIndex={selectedPhotoIndex}
+          isOpen={isGalleryOpen}
+          onClose={() => setIsGalleryOpen(false)}
+          restaurantName={place.place_name}
+        />
       </DialogContent>
     </Dialog>
   );
