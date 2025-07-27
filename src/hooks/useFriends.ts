@@ -37,20 +37,34 @@ export function useFriends() {
   const [sentRequests, setSentRequests] = useState<FriendRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchFriends = async () => {
+  const fetchAllFriendsData = async () => {
     if (!user) return;
 
     try {
-      // Use the new super-fast function with explicit column references
-      const { data: friendsData, error } = await supabase
-        .rpc('get_friends_with_scores', { 
-          requesting_user_id: user.id 
-        });
+      // Fetch all data in parallel to reduce sequential calls
+      const [friendsResult, receivedRequestsResult, sentRequestsResult] = await Promise.all([
+        supabase.rpc('get_friends_with_scores', { requesting_user_id: user.id }),
+        supabase
+          .from('friend_requests')
+          .select(`
+            *,
+            sender:profiles!friend_requests_sender_id_fkey(username, name, avatar_url)
+          `)
+          .eq('receiver_id', user.id)
+          .eq('status', 'pending'),
+        supabase
+          .from('friend_requests')
+          .select(`
+            *,
+            receiver:profiles!friend_requests_receiver_id_fkey(username, name, avatar_url)
+          `)
+          .eq('sender_id', user.id)
+          .eq('status', 'pending')
+      ]);
 
-      if (error) throw error;
-
-      // Map the data to our expected format
-      const mappedFriends: Friend[] = (friendsData || []).map((friend: any) => ({
+      // Handle friends data
+      if (friendsResult.error) throw friendsResult.error;
+      const mappedFriends: Friend[] = (friendsResult.data || []).map((friend: any) => ({
         id: friend.friend_id,
         username: friend.username || '',
         name: friend.name,
@@ -58,47 +72,23 @@ export function useFriends() {
         is_public: friend.is_public || false,
         score: friend.score || 0
       }));
-
       setFriends(mappedFriends);
+
+      // Handle friend requests
+      if (receivedRequestsResult.error) throw receivedRequestsResult.error;
+      if (sentRequestsResult.error) throw sentRequestsResult.error;
+      
+      setPendingRequests((receivedRequestsResult.data || []) as FriendRequest[]);
+      setSentRequests((sentRequestsResult.data || []) as FriendRequest[]);
+
     } catch (error) {
-      console.error('Error fetching friends:', error);
-      toast.error('Failed to load friends');
-    }
-  };
-
-  const fetchFriendRequests = async () => {
-    if (!user) return;
-
-    try {
-      // Pending requests received
-      const { data: received, error: receivedError } = await supabase
-        .from('friend_requests')
-        .select(`
-          *,
-          sender:profiles!friend_requests_sender_id_fkey(username, name, avatar_url)
-        `)
-        .eq('receiver_id', user.id)
-        .eq('status', 'pending');
-
-      if (receivedError) throw receivedError;
-
-      // Sent requests pending
-      const { data: sent, error: sentError } = await supabase
-        .from('friend_requests')
-        .select(`
-          *,
-          receiver:profiles!friend_requests_receiver_id_fkey(username, name, avatar_url)
-        `)
-        .eq('sender_id', user.id)
-        .eq('status', 'pending');
-
-      if (sentError) throw sentError;
-
-      setPendingRequests((received || []) as FriendRequest[]);
-      setSentRequests((sent || []) as FriendRequest[]);
-    } catch (error) {
-      console.error('Error fetching friend requests:', error);
-      toast.error('Failed to load friend requests');
+      console.error('Error fetching friends data:', error);
+      toast.error('Failed to load friends data');
+      
+      // Reset to empty arrays on error to prevent stale data
+      setFriends([]);
+      setPendingRequests([]);
+      setSentRequests([]);
     }
   };
 
@@ -116,7 +106,7 @@ export function useFriends() {
       if (error) throw error;
 
       toast.success('Friend request sent!');
-      fetchFriendRequests();
+      fetchAllFriendsData();
       return true;
     } catch (error) {
       console.error('Error sending friend request:', error);
@@ -131,7 +121,6 @@ export function useFriends() {
         const { error } = await supabase.rpc('accept_friend_request', { request_id: requestId });
         if (error) throw error;
         toast.success('Friend request accepted!');
-        fetchFriends();
       } else {
         const { error } = await supabase
           .from('friend_requests')
@@ -141,7 +130,7 @@ export function useFriends() {
         toast.success('Friend request declined');
       }
       
-      fetchFriendRequests();
+      fetchAllFriendsData();
     } catch (error) {
       console.error('Error responding to friend request:', error);
       toast.error('Failed to respond to friend request');
@@ -160,7 +149,7 @@ export function useFriends() {
       if (error) throw error;
 
       toast.success('Friend removed');
-      fetchFriends();
+      fetchAllFriendsData();
     } catch (error) {
       console.error('Error removing friend:', error);
       toast.error('Failed to remove friend');
@@ -206,12 +195,21 @@ export function useFriends() {
 
     setIsLoading(true);
     
-    // Load initial data
-    Promise.all([fetchFriends(), fetchFriendRequests()]).finally(() => {
+    // Load initial data with single optimized call
+    fetchAllFriendsData().finally(() => {
       setIsLoading(false);
     });
 
-    // Set up real-time subscriptions for friend requests only (not friends, as that table doesn't change often)
+    // Debounced refresh function to prevent too many calls
+    let timeoutId: NodeJS.Timeout;
+    const debouncedRefresh = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        fetchAllFriendsData();
+      }, 300); // 300ms debounce
+    };
+
+    // Set up real-time subscriptions with debounced updates
     const friendRequestsChannel = supabase
       .channel('friend-requests-realtime')
       .on(
@@ -224,15 +222,7 @@ export function useFriends() {
         },
         (payload) => {
           console.log('Friend request change:', payload);
-          // Refresh friend requests when they change
-          fetchFriendRequests();
-          
-          // If a request was accepted, refresh friends list too
-          if (payload.eventType === 'UPDATE' && 
-              payload.new && 
-              (payload.new as any).status === 'accepted') {
-            fetchFriends();
-          }
+          debouncedRefresh();
         }
       )
       .subscribe();
@@ -250,12 +240,13 @@ export function useFriends() {
         },
         (payload) => {
           console.log('Friends change:', payload);
-          fetchFriends();
+          debouncedRefresh();
         }
       )
       .subscribe();
 
     return () => {
+      clearTimeout(timeoutId);
       supabase.removeChannel(friendRequestsChannel);
       supabase.removeChannel(friendsChannel);
     };
@@ -270,9 +261,6 @@ export function useFriends() {
     respondToFriendRequest,
     removeFriend,
     searchUsers,
-    refreshData: () => {
-      fetchFriends();
-      fetchFriendRequests();
-    }
+    refreshData: fetchAllFriendsData
   };
 }
