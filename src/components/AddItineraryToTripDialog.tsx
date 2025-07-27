@@ -81,105 +81,41 @@ export function AddItineraryToTripDialog({
     }
   };
 
-  const convertEventToPlaceRating = async (event: ItineraryEvent) => {
+  const convertEventToPlaceRating = (event: ItineraryEvent) => {
     if (event.type === 'other') return null;
-
-    // Try to get comprehensive place data from Google Places API
-    let enrichedPlaceData = null;
-    
-    try {
-      let searchQuery = event.title;
-      let placeId = null;
-
-      // Get place ID from event data if available
-      if (event.type === 'restaurant' && event.restaurantData?.placeId) {
-        placeId = event.restaurantData.placeId;
-      } else if (event.type === 'attraction' && event.attractionData?.id) {
-        placeId = event.attractionData.id;
-      }
-
-      // If we have address info, include it in search for better results
-      if (event.type === 'restaurant' && event.restaurantData?.address) {
-        searchQuery = `${event.title} ${event.restaurantData.address}`;
-      } else if (event.type === 'attraction' && event.attractionData?.address) {
-        searchQuery = `${event.title} ${event.attractionData.address}`;
-      }
-
-      // Fetch detailed place information
-      if (placeId) {
-        const { data: detailsData } = await supabase.functions.invoke('google-places-search', {
-          body: {
-            placeId: placeId,
-            type: 'details'
-          }
-        });
-        enrichedPlaceData = detailsData?.result;
-      } else {
-        const { data: searchData } = await supabase.functions.invoke('google-places-search', {
-          body: {
-            query: searchQuery,
-            type: 'search'
-          }
-        });
-        if (searchData?.results?.length > 0) {
-          const topResult = searchData.results[0];
-          const { data: detailsData } = await supabase.functions.invoke('google-places-search', {
-            body: {
-              placeId: topResult.place_id,
-              type: 'details'
-            }
-          });
-          enrichedPlaceData = detailsData?.result;
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching place details:', error);
-    }
-
-    // Determine proper place type based on Google Places data
-    let placeType: 'restaurant' | 'attraction' = event.type as 'restaurant' | 'attraction';
-    if (enrichedPlaceData?.types) {
-      const types = enrichedPlaceData.types;
-      if (types.includes('lodging') || types.includes('hotel')) {
-        // Hotels will be categorized as attractions for now, but we'll note it in the place name
-        placeType = 'attraction';
-      } else if (types.includes('restaurant') || types.includes('food') || types.includes('meal_takeaway')) {
-        placeType = 'restaurant';
-      } else {
-        placeType = 'attraction';
-      }
-    }
 
     const baseData = {
       user_id: user!.id,
       trip_id: tripId,
-      place_name: enrichedPlaceData?.name || event.title,
-      place_type: placeType,
+      place_name: event.title,
+      place_type: event.type,
       notes: event.description || null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      
-      // Enhanced data from Google Places
-      address: enrichedPlaceData?.formatted_address || 
-               (event.type === 'restaurant' ? event.restaurantData?.address : 
-                event.type === 'attraction' ? event.attractionData?.address : null),
-      phone_number: enrichedPlaceData?.formatted_phone_number || 
-                   (event.type === 'restaurant' ? event.restaurantData?.phone : 
-                    event.type === 'attraction' ? event.attractionData?.phone : null),
-      website: enrichedPlaceData?.website || 
-               (event.type === 'restaurant' ? event.restaurantData?.website : 
-                event.type === 'attraction' ? event.attractionData?.website : null),
-      place_id: enrichedPlaceData?.place_id || 
-                (event.type === 'restaurant' ? event.restaurantData?.placeId : 
-                 event.type === 'attraction' ? event.attractionData?.id : null),
-      overall_rating: enrichedPlaceData?.rating || 
-                     (event.type === 'attraction' ? event.attractionData?.rating : null),
-      latitude: enrichedPlaceData?.geometry?.location?.lat || 
-                (event.type === 'attraction' ? event.attractionData?.latitude : null),
-      longitude: enrichedPlaceData?.geometry?.location?.lng || 
-                 (event.type === 'attraction' ? event.attractionData?.longitude : null),
-      price_range: enrichedPlaceData?.price_level || null,
     };
+
+    if (event.type === 'restaurant' && event.restaurantData) {
+      return {
+        ...baseData,
+        address: event.restaurantData.address,
+        phone_number: event.restaurantData.phone || null,
+        website: event.restaurantData.website || null,
+        place_id: event.restaurantData.placeId || null,
+      };
+    }
+
+    if (event.type === 'attraction' && event.attractionData) {
+      return {
+        ...baseData,
+        address: event.attractionData.address,
+        phone_number: event.attractionData.phone || null,
+        website: event.attractionData.website || null,
+        latitude: event.attractionData.latitude || null,
+        longitude: event.attractionData.longitude || null,
+        overall_rating: event.attractionData.rating || null,
+        place_id: event.attractionData.id || null,
+      };
+    }
 
     return baseData;
   };
@@ -200,42 +136,10 @@ export function AddItineraryToTripDialog({
         return;
       }
 
-      // Show progress toast
-      toast.loading(`Importing ${placeEvents.length} places...`, {
-        id: `import-${itinerary.id}`,
-      });
-
-      // Convert events to place ratings with enriched data (sequential to avoid rate limits)
-      const placeRatings = [];
-      for (let i = 0; i < placeEvents.length; i++) {
-        const event = placeEvents[i];
-        try {
-          const placeRating = await convertEventToPlaceRating(event);
-          if (placeRating) {
-            placeRatings.push(placeRating);
-          }
-          
-          // Update progress
-          toast.loading(`Importing ${i + 1}/${placeEvents.length} places...`, {
-            id: `import-${itinerary.id}`,
-          });
-        } catch (error) {
-          console.error(`Error converting event ${event.title}:`, error);
-          // Continue with basic data if API fails
-          const basicRating = {
-            user_id: user.id,
-            trip_id: tripId,
-            place_name: event.title,
-            place_type: event.type,
-            notes: event.description || null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            address: event.type === 'restaurant' ? event.restaurantData?.address : 
-                    event.type === 'attraction' ? event.attractionData?.address : null,
-          };
-          placeRatings.push(basicRating);
-        }
-      }
+      // Convert events to place ratings using existing data
+      const placeRatings = placeEvents
+        .map(convertEventToPlaceRating)
+        .filter(Boolean);
 
       // Insert all place ratings
       const { error } = await supabase
@@ -244,17 +148,15 @@ export function AddItineraryToTripDialog({
 
       if (error) {
         console.error('Error importing itinerary:', error);
-        toast.error('Failed to import itinerary', { id: `import-${itinerary.id}` });
+        toast.error('Failed to import itinerary');
         return;
       }
 
-      toast.success(`Successfully imported ${placeRatings.length} places from "${itinerary.title}" to ${tripTitle}`, {
-        id: `import-${itinerary.id}`,
-      });
+      toast.success(`Successfully imported ${placeRatings.length} places from "${itinerary.title}" to ${tripTitle}`);
       onClose();
     } catch (error) {
       console.error('Error importing itinerary:', error);
-      toast.error('Failed to import itinerary', { id: `import-${itinerary.id}` });
+      toast.error('Failed to import itinerary');
     } finally {
       setImporting(null);
     }
