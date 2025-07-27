@@ -496,7 +496,7 @@ export default function FriendProfilePage() {
                       <div 
                         key={restaurant.id} 
                         className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-                        onClick={() => navigate(`/restaurant/${restaurant.id}`)}
+                        onClick={() => navigate(`/restaurant/${restaurant.id}?friendId=${actualUserId}`)}
                       >
                         <div className="flex items-start justify-between">
                           <div>
@@ -588,7 +588,7 @@ export default function FriendProfilePage() {
                 <Card 
                   key={restaurant.id} 
                   className="p-6 hover:shadow-xl transition-all duration-300 cursor-pointer group border-l-4 border-l-primary/20 hover:border-l-primary hover:scale-[1.02]"
-                  onClick={() => navigate(`/restaurant/${restaurant.id}`)}
+                  onClick={() => navigate(`/restaurant/${restaurant.id}?friendId=${actualUserId}`)}
                 >
                   <div className="space-y-4">
                     {/* Header */}
@@ -689,7 +689,7 @@ export default function FriendProfilePage() {
                 <Card 
                   key={restaurant.id} 
                   className="p-6 hover:shadow-xl transition-all duration-300 cursor-pointer group border-l-4 border-l-orange-500/20 hover:border-l-orange-500 hover:scale-[1.02]"
-                  onClick={() => navigate(`/restaurant/${restaurant.id}`)}
+                  onClick={() => navigate(`/restaurant/${restaurant.id}?friendId=${actualUserId}`)}
                 >
                   <div className="space-y-4">
                     <div className="flex justify-between items-start">
@@ -823,7 +823,7 @@ export default function FriendProfilePage() {
                 <Card 
                   key={restaurant.id} 
                   className="p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group"
-                  onClick={() => navigate(`/restaurant/${restaurant.id}`)}
+                  onClick={() => navigate(`/restaurant/${restaurant.id}?friendId=${actualUserId}`)}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
