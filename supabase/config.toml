@@ -57,3 +57,6 @@ verify_jwt = true
 
 [edge_functions.amadeus-api]
 verify_jwt = false
+
+[edge_functions.tripadvisor-api]
+verify_jwt = false
