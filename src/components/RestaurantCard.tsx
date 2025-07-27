@@ -266,7 +266,7 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
               <MichelinStars stars={restaurant.michelinStars} readonly size="sm" />
             )}
             <div className="mobile-rating-container">
-              <div className="mobile-rating-container flex items-center text-xs lg:text-sm font-medium">
+              <div className="mobile-rating-container flex items-center text-xs lg:text-sm font-medium -ml-1">
                 {restaurant.priceRange && (
                   <>
                     <span className="text-green-600 mobile-badge text-sm lg:text-base">{`${'$'.repeat(restaurant.priceRange)}`}</span>
