@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -37,7 +37,7 @@ export function useFriends() {
   const [sentRequests, setSentRequests] = useState<FriendRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchAllFriendsData = async () => {
+  const fetchAllFriendsData = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -90,7 +90,7 @@ export function useFriends() {
       setPendingRequests([]);
       setSentRequests([]);
     }
-  };
+  }, [user, setFriends, setPendingRequests, setSentRequests]);
 
   const sendFriendRequest = async (receiverId: string) => {
     if (!user) return false;
@@ -250,7 +250,7 @@ export function useFriends() {
       supabase.removeChannel(friendRequestsChannel);
       supabase.removeChannel(friendsChannel);
     };
-  }, [user]);
+  }, [user, fetchAllFriendsData]);
 
   return {
     friends,
