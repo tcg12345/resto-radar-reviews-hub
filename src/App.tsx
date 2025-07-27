@@ -17,6 +17,7 @@ import { RestaurantDetailPage } from "./pages/RestaurantDetailPage";
 import { FriendsActivityPage } from "./pages/FriendsActivityPage";
 import { Layout } from "./components/Layout";
 import { FriendsPage } from "./pages/FriendsPage";
+import FriendProfilePage from "./pages/FriendProfilePage";
 import { ChatListPage } from "./pages/ChatListPage";
 import { ChatPage } from "./pages/ChatPage";
 import HomePageWrapper from "./pages/HomePageWrapper";
@@ -67,7 +68,7 @@ const App = () => (
                 
                 <Route path="/settings" element={<RequireAuth><Layout activeTab="settings" showNavbar={false} showChatbot={false}><SettingsPageWrapper /></Layout></RequireAuth>} />
                 <Route path="/friends" element={<RequireAuth><Layout activeTab="friends"><FriendsPage /></Layout></RequireAuth>} />
-                <Route path="/friends/:friendId" element={<RequireAuth><MobileFriendProfilePage /></RequireAuth>} />
+                <Route path="/friends/:friendId" element={<RequireAuth><Layout activeTab="friends"><FriendProfilePage /></Layout></RequireAuth>} />
                 
                 {/* User profile routes */}
                 <Route path="/user/:userId" element={<RequireAuth><MobileFriendProfilePage /></RequireAuth>} />
