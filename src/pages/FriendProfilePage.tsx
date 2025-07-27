@@ -274,30 +274,40 @@ export default function FriendProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Compact Header */}
-      <div className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-3">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-accent/10">
+      {/* Full-width Header */}
+      <div className="border-b bg-card/95 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
+        <div className="px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={() => navigate('/friends')}
-                className="h-8 w-8 p-0"
+                className="h-9 w-9 p-0 hover:bg-primary/10"
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="h-5 w-5" />
               </Button>
-              <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10">
+              <div className="flex items-center gap-4">
+                <Avatar className="h-14 w-14 ring-2 ring-primary/20">
                   <AvatarImage src={friend.avatar_url} alt={friend.name || friend.username} />
-                  <AvatarFallback>
+                  <AvatarFallback className="bg-gradient-to-br from-primary/20 to-accent/20 text-lg font-semibold">
                     {(friend.name || friend.username)?.charAt(0)?.toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <h1 className="text-xl font-bold">{friend.name || friend.username}</h1>
-                  <p className="text-sm text-muted-foreground">@{friend.username}</p>
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+                    {friend.name || friend.username}
+                  </h1>
+                  <p className="text-muted-foreground flex items-center gap-2">
+                    @{friend.username}
+                    {friend.is_public && (
+                      <Badge variant="secondary" className="text-xs">
+                        <Globe className="h-3 w-3 mr-1" />
+                        Public
+                      </Badge>
+                    )}
+                  </p>
                 </div>
               </div>
             </div>
@@ -306,6 +316,7 @@ export default function FriendProfilePage() {
               variant="outline" 
               size="sm"
               disabled={isLoadingFullData}
+              className="hover:bg-primary hover:text-primary-foreground"
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${isLoadingFullData ? 'animate-spin' : ''}`} />
               Refresh
@@ -314,133 +325,133 @@ export default function FriendProfilePage() {
         </div>
       </div>
 
-      {/* Dense content layout */}
-      <div className="max-w-7xl mx-auto px-4 py-4 space-y-4">
-        {/* Quick Stats Overview - Compact */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-          <Card className="p-3">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-primary/10 rounded-md">
-                <Star className="h-4 w-4 text-primary" />
+      {/* Full-width content */}
+      <div className="px-6 py-6 space-y-6">
+        {/* Enhanced Stats Overview */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <Card className="p-4 hover:shadow-lg transition-all duration-300 border-l-4 border-l-primary/50 hover:border-l-primary">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg">
+                <Star className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <div className="text-lg font-bold">{stats.totalRated || 0}</div>
-                <div className="text-xs text-muted-foreground">Rated</div>
+                <div className="text-2xl font-bold">{stats.totalRated || 0}</div>
+                <div className="text-sm text-muted-foreground">Rated</div>
               </div>
             </div>
           </Card>
           
-          <Card className="p-3">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-orange-500/10 rounded-md">
-                <Heart className="h-4 w-4 text-orange-500" />
+          <Card className="p-4 hover:shadow-lg transition-all duration-300 border-l-4 border-l-orange-500/50 hover:border-l-orange-500">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-orange-500/20 to-orange-500/10 rounded-lg">
+                <Heart className="h-5 w-5 text-orange-500" />
               </div>
               <div>
-                <div className="text-lg font-bold">{stats.totalWishlist || 0}</div>
-                <div className="text-xs text-muted-foreground">Wishlist</div>
+                <div className="text-2xl font-bold">{stats.totalWishlist || 0}</div>
+                <div className="text-sm text-muted-foreground">Wishlist</div>
               </div>
             </div>
           </Card>
 
-          <Card className="p-3">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-green-500/10 rounded-md">
-                <TrendingUp className="h-4 w-4 text-green-500" />
+          <Card className="p-4 hover:shadow-lg transition-all duration-300 border-l-4 border-l-green-500/50 hover:border-l-green-500">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-green-500/20 to-green-500/10 rounded-lg">
+                <TrendingUp className="h-5 w-5 text-green-500" />
               </div>
               <div>
-                <div className="text-lg font-bold">{stats.averageRating ? stats.averageRating.toFixed(1) : '0.0'}</div>
-                <div className="text-xs text-muted-foreground">Avg Rating</div>
+                <div className="text-2xl font-bold">{stats.averageRating ? stats.averageRating.toFixed(1) : '0.0'}</div>
+                <div className="text-sm text-muted-foreground">Avg Rating</div>
               </div>
             </div>
           </Card>
 
-          <Card className="p-3">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-purple-500/10 rounded-md">
-                <Award className="h-4 w-4 text-purple-500" />
+          <Card className="p-4 hover:shadow-lg transition-all duration-300 border-l-4 border-l-purple-500/50 hover:border-l-purple-500">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-purple-500/20 to-purple-500/10 rounded-lg">
+                <Award className="h-5 w-5 text-purple-500" />
               </div>
               <div>
-                <div className="text-lg font-bold">{stats.michelinCount || 0}</div>
-                <div className="text-xs text-muted-foreground">Michelin</div>
+                <div className="text-2xl font-bold">{stats.michelinCount || 0}</div>
+                <div className="text-sm text-muted-foreground">Michelin</div>
               </div>
             </div>
           </Card>
 
-          <Card className="p-3">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-blue-500/10 rounded-md">
-                <ChefHat className="h-4 w-4 text-blue-500" />
+          <Card className="p-4 hover:shadow-lg transition-all duration-300 border-l-4 border-l-blue-500/50 hover:border-l-blue-500">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-blue-500/20 to-blue-500/10 rounded-lg">
+                <ChefHat className="h-5 w-5 text-blue-500" />
               </div>
               <div>
-                <div className="text-lg font-bold">{stats.topCuisines?.length || 0}</div>
-                <div className="text-xs text-muted-foreground">Cuisines</div>
+                <div className="text-2xl font-bold">{stats.topCuisines?.length || 0}</div>
+                <div className="text-sm text-muted-foreground">Cuisines</div>
               </div>
             </div>
           </Card>
 
-          <Card className="p-3">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-red-500/10 rounded-md">
-                <MapIcon className="h-4 w-4 text-red-500" />
+          <Card className="p-4 hover:shadow-lg transition-all duration-300 border-l-4 border-l-red-500/50 hover:border-l-red-500">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-red-500/20 to-red-500/10 rounded-lg">
+                <MapIcon className="h-5 w-5 text-red-500" />
               </div>
               <div>
-                <div className="text-lg font-bold">{availableCities.length || 0}</div>
-                <div className="text-xs text-muted-foreground">Cities</div>
+                <div className="text-2xl font-bold">{availableCities.length || 0}</div>
+                <div className="text-sm text-muted-foreground">Cities</div>
               </div>
             </div>
           </Card>
         </div>
 
-        {/* Comprehensive Tab System */}
+        {/* Enhanced Tab System */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-6 mb-4">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
+          <TabsList className="grid w-full grid-cols-6 h-12 bg-muted/50">
+            <TabsTrigger value="overview" className="flex items-center gap-2 text-sm">
               <BarChart3 className="h-4 w-4" />
               Overview
             </TabsTrigger>
-            <TabsTrigger value="restaurants" className="flex items-center gap-2">
+            <TabsTrigger value="restaurants" className="flex items-center gap-2 text-sm">
               <Utensils className="h-4 w-4" />
               Restaurants ({filteredRestaurants.length})
             </TabsTrigger>
-            <TabsTrigger value="wishlist" className="flex items-center gap-2">
+            <TabsTrigger value="wishlist" className="flex items-center gap-2 text-sm">
               <Heart className="h-4 w-4" />
               Wishlist ({allWishlist.length})
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <TabsTrigger value="analytics" className="flex items-center gap-2 text-sm">
               <PieChart className="h-4 w-4" />
               Analytics
             </TabsTrigger>
-            <TabsTrigger value="activity" className="flex items-center gap-2">
+            <TabsTrigger value="activity" className="flex items-center gap-2 text-sm">
               <Activity className="h-4 w-4" />
               Activity
             </TabsTrigger>
-            <TabsTrigger value="map" className="flex items-center gap-2">
+            <TabsTrigger value="map" className="flex items-center gap-2 text-sm">
               <MapIcon className="h-4 w-4" />
               Map
             </TabsTrigger>
           </TabsList>
 
-          {/* Overview Tab - Rich Dashboard */}
-          <TabsContent value="overview" className="space-y-4">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6 mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Rating Distribution */}
-              <Card className="lg:col-span-1">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <BarChart3 className="h-4 w-4" />
+              <Card className="lg:col-span-1 hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5 text-primary" />
                     Rating Distribution
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-4">
                   {stats.ratingDistribution && Object.entries(stats.ratingDistribution).map(([range, count]) => (
                     <div key={range} className="flex items-center justify-between">
                       <span className="text-sm font-medium">{range}</span>
-                      <div className="flex items-center gap-2 flex-1 ml-3">
+                      <div className="flex items-center gap-3 flex-1 ml-4">
                         <Progress 
                           value={((count as number) / (stats.totalRated || 1)) * 100} 
-                          className="h-2 flex-1"
+                          className="h-3 flex-1"
                         />
-                        <span className="text-sm text-muted-foreground w-8">{count as number}</span>
+                        <span className="text-sm text-muted-foreground w-8 text-right">{count as number}</span>
                       </div>
                     </div>
                   ))}
@@ -448,104 +459,81 @@ export default function FriendProfilePage() {
               </Card>
 
               {/* Top Cuisines */}
-              <Card className="lg:col-span-1">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <ChefHat className="h-4 w-4" />
+              <Card className="lg:col-span-1 hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <ChefHat className="h-5 w-5 text-blue-500" />
                     Top Cuisines
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {stats.topCuisines?.slice(0, 8).map((item: any, index: number) => (
+                  {(stats.topCuisines || []).slice(0, 8).map((item: any) => (
                     <div key={item.cuisine} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="text-xs font-medium text-muted-foreground w-4">#{index + 1}</div>
-                        <span className="text-sm font-medium truncate">{item.cuisine}</span>
+                      <span className="text-sm font-medium">{item.cuisine}</span>
+                      <div className="flex items-center gap-3">
+                        <Progress 
+                          value={(item.count / (stats.totalRated || 1)) * 100} 
+                          className="h-2 w-16"
+                        />
+                        <span className="text-sm text-muted-foreground w-6 text-right">{item.count}</span>
                       </div>
-                      <Badge variant="secondary" className="text-xs">{item.count}</Badge>
                     </div>
                   ))}
                 </CardContent>
               </Card>
 
-              {/* Top Cities */}
-              <Card className="lg:col-span-1">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    Top Cities
+              {/* Recent Activity */}
+              <Card className="lg:col-span-1 hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-green-500" />
+                    Recent Activity
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  {availableCities.slice(0, 8).map((item, index) => (
-                    <div key={item.city} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="text-xs font-medium text-muted-foreground w-4">#{index + 1}</div>
-                        <span className="text-sm font-medium truncate">{item.city}</span>
-                      </div>
-                      <Badge variant="secondary" className="text-xs">{item.count}</Badge>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Recent Activity Preview */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  Recent Activity
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {(stats.recentActivity || []).slice(0, 6).map((restaurant: any) => (
-                    <Card key={restaurant.id} className="p-3 hover:shadow-md transition-shadow">
-                      <div className="space-y-2">
+                <CardContent>
+                  <div className="space-y-3">
+                    {(stats.recentActivity || []).slice(0, 6).map((restaurant: any) => (
+                      <div 
+                        key={restaurant.id} 
+                        className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                        onClick={() => navigate(`/restaurant/${restaurant.id}`)}
+                      >
                         <div className="flex items-start justify-between">
-                          <h4 className="font-semibold text-sm truncate">{restaurant.name}</h4>
+                          <div>
+                            <h4 className="font-semibold text-sm">{restaurant.name}</h4>
+                            <div className="text-xs text-muted-foreground mt-1">
+                              {restaurant.cuisine} • {restaurant.city}
+                            </div>
+                          </div>
                           {restaurant.rating && (
                             <Badge variant="secondary" className="text-xs">
                               ⭐ {restaurant.rating}
                             </Badge>
                           )}
                         </div>
-                        <div className="text-xs text-muted-foreground space-y-1">
-                          <div className="flex items-center gap-1">
-                            <ChefHat className="h-3 w-3" />
-                            {restaurant.cuisine}
-                          </div>
-                          {restaurant.date_visited && (
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              {new Date(restaurant.date_visited).toLocaleDateString()}
-                            </div>
-                          )}
-                        </div>
                       </div>
-                    </Card>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
-          {/* Restaurants Tab */}
-          <TabsContent value="restaurants" className="space-y-4">
-            {/* Dense Filter Controls */}
-            <Card className="p-4">
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          {/* Enhanced Restaurants Tab */}
+          <TabsContent value="restaurants" className="space-y-6 mt-6">
+            {/* Modern Filter Controls */}
+            <Card className="p-6 bg-gradient-to-r from-card to-muted/20">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <Input
-                  placeholder="Search..."
+                  placeholder="Search restaurants..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="h-9"
+                  className="h-10"
                 />
                 
                 <Select value={cuisineFilter} onValueChange={setCuisineFilter}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="Cuisine" />
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="All Cuisines" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Cuisines</SelectItem>
@@ -556,8 +544,8 @@ export default function FriendProfilePage() {
                 </Select>
                 
                 <Select value={cityFilter} onValueChange={setCityFilter}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="City" />
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="All Cities" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Cities</SelectItem>
@@ -568,8 +556,8 @@ export default function FriendProfilePage() {
                 </Select>
                 
                 <Select value={ratingFilter} onValueChange={setRatingFilter}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="Rating" />
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="All Ratings" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Ratings</SelectItem>
@@ -580,123 +568,248 @@ export default function FriendProfilePage() {
                 </Select>
                 
                 <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="Sort" />
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="newest">Newest</SelectItem>
-                    <SelectItem value="oldest">Oldest</SelectItem>
-                    <SelectItem value="rating-high">Rating ↓</SelectItem>
-                    <SelectItem value="rating-low">Rating ↑</SelectItem>
+                    <SelectItem value="newest">Newest First</SelectItem>
+                    <SelectItem value="oldest">Oldest First</SelectItem>
+                    <SelectItem value="rating-high">Highest Rated</SelectItem>
+                    <SelectItem value="rating-low">Lowest Rated</SelectItem>
                     <SelectItem value="name">Name A-Z</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </Card>
 
-            {/* Compact Restaurant Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            {/* Enhanced Restaurant Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {filteredRestaurants.map((restaurant) => (
-                <Card key={restaurant.id} className="p-4 hover:shadow-md transition-shadow">
-                  <div className="flex justify-between items-start gap-4">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-sm truncate">{restaurant.name}</h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="secondary" className="text-xs">{restaurant.cuisine}</Badge>
-                        {restaurant.michelin_stars && <MichelinStars stars={restaurant.michelin_stars} />}
+                <Card 
+                  key={restaurant.id} 
+                  className="p-6 hover:shadow-xl transition-all duration-300 cursor-pointer group border-l-4 border-l-primary/20 hover:border-l-primary hover:scale-[1.02]"
+                  onClick={() => navigate(`/restaurant/${restaurant.id}`)}
+                >
+                  <div className="space-y-4">
+                    {/* Header */}
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-lg group-hover:text-primary transition-colors truncate">
+                          {restaurant.name}
+                        </h3>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant="secondary" className="text-xs bg-muted">
+                            <ChefHat className="h-3 w-3 mr-1" />
+                            {restaurant.cuisine}
+                          </Badge>
+                          {restaurant.michelin_stars && (
+                            <MichelinStars stars={restaurant.michelin_stars} />
+                          )}
+                        </div>
                       </div>
-                      <div className="text-xs text-muted-foreground mt-1 truncate">
-                        {restaurant.city}
+                      <div className="text-center ml-4">
+                        <div className="text-2xl font-bold text-primary">
+                          {restaurant.rating?.toFixed(1) || '—'}
+                        </div>
+                        <div className="text-xs text-muted-foreground">rating</div>
                       </div>
                     </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-primary">{restaurant.rating?.toFixed(1) || '—'}</div>
-                      <div className="text-xs text-muted-foreground">rating</div>
+
+                    {/* Location */}
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <MapPin className="h-4 w-4" />
+                      <span className="text-sm truncate">{restaurant.city}</span>
+                    </div>
+
+                    {/* Visit Date */}
+                    {restaurant.date_visited && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Calendar className="h-4 w-4" />
+                        <span className="text-sm">
+                          Visited {new Date(restaurant.date_visited).toLocaleDateString()}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Notes */}
+                    {restaurant.notes && (
+                      <div className="p-3 bg-muted/30 rounded-lg">
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {restaurant.notes}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Category Ratings */}
+                    {restaurant.category_ratings && (
+                      <div className="space-y-2">
+                        <div className="text-xs font-medium text-muted-foreground">Category Ratings:</div>
+                        <div className="grid grid-cols-2 gap-2">
+                          {Object.entries(restaurant.category_ratings).slice(0, 4).map(([category, rating]) => (
+                            <div key={category} className="flex justify-between text-xs">
+                              <span className="capitalize">{category}:</span>
+                              <span className="font-medium">{(rating as number).toFixed(1)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Footer */}
+                    <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                      <div className="text-xs text-muted-foreground">
+                        Added {new Date(restaurant.created_at).toLocaleDateString()}
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-8 px-3 text-xs group-hover:bg-primary group-hover:text-primary-foreground"
+                      >
+                        View Details →
+                      </Button>
                     </div>
                   </div>
-                  {restaurant.notes && (
-                    <div className="mt-3 p-2 bg-muted/50 rounded text-xs truncate">
-                      {restaurant.notes}
-                    </div>
-                  )}
                 </Card>
               ))}
             </div>
+
+            {filteredRestaurants.length === 0 && (
+              <Card className="p-12 text-center">
+                <Utensils className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No restaurants found</h3>
+                <p className="text-muted-foreground">Try adjusting your filters to see more results.</p>
+              </Card>
+            )}
           </TabsContent>
 
-          {/* Wishlist Tab */}
-          <TabsContent value="wishlist" className="space-y-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3">
+          {/* Enhanced Wishlist Tab */}
+          <TabsContent value="wishlist" className="space-y-6 mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {allWishlist.map((restaurant) => (
-                <Card key={restaurant.id} className="p-4 hover:shadow-md transition-shadow">
-                  <h3 className="font-bold text-sm truncate">{restaurant.name}</h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="secondary" className="text-xs">{restaurant.cuisine}</Badge>
-                    {restaurant.michelin_stars && <MichelinStars stars={restaurant.michelin_stars} />}
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {restaurant.city}
+                <Card 
+                  key={restaurant.id} 
+                  className="p-6 hover:shadow-xl transition-all duration-300 cursor-pointer group border-l-4 border-l-orange-500/20 hover:border-l-orange-500 hover:scale-[1.02]"
+                  onClick={() => navigate(`/restaurant/${restaurant.id}`)}
+                >
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-lg group-hover:text-orange-500 transition-colors truncate">
+                          {restaurant.name}
+                        </h3>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant="secondary" className="text-xs bg-muted">
+                            <ChefHat className="h-3 w-3 mr-1" />
+                            {restaurant.cuisine}
+                          </Badge>
+                          {restaurant.michelin_stars && (
+                            <MichelinStars stars={restaurant.michelin_stars} />
+                          )}
+                        </div>
+                      </div>
+                      <Heart className="h-5 w-5 text-orange-500 fill-orange-500" />
+                    </div>
+
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <MapPin className="h-4 w-4" />
+                      <span className="text-sm truncate">{restaurant.city}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                      <div className="text-xs text-muted-foreground">
+                        Added {new Date(restaurant.created_at).toLocaleDateString()}
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-8 px-3 text-xs group-hover:bg-orange-500 group-hover:text-white"
+                      >
+                        View Details →
+                      </Button>
+                    </div>
                   </div>
                 </Card>
               ))}
             </div>
+
+            {allWishlist.length === 0 && (
+              <Card className="p-12 text-center">
+                <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No wishlist items</h3>
+                <p className="text-muted-foreground">This user hasn't added any restaurants to their wishlist yet.</p>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Analytics Tab */}
-          <TabsContent value="analytics" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Enhanced Analytics Cards */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Dining Patterns</CardTitle>
+          <TabsContent value="analytics" className="space-y-6 mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5 text-primary" />
+                    Dining Patterns
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-sm">Avg Rating</span>
-                    <span className="font-bold">{stats.averageRating?.toFixed(2) || '0.00'}</span>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Average Rating</span>
+                    <span className="font-bold text-lg">{stats.averageRating?.toFixed(2) || '0.00'}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span className="text-sm">Total Rated</span>
-                    <span className="font-bold">{stats.totalRated || 0}</span>
+                    <span className="font-bold text-lg">{stats.totalRated || 0}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Wishlist</span>
-                    <span className="font-bold">{stats.totalWishlist || 0}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Wishlist Items</span>
+                    <span className="font-bold text-lg">{stats.totalWishlist || 0}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Michelin</span>
-                    <span className="font-bold">{stats.michelinCount || 0}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Michelin Restaurants</span>
+                    <span className="font-bold text-lg">{stats.michelinCount || 0}</span>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Rating Quality</CardTitle>
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <PieChart className="h-5 w-5 text-green-500" />
+                    Rating Quality
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
+                <CardContent className="space-y-3">
                   {stats.ratingDistribution && ['8-10', '6-8', '4-6', '2-4', '0-2'].map(range => {
                     const count = stats.ratingDistribution[range] || 0;
                     const percentage = stats.totalRated > 0 ? (count / stats.totalRated) * 100 : 0;
                     return (
-                      <div key={range} className="flex items-center gap-2">
-                        <span className="text-xs w-10">{range}</span>
-                        <Progress value={percentage} className="h-2 flex-1" />
-                        <span className="text-xs w-6">{count}</span>
+                      <div key={range} className="flex items-center gap-3">
+                        <span className="text-sm w-12 font-medium">{range}</span>
+                        <Progress value={percentage} className="h-3 flex-1" />
+                        <span className="text-sm w-8 text-right font-bold">{count}</span>
                       </div>
                     );
                   })}
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Geographic Spread</CardTitle>
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <MapIcon className="h-5 w-5 text-red-500" />
+                    Geographic Spread
+                  </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">{availableCities.length}</div>
-                    <div className="text-xs text-muted-foreground">cities explored</div>
+                <CardContent className="text-center">
+                  <div className="text-4xl font-bold text-red-500 mb-2">{availableCities.length}</div>
+                  <div className="text-sm text-muted-foreground mb-4">cities explored</div>
+                  <div className="space-y-2">
+                    {availableCities.slice(0, 5).map(({ city, count }) => (
+                      <div key={city} className="flex justify-between text-sm">
+                        <span>{city}</span>
+                        <span className="font-medium">{count}</span>
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
@@ -704,35 +817,61 @@ export default function FriendProfilePage() {
           </TabsContent>
 
           {/* Activity Tab */}
-          <TabsContent value="activity" className="space-y-4">
-            <div className="grid gap-3">
+          <TabsContent value="activity" className="space-y-6 mt-6">
+            <div className="grid gap-4">
               {(stats.recentActivity || []).map((restaurant: any) => (
-                <Card key={restaurant.id} className="p-4">
+                <Card 
+                  key={restaurant.id} 
+                  className="p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group"
+                  onClick={() => navigate(`/restaurant/${restaurant.id}`)}
+                >
                   <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-semibold">{restaurant.name}</h4>
-                      <div className="text-sm text-muted-foreground">{restaurant.cuisine} • {restaurant.city}</div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-lg group-hover:text-primary transition-colors">
+                        {restaurant.name}
+                      </h4>
+                      <div className="text-muted-foreground mt-1 flex items-center gap-4">
+                        <span className="flex items-center gap-1">
+                          <ChefHat className="h-4 w-4" />
+                          {restaurant.cuisine}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <MapPin className="h-4 w-4" />
+                          {restaurant.city}
+                        </span>
+                      </div>
                     </div>
                     <div className="text-right">
                       {restaurant.rating && (
-                        <div className="text-lg font-bold text-primary">{restaurant.rating}</div>
+                        <div className="text-2xl font-bold text-primary">{restaurant.rating}</div>
                       )}
-                      <div className="text-xs text-muted-foreground">
-                        {restaurant.date_visited ? new Date(restaurant.date_visited).toLocaleDateString() : 'Added'}
+                      <div className="text-sm text-muted-foreground">
+                        {restaurant.date_visited ? new Date(restaurant.date_visited).toLocaleDateString() : 'Added to list'}
                       </div>
                     </div>
                   </div>
                 </Card>
               ))}
             </div>
+
+            {(!stats.recentActivity || stats.recentActivity.length === 0) && (
+              <Card className="p-12 text-center">
+                <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No recent activity</h3>
+                <p className="text-muted-foreground">This user hasn't rated any restaurants recently.</p>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Map Tab */}
-          <TabsContent value="map" className="space-y-4">
-            <Card className="p-8 text-center">
-              <MapIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Restaurant Map</h3>
-              <p className="text-muted-foreground">Interactive map view coming soon</p>
+          <TabsContent value="map" className="space-y-6 mt-6">
+            <Card className="p-12 text-center hover:shadow-lg transition-shadow">
+              <MapIcon className="h-16 w-16 text-muted-foreground mx-auto mb-6" />
+              <h3 className="text-2xl font-semibold mb-4">Restaurant Map</h3>
+              <p className="text-muted-foreground text-lg">Interactive map view coming soon</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Visualize all of {friend.name || friend.username}'s restaurant visits on an interactive map
+              </p>
             </Card>
           </TabsContent>
         </Tabs>
