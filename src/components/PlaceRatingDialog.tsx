@@ -91,6 +91,7 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
   const [isProcessingPhotos, setIsProcessingPhotos] = useState(false);
   const [photoProgress, setPhotoProgress] = useState(0);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { addRating, updateRating, addRestaurantToTrip } = usePlaceRatings(tripId || undefined);
@@ -816,25 +817,42 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
               {/* Date Visited */}
               <div className="space-y-2">
                 <Label>Date Visited</Label>
-                <Popover>
+                <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                   <PopoverTrigger asChild>
                     <Button
+                      type="button"
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
                         !dateVisited && "text-muted-foreground"
                       )}
+                      onClick={(e) => {
+                        console.log('Date button clicked', e);
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setIsDatePickerOpen(!isDatePickerOpen);
+                      }}
                     >
                       <Calendar className="mr-2 h-4 w-4" />
                       {dateVisited ? format(dateVisited, "PPP") : <span>Select a date</span>}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-background border shadow-lg" align="start">
+                  <PopoverContent 
+                    className="w-auto p-0 bg-background border shadow-lg" 
+                    align="start"
+                    side="bottom"
+                    sideOffset={4}
+                    style={{ zIndex: 9999 }}
+                  >
                     <div className="p-3">
                       <CalendarComponent
                         mode="single"
                         selected={dateVisited}
-                        onSelect={setDateVisited}
+                        onSelect={(date) => {
+                          console.log('Date selected:', date);
+                          setDateVisited(date);
+                          setIsDatePickerOpen(false);
+                        }}
                         disabled={(date) => date > new Date()}
                         initialFocus
                         className="pointer-events-auto"
@@ -842,9 +860,16 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
                       {dateVisited && (
                         <div className="mt-3 pt-3 border-t flex justify-center">
                           <Button
+                            type="button"
                             variant="ghost"
                             size="sm"
-                            onClick={() => setDateVisited(undefined)}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              console.log('Clear dates clicked');
+                              setDateVisited(undefined);
+                              setIsDatePickerOpen(false);
+                            }}
                             className="text-muted-foreground hover:text-foreground"
                           >
                             Clear dates
