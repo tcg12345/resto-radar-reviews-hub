@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { Clock, MapPin, Search, Utensils, MapPinIcon } from 'lucide-react';
+import { Clock, MapPin, Search, Utensils, MapPinIcon, ExternalLink, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -222,9 +222,41 @@ export function EventDialog({
                         </div>
                       </CardHeader>
                       <CardContent className="pt-0">
-                        <Button variant="outline" size="sm" onClick={() => setAttractionData(null)}>
-                          Change Place
-                        </Button>
+                        <div className="flex flex-wrap gap-2">
+                          <Button variant="outline" size="sm" onClick={() => setAttractionData(null)}>
+                            Change Place
+                          </Button>
+                          {attractionData.address && (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => window.open(`https://maps.google.com/maps?q=${encodeURIComponent(attractionData.address)}`, '_blank')}
+                            >
+                              <MapPin className="w-3 h-3 mr-1" />
+                              Directions
+                            </Button>
+                          )}
+                          {attractionData.website && (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => window.open(attractionData.website, '_blank')}
+                            >
+                              <ExternalLink className="w-3 h-3 mr-1" />
+                              Website
+                            </Button>
+                          )}
+                          {attractionData.phone && (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => window.open(`tel:${attractionData.phone}`, '_self')}
+                            >
+                              <Phone className="w-3 h-3 mr-1" />
+                              Call
+                            </Button>
+                          )}
+                        </div>
                       </CardContent>
                     </Card> : <div className="space-y-3">
                       <p className="text-sm text-muted-foreground">
