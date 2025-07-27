@@ -92,14 +92,14 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
           // User is authenticated, fetch their restaurants
           const { data, error } = await supabase
             .from('restaurants')
-            .select('id, name, address, city, country, cuisine, rating, notes, date_visited, is_wishlist, latitude, longitude, category_ratings, use_weighted_rating, price_range, michelin_stars, created_at, updated_at, user_id, opening_hours, website, phone_number, reservable, reservation_url')
+            .select('id, name, address, city, country, cuisine, rating, notes, date_visited, is_wishlist, latitude, longitude, category_ratings, use_weighted_rating, price_range, michelin_stars, created_at, updated_at, user_id, opening_hours, website, phone_number, reservable, reservation_url, photos')
             .eq('user_id', session.user.id)
             .order('created_at', { ascending: false });
 
           if (error) throw error;
           setRestaurants((data || []).map(restaurant => mapDbRestaurantToRestaurant({
             ...restaurant,
-            photos: [] // Photos will be loaded separately when needed
+            photos: restaurant.photos || [] // Keep the actual photos from the database
           })));
         } else {
           // User is not authenticated, show empty list
