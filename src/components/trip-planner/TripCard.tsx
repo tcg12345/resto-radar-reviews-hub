@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Calendar, Star, Users, Eye, Trash2, MoreVertical, Clock, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Trip, useTrips } from '@/hooks/useTrips';
+import { usePlaceRatings } from '@/hooks/usePlaceRatings';
 import { format, isBefore, isAfter, isWithinInterval } from 'date-fns';
-import { supabase } from '@/integrations/supabase/client';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,51 +28,19 @@ interface TripCardProps {
   trip: Trip;
 }
 
-interface TripStats {
-  restaurantCount: number;
-  attractionCount: number;
-  totalPlaces: number;
-  avgRating: number;
-}
-
 export function TripCard({ trip }: TripCardProps) {
   const navigate = useNavigate();
   const { deleteTrip } = useTrips();
+  const { ratings } = usePlaceRatings(trip.id);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [stats, setStats] = useState<TripStats>({
-    restaurantCount: 0,
-    attractionCount: 0,
-    totalPlaces: 0,
-    avgRating: 0
-  });
-
-  // Load basic stats efficiently without loading full place data
-  useEffect(() => {
-    const loadTripStats = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('place_ratings')
-          .select('place_type, overall_rating')
-          .eq('trip_id', trip.id);
-
-        if (error) throw error;
-
-        const restaurantCount = data.filter(r => r.place_type === 'restaurant').length;
-        const attractionCount = data.filter(r => r.place_type === 'attraction').length;
-        const totalPlaces = data.length;
-        const avgRating = totalPlaces > 0 
-          ? data.reduce((acc, r) => acc + (r.overall_rating || 0), 0) / totalPlaces
-          : 0;
-
-        setStats({ restaurantCount, attractionCount, totalPlaces, avgRating });
-      } catch (error) {
-        console.error('Error loading trip stats:', error);
-        // Keep default stats on error
-      }
-    };
-
-    loadTripStats();
-  }, [trip.id]);
+  
+  const restaurantCount = ratings.filter(r => r.place_type === 'restaurant').length;
+  const attractionCount = ratings.filter(r => r.place_type === 'attraction').length;
+  const totalPlaces = ratings.length;
+  
+  const avgRating = ratings.length > 0 
+    ? ratings.reduce((acc, r) => acc + (r.overall_rating || 0), 0) / ratings.length
+    : 0;
 
   // Determine trip status
   const getTripStatus = () => {
@@ -181,29 +149,29 @@ export function TripCard({ trip }: TripCardProps) {
           {/* Trip Stats */}
           <div className="grid grid-cols-2 gap-3">
             <div className="text-center p-3 bg-muted/30 rounded-lg">
-              <div className="text-xl font-bold text-primary">{stats.totalPlaces}</div>
+              <div className="text-xl font-bold text-primary">{totalPlaces}</div>
               <div className="text-xs text-muted-foreground">Places</div>
             </div>
             <div className="text-center p-3 bg-muted/30 rounded-lg">
               <div className="text-xl font-bold text-primary flex items-center justify-center gap-1">
-                {stats.avgRating > 0 ? stats.avgRating.toFixed(1) : '—'}
-                {stats.avgRating > 0 && <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />}
+                {avgRating > 0 ? avgRating.toFixed(1) : '—'}
+                {avgRating > 0 && <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />}
               </div>
               <div className="text-xs text-muted-foreground">Rating</div>
             </div>
           </div>
 
           {/* Place breakdown */}
-          {stats.totalPlaces > 0 && (
+          {totalPlaces > 0 && (
             <div className="flex flex-wrap gap-1 justify-center">
-              {stats.restaurantCount > 0 && (
+              {restaurantCount > 0 && (
                 <Badge variant="secondary" className="text-xs">
-                  {stats.restaurantCount} restaurants
+                  {restaurantCount} restaurants
                 </Badge>
               )}
-              {stats.attractionCount > 0 && (
+              {attractionCount > 0 && (
                 <Badge variant="secondary" className="text-xs">
-                  {stats.attractionCount} attractions
+                  {attractionCount} attractions
                 </Badge>
               )}
             </div>

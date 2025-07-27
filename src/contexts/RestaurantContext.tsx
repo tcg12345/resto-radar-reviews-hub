@@ -39,7 +39,6 @@ interface RestaurantContextType {
   deleteRestaurant: (id: string) => void;
   getRestaurant: (id: string) => Restaurant | undefined;
   loadRestaurantPhotos: (id: string) => Promise<void>;
-  loadRestaurants: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -81,52 +80,48 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
 
-  // Load restaurants from Supabase (lazy loading - only when needed)
-  const loadRestaurants = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      // Check if user is authenticated
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session?.user) {
-        // User is authenticated, fetch their restaurants
-        const { data, error } = await supabase
-          .from('restaurants')
-          .select('id, name, address, city, country, cuisine, rating, notes, date_visited, is_wishlist, latitude, longitude, category_ratings, use_weighted_rating, price_range, michelin_stars, created_at, updated_at, user_id, opening_hours, website, phone_number, reservable, reservation_url, photos')
-          .eq('user_id', session.user.id)
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        setRestaurants((data || []).map(restaurant => mapDbRestaurantToRestaurant({
-          ...restaurant,
-          photos: restaurant.photos || [] // Keep the actual photos from the database
-        })));
-      } else {
-        // User is not authenticated, show empty list
-        setRestaurants([]);
-        console.log('User not authenticated. Please sign in to view your restaurants.');
-      }
-    } catch (error) {
-      console.error('Error loading restaurants:', error);
-      toast.error('Failed to load restaurants');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  // Only load restaurants when the context is first accessed, not automatically
+  // Load restaurants from Supabase
   useEffect(() => {
-    // Don't auto-load restaurants - let pages request them when needed
-    
-    // Set up auth state listener to clear restaurants when auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT') {
-        setRestaurants([]);
+    const loadRestaurants = async () => {
+      setIsLoading(true);
+      try {
+        // Check if user is authenticated
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          // User is authenticated, fetch their restaurants
+          const { data, error } = await supabase
+            .from('restaurants')
+            .select('id, name, address, city, country, cuisine, rating, notes, date_visited, is_wishlist, latitude, longitude, category_ratings, use_weighted_rating, price_range, michelin_stars, created_at, updated_at, user_id, opening_hours, website, phone_number, reservable, reservation_url, photos')
+            .eq('user_id', session.user.id)
+            .order('created_at', { ascending: false });
+
+          if (error) throw error;
+          setRestaurants((data || []).map(restaurant => mapDbRestaurantToRestaurant({
+            ...restaurant,
+            photos: restaurant.photos || [] // Keep the actual photos from the database
+          })));
+        } else {
+          // User is not authenticated, show empty list
+          setRestaurants([]);
+          console.log('User not authenticated. Please sign in to view your restaurants.');
+        }
+      } catch (error) {
+        console.error('Error loading restaurants:', error);
+        toast.error('Failed to load restaurants');
+      } finally {
+        setIsLoading(false);
       }
-      // Don't auto-load on sign in - let pages request when needed
+    };
+
+    loadRestaurants();
+    
+    // Set up auth state listener to reload restaurants when auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      loadRestaurants();
     });
     
-    // Set up real-time subscription for restaurant changes (only if restaurants are loaded)
+    // Set up real-time subscription for restaurant changes
     const channel = supabase
       .channel('schema-db-changes')
       .on(
@@ -138,10 +133,8 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         },
         (payload) => {
           console.log('Real-time restaurant change:', payload);
-          // Only reload if we have restaurants loaded
-          if (restaurants.length > 0) {
-            loadRestaurants();
-          }
+          // Reload restaurants when changes occur
+          loadRestaurants();
         }
       )
       .subscribe();
@@ -150,7 +143,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       subscription.unsubscribe();
       supabase.removeChannel(channel);
     };
-  }, [restaurants.length, loadRestaurants]);
+  }, []);
 
   // Convert File objects to compressed data URLs
   const convertPhotosToDataUrls = useCallback(async (
@@ -447,10 +440,9 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       deleteRestaurant,
       getRestaurant,
       loadRestaurantPhotos,
-      loadRestaurants, // Add this to allow manual loading
       isLoading,
     }),
-    [restaurants, addRestaurant, updateRestaurant, deleteRestaurant, getRestaurant, loadRestaurantPhotos, loadRestaurants, isLoading]
+    [restaurants, addRestaurant, updateRestaurant, deleteRestaurant, getRestaurant, loadRestaurantPhotos, isLoading]
   );
 
   return <RestaurantContext.Provider value={value}>{children}</RestaurantContext.Provider>;

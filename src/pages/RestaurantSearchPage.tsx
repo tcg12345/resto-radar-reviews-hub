@@ -120,12 +120,7 @@ export default function RestaurantSearchPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { profile } = useAuth();
-  const { addRestaurant, restaurants: existingRestaurants, deleteRestaurant, loadRestaurants } = useRestaurants();
-
-  // Load restaurants when component mounts
-  useEffect(() => {
-    loadRestaurants();
-  }, [loadRestaurants]);
+  const { addRestaurant, restaurants: existingRestaurants, deleteRestaurant } = useRestaurants();
   
   // Search page state
   const [searchQuery, setSearchQuery] = useState('');

@@ -109,20 +109,20 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
                   <CardTitle className="text-lg">
                     Day {index + 1} - {format(day, 'EEEE, MMMM do')}
                   </CardTitle>
-                  <div className="space-y-1">
+                  <CardDescription className="space-y-1">
                     {isMultiCity && getCityForDate(day) && (
-                      <div className="flex items-center gap-1 text-primary font-medium text-sm">
+                      <div className="flex items-center gap-1 text-primary font-medium">
                         <MapPin className="w-3 h-3" />
                         {getCityForDate(day)}
                       </div>
                     )}
-                    <p className="text-sm text-muted-foreground">
+                    <div>
                       {dayEvents.length > 0 
                         ? `${dayEvents.length} ${dayEvents.length === 1 ? 'event' : 'events'} planned`
                         : 'No events planned'
                       }
-                    </p>
-                  </div>
+                    </div>
+                  </CardDescription>
                 </div>
                 <Button
                   variant="outline"
