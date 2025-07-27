@@ -14,7 +14,6 @@ import { TripMapView, TripMapViewRef } from '@/components/TripMapView';
 import { PlaceRatingDialog } from '@/components/PlaceRatingDialog';
 import { PlaceDetailsModal } from '@/components/PlaceDetailsModal';
 import { AddRestaurantToTripDialog } from '@/components/AddRestaurantToTripDialog';
-import { AddItineraryToTripDialog } from '@/components/AddItineraryToTripDialog';
 import { MobileTripSwipePanel } from '@/components/mobile/MobileTripSwipePanel';
 import { TripDetailStats } from '@/components/trip-detail/TripDetailStats';
 import { TripDetailPlacesList } from '@/components/trip-detail/TripDetailPlacesList';
@@ -34,7 +33,6 @@ export default function TripDetailPage() {
   // Dialog states
   const [isPlaceRatingDialogOpen, setIsPlaceRatingDialogOpen] = useState(false);
   const [isAddRestaurantDialogOpen, setIsAddRestaurantDialogOpen] = useState(false);
-  const [isAddItineraryDialogOpen, setIsAddItineraryDialogOpen] = useState(false);
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
   const [isPlaceDetailsModalOpen, setIsPlaceDetailsModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -165,7 +163,6 @@ export default function TripDetailPage() {
         ratings={ratings}
         onBack={() => navigate('/travel')}
         onAddPlace={() => setIsPlaceRatingDialogOpen(true)}
-        onAddItinerary={() => setIsAddItineraryDialogOpen(true)}
       />
 
 
@@ -267,17 +264,11 @@ export default function TripDetailPage() {
           setEditPlaceData(null);
         }}
         tripId={tripId}
+        tripTitle={trip.title}
         editPlaceId={editPlaceId}
         editPlaceData={editPlaceData}
       />
       
-      <AddItineraryToTripDialog
-        isOpen={isAddItineraryDialogOpen}
-        onClose={() => setIsAddItineraryDialogOpen(false)}
-        tripId={tripId}
-        tripTitle={trip.title}
-      />
-
       <AddRestaurantToTripDialog
         isOpen={isAddRestaurantDialogOpen}
         onClose={() => setIsAddRestaurantDialogOpen(false)}

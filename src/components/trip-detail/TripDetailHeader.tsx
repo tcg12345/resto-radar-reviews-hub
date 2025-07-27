@@ -13,7 +13,6 @@ interface TripDetailHeaderProps {
   ratings: PlaceRating[];
   onBack: () => void;
   onAddPlace: () => void;
-  onAddItinerary: () => void;
 }
 
 export function TripDetailHeader({ 
@@ -21,8 +20,7 @@ export function TripDetailHeader({
   tripStatus, 
   ratings, 
   onBack, 
-  onAddPlace,
-  onAddItinerary 
+  onAddPlace 
 }: TripDetailHeaderProps) {
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const totalPlaces = ratings.length;
@@ -239,14 +237,6 @@ export function TripDetailHeader({
             >
               <Plus className="w-4 h-4" />
               Add Place
-            </Button>
-            <Button
-              variant="outline"
-              onClick={onAddItinerary}
-              className="flex items-center gap-2 hover:border-primary/30"
-            >
-              <BookOpen className="w-4 h-4" />
-              Import Itinerary
             </Button>
             <Button 
               variant="outline" 

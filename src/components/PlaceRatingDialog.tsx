@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, Star, MapPin, Calendar, Camera, Plus, X, Upload, Images, Trash2 } from 'lucide-react';
+import { Search, Star, MapPin, Calendar, Camera, Plus, X, Upload, Images, Trash2, BookOpen } from 'lucide-react';
 import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { MichelinStarIcon } from '@/components/MichelinStarIcon';
 import { Button } from '@/components/ui/button';
@@ -23,11 +23,13 @@ import { createThumbnail } from '@/utils/imageUtils';
 import { toast } from 'sonner';
 import { LazyImage } from '@/components/LazyImage';
 import { Progress } from '@/components/ui/progress';
+import { AddItineraryToTripDialog } from '@/components/AddItineraryToTripDialog';
 
 interface PlaceRatingDialogProps {
   isOpen: boolean;
   onClose: () => void;
   tripId?: string | null;
+  tripTitle?: string;
   editPlaceId?: string | null;
   editPlaceData?: any;
 }
@@ -70,7 +72,7 @@ const RATING_CATEGORIES = {
   other: ['Quality', 'Service', 'Experience', 'Value for Money'],
 };
 
-export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPlaceData }: PlaceRatingDialogProps) {
+export function PlaceRatingDialog({ isOpen, onClose, tripId, tripTitle, editPlaceId, editPlaceData }: PlaceRatingDialogProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<GooglePlace[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<GooglePlace | null>(null);
@@ -85,6 +87,7 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [activeTab, setActiveTab] = useState('search');
+  const [isImportItineraryOpen, setIsImportItineraryOpen] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout>();
   const [photos, setPhotos] = useState<File[]>([]);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
@@ -573,9 +576,10 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="search">Search Places</TabsTrigger>
               <TabsTrigger value="restaurants">My Restaurants</TabsTrigger>
+              <TabsTrigger value="itinerary">Import Itinerary</TabsTrigger>
             </TabsList>
 
             <TabsContent value="search" className="space-y-6">
@@ -703,6 +707,27 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
                     </p>
                   )}
                 </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="itinerary" className="space-y-4">
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <BookOpen className="w-4 h-4" />
+                  Import from Saved Itineraries
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Select a saved itinerary to import its restaurants and attractions into this trip.
+                </p>
+                <Button
+                  type="button"
+                  onClick={() => setIsImportItineraryOpen(true)}
+                  className="w-full"
+                  variant="outline"
+                >
+                  <BookOpen className="w-4 h-4 mr-2" />
+                  Browse Saved Itineraries
+                </Button>
               </div>
             </TabsContent>
           </Tabs>
@@ -1011,6 +1036,14 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
           </DialogFooter>
         </form>
       </DialogContent>
+
+      {/* Import Itinerary Dialog */}
+      <AddItineraryToTripDialog
+        isOpen={isImportItineraryOpen}
+        onClose={() => setIsImportItineraryOpen(false)}
+        tripId={tripId || ''}
+        tripTitle={tripTitle || 'Your Trip'}
+      />
     </Dialog>
   );
 }
