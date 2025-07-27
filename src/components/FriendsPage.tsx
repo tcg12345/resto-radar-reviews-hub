@@ -72,7 +72,7 @@ export function FriendsPage({
     });
 
   const handleViewProfile = (friend: any) => {
-    setSelectedFriend(friend);
+    navigate(`/friends/${friend.id}`);
   };
 
   const handleStartChat = (friend: any) => {

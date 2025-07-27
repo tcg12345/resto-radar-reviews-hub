@@ -67,6 +67,7 @@ const App = () => (
                 
                 <Route path="/settings" element={<RequireAuth><Layout activeTab="settings" showNavbar={false} showChatbot={false}><SettingsPageWrapper /></Layout></RequireAuth>} />
                 <Route path="/friends" element={<RequireAuth><Layout activeTab="friends"><FriendsPage /></Layout></RequireAuth>} />
+                <Route path="/friends/:friendId" element={<RequireAuth><MobileFriendProfilePage /></RequireAuth>} />
                 
                 {/* User profile routes */}
                 <Route path="/user/:userId" element={<RequireAuth><MobileFriendProfilePage /></RequireAuth>} />
