@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Itinerary, ItineraryEvent } from '@/components/ItineraryBuilder';
+import { ItineraryImportPreviewDialog } from '@/components/ItineraryImportPreviewDialog';
 
 interface AddItineraryToTripDialogProps {
   isOpen: boolean;
@@ -29,6 +30,7 @@ export function AddItineraryToTripDialog({
   const [savedItineraries, setSavedItineraries] = useState<Itinerary[]>([]);
   const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState<string | null>(null);
+  const [previewItinerary, setPreviewItinerary] = useState<Itinerary | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -81,65 +83,19 @@ export function AddItineraryToTripDialog({
     }
   };
 
-  const convertEventToPlaceRating = (event: ItineraryEvent) => {
-    if (event.type === 'other') return null;
 
-    const baseData = {
-      user_id: user!.id,
-      trip_id: tripId,
-      place_name: event.title,
-      place_type: event.type,
-      notes: event.description || null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-
-    if (event.type === 'restaurant' && event.restaurantData) {
-      return {
-        ...baseData,
-        address: event.restaurantData.address,
-        phone_number: event.restaurantData.phone || null,
-        website: event.restaurantData.website || null,
-        place_id: event.restaurantData.placeId || null,
-      };
-    }
-
-    if (event.type !== 'restaurant' && event.attractionData) {
-      return {
-        ...baseData,
-        address: event.attractionData.address,
-        phone_number: event.attractionData.phone || null,
-        website: event.attractionData.website || null,
-        latitude: event.attractionData.latitude || null,
-        longitude: event.attractionData.longitude || null,
-        overall_rating: event.attractionData.rating || null,
-        place_id: event.attractionData.id || null,
-        cuisine: event.attractionData.category || null,
-      };
-    }
-
-    return baseData;
+  const handleImportItinerary = (itinerary: Itinerary) => {
+    setPreviewItinerary(itinerary);
   };
+  const handleConfirmImport = async (eventsWithRatings: (ItineraryEvent & { placeRating?: any })[]) => {
+    if (!user || !previewItinerary) return;
 
-  const handleImportItinerary = async (itinerary: Itinerary) => {
-    if (!user) return;
-
-    setImporting(itinerary.id || itinerary.title);
+    setImporting(previewItinerary.id || previewItinerary.title);
     
     try {
-      // Filter out 'other' type events and convert to place ratings
-      const placeEvents = itinerary.events.filter(event => 
-        event.type !== 'other' && event.type !== undefined
-      );
-
-      if (placeEvents.length === 0) {
-        toast.error('No places found in this itinerary to import');
-        return;
-      }
-
       // Process each event to enrich it with comprehensive data
       const enrichedPlaceRatings = await Promise.all(
-        placeEvents.map(async (event) => {
+        eventsWithRatings.map(async (event) => {
           let enrichedData = event;
           
           // For non-restaurant events (attractions, museums, hotels, etc.)
@@ -186,7 +142,13 @@ export function AddItineraryToTripDialog({
             trip_id: tripId,
             place_name: enrichedData.title,
             place_type: enrichedData.type,
-            notes: enrichedData.description || null,
+            notes: event.placeRating?.notes || enrichedData.description || null,
+            overall_rating: event.placeRating?.overall_rating || null,
+            category_ratings: event.placeRating?.category_ratings || null,
+            date_visited: event.placeRating?.date_visited || null,
+            photos: event.placeRating?.photos || null,
+            price_range: event.placeRating?.price_range || null,
+            michelin_stars: event.placeRating?.michelin_stars || null,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           };
@@ -209,7 +171,7 @@ export function AddItineraryToTripDialog({
               website: enrichedData.attractionData.website || null,
               latitude: enrichedData.attractionData.latitude || null,
               longitude: enrichedData.attractionData.longitude || null,
-              overall_rating: enrichedData.attractionData.rating || null,
+              overall_rating: event.placeRating?.overall_rating || enrichedData.attractionData.rating || null,
               place_id: enrichedData.attractionData.id || null,
               cuisine: enrichedData.attractionData.category || null,
             };
@@ -230,7 +192,8 @@ export function AddItineraryToTripDialog({
         return;
       }
 
-      toast.success(`Successfully imported ${enrichedPlaceRatings.length} places from "${itinerary.title}" to ${tripTitle}`);
+      toast.success(`Successfully imported ${enrichedPlaceRatings.length} places from "${previewItinerary.title}" to ${tripTitle}`);
+      setPreviewItinerary(null);
       onClose();
     } catch (error) {
       console.error('Error importing itinerary:', error);
@@ -387,6 +350,17 @@ export function AddItineraryToTripDialog({
           )}
         </ScrollArea>
       </DialogContent>
+
+      {/* Import Preview Dialog */}
+      <ItineraryImportPreviewDialog
+        isOpen={!!previewItinerary}
+        onClose={() => setPreviewItinerary(null)}
+        itineraryTitle={previewItinerary?.title || ''}
+        events={previewItinerary?.events || []}
+        tripId={tripId}
+        tripTitle={tripTitle}
+        onConfirmImport={handleConfirmImport}
+      />
     </Dialog>
   );
 }
