@@ -117,7 +117,20 @@ export const TripMapView = forwardRef<TripMapViewRef, TripMapViewProps>(({ ratin
 
     map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
+    // Add resize observer to handle container size changes
+    const resizeObserver = new ResizeObserver(() => {
+      if (map.current) {
+        // Trigger map resize when container size changes
+        map.current.resize();
+      }
+    });
+
+    if (mapContainer.current) {
+      resizeObserver.observe(mapContainer.current);
+    }
+
     return () => {
+      resizeObserver.disconnect();
       if (map.current) {
         map.current.remove();
       }
