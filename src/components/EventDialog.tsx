@@ -37,6 +37,7 @@ interface AttractionData {
   name: string;
   address: string;
   category?: string;
+  placeType?: 'hotel' | 'restaurant' | 'attraction' | 'museum' | 'park' | 'monument' | 'shopping' | 'entertainment' | 'other';
   rating?: number;
   website?: string;
   phone?: string;
@@ -60,7 +61,7 @@ export function EventDialog({
   const [selectedPeriod, setSelectedPeriod] = useState<'AM' | 'PM'>('PM');
   const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
   const [is24Hour, setIs24Hour] = useState(false);
-  const [type, setType] = useState<'restaurant' | 'attraction' | 'other'>('other');
+  const [type, setType] = useState<'restaurant' | 'hotel' | 'attraction' | 'museum' | 'park' | 'monument' | 'shopping' | 'entertainment' | 'other'>('other');
   const [restaurantData, setRestaurantData] = useState<RestaurantData | null>(null);
   const [attractionData, setAttractionData] = useState<AttractionData | null>(null);
   const [isRestaurantSearchOpen, setIsRestaurantSearchOpen] = useState(false);
@@ -70,17 +71,15 @@ export function EventDialog({
   // Reset form when dialog opens/closes or editing event changes
   useEffect(() => {
     if (isOpen && editingEvent) {
-      // Handle restaurant, attraction, and other event types
-      if (editingEvent.type === 'restaurant' || editingEvent.type === 'attraction' || editingEvent.type === 'other') {
-        setTitle(editingEvent.title);
-        setDescription(editingEvent.description || '');
-        setTime(editingEvent.time);
-        setType(editingEvent.type);
-        setRestaurantData(editingEvent.restaurantData || null);
-        setAttractionData(editingEvent.attractionData || null);
-        setSelectedDates([editingEvent.date]);
-        setIsMultiDayEvent(false);
-      }
+      // Handle all event types
+      setTitle(editingEvent.title);
+      setDescription(editingEvent.description || '');
+      setTime(editingEvent.time);
+      setType(editingEvent.type);
+      setRestaurantData(editingEvent.restaurantData || null);
+      setAttractionData(editingEvent.attractionData || null);
+      setSelectedDates([editingEvent.date]);
+      setIsMultiDayEvent(false);
     } else if (isOpen) {
       setTitle('');
       setDescription('');
@@ -114,7 +113,7 @@ export function EventDialog({
       date: isMultiDayEvent ? selectedDates[0] : selectedDate!, // Default to first selected date
       type,
       restaurantData: type === 'restaurant' ? restaurantData : undefined,
-      attractionData: type === 'attraction' ? attractionData : undefined
+      attractionData: (type !== 'restaurant' && type !== 'other') ? attractionData : undefined
     };
     
     // Pass selected dates for multi-day events
@@ -146,7 +145,8 @@ export function EventDialog({
     setAttractionData(attraction);
     if (attraction) {
       setTitle(attraction.name);
-      setType('attraction');
+      // Use the AI-determined place type or default to attraction
+      setType(attraction.placeType || 'attraction');
     }
   };
   const formattedDate = selectedDate ? format(new Date(selectedDate), 'EEEE, MMMM do') : '';

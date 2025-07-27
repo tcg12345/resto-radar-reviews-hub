@@ -104,7 +104,7 @@ export function AddItineraryToTripDialog({
       };
     }
 
-    if (event.type === 'attraction' && event.attractionData) {
+    if (event.type !== 'restaurant' && event.attractionData) {
       return {
         ...baseData,
         address: event.attractionData.address,
@@ -114,6 +114,7 @@ export function AddItineraryToTripDialog({
         longitude: event.attractionData.longitude || null,
         overall_rating: event.attractionData.rating || null,
         place_id: event.attractionData.id || null,
+        cuisine: event.attractionData.category || null,
       };
     }
 
@@ -128,11 +129,11 @@ export function AddItineraryToTripDialog({
     try {
       // Filter out 'other' type events and convert to place ratings
       const placeEvents = itinerary.events.filter(event => 
-        event.type === 'restaurant' || event.type === 'attraction'
+        event.type !== 'other'
       );
 
       if (placeEvents.length === 0) {
-        toast.error('No restaurants or attractions found in this itinerary');
+        toast.error('No places found in this itinerary to import');
         return;
       }
 
@@ -164,9 +165,27 @@ export function AddItineraryToTripDialog({
 
   const getEventCounts = (events: ItineraryEvent[]) => {
     const restaurants = events.filter(e => e.type === 'restaurant').length;
+    const hotels = events.filter(e => e.type === 'hotel').length;
+    const museums = events.filter(e => e.type === 'museum').length;
+    const parks = events.filter(e => e.type === 'park').length;
+    const monuments = events.filter(e => e.type === 'monument').length;
+    const shopping = events.filter(e => e.type === 'shopping').length;
+    const entertainment = events.filter(e => e.type === 'entertainment').length;
     const attractions = events.filter(e => e.type === 'attraction').length;
     const other = events.filter(e => e.type === 'other').length;
-    return { restaurants, attractions, other };
+    
+    return { 
+      restaurants, 
+      hotels,
+      museums,
+      parks,
+      monuments,
+      shopping,
+      entertainment,
+      attractions,
+      other,
+      totalPlaces: restaurants + hotels + museums + parks + monuments + shopping + entertainment + attractions
+    };
   };
 
   return (
@@ -196,7 +215,7 @@ export function AddItineraryToTripDialog({
             <div className="space-y-4">
               {savedItineraries.map((itinerary) => {
                 const eventCounts = getEventCounts(itinerary.events);
-                const importableCount = eventCounts.restaurants + eventCounts.attractions;
+                const importableCount = eventCounts.totalPlaces;
                 const isImporting = importing === (itinerary.id || itinerary.title);
 
                 return (
@@ -247,10 +266,28 @@ export function AddItineraryToTripDialog({
                             {eventCounts.restaurants} Restaurant{eventCounts.restaurants !== 1 ? 's' : ''}
                           </Badge>
                         )}
+                        {eventCounts.hotels > 0 && (
+                          <Badge variant="secondary" className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {eventCounts.hotels} Hotel{eventCounts.hotels !== 1 ? 's' : ''}
+                          </Badge>
+                        )}
+                        {eventCounts.museums > 0 && (
+                          <Badge variant="secondary" className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {eventCounts.museums} Museum{eventCounts.museums !== 1 ? 's' : ''}
+                          </Badge>
+                        )}
                         {eventCounts.attractions > 0 && (
                           <Badge variant="secondary" className="flex items-center gap-1">
                             <MapPin className="w-3 h-3" />
                             {eventCounts.attractions} Attraction{eventCounts.attractions !== 1 ? 's' : ''}
+                          </Badge>
+                        )}
+                        {(eventCounts.parks + eventCounts.monuments + eventCounts.shopping + eventCounts.entertainment) > 0 && (
+                          <Badge variant="secondary" className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {eventCounts.parks + eventCounts.monuments + eventCounts.shopping + eventCounts.entertainment} Other Place{(eventCounts.parks + eventCounts.monuments + eventCounts.shopping + eventCounts.entertainment) !== 1 ? 's' : ''}
                           </Badge>
                         )}
                         {eventCounts.other > 0 && (
@@ -262,7 +299,7 @@ export function AddItineraryToTripDialog({
                       
                       {importableCount === 0 && (
                         <p className="text-sm text-muted-foreground mt-2">
-                          No restaurants or attractions to import
+                          No places to import
                         </p>
                       )}
                     </CardContent>

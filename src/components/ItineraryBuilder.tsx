@@ -36,7 +36,7 @@ export interface ItineraryEvent {
   description?: string;
   time: string;
   date: string;
-  type: 'restaurant' | 'attraction' | 'other';
+  type: 'restaurant' | 'hotel' | 'attraction' | 'museum' | 'park' | 'monument' | 'shopping' | 'entertainment' | 'other';
   restaurantData?: {
     name: string;
     address: string;
@@ -49,6 +49,7 @@ export interface ItineraryEvent {
     name: string;
     address: string;
     category?: string;
+    placeType?: 'hotel' | 'restaurant' | 'attraction' | 'museum' | 'park' | 'monument' | 'shopping' | 'entertainment' | 'other';
     rating?: number;
     website?: string;
     phone?: string;

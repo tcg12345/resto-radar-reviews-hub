@@ -6,12 +6,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useTripAdvisorApi } from '@/hooks/useTripAdvisorApi';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Attraction {
   id: string;
   name: string;
   address: string;
   category?: string;
+  placeType?: 'hotel' | 'restaurant' | 'attraction' | 'museum' | 'park' | 'monument' | 'shopping' | 'entertainment' | 'other';
   rating?: number;
   numReviews?: number;
   photo?: string;
@@ -117,20 +119,48 @@ export function AttractionsSearch({
           return hasAttractionKeywords || hasAttractionCategories || true;
         });
 
-        const transformedAttractions: Attraction[] = filteredResults.slice(0, 10).map((location) => ({
-          id: location.location_id,
-          name: location.name,
-          address: location.address_obj?.address_string || '',
-          category: location.subcategory?.[0]?.localized_name || location.establishment_types?.[0]?.localized_name || 'Attraction',
-          rating: location.rating ? parseFloat(location.rating) : undefined,
-          numReviews: location.num_reviews ? parseInt(location.num_reviews) : undefined,
-          photo: location.photo?.images?.medium?.url || location.photo?.images?.small?.url,
-          ranking: location.ranking_data?.ranking_string || location.ranking,
-          website: location.website,
-          phone: location.phone,
-          latitude: location.latitude ? parseFloat(location.latitude) : undefined,
-          longitude: location.longitude ? parseFloat(location.longitude) : undefined,
-        }));
+        // Transform results and categorize them with AI
+        const transformedAttractions: Attraction[] = await Promise.all(
+          filteredResults.slice(0, 10).map(async (location) => {
+            const basicAttraction = {
+              id: location.location_id,
+              name: location.name,
+              address: location.address_obj?.address_string || '',
+              category: location.subcategory?.[0]?.localized_name || location.establishment_types?.[0]?.localized_name || 'Attraction',
+              rating: location.rating ? parseFloat(location.rating) : undefined,
+              numReviews: location.num_reviews ? parseInt(location.num_reviews) : undefined,
+              photo: location.photo?.images?.medium?.url || location.photo?.images?.small?.url,
+              ranking: location.ranking_data?.ranking_string || location.ranking,
+              website: location.website,
+              phone: location.phone,
+              latitude: location.latitude ? parseFloat(location.latitude) : undefined,
+              longitude: location.longitude ? parseFloat(location.longitude) : undefined,
+            };
+
+            // Use AI to categorize the place
+            try {
+              const { data: categorization } = await supabase.functions.invoke('ai-place-categorizer', {
+                body: {
+                  name: location.name,
+                  category: basicAttraction.category,
+                  address: basicAttraction.address,
+                }
+              });
+
+              if (categorization) {
+                return {
+                  ...basicAttraction,
+                  placeType: categorization.type,
+                  category: categorization.displayCategory,
+                };
+              }
+            } catch (error) {
+              console.error('Failed to categorize place:', error);
+            }
+
+            return basicAttraction;
+          })
+        );
 
         setAttractions(transformedAttractions);
         setShowResults(true);
