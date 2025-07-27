@@ -7,6 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent } from '@/components/ui/card';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 import { useTrips } from '@/hooks/useTrips';
 
 interface CreateTripDialogProps {
@@ -18,10 +22,12 @@ export function CreateTripDialog({ isOpen, onClose }: CreateTripDialogProps) {
   const [title, setTitle] = useState('');
   const [destination, setDestination] = useState('');
   const [description, setDescription] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
   const [isPublic, setIsPublic] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isStartDatePickerOpen, setIsStartDatePickerOpen] = useState(false);
+  const [isEndDatePickerOpen, setIsEndDatePickerOpen] = useState(false);
   
   const { createTrip } = useTrips();
 
@@ -35,8 +41,8 @@ export function CreateTripDialog({ isOpen, onClose }: CreateTripDialogProps) {
         title: title.trim(),
         destination: destination.trim(),
         description: description.trim() || undefined,
-        start_date: startDate || undefined,
-        end_date: endDate || undefined,
+        start_date: startDate ? startDate.toISOString().split('T')[0] : undefined,
+        end_date: endDate ? endDate.toISOString().split('T')[0] : undefined,
         is_public: isPublic,
       });
       
@@ -50,9 +56,11 @@ export function CreateTripDialog({ isOpen, onClose }: CreateTripDialogProps) {
     setTitle('');
     setDestination('');
     setDescription('');
-    setStartDate('');
-    setEndDate('');
+    setStartDate(undefined);
+    setEndDate(undefined);
     setIsPublic(false);
+    setIsStartDatePickerOpen(false);
+    setIsEndDatePickerOpen(false);
     onClose();
   };
 
@@ -132,25 +140,137 @@ export function CreateTripDialog({ isOpen, onClose }: CreateTripDialogProps) {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="startDate">Start Date</Label>
-                  <Input
-                    id="startDate"
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="text-base"
-                  />
+                  <Label>Start Date</Label>
+                  <Popover open={isStartDatePickerOpen} onOpenChange={setIsStartDatePickerOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !startDate && "text-muted-foreground"
+                        )}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setIsStartDatePickerOpen(!isStartDatePickerOpen);
+                        }}
+                      >
+                        <Calendar className="mr-2 h-4 w-4" />
+                        {startDate ? format(startDate, "PPP") : <span>Select start date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent 
+                      className="w-auto p-0 bg-background border shadow-lg" 
+                      align="start"
+                      side="bottom"
+                      sideOffset={4}
+                      style={{ zIndex: 9999 }}
+                    >
+                      <div className="p-3">
+                        <CalendarComponent
+                          mode="single"
+                          selected={startDate}
+                          onSelect={(date) => {
+                            setStartDate(date);
+                            setIsStartDatePickerOpen(false);
+                            // Clear end date if it's before the new start date
+                            if (endDate && date && endDate < date) {
+                              setEndDate(undefined);
+                            }
+                          }}
+                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                          initialFocus
+                          className="pointer-events-auto"
+                        />
+                        {startDate && (
+                          <div className="mt-3 pt-3 border-t flex justify-center">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setStartDate(undefined);
+                                setIsStartDatePickerOpen(false);
+                              }}
+                              className="text-muted-foreground hover:text-foreground"
+                            >
+                              Clear dates
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="endDate">End Date</Label>
-                  <Input
-                    id="endDate"
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    min={startDate}
-                    className="text-base"
-                  />
+                  <Label>End Date</Label>
+                  <Popover open={isEndDatePickerOpen} onOpenChange={setIsEndDatePickerOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !endDate && "text-muted-foreground"
+                        )}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setIsEndDatePickerOpen(!isEndDatePickerOpen);
+                        }}
+                      >
+                        <Calendar className="mr-2 h-4 w-4" />
+                        {endDate ? format(endDate, "PPP") : <span>Select end date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent 
+                      className="w-auto p-0 bg-background border shadow-lg" 
+                      align="start"
+                      side="bottom"
+                      sideOffset={4}
+                      style={{ zIndex: 9999 }}
+                    >
+                      <div className="p-3">
+                        <CalendarComponent
+                          mode="single"
+                          selected={endDate}
+                          onSelect={(date) => {
+                            setEndDate(date);
+                            setIsEndDatePickerOpen(false);
+                          }}
+                          disabled={(date) => {
+                            if (startDate) {
+                              return date < startDate;
+                            }
+                            return date < new Date(new Date().setHours(0, 0, 0, 0));
+                          }}
+                          initialFocus
+                          className="pointer-events-auto"
+                        />
+                        {endDate && (
+                          <div className="mt-3 pt-3 border-t flex justify-center">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setEndDate(undefined);
+                                setIsEndDatePickerOpen(false);
+                              }}
+                              className="text-muted-foreground hover:text-foreground"
+                            >
+                              Clear dates
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
             </CardContent>
