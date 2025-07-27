@@ -90,23 +90,23 @@ export function WishlistPage({
   };
 
   return (
-    <div className="py-3 lg:py-6 mobile-container">
-      <div className="mb-3 lg:mb-6 flex flex-col items-start justify-between mobile-grid-compact lg:gap-4 sm:flex-row sm:items-center">
-        <h2 className="hidden lg:block text-xl lg:text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mobile-truncate">Restaurant Wishlist</h2>
-        <div className="flex items-center mobile-grid-compact">
-          <Button size="sm" onClick={() => setIsAddDialogOpen(true)} className="mobile-button">
-            <Plus className="mr-1 lg:mr-2 h-3 w-3 lg:h-4 lg:w-4" />
+    <div className="page-container">
+      <div className="flex-between mb-section">
+        <h2 className="hidden lg:block text-3xl font-bold tracking-tight text-gradient">Restaurant Wishlist</h2>
+        <div className="flex gap-component">
+          <Button size="sm" onClick={() => setIsAddDialogOpen(true)} className="button-responsive">
+            <Plus className="mr-2 h-4 w-4" />
             Add Restaurant
           </Button>
           {onNavigateToMap && (
-            <Button variant="outline" size="sm" onClick={onNavigateToMap} className="mobile-button">
-              <MapPin className="h-3 w-3 lg:h-4 lg:w-4" />
-              <span className="ml-1">Map</span>
+            <Button variant="outline" size="sm" onClick={onNavigateToMap} className="button-responsive">
+              <MapPin className="h-4 w-4" />
+              <span className="ml-2">Map</span>
             </Button>
           )}
           {onRefresh && (
-            <Button variant="outline" size="sm" onClick={onRefresh} className="mobile-button">
-              <RotateCcw className="h-3 w-3 lg:h-4 lg:w-4" />
+            <Button variant="outline" size="sm" onClick={onRefresh} className="button-responsive">
+              <RotateCcw className="h-4 w-4" />
             </Button>
           )}
         </div>

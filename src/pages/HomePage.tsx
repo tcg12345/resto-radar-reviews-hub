@@ -216,11 +216,11 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
 
   return (
     <>
-      {/* Mobile Layout - Completely Redesigned */}
-      <div className="md:hidden min-h-screen bg-background">
+      {/* Mobile Layout */}
+      <div className="md:hidden full-viewport bg-background">
         {/* Mobile Header */}
-        <div className="bg-background/95 backdrop-blur-sm px-4 py-4">
-          <div className="flex items-center justify-between">
+        <div className="glass-effect spacing-content">
+          <div className="flex-between">
             <div>
               <h1 className="text-xl font-bold text-primary">
                 {getGreeting()}, {getFirstName()}! 👋
@@ -230,42 +230,42 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
         </div>
 
         {/* Mobile Content */}
-        <div className="p-4 space-y-6 pb-20">
-          {/* Stats Cards - Mobile Optimized */}
-          <div className="grid grid-cols-2 gap-3">
+        <div className="page-container gap-content pb-20">
+          {/* Stats Cards */}
+          <div className="grid-cards">
             {stats.slice(0, 4).map((stat, index) => (
-              <Card key={index} className="bg-card/90 backdrop-blur-sm border border-border shadow-sm">
-                <CardContent className="p-3 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                      <stat.icon className={`h-4 w-4 ${stat.color}`} />
+              <Card key={index} className="glass-card">
+                <CardContent className="card-container">
+                  <div className="flex-between mb-content">
+                    <div className="p-component rounded-lg bg-primary/10">
+                      <stat.icon className="h-4 w-4 text-primary" />
                     </div>
                   </div>
                   <div className="text-2xl font-bold text-foreground mb-1">{stat.value}</div>
-                  <div className="text-xs text-muted-foreground leading-tight">{stat.title}</div>
+                  <div className="text-xs text-muted-foreground">{stat.title}</div>
                 </CardContent>
               </Card>
             ))}
           </div>
 
-          {/* Quick Actions - Mobile Grid */}
-          <div className="space-y-3">
+          {/* Quick Actions */}
+          <div className="gap-content">
             <h2 className="text-lg font-semibold text-foreground">Quick Actions</h2>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid-cards">
               {quickActions.slice(0, 6).map((action, index) => (
                 <Card 
                   key={index} 
-                  className="cursor-pointer active:scale-95 transition-all duration-200 bg-card/90 backdrop-blur-sm border border-border shadow-sm hover:shadow-md"
+                  className="cursor-pointer active:scale-95 transition-all duration-200 glass-card hover:shadow-premium"
                   onClick={action.action}
                 >
-                  <CardContent className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-lg">
-                    <div className="text-center space-y-3">
-                      <div className={`p-3 rounded-2xl ${action.color} text-white mx-auto w-fit shadow-lg`}>
+                  <CardContent className="card-container">
+                    <div className="text-center gap-content">
+                      <div className="p-3 rounded-2xl bg-primary text-primary-foreground mx-auto w-fit shadow-premium">
                         <action.icon className="h-6 w-6" />
                       </div>
                       <div>
                         <h3 className="font-semibold text-sm text-foreground">{action.title}</h3>
-                        <p className="text-xs text-muted-foreground leading-tight mt-1">{action.description}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{action.description}</p>
                       </div>
                     </div>
                   </CardContent>

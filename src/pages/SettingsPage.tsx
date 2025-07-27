@@ -250,30 +250,30 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="full-viewport bg-background">
       {/* Header */}
       <div className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
+        <div className="page-container spacing-content">
+          <div className="flex-start gap-content">
             <Button
               variant="ghost"
               size="sm"
               onClick={onBack}
-              className="flex items-center gap-2"
+              className="button-responsive"
             >
               <ArrowLeft className="h-4 w-4" />
               Back
             </Button>
-            <div className="flex items-center gap-2">
+            <div className="flex-start gap-component">
               <SettingsIcon className="h-6 w-6" />
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Settings</h1>
+              <h1 className="text-2xl font-bold text-gradient">Settings</h1>
             </div>
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-4 py-6 max-w-4xl mobile-container">
+      <div className="page-container max-w-4xl">
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="profile" className="flex items-center gap-2">

@@ -38,6 +38,13 @@ export default {
 				'8xl': ['6rem', { lineHeight: '1' }],
 				'9xl': ['8rem', { lineHeight: '1' }],
 			},
+			spacing: {
+				'page': 'var(--spacing-page)',
+				'section': 'var(--spacing-section)',
+				'content': 'var(--spacing-content)',
+				'card': 'var(--spacing-card)',
+				'component': 'var(--spacing-component)',
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -120,9 +127,10 @@ export default {
 				'premium-2xl': 'var(--shadow-2xl)',
 			},
 			borderRadius: {
-				lg: 'var(--radius)',
-				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				lg: 'var(--radius-lg)',
+				DEFAULT: 'var(--radius)',
+				md: 'var(--radius)',
+				sm: 'var(--radius-sm)'
 			},
 			keyframes: {
 				'accordion-down': {
