@@ -129,7 +129,7 @@ export function AddItineraryToTripDialog({
     try {
       // Filter out 'other' type events and convert to place ratings
       const placeEvents = itinerary.events.filter(event => 
-        event.type !== 'other'
+        event.type !== 'other' && event.type !== undefined
       );
 
       if (placeEvents.length === 0) {
@@ -142,7 +142,7 @@ export function AddItineraryToTripDialog({
         placeEvents.map(async (event) => {
           let enrichedData = event;
           
-          // For non-restaurant events (attractions, museums, etc.)
+          // For non-restaurant events (attractions, museums, hotels, etc.)
           if (event.type !== 'restaurant' && event.attractionData) {
             try {
               // Enrich place data using Google Places API
