@@ -26,6 +26,10 @@ interface PlaceWithRating extends ItineraryEvent {
   overallRating?: number;
   notes?: string;
   isSelected: boolean;
+  enrichedCoordinates?: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 const RATING_CATEGORIES = {
@@ -143,6 +147,44 @@ export function ItineraryImportPreviewDialog({
         selectedPlaces.map(async (place) => {
           let enrichedData = place;
           
+          
+          // For restaurant events, try to enrich data too
+          if (place.type === 'restaurant' && place.restaurantData) {
+            try {
+              // Enrich restaurant data using Google Places API
+              const { data: enrichedPlace } = await supabase.functions.invoke('enrich-place-data', {
+                body: {
+                  name: place.restaurantData.name,
+                  address: place.restaurantData.address,
+                  phone: place.restaurantData.phone,
+                  website: place.restaurantData.website,
+                  placeId: place.restaurantData.placeId,
+                }
+              });
+
+              if (enrichedPlace) {
+                // Create enhanced restaurant data with coordinates
+                enrichedData = {
+                  ...place,
+                  restaurantData: {
+                    ...place.restaurantData,
+                    name: enrichedPlace.name,
+                    address: enrichedPlace.address,
+                    phone: enrichedPlace.phone,
+                    website: enrichedPlace.website,
+                  },
+                  // Store coordinates separately for restaurant types
+                  enrichedCoordinates: {
+                    latitude: enrichedPlace.latitude,
+                    longitude: enrichedPlace.longitude,
+                  }
+                };
+              }
+            } catch (error) {
+              console.error('Failed to enrich restaurant data:', error);
+            }
+          }
+          
           // For non-restaurant events (attractions, museums, hotels, etc.)
           if (place.type !== 'restaurant' && place.attractionData) {
             try {
@@ -199,6 +241,8 @@ export function ItineraryImportPreviewDialog({
               phone_number: enrichedData.restaurantData.phone || null,
               website: enrichedData.restaurantData.website || null,
               place_id: enrichedData.restaurantData.placeId || null,
+              latitude: (enrichedData as any).enrichedCoordinates?.latitude || null,
+              longitude: (enrichedData as any).enrichedCoordinates?.longitude || null,
             };
           }
 
