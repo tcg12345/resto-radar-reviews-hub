@@ -250,10 +250,10 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background w-full">
       {/* Header */}
-      <div className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4">
+      <div className="border-b bg-card w-full">
+        <div className="w-full max-w-none px-4 lg:px-6 py-4">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -273,7 +273,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-4 py-6 max-w-4xl mobile-container">
+      <div className="w-full max-w-none px-4 lg:px-6 py-6 mobile-container">
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="profile" className="flex items-center gap-2">

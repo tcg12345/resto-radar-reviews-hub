@@ -475,8 +475,8 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
         </div>
       </div>
 
-      {/* Desktop Layout - Unchanged */}
-      <div className="hidden md:block container py-6 space-y-8 mobile-container px-4 sm:px-6">
+      {/* Desktop Layout - Full Width */}
+      <div className="hidden md:block w-full max-w-none py-6 space-y-8 mobile-container px-4 lg:px-6">
         {/* Header */}
         <div className="space-y-2">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">

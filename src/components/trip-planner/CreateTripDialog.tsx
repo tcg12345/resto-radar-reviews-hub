@@ -66,7 +66,7 @@ export function CreateTripDialog({ isOpen, onClose }: CreateTripDialogProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-full max-w-none lg:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader className="space-y-3">
           <DialogTitle className="flex items-center gap-3">
             <div className="p-2 bg-gradient-to-r from-primary to-primary/80 rounded-lg text-white">

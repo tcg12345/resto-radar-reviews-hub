@@ -148,8 +148,8 @@ export function DiscoverPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 mobile-container">
-      <div className="container py-8 space-y-8 mobile-container px-4 sm:px-6">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 w-full mobile-container">
+      <div className="w-full max-w-none py-8 space-y-8 mobile-container px-4 lg:px-6">
         {/* Header */}
         <div className="text-center space-y-4">
           <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-primary via-primary to-primary/70 bg-clip-text text-transparent">

@@ -28,8 +28,8 @@ export default function TravelPage() {
   };
 
   return (
-    <div className="w-full h-full">
-      <div className="px-4 lg:px-6 py-6">
+    <div className="w-full h-full min-h-screen">
+      <div className="w-full max-w-none px-4 lg:px-6 py-6">
         <div className="mb-8 hidden lg:block">
           <h1 className="text-3xl font-bold text-foreground mb-2">
             Travel Planner

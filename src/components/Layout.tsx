@@ -59,8 +59,8 @@ export function Layout({
         />
       )}
       
-      <main className={`flex-1 pb-20 lg:pb-0 mobile-scroll`}>
-        <div className={`min-h-full lg:mobile-container`}>
+      <main className={`flex-1 pb-20 lg:pb-0 mobile-scroll w-full`}>
+        <div className={`min-h-full w-full lg:w-full mobile-container lg:mobile-container`}>
           {children}
         </div>
       </main>

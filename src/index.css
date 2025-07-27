@@ -148,9 +148,29 @@
   .mobile-grid-tight {
     gap: 0.5rem;
   }
-  
+
   .mobile-grid-compact {
     gap: 0.25rem;
+  }
+
+  /* Full-width desktop layout utilities */
+  .desktop-full-width {
+    width: 100%;
+    max-width: none;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .desktop-container {
+    width: 100%;
+    max-width: none;
+  }
+
+  @media (min-width: 1024px) {
+    .desktop-full-width {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
   }
   
   /* Mobile text truncation */

@@ -106,7 +106,7 @@ export function FriendsPage({
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 px-4 space-y-8">
+      <div className="w-full max-w-none py-8 px-4 lg:px-6 space-y-8">
         <div className="text-center">
           <div className="animate-pulse bg-muted h-8 w-48 mx-auto rounded mb-4"></div>
           <div className="animate-pulse bg-muted h-4 w-64 mx-auto rounded"></div>
@@ -127,7 +127,7 @@ export function FriendsPage({
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 space-y-8">
+    <div className="w-full max-w-none py-8 px-4 lg:px-6 space-y-8">
       {/* Header */}
       <div className="text-center space-y-4">
         <div className="flex items-center justify-center gap-3">
@@ -180,7 +180,7 @@ export function FriendsPage({
                 <Users className="h-12 w-12 text-muted-foreground" />
               </div>
               <h3 className="text-2xl font-semibold mb-3">No friends yet</h3>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              <p className="text-muted-foreground mb-6 w-full max-w-none">
                 Start building your network by searching for friends and sending connection requests
               </p>
               <Button onClick={() => setActiveTab('search')} size="lg">
@@ -197,7 +197,7 @@ export function FriendsPage({
                     placeholder="Search friends..."
                     value={filterQuery}
                     onChange={(e) => setFilterQuery(e.target.value)}
-                    className="max-w-xs"
+                    className="w-full max-w-none lg:max-w-xs"
                   />
                   <Select value={sortBy} onValueChange={setSortBy}>
                     <SelectTrigger className="w-40">
@@ -233,8 +233,8 @@ export function FriendsPage({
               <div className={cn(
                 "grid gap-6",
                 viewMode === 'grid' 
-                  ? "md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
-                  : "grid-cols-1 max-w-2xl mx-auto"
+                  ? "md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5" 
+                  : "grid-cols-1 w-full max-w-none"
               )}>
                 {filteredFriends.map((friend) => (
                   <FriendCard

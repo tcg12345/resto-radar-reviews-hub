@@ -208,7 +208,7 @@ export function TripDashboard() {
             <h3 className="text-lg font-semibold mb-2">
               {trips.length === 0 ? 'Start Your Journey' : 'No trips found'}
             </h3>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+            <p className="text-muted-foreground mb-6 w-full max-w-none">
               {trips.length === 0 
                 ? 'Create your first trip to begin collecting memories and rating amazing places!'
                 : 'Try adjusting your search or filters to find what you\'re looking for.'
