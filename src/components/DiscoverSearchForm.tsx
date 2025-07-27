@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Sparkles, MapPin, Filter, Loader2, Plane } from 'lucide-react';
 import { AmadeusCitySearch } from '@/components/AmadeusCitySearch';
+import { LocationPermission } from '@/components/LocationPermission';
+import { useLocation } from '@/hooks/useLocation';
 import type { AmadeusCity } from '@/hooks/useAmadeusApi';
 export type SearchType = 'name' | 'cuisine' | 'description';
 interface SearchFormProps {
@@ -63,6 +65,27 @@ export function DiscoverSearchForm({
 }: SearchFormProps) {
   const [showFilters, setShowFilters] = useState(false);
   const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
+  const { location, hasPermission, requestPermission, formatLocation } = useLocation();
+  const [hasRequestedLocation, setHasRequestedLocation] = useState(false);
+
+  // Auto-request location on component mount
+  useEffect(() => {
+    if (!hasRequestedLocation && !locationQuery) {
+      setHasRequestedLocation(true);
+      requestPermission().then((granted) => {
+        if (granted && location) {
+          setLocationQuery(formatLocation(location));
+        }
+      });
+    }
+  }, [hasRequestedLocation, locationQuery, requestPermission, location, formatLocation, setLocationQuery]);
+
+  // Update location query when location is obtained
+  useEffect(() => {
+    if (location && !locationQuery) {
+      setLocationQuery(formatLocation(location));
+    }
+  }, [location, locationQuery, formatLocation, setLocationQuery]);
 
   // Rotate example queries every 3 seconds
   useEffect(() => {
@@ -102,15 +125,25 @@ export function DiscoverSearchForm({
           
           <div className="space-y-2">
             <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              Location (optional)
+              Location
               <Plane className="h-3 w-3 text-amber-500" />
             </label>
-            <AmadeusCitySearch
-              value={locationQuery}
-              onChange={setLocationQuery}
-              placeholder="Search cities worldwide..."
-              className="h-12 bg-background/50 border-muted-foreground/20 focus:border-primary"
-            />
+            <div className="space-y-2">
+              <AmadeusCitySearch
+                value={locationQuery}
+                onChange={setLocationQuery}
+                placeholder={location ? formatLocation(location) : "Search cities worldwide..."}
+                className="h-12 bg-background/50 border-muted-foreground/20 focus:border-primary"
+              />
+              <LocationPermission 
+                showInline={true}
+                onLocationGranted={(currentLocation) => {
+                  if (!locationQuery) {
+                    setLocationQuery(formatLocation(currentLocation));
+                  }
+                }}
+              />
+            </div>
           </div>
         </div>
 

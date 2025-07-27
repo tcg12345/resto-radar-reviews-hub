@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, MapPin, Star, Clock, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { LocationPermission } from '@/components/LocationPermission';
+import { useLocation } from '@/hooks/useLocation';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -36,10 +38,30 @@ interface SearchResult {
 
 export function RestaurantSearchDialog({ isOpen, onClose, onSelect }: RestaurantSearchDialogProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [locationQuery, setLocationQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedResult, setSelectedResult] = useState<SearchResult | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
+  const { location, requestPermission, formatLocation } = useLocation();
+
+  // Auto-request location on dialog open
+  useEffect(() => {
+    if (isOpen && !locationQuery && !location) {
+      requestPermission().then((granted) => {
+        if (granted && location) {
+          setLocationQuery(formatLocation(location));
+        }
+      });
+    }
+  }, [isOpen, locationQuery, location, requestPermission, formatLocation]);
+
+  // Update location query when location is obtained
+  useEffect(() => {
+    if (location && !locationQuery) {
+      setLocationQuery(formatLocation(location));
+    }
+  }, [location, locationQuery, formatLocation]);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
@@ -49,6 +71,7 @@ export function RestaurantSearchDialog({ isOpen, onClose, onSelect }: Restaurant
       const { data, error } = await supabase.functions.invoke('google-places-search', {
         body: {
           query: searchQuery,
+          location: locationQuery,
           type: 'search'
         }
       });
@@ -142,23 +165,42 @@ export function RestaurantSearchDialog({ isOpen, onClose, onSelect }: Restaurant
 
         {!selectedResult ? (
           <div className="space-y-4">
-            {/* Search Input */}
-            <div className="flex gap-2">
-              <Input
-                placeholder="Search for restaurants..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                className="flex-1"
-              />
-              <Button 
-                onClick={handleSearch} 
-                disabled={isLoading || !searchQuery.trim()}
-                className="flex items-center gap-2"
-              >
-                <Search className="w-4 h-4" />
-                {isLoading ? 'Searching...' : 'Search'}
-              </Button>
+            {/* Search Inputs */}
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Search for restaurants..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  className="flex-1"
+                />
+                <Button 
+                  onClick={handleSearch} 
+                  disabled={isLoading || !searchQuery.trim()}
+                  className="flex items-center gap-2"
+                >
+                  <Search className="w-4 h-4" />
+                  {isLoading ? 'Searching...' : 'Search'}
+                </Button>
+              </div>
+              
+              <div className="space-y-2">
+                <Input
+                  placeholder={location ? formatLocation(location) : "Enter location..."}
+                  value={locationQuery}
+                  onChange={(e) => setLocationQuery(e.target.value)}
+                  className="w-full"
+                />
+                <LocationPermission 
+                  showInline={true}
+                  onLocationGranted={(currentLocation) => {
+                    if (!locationQuery) {
+                      setLocationQuery(formatLocation(currentLocation));
+                    }
+                  }}
+                />
+              </div>
             </div>
 
             {/* Search Results */}
