@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Plus, Filter, Grid, List, Sparkles } from 'lucide-react';
+import { Users, Plus, Filter, Grid, List, Sparkles, Activity, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useFriends } from '@/hooks/useFriends';
 import { useAuth } from '@/contexts/AuthContext';
 import { FriendCard } from '@/components/friends/FriendCard';
@@ -13,6 +14,7 @@ import { FriendRequests } from '@/components/friends/FriendRequests';
 import { FriendStats } from '@/components/friends/FriendStats';
 import { FriendProfilePopup } from '@/components/FriendProfilePopup';
 import { FriendCardSkeleton } from '@/components/skeletons/FriendCardSkeleton';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -22,6 +24,17 @@ interface SearchResult {
   name: string | null;
   avatar_url: string | null;
   is_public: boolean;
+}
+
+interface FriendActivity {
+  restaurant_id: string;
+  restaurant_name: string;
+  cuisine: string;
+  rating: number | null;
+  date_visited: string | null;
+  created_at: string;
+  friend_id: string;
+  friend_username: string;
 }
 
 export function FriendsPage({
@@ -49,6 +62,34 @@ export function FriendsPage({
   const [filterQuery, setFilterQuery] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [activeTab, setActiveTab] = useState('friends');
+  const [friendsActivity, setFriendsActivity] = useState<FriendActivity[]>([]);
+  const [isLoadingActivity, setIsLoadingActivity] = useState(false);
+  
+  // Load friends activity
+  const loadFriendsActivity = async () => {
+    if (!user || friends.length === 0) return;
+    
+    setIsLoadingActivity(true);
+    try {
+      const { data, error } = await supabase.rpc('get_friends_recent_activity', {
+        requesting_user_id: user.id,
+        activity_limit: 20
+      });
+
+      if (error) throw error;
+      setFriendsActivity(data || []);
+    } catch (error) {
+      console.error('Error loading friends activity:', error);
+    } finally {
+      setIsLoadingActivity(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user && friends.length > 0 && activeTab === 'activity') {
+      loadFriendsActivity();
+    }
+  }, [user, friends, activeTab]);
 
   // Filter and sort friends
   const filteredFriends = friends
@@ -158,10 +199,14 @@ export function FriendsPage({
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-8">
+        <TabsList className="grid w-full grid-cols-4 mb-8">
           <TabsTrigger value="friends" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             My Friends ({friends.length})
+          </TabsTrigger>
+          <TabsTrigger value="activity" className="flex items-center gap-2">
+            <Activity className="h-4 w-4" />
+            Recent Activity
           </TabsTrigger>
           <TabsTrigger value="search" className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
@@ -256,6 +301,75 @@ export function FriendsPage({
                 </div>
               )}
             </>
+          )}
+        </TabsContent>
+
+        <TabsContent value="activity" className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold">Recent Activity</h2>
+              <p className="text-muted-foreground">See what your friends have been eating</p>
+            </div>
+            <Button onClick={loadFriendsActivity} variant="outline" size="sm">
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
+
+          {isLoadingActivity ? (
+            <div className="grid gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Card key={i} className="p-4">
+                  <div className="animate-pulse">
+                    <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+                    <div className="h-3 bg-muted rounded w-1/2"></div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : friendsActivity.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="p-6 rounded-full bg-muted/50 w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+                <Activity className="h-12 w-12 text-muted-foreground" />
+              </div>
+              <h3 className="text-2xl font-semibold mb-3">No recent activity</h3>
+              <p className="text-muted-foreground mb-6">
+                Your friends haven't shared any restaurant experiences recently
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {friendsActivity.map((activity) => (
+                <Card key={activity.restaurant_id} className="p-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="font-medium">{activity.friend_username}</span>
+                        <span className="text-muted-foreground">•</span>
+                        <span className="text-sm text-muted-foreground">
+                          {activity.date_visited 
+                            ? `Visited ${new Date(activity.date_visited).toLocaleDateString()}`
+                            : `Added ${new Date(activity.created_at).toLocaleDateString()}`
+                          }
+                        </span>
+                      </div>
+                      <h4 className="font-semibold text-lg">{activity.restaurant_name}</h4>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span>{activity.cuisine}</span>
+                        {activity.rating && (
+                          <>
+                            <span>•</span>
+                            <span className="flex items-center gap-1">
+                              ⭐ {activity.rating}/10
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
           )}
         </TabsContent>
 
