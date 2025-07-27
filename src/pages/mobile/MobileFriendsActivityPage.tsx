@@ -1012,20 +1012,22 @@ export function MobileFriendsActivityPage() {
                 ))}
               </div>
 
-              {/* Pagination */}
+              {/* Mobile-Optimized Pagination */}
               {(hasMore || currentPage > 1) && (
-                <div className="flex items-center justify-between pt-4">
+                <div className="flex items-center justify-between pt-4 gap-2">
                   <Button
                     variant="outline"
                     onClick={loadPreviousPage}
                     disabled={currentPage <= 1 || isLoadingMore}
-                    className="flex items-center gap-2"
+                    size="sm"
+                    className="flex items-center gap-1 px-3 py-2 text-xs"
                   >
-                    <ChevronLeft className="h-4 w-4" />
-                    Previous
+                    <ChevronLeft className="h-3 w-3" />
+                    <span className="hidden xs:inline">Previous</span>
+                    <span className="xs:hidden">Prev</span>
                   </Button>
                   
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-xs text-muted-foreground font-medium">
                     Page {currentPage}
                   </span>
                   
@@ -1033,10 +1035,12 @@ export function MobileFriendsActivityPage() {
                     variant="outline"
                     onClick={loadNextPage}
                     disabled={!hasMore || isLoadingMore}
-                    className="flex items-center gap-2"
+                    size="sm"
+                    className="flex items-center gap-1 px-3 py-2 text-xs"
                   >
-                    Next
-                    <ChevronRight className="h-4 w-4" />
+                    <span className="hidden xs:inline">Next</span>
+                    <span className="xs:hidden">Next</span>
+                    <ChevronRight className="h-3 w-3" />
                   </Button>
                 </div>
               )}
