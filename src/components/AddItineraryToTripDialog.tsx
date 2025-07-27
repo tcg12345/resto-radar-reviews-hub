@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Itinerary, ItineraryEvent } from '@/components/ItineraryBuilder';
+import { ItineraryImportPreviewDialog } from '@/components/ItineraryImportPreviewDialog';
 
 interface AddItineraryToTripDialogProps {
   isOpen: boolean;
@@ -28,7 +29,8 @@ export function AddItineraryToTripDialog({
   const { user } = useAuth();
   const [savedItineraries, setSavedItineraries] = useState<Itinerary[]>([]);
   const [loading, setLoading] = useState(false);
-  const [importing, setImporting] = useState<string | null>(null);
+  const [selectedItinerary, setSelectedItinerary] = useState<Itinerary | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -121,123 +123,18 @@ export function AddItineraryToTripDialog({
     return baseData;
   };
 
-  const handleImportItinerary = async (itinerary: Itinerary) => {
-    if (!user) return;
+  const handleSelectItinerary = (itinerary: Itinerary) => {
+    const placeEvents = itinerary.events.filter(event => 
+      event.type !== 'other' && event.type !== undefined
+    );
 
-    setImporting(itinerary.id || itinerary.title);
-    
-    try {
-      // Filter out 'other' type events and convert to place ratings
-      const placeEvents = itinerary.events.filter(event => 
-        event.type !== 'other' && event.type !== undefined
-      );
-
-      if (placeEvents.length === 0) {
-        toast.error('No places found in this itinerary to import');
-        return;
-      }
-
-      // Process each event to enrich it with comprehensive data
-      const enrichedPlaceRatings = await Promise.all(
-        placeEvents.map(async (event) => {
-          let enrichedData = event;
-          
-          // For non-restaurant events (attractions, museums, hotels, etc.)
-          if (event.type !== 'restaurant' && event.attractionData) {
-            try {
-              // Enrich place data using Google Places API
-              const { data: enrichedPlace } = await supabase.functions.invoke('enrich-place-data', {
-                body: {
-                  name: event.attractionData.name,
-                  address: event.attractionData.address,
-                  phone: event.attractionData.phone,
-                  website: event.attractionData.website,
-                  placeId: event.attractionData.id,
-                  latitude: event.attractionData.latitude,
-                  longitude: event.attractionData.longitude,
-                }
-              });
-
-              if (enrichedPlace) {
-                // Update the event with enriched data
-                enrichedData = {
-                  ...event,
-                  attractionData: {
-                    ...event.attractionData,
-                    name: enrichedPlace.name,
-                    address: enrichedPlace.address,
-                    phone: enrichedPlace.phone,
-                    website: enrichedPlace.website,
-                    latitude: enrichedPlace.latitude,
-                    longitude: enrichedPlace.longitude,
-                    rating: enrichedPlace.rating,
-                    category: event.attractionData.category,
-                  }
-                };
-              }
-            } catch (error) {
-              console.error('Failed to enrich place data:', error);
-            }
-          }
-
-          // Convert to place rating format
-          const baseData = {
-            user_id: user.id,
-            trip_id: tripId,
-            place_name: enrichedData.title,
-            place_type: enrichedData.type,
-            notes: enrichedData.description || null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          };
-
-          if (enrichedData.type === 'restaurant' && enrichedData.restaurantData) {
-            return {
-              ...baseData,
-              address: enrichedData.restaurantData.address,
-              phone_number: enrichedData.restaurantData.phone || null,
-              website: enrichedData.restaurantData.website || null,
-              place_id: enrichedData.restaurantData.placeId || null,
-            };
-          }
-
-          if (enrichedData.type !== 'restaurant' && enrichedData.attractionData) {
-            return {
-              ...baseData,
-              address: enrichedData.attractionData.address,
-              phone_number: enrichedData.attractionData.phone || null,
-              website: enrichedData.attractionData.website || null,
-              latitude: enrichedData.attractionData.latitude || null,
-              longitude: enrichedData.attractionData.longitude || null,
-              overall_rating: enrichedData.attractionData.rating || null,
-              place_id: enrichedData.attractionData.id || null,
-              cuisine: enrichedData.attractionData.category || null,
-            };
-          }
-
-          return baseData;
-        })
-      );
-
-      // Insert all place ratings
-      const { error } = await supabase
-        .from('place_ratings')
-        .insert(enrichedPlaceRatings.filter(Boolean));
-
-      if (error) {
-        console.error('Error importing itinerary:', error);
-        toast.error('Failed to import itinerary');
-        return;
-      }
-
-      toast.success(`Successfully imported ${enrichedPlaceRatings.length} places from "${itinerary.title}" to ${tripTitle}`);
-      onClose();
-    } catch (error) {
-      console.error('Error importing itinerary:', error);
-      toast.error('Failed to import itinerary');
-    } finally {
-      setImporting(null);
+    if (placeEvents.length === 0) {
+      toast.error('No places found in this itinerary to import');
+      return;
     }
+
+    setSelectedItinerary(itinerary);
+    setIsPreviewOpen(true);
   };
 
   const getEventCounts = (events: ItineraryEvent[]) => {
@@ -293,7 +190,6 @@ export function AddItineraryToTripDialog({
               {savedItineraries.map((itinerary) => {
                 const eventCounts = getEventCounts(itinerary.events);
                 const importableCount = eventCounts.totalPlaces;
-                const isImporting = importing === (itinerary.id || itinerary.title);
 
                 return (
                   <Card key={itinerary.id || itinerary.title} className="transition-all hover:shadow-md">
@@ -315,22 +211,13 @@ export function AddItineraryToTripDialog({
                           </CardDescription>
                         </div>
                         <Button
-                          onClick={() => handleImportItinerary(itinerary)}
-                          disabled={importableCount === 0 || isImporting}
+                          onClick={() => handleSelectItinerary(itinerary)}
+                          disabled={importableCount === 0}
                           size="sm"
                           className="shrink-0 ml-4"
                         >
-                          {isImporting ? (
-                            <>
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Importing...
-                            </>
-                          ) : (
-                            <>
-                              <Plus className="w-4 h-4 mr-2" />
-                              Import
-                            </>
-                          )}
+                          <Plus className="w-4 h-4 mr-2" />
+                          Preview & Import
                         </Button>
                       </div>
                     </CardHeader>
@@ -387,6 +274,18 @@ export function AddItineraryToTripDialog({
           )}
         </ScrollArea>
       </DialogContent>
+
+      {/* Import Preview Dialog */}
+      <ItineraryImportPreviewDialog
+        isOpen={isPreviewOpen}
+        onClose={() => {
+          setIsPreviewOpen(false);
+          setSelectedItinerary(null);
+        }}
+        tripId={tripId}
+        tripTitle={tripTitle}
+        itinerary={selectedItinerary}
+      />
     </Dialog>
   );
 }
