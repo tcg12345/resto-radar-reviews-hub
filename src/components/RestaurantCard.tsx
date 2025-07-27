@@ -206,13 +206,13 @@ export function RestaurantCard({
             </div>
           </div>
         </div>
-        <CardDescription className="flex items-center text-xs lg:text-sm text-muted-foreground mobile-truncate">
+        <CardDescription className="flex items-center text-xs lg:text-sm text-muted-foreground mobile-truncate mb-0">
           <MapPin className="mr-1 h-3 w-3 lg:h-3.5 lg:w-3.5 flex-shrink-0" />
           <LocationDisplay restaurant={restaurant} />
         </CardDescription>
       </CardHeader>
       
-      <CardContent className="pb-0 lg:pb-0 p-2 lg:p-4 pt-1 lg:pt-2 py-[2px]">
+      <CardContent className="pb-0 lg:pb-0 p-2 lg:p-4 pt-0 lg:pt-0 py-[2px]">
         <div className="mobile-flex-nowrap lg:flex lg:flex-wrap mobile-grid-compact">
           {/* Current day hours display */}
           {restaurant.openingHours && <div className="w-full mb-0 lg:mb-0">
