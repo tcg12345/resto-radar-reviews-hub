@@ -421,7 +421,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
 
   if (!hasCreatedItinerary) {
     return (
-      <div className="space-y-6">
+      <div className="w-full px-4 lg:px-6 space-y-6">
         <Tabs defaultValue="create" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="create" className="flex items-center gap-2">
@@ -609,7 +609,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
   }
 
   return (
-    <div className="space-y-6">
+    <div className="w-full px-4 lg:px-6 space-y-6">
       <Tabs defaultValue="builder" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="builder" className="flex items-center gap-2">

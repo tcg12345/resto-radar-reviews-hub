@@ -28,36 +28,38 @@ export default function TravelPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-7xl">
-      <div className="mb-8 hidden lg:block">
-        <h1 className="text-3xl font-bold text-foreground mb-2">
-          Travel Planner
-        </h1>
-        <p className="text-muted-foreground">
-          Plan trips, rate places you've visited, and create detailed itineraries
-        </p>
+    <div className="w-full h-full">
+      <div className="px-4 lg:px-6 py-6">
+        <div className="mb-8 hidden lg:block">
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            Travel Planner
+          </h1>
+          <p className="text-muted-foreground">
+            Plan trips, rate places you've visited, and create detailed itineraries
+          </p>
+        </div>
+        
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="itinerary" className="flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              Itinerary Builder
+            </TabsTrigger>
+            <TabsTrigger value="trip-planner" className="flex items-center gap-2">
+              <MapPin className="w-4 h-4" />
+              Trip Planner & Ratings
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="itinerary" className="mt-6">
+            <ItineraryBuilder key={itineraryBuilderKey} onLoadItinerary={handleLoadItinerary} />
+          </TabsContent>
+          
+          <TabsContent value="trip-planner" className="mt-6">
+            <TripPlanner />
+          </TabsContent>
+        </Tabs>
       </div>
-      
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="itinerary" className="flex items-center gap-2">
-            <Calendar className="w-4 h-4" />
-            Itinerary Builder
-          </TabsTrigger>
-          <TabsTrigger value="trip-planner" className="flex items-center gap-2">
-            <MapPin className="w-4 h-4" />
-            Trip Planner & Ratings
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="itinerary" className="mt-6">
-          <ItineraryBuilder key={itineraryBuilderKey} onLoadItinerary={handleLoadItinerary} />
-        </TabsContent>
-        
-        <TabsContent value="trip-planner" className="mt-6">
-          <TripPlanner />
-        </TabsContent>
-      </Tabs>
     </div>
   );
 }
