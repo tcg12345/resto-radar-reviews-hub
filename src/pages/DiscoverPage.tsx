@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useRestaurants } from '@/contexts/RestaurantContext';
@@ -56,8 +56,13 @@ export function DiscoverPage() {
   
   const [searchType, setSearchType] = useState<SearchType>('description');
   
-  const { addRestaurant, restaurants: existingRestaurants, deleteRestaurant } = useRestaurants();
+  const { addRestaurant, restaurants: existingRestaurants, deleteRestaurant, loadRestaurants } = useRestaurants();
   const { toast } = useToast();
+
+  // Load restaurants when component mounts
+  useEffect(() => {
+    loadRestaurants();
+  }, [loadRestaurants]);
 
   const handleSearch = useCallback(async () => {
     if (!searchQuery.trim()) {

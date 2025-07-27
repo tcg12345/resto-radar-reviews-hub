@@ -33,9 +33,14 @@ interface HomePageProps {
 
 export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePageProps) {
   const { user, profile } = useAuth();
-  const { restaurants } = useRestaurants();
+  const { restaurants, loadRestaurants } = useRestaurants();
   const navigate = useNavigate();
   const [rotatingCardIndex, setRotatingCardIndex] = useState(0);
+
+  // Load restaurants when component mounts
+  useEffect(() => {
+    loadRestaurants();
+  }, [loadRestaurants]);
 
   const ratedRestaurants = restaurants.filter(r => !r.isWishlist);
   const wishlistRestaurants = restaurants.filter(r => r.isWishlist);
