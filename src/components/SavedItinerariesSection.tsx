@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { Itinerary } from '@/components/ItineraryBuilder';
+import jsPDF from 'jspdf';
 
 interface SavedItinerariesSectionProps {
   onLoadItinerary: (itinerary: Itinerary) => void;
@@ -61,33 +62,123 @@ export function SavedItinerariesSection({ onLoadItinerary }: SavedItinerariesSec
   };
 
   const exportItinerary = (itinerary: Itinerary) => {
-    // Create a text export of the itinerary
-    const exportText = `
-${itinerary.title}
-${format(itinerary.startDate, 'MMMM do, yyyy')} - ${format(itinerary.endDate, 'MMMM do, yyyy')}
+    try {
+      const pdf = new jsPDF();
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 20;
+      const lineHeight = 7;
+      let currentY = margin;
 
-Locations: ${itinerary.locations.map(loc => loc.name).join(' → ')}
+      // Title
+      pdf.setFontSize(20);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(itinerary.title, margin, currentY);
+      currentY += lineHeight * 2;
 
-Events:
-${itinerary.events.map(event => `
-${event.date} ${event.time} - ${event.title}
-${event.description || ''}
-${event.type === 'restaurant' && event.restaurantData ? `📍 ${event.restaurantData.address}` : ''}
-`).join('\n')}
-    `.trim();
+      // Date range
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'normal');
+      const dateRange = `${format(itinerary.startDate, 'MMMM do, yyyy')} - ${format(itinerary.endDate, 'MMMM do, yyyy')}`;
+      pdf.text(dateRange, margin, currentY);
+      currentY += lineHeight * 1.5;
 
-    // Create and download file
-    const blob = new Blob([exportText], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${itinerary.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    toast.success('Itinerary exported successfully');
+      // Locations
+      if (itinerary.locations.length > 0) {
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Locations:', margin, currentY);
+        currentY += lineHeight;
+        
+        pdf.setFont('helvetica', 'normal');
+        const locations = itinerary.locations.map(loc => loc.name).join(' → ');
+        const locationLines = pdf.splitTextToSize(locations, pageWidth - margin * 2);
+        pdf.text(locationLines, margin, currentY);
+        currentY += lineHeight * locationLines.length + lineHeight;
+      }
+
+      // Events
+      if (itinerary.events.length > 0) {
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Events:', margin, currentY);
+        currentY += lineHeight * 1.5;
+
+        itinerary.events.forEach((event, index) => {
+          // Check if we need a new page
+          if (currentY > pageHeight - margin * 3) {
+            pdf.addPage();
+            currentY = margin;
+          }
+
+          // Event header
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(11);
+          const eventHeader = `${event.date} ${event.time} - ${event.title}`;
+          const headerLines = pdf.splitTextToSize(eventHeader, pageWidth - margin * 2);
+          pdf.text(headerLines, margin, currentY);
+          currentY += lineHeight * headerLines.length;
+
+          // Event type badge
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(9);
+          pdf.text(`Type: ${event.type}`, margin + 10, currentY);
+          currentY += lineHeight;
+
+          // Event description
+          if (event.description) {
+            pdf.setFontSize(10);
+            const descLines = pdf.splitTextToSize(event.description, pageWidth - margin * 2 - 10);
+            pdf.text(descLines, margin + 10, currentY);
+            currentY += lineHeight * descLines.length;
+          }
+
+          // Restaurant/attraction details
+          if (event.type === 'restaurant' && event.restaurantData) {
+            pdf.setFontSize(9);
+            if (event.restaurantData.address) {
+              pdf.text(`📍 ${event.restaurantData.address}`, margin + 10, currentY);
+              currentY += lineHeight;
+            }
+            if (event.restaurantData.phone) {
+              pdf.text(`📞 ${event.restaurantData.phone}`, margin + 10, currentY);
+              currentY += lineHeight;
+            }
+          }
+
+          if (event.attractionData) {
+            pdf.setFontSize(9);
+            if (event.attractionData.address) {
+              pdf.text(`📍 ${event.attractionData.address}`, margin + 10, currentY);
+              currentY += lineHeight;
+            }
+            if (event.attractionData.phone) {
+              pdf.text(`📞 ${event.attractionData.phone}`, margin + 10, currentY);
+              currentY += lineHeight;
+            }
+          }
+
+          currentY += lineHeight * 0.5; // Space between events
+        });
+      }
+
+      // Footer
+      const totalPages = pdf.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(`Page ${i} of ${totalPages}`, pageWidth - margin - 20, pageHeight - 10);
+        pdf.text(`Generated on ${format(new Date(), 'MMMM do, yyyy')}`, margin, pageHeight - 10);
+      }
+
+      // Save the PDF
+      const fileName = `${itinerary.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
+      pdf.save(fileName);
+      
+      toast.success('Itinerary exported as PDF successfully');
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      toast.error('Failed to export itinerary as PDF');
+    }
   };
 
   // Filter itineraries based on selected filter
