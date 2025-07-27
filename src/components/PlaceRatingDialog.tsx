@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, Star, MapPin, Calendar, Camera, Plus, X } from 'lucide-react';
+import { Search, Star, MapPin, Calendar, Camera, Plus, X, Upload, Images, Trash2 } from 'lucide-react';
+import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { MichelinStarIcon } from '@/components/MichelinStarIcon';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -14,6 +15,10 @@ import { usePlaceRatings } from '@/hooks/usePlaceRatings';
 import { PlaceRating } from '@/hooks/useTrips';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 import { supabase } from '@/integrations/supabase/client';
+import { createThumbnail } from '@/utils/imageUtils';
+import { toast } from 'sonner';
+import { LazyImage } from '@/components/LazyImage';
+import { Progress } from '@/components/ui/progress';
 
 interface PlaceRatingDialogProps {
   isOpen: boolean;
@@ -77,6 +82,12 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [activeTab, setActiveTab] = useState('search');
   const debounceRef = useRef<NodeJS.Timeout>();
+  const [photos, setPhotos] = useState<File[]>([]);
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const [isProcessingPhotos, setIsProcessingPhotos] = useState(false);
+  const [photoProgress, setPhotoProgress] = useState(0);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { addRating, updateRating, addRestaurantToTrip } = usePlaceRatings(tripId || undefined);
   const { restaurants } = useRestaurants();
@@ -233,6 +244,7 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
       
       setNotes(editPlaceData.notes || '');
       setDateVisited(editPlaceData.date_visited || '');
+      setPreviewImages(editPlaceData.photos || []);
     }
   }, [isEditMode, editPlaceData]);
 
@@ -266,6 +278,7 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
         website: selectedPlace.website,
         phone_number: selectedPlace.formatted_phone_number,
         price_range: selectedPlace.price_level,
+        photos: photos.length > 0 ? previewImages : undefined,
       };
 
       if (isEditMode && editPlaceId) {
@@ -292,6 +305,11 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
     setNotes('');
     setDateVisited('');
     setShowSuggestions(false);
+    setPhotos([]);
+    setPreviewImages([]);
+    setIsProcessingPhotos(false);
+    setPhotoProgress(0);
+    setIsDragOver(false);
     onClose();
   };
 
@@ -333,6 +351,7 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
         michelinStars: restaurant.michelinStars,
         categoryRatings: restaurant.categoryRatings,
         dateVisited: restaurant.dateVisited,
+        uploadedPhotos: photos.length > 0 ? previewImages : undefined,
       });
       handleClose();
     } finally {
@@ -361,6 +380,174 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
         ))}
       </div>
     );
+  };
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    
+    const newFiles = Array.from(e.target.files);
+    const maxPhotos = 20;
+    
+    if (photos.length + newFiles.length > maxPhotos) {
+      toast.error(`Maximum ${maxPhotos} photos allowed`);
+      return;
+    }
+    
+    setIsProcessingPhotos(true);
+    setPhotoProgress(0);
+    
+    try {
+      const newPreviews: string[] = [];
+      
+      for (let i = 0; i < newFiles.length; i++) {
+        const file = newFiles[i];
+        const thumbnail = await createThumbnail(file);
+        newPreviews.push(thumbnail);
+        setPhotoProgress(Math.round(((i + 1) / newFiles.length) * 100));
+      }
+      
+      setPhotos(prev => [...prev, ...newFiles]);
+      setPreviewImages(prev => [...prev, ...newPreviews]);
+      
+      toast.success(`${newFiles.length} photo(s) added successfully`);
+    } catch (error) {
+      console.error('Error processing photos:', error);
+      toast.error('Failed to process some photos');
+    } finally {
+      setIsProcessingPhotos(false);
+      setPhotoProgress(0);
+    }
+  };
+
+  const takePhoto = async () => {
+    try {
+      setIsProcessingPhotos(true);
+      setPhotoProgress(0);
+      
+      const image = await CapacitorCamera.getPhoto({
+        quality: 90,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Camera,
+      });
+
+      if (image.dataUrl) {
+        const response = await fetch(image.dataUrl);
+        const blob = await response.blob();
+        const file = new File([blob], `camera-${Date.now()}.jpg`, { type: 'image/jpeg' });
+
+        const thumbnail = await createThumbnail(file);
+        setPhotoProgress(100);
+
+        setPhotos(prev => [...prev, file]);
+        setPreviewImages(prev => [...prev, thumbnail]);
+        
+        toast.success('Photo captured successfully');
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      toast.error('Failed to capture photo');
+    } finally {
+      setIsProcessingPhotos(false);
+      setPhotoProgress(0);
+    }
+  };
+
+  const addPhotoFromGallery = async () => {
+    try {
+      setIsProcessingPhotos(true);
+      setPhotoProgress(0);
+      
+      const image = await CapacitorCamera.getPhoto({
+        quality: 90,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Photos,
+      });
+
+      if (image.dataUrl) {
+        const response = await fetch(image.dataUrl);
+        const blob = await response.blob();
+        const file = new File([blob], `photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
+
+        const thumbnail = await createThumbnail(file);
+        setPhotoProgress(100);
+
+        setPhotos(prev => [...prev, file]);
+        setPreviewImages(prev => [...prev, thumbnail]);
+        
+        toast.success('Photo added successfully');
+      }
+    } catch (error) {
+      console.error('Error selecting photo from gallery:', error);
+      toast.error('Failed to select photo');
+    } finally {
+      setIsProcessingPhotos(false);
+      setPhotoProgress(0);
+    }
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotos(prev => prev.filter((_, i) => i !== index));
+    setPreviewImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    const files = Array.from(e.dataTransfer.files).filter(file => 
+      file.type.startsWith('image/')
+    );
+
+    if (files.length === 0) {
+      toast.error('Please drop image files only');
+      return;
+    }
+
+    const maxPhotos = 20;
+    if (photos.length + files.length > maxPhotos) {
+      toast.error(`Maximum ${maxPhotos} photos allowed`);
+      return;
+    }
+
+    setIsProcessingPhotos(true);
+    setPhotoProgress(0);
+
+    try {
+      const newPreviews: string[] = [];
+      
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const thumbnail = await createThumbnail(file);
+        newPreviews.push(thumbnail);
+        setPhotoProgress(Math.round(((i + 1) / files.length) * 100));
+      }
+      
+      setPhotos(prev => [...prev, ...files]);
+      setPreviewImages(prev => [...prev, ...newPreviews]);
+      
+      toast.success(`${files.length} photo(s) added successfully`);
+    } catch (error) {
+      console.error('Error processing photos:', error);
+      toast.error('Failed to process some photos');
+    } finally {
+      setIsProcessingPhotos(false);
+      setPhotoProgress(0);
+    }
   };
 
   return (
@@ -635,6 +822,107 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, editPlaceId, editPl
                     className="pl-10"
                   />
                 </div>
+              </div>
+
+              {/* Photos */}
+              <div className="space-y-4">
+                <Label>Photos</Label>
+                
+                {/* Photo Upload Area */}
+                <div
+                  className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                    isDragOver ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'
+                  }`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                >
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <Upload className="h-8 w-8 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
+                        Drag & drop photos here, or click to select
+                      </span>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isProcessingPhotos}
+                      >
+                        <Images className="h-4 w-4 mr-2" />
+                        Choose Files
+                      </Button>
+                      
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={addPhotoFromGallery}
+                        disabled={isProcessingPhotos}
+                      >
+                        <Images className="h-4 w-4 mr-2" />
+                        Gallery
+                      </Button>
+                      
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={takePhoto}
+                        disabled={isProcessingPhotos}
+                      >
+                        <Camera className="h-4 w-4 mr-2" />
+                        Camera
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handlePhotoChange}
+                    className="hidden"
+                  />
+                </div>
+                
+                {/* Photo Processing Progress */}
+                {isProcessingPhotos && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span>Processing photos...</span>
+                      <span>{photoProgress}%</span>
+                    </div>
+                    <Progress value={photoProgress} className="h-2" />
+                  </div>
+                )}
+                
+                {/* Photo Preview Grid */}
+                {previewImages.length > 0 && (
+                  <div className="grid grid-cols-3 gap-3">
+                    {previewImages.map((src, index) => (
+                      <div key={index} className="relative group">
+                        <LazyImage
+                          src={src}
+                          alt={`Photo ${index + 1}`}
+                          className="w-full h-24 object-cover rounded-lg"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removePhoto(index)}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Notes */}
