@@ -148,7 +148,10 @@ export function DiscoverPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 w-full mobile-container">
+    <>
+      {/* Mobile status bar spacer */}
+      <div className="lg:hidden h-[35px] bg-background"></div>
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 w-full mobile-container">
       <div className="w-full max-w-none py-8 space-y-8 mobile-container px-4 lg:px-6">
         {/* Header */}
         <div className="text-center space-y-4">
@@ -224,5 +227,6 @@ export function DiscoverPage() {
         />
       </div>
     </div>
+    </>
   );
 }

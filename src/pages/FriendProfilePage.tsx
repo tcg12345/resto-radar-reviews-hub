@@ -306,8 +306,11 @@ export default function FriendProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-accent/10">
-      {/* Full-width Header */}
+    <>
+      {/* Mobile status bar spacer */}
+      <div className="lg:hidden h-[35px] bg-background"></div>
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-accent/10">
+        {/* Full-width Header */}
       <div className="border-b bg-card/95 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
@@ -909,5 +912,6 @@ export default function FriendProfilePage() {
         </Tabs>
       </div>
     </div>
+    </>
   );
 }

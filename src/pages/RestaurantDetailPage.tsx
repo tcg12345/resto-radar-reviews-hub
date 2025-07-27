@@ -223,7 +223,7 @@ export function RestaurantDetailPage() {
       {/* Mobile Layout - Optimized for mobile when from friends search */}
       <div className="md:hidden">
         {/* Mobile status bar spacer */}
-        <div className="h-[35px] bg-background"></div>
+        <div className="lg:hidden h-[35px] bg-background"></div>
         <div className="min-h-screen bg-background">
           {/* Mobile Header */}
           <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b px-4 py-3">

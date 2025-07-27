@@ -129,7 +129,10 @@ export function SharedTripPage() {
     : 0;
 
   return (
-    <div className="min-h-screen bg-background">
+    <>
+      {/* Mobile status bar spacer */}
+      <div className="lg:hidden h-[35px] bg-background"></div>
+      <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b">
         <div className="container mx-auto px-4 py-4">
@@ -302,5 +305,6 @@ export function SharedTripPage() {
         )}
       </div>
     </div>
+    </>
   );
 }
