@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { 
   ArrowLeft, 
   Star, 
@@ -52,6 +52,7 @@ interface Restaurant {
 export default function MobileRestaurantDetailsPage() {
   const { restaurantId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
   
@@ -235,12 +236,18 @@ export default function MobileRestaurantDetailsPage() {
               variant="ghost"
               size="sm"
               onClick={() => {
-                // Check if there's history to go back to
-                if (window.history.length > 1) {
-                  navigate(-1);
-                } else {
-                  // Fallback to home page if no history
+                // Navigate back to the appropriate page based on context
+                const currentPath = location.pathname;
+                if (currentPath.includes('/mobile/restaurant/')) {
+                  // If we're on a mobile restaurant page, go to home
                   navigate('/');
+                } else {
+                  // Otherwise try to go back in history
+                  if (window.history.length > 1) {
+                    navigate(-1);
+                  } else {
+                    navigate('/');
+                  }
                 }
               }}
               className="h-8 w-8 p-0"

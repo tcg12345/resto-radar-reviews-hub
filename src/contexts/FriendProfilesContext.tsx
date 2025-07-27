@@ -41,7 +41,7 @@ interface Props {
 export const FriendProfilesProvider: React.FC<Props> = ({ children }) => {
   const { user, isLoading: authLoading } = useAuth();
   const { friends, isLoading: friendsLoading } = useFriends();
-  const [profilesCache, setProfilesCache] = useState<Map<string, FriendProfile>>(new Map());
+  const [profilesCache, setProfilesCache] = useState<Map<string, FriendProfile>>(() => new Map());
   const [isPreloading, setIsPreloading] = useState(false);
 
   // Load a single friend profile using the lightning-fast function
