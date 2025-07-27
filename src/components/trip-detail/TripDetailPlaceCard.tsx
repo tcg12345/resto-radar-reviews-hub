@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PlaceRating } from '@/hooks/useTrips';
 import { format } from 'date-fns';
+import { PhotoGallery } from '@/components/PhotoGallery';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,6 +34,8 @@ export function TripDetailPlaceCard({
   compact = false 
 }: TripDetailPlaceCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
 
   const getPlaceIcon = (placeType: string) => {
     switch (placeType) {
@@ -94,15 +97,25 @@ export function TripDetailPlaceCard({
       <CardContent className="p-3">
         {/* Photo if available */}
         {place.photos && place.photos.length > 0 && !compact && (
-          <div className="mb-3">
+          <div className="mb-3 relative">
             <img
               src={place.photos[0]}
               alt={place.place_name}
-              className="w-full h-24 object-cover rounded-md"
+              className="w-full h-24 object-cover rounded-md cursor-pointer hover:opacity-90 transition-opacity"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedPhotoIndex(0);
+                setIsGalleryOpen(true);
+              }}
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
               }}
             />
+            {place.photos.length > 1 && (
+              <div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
+                +{place.photos.length - 1}
+              </div>
+            )}
           </div>
         )}
         
@@ -196,6 +209,15 @@ export function TripDetailPlaceCard({
           </p>
         )}
       </CardContent>
+
+      {/* Photo Gallery */}
+      <PhotoGallery
+        photos={place.photos || []}
+        initialIndex={selectedPhotoIndex}
+        isOpen={isGalleryOpen}
+        onClose={() => setIsGalleryOpen(false)}
+        restaurantName={place.place_name}
+      />
     </Card>
   );
 }

@@ -1,10 +1,12 @@
-import { Star, MapPin, Calendar, MoreVertical, Eye, Edit, ExternalLink, Phone } from 'lucide-react';
+import { useState } from 'react';
+import { Star, MapPin, Calendar, MoreVertical, Eye, Edit, ExternalLink, Phone, Camera } from 'lucide-react';
 import { MichelinStarIcon } from '@/components/MichelinStarIcon';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PlaceRating } from '@/hooks/useTrips';
 import { format } from 'date-fns';
+import { PhotoGallery } from '@/components/PhotoGallery';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +33,8 @@ export function TripDetailPlaceListItem({
   onEdit,
   compact = false 
 }: TripDetailPlaceListItemProps) {
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const getPlaceIcon = (placeType: string) => {
     switch (placeType) {
       case 'restaurant': return '🍽️';
@@ -153,8 +157,24 @@ export function TripDetailPlaceListItem({
             </div>
           </div>
 
-          {/* Right section - Dropdown Menu */}
-          <div className="flex items-start flex-shrink-0">
+          {/* Right section - Photo button and Dropdown Menu */}
+          <div className="flex items-start gap-2 flex-shrink-0">
+            {/* Photo Gallery Button */}
+            {place.photos && place.photos.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedPhotoIndex(0);
+                  setIsGalleryOpen(true);
+                }}
+              >
+                <Camera className="h-4 w-4" />
+              </Button>
+            )}
+            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button 
@@ -186,6 +206,15 @@ export function TripDetailPlaceListItem({
           </div>
         </div>
       </CardContent>
+
+      {/* Photo Gallery */}
+      <PhotoGallery
+        photos={place.photos || []}
+        initialIndex={selectedPhotoIndex}
+        isOpen={isGalleryOpen}
+        onClose={() => setIsGalleryOpen(false)}
+        restaurantName={place.place_name}
+      />
     </Card>
   );
 }
