@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Send, Phone, Video, MoreVertical, Image } from 'lucide-react';
+import { ArrowLeft, Send, Users, MoreVertical, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -350,22 +350,42 @@ export function ChatPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm">
-              <Phone className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm">
-              <Video className="h-4 w-4" />
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => {
+                if (otherParticipant) {
+                  navigate(`/friends/${otherParticipant.user_id}`);
+                }
+              }}
+              className="hover:bg-primary/10"
+            >
+              <Users className="h-4 w-4" />
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="hover:bg-primary/10">
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>View Profile</DropdownMenuItem>
-                <DropdownMenuItem>Clear Chat</DropdownMenuItem>
-                <DropdownMenuItem className="text-destructive">Block User</DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => {
+                    if (otherParticipant) {
+                      navigate(`/friends/${otherParticipant.user_id}`);
+                    }
+                  }}
+                >
+                  View Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => {
+                    toast('Chat cleared locally');
+                    setMessages([]);
+                  }}
+                >
+                  Clear Chat History
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
