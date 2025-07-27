@@ -37,8 +37,13 @@ export function TripDetailPlaceCard({
   const getPlaceIcon = (placeType: string) => {
     switch (placeType) {
       case 'restaurant': return '🍽️';
-      case 'attraction': return '🎯';
       case 'hotel': return '🏨';
+      case 'museum': return '🏛️';
+      case 'park': return '🌳';
+      case 'monument': return '🗿';
+      case 'shopping': return '🛍️';
+      case 'entertainment': return '🎭';
+      case 'attraction': return '🎯';
       default: return '📍';
     }
   };
@@ -167,6 +172,12 @@ export function TripDetailPlaceCard({
                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); window.open(place.website, '_blank'); }}>
                   <ExternalLink className="w-4 h-4 mr-2" />
                   Visit Website
+                </DropdownMenuItem>
+              )}
+              {place.phone_number && (
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); window.open(`tel:${place.phone_number}`, '_self'); }}>
+                  <Phone className="w-4 h-4 mr-2" />
+                  Call
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>

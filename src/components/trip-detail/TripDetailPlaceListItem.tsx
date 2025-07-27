@@ -181,6 +181,12 @@ export function TripDetailPlaceListItem({
                     Visit Website
                   </DropdownMenuItem>
                 )}
+                {place.phone_number && (
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); window.open(`tel:${place.phone_number}`, '_self'); }}>
+                    <Phone className="w-4 h-4 mr-2" />
+                    Call
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

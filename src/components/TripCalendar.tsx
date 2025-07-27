@@ -1,5 +1,5 @@
 import { format, eachDayOfInterval, isSameDay } from 'date-fns';
-import { Plus, MapPin, Clock, Utensils, MapPinIcon, MoreVertical, Trash2, Edit, Compass, ExternalLink } from 'lucide-react';
+import { Plus, MapPin, Clock, Utensils, MapPinIcon, MoreVertical, Trash2, Edit, Compass, ExternalLink, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -163,9 +163,47 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
                                 </p>
                               )}
                               {event.restaurantData && (
-                                <div className="flex items-center gap-1 text-sm opacity-90">
-                                  <MapPin className="w-3 h-3" />
-                                  <span className="break-words">{event.restaurantData.address}</span>
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-1 text-sm opacity-90">
+                                    <MapPin className="w-3 h-3" />
+                                    <span className="break-words">{event.restaurantData.address}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        const query = encodeURIComponent(event.restaurantData?.address || event.title);
+                                        window.open(`https://www.google.com/maps/dir/?api=1&destination=${query}`, '_blank');
+                                      }}
+                                      className="flex items-center gap-1 h-8 px-3 text-xs"
+                                    >
+                                      <Compass className="w-3 h-3" />
+                                      Directions
+                                    </Button>
+                                    {event.restaurantData.website && (
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => window.open(event.restaurantData.website, '_blank')}
+                                        className="flex items-center gap-1 h-8 px-3 text-xs"
+                                      >
+                                        <ExternalLink className="w-3 h-3" />
+                                        Website
+                                      </Button>
+                                    )}
+                                    {event.restaurantData.phone && (
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => window.open(`tel:${event.restaurantData.phone}`, '_self')}
+                                        className="flex items-center gap-1 h-8 px-3 text-xs"
+                                      >
+                                        <Phone className="w-3 h-3" />
+                                        Call
+                                      </Button>
+                                    )}
+                                  </div>
                                 </div>
                               )}
                                {event.attractionData && (
@@ -204,6 +242,17 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
                                       >
                                         <ExternalLink className="w-3 h-3" />
                                         Website
+                                      </Button>
+                                    )}
+                                    {event.attractionData.phone && (
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => window.open(`tel:${event.attractionData.phone}`, '_self')}
+                                        className="flex items-center gap-1 h-8 px-3 text-xs"
+                                      >
+                                        <Phone className="w-3 h-3" />
+                                        Call
                                       </Button>
                                     )}
                                   </div>

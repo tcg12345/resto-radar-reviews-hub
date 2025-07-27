@@ -137,15 +137,92 @@ export function AddItineraryToTripDialog({
         return;
       }
 
-      // Convert events to place ratings using existing data
-      const placeRatings = placeEvents
-        .map(convertEventToPlaceRating)
-        .filter(Boolean);
+      // Process each event to enrich it with comprehensive data
+      const enrichedPlaceRatings = await Promise.all(
+        placeEvents.map(async (event) => {
+          let enrichedData = event;
+          
+          // For non-restaurant events (attractions, museums, etc.)
+          if (event.type !== 'restaurant' && event.attractionData) {
+            try {
+              // Enrich place data using Google Places API
+              const { data: enrichedPlace } = await supabase.functions.invoke('enrich-place-data', {
+                body: {
+                  name: event.attractionData.name,
+                  address: event.attractionData.address,
+                  phone: event.attractionData.phone,
+                  website: event.attractionData.website,
+                  placeId: event.attractionData.id,
+                  latitude: event.attractionData.latitude,
+                  longitude: event.attractionData.longitude,
+                }
+              });
+
+              if (enrichedPlace) {
+                // Update the event with enriched data
+                enrichedData = {
+                  ...event,
+                  attractionData: {
+                    ...event.attractionData,
+                    name: enrichedPlace.name,
+                    address: enrichedPlace.address,
+                    phone: enrichedPlace.phone,
+                    website: enrichedPlace.website,
+                    latitude: enrichedPlace.latitude,
+                    longitude: enrichedPlace.longitude,
+                    rating: enrichedPlace.rating,
+                    category: event.attractionData.category,
+                  }
+                };
+              }
+            } catch (error) {
+              console.error('Failed to enrich place data:', error);
+            }
+          }
+
+          // Convert to place rating format
+          const baseData = {
+            user_id: user.id,
+            trip_id: tripId,
+            place_name: enrichedData.title,
+            place_type: enrichedData.type,
+            notes: enrichedData.description || null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+
+          if (enrichedData.type === 'restaurant' && enrichedData.restaurantData) {
+            return {
+              ...baseData,
+              address: enrichedData.restaurantData.address,
+              phone_number: enrichedData.restaurantData.phone || null,
+              website: enrichedData.restaurantData.website || null,
+              place_id: enrichedData.restaurantData.placeId || null,
+            };
+          }
+
+          if (enrichedData.type !== 'restaurant' && enrichedData.attractionData) {
+            return {
+              ...baseData,
+              address: enrichedData.attractionData.address,
+              phone_number: enrichedData.attractionData.phone || null,
+              website: enrichedData.attractionData.website || null,
+              latitude: enrichedData.attractionData.latitude || null,
+              longitude: enrichedData.attractionData.longitude || null,
+              overall_rating: enrichedData.attractionData.rating || null,
+              place_id: enrichedData.attractionData.id || null,
+              cuisine: enrichedData.attractionData.category || null,
+            };
+          }
+
+          return baseData;
+        })
+      );
 
       // Insert all place ratings
       const { error } = await supabase
         .from('place_ratings')
-        .insert(placeRatings);
+        .insert(enrichedPlaceRatings.filter(Boolean));
 
       if (error) {
         console.error('Error importing itinerary:', error);
@@ -153,7 +230,7 @@ export function AddItineraryToTripDialog({
         return;
       }
 
-      toast.success(`Successfully imported ${placeRatings.length} places from "${itinerary.title}" to ${tripTitle}`);
+      toast.success(`Successfully imported ${enrichedPlaceRatings.length} places from "${itinerary.title}" to ${tripTitle}`);
       onClose();
     } catch (error) {
       console.error('Error importing itinerary:', error);
