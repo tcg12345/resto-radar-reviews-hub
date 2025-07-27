@@ -235,6 +235,8 @@ export function RestaurantDetailPage() {
                   onClick={() => {
                     if (returnUrl) {
                       navigate(decodeURIComponent(returnUrl));
+                    } else if (friendId) {
+                      navigate(`/friends/${friendId}`);
                     } else if (fromFriendsActivity) {
                       navigate('/search/friends');
                     } else {
@@ -544,17 +546,11 @@ export function RestaurantDetailPage() {
             <div className="flex items-center justify-between">
               <Button variant="outline" onClick={() => {
               if (returnUrl) {
-                // Use the returnUrl to navigate back with filters preserved
                 navigate(decodeURIComponent(returnUrl));
+              } else if (friendId) {
+                navigate(`/friends/${friendId}`);
               } else if (fromFriendsActivity) {
                 navigate('/search/friends');
-              } else if (friendId) {
-                navigate('/', {
-                  state: {
-                    activeTab: 'friends',
-                    viewFriendId: friendId
-                  }
-                });
               } else {
                 navigate(-1);
               }
