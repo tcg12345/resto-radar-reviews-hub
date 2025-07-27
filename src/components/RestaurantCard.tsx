@@ -230,7 +230,7 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
         </div>
       ) : null}
       
-      <CardHeader className="pb-1 lg:pb-1 p-2 lg:p-4">
+      <CardHeader className="pb-0 lg:pb-0 p-2 lg:p-4">
         <div className="mobile-space-compact lg:space-y-1">
           <CardTitle className="text-sm lg:text-lg font-bold mobile-truncate-2">{restaurant.name}</CardTitle>
           <div className="mobile-space-compact lg:space-y-1">
@@ -284,11 +284,11 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
         </CardDescription>
       </CardHeader>
       
-      <CardContent className="pb-1 lg:pb-1 p-2 lg:p-4 pt-0">
+      <CardContent className="pb-0 lg:pb-0 p-2 lg:p-4 pt-1 lg:pt-2">
         <div className="mobile-flex-nowrap lg:flex lg:flex-wrap mobile-grid-compact">
           {/* Current day hours display */}
           {restaurant.openingHours && (
-            <div className="w-full mb-1 lg:mb-1">
+            <div className="w-full mb-0 lg:mb-0">
               <div className="flex items-center text-xs lg:text-sm text-muted-foreground mobile-truncate">
                 <Clock className="mr-1 h-3 w-3 lg:h-3.5 lg:w-3.5 flex-shrink-0" />
                 <span className="mobile-truncate">{getCurrentDayHours(restaurant.openingHours)}</span>
@@ -312,7 +312,7 @@ export function RestaurantCard({ restaurant, onEdit, onDelete, showAIReviewAssis
         </div>
       </CardContent>
       
-      <CardFooter className="flex mobile-grid-compact pt-0 pb-1 lg:pb-2 p-2 lg:p-4">
+      <CardFooter className="flex mobile-grid-compact pt-1 lg:pt-2 pb-1 lg:pb-2 p-2 lg:p-4">
         <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
           <DialogTrigger asChild>
             <Button 
