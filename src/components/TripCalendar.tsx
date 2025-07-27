@@ -207,57 +207,57 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
                                 </div>
                               )}
                                {event.attractionData && (
-                                <div className="space-y-2">
-                                  <div className="flex items-center gap-1 text-sm opacity-90">
-                                    <MapPin className="w-3 h-3" />
-                                    <span className="break-words">{event.attractionData.address}</span>
-                                  </div>
-                                  {event.attractionData.category && (
-                                    <Badge variant="outline" className="text-xs">
-                                      {event.attractionData.category}
-                                    </Badge>
-                                  )}
-                                  <div className="flex items-center gap-2 mt-2">
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => {
-                                        const { latitude, longitude, address } = event.attractionData;
-                                        const query = latitude && longitude 
-                                          ? `${latitude},${longitude}` 
-                                          : encodeURIComponent(address || event.attractionData.name);
-                                        window.open(`https://www.google.com/maps/dir/?api=1&destination=${query}`, '_blank');
-                                      }}
-                                      className="flex items-center gap-1 h-8 px-3 text-xs"
-                                    >
-                                      <Compass className="w-3 h-3" />
-                                      Directions
-                                    </Button>
-                                    {event.attractionData.website && (
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => window.open(event.attractionData.website, '_blank')}
-                                        className="flex items-center gap-1 h-8 px-3 text-xs"
-                                      >
-                                        <ExternalLink className="w-3 h-3" />
-                                        Website
-                                      </Button>
-                                    )}
-                                    {event.attractionData.phone && (
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => window.open(`tel:${event.attractionData.phone}`, '_self')}
-                                        className="flex items-center gap-1 h-8 px-3 text-xs"
-                                      >
-                                        <Phone className="w-3 h-3" />
-                                        Call
-                                      </Button>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
+                                 <div className="space-y-2">
+                                   <div className="flex items-center gap-1 text-sm opacity-90">
+                                     <MapPin className="w-3 h-3" />
+                                     <span className="break-words">{event.attractionData.address}</span>
+                                   </div>
+                                   {event.attractionData.category && (
+                                     <Badge variant="outline" className="text-xs">
+                                       {event.attractionData.category}
+                                     </Badge>
+                                   )}
+                                   <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                     <Button
+                                       variant="outline"
+                                       size="sm"
+                                       onClick={() => {
+                                         const { latitude, longitude, address } = event.attractionData;
+                                         const query = latitude && longitude 
+                                           ? `${latitude},${longitude}` 
+                                           : encodeURIComponent(address || event.attractionData.name);
+                                         window.open(`https://www.google.com/maps/dir/?api=1&destination=${query}`, '_blank');
+                                       }}
+                                       className="flex items-center gap-1 h-8 px-3 text-xs"
+                                     >
+                                       <Compass className="w-3 h-3" />
+                                       Directions
+                                     </Button>
+                                     {event.attractionData.website && (
+                                       <Button
+                                         variant="outline"
+                                         size="sm"
+                                         onClick={() => window.open(event.attractionData.website, '_blank')}
+                                         className="flex items-center gap-1 h-8 px-3 text-xs"
+                                       >
+                                         <ExternalLink className="w-3 h-3" />
+                                         Website
+                                       </Button>
+                                     )}
+                                     {event.attractionData.phone && (
+                                       <Button
+                                         variant="outline"
+                                         size="sm"
+                                         onClick={() => window.open(`tel:${event.attractionData.phone}`, '_self')}
+                                         className="flex items-center gap-1 h-8 px-3 text-xs"
+                                       >
+                                         <Phone className="w-3 h-3" />
+                                         Call
+                                       </Button>
+                                     )}
+                                   </div>
+                                 </div>
+                               )}
                             </div>
                           </div>
                           

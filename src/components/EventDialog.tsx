@@ -142,6 +142,7 @@ export function EventDialog({
     setIsRestaurantSearchOpen(false);
   };
   const handleAttractionSelect = (attraction: AttractionData | null) => {
+    console.log('Selected attraction data:', attraction); // Debug log
     setAttractionData(attraction);
     if (attraction) {
       setTitle(attraction.name);
