@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
@@ -53,6 +54,7 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
   const [selectedMinute, setSelectedMinute] = useState('00');
   const [selectedPeriod, setSelectedPeriod] = useState<'AM' | 'PM'>('PM');
   const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
+  const [is24Hour, setIs24Hour] = useState(false);
   const [type, setType] = useState<'restaurant' | 'attraction' | 'other'>('other');
   const [restaurantData, setRestaurantData] = useState<RestaurantData | null>(null);
   const [attractionData, setAttractionData] = useState<AttractionData | null>(null);
@@ -290,6 +292,39 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
                   style={{ zIndex: 9999 }}
                 >
                   <div className="p-4 space-y-4">
+                    {/* 24-hour toggle */}
+                    <div className="flex items-center justify-between pb-2 border-b">
+                      <Label className="text-sm font-medium">Time Format</Label>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xs">12h</span>
+                        <Switch
+                          checked={is24Hour}
+                          onCheckedChange={(checked) => {
+                            setIs24Hour(checked);
+                            if (checked) {
+                              // Convert 12-hour to 24-hour
+                              let hour24 = parseInt(selectedHour);
+                              if (selectedPeriod === 'PM' && hour24 !== 12) {
+                                hour24 += 12;
+                              } else if (selectedPeriod === 'AM' && hour24 === 12) {
+                                hour24 = 0;
+                              }
+                              setSelectedHour(hour24.toString().padStart(2, '0'));
+                            } else {
+                              // Convert 24-hour to 12-hour
+                              let hour12 = parseInt(selectedHour);
+                              const period = hour12 >= 12 ? 'PM' : 'AM';
+                              if (hour12 === 0) hour12 = 12;
+                              else if (hour12 > 12) hour12 -= 12;
+                              setSelectedHour(hour12.toString().padStart(2, '0'));
+                              setSelectedPeriod(period);
+                            }
+                          }}
+                        />
+                        <span className="text-xs">24h</span>
+                      </div>
+                    </div>
+
                     <div className="flex items-center space-x-2">
                       <div className="space-y-1">
                         <Label className="text-xs">Hour</Label>
@@ -298,14 +333,24 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {Array.from({ length: 12 }, (_, i) => {
-                              const hour = i + 1;
-                              return (
-                                <SelectItem key={hour} value={hour.toString().padStart(2, '0')}>
-                                  {hour.toString().padStart(2, '0')}
+                            {is24Hour ? (
+                              // 24-hour format: 00-23
+                              Array.from({ length: 24 }, (_, i) => (
+                                <SelectItem key={i} value={i.toString().padStart(2, '0')}>
+                                  {i.toString().padStart(2, '0')}
                                 </SelectItem>
-                              );
-                            })}
+                              ))
+                            ) : (
+                              // 12-hour format: 01-12
+                              Array.from({ length: 12 }, (_, i) => {
+                                const hour = i + 1;
+                                return (
+                                  <SelectItem key={hour} value={hour.toString().padStart(2, '0')}>
+                                    {hour.toString().padStart(2, '0')}
+                                  </SelectItem>
+                                );
+                              })
+                            )}
                           </SelectContent>
                         </Select>
                       </div>
@@ -328,18 +373,20 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
                         </Select>
                       </div>
                       
-                      <div className="space-y-1">
-                        <Label className="text-xs">Period</Label>
-                        <Select value={selectedPeriod} onValueChange={(value: 'AM' | 'PM') => setSelectedPeriod(value)}>
-                          <SelectTrigger className="w-16">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="AM">AM</SelectItem>
-                            <SelectItem value="PM">PM</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                      {!is24Hour && (
+                        <div className="space-y-1">
+                          <Label className="text-xs">Period</Label>
+                          <Select value={selectedPeriod} onValueChange={(value: 'AM' | 'PM') => setSelectedPeriod(value)}>
+                            <SelectTrigger className="w-16">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="AM">AM</SelectItem>
+                              <SelectItem value="PM">PM</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
                     </div>
                     
                     <div className="flex justify-between pt-2 border-t">
@@ -349,9 +396,9 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
                         size="sm"
                         onClick={() => {
                           setTime('');
-                          setSelectedHour('12');
+                          setSelectedHour(is24Hour ? '12' : '12');
                           setSelectedMinute('00');
-                          setSelectedPeriod('PM');
+                          if (!is24Hour) setSelectedPeriod('PM');
                           setIsTimePickerOpen(false);
                         }}
                         className="text-muted-foreground hover:text-foreground"
@@ -362,7 +409,9 @@ export function EventDialog({ isOpen, onClose, onSave, selectedDate, editingEven
                         type="button"
                         size="sm"
                         onClick={() => {
-                          const timeString = `${selectedHour}:${selectedMinute} ${selectedPeriod}`;
+                          const timeString = is24Hour 
+                            ? `${selectedHour}:${selectedMinute}`
+                            : `${selectedHour}:${selectedMinute} ${selectedPeriod}`;
                           setTime(timeString);
                           setIsTimePickerOpen(false);
                         }}
