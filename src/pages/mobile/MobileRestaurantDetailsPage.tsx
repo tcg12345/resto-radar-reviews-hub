@@ -228,200 +228,181 @@ export default function MobileRestaurantDetailsPage() {
       {/* Mobile status bar spacer */}
       <div className="lg:hidden h-[35px] bg-background"></div>
       <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b px-4 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                // Navigate back to the appropriate page based on context
-                const currentPath = location.pathname;
-                if (currentPath.includes('/mobile/restaurant/')) {
-                  // If we're on a mobile restaurant page, go to home
-                  navigate('/');
-                } else {
-                  // Otherwise try to go back in history
-                  if (window.history.length > 1) {
-                    navigate(-1);
-                  } else {
-                    navigate('/');
-                  }
-                }
-              }}
-              className="h-8 w-8 p-0"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <h1 className="font-semibold truncate text-lg">{restaurant.name}</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            {canAddToWishlist && (
+        {/* Compact Mobile Header */}
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b px-3 py-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
               <Button
-                onClick={addToWishlist}
-                disabled={isAdding || isAdded}
+                variant="ghost"
                 size="sm"
-                variant="outline"
-                className="h-10 w-10 p-0 bg-red-500 border-red-500 hover:bg-red-600 hover:border-red-600"
+                onClick={() => {
+                  const currentPath = location.pathname;
+                  if (currentPath.includes('/mobile/restaurant/')) {
+                    navigate('/');
+                  } else {
+                    if (window.history.length > 1) {
+                      navigate(-1);
+                    } else {
+                      navigate('/');
+                    }
+                  }
+                }}
+                className="h-8 w-8 p-0 shrink-0"
               >
-                {isAdded ? (
-                  <Heart className="h-5 w-5 fill-white text-white" />
-                ) : (
-                  <Heart className="h-5 w-5 text-white" />
-                )}
+                <ArrowLeft className="h-4 w-4" />
               </Button>
-            )}
-            <Button
-              onClick={shareRestaurant}
-              variant="outline"
-              size="sm"
-              className="h-8 w-8 p-0"
-            >
-              <Share2 className="h-4 w-4" />
-            </Button>
+              <h1 className="font-semibold truncate text-base">{restaurant.name}</h1>
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              {canAddToWishlist && (
+                <Button
+                  onClick={addToWishlist}
+                  disabled={isAdding || isAdded}
+                  size="sm"
+                  variant="outline"
+                  className="h-8 w-8 p-0 bg-red-500 border-red-500 hover:bg-red-600"
+                >
+                  {isAdded ? (
+                    <Heart className="h-4 w-4 fill-white text-white" />
+                  ) : (
+                    <Heart className="h-4 w-4 text-white" />
+                  )}
+                </Button>
+              )}
+              <Button
+                onClick={shareRestaurant}
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+              >
+                <Share2 className="h-3 w-3" />
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="pb-6">
-        {/* Hero Image */}
-        {restaurant.photos && restaurant.photos.length > 0 && (
-          <div className="relative h-48 bg-muted">
-            <LazyImage
-              src={restaurant.photos[0]}
-              alt={restaurant.name}
-              className="w-full h-full object-cover"
-            />
-          </div>
-        )}
-
-        {/* Main Info */}
-        <div className="p-4 space-y-4">
-          {/* Title and Badges */}
-          <div className="space-y-3">
-            <div>
-              <h1 className="text-2xl font-bold">{restaurant.name}</h1>
-              <p className="text-sm text-muted-foreground">{restaurant.cuisine}</p>
+        {/* Mobile-Optimized Content */}
+        <div className="pb-4">
+          {/* Hero Image - Smaller on mobile */}
+          {restaurant.photos && restaurant.photos.length > 0 && (
+            <div className="relative h-40 bg-muted">
+              <LazyImage
+                src={restaurant.photos[0]}
+                alt={restaurant.name}
+                className="w-full h-full object-cover"
+              />
             </div>
-            
-            {/* Rating and Badges */}
-            <div className="flex items-center gap-2 flex-wrap">
-              {restaurant.rating && (
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                  {restaurant.rating}/10
-                </Badge>
-              )}
-              {restaurant.michelin_stars && (
-                <Badge variant="outline" className="flex items-center gap-1">
-                  <MichelinStars stars={restaurant.michelin_stars} readonly size="sm" />
-                  Michelin
-                </Badge>
-              )}
-              {restaurant.price_range && (
-                <Badge variant="outline" className="flex items-center gap-1">
-                  <PriceRange priceRange={restaurant.price_range} readonly size="sm" />
-                </Badge>
-              )}
-              {restaurant.date_visited && (
-                <Badge variant="secondary">
-                  Visited {new Date(restaurant.date_visited).toLocaleDateString()}
-                </Badge>
-              )}
+          )}
+
+          {/* Compact Main Info */}
+          <div className="px-3 py-4 space-y-3">
+            {/* Title and Basic Info */}
+            <div className="space-y-2">
+              <div>
+                <h1 className="text-xl font-bold leading-tight">{restaurant.name}</h1>
+                <p className="text-sm text-muted-foreground">{restaurant.cuisine}</p>
+              </div>
+              
+              {/* Condensed Badges Row */}
+              <div className="flex items-center gap-1 flex-wrap">
+                {restaurant.rating && (
+                  <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 mr-1" />
+                    {restaurant.rating}/10
+                  </Badge>
+                )}
+                {restaurant.michelin_stars && (
+                  <Badge variant="outline" className="text-xs px-2 py-0.5">
+                    <MichelinStars stars={restaurant.michelin_stars} readonly size="sm" />
+                  </Badge>
+                )}
+                {restaurant.price_range && (
+                  <Badge variant="outline" className="text-xs px-2 py-0.5">
+                    <PriceRange priceRange={restaurant.price_range} readonly size="sm" />
+                  </Badge>
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-3">
-            {/* Call Button */}
-            {restaurant.phone_number && (
-              <a
-                href={`tel:${restaurant.phone_number}`}
-                className="flex flex-col items-center justify-center p-4 rounded-xl bg-gradient-to-br from-green-500/20 to-green-600/20 border border-green-500/30 hover:from-green-500/30 hover:to-green-600/30 transition-all duration-200 active:scale-95"
-              >
-                <Phone className="h-6 w-6 text-green-500 mb-2" />
-                <span className="text-sm font-medium text-foreground">Call</span>
-              </a>
-            )}
+            {/* Mobile-Optimized Action Grid - Single row */}
+            <div className="grid grid-cols-4 gap-2">
+              {/* Call Button */}
+              {restaurant.phone_number && (
+                <a
+                  href={`tel:${restaurant.phone_number}`}
+                  className="flex flex-col items-center justify-center p-3 rounded-lg bg-green-50 border border-green-200 hover:bg-green-100 active:scale-95 transition-all"
+                >
+                  <Phone className="h-4 w-4 text-green-600 mb-1" />
+                  <span className="text-xs font-medium text-green-700">Call</span>
+                </a>
+              )}
 
-            {/* Website Button */}
-            {restaurant.website && (
+              {/* Website Button */}
+              {restaurant.website && (
+                <a
+                  href={restaurant.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center justify-center p-3 rounded-lg bg-blue-50 border border-blue-200 hover:bg-blue-100 active:scale-95 transition-all"
+                >
+                  <Globe className="h-4 w-4 text-blue-600 mb-1" />
+                  <span className="text-xs font-medium text-blue-700">Website</span>
+                </a>
+              )}
+
+              {/* Directions Button */}
               <a
-                href={restaurant.website}
+                href={
+                  restaurant.latitude && restaurant.longitude
+                    ? `https://www.google.com/maps/dir/?api=1&destination=${restaurant.latitude},${restaurant.longitude}`
+                    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                        `${restaurant.name} ${restaurant.address} ${restaurant.city}`
+                      )}`
+                }
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex flex-col items-center justify-center p-4 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-600/20 border border-blue-500/30 hover:from-blue-500/30 hover:to-blue-600/30 transition-all duration-200 active:scale-95"
+                className="flex flex-col items-center justify-center p-3 rounded-lg bg-purple-50 border border-purple-200 hover:bg-purple-100 active:scale-95 transition-all"
               >
-                <Globe className="h-6 w-6 text-blue-500 mb-2" />
-                <span className="text-sm font-medium text-foreground">Website</span>
+                <Navigation className="h-4 w-4 text-purple-600 mb-1" />
+                <span className="text-xs font-medium text-purple-700">Maps</span>
               </a>
-            )}
 
-            {/* Directions Button - Always show in fourth corner */}
-            <a
-              href={
-                restaurant.latitude && restaurant.longitude
-                  ? `https://www.google.com/maps/dir/?api=1&destination=${restaurant.latitude},${restaurant.longitude}`
-                  : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                      `${restaurant.name} ${restaurant.address} ${restaurant.city}`
-                    )}`
-              }
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-col items-center justify-center p-4 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-600/20 border border-blue-500/30 hover:from-blue-500/30 hover:to-blue-600/30 transition-all duration-200 active:scale-95"
-            >
-              <Navigation className="h-6 w-6 text-blue-500 mb-2" />
-              <span className="text-sm font-medium text-foreground">Directions</span>
-            </a>
-
-            {/* Reviews Button */}
-            <a
-              href={
-                restaurant.website
-                  ? `https://www.google.com/search?q=${encodeURIComponent(
-                      `${restaurant.name} ${restaurant.city} reviews`
-                    )}`
-                  : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                      `${restaurant.name} ${restaurant.address} ${restaurant.city}`
-                    )}`
-              }
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-col items-center justify-center p-4 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30 hover:from-amber-500/30 hover:to-orange-500/30 transition-all duration-200 active:scale-95"
-            >
-              <Star className="h-6 w-6 text-amber-500 mb-2" />
-              <span className="text-sm font-medium text-foreground">Reviews</span>
-            </a>
-          </div>
-
-          <Separator />
-
-          {/* Address */}
-          <div className="flex items-start gap-3">
-            <MapPin className="h-5 w-5 mt-0.5 text-muted-foreground shrink-0" />
-            <div className="flex-1">
-              <p className="font-medium">Address</p>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {restaurant.address}
-                <br />
-                {restaurant.city}
-                {restaurant.country && `, ${restaurant.country}`}
-              </p>
+              {/* Reviews Button */}
+              <a
+                href={`https://www.google.com/search?q=${encodeURIComponent(
+                  `${restaurant.name} ${restaurant.city} reviews`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center p-3 rounded-lg bg-amber-50 border border-amber-200 hover:bg-amber-100 active:scale-95 transition-all"
+              >
+                <Star className="h-4 w-4 text-amber-600 mb-1" />
+                <span className="text-xs font-medium text-amber-700">Reviews</span>
+              </a>
             </div>
-          </div>
 
-          {/* Contact Info */}
-          {(restaurant.phone_number || restaurant.website) && (
-            <>
-              <Separator />
-              <div className="space-y-4">
+            {/* Compact Address */}
+            <div className="bg-muted/30 rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">Address</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {restaurant.address}, {restaurant.city}
+                    {restaurant.country && `, ${restaurant.country}`}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Contact & Hours in Card Format */}
+            {(restaurant.phone_number || restaurant.website || restaurant.opening_hours) && (
+              <div className="bg-muted/30 rounded-lg p-3 space-y-3">
                 {restaurant.phone_number && (
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-5 w-5 text-muted-foreground shrink-0" />
-                    <div className="flex-1">
-                      <p className="font-medium">Phone</p>
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm font-medium">Phone: </span>
                       <a 
                         href={`tel:${restaurant.phone_number}`}
                         className="text-sm text-primary hover:underline"
@@ -433,10 +414,9 @@ export default function MobileRestaurantDetailsPage() {
                 )}
                 
                 {restaurant.website && (
-                  <div className="flex items-center gap-3">
-                    <Globe className="h-5 w-5 text-muted-foreground shrink-0" />
-                    <div className="flex-1">
-                      <p className="font-medium">Website</p>
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <div className="flex-1 min-w-0">
                       <a 
                         href={restaurant.website}
                         target="_blank"
@@ -449,53 +429,52 @@ export default function MobileRestaurantDetailsPage() {
                     </div>
                   </div>
                 )}
-              </div>
-            </>
-          )}
 
-          {/* Opening Hours */}
-          {restaurant.opening_hours && (
-            <>
-              <Separator />
-              <div className="flex items-start gap-3">
-                <Clock className="h-5 w-5 mt-0.5 text-muted-foreground shrink-0" />
-                <div className="flex-1">
-                  <p className="font-medium">Opening Hours</p>
-                  <div className="space-y-2 mt-2">
-                    {restaurant.opening_hours.split('\n').filter(Boolean).map((hour, index) => (
-                      <div key={index} className="text-sm text-muted-foreground py-1 border-b border-border/30 last:border-b-0">
-                        {hour.trim()}
+                {restaurant.opening_hours && (
+                  <div className="flex items-start gap-2">
+                    <Clock className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium mb-1">Hours</p>
+                      <div className="text-xs text-muted-foreground space-y-0.5">
+                        {restaurant.opening_hours.split('\n').filter(Boolean).slice(0, 3).map((hour, index) => (
+                          <div key={index}>{hour.trim()}</div>
+                        ))}
+                        {restaurant.opening_hours.split('\n').filter(Boolean).length > 3 && (
+                          <div className="text-primary">+ more hours</div>
+                        )}
                       </div>
-                    ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
-            </>
-          )}
+            )}
 
-          {/* Notes */}
-          {restaurant.notes && (
-            <>
-              <Separator />
-              <div>
-                <p className="font-medium mb-2">Notes</p>
-                <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
+            {/* Visit Date */}
+            {restaurant.date_visited && (
+              <div className="text-center">
+                <Badge variant="secondary" className="text-xs">
+                  Visited {new Date(restaurant.date_visited).toLocaleDateString()}
+                </Badge>
+              </div>
+            )}
+
+            {/* Compact Notes */}
+            {restaurant.notes && (
+              <div className="bg-muted/30 rounded-lg p-3">
+                <p className="text-sm font-medium mb-2">Notes</p>
+                <p className="text-xs text-muted-foreground leading-relaxed line-clamp-4">
                   {restaurant.notes}
                 </p>
               </div>
-            </>
-          )}
+            )}
 
-
-          {/* Additional Photos */}
-          {restaurant.photos && restaurant.photos.length > 1 && (
-            <>
-              <Separator />
+            {/* Compact Photo Grid */}
+            {restaurant.photos && restaurant.photos.length > 1 && (
               <div>
-                <p className="font-medium mb-3">Photos</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {restaurant.photos.slice(1, 5).map((photo, index) => (
-                    <div key={index} className="aspect-square bg-muted rounded-lg overflow-hidden">
+                <p className="text-sm font-medium mb-2">Photos</p>
+                <div className="grid grid-cols-3 gap-1">
+                  {restaurant.photos.slice(1, 4).map((photo, index) => (
+                    <div key={index} className="aspect-square bg-muted rounded-md overflow-hidden">
                       <LazyImage
                         src={photo}
                         alt={`${restaurant.name} photo ${index + 2}`}
@@ -505,16 +484,13 @@ export default function MobileRestaurantDetailsPage() {
                   ))}
                 </div>
               </div>
-            </>
-          )}
+            )}
 
-          {/* Interactive Map */}
-          {restaurant.latitude && restaurant.longitude && (
-            <>
-              <Separator />
+            {/* Compact Map - Only show if coordinates available */}
+            {restaurant.latitude && restaurant.longitude && (
               <div>
-                <p className="font-medium mb-3">Location</p>
-                <div className="h-48 rounded-lg overflow-hidden border">
+                <p className="text-sm font-medium mb-2">Location</p>
+                <div className="h-32 rounded-lg overflow-hidden border">
                   <RestaurantLocationMap
                     latitude={restaurant.latitude}
                     longitude={restaurant.longitude}
@@ -523,10 +499,9 @@ export default function MobileRestaurantDetailsPage() {
                   />
                 </div>
               </div>
-            </>
-          )}
+            )}
+          </div>
         </div>
-      </div>
       </div>
     </>
   );
