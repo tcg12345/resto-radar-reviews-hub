@@ -200,9 +200,9 @@ export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItin
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(`🍽️  Restaurants: ${restaurantCount}`, margin + 5, yPosition);
-    doc.text(`🎯  Attractions: ${attractionCount}`, margin + 60, yPosition);
-    doc.text(`📍  Other Events: ${otherCount}`, margin + 120, yPosition);
+    doc.text(`Restaurants: ${restaurantCount}`, margin + 5, yPosition);
+    doc.text(`Attractions: ${attractionCount}`, margin + 60, yPosition);
+    doc.text(`Other Events: ${otherCount}`, margin + 120, yPosition);
     yPosition += 20;
 
     // Detailed itinerary section
@@ -243,8 +243,8 @@ export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItin
               // Event time with icon based on type
               doc.setFontSize(12);
               doc.setFont('helvetica', 'bold');
-              const eventIcon = event.type === 'restaurant' ? '🍽️' : 
-                               event.type === 'attraction' ? '🎯' : '📍';
+              const eventIcon = event.type === 'restaurant' ? '[Restaurant]' : 
+                               event.type === 'attraction' ? '[Attraction]' : '[Event]';
               doc.text(`${event.time}  ${eventIcon}  ${event.title}`, margin + 10, yPosition);
               yPosition += 8;
 
@@ -266,13 +266,13 @@ export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItin
                 
                 // Address
                 if (event.restaurantData.address) {
-                  doc.text(`📍 ${event.restaurantData.address}`, margin + 15, yPosition);
+                  doc.text(`Address: ${event.restaurantData.address}`, margin + 15, yPosition);
                   yPosition += 4;
                 }
                 
                 // Phone
                 if (event.restaurantData.phone) {
-                  doc.text(`📞 ${event.restaurantData.phone}`, margin + 15, yPosition);
+                  doc.text(`Phone: ${event.restaurantData.phone}`, margin + 15, yPosition);
                   yPosition += 4;
                 }
                 
@@ -281,7 +281,7 @@ export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItin
                   const websiteText = event.restaurantData.website.length > 50 
                     ? event.restaurantData.website.substring(0, 47) + '...'
                     : event.restaurantData.website;
-                  doc.text(`🌐 ${websiteText}`, margin + 15, yPosition);
+                  doc.text(`Website: ${websiteText}`, margin + 15, yPosition);
                   yPosition += 4;
                 }
               }
@@ -293,17 +293,17 @@ export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItin
                 doc.setTextColor(107, 114, 128);
                 
                 if (event.attractionData.address) {
-                  doc.text(`📍 ${event.attractionData.address}`, margin + 15, yPosition);
+                  doc.text(`Address: ${event.attractionData.address}`, margin + 15, yPosition);
                   yPosition += 4;
                 }
                 
                 if (event.attractionData.category) {
-                  doc.text(`🏷️ Category: ${event.attractionData.category}`, margin + 15, yPosition);
+                  doc.text(`Category: ${event.attractionData.category}`, margin + 15, yPosition);
                   yPosition += 4;
                 }
                 
                 if (event.attractionData.rating) {
-                  doc.text(`⭐ Rating: ${event.attractionData.rating}/10`, margin + 15, yPosition);
+                  doc.text(`Rating: ${event.attractionData.rating}/10`, margin + 15, yPosition);
                   yPosition += 4;
                 }
                 
@@ -311,7 +311,7 @@ export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItin
                   const websiteText = event.attractionData.website.length > 50 
                     ? event.attractionData.website.substring(0, 47) + '...'
                     : event.attractionData.website;
-                  doc.text(`🌐 ${websiteText}`, margin + 15, yPosition);
+                  doc.text(`Website: ${websiteText}`, margin + 15, yPosition);
                   yPosition += 4;
                 }
               }
@@ -343,7 +343,7 @@ export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItin
         
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
-        doc.text(`🏨 ${hotel.hotel.name}`, margin + 5, yPosition);
+        doc.text(`[Hotel] ${hotel.hotel.name}`, margin + 5, yPosition);
         yPosition += 8;
         
         doc.setFontSize(10);
@@ -351,19 +351,19 @@ export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItin
         doc.setTextColor(75, 85, 99);
         
         if (hotel.hotel.address) {
-          doc.text(`📍 ${hotel.hotel.address}`, margin + 10, yPosition);
+          doc.text(`Address: ${hotel.hotel.address}`, margin + 10, yPosition);
           yPosition += 5;
         }
         
         if (hotel.checkIn && hotel.checkOut) {
           const checkInStr = format(hotel.checkIn, 'MMM do, yyyy');
           const checkOutStr = format(hotel.checkOut, 'MMM do, yyyy');
-          doc.text(`📅 ${checkInStr} - ${checkOutStr}`, margin + 10, yPosition);
+          doc.text(`Dates: ${checkInStr} - ${checkOutStr}`, margin + 10, yPosition);
           yPosition += 5;
         }
         
         if (hotel.hotel.rating) {
-          doc.text(`⭐ Rating: ${hotel.hotel.rating}`, margin + 10, yPosition);
+          doc.text(`Rating: ${hotel.hotel.rating}`, margin + 10, yPosition);
           yPosition += 5;
         }
         
