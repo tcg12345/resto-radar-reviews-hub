@@ -151,7 +151,7 @@ export function RestaurantCard({
   }
   return <>
       <PhotoGallery photos={restaurant.photos} initialIndex={currentPhotoIndex} isOpen={isGalleryOpen} onClose={() => setIsGalleryOpen(false)} restaurantName={restaurant.name} />
-    <Card className="overflow-hidden bg-card shadow-sm hover:shadow-md transition-shadow duration-300 lg:shadow-md lg:hover:shadow-lg">
+    <Card className="overflow-hidden bg-card shadow-sm hover:shadow-md transition-shadow duration-300 lg:shadow-md lg:hover:shadow-lg flex flex-col h-full">
       {/* Show photo section based on restaurant type */}
       {restaurant.photos.length > 0 || !restaurant.isWishlist ? <div className="relative aspect-video w-full overflow-hidden bg-muted lg:aspect-video">
           {restaurant.photos.length > 0 ? <>
@@ -212,7 +212,7 @@ export function RestaurantCard({
         </CardDescription>
       </CardHeader>
       
-      <CardContent className="pb-0 lg:pb-0 p-2 lg:p-4 pt-0 lg:pt-0 py-[2px]">
+      <CardContent className="pb-0 lg:pb-0 p-2 lg:p-4 pt-0 lg:pt-0 py-[2px] flex-1">
         <div className="mobile-flex-nowrap lg:flex lg:flex-wrap mobile-grid-compact">
           {/* Current day hours display */}
           {restaurant.openingHours && <div className="w-full mb-0 lg:mb-0">
