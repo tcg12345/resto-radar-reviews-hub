@@ -234,7 +234,7 @@ export function RestaurantCard({
         </div>
       </CardContent>
       
-      <CardFooter className="flex mobile-grid-compact pt-1 lg:pt-2 pb-1 lg:pb-2 p-2 lg:p-4">
+      <CardFooter className="flex mobile-grid-compact pt-0 lg:pt-1 pb-1 lg:pb-2 p-2 lg:p-4">
         <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
           <DialogTrigger asChild>
             <Button size="sm" variant="outline" className="flex-1 h-6 lg:h-7 px-1 lg:px-2 text-[10px] lg:text-xs mobile-button">
