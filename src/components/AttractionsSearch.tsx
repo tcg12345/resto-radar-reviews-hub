@@ -122,7 +122,7 @@ export function AttractionsSearch({
         // Transform results and categorize them with AI
         const transformedAttractions: Attraction[] = await Promise.all(
           filteredResults.slice(0, 10).map(async (location) => {
-            const basicAttraction = {
+            let basicAttraction: Attraction = {
               id: location.location_id,
               name: location.name,
               address: location.address_obj?.address_string || '',
@@ -148,14 +148,45 @@ export function AttractionsSearch({
               });
 
               if (categorization) {
-                return {
-                  ...basicAttraction,
-                  placeType: categorization.type,
-                  category: categorization.displayCategory,
-                };
+                basicAttraction.placeType = categorization.type;
+                basicAttraction.category = categorization.displayCategory;
               }
             } catch (error) {
               console.error('Failed to categorize place:', error);
+            }
+
+            // If we don't have website/phone from TripAdvisor, try to get from Google Places
+            if (!basicAttraction.website || !basicAttraction.phone) {
+              try {
+                const { data: googlePlacesData } = await supabase.functions.invoke('google-places-search', {
+                  body: {
+                    query: `${basicAttraction.name} ${basicAttraction.address}`,
+                    type: 'textSearch'
+                  }
+                });
+
+                if (googlePlacesData?.results?.[0]) {
+                  const googlePlace = googlePlacesData.results[0];
+                  
+                  // Get detailed info if we have a place_id
+                  if (googlePlace.place_id) {
+                    const { data: detailsData } = await supabase.functions.invoke('google-places-search', {
+                      body: {
+                        placeId: googlePlace.place_id,
+                        type: 'details'
+                      }
+                    });
+
+                    if (detailsData?.result) {
+                      const details = detailsData.result;
+                      basicAttraction.website = basicAttraction.website || details.website;
+                      basicAttraction.phone = basicAttraction.phone || details.formatted_phone_number;
+                    }
+                  }
+                }
+              } catch (error) {
+                console.error('Failed to enrich place data with Google Places:', error);
+              }
             }
 
             return basicAttraction;
