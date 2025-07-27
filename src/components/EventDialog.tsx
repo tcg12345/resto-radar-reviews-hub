@@ -113,7 +113,7 @@ export function EventDialog({
       date: isMultiDayEvent ? selectedDates[0] : selectedDate!, // Default to first selected date
       type,
       restaurantData: type === 'restaurant' ? restaurantData : undefined,
-      attractionData: (type !== 'restaurant' && type !== 'other') ? attractionData : undefined
+      attractionData: attractionData // Always include attraction data if it exists
     };
     
     // Pass selected dates for multi-day events
