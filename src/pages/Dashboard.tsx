@@ -51,14 +51,19 @@ export default function Dashboard() {
 
   // Custom event listener for feed tab
   useEffect(() => {
+    console.log('Setting up feed tab event listener');
+    
     const handleFeedTabClick = () => {
-      console.log('Custom event: Feed tab clicked');
+      console.log('Custom event: Feed tab clicked - setting activeTab to feed');
       setActiveTab('feed');
+      console.log('activeTab should now be feed');
     };
 
     window.addEventListener('feedTabClicked', handleFeedTabClick);
+    console.log('Event listener added for feedTabClicked');
     
     return () => {
+      console.log('Cleaning up feed tab event listener');
       window.removeEventListener('feedTabClicked', handleFeedTabClick);
     };
   }, []);

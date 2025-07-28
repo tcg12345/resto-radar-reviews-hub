@@ -34,10 +34,16 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
     
     if (tabId === 'feed') {
       console.log('FEED CLICKED - dispatching custom event');
-      // Use custom event for feed tab
-      window.dispatchEvent(new CustomEvent('feedTabClicked'));
+      try {
+        const event = new CustomEvent('feedTabClicked');
+        console.log('Custom event created:', event);
+        window.dispatchEvent(event);
+        console.log('Custom event dispatched successfully');
+      } catch (error) {
+        console.error('Error dispatching custom event:', error);
+      }
     } else {
-      console.log('Non-feed tab clicked, using onTabChange');
+      console.log('Non-feed tab clicked, using onTabChange for:', tabId);
       onTabChange(tabId as any);
     }
   };
