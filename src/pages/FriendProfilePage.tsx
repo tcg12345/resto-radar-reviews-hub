@@ -193,7 +193,7 @@ export default function FriendProfilePage() {
     
     return Object.entries(cityCount)
       .map(([city, count]) => ({ city, count }))
-      .sort((a, b) => a.city.localeCompare(b.city));
+      .sort((a, b) => b.count - a.count);
   }, [paginatedRestaurants]);
 
   if (isLoading || !friend || !profileData) {
