@@ -697,7 +697,7 @@ export function RestaurantDetailPage() {
                   <Button
                     onClick={addToWishlist}
                     disabled={isAddingToWishlist}
-                    className="h-auto flex-col gap-2 py-4 bg-gradient-to-br from-pink-500 to-violet-600 hover:from-pink-600 hover:to-violet-700 text-white border-0"
+                    className="h-auto flex-col gap-2 py-4 bg-gradient-to-br from-pink-500/80 to-violet-600/80 hover:from-pink-600/90 hover:to-violet-700/90 text-white border-0"
                     variant="outline"
                   >
                     <Heart className="h-5 w-5" />
@@ -705,7 +705,7 @@ export function RestaurantDetailPage() {
                   </Button>
 
                   {restaurant.phone_number && (
-                    <Button asChild variant="outline" className="h-auto flex-col gap-2 py-4 bg-gradient-to-br from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white border-0">
+                    <Button asChild variant="outline" className="h-auto flex-col gap-2 py-4 bg-gradient-to-br from-blue-500/80 to-cyan-600/80 hover:from-blue-600/90 hover:to-cyan-700/90 text-white border-0">
                       <a href={`tel:${restaurant.phone_number}`}>
                         <Phone className="h-5 w-5" />
                         <span className="text-sm">Call</span>
@@ -714,7 +714,7 @@ export function RestaurantDetailPage() {
                   )}
 
                   {restaurant.website && (
-                    <Button asChild variant="outline" className="h-auto flex-col gap-2 py-4 bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-0">
+                    <Button asChild variant="outline" className="h-auto flex-col gap-2 py-4 bg-gradient-to-br from-green-500/80 to-emerald-600/80 hover:from-green-600/90 hover:to-emerald-700/90 text-white border-0">
                       <a href={restaurant.website} target="_blank" rel="noopener noreferrer">
                         <Globe className="h-5 w-5" />
                         <span className="text-sm">Website</span>
@@ -722,7 +722,7 @@ export function RestaurantDetailPage() {
                     </Button>
                   )}
 
-                  <Button asChild variant="outline" className="h-auto flex-col gap-2 py-4 bg-gradient-to-br from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white border-0">
+                  <Button asChild variant="outline" className="h-auto flex-col gap-2 py-4 bg-gradient-to-br from-orange-500/80 to-red-600/80 hover:from-orange-600/90 hover:to-red-700/90 text-white border-0">
                     <a
                       href={
                         restaurant.latitude && restaurant.longitude
