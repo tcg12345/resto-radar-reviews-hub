@@ -401,37 +401,48 @@ export default function FriendProfilePage() {
                 {/* Mobile Restaurant Grid */}
                 <div className="space-y-3">
                   {filteredRestaurants.map((restaurant) => (
-                    <Card 
-                      key={restaurant.id} 
-                      className="p-4 active:scale-95 transition-all duration-150 cursor-pointer border-l-4 border-l-primary/20"
-                      onClick={() => navigate(`/restaurant/${restaurant.id}?friendId=${actualUserId}`)}
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-base truncate">{restaurant.name}</h3>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="secondary" className="text-xs">
-                              {restaurant.cuisine}
-                            </Badge>
+                     <Card 
+                       key={restaurant.id} 
+                       className="overflow-hidden active:scale-95 transition-all duration-150 cursor-pointer bg-gradient-to-br from-card via-card to-muted/20 border-0 ring-1 ring-border/50"
+                       onClick={() => navigate(`/restaurant/${restaurant.id}?friendId=${actualUserId}`)}
+                     >
+                       {/* Header with Rating Badge - Same as desktop */}
+                       <div className="relative bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 p-4 pb-3">
+                         <div className="absolute top-3 right-3">
+                           <div className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground px-2 py-1 rounded-lg shadow-lg">
+                             <div className="text-sm font-bold text-center">
+                               {restaurant.rating?.toFixed(1) || '—'}
+                             </div>
+                             <div className="text-xs opacity-90 text-center">rating</div>
+                           </div>
+                         </div>
+                         
+                         <div className="pr-16">
+                           <h3 className="font-semibold text-base truncate mb-2">{restaurant.name}</h3>
+                           <div className="flex items-center gap-2 flex-wrap">
+                             <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-xs">
+                               <ChefHat className="h-3 w-3 mr-1" />
+                               {restaurant.cuisine}
+                             </Badge>
                              {restaurant.michelin_stars && (
                                <MichelinStars stars={restaurant.michelin_stars} />
                              )}
                              {restaurant.price_range && (
                                <PriceRange priceRange={restaurant.price_range} readonly size="sm" />
                              )}
-                          </div>
-                          <div className="flex items-center gap-2 mt-1 text-muted-foreground">
-                            <MapPin className="h-3 w-3" />
-                            <span className="text-xs truncate">{restaurant.city}</span>
-                          </div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-lg font-bold text-primary">
-                            {restaurant.rating?.toFixed(1) || '—'}
-                          </div>
-                          <div className="text-xs text-muted-foreground">rating</div>
-                        </div>
-                      </div>
+                           </div>
+                         </div>
+                       </div>
+
+                       {/* Content Section */}
+                       <div className="p-4 pt-3 space-y-2">
+                         <div className="flex items-center gap-2 text-muted-foreground">
+                           <div className="p-1 bg-muted/50 rounded-lg">
+                             <MapPin className="h-3 w-3" />
+                           </div>
+                           <span className="text-sm font-medium truncate">{restaurant.city}</span>
+                         </div>
+                       </div>
                     </Card>
                   ))}
                 </div>
