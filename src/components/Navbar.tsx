@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { MapPin, Star, Heart, Home, Search, Settings, Users, MessageCircle, Calendar } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -30,6 +29,19 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
     { id: 'friends' as const, label: 'Friends', icon: MessageCircle, shortLabel: 'Friends' },
   ];
 
+  const handleTabClick = (tabId: string) => {
+    console.log('Tab clicked:', tabId);
+    
+    if (tabId === 'feed') {
+      console.log('FEED CLICKED - dispatching custom event');
+      // Use custom event for feed tab
+      window.dispatchEvent(new CustomEvent('feedTabClicked'));
+    } else {
+      console.log('Non-feed tab clicked, using onTabChange');
+      onTabChange(tabId as any);
+    }
+  };
+
   return (
     <>
       {/* Desktop Navigation */}
@@ -48,16 +60,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
                     key={tab.id}
                     variant={activeTab === tab.id ? 'default' : 'ghost'}
                     size="sm"
-                    onClick={() => {
-                      console.log('Desktop tab clicked:', tab.id);
-                      try {
-                        console.log('About to call onTabChange with:', tab.id);
-                        onTabChange(tab.id);
-                        console.log('onTabChange called successfully');
-                      } catch (error) {
-                        console.error('Error calling onTabChange:', error);
-                      }
-                    }}
+                    onClick={() => handleTabClick(tab.id)}
                     className={`relative px-4 py-2 transition-all duration-200 ${
                       activeTab === tab.id 
                         ? 'bg-primary text-primary-foreground shadow-sm' 
@@ -166,7 +169,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
         </div>
       </nav>
 
-      {/* Mobile Bottom Navigation - Modern Circular Design */}
+      {/* Mobile Bottom Navigation */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t border-border/20">
         <div className="pb-safe-area-bottom">
           <div className="flex justify-around items-center px-4 py-2">
@@ -178,14 +181,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={(e) => {
-                      console.log('MOBILE CLICKED:', tab.id);
-                      if (tab.id === 'feed') {
-                        console.log('FEED CLICKED - forcing navigation');
-                        window.location.hash = 'feed-debug';
-                      }
-                      onTabChange(tab.id);
-                    }}
+                    onClick={() => handleTabClick(tab.id)}
                     className={`relative h-10 w-10 rounded-full mobile-tap-target transition-all duration-300 transform ${
                       isActive 
                         ? 'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg scale-110 shadow-primary/25' 

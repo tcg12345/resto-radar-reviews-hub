@@ -46,29 +46,21 @@ export default function Dashboard() {
 
   const handleTabChange = (tab: 'home' | 'feed' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'travel') => {
     console.log('Dashboard: Tab change requested:', tab);
-    console.log('Dashboard: Current activeTab before change:', activeTab);
-    
-    if (tab === 'feed') {
-      console.log('Dashboard: FEED tab requested - setting state');
-    }
-    
     setActiveTab(tab);
   };
 
-  // Test if we can force feed tab
+  // Custom event listener for feed tab
   useEffect(() => {
-    const checkHash = () => {
-      if (window.location.hash === '#feed-debug') {
-        console.log('Hash detected - forcing feed tab');
-        setActiveTab('feed');
-        window.location.hash = '';
-      }
+    const handleFeedTabClick = () => {
+      console.log('Custom event: Feed tab clicked');
+      setActiveTab('feed');
     };
+
+    window.addEventListener('feedTabClicked', handleFeedTabClick);
     
-    window.addEventListener('hashchange', checkHash);
-    checkHash(); // Check on mount
-    
-    return () => window.removeEventListener('hashchange', checkHash);
+    return () => {
+      window.removeEventListener('feedTabClicked', handleFeedTabClick);
+    };
   }, []);
 
   const renderContent = () => {
