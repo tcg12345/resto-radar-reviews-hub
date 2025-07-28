@@ -32,7 +32,7 @@ export function useFriendProfilePagination(targetUserId: string) {
 
   const [restaurantOffset, setRestaurantOffset] = useState(0);
   const [wishlistOffset, setWishlistOffset] = useState(0);
-  const ITEMS_PER_PAGE = 20;
+  const ITEMS_PER_PAGE = 30; // Increased for better efficiency
 
   const loadInitialData = useCallback(async () => {
     if (!user || !targetUserId) return;
@@ -41,6 +41,14 @@ export function useFriendProfilePagination(targetUserId: string) {
     setError(null);
 
     try {
+      // Try to get cached data first for stats
+      const { data: cachedData } = await supabase
+        .from('friend_profile_cache')
+        .select('profile_data, restaurant_count, wishlist_count')
+        .eq('user_id', targetUserId)
+        .single();
+
+      // Always fetch fresh paginated data for current view
       const { data, error: profileError } = await supabase.rpc('get_friend_profile_with_pagination', {
         target_user_id: targetUserId,
         requesting_user_id: user.id,
@@ -58,11 +66,29 @@ export function useFriendProfilePagination(targetUserId: string) {
 
       if (data && data.length > 0) {
         const profile = data[0];
+        
+        // Use cached stats if available, otherwise use fresh data
+        let finalProfile = profile;
+        if (cachedData?.profile_data && typeof cachedData.profile_data === 'object') {
+          const profileDataObj = cachedData.profile_data as any;
+          if (profileDataObj.stats) {
+            finalProfile = {
+              ...profile,
+              rated_count: cachedData.restaurant_count || profile.rated_count,
+              wishlist_count: cachedData.wishlist_count || profile.wishlist_count,
+              avg_rating: profileDataObj.stats.avg_rating || profile.avg_rating,
+              top_cuisine: profileDataObj.stats.top_cuisine || profile.top_cuisine,
+              michelin_count: profileDataObj.stats.michelin_count || profile.michelin_count
+            };
+          }
+        }
+
         const profileWithArrays = {
-          ...profile,
+          ...finalProfile,
           restaurants: Array.isArray(profile.restaurants) ? profile.restaurants : [],
           wishlist: Array.isArray(profile.wishlist) ? profile.wishlist : []
         };
+        
         setProfileData(profileWithArrays);
         setRestaurants(profileWithArrays.restaurants);
         setWishlist(profileWithArrays.wishlist);
@@ -77,7 +103,7 @@ export function useFriendProfilePagination(targetUserId: string) {
     } finally {
       setIsLoading(false);
     }
-  }, [targetUserId, user]);
+  }, [targetUserId, user, ITEMS_PER_PAGE]);
 
   const loadMoreRestaurants = useCallback(async () => {
     if (!user || !targetUserId || !hasMoreRestaurants || isLoadingMore) return;
@@ -111,7 +137,7 @@ export function useFriendProfilePagination(targetUserId: string) {
     } finally {
       setIsLoadingMore(false);
     }
-  }, [targetUserId, user, restaurantOffset, hasMoreRestaurants, isLoadingMore]);
+  }, [targetUserId, user, restaurantOffset, hasMoreRestaurants, isLoadingMore, ITEMS_PER_PAGE]);
 
   const loadMoreWishlist = useCallback(async () => {
     if (!user || !targetUserId || !hasMoreWishlist || isLoadingMore) return;
@@ -145,7 +171,7 @@ export function useFriendProfilePagination(targetUserId: string) {
     } finally {
       setIsLoadingMore(false);
     }
-  }, [targetUserId, user, wishlistOffset, hasMoreWishlist, isLoadingMore]);
+  }, [targetUserId, user, wishlistOffset, hasMoreWishlist, isLoadingMore, ITEMS_PER_PAGE]);
 
   useEffect(() => {
     loadInitialData();
