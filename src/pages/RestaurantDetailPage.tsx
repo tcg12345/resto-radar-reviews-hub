@@ -645,11 +645,11 @@ export function RestaurantDetailPage() {
                    <MapPin className="h-4 w-4 mr-2" />
                    {restaurant.city}, {restaurant.country}
                  </Badge>
-                 {restaurant.michelin_stars > 0 && (
-                   <Badge variant="outline" className="text-sm px-3 py-1">
-                     <MichelinStars stars={restaurant.michelin_stars} />
-                   </Badge>
-                 )}
+                  {restaurant.michelin_stars > 0 && (
+                    <Badge variant="outline" className="text-sm px-2 py-1 flex items-center gap-1">
+                      <MichelinStars stars={restaurant.michelin_stars} size="sm" readonly />
+                    </Badge>
+                  )}
                  {restaurant.price_range && <Badge variant="outline" className="text-sm px-3 py-1">
                      <PriceRange priceRange={restaurant.price_range} />
                    </Badge>}
