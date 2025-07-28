@@ -1118,7 +1118,7 @@ export function FriendsActivityPage() {
 
                     {/* Restaurant Name & Basic Info */}
                     <div>
-                      <div className="flex items-center mb-1">
+                      <div className="flex items-center gap-1 mb-1">
                         <h3 className="font-semibold text-sm leading-tight line-clamp-1">{restaurant.name}</h3>
                         {restaurant.michelin_stars && restaurant.michelin_stars > 0 && (
                           <MichelinStars stars={restaurant.michelin_stars} size="md" readonly showLogo={false} />
@@ -1181,7 +1181,7 @@ export function FriendsActivityPage() {
 
                     {/* Restaurant info */}
                     <div>
-                      <div className="flex items-center mb-1">
+                      <div className="flex items-center gap-1 mb-1">
                         <h3 className="font-semibold text-lg">{restaurant.name}</h3>
                         {restaurant.michelin_stars && restaurant.michelin_stars > 0 && (
                           <MichelinStars stars={restaurant.michelin_stars} size="md" readonly showLogo={false} />
