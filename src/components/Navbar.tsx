@@ -10,8 +10,8 @@ import { NotificationsPanel } from '@/components/NotificationsPanel';
 import { useUnreadMessageCount } from '@/hooks/useUnreadMessageCount';
 
 interface NavbarProps {
-  activeTab: 'home' | 'feed' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'travel';
-  onTabChange: (tab: 'home' | 'feed' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'travel') => void;
+  activeTab: 'feed' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'travel';
+  onTabChange: (tab: 'feed' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'travel') => void;
 }
 
 export function Navbar({ activeTab, onTabChange }: NavbarProps) {
@@ -20,7 +20,6 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
   const unreadMessageCount = useUnreadMessageCount();
 
   const tabs = [
-    { id: 'home' as const, label: 'Home', icon: Home, shortLabel: 'Home' },
     { id: 'feed' as const, label: 'Feed', icon: Zap, shortLabel: 'Feed' },
     { id: 'search' as const, label: 'Search & Discover', icon: Search, shortLabel: 'Search' },
     { id: 'rated' as const, label: 'My Ratings', icon: Star, shortLabel: 'Rated' },
@@ -34,7 +33,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
       {/* Desktop Navigation */}
       <nav className="hidden lg:block sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="w-full max-w-none flex h-16 items-center px-6">
-          <div className="cursor-pointer mr-8" onClick={() => onTabChange('home')}>
+          <div className="cursor-pointer mr-8" onClick={() => onTabChange('feed')}>
             <GrubbyLogo size="md" />
           </div>
 
@@ -112,7 +111,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
       {/* Mobile Top Bar */}
       <nav className="lg:hidden sticky top-0 z-50 w-full bg-background border-b border-border/50 pt-3">
         <div className="flex h-14 items-center justify-between px-4">
-          <div className="cursor-pointer" onClick={() => onTabChange('home')}>
+          <div className="cursor-pointer" onClick={() => onTabChange('feed')}>
             <GrubbyLogo size="sm" />
           </div>
           
