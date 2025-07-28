@@ -660,12 +660,12 @@ export function MobileChatWindow({ roomId, onBack }: MobileChatWindowProps) {
                             />
                           </div>
                         ) : (
-                          <div className={`rounded-2xl px-4 py-3 ${
+                          <div className={`rounded-2xl px-4 py-3 max-w-[calc(100vw-120px)] ${
                             isCurrentUser 
                               ? 'bg-primary text-primary-foreground' 
                               : 'bg-muted'
                           }`}>
-                            <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
+                            <p className="text-sm whitespace-pre-wrap break-words word-break overflow-wrap-anywhere">{message.content}</p>
                           </div>
                         )}
                         
