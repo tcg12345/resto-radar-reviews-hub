@@ -663,7 +663,19 @@ export function RestaurantDetailPage() {
           <div className="flex-1 p-8">
             <div className="max-w-4xl space-y-8">
               
-              {/* Quick Actions - Prominent */}
+              {/* Photo Gallery */}
+              {!restaurant.is_wishlist && restaurant.photos && restaurant.photos.length > 0 && (
+                <Card className="shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="text-2xl">Photo Gallery</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <RestaurantPhotoCarousel photos={restaurant.photos} restaurantName={restaurant.name} />
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Quick Actions - Moved under photo gallery */}
               <Card className="shadow-lg">
                 <CardHeader>
                   <CardTitle className="text-2xl flex items-center gap-2">
@@ -721,18 +733,6 @@ export function RestaurantDetailPage() {
                 </CardContent>
               </Card>
 
-              {/* Photo Gallery */}
-              {!restaurant.is_wishlist && restaurant.photos && restaurant.photos.length > 0 && (
-                <Card className="shadow-lg">
-                  <CardHeader>
-                    <CardTitle className="text-2xl">Photo Gallery</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <RestaurantPhotoCarousel photos={restaurant.photos} restaurantName={restaurant.name} />
-                  </CardContent>
-                </Card>
-              )}
-
               {/* Restaurant Details Grid */}
               <div className="grid md:grid-cols-2 gap-8">
                 {/* About */}
@@ -768,9 +768,11 @@ export function RestaurantDetailPage() {
                     {!restaurant.is_wishlist && restaurant.rating && (
                       <div>
                         <p className="font-semibold mb-2 text-lg">My Rating</p>
-                        <div className="flex items-center gap-3">
-                          <StarRating rating={restaurant.rating} readonly size="lg" />
-                          <span className="text-2xl font-bold">{restaurant.rating}/10</span>
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <div className="flex-shrink-0">
+                            <StarRating rating={restaurant.rating} readonly size="md" />
+                          </div>
+                          <span className="text-xl font-bold">{restaurant.rating}/10</span>
                         </div>
                       </div>
                     )}
