@@ -168,7 +168,10 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => onTabChange(tab.id)}
+                    onClick={() => {
+                      console.log('Tab clicked:', tab.id);
+                      onTabChange(tab.id);
+                    }}
                     className={`relative h-10 w-10 rounded-full mobile-tap-target transition-all duration-300 transform ${
                       isActive 
                         ? 'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg scale-110 shadow-primary/25' 

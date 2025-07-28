@@ -41,6 +41,11 @@ export default function Dashboard() {
     setActiveTab('rated');
   };
 
+  const handleTabChange = (tab: 'home' | 'feed' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'travel') => {
+    console.log('Dashboard: Tab change requested:', tab);
+    setActiveTab(tab);
+  };
+
   const renderContent = () => {
     return (
       <div className="relative w-full h-full">
@@ -97,7 +102,7 @@ export default function Dashboard() {
       {activeTab !== 'settings' && (
         <Navbar 
           activeTab={activeTab} 
-          onTabChange={setActiveTab} 
+          onTabChange={handleTabChange} 
         />
       )}
       
