@@ -672,7 +672,7 @@ export function RestaurantDetailPage() {
                 {/* Friend/Wishlist Notices */}
                 {friendProfile && (
                   <div className="mt-6">
-                    <Badge className="bg-blue-500/80 text-white border-blue-400/50 backdrop-blur-sm text-base px-4 py-2">
+                    <Badge className="bg-blue-500/80 text-white border-blue-400/50 backdrop-blur-sm text-base px-4 py-2 mb-3">
                       Shared by {friendProfile.name || friendProfile.username}
                     </Badge>
                   </div>
