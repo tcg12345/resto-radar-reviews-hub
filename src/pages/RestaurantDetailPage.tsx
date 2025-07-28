@@ -559,88 +559,46 @@ export function RestaurantDetailPage() {
         </div>
       </div>
 
-      {/* Desktop Layout */}
+      {/* Desktop Layout - Full Page */}
       <div className="hidden md:block min-h-screen bg-background">
-        {/* Header */}
-        <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b">
-          <div className="max-w-4xl mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <Button variant="ghost" onClick={() => {
-                if (returnUrl) {
-                  navigate(decodeURIComponent(returnUrl));
-                } else if (friendId) {
-                  navigate(`/friends/${friendId}`);
-                } else if (fromFriendsActivity) {
-                  navigate('/search/friends');
-                } else {
-                  navigate(-1);
-                }
-              }} className="flex items-center gap-2">
-                <ArrowLeft className="h-4 w-4" />
-                Back
-              </Button>
-              
-              {friendProfile && (
-                <Badge variant="outline" className="text-sm">
-                  From {friendProfile.name || friendProfile.username}
-                </Badge>
-              )}
+        {/* Full Width Hero Section */}
+        <div className="relative h-80 bg-gradient-to-r from-slate-900 to-slate-700">
+          {!restaurant.is_wishlist && restaurant.photos && restaurant.photos.length > 0 && (
+            <div className="absolute inset-0">
+              <img
+                src={restaurant.photos[0]}
+                alt={restaurant.name}
+                className="w-full h-full object-cover opacity-70"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/30"></div>
             </div>
-          </div>
-        </div>
-
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          {/* Friend Notice */}
-          {friendProfile && (
-            <Card className="mb-6 bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                    <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
-                      {friendProfile.name?.charAt(0) || friendProfile.username?.charAt(0) || 'U'}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-blue-800 dark:text-blue-200">
-                      Shared by {friendProfile.name || friendProfile.username}
-                    </p>
-                    <p className="text-sm text-blue-600 dark:text-blue-300">
-                      From their restaurant collection
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           )}
+          
+          {/* Hero Content */}
+          <div className="relative z-10 h-full flex items-center">
+            <div className="w-full px-8">
+              {/* Navigation */}
+              <div className="mb-6">
+                <Button variant="ghost" onClick={() => {
+                  if (returnUrl) {
+                    navigate(decodeURIComponent(returnUrl));
+                  } else if (friendId) {
+                    navigate(`/friends/${friendId}`);
+                  } else if (fromFriendsActivity) {
+                    navigate('/search/friends');
+                  } else {
+                    navigate(-1);
+                  }
+                }} className="text-white hover:bg-white/20 flex items-center gap-2">
+                  <ArrowLeft className="h-4 w-4" />
+                  Back
+                </Button>
+              </div>
 
-          {/* Wishlist Notice */}
-          {restaurant.is_wishlist && (
-            <Card className="mb-6 bg-purple-50/50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                    <Heart className="h-5 w-5 text-purple-600 fill-current" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-purple-800 dark:text-purple-200">
-                      On Wishlist
-                    </p>
-                    <p className="text-sm text-purple-600 dark:text-purple-300">
-                      Not yet visited
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Main Content */}
-          <div className="space-y-8">
-            {/* Restaurant Header */}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <h1 className="text-3xl md:text-4xl font-bold text-foreground leading-tight flex-1">
+              {/* Hero Title */}
+              <div className="max-w-4xl">
+                <div className="flex items-center gap-4 mb-4">
+                  <h1 className="text-5xl font-bold text-white leading-tight">
                     {restaurant.name}
                   </h1>
                   {restaurant.michelin_stars && restaurant.michelin_stars > 0 && (
@@ -649,224 +607,438 @@ export function RestaurantDetailPage() {
                     </div>
                   )}
                 </div>
-                <p className="text-lg text-muted-foreground">
+                
+                <p className="text-xl text-white/90 mb-6">
                   {restaurant.cuisine} • {restaurant.city}, {restaurant.country}
                 </p>
+
+                {/* Hero Badges */}
+                {!restaurant.is_wishlist && (
+                  <div className="flex items-center gap-3 flex-wrap">
+                    {restaurant.rating && (
+                      <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm text-base px-4 py-2">
+                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-2" />
+                        {restaurant.rating}/10
+                      </Badge>
+                    )}
+                    {restaurant.price_range && (
+                      <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm text-base px-4 py-2">
+                        <PriceRange priceRange={restaurant.price_range} />
+                      </Badge>
+                    )}
+                    {restaurant.date_visited && (
+                      <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm text-base px-4 py-2">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Visited {new Date(restaurant.date_visited).toLocaleDateString()}
+                      </Badge>
+                    )}
+                  </div>
+                )}
+
+                {/* Friend/Wishlist Notices */}
+                {friendProfile && (
+                  <div className="mt-6">
+                    <Badge className="bg-blue-500/80 text-white border-blue-400/50 backdrop-blur-sm text-base px-4 py-2">
+                      Shared by {friendProfile.name || friendProfile.username}
+                    </Badge>
+                  </div>
+                )}
+
+                {restaurant.is_wishlist && (
+                  <div className="mt-6">
+                    <Badge className="bg-purple-500/80 text-white border-purple-400/50 backdrop-blur-sm text-base px-4 py-2">
+                      <Heart className="h-4 w-4 mr-2 fill-current" />
+                      On Wishlist
+                    </Badge>
+                  </div>
+                )}
               </div>
-
-              {/* Rating and Basic Info */}
-              {!restaurant.is_wishlist && (
-                <div className="flex items-center gap-4 flex-wrap">
-                  {restaurant.rating && (
-                    <div className="flex items-center gap-2">
-                      <StarRating rating={restaurant.rating} readonly size="md" />
-                      <span className="font-medium">{restaurant.rating}/10</span>
-                    </div>
-                  )}
-                  {restaurant.price_range && (
-                    <Badge variant="outline">
-                      <PriceRange priceRange={restaurant.price_range} />
-                    </Badge>
-                  )}
-                  {restaurant.date_visited && (
-                    <Badge variant="secondary">
-                      <Calendar className="h-4 w-4 mr-1" />
-                      Visited {new Date(restaurant.date_visited).toLocaleDateString()}
-                    </Badge>
-                  )}
-                </div>
-              )}
             </div>
+          </div>
+        </div>
 
-            {/* Photos */}
-            {!restaurant.is_wishlist && restaurant.photos && restaurant.photos.length > 0 && (
-              <Card>
-                <CardContent className="p-0">
-                  <RestaurantPhotoCarousel photos={restaurant.photos} restaurantName={restaurant.name} />
+        {/* Main Content Grid */}
+        <div className="flex min-h-screen">
+          {/* Main Content Area */}
+          <div className="flex-1 p-8">
+            <div className="max-w-4xl space-y-8">
+              
+              {/* Quick Actions - Prominent */}
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-2xl flex items-center gap-2">
+                    <Heart className="h-6 w-6" />
+                    Quick Actions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-4 gap-6">
+                    <Button
+                      onClick={addToWishlist}
+                      disabled={isAddingToWishlist}
+                      className="h-24 flex-col gap-3 py-6 bg-gradient-to-br from-pink-400/60 to-violet-500/60 hover:from-pink-500/70 hover:to-violet-600/70 text-white border-0 backdrop-blur-sm text-base"
+                      variant="outline"
+                    >
+                      <Heart className="h-6 w-6" />
+                      <span>Add to Wishlist</span>
+                    </Button>
+
+                    {restaurant.phone_number && (
+                      <Button asChild variant="outline" className="h-24 flex-col gap-3 py-6 bg-gradient-to-br from-blue-400/60 to-cyan-500/60 hover:from-blue-500/70 hover:to-cyan-600/70 text-white border-0 backdrop-blur-sm text-base">
+                        <a href={`tel:${restaurant.phone_number}`}>
+                          <Phone className="h-6 w-6" />
+                          <span>Call Now</span>
+                        </a>
+                      </Button>
+                    )}
+
+                    {restaurant.website && (
+                      <Button asChild variant="outline" className="h-24 flex-col gap-3 py-6 bg-gradient-to-br from-green-400/60 to-emerald-500/60 hover:from-green-500/70 hover:to-emerald-600/70 text-white border-0 backdrop-blur-sm text-base">
+                        <a href={restaurant.website} target="_blank" rel="noopener noreferrer">
+                          <Globe className="h-6 w-6" />
+                          <span>Website</span>
+                        </a>
+                      </Button>
+                    )}
+
+                    <Button asChild variant="outline" className="h-24 flex-col gap-3 py-6 bg-gradient-to-br from-orange-400/60 to-red-500/60 hover:from-orange-500/70 hover:to-red-600/70 text-white border-0 backdrop-blur-sm text-base">
+                      <a
+                        href={
+                          restaurant.latitude && restaurant.longitude
+                            ? `https://www.google.com/maps/dir/?api=1&destination=${restaurant.latitude},${restaurant.longitude}`
+                            : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                                `${restaurant.name} ${restaurant.address} ${restaurant.city}`
+                              )}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Navigation className="h-6 w-6" />
+                        <span>Directions</span>
+                      </a>
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
-            )}
 
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <Button
-                    onClick={addToWishlist}
-                    disabled={isAddingToWishlist}
-                    className="h-auto flex-col gap-2 py-4 bg-gradient-to-br from-pink-400/60 to-violet-500/60 hover:from-pink-500/70 hover:to-violet-600/70 text-white border-0 backdrop-blur-sm"
-                    variant="outline"
+              {/* Photo Gallery */}
+              {!restaurant.is_wishlist && restaurant.photos && restaurant.photos.length > 0 && (
+                <Card className="shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="text-2xl">Photo Gallery</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <RestaurantPhotoCarousel photos={restaurant.photos} restaurantName={restaurant.name} />
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Restaurant Details Grid */}
+              <div className="grid md:grid-cols-2 gap-8">
+                {/* About */}
+                <Card className="shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="text-xl flex items-center gap-2">
+                      <ChefHat className="h-5 w-5" />
+                      About This Restaurant
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div>
+                      <p className="font-semibold mb-2 text-lg">Cuisine</p>
+                      <p className="text-muted-foreground">{restaurant.cuisine}</p>
+                    </div>
+
+                    {restaurant.price_range && (
+                      <div>
+                        <p className="font-semibold mb-2 text-lg">Price Range</p>
+                        <div className="text-lg">
+                          <PriceRange priceRange={restaurant.price_range} />
+                        </div>
+                      </div>
+                    )}
+
+                    {restaurant.michelin_stars && restaurant.michelin_stars > 0 && (
+                      <div>
+                        <p className="font-semibold mb-2 text-lg">Recognition</p>
+                        <MichelinStars stars={restaurant.michelin_stars} size="lg" readonly showLogo={true} />
+                      </div>
+                    )}
+
+                    {!restaurant.is_wishlist && restaurant.rating && (
+                      <div>
+                        <p className="font-semibold mb-2 text-lg">My Rating</p>
+                        <div className="flex items-center gap-3">
+                          <StarRating rating={restaurant.rating} readonly size="lg" />
+                          <span className="text-2xl font-bold">{restaurant.rating}/10</span>
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <p className="font-semibold mb-2 text-lg">Status</p>
+                      <Badge variant={restaurant.is_wishlist ? "secondary" : "default"} className="text-base px-3 py-1">
+                        {restaurant.is_wishlist ? "Wishlist Item" : "Visited Restaurant"}
+                      </Badge>
+                    </div>
+
+                    {restaurant.date_visited && (
+                      <div>
+                        <p className="font-semibold mb-2 text-lg">Visit Date</p>
+                        <p className="text-muted-foreground">{new Date(restaurant.date_visited).toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Location & Contact */}
+                <Card className="shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="text-xl flex items-center gap-2">
+                      <MapPin className="h-5 w-5" />
+                      Location & Contact
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div>
+                      <p className="font-semibold mb-2 text-lg">Address</p>
+                      <p className="text-muted-foreground leading-relaxed">
+                        {restaurant.address}<br />
+                        {restaurant.city}, {restaurant.country}
+                      </p>
+                    </div>
+                    
+                    {restaurant.phone_number && (
+                      <div>
+                        <p className="font-semibold mb-2 text-lg">Phone</p>
+                        <a 
+                          href={`tel:${restaurant.phone_number}`}
+                          className="text-primary hover:underline text-lg"
+                        >
+                          {restaurant.phone_number}
+                        </a>
+                      </div>
+                    )}
+
+                    {restaurant.website && (
+                      <div>
+                        <p className="font-semibold mb-2 text-lg">Website</p>
+                        <a 
+                          href={restaurant.website} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline flex items-center gap-2 text-lg"
+                        >
+                          Visit Website
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      </div>
+                    )}
+
+                    {restaurant.reservable && (
+                      <div>
+                        <p className="font-semibold mb-2 text-lg">Reservations</p>
+                        {restaurant.reservation_url ? (
+                          <a 
+                            href={restaurant.reservation_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline flex items-center gap-2"
+                          >
+                            Make a Reservation
+                            <ExternalLink className="h-4 w-4" />
+                          </a>
+                        ) : (
+                          <p className="text-muted-foreground">Reservations accepted</p>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Opening Hours */}
+              {restaurant.opening_hours && (
+                <Card className="shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="text-2xl flex items-center gap-2">
+                      <Clock className="h-6 w-6" />
+                      Opening Hours
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <OpeningHoursDisplay hours={restaurant.opening_hours.split('\n')} />
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Notes */}
+              {restaurant.notes && (
+                <Card className="shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="text-2xl">Personal Notes</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground leading-relaxed text-lg">
+                      {restaurant.notes}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Map */}
+              {restaurant.latitude && restaurant.longitude && (
+                <Card className="shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="text-2xl flex items-center gap-2">
+                      <MapPin className="h-6 w-6" />
+                      Location Map
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="h-96 rounded-b-lg overflow-hidden">
+                      <RestaurantLocationMap 
+                        latitude={restaurant.latitude} 
+                        longitude={restaurant.longitude} 
+                        name={restaurant.name}
+                        address={restaurant.address}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="w-80 bg-muted/30 p-6 border-l">
+            <div className="sticky top-6 space-y-6">
+              {/* Quick Stats */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Quick Stats</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between">
+                    <span className="font-medium">Cuisine</span>
+                    <span className="text-muted-foreground">{restaurant.cuisine}</span>
+                  </div>
+                  
+                  {restaurant.price_range && (
+                    <div className="flex justify-between">
+                      <span className="font-medium">Price</span>
+                      <PriceRange priceRange={restaurant.price_range} />
+                    </div>
+                  )}
+
+                  {!restaurant.is_wishlist && restaurant.rating && (
+                    <div className="flex justify-between">
+                      <span className="font-medium">Rating</span>
+                      <span className="text-muted-foreground">{restaurant.rating}/10</span>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between">
+                    <span className="font-medium">Location</span>
+                    <span className="text-muted-foreground">{restaurant.city}</span>
+                  </div>
+
+                  {restaurant.michelin_stars && restaurant.michelin_stars > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">Michelin</span>
+                      <MichelinStars stars={restaurant.michelin_stars} size="sm" readonly showLogo={false} />
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Additional Actions */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">More Actions</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => navigator.share?.({
+                      title: restaurant.name,
+                      text: `Check out ${restaurant.name} - ${restaurant.cuisine} restaurant in ${restaurant.city}`,
+                      url: window.location.href
+                    })}
                   >
-                    <Heart className="h-5 w-5" />
-                    <span className="text-sm">Add to Wishlist</span>
+                    <Heart className="h-4 w-4 mr-2" />
+                    Share Restaurant
                   </Button>
-
-                  {restaurant.phone_number && (
-                    <Button asChild variant="outline" className="h-auto flex-col gap-2 py-4 bg-gradient-to-br from-blue-400/60 to-cyan-500/60 hover:from-blue-500/70 hover:to-cyan-600/70 text-white border-0 backdrop-blur-sm">
-                      <a href={`tel:${restaurant.phone_number}`}>
-                        <Phone className="h-5 w-5" />
-                        <span className="text-sm">Call</span>
-                      </a>
-                    </Button>
-                  )}
-
-                  {restaurant.website && (
-                    <Button asChild variant="outline" className="h-auto flex-col gap-2 py-4 bg-gradient-to-br from-green-400/60 to-emerald-500/60 hover:from-green-500/70 hover:to-emerald-600/70 text-white border-0 backdrop-blur-sm">
-                      <a href={restaurant.website} target="_blank" rel="noopener noreferrer">
-                        <Globe className="h-5 w-5" />
-                        <span className="text-sm">Website</span>
-                      </a>
-                    </Button>
-                  )}
-
-                  <Button asChild variant="outline" className="h-auto flex-col gap-2 py-4 bg-gradient-to-br from-orange-400/60 to-red-500/60 hover:from-orange-500/70 hover:to-red-600/70 text-white border-0 backdrop-blur-sm">
+                  
+                  <Button variant="outline" className="w-full justify-start" asChild>
                     <a
-                      href={
-                        restaurant.latitude && restaurant.longitude
-                          ? `https://www.google.com/maps/dir/?api=1&destination=${restaurant.latitude},${restaurant.longitude}`
-                          : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                              `${restaurant.name} ${restaurant.address} ${restaurant.city}`
-                            )}`
-                      }
+                      href={`https://www.google.com/search?q=${encodeURIComponent(
+                        `${restaurant.name} ${restaurant.city} reviews`
+                      )}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      <Navigation className="h-5 w-5" />
-                      <span className="text-sm">Directions</span>
+                      <Globe className="h-4 w-4 mr-2" />
+                      Find Reviews
                     </a>
                   </Button>
-                </div>
-              </CardContent>
-            </Card>
 
-            {/* Restaurant Details */}
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Address & Contact */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <MapPin className="h-5 w-5" />
-                    Location & Contact
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <p className="font-medium mb-1">Address</p>
-                    <p className="text-muted-foreground">
-                      {restaurant.address}<br />
-                      {restaurant.city}, {restaurant.country}
-                    </p>
-                  </div>
-                  
-                  {restaurant.phone_number && (
-                    <div>
-                      <p className="font-medium mb-1">Phone</p>
-                      <p className="text-muted-foreground">{restaurant.phone_number}</p>
-                    </div>
-                  )}
-
-                  {restaurant.website && (
-                    <div>
-                      <p className="font-medium mb-1">Website</p>
-                      <a 
-                        href={restaurant.website} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline flex items-center gap-1"
-                      >
-                        Visit website
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                    </div>
-                  )}
+                  <Button variant="outline" className="w-full justify-start" asChild>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                        `restaurants near ${restaurant.name} ${restaurant.city}`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <MapPin className="h-4 w-4 mr-2" />
+                      Nearby Restaurants
+                    </a>
+                  </Button>
                 </CardContent>
               </Card>
 
-              {/* Restaurant Info */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Restaurant Info</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <p className="font-medium mb-1">Cuisine</p>
-                    <p className="text-muted-foreground">{restaurant.cuisine}</p>
-                  </div>
-
-                  {restaurant.price_range && (
-                    <div>
-                      <p className="font-medium mb-1">Price Range</p>
-                      <PriceRange priceRange={restaurant.price_range} />
+              {/* Timeline */}
+              {restaurant.created_at && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Timeline</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="text-sm">
+                      <p className="font-medium">Added to collection</p>
+                      <p className="text-muted-foreground">
+                        {new Date(restaurant.created_at).toLocaleDateString()}
+                      </p>
                     </div>
-                  )}
+                    
+                    {restaurant.date_visited && (
+                      <div className="text-sm">
+                        <p className="font-medium">Date visited</p>
+                        <p className="text-muted-foreground">
+                          {new Date(restaurant.date_visited).toLocaleDateString()}
+                        </p>
+                      </div>
+                    )}
 
-                  {restaurant.michelin_stars && restaurant.michelin_stars > 0 && (
-                    <div>
-                      <p className="font-medium mb-1">Michelin Stars</p>
-                      <MichelinStars stars={restaurant.michelin_stars} size="md" readonly showLogo={false} />
-                    </div>
-                  )}
-
-                  <div>
-                    <p className="font-medium mb-1">Status</p>
-                    <Badge variant={restaurant.is_wishlist ? "secondary" : "default"}>
-                      {restaurant.is_wishlist ? "Wishlist" : "Visited"}
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
+                    {restaurant.updated_at && restaurant.updated_at !== restaurant.created_at && (
+                      <div className="text-sm">
+                        <p className="font-medium">Last updated</p>
+                        <p className="text-muted-foreground">
+                          {new Date(restaurant.updated_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
             </div>
-
-            {/* Opening Hours */}
-            {restaurant.opening_hours && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Clock className="h-5 w-5" />
-                    Opening Hours
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <OpeningHoursDisplay hours={restaurant.opening_hours.split('\n')} />
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Notes */}
-            {restaurant.notes && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Notes</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {restaurant.notes}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Map */}
-            {restaurant.latitude && restaurant.longitude && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Map</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="h-64 rounded-b-lg overflow-hidden">
-                    <RestaurantLocationMap 
-                      latitude={restaurant.latitude} 
-                      longitude={restaurant.longitude} 
-                      name={restaurant.name}
-                      address={restaurant.address}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            )}
           </div>
         </div>
       </div>
