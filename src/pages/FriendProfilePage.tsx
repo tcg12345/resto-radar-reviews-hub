@@ -622,41 +622,53 @@ export default function FriendProfilePage() {
                 {filteredRestaurants.map((restaurant) => (
                   <Card 
                     key={restaurant.id} 
-                    className="p-6 hover:shadow-xl transition-all duration-300 cursor-pointer group border-l-4 border-l-primary/20 hover:border-l-primary hover:scale-[1.02]"
+                    className="overflow-hidden hover:shadow-2xl transition-all duration-500 cursor-pointer group bg-gradient-to-br from-card via-card to-muted/20 border-0 ring-1 ring-border/50 hover:ring-primary/50 hover:scale-[1.03]"
                     onClick={() => navigate(`/restaurant/${restaurant.id}?friendId=${actualUserId}`)}
                   >
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-lg group-hover:text-primary transition-colors truncate">
-                            {restaurant.name}
-                          </h3>
-                          <div className="flex items-center gap-2 mt-2">
-                            <Badge variant="secondary" className="text-xs bg-muted">
-                              <ChefHat className="h-3 w-3 mr-1" />
-                              {restaurant.cuisine}
-                            </Badge>
-                            {restaurant.michelin_stars && (
-                              <MichelinStars stars={restaurant.michelin_stars} />
-                            )}
-                          </div>
-                        </div>
-                        <div className="text-center ml-4">
-                          <div className="text-2xl font-bold text-primary">
+                    {/* Header with Rating Badge */}
+                    <div className="relative bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 p-6 pb-4">
+                      <div className="absolute top-4 right-4">
+                        <div className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground px-3 py-2 rounded-xl shadow-lg">
+                          <div className="text-xl font-bold text-center">
                             {restaurant.rating?.toFixed(1) || '—'}
                           </div>
-                          <div className="text-xs text-muted-foreground">rating</div>
+                          <div className="text-xs opacity-90 text-center">rating</div>
                         </div>
                       </div>
+                      
+                      <div className="pr-20">
+                        <h3 className="font-bold text-xl group-hover:text-primary transition-colors line-clamp-2 mb-3">
+                          {restaurant.name}
+                        </h3>
+                        
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
+                            <ChefHat className="h-3 w-3 mr-1" />
+                            {restaurant.cuisine}
+                          </Badge>
+                          {restaurant.michelin_stars && (
+                            <div className="flex items-center gap-1">
+                              <MichelinStars stars={restaurant.michelin_stars} />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
 
+                    {/* Content Section */}
+                    <div className="p-6 pt-4 space-y-4">
                       <div className="flex items-center gap-2 text-muted-foreground">
-                        <MapPin className="h-4 w-4" />
-                        <span className="text-sm truncate">{restaurant.city}</span>
+                        <div className="p-1.5 bg-muted/50 rounded-lg">
+                          <MapPin className="h-4 w-4" />
+                        </div>
+                        <span className="text-sm font-medium truncate">{restaurant.city}</span>
                       </div>
 
                       {restaurant.date_visited && (
                         <div className="flex items-center gap-2 text-muted-foreground">
-                          <Calendar className="h-4 w-4" />
+                          <div className="p-1.5 bg-muted/50 rounded-lg">
+                            <Calendar className="h-4 w-4" />
+                          </div>
                           <span className="text-sm">
                             Visited {new Date(restaurant.date_visited).toLocaleDateString()}
                           </span>
@@ -664,23 +676,26 @@ export default function FriendProfilePage() {
                       )}
 
                       {restaurant.notes && (
-                        <div className="p-3 bg-muted/30 rounded-lg">
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {restaurant.notes}
+                        <div className="p-4 bg-gradient-to-r from-muted/50 to-muted/30 rounded-xl border border-border/50">
+                          <p className="text-sm text-foreground/80 line-clamp-2 leading-relaxed">
+                            "{restaurant.notes}"
                           </p>
                         </div>
                       )}
 
-                      <div className="flex items-center justify-between pt-2 border-t border-border/50">
-                        <div className="text-xs text-muted-foreground">
+                      {/* Footer */}
+                      <div className="flex items-center justify-between pt-4 border-t border-gradient-to-r from-transparent via-border to-transparent">
+                        <div className="text-xs text-muted-foreground flex items-center gap-1">
+                          <div className="w-1.5 h-1.5 rounded-full bg-primary/50"></div>
                           Added {new Date(restaurant.created_at).toLocaleDateString()}
                         </div>
                         <Button 
                           size="sm" 
                           variant="ghost" 
-                          className="h-8 px-3 text-xs group-hover:bg-primary group-hover:text-primary-foreground"
+                          className="h-9 px-4 text-xs font-medium group-hover:bg-gradient-to-r group-hover:from-primary group-hover:to-primary/80 group-hover:text-primary-foreground group-hover:shadow-lg transition-all duration-300"
                         >
-                          View Details →
+                          View Details
+                          <ArrowLeft className="h-3 w-3 ml-2 rotate-180 group-hover:translate-x-1 transition-transform" />
                         </Button>
                       </div>
                     </div>
