@@ -13,25 +13,30 @@ export const MichelinStarIcon = React.memo(({
   stroke = "none" 
 }: MichelinStarIconProps) => {
   return (
-    <svg
-      viewBox="0 0 100 100"
+    <img 
+      src="/lovable-uploads/4184d3a1-346a-454b-ad4f-5db720774949.png"
+      alt="Michelin Star"
       className={className}
-      fill="none"
-      stroke={fill}
-      strokeWidth="3"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      {/* Simple 6-petal Michelin rosette */}
-      <g transform="translate(50,50)">
-        <circle cx="0" cy="-30" r="12" />
-        <circle cx="26" cy="-15" r="12" />
-        <circle cx="26" cy="15" r="12" />
-        <circle cx="0" cy="30" r="12" />
-        <circle cx="-26" cy="15" r="12" />
-        <circle cx="-26" cy="-15" r="12" />
-      </g>
-    </svg>
+      style={{ 
+        objectFit: 'contain',
+        filter: fill !== 'currentColor' && fill !== '#dc2626' ? `hue-rotate(${getHueRotation(fill)})` : undefined
+      }}
+    />
   );
+
+  function getHueRotation(color: string): string {
+    // Simple color mapping for common colors
+    const colorMap: { [key: string]: string } = {
+      'red': '0deg',
+      '#dc2626': '0deg', 
+      'blue': '240deg',
+      'green': '120deg',
+      'purple': '270deg',
+      'orange': '30deg',
+      'yellow': '60deg'
+    };
+    return colorMap[color] || '0deg';
+  }
 });
 
 MichelinStarIcon.displayName = 'MichelinStarIcon';
