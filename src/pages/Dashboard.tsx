@@ -9,11 +9,12 @@ import UnifiedSearchPage from '@/pages/UnifiedSearchPage';
 import SettingsPage from '@/pages/SettingsPage';
 import { FriendsPage } from '@/pages/FriendsPage';
 import { FeedPage } from '@/pages/FeedPage';
+import HomePageWrapper from '@/pages/HomePageWrapper';
 import { AIChatbot } from '@/components/AIChatbot';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState<'feed' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'travel'>('feed');
+  const [activeTab, setActiveTab] = useState<'home' | 'feed' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'travel'>('home');
   const [shouldOpenAddDialog, setShouldOpenAddDialog] = useState(false);
   const [viewFriendId, setViewFriendId] = useState<string | null>(null);
   const { restaurants, addRestaurant, updateRestaurant, deleteRestaurant } = useRestaurants();
@@ -42,6 +43,9 @@ export default function Dashboard() {
   const renderContent = () => {
     return (
       <div className="relative w-full h-full">
+        <div className={`${activeTab === 'home' ? 'block' : 'hidden'}`}>
+          <HomePageWrapper />
+        </div>
         <div className={`${activeTab === 'feed' ? 'block' : 'hidden'}`}>
           <FeedPage onNavigate={setActiveTab} onOpenAddRestaurant={handleOpenAddRestaurant} />
         </div>
