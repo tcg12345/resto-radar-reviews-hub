@@ -50,20 +50,22 @@ export default function Dashboard() {
 
 
   const renderContent = () => {
-    return (
-      <div className="relative w-full h-full">
-        <div className={`${activeTab === 'home' ? 'block' : 'hidden'}`}>
-          <HomePage onNavigate={setActiveTab} onOpenAddRestaurant={handleOpenAddRestaurant} />
-        </div>
-        <div className={`${activeTab === 'feed' ? 'block' : 'hidden'}`}>
-          <div className="lg:hidden">
-            <MobileFeedPage />
-          </div>
-          <div className="hidden lg:block">
-            <DesktopFeedPage />
-          </div>
-        </div>
-        <div className={`${activeTab === 'rated' ? 'block' : 'hidden'}`}>
+    switch (activeTab) {
+      case 'home':
+        return <HomePage onNavigate={setActiveTab} onOpenAddRestaurant={handleOpenAddRestaurant} />;
+      case 'feed':
+        return (
+          <>
+            <div className="lg:hidden">
+              <MobileFeedPage />
+            </div>
+            <div className="hidden lg:block">
+              <DesktopFeedPage />
+            </div>
+          </>
+        );
+      case 'rated':
+        return (
           <RatedRestaurantsPage
             restaurants={restaurants}
             onAddRestaurant={addRestaurant}
@@ -74,8 +76,9 @@ export default function Dashboard() {
             onNavigateToMap={() => navigate('/map')}
             onOpenSettings={() => setActiveTab('settings')}
           />
-        </div>
-        <div className={`${activeTab === 'wishlist' ? 'block' : 'hidden'}`}>
+        );
+      case 'wishlist':
+        return (
           <WishlistPage
             restaurants={restaurants}
             onAddRestaurant={addRestaurant}
@@ -83,21 +86,21 @@ export default function Dashboard() {
             onDeleteRestaurant={deleteRestaurant}
             onNavigateToMap={() => navigate('/map')}
           />
-        </div>
-        <div className={`${activeTab === 'search' ? 'block' : 'hidden'}`}>
-          <UnifiedSearchPage />
-        </div>
-        <div className={`${activeTab === 'settings' ? 'block' : 'hidden'}`}>
-          <SettingsPage onBack={() => setActiveTab('home')} />
-        </div>
-        <div className={`${activeTab === 'friends' ? 'block' : 'hidden'}`}>
+        );
+      case 'search':
+        return <UnifiedSearchPage />;
+      case 'settings':
+        return <SettingsPage onBack={() => setActiveTab('home')} />;
+      case 'friends':
+        return (
           <FriendsPage 
             initialViewFriendId={viewFriendId} 
             onInitialViewProcessed={() => setViewFriendId(null)}
           />
-        </div>
-      </div>
-    );
+        );
+      default:
+        return <HomePage onNavigate={setActiveTab} onOpenAddRestaurant={handleOpenAddRestaurant} />;
+    }
   };
 
   return (
