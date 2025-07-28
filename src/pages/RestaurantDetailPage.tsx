@@ -1147,7 +1147,9 @@ export function RestaurantDetailPage() {
 
             {/* Thumbnail Navigation */}
             {restaurant.photos.length > 1 && (
-              <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex gap-2 max-w-md overflow-x-auto">
+              <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex gap-2 max-w-md overflow-x-auto scrollbar-hide"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
                 {restaurant.photos.map((photo, index) => (
                   <button
                     key={index}
