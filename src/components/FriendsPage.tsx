@@ -116,8 +116,24 @@ export function FriendsPage({
     navigate(`/friends/${friend.id}`);
   };
 
-  const handleStartChat = (friend: any) => {
-    navigate(`/chat/${friend.id}`);
+  const handleStartChat = async (friend: any) => {
+    if (!user) return;
+
+    try {
+      const { data: roomId, error } = await supabase
+        .rpc('get_or_create_dm_room', { other_user_id: friend.id });
+
+      if (error) {
+        console.error('Error creating chat room:', error);
+        toast.error('Failed to start chat');
+        return;
+      }
+
+      navigate(`/chat/${roomId}`);
+    } catch (error) {
+      console.error('Error starting chat:', error);
+      toast.error('Failed to start chat');
+    }
   };
 
   const handleRemoveFriend = async (friendId: string) => {
