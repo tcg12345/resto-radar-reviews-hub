@@ -16,16 +16,25 @@ export const MichelinStarIcon = React.memo(({
     <svg
       viewBox="0 0 100 100"
       className={className}
-      fill={fill}
-      stroke={stroke}
-      strokeWidth="0"
+      fill="none"
+      stroke={fill}
+      strokeWidth="3"
       xmlns="http://www.w3.org/2000/svg"
     >
       <g transform="translate(50,50)">
-        {/* Six-petaled rosette shape for Michelin star */}
-        <path d="M0,-40 Q-8,-25 -20,-25 Q-35,-15 -35,0 Q-35,15 -20,25 Q-8,25 0,40 Q8,25 20,25 Q35,15 35,0 Q35,-15 20,-25 Q8,-25 0,-40 Z" />
-        <path d="M0,-30 Q-5,-20 -15,-20 Q-25,-12 -25,0 Q-25,12 -15,20 Q-5,20 0,30 Q5,20 15,20 Q25,12 25,0 Q25,-12 15,-20 Q5,-20 0,-30 Z" 
-              fill="white" opacity="0.3"/>
+        {/* Six petal rosette - Michelin logo style */}
+        {[0, 60, 120, 180, 240, 300].map((rotation, index) => (
+          <path
+            key={index}
+            d="M0,-35 Q-12,-25 -12,-10 Q-12,5 0,15 Q12,5 12,-10 Q12,-25 0,-35"
+            transform={`rotate(${rotation})`}
+            fill="none"
+            stroke={fill}
+            strokeWidth="3"
+            strokeLinejoin="round"
+            strokeLinecap="round"
+          />
+        ))}
       </g>
     </svg>
   );
