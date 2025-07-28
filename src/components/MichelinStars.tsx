@@ -72,7 +72,7 @@ export const MichelinStars = React.memo(({
         <img 
           src="/lovable-uploads/a19328d3-fb1d-41e4-b595-caaee16a8c16.png"
           alt="Michelin"
-          className={`${sizeClasses[size]} object-contain`}
+          className={`${size === 'sm' ? 'h-8' : size === 'md' ? 'h-12' : 'h-16'} object-contain`}
         />
       )}
       
