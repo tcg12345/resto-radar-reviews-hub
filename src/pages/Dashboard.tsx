@@ -45,25 +45,30 @@ export default function Dashboard() {
   };
 
   const handleTabChange = (tab: 'home' | 'feed' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'travel') => {
+    console.log('DASHBOARD: Tab change called with:', tab, 'Current activeTab:', activeTab);
     setActiveTab(tab);
+    // Force immediate check
+    setTimeout(() => console.log('DASHBOARD: activeTab after setState:', activeTab), 0);
   };
 
 
   const renderContent = () => {
+    console.log('DASHBOARD: renderContent called with activeTab:', activeTab);
+    
+    if (activeTab === 'feed') {
+      console.log('DASHBOARD: Rendering FEED content');
+      return (
+        <div style={{ background: 'red', padding: '20px', color: 'white' }}>
+          <h1>FEED PAGE - THIS IS THE FEED!</h1>
+          <MobileFeedPage />
+        </div>
+      );
+    }
+    
     switch (activeTab) {
       case 'home':
+        console.log('DASHBOARD: Rendering HOME content');
         return <HomePage onNavigate={setActiveTab} onOpenAddRestaurant={handleOpenAddRestaurant} />;
-      case 'feed':
-        return (
-          <>
-            <div className="lg:hidden">
-              <MobileFeedPage />
-            </div>
-            <div className="hidden lg:block">
-              <DesktopFeedPage />
-            </div>
-          </>
-        );
       case 'rated':
         return (
           <RatedRestaurantsPage
@@ -99,6 +104,7 @@ export default function Dashboard() {
           />
         );
       default:
+        console.log('DASHBOARD: Rendering DEFAULT (home) content');
         return <HomePage onNavigate={setActiveTab} onOpenAddRestaurant={handleOpenAddRestaurant} />;
     }
   };
