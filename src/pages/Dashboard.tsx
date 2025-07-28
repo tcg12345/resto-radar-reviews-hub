@@ -53,12 +53,23 @@ export default function Dashboard() {
     }
     
     setActiveTab(tab);
-    
-    // Add a setTimeout to check if the state actually changed
-    setTimeout(() => {
-      console.log('Dashboard: activeTab after setTimeout:', activeTab);
-    }, 100);
   };
+
+  // Test if we can force feed tab
+  useEffect(() => {
+    const checkHash = () => {
+      if (window.location.hash === '#feed-debug') {
+        console.log('Hash detected - forcing feed tab');
+        setActiveTab('feed');
+        window.location.hash = '';
+      }
+    };
+    
+    window.addEventListener('hashchange', checkHash);
+    checkHash(); // Check on mount
+    
+    return () => window.removeEventListener('hashchange', checkHash);
+  }, []);
 
   const renderContent = () => {
     return (
