@@ -43,7 +43,12 @@ export default function Dashboard() {
 
   const handleTabChange = (tab: 'home' | 'feed' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'travel') => {
     console.log('Dashboard: Tab change requested:', tab);
+    console.log('Dashboard: Current activeTab:', activeTab);
+    if (tab === 'feed') {
+      console.log('Dashboard: Setting activeTab to feed');
+    }
     setActiveTab(tab);
+    console.log('Dashboard: setActiveTab called with:', tab);
   };
 
   const renderContent = () => {

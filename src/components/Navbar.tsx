@@ -50,7 +50,13 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
                     size="sm"
                     onClick={() => {
                       console.log('Desktop tab clicked:', tab.id);
-                      onTabChange(tab.id);
+                      try {
+                        console.log('About to call onTabChange with:', tab.id);
+                        onTabChange(tab.id);
+                        console.log('onTabChange called successfully');
+                      } catch (error) {
+                        console.error('Error calling onTabChange:', error);
+                      }
                     }}
                     className={`relative px-4 py-2 transition-all duration-200 ${
                       activeTab === tab.id 
@@ -174,7 +180,13 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
                     size="icon"
                     onClick={() => {
                       console.log('Tab clicked:', tab.id);
-                      onTabChange(tab.id);
+                      try {
+                        console.log('About to call onTabChange with:', tab.id);
+                        onTabChange(tab.id);
+                        console.log('onTabChange called successfully');
+                      } catch (error) {
+                        console.error('Error calling onTabChange:', error);
+                      }
                     }}
                     className={`relative h-10 w-10 rounded-full mobile-tap-target transition-all duration-300 transform ${
                       isActive 
