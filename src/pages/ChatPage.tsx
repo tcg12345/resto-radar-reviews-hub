@@ -315,7 +315,7 @@ export function ChatPage() {
   const messageGroups = groupMessagesByDate(messages);
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-background lg:max-w-4xl lg:mx-auto lg:border-x">
+    <div className="fixed inset-0 flex flex-col bg-background">
       {/* Mobile status bar spacer */}
       <div className="lg:hidden h-[35px] bg-background flex-shrink-0"></div>
       {/* Header */}
