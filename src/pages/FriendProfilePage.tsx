@@ -27,6 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { MichelinStars } from '@/components/MichelinStars';
+import { PriceRange } from '@/components/PriceRange';
 import { useFriendProfileOptimized } from '@/hooks/useFriendProfileOptimized';
 import { useFriends } from '@/hooks/useFriends';
 import { useAuth } from '@/contexts/AuthContext';
@@ -412,9 +413,12 @@ export default function FriendProfilePage() {
                             <Badge variant="secondary" className="text-xs">
                               {restaurant.cuisine}
                             </Badge>
-                            {restaurant.michelin_stars && (
-                              <MichelinStars stars={restaurant.michelin_stars} />
-                            )}
+                             {restaurant.michelin_stars && (
+                               <MichelinStars stars={restaurant.michelin_stars} />
+                             )}
+                             {restaurant.price_range && (
+                               <PriceRange priceRange={restaurant.price_range} readonly size="sm" />
+                             )}
                           </div>
                           <div className="flex items-center gap-2 mt-1 text-muted-foreground">
                             <MapPin className="h-3 w-3" />
@@ -646,11 +650,16 @@ export default function FriendProfilePage() {
                             <ChefHat className="h-3 w-3 mr-1" />
                             {restaurant.cuisine}
                           </Badge>
-                          {restaurant.michelin_stars && (
-                            <div className="flex items-center gap-1">
-                              <MichelinStars stars={restaurant.michelin_stars} />
-                            </div>
-                          )}
+                           {restaurant.michelin_stars && (
+                             <div className="flex items-center gap-1">
+                               <MichelinStars stars={restaurant.michelin_stars} />
+                             </div>
+                           )}
+                           {restaurant.price_range && (
+                             <div className="flex items-center gap-1">
+                               <PriceRange priceRange={restaurant.price_range} readonly size="sm" />
+                             </div>
+                           )}
                         </div>
                       </div>
                     </div>
