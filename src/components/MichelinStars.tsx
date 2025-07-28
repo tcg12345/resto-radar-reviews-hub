@@ -38,29 +38,34 @@ export const MichelinStars = React.memo(({
   return (
     <div className="flex items-center gap-2">
       <div className="flex items-center gap-1">
-        {[1, 2, 3].map((starCount) => {
-          const isFilled = starCount <= displayStars;
-          
-          return (
-            <button
-              key={starCount}
-              type="button"
-              disabled={readonly}
-              onClick={() => handleStarClick(starCount)}
-              className={`transition-all duration-150 ${
-                readonly ? 'cursor-default' : 'cursor-pointer hover:scale-110'
-              }`}
-            >
+        {readonly 
+          ? Array.from({ length: displayStars }, (_, index) => (
               <MichelinStarIcon
-                className={`${sizeClasses[size]} transition-colors duration-150 ${
-                  isFilled
-                    ? 'text-red-600'
-                    : 'text-gray-400 hover:text-red-500'
-                }`}
+                key={index}
+                className={`${sizeClasses[size]} text-red-600`}
               />
-            </button>
-          );
-        })}
+            ))
+          : [1, 2, 3].map((starCount) => {
+              const isFilled = starCount <= displayStars;
+              
+              return (
+                <button
+                  key={starCount}
+                  type="button"
+                  onClick={() => handleStarClick(starCount)}
+                  className="transition-all duration-150 cursor-pointer hover:scale-110"
+                >
+                  <MichelinStarIcon
+                    className={`${sizeClasses[size]} transition-colors duration-150 ${
+                      isFilled
+                        ? 'text-red-600'
+                        : 'text-gray-400 hover:text-red-500'
+                    }`}
+                  />
+                </button>
+              );
+            })
+        }
       </div>
       
       {displayStars > 0 && (
