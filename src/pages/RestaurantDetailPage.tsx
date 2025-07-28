@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Calendar, ChefHat, Globe, Heart, Phone, Clock, ExternalLink, Navigation, Star } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, ChefHat, Globe, Heart, Phone, Clock, ExternalLink, Navigation, Star, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -63,6 +63,8 @@ export function RestaurantDetailPage() {
   const [friendProfile, setFriendProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
+  const [showPhotoGallery, setShowPhotoGallery] = useState(false);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
   const fetchGooglePlacesDetails = async (restaurant: any) => {
     try {
@@ -209,6 +211,31 @@ export function RestaurantDetailPage() {
     }
   };
 
+  const openPhotoGallery = (photoIndex: number) => {
+    setCurrentPhotoIndex(photoIndex);
+    setShowPhotoGallery(true);
+  };
+
+  const closePhotoGallery = () => {
+    setShowPhotoGallery(false);
+  };
+
+  const nextPhoto = () => {
+    if (restaurant?.photos) {
+      setCurrentPhotoIndex((prev) => 
+        prev === restaurant.photos.length - 1 ? 0 : prev + 1
+      );
+    }
+  };
+
+  const prevPhoto = () => {
+    if (restaurant?.photos) {
+      setCurrentPhotoIndex((prev) => 
+        prev === 0 ? restaurant.photos.length - 1 : prev - 1
+      );
+    }
+  };
+
   if (isLoading) {
     return <RestaurantDetailsSkeleton />;
   }
@@ -323,7 +350,10 @@ export function RestaurantDetailPage() {
 
           {/* Hero Image */}
           {!restaurant.is_wishlist && restaurant.photos && restaurant.photos.length > 0 && (
-            <div className="relative h-48 bg-muted">
+            <div 
+              className="relative h-48 bg-muted cursor-pointer"
+              onClick={() => openPhotoGallery(0)}
+            >
               <img
                 src={restaurant.photos[0]}
                 alt={restaurant.name}
@@ -529,7 +559,11 @@ export function RestaurantDetailPage() {
                 <p className="font-medium mb-3">More Photos</p>
                 <div className="grid grid-cols-2 gap-2">
                   {restaurant.photos.slice(1, 5).map((photo, index) => (
-                    <div key={index} className="aspect-square bg-muted rounded-lg overflow-hidden">
+                    <div 
+                      key={index} 
+                      className="aspect-square bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => openPhotoGallery(index + 1)}
+                    >
                       <img
                         src={photo}
                         alt={`${restaurant.name} photo ${index + 2}`}
@@ -1044,6 +1078,101 @@ export function RestaurantDetailPage() {
           </div>
         </div>
       </div>
+      
+      {/* Photo Gallery Modal */}
+      {showPhotoGallery && restaurant?.photos && (
+        <div 
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center"
+          onClick={closePhotoGallery}
+        >
+          <div className="relative w-full h-full flex items-center justify-center p-4">
+            {/* Close Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={closePhotoGallery}
+              className="absolute top-4 right-4 z-10 text-white hover:bg-white/20"
+            >
+              <X className="h-6 w-6" />
+            </Button>
+
+            {/* Previous Button */}
+            {restaurant.photos.length > 1 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  prevPhoto();
+                }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-white hover:bg-white/20"
+              >
+                <ChevronLeft className="h-8 w-8" />
+              </Button>
+            )}
+
+            {/* Next Button */}
+            {restaurant.photos.length > 1 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  nextPhoto();
+                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-10 text-white hover:bg-white/20"
+              >
+                <ChevronRight className="h-8 w-8" />
+              </Button>
+            )}
+
+            {/* Main Image */}
+            <div 
+              className="max-w-4xl max-h-full flex items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={restaurant.photos[currentPhotoIndex]}
+                alt={`${restaurant.name} photo ${currentPhotoIndex + 1}`}
+                className="max-w-full max-h-full object-contain rounded-lg"
+              />
+            </div>
+
+            {/* Photo Counter */}
+            {restaurant.photos.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+                {currentPhotoIndex + 1} / {restaurant.photos.length}
+              </div>
+            )}
+
+            {/* Thumbnail Navigation */}
+            {restaurant.photos.length > 1 && (
+              <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex gap-2 max-w-md overflow-x-auto">
+                {restaurant.photos.map((photo, index) => (
+                  <button
+                    key={index}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCurrentPhotoIndex(index);
+                    }}
+                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                      index === currentPhotoIndex 
+                        ? 'border-white opacity-100' 
+                        : 'border-white/30 opacity-60 hover:opacity-80'
+                    }`}
+                  >
+                    <img
+                      src={photo}
+                      alt={`Thumbnail ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }
