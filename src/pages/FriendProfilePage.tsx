@@ -152,8 +152,39 @@ export default function FriendProfilePage() {
       {/* Mobile status bar spacer */}
       <div className="lg:hidden h-[35px] bg-background"></div>
       <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-accent/10">
-        {/* Header */}
-        <div className="border-b bg-card/95 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
+        {/* Mobile Header - Simplified */}
+        <div className="lg:hidden border-b bg-card/95 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
+          <div className="px-4 py-3">
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate('/friends')}
+                className="h-8 w-8 p-0"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={friend.avatar_url} alt={friend.name || friend.username} />
+                <AvatarFallback className="bg-gradient-to-br from-primary/20 to-accent/20 text-sm font-semibold">
+                  {(friend.name || friend.username)?.charAt(0)?.toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-lg font-bold truncate">
+                  {friend.name || friend.username}
+                </h1>
+                <p className="text-sm text-muted-foreground truncate">@{friend.username}</p>
+              </div>
+              <Button onClick={refresh} variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Header - Keep original */}
+        <div className="hidden lg:block border-b bg-card/95 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
           <div className="px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -202,9 +233,37 @@ export default function FriendProfilePage() {
         </div>
 
         {/* Content */}
-        <div className="px-6 py-6 space-y-6">
-          {/* Stats Overview */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="px-4 lg:px-6 py-4 lg:py-6 space-y-4 lg:space-y-6">
+          {/* Mobile Stats Overview - Simplified */}
+          <div className="lg:hidden grid grid-cols-2 gap-3">
+            <Card className="p-3 border-l-4 border-l-primary/50">
+              <div className="text-center">
+                <div className="text-xl font-bold text-primary">{profileData.rated_count || 0}</div>
+                <div className="text-xs text-muted-foreground">Restaurants</div>
+              </div>
+            </Card>
+            <Card className="p-3 border-l-4 border-l-orange-500/50">
+              <div className="text-center">
+                <div className="text-xl font-bold text-orange-500">{profileData.wishlist_count || 0}</div>
+                <div className="text-xs text-muted-foreground">Wishlist</div>
+              </div>
+            </Card>
+            <Card className="p-3 border-l-4 border-l-green-500/50">
+              <div className="text-center">
+                <div className="text-xl font-bold text-green-500">{profileData.avg_rating ? profileData.avg_rating.toFixed(1) : '0.0'}</div>
+                <div className="text-xs text-muted-foreground">Avg Rating</div>
+              </div>
+            </Card>
+            <Card className="p-3 border-l-4 border-l-purple-500/50">
+              <div className="text-center">
+                <div className="text-xl font-bold text-purple-500">{availableCities.length || 0}</div>
+                <div className="text-xs text-muted-foreground">Cities</div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Desktop Stats Overview - Keep original */}
+          <div className="hidden lg:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <Card className="p-4 hover:shadow-lg transition-all duration-300 border-l-4 border-l-primary/50">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg">
@@ -278,28 +337,228 @@ export default function FriendProfilePage() {
             </Card>
           </div>
 
-          {/* Tabs */}
-          <Tabs defaultValue="restaurants" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 h-12 bg-muted/50">
-              <TabsTrigger value="restaurants" className="flex items-center gap-2 text-sm">
-                <Utensils className="h-4 w-4" />
-                Restaurants ({filteredRestaurants.length})
-              </TabsTrigger>
-              <TabsTrigger value="wishlist" className="flex items-center gap-2 text-sm">
-                <Heart className="h-4 w-4" />
-                Wishlist ({allWishlist.length})
-              </TabsTrigger>
-              <TabsTrigger value="analytics" className="flex items-center gap-2 text-sm">
-                <PieChart className="h-4 w-4" />
-                Analytics
-              </TabsTrigger>
-            </TabsList>
+          {/* Mobile Tabs - Simplified */}
+          <div className="lg:hidden">
+            <Tabs defaultValue="restaurants" className="w-full">
+              <TabsList className="grid w-full grid-cols-3 h-11 bg-muted/50 rounded-xl">
+                <TabsTrigger value="restaurants" className="text-xs rounded-lg">
+                  <Utensils className="h-3 w-3 mr-1" />
+                  <span className="hidden sm:inline">Restaurants</span>
+                  <span className="sm:hidden">({filteredRestaurants.length})</span>
+                </TabsTrigger>
+                <TabsTrigger value="wishlist" className="text-xs rounded-lg">
+                  <Heart className="h-3 w-3 mr-1" />
+                  <span className="hidden sm:inline">Wishlist</span>
+                  <span className="sm:hidden">({allWishlist.length})</span>
+                </TabsTrigger>
+                <TabsTrigger value="analytics" className="text-xs rounded-lg">
+                  <PieChart className="h-3 w-3 mr-1" />
+                  <span className="hidden sm:inline">Analytics</span>
+                  <span className="sm:hidden">📊</span>
+                </TabsTrigger>
+              </TabsList>
 
-            {/* Restaurants Tab */}
-            <TabsContent value="restaurants" className="space-y-6 mt-6">
-              {/* Filter Controls */}
-              <Card className="p-6 bg-gradient-to-r from-card to-muted/20">
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              {/* Mobile Restaurants Tab */}
+              <TabsContent value="restaurants" className="space-y-4 mt-4">
+                {/* Mobile Filter Controls - Simplified */}
+                <div className="space-y-3">
+                  <Input
+                    placeholder="Search restaurants..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="h-9"
+                  />
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <Select value={cuisineFilter} onValueChange={setCuisineFilter}>
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Cuisine" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Cuisines</SelectItem>
+                        {availableCuisines.map(({ cuisine, count }) => (
+                          <SelectItem key={cuisine} value={cuisine}>{cuisine} ({count})</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    <Select value={sortBy} onValueChange={setSortBy}>
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Sort" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="newest">Newest</SelectItem>
+                        <SelectItem value="oldest">Oldest</SelectItem>
+                        <SelectItem value="rating-high">⭐ High</SelectItem>
+                        <SelectItem value="rating-low">⭐ Low</SelectItem>
+                        <SelectItem value="name">A-Z</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Mobile Restaurant Grid */}
+                <div className="space-y-3">
+                  {filteredRestaurants.map((restaurant) => (
+                    <Card 
+                      key={restaurant.id} 
+                      className="p-4 active:scale-95 transition-all duration-150 cursor-pointer border-l-4 border-l-primary/20"
+                      onClick={() => navigate(`/restaurant/${restaurant.id}?friendId=${actualUserId}`)}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-base truncate">{restaurant.name}</h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant="secondary" className="text-xs">
+                              {restaurant.cuisine}
+                            </Badge>
+                            {restaurant.michelin_stars && (
+                              <MichelinStars stars={restaurant.michelin_stars} />
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1 text-muted-foreground">
+                            <MapPin className="h-3 w-3" />
+                            <span className="text-xs truncate">{restaurant.city}</span>
+                          </div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-primary">
+                            {restaurant.rating?.toFixed(1) || '—'}
+                          </div>
+                          <div className="text-xs text-muted-foreground">rating</div>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+
+                {filteredRestaurants.length === 0 && (
+                  <Card className="p-8 text-center">
+                    <Utensils className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+                    <h3 className="font-semibold mb-2">No restaurants found</h3>
+                    <p className="text-sm text-muted-foreground">Try adjusting your filters</p>
+                  </Card>
+                )}
+              </TabsContent>
+
+              {/* Mobile Wishlist Tab */}
+              <TabsContent value="wishlist" className="space-y-4 mt-4">
+                <div className="space-y-3">
+                  {allWishlist.map((restaurant) => (
+                    <Card 
+                      key={restaurant.id} 
+                      className="p-4 active:scale-95 transition-all duration-150 cursor-pointer border-l-4 border-l-orange-500/20"
+                      onClick={() => navigate(`/restaurant/${restaurant.id}?friendId=${actualUserId}`)}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-base truncate">{restaurant.name}</h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant="secondary" className="text-xs">
+                              {restaurant.cuisine}
+                            </Badge>
+                            {restaurant.michelin_stars && (
+                              <MichelinStars stars={restaurant.michelin_stars} />
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1 text-muted-foreground">
+                            <MapPin className="h-3 w-3" />
+                            <span className="text-xs truncate">{restaurant.city}</span>
+                          </div>
+                        </div>
+                        <Heart className="h-5 w-5 text-orange-500 fill-orange-500" />
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+
+                {allWishlist.length === 0 && (
+                  <Card className="p-8 text-center">
+                    <Heart className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+                    <h3 className="font-semibold mb-2">No wishlist items</h3>
+                    <p className="text-sm text-muted-foreground">No restaurants saved yet</p>
+                  </Card>
+                )}
+              </TabsContent>
+
+              {/* Mobile Analytics Tab */}
+              <TabsContent value="analytics" className="space-y-4 mt-4">
+                <div className="space-y-4">
+                  {/* Top Stats Cards */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <Card className="p-3 text-center">
+                      <div className="text-2xl font-bold text-primary">{profileData.michelin_count || 0}</div>
+                      <div className="text-xs text-muted-foreground">Michelin Stars</div>
+                    </Card>
+                    <Card className="p-3 text-center">
+                      <div className="text-2xl font-bold text-blue-500">{topCuisines?.length || 0}</div>
+                      <div className="text-xs text-muted-foreground">Cuisines Tried</div>
+                    </Card>
+                  </div>
+
+                  {/* Top Cuisines - Mobile */}
+                  <Card className="p-4">
+                    <h3 className="font-semibold mb-3 flex items-center gap-2">
+                      <ChefHat className="h-4 w-4 text-blue-500" />
+                      Top Cuisines
+                    </h3>
+                    <div className="space-y-2">
+                      {topCuisines.slice(0, 5).map((item: any) => (
+                        <div key={item.cuisine} className="flex items-center justify-between">
+                          <span className="text-sm font-medium">{item.cuisine}</span>
+                          <span className="text-sm text-muted-foreground">{item.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+
+                  {/* Cities - Mobile */}
+                  <Card className="p-4">
+                    <h3 className="font-semibold mb-3 flex items-center gap-2">
+                      <MapIcon className="h-4 w-4 text-red-500" />
+                      Cities Explored
+                    </h3>
+                    <div className="text-center mb-3">
+                      <div className="text-3xl font-bold text-red-500">{availableCities.length}</div>
+                      <div className="text-xs text-muted-foreground">cities total</div>
+                    </div>
+                    <div className="space-y-2">
+                      {availableCities.slice(0, 5).map(({ city, count }) => (
+                        <div key={city} className="flex justify-between text-sm">
+                          <span>{city}</span>
+                          <span className="font-medium">{count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          {/* Desktop Tabs - Keep original */}
+          <div className="hidden lg:block">
+            <Tabs defaultValue="restaurants" className="w-full">
+              <TabsList className="grid w-full grid-cols-3 h-12 bg-muted/50">
+                <TabsTrigger value="restaurants" className="flex items-center gap-2 text-sm">
+                  <Utensils className="h-4 w-4" />
+                  Restaurants ({filteredRestaurants.length})
+                </TabsTrigger>
+                <TabsTrigger value="wishlist" className="flex items-center gap-2 text-sm">
+                  <Heart className="h-4 w-4" />
+                  Wishlist ({allWishlist.length})
+                </TabsTrigger>
+                <TabsTrigger value="analytics" className="flex items-center gap-2 text-sm">
+                  <PieChart className="h-4 w-4" />
+                  Analytics
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Desktop Restaurants Tab */}
+              <TabsContent value="restaurants" className="space-y-6 mt-6">
+                {/* Filter Controls */}
+                <Card className="p-6 bg-gradient-to-r from-card to-muted/20">
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                   <Input
                     placeholder="Search restaurants..."
                     value={searchTerm}
@@ -569,6 +828,7 @@ export default function FriendProfilePage() {
               </div>
             </TabsContent>
           </Tabs>
+          </div>
         </div>
       </div>
     </>
