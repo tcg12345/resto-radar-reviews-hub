@@ -20,7 +20,6 @@ import { StarRating } from '@/components/StarRating';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ActivityFeedSkeleton } from '@/components/skeletons/ActivityFeedSkeleton';
 import { RestaurantActivityCardSkeleton } from '@/components/skeletons/RestaurantActivityCardSkeleton';
-
 interface FriendRestaurant {
   id: string;
   name: string;
@@ -43,7 +42,6 @@ interface FriendRestaurant {
     avatar_url?: string;
   };
 }
-
 type SortOption = 'recent' | 'rating' | 'alphabetical' | 'friend';
 type FilterOption = 'all' | 'rated' | 'wishlist';
 type CityFilterOption = string | 'all';
@@ -63,32 +61,27 @@ const friendsDataCache = new Map<string, {
 
 // Preload cache for next batches
 const preloadCache = new Map<string, FriendRestaurant[]>();
-
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes for faster refresh
 const FRIENDS_CACHE_DURATION = 30 * 60 * 1000; // 30 minutes for friends data
 
 export function FriendsActivityPage() {
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  
+
   // Initialize state from URL parameters
   const [friendsRestaurants, setFriendsRestaurants] = useState<FriendRestaurant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<SortOption>((searchParams.get('sort') as SortOption) || 'recent');
-  const [filterBy, setFilterBy] = useState<FilterOption>((searchParams.get('filter') as FilterOption) || 'all');
-  const [selectedCuisines, setSelectedCuisines] = useState<string[]>(
-    searchParams.get('cuisines') ? searchParams.get('cuisines')!.split(',') : []
-  );
-  const [selectedCities, setSelectedCities] = useState<string[]>(
-    searchParams.get('cities') ? searchParams.get('cities')!.split(',') : []
-  );
-  const [selectedFriends, setSelectedFriends] = useState<string[]>(
-    searchParams.get('friends') ? searchParams.get('friends')!.split(',') : []
-  );
+  const [sortBy, setSortBy] = useState<SortOption>(searchParams.get('sort') as SortOption || 'recent');
+  const [filterBy, setFilterBy] = useState<FilterOption>(searchParams.get('filter') as FilterOption || 'all');
+  const [selectedCuisines, setSelectedCuisines] = useState<string[]>(searchParams.get('cuisines') ? searchParams.get('cuisines')!.split(',') : []);
+  const [selectedCities, setSelectedCities] = useState<string[]>(searchParams.get('cities') ? searchParams.get('cities')!.split(',') : []);
+  const [selectedFriends, setSelectedFriends] = useState<string[]>(searchParams.get('friends') ? searchParams.get('friends')!.split(',') : []);
   const [isCuisineDropdownOpen, setIsCuisineDropdownOpen] = useState(false);
   const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
   const [isFriendsDropdownOpen, setIsFriendsDropdownOpen] = useState(false);
@@ -108,19 +101,16 @@ export function FriendsActivityPage() {
   const loadingTriggerRef = useRef<HTMLDivElement>(null);
   const isLoadingRef = useRef(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
   const ITEMS_PER_PAGE = 18;
 
   // Load metadata for all restaurants to show accurate filter counts
   const loadRestaurantMetadata = async (friendIds: string[]) => {
     try {
-      const { data: allRestaurants, error } = await supabase
-        .from('restaurants')
-        .select('id, cuisine, city, is_wishlist, rating')
-        .in('user_id', friendIds);
-
+      const {
+        data: allRestaurants,
+        error
+      } = await supabase.from('restaurants').select('id, cuisine, city, is_wishlist, rating').in('user_id', friendIds);
       if (error || !allRestaurants) return null;
-
       const metadata = {
         totalCount: allRestaurants.length,
         ratedCount: allRestaurants.filter(r => !r.is_wishlist && r.rating !== null).length,
@@ -138,7 +128,6 @@ export function FriendsActivityPage() {
           metadata.cuisines[restaurant.cuisine] = (metadata.cuisines[restaurant.cuisine] || 0) + 1;
         }
       });
-
       return metadata;
     } catch (error) {
       console.error('Error loading metadata:', error);
@@ -157,16 +146,14 @@ export function FriendsActivityPage() {
         cuisines: restaurantMetadata.cuisines
       };
     }
-    
+
     // Fallback to current loaded data
     const cities: Record<string, number> = {};
     const cuisines: Record<string, number> = {};
-    
     friendsRestaurants.forEach(r => {
       cities[r.city] = (cities[r.city] || 0) + 1;
       cuisines[r.cuisine] = (cuisines[r.cuisine] || 0) + 1;
     });
-
     return {
       total: friendsRestaurants.length,
       rated: friendsRestaurants.filter(r => !r.is_wishlist && r.rating !== null).length,
@@ -175,7 +162,6 @@ export function FriendsActivityPage() {
       cuisines
     };
   };
-
   const filterCounts = getFilterCounts();
 
   // Get unique values for filters from metadata
@@ -188,7 +174,6 @@ export function FriendsActivityPage() {
     }
     return [...new Set(friendsRestaurants.map(r => r.cuisine))].sort();
   }, [restaurantMetadata, friendsRestaurants]);
-
   const uniqueCities = React.useMemo(() => {
     if (restaurantMetadata) {
       return Object.keys(restaurantMetadata.cities).sort();
@@ -198,12 +183,10 @@ export function FriendsActivityPage() {
     }
     return [...new Set(friendsRestaurants.map(r => r.city))].sort();
   }, [restaurantMetadata, friendsRestaurants]);
-
   const uniqueFriends = React.useMemo(() => {
     if (!friendsRestaurants || friendsRestaurants.length === 0) {
       return [];
     }
-    
     const friendsMap = new Map();
     friendsRestaurants.forEach(r => {
       if (!friendsMap.has(r.friend.id)) {
@@ -226,11 +209,9 @@ export function FriendsActivityPage() {
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
-    
     searchTimeoutRef.current = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
     }, 800);
-    
     return () => {
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current);
@@ -241,7 +222,6 @@ export function FriendsActivityPage() {
   // Update URL parameters when filters change
   useEffect(() => {
     const params = new URLSearchParams();
-    
     if (searchQuery) params.set('search', searchQuery);
     if (sortBy !== 'recent') params.set('sort', sortBy);
     if (filterBy !== 'all') params.set('filter', filterBy);
@@ -249,7 +229,6 @@ export function FriendsActivityPage() {
     if (selectedCities.length > 0) params.set('cities', selectedCities.join(','));
     if (selectedFriends.length > 0) params.set('friends', selectedFriends.join(','));
     if (currentPage > 1) params.set('page', currentPage.toString());
-    
     setSearchParams(params);
   }, [searchQuery, sortBy, filterBy, selectedCuisines, selectedCities, selectedFriends, currentPage, setSearchParams]);
 
@@ -260,13 +239,7 @@ export function FriendsActivityPage() {
     // Apply search filter (use debounced query for actual filtering)
     if (debouncedSearchQuery) {
       const query = debouncedSearchQuery.toLowerCase();
-      filtered = filtered.filter(restaurant =>
-        restaurant.name.toLowerCase().includes(query) ||
-        restaurant.cuisine.toLowerCase().includes(query) ||
-        restaurant.city.toLowerCase().includes(query) ||
-        restaurant.friend.name.toLowerCase().includes(query) ||
-        restaurant.friend.username.toLowerCase().includes(query)
-      );
+      filtered = filtered.filter(restaurant => restaurant.name.toLowerCase().includes(query) || restaurant.cuisine.toLowerCase().includes(query) || restaurant.city.toLowerCase().includes(query) || restaurant.friend.name.toLowerCase().includes(query) || restaurant.friend.username.toLowerCase().includes(query));
     }
 
     // Apply city filter
@@ -281,9 +254,7 @@ export function FriendsActivityPage() {
 
     // Apply cuisine filter
     if (selectedCuisines.length > 0) {
-      filtered = filtered.filter(r =>
-        selectedCuisines.includes(r.cuisine)
-      );
+      filtered = filtered.filter(r => selectedCuisines.includes(r.cuisine));
     }
 
     // Apply sorting
@@ -304,10 +275,8 @@ export function FriendsActivityPage() {
           return 0;
       }
     });
-
     return filtered;
   }, [friendsRestaurants, debouncedSearchQuery, sortBy, selectedCuisines, selectedCities, selectedFriends]);
-
   useEffect(() => {
     if (user && !dataFetched.current) {
       loadInitialData();
@@ -317,15 +286,17 @@ export function FriendsActivityPage() {
   // Smart filtering - only reload when basic filters change (not search/cuisine/city/friends)
   useEffect(() => {
     if (dataFetched.current && user) {
-      console.log('Basic filters changed, reloading data...', { filterBy });
-      
+      console.log('Basic filters changed, reloading data...', {
+        filterBy
+      });
+
       // Reset state for fresh load with filters
       setFriendsRestaurants([]);
       setCurrentPage(1);
       setHasMore(true);
       setIsLoadingMore(false);
       preloadCache.clear();
-      
+
       // Load fresh data with current filters
       loadInitialData();
     }
@@ -348,14 +319,15 @@ export function FriendsActivityPage() {
   const getFriendsData = async () => {
     const cacheKey = `friends_${user?.id}`;
     const cached = friendsDataCache.get(cacheKey);
-    
-    if (cached && (Date.now() - cached.timestamp) < FRIENDS_CACHE_DURATION) {
+    if (cached && Date.now() - cached.timestamp < FRIENDS_CACHE_DURATION) {
       return cached.data;
     }
-
-    const { data: friendsData, error: friendsError } = await supabase
-      .rpc('get_friends_with_scores', { requesting_user_id: user?.id });
-
+    const {
+      data: friendsData,
+      error: friendsError
+    } = await supabase.rpc('get_friends_with_scores', {
+      requesting_user_id: user?.id
+    });
     if (friendsError || !friendsData?.length) {
       return [];
     }
@@ -365,23 +337,17 @@ export function FriendsActivityPage() {
       data: friendsData,
       timestamp: Date.now()
     });
-
     return friendsData;
   };
-
   const preloadNextBatch = async (friendIds: string[], friendsData: any[], nextOffset: number) => {
     try {
       const cacheKey = `preload_${user?.id}_${nextOffset}`;
-      
-      let query = supabase
-        .from('restaurants')
-        .select('id, name, cuisine, rating, address, city, country, price_range, michelin_stars, date_visited, created_at, notes, is_wishlist, user_id')
-        .in('user_id', friendIds)
-        .order('created_at', { ascending: false })
-        .range(nextOffset, nextOffset + ITEMS_PER_PAGE - 1);
-
-      const { data: restaurantsData } = await query;
-      
+      let query = supabase.from('restaurants').select('id, name, cuisine, rating, address, city, country, price_range, michelin_stars, date_visited, created_at, notes, is_wishlist, user_id').in('user_id', friendIds).order('created_at', {
+        ascending: false
+      }).range(nextOffset, nextOffset + ITEMS_PER_PAGE - 1);
+      const {
+        data: restaurantsData
+      } = await query;
       if (restaurantsData?.length) {
         const friendsMap = new Map(friendsData.map(f => [f.friend_id, f]));
         const formattedRestaurants: FriendRestaurant[] = restaurantsData.map(restaurant => {
@@ -399,7 +365,8 @@ export function FriendsActivityPage() {
             date_visited: restaurant.date_visited,
             created_at: restaurant.created_at,
             notes: restaurant.notes,
-            photos: [],  // Don't preload photos for performance
+            photos: [],
+            // Don't preload photos for performance
             is_wishlist: restaurant.is_wishlist || false,
             friend: {
               id: friend?.friend_id || restaurant.user_id,
@@ -409,29 +376,24 @@ export function FriendsActivityPage() {
             }
           };
         });
-        
         preloadCache.set(cacheKey, formattedRestaurants);
       }
     } catch (error) {
       console.error('Error preloading next batch:', error);
     }
   };
-
   const loadInitialData = async () => {
     if (!user) return;
-    
     try {
       setIsLoading(true);
-      
+
       // Get friends data with caching
       const friendsData = await getFriendsData();
-      
       if (!friendsData.length) {
         setFriendsRestaurants([]);
         setHasMore(false);
         return;
       }
-
       const friendIds = friendsData.map(f => f.friend_id);
       setAllFriendIds(friendIds);
 
@@ -443,12 +405,11 @@ export function FriendsActivityPage() {
 
       // Load first batch of restaurants
       await loadRestaurantBatch(friendIds, friendsData, 0, true);
-      
+
       // Preload next batch in background
       setTimeout(() => {
         preloadNextBatch(friendIds, friendsData, ITEMS_PER_PAGE);
       }, 100);
-      
       dataFetched.current = true;
     } catch (error) {
       console.error('Error loading initial data:', error);
@@ -457,20 +418,15 @@ export function FriendsActivityPage() {
       setIsLoading(false);
     }
   };
-
   const loadNextPage = async () => {
     if (isLoadingMore || !hasMore || allFriendIds.length === 0) {
       return;
     }
-    
     setIsLoadingMore(true);
-    
     try {
       const nextPage = currentPage + 1;
       const newOffset = (nextPage - 1) * ITEMS_PER_PAGE;
-      
       const friendsData = await getFriendsData();
-      
       if (!friendsData.length) {
         setHasMore(false);
         return;
@@ -479,12 +435,11 @@ export function FriendsActivityPage() {
       // Load the next page and replace all restaurants (pagination behavior)
       await loadRestaurantBatch(allFriendIds, friendsData, newOffset, true);
       setCurrentPage(nextPage);
-      
+
       // Force immediate scroll to top
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
       window.scrollTo(0, 0);
-      
     } catch (error) {
       console.error('❌ Error loading next page:', error);
       toast.error('Failed to load next page');
@@ -492,20 +447,15 @@ export function FriendsActivityPage() {
       setIsLoadingMore(false);
     }
   };
-
   const loadPreviousPage = async () => {
     if (isLoadingMore || currentPage <= 1 || allFriendIds.length === 0) {
       return;
     }
-    
     setIsLoadingMore(true);
-    
     try {
       const prevPage = currentPage - 1;
       const newOffset = (prevPage - 1) * ITEMS_PER_PAGE;
-      
       const friendsData = await getFriendsData();
-      
       if (!friendsData.length) {
         return;
       }
@@ -513,12 +463,11 @@ export function FriendsActivityPage() {
       // Load the previous page and replace all restaurants
       await loadRestaurantBatch(allFriendIds, friendsData, newOffset, true);
       setCurrentPage(prevPage);
-      
+
       // Force immediate scroll to top
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
       window.scrollTo(0, 0);
-      
     } catch (error) {
       console.error('❌ Error loading previous page:', error);
       toast.error('Failed to load previous page');
@@ -526,19 +475,11 @@ export function FriendsActivityPage() {
       setIsLoadingMore(false);
     }
   };
-
-  const loadRestaurantBatch = async (
-    friendIds: string[], 
-    friendsData: any[], 
-    offset: number, 
-    isInitial: boolean
-  ) => {
+  const loadRestaurantBatch = async (friendIds: string[], friendsData: any[], offset: number, isInitial: boolean) => {
     // Build the query with all active filters applied at database level
-    let query = supabase
-      .from('restaurants')
-      .select('id, name, cuisine, rating, address, city, country, price_range, michelin_stars, date_visited, created_at, notes, is_wishlist, user_id')
-      .in('user_id', friendIds)
-      .order('created_at', { ascending: false });
+    let query = supabase.from('restaurants').select('id, name, cuisine, rating, address, city, country, price_range, michelin_stars, date_visited, created_at, notes, is_wishlist, user_id').in('user_id', friendIds).order('created_at', {
+      ascending: false
+    });
 
     // Apply basic filter (rated/wishlist/all)
     if (filterBy === 'rated') {
@@ -570,14 +511,14 @@ export function FriendsActivityPage() {
 
     // Apply pagination
     query = query.range(offset, offset + ITEMS_PER_PAGE - 1);
-
-    const { data: restaurantsData, error: restaurantsError } = await query;
-
+    const {
+      data: restaurantsData,
+      error: restaurantsError
+    } = await query;
     if (restaurantsError) {
       console.error('Error fetching restaurants:', restaurantsError);
       return;
     }
-
     if (!restaurantsData || restaurantsData.length === 0) {
       setHasMore(false);
       return;
@@ -600,7 +541,8 @@ export function FriendsActivityPage() {
         date_visited: restaurant.date_visited,
         created_at: restaurant.created_at,
         notes: restaurant.notes,
-        photos: [], // Exclude photos for performance
+        photos: [],
+        // Exclude photos for performance
         is_wishlist: restaurant.is_wishlist || false,
         friend: {
           id: friend?.friend_id || restaurant.user_id,
@@ -616,7 +558,6 @@ export function FriendsActivityPage() {
 
     // Check if we got fewer results than requested
     console.log(`Restaurant batch loaded: ${restaurantsData.length} restaurants, offset: ${offset}, isInitial: ${isInitial}`);
-    
     if (restaurantsData.length < ITEMS_PER_PAGE) {
       console.log(`Got ${restaurantsData.length} restaurants (< ${ITEMS_PER_PAGE}), setting hasMore to false`);
       setHasMore(false);
@@ -626,7 +567,6 @@ export function FriendsActivityPage() {
       setHasMore(true);
     }
   };
-
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -635,18 +575,11 @@ export function FriendsActivityPage() {
       year: 'numeric'
     });
   };
-
   const toggleCuisineFilter = (cuisine: string) => {
-    setSelectedCuisines(prev =>
-      prev.includes(cuisine)
-        ? prev.filter(c => c !== cuisine)
-        : [...prev, cuisine]
-    );
+    setSelectedCuisines(prev => prev.includes(cuisine) ? prev.filter(c => c !== cuisine) : [...prev, cuisine]);
   };
-
   if (isLoading) {
-    return (
-      <div className="w-full p-6 space-y-6">
+    return <div className="w-full p-6 space-y-6">
         {/* Header skeleton */}
         <div className="space-y-4">
           <div className="flex items-center gap-3">
@@ -658,8 +591,7 @@ export function FriendsActivityPage() {
 
         {/* Stats skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i}>
+          {[...Array(4)].map((_, i) => <Card key={i}>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
                   <Skeleton className="h-5 w-5" />
@@ -669,16 +601,13 @@ export function FriendsActivityPage() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
-          ))}
+            </Card>)}
         </div>
 
         {/* Quick filter buttons skeleton */}
         <div className="flex items-center justify-center">
           <div className="flex items-center bg-muted/50 p-1 rounded-lg gap-1">
-            {[...Array(3)].map((_, i) => (
-              <Skeleton key={i} className="h-8 w-20" />
-            ))}
+            {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-8 w-20" />)}
           </div>
         </div>
 
@@ -692,25 +621,18 @@ export function FriendsActivityPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {[...Array(4)].map((_, i) => (
-                <Skeleton key={i} className="h-10 w-full" />
-              ))}
+              {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
             </div>
           </CardContent>
         </Card>
 
         {/* Activity feed skeleton */}
         <div className="grid gap-4">
-          {[...Array(6)].map((_, i) => (
-            <ActivityFeedSkeleton key={i} />
-          ))}
+          {[...Array(6)].map((_, i) => <ActivityFeedSkeleton key={i} />)}
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="w-full p-6 space-y-6">
+  return <div className="w-full p-6 space-y-6">
       {/* Header */}
       <div className="space-y-4">
         <div className="flex items-center gap-3">
@@ -824,30 +746,15 @@ export function FriendsActivityPage() {
       {/* Quick Filter Buttons */}
       <div className="flex items-center justify-center">
         <div className="flex items-center bg-muted/50 p-1 rounded-lg">
-          <Button
-            variant={filterBy === 'all' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setFilterBy('all')}
-            className="flex items-center gap-2 px-4"
-          >
+          <Button variant={filterBy === 'all' ? 'default' : 'ghost'} size="sm" onClick={() => setFilterBy('all')} className="flex items-center gap-2 px-4">
             <List className="h-4 w-4" />
             All ({filterCounts.total})
           </Button>
-          <Button
-            variant={filterBy === 'rated' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setFilterBy('rated')}
-            className="flex items-center gap-2 px-4"
-          >
+          <Button variant={filterBy === 'rated' ? 'default' : 'ghost'} size="sm" onClick={() => setFilterBy('rated')} className="flex items-center gap-2 px-4">
             <Star className="h-4 w-4" />
             Rated ({filterCounts.rated})
           </Button>
-          <Button
-            variant={filterBy === 'wishlist' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setFilterBy('wishlist')}
-            className="flex items-center gap-2 px-4"
-          >
+          <Button variant={filterBy === 'wishlist' ? 'default' : 'ghost'} size="sm" onClick={() => setFilterBy('wishlist')} className="flex items-center gap-2 px-4">
             <Heart className="h-4 w-4" />
             Wishlist ({filterCounts.wishlist})
           </Button>
@@ -859,20 +766,14 @@ export function FriendsActivityPage() {
         {/* Search Bar */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search restaurants, friends..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                if (searchTimeoutRef.current) {
-                  clearTimeout(searchTimeoutRef.current);
-                }
-                setDebouncedSearchQuery(searchQuery);
-              }
-            }}
-            className="pl-10 h-12 text-base"
-          />
+          <Input placeholder="Search restaurants, friends..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={e => {
+          if (e.key === 'Enter') {
+            if (searchTimeoutRef.current) {
+              clearTimeout(searchTimeoutRef.current);
+            }
+            setDebouncedSearchQuery(searchQuery);
+          }
+        }} className="pl-10 h-12 text-base" />
         </div>
 
         {/* Filters and Sort Row */}
@@ -880,18 +781,13 @@ export function FriendsActivityPage() {
           {/* Single Filters Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button 
-                variant="outline" 
-                className="flex-1 h-12 flex items-center justify-between"
-              >
+              <Button variant="outline" className="flex-1 h-12 flex items-center justify-between">
                 <span className="flex items-center gap-2">
                   <Filter className="h-4 w-4" />
                   Filters
-                  {(selectedCuisines.length + selectedCities.length + selectedFriends.length > 0) && (
-                    <Badge variant="secondary" className="ml-1 h-5 px-2 text-xs">
+                  {selectedCuisines.length + selectedCities.length + selectedFriends.length > 0 && <Badge variant="secondary" className="ml-1 h-5 px-2 text-xs">
                       {selectedCuisines.length + selectedCities.length + selectedFriends.length}
-                    </Badge>
-                  )}
+                    </Badge>}
                 </span>
                 <ChevronDown className="h-4 w-4" />
               </Button>
@@ -901,28 +797,20 @@ export function FriendsActivityPage() {
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger className="flex items-center justify-between">
                   <span>Friends</span>
-                  {selectedFriends.length > 0 && (
-                    <Badge variant="secondary" className="ml-2 h-4 px-1.5 text-xs">
+                  {selectedFriends.length > 0 && <Badge variant="secondary" className="ml-2 h-4 px-1.5 text-xs">
                       {selectedFriends.length}
-                    </Badge>
-                  )}
+                    </Badge>}
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent className="w-64 max-h-64 overflow-y-auto [&[data-side=right]]:translate-x-[-100%] [&[data-side=right]]:left-0">
-                  {uniqueFriends.map((friend) => (
-                    <DropdownMenuCheckboxItem
-                      key={friend.id}
-                      checked={selectedFriends.includes(friend.id)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedFriends(prev => [...prev, friend.id]);
-                        } else {
-                          setSelectedFriends(prev => prev.filter(f => f !== friend.id));
-                        }
-                      }}
-                    >
+                  {uniqueFriends.map(friend => <DropdownMenuCheckboxItem key={friend.id} checked={selectedFriends.includes(friend.id)} onCheckedChange={checked => {
+                  if (checked) {
+                    setSelectedFriends(prev => [...prev, friend.id]);
+                  } else {
+                    setSelectedFriends(prev => prev.filter(f => f !== friend.id));
+                  }
+                }}>
                       {friend.name} ({friend.count})
-                    </DropdownMenuCheckboxItem>
-                  ))}
+                    </DropdownMenuCheckboxItem>)}
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
               
@@ -930,28 +818,20 @@ export function FriendsActivityPage() {
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger className="flex items-center justify-between">
                   <span>Cities</span>
-                  {selectedCities.length > 0 && (
-                    <Badge variant="secondary" className="ml-2 h-4 px-1.5 text-xs">
+                  {selectedCities.length > 0 && <Badge variant="secondary" className="ml-2 h-4 px-1.5 text-xs">
                       {selectedCities.length}
-                    </Badge>
-                  )}
+                    </Badge>}
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent className="w-64 max-h-64 overflow-y-auto [&[data-side=right]]:translate-x-[-100%] [&[data-side=right]]:left-0">
-                  {uniqueCities.map((city) => (
-                    <DropdownMenuCheckboxItem
-                      key={city}
-                      checked={selectedCities.includes(city)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedCities(prev => [...prev, city]);
-                        } else {
-                          setSelectedCities(prev => prev.filter(c => c !== city));
-                        }
-                      }}
-                    >
+                  {uniqueCities.map(city => <DropdownMenuCheckboxItem key={city} checked={selectedCities.includes(city)} onCheckedChange={checked => {
+                  if (checked) {
+                    setSelectedCities(prev => [...prev, city]);
+                  } else {
+                    setSelectedCities(prev => prev.filter(c => c !== city));
+                  }
+                }}>
                       {city} ({filterCounts.cities[city] || 0})
-                    </DropdownMenuCheckboxItem>
-                  ))}
+                    </DropdownMenuCheckboxItem>)}
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
               
@@ -959,28 +839,20 @@ export function FriendsActivityPage() {
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger className="flex items-center justify-between">
                   <span>Cuisines</span>
-                  {selectedCuisines.length > 0 && (
-                    <Badge variant="secondary" className="ml-2 h-4 px-1.5 text-xs">
+                  {selectedCuisines.length > 0 && <Badge variant="secondary" className="ml-2 h-4 px-1.5 text-xs">
                       {selectedCuisines.length}
-                    </Badge>
-                  )}
+                    </Badge>}
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent className="w-64 max-h-64 overflow-y-auto [&[data-side=right]]:translate-x-[-100%] [&[data-side=right]]:left-0">
-                  {uniqueCuisines.map((cuisine) => (
-                    <DropdownMenuCheckboxItem
-                      key={cuisine}
-                      checked={selectedCuisines.includes(cuisine)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedCuisines(prev => [...prev, cuisine]);
-                        } else {
-                          setSelectedCuisines(prev => prev.filter(c => c !== cuisine));
-                        }
-                      }}
-                    >
+                  {uniqueCuisines.map(cuisine => <DropdownMenuCheckboxItem key={cuisine} checked={selectedCuisines.includes(cuisine)} onCheckedChange={checked => {
+                  if (checked) {
+                    setSelectedCuisines(prev => [...prev, cuisine]);
+                  } else {
+                    setSelectedCuisines(prev => prev.filter(c => c !== cuisine));
+                  }
+                }}>
                       {cuisine} ({filterCounts.cuisines[cuisine] || 0})
-                    </DropdownMenuCheckboxItem>
-                  ))}
+                    </DropdownMenuCheckboxItem>)}
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
             </DropdownMenuContent>
@@ -1001,65 +873,35 @@ export function FriendsActivityPage() {
         </div>
 
         {/* Selected Filter Tags */}
-        {(selectedFriends.length > 0 || selectedCities.length > 0 || selectedCuisines.length > 0) && (
-          <div className="flex flex-wrap gap-2">
+        {(selectedFriends.length > 0 || selectedCities.length > 0 || selectedCuisines.length > 0) && <div className="flex flex-wrap gap-2">
             {selectedFriends.map(friendId => {
-              const friend = uniqueFriends.find(f => f.id === friendId);
-              return (
-                <Badge
-                  key={`friend-${friendId}`}
-                  variant="default"
-                  className="cursor-pointer hover:bg-primary/80 text-xs h-6 px-2"
-                  onClick={() => setSelectedFriends(prev => prev.filter(f => f !== friendId))}
-                >
+          const friend = uniqueFriends.find(f => f.id === friendId);
+          return <Badge key={`friend-${friendId}`} variant="default" className="cursor-pointer hover:bg-primary/80 text-xs h-6 px-2" onClick={() => setSelectedFriends(prev => prev.filter(f => f !== friendId))}>
                   {friend?.name} ×
-                </Badge>
-              );
-            })}
+                </Badge>;
+        })}
             
-            {selectedCities.map(city => (
-              <Badge
-                key={`city-${city}`}
-                variant="default"
-                className="cursor-pointer hover:bg-primary/80 text-xs h-6 px-2"
-                onClick={() => setSelectedCities(prev => prev.filter(c => c !== city))}
-              >
+            {selectedCities.map(city => <Badge key={`city-${city}`} variant="default" className="cursor-pointer hover:bg-primary/80 text-xs h-6 px-2" onClick={() => setSelectedCities(prev => prev.filter(c => c !== city))}>
                 {city} ×
-              </Badge>
-            ))}
+              </Badge>)}
             
-            {selectedCuisines.map(cuisine => (
-              <Badge
-                key={`cuisine-${cuisine}`}
-                variant="default"
-                className="cursor-pointer hover:bg-primary/80 text-xs h-6 px-2"
-                onClick={() => setSelectedCuisines(prev => prev.filter(c => c !== cuisine))}
-              >
+            {selectedCuisines.map(cuisine => <Badge key={`cuisine-${cuisine}`} variant="default" className="cursor-pointer hover:bg-primary/80 text-xs h-6 px-2" onClick={() => setSelectedCuisines(prev => prev.filter(c => c !== cuisine))}>
                 {cuisine} ×
-              </Badge>
-            ))}
-          </div>
-        )}
+              </Badge>)}
+          </div>}
 
         {/* Clear All Filters Button */}
-        {(selectedCuisines.length > 0 || selectedCities.length > 0 || selectedFriends.length > 0 || debouncedSearchQuery) && (
-          <div className="flex justify-center">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setSelectedCuisines([]);
-                setSelectedCities([]);
-                setSelectedFriends([]);
-                setSearchQuery('');
-                setDebouncedSearchQuery('');
-              }}
-              className="text-xs"
-            >
+        {(selectedCuisines.length > 0 || selectedCities.length > 0 || selectedFriends.length > 0 || debouncedSearchQuery) && <div className="flex justify-center">
+            <Button variant="outline" size="sm" onClick={() => {
+          setSelectedCuisines([]);
+          setSelectedCities([]);
+          setSelectedFriends([]);
+          setSearchQuery('');
+          setDebouncedSearchQuery('');
+        }} className="text-xs">
               Clear All Filters
             </Button>
-          </div>
-        )}
+          </div>}
       </div>
 
       {/* Desktop Filters (Hidden on Mobile) */}
@@ -1072,20 +914,14 @@ export function FriendsActivityPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Input
-              placeholder="Search restaurants, friends..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  if (searchTimeoutRef.current) {
-                    clearTimeout(searchTimeoutRef.current);
-                  }
-                  setDebouncedSearchQuery(searchQuery);
-                }
-              }}
-              className="lg:col-span-2"
-            />
+            <Input placeholder="Search restaurants, friends..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={e => {
+            if (e.key === 'Enter') {
+              if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+              }
+              setDebouncedSearchQuery(searchQuery);
+            }
+          }} className="lg:col-span-2" />
             
             <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
               <SelectTrigger className="bg-background border-border">
@@ -1101,218 +937,134 @@ export function FriendsActivityPage() {
           </div>
 
           {/* Clear All Filters Button */}
-          {(selectedCuisines.length > 0 || selectedCities.length > 0 || selectedFriends.length > 0 || debouncedSearchQuery) && (
-            <div className="flex justify-end">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSelectedCuisines([]);
-                  setSelectedCities([]);
-                  setSelectedFriends([]);
-                  setSearchQuery('');
-                  setDebouncedSearchQuery('');
-                }}
-                className="text-xs"
-              >
+          {(selectedCuisines.length > 0 || selectedCities.length > 0 || selectedFriends.length > 0 || debouncedSearchQuery) && <div className="flex justify-end">
+              <Button variant="outline" size="sm" onClick={() => {
+            setSelectedCuisines([]);
+            setSelectedCities([]);
+            setSelectedFriends([]);
+            setSearchQuery('');
+            setDebouncedSearchQuery('');
+          }} className="text-xs">
                 Clear All Filters
               </Button>
-            </div>
-          )}
+            </div>}
 
           {/* Filter Row - Friends, City, and Cuisine in horizontal layout */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Friends Dropdown Filter */}
-            <Collapsible 
-              open={isFriendsDropdownOpen} 
-              onOpenChange={setIsFriendsDropdownOpen}
-              className="space-y-2"
-            >
+            <Collapsible open={isFriendsDropdownOpen} onOpenChange={setIsFriendsDropdownOpen} className="space-y-2">
               <CollapsibleTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-between bg-background border-border"
-                >
+                <Button variant="outline" className="w-full justify-between bg-background border-border">
                   <span className="text-sm font-medium">
                     Filter by Friend
-                    {selectedFriends.length > 0 && (
-                      <span className="ml-2 text-primary">
+                    {selectedFriends.length > 0 && <span className="ml-2 text-primary">
                         ({selectedFriends.length} selected)
-                      </span>
-                    )}
+                      </span>}
                   </span>
                   <ChevronDown className={`h-4 w-4 transition-transform ${isFriendsDropdownOpen ? 'rotate-180' : ''}`} />
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-2">
                 <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto p-2 border rounded-md bg-background">
-                  {uniqueFriends.map(friend => (
-                    <div key={friend.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`friend-${friend.id}`}
-                        checked={selectedFriends.includes(friend.id)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedFriends(prev => [...prev, friend.id]);
-                          } else {
-                            setSelectedFriends(prev => prev.filter(f => f !== friend.id));
-                          }
-                        }}
-                      />
-                      <label
-                        htmlFor={`friend-${friend.id}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                      >
+                  {uniqueFriends.map(friend => <div key={friend.id} className="flex items-center space-x-2">
+                      <Checkbox id={`friend-${friend.id}`} checked={selectedFriends.includes(friend.id)} onCheckedChange={checked => {
+                    if (checked) {
+                      setSelectedFriends(prev => [...prev, friend.id]);
+                    } else {
+                      setSelectedFriends(prev => prev.filter(f => f !== friend.id));
+                    }
+                  }} />
+                      <label htmlFor={`friend-${friend.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
                         {friend.name} ({friend.count})
                       </label>
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
               </CollapsibleContent>
             </Collapsible>
 
             {/* City Dropdown Filter */}
-            <Collapsible 
-              open={isCityDropdownOpen} 
-              onOpenChange={setIsCityDropdownOpen}
-              className="space-y-2"
-            >
+            <Collapsible open={isCityDropdownOpen} onOpenChange={setIsCityDropdownOpen} className="space-y-2">
               <CollapsibleTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-between bg-background border-border"
-                >
+                <Button variant="outline" className="w-full justify-between bg-background border-border">
                   <span className="text-sm font-medium">
                     Filter by City
-                    {selectedCities.length > 0 && (
-                      <span className="ml-2 text-primary">
+                    {selectedCities.length > 0 && <span className="ml-2 text-primary">
                         ({selectedCities.length} selected)
-                      </span>
-                    )}
+                      </span>}
                   </span>
                   <ChevronDown className={`h-4 w-4 transition-transform ${isCityDropdownOpen ? 'rotate-180' : ''}`} />
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-2">
                 <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto p-2 border rounded-md bg-background">
-                  {uniqueCities.map(city => (
-                    <div key={city} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`city-${city}`}
-                        checked={selectedCities.includes(city)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedCities(prev => [...prev, city]);
-                          } else {
-                            setSelectedCities(prev => prev.filter(c => c !== city));
-                          }
-                        }}
-                      />
-                      <label
-                        htmlFor={`city-${city}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                      >
+                  {uniqueCities.map(city => <div key={city} className="flex items-center space-x-2">
+                      <Checkbox id={`city-${city}`} checked={selectedCities.includes(city)} onCheckedChange={checked => {
+                    if (checked) {
+                      setSelectedCities(prev => [...prev, city]);
+                    } else {
+                      setSelectedCities(prev => prev.filter(c => c !== city));
+                    }
+                  }} />
+                      <label htmlFor={`city-${city}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
                         {city} ({filterCounts.cities[city] || 0})
                       </label>
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
               </CollapsibleContent>
             </Collapsible>
 
             {/* Cuisine Dropdown Filter */}
-            <Collapsible 
-              open={isCuisineDropdownOpen} 
-              onOpenChange={setIsCuisineDropdownOpen}
-              className="space-y-2"
-            >
+            <Collapsible open={isCuisineDropdownOpen} onOpenChange={setIsCuisineDropdownOpen} className="space-y-2">
               <CollapsibleTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-between bg-background border-border"
-                >
+                <Button variant="outline" className="w-full justify-between bg-background border-border">
                   <span className="text-sm font-medium">
                     Filter by Cuisine
-                    {selectedCuisines.length > 0 && (
-                      <span className="ml-2 text-primary">
+                    {selectedCuisines.length > 0 && <span className="ml-2 text-primary">
                         ({selectedCuisines.length} selected)
-                      </span>
-                    )}
+                      </span>}
                   </span>
                   <ChevronDown className={`h-4 w-4 transition-transform ${isCuisineDropdownOpen ? 'rotate-180' : ''}`} />
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-2">
                 <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto p-2 border rounded-md bg-background">
-                  {uniqueCuisines.map(cuisine => (
-                    <div key={cuisine} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`cuisine-${cuisine}`}
-                        checked={selectedCuisines.includes(cuisine)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedCuisines(prev => [...prev, cuisine]);
-                          } else {
-                            setSelectedCuisines(prev => prev.filter(c => c !== cuisine));
-                          }
-                        }}
-                      />
-                      <label
-                        htmlFor={`cuisine-${cuisine}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                      >
+                  {uniqueCuisines.map(cuisine => <div key={cuisine} className="flex items-center space-x-2">
+                      <Checkbox id={`cuisine-${cuisine}`} checked={selectedCuisines.includes(cuisine)} onCheckedChange={checked => {
+                    if (checked) {
+                      setSelectedCuisines(prev => [...prev, cuisine]);
+                    } else {
+                      setSelectedCuisines(prev => prev.filter(c => c !== cuisine));
+                    }
+                  }} />
+                      <label htmlFor={`cuisine-${cuisine}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
                         {cuisine} ({filterCounts.cuisines[cuisine] || 0})
                       </label>
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
               </CollapsibleContent>
             </Collapsible>
           </div>
 
           {/* All Selected Tags Combined */}
-          {(selectedFriends.length > 0 || selectedCities.length > 0 || selectedCuisines.length > 0) && (
-            <div className="flex flex-wrap gap-2 mt-4">
+          {(selectedFriends.length > 0 || selectedCities.length > 0 || selectedCuisines.length > 0) && <div className="flex flex-wrap gap-2 mt-4">
               {/* Selected Friends Tags */}
               {selectedFriends.map(friendId => {
-                const friend = uniqueFriends.find(f => f.id === friendId);
-                return (
-                  <Badge
-                    key={`friend-${friendId}`}
-                    variant="default"
-                    className="cursor-pointer hover:bg-primary/80"
-                    onClick={() => setSelectedFriends(prev => prev.filter(f => f !== friendId))}
-                  >
+            const friend = uniqueFriends.find(f => f.id === friendId);
+            return <Badge key={`friend-${friendId}`} variant="default" className="cursor-pointer hover:bg-primary/80" onClick={() => setSelectedFriends(prev => prev.filter(f => f !== friendId))}>
                     {friend?.name} ×
-                  </Badge>
-                );
-              })}
+                  </Badge>;
+          })}
               
               {/* Selected City Tags */}
-              {selectedCities.map(city => (
-                <Badge
-                  key={`city-${city}`}
-                  variant="default"
-                  className="cursor-pointer hover:bg-primary/80"
-                  onClick={() => setSelectedCities(prev => prev.filter(c => c !== city))}
-                >
+              {selectedCities.map(city => <Badge key={`city-${city}`} variant="default" className="cursor-pointer hover:bg-primary/80" onClick={() => setSelectedCities(prev => prev.filter(c => c !== city))}>
                   {city} ×
-                </Badge>
-              ))}
+                </Badge>)}
               
               {/* Selected Cuisine Tags */}
-              {selectedCuisines.map(cuisine => (
-                <Badge
-                  key={`cuisine-${cuisine}`}
-                  variant="default"
-                  className="cursor-pointer hover:bg-primary/80"
-                  onClick={() => setSelectedCuisines(prev => prev.filter(c => c !== cuisine))}
-                >
+              {selectedCuisines.map(cuisine => <Badge key={`cuisine-${cuisine}`} variant="default" className="cursor-pointer hover:bg-primary/80" onClick={() => setSelectedCuisines(prev => prev.filter(c => c !== cuisine))}>
                   {cuisine} ×
-                </Badge>
-              ))}
-            </div>
-          )}
+                </Badge>)}
+            </div>}
         </CardContent>
       </Card>
 
@@ -1321,40 +1073,28 @@ export function FriendsActivityPage() {
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">
             {filteredRestaurants.length} {filteredRestaurants.length === 1 ? 'Item' : 'Items'}
-            {friendsRestaurants.length > 0 && hasMore && (
-              <span className="text-sm text-muted-foreground ml-2">
+            {friendsRestaurants.length > 0 && hasMore && <span className="text-sm text-muted-foreground ml-2">
                 (loaded {friendsRestaurants.length} of many)
-              </span>
-            )}
+              </span>}
           </h2>
         </div>
 
-        {friendsRestaurants.length === 0 && !isLoading ? (
-          <Card>
+        {friendsRestaurants.length === 0 && !isLoading ? <Card>
             <CardContent className="p-12 text-center">
               <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-medium mb-2">No Activity Found</h3>
               <p className="text-muted-foreground">
-                {friendsRestaurants.length === 0 && !isLoading
-                  ? "Your friends haven't added any restaurants yet."
-                  : "No restaurants match your current filters."}
+                {friendsRestaurants.length === 0 && !isLoading ? "Your friends haven't added any restaurants yet." : "No restaurants match your current filters."}
               </p>
             </CardContent>
-          </Card>
-        ) : (
-          <>
+          </Card> : <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredRestaurants.map((restaurant) => (
-              <Card 
-                key={restaurant.id} 
-                className="hover:shadow-lg transition-shadow cursor-pointer" 
-                onClick={() => {
-                  // Preserve current search parameters for when user returns
-                  const currentSearch = searchParams.toString();
-                  const returnUrl = currentSearch ? `/search/friends?${currentSearch}` : '/search/friends';
-                  navigate(`/restaurant/${restaurant.id}?friendId=${restaurant.friend.id}&fromFriendsActivity=true&returnUrl=${encodeURIComponent(returnUrl)}`);
-                }}
-              >
+              {filteredRestaurants.map(restaurant => <Card key={restaurant.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => {
+            // Preserve current search parameters for when user returns
+            const currentSearch = searchParams.toString();
+            const returnUrl = currentSearch ? `/search/friends?${currentSearch}` : '/search/friends';
+            navigate(`/restaurant/${restaurant.id}?friendId=${restaurant.friend.id}&fromFriendsActivity=true&returnUrl=${encodeURIComponent(returnUrl)}`);
+          }}>
                 <CardContent className="p-3 md:p-6">
                   {/* Mobile Layout - Optimized for small screens */}
                   <div className="md:hidden space-y-3">
@@ -1371,19 +1111,8 @@ export function FriendsActivityPage() {
                           <p className="font-medium text-xs truncate">{restaurant.friend.name}</p>
                         </div>
                       </div>
-                      <Badge 
-                        variant="outline" 
-                        className={`text-xs px-2 py-0.5 flex-shrink-0 ${
-                          restaurant.is_wishlist 
-                            ? 'text-red-600 border-red-200' 
-                            : 'text-green-600 border-green-200'
-                        }`}
-                      >
-                        {restaurant.is_wishlist ? (
-                          <><Heart className="h-2.5 w-2.5 mr-1" />Want</>
-                        ) : (
-                          <><Star className="h-2.5 w-2.5 mr-1" />Been</>
-                        )}
+                      <Badge variant="outline" className={`text-xs px-2 py-0.5 flex-shrink-0 ${restaurant.is_wishlist ? 'text-red-600 border-red-200' : 'text-green-600 border-green-200'}`}>
+                        {restaurant.is_wishlist ? <><Heart className="h-2.5 w-2.5 mr-1" />Want</> : <><Star className="h-2.5 w-2.5 mr-1" />Been</>}
                       </Badge>
                     </div>
 
@@ -1400,24 +1129,18 @@ export function FriendsActivityPage() {
                     {/* Rating & Details Row */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        {restaurant.rating && !restaurant.is_wishlist && (
-                          <div className="flex items-center gap-1">
+                        {restaurant.rating && !restaurant.is_wishlist && <div className="flex items-center gap-1">
                             <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                             <span className="text-xs font-medium">{restaurant.rating}</span>
-                          </div>
-                        )}
-                        {restaurant.price_range && (
-                          <span className="text-xs text-green-600 font-medium">
+                          </div>}
+                        {restaurant.price_range && <span className="text-xs text-green-600 font-medium">
                             {'$'.repeat(restaurant.price_range)}
-                          </span>
-                        )}
-                        {restaurant.michelin_stars && restaurant.michelin_stars > 0 && (
-                          <div className="flex items-center">
-                            {Array.from({ length: restaurant.michelin_stars }).map((_, i) => (
-                              <span key={i} className="text-xs">⭐</span>
-                            ))}
-                          </div>
-                        )}
+                          </span>}
+                        {restaurant.michelin_stars && restaurant.michelin_stars > 0 && <div className="flex items-center">
+                            {Array.from({
+                        length: restaurant.michelin_stars
+                      }).map((_, i) => <span key={i} className="text-xs">⭐</span>)}
+                          </div>}
                       </div>
                       <div className="text-xs text-muted-foreground flex items-center gap-1">
                         <Clock className="h-3 w-3" />
@@ -1426,11 +1149,9 @@ export function FriendsActivityPage() {
                     </div>
 
                     {/* Notes Preview - Mobile Only */}
-                    {restaurant.notes && (
-                      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                    {restaurant.notes && <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
                         "{restaurant.notes}"
-                      </p>
-                    )}
+                      </p>}
                   </div>
 
                   {/* Desktop Layout - Unchanged */}
@@ -1449,17 +1170,13 @@ export function FriendsActivityPage() {
                           <p className="text-xs text-muted-foreground">@{restaurant.friend.username}</p>
                         </div>
                       </div>
-                      {restaurant.is_wishlist ? (
-                        <Badge variant="outline" className="text-red-600 border-red-200">
+                      {restaurant.is_wishlist ? <Badge variant="outline" className="text-red-600 border-red-200">
                           <Heart className="h-3 w-3 mr-1" />
                           Wishlist
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-green-600 border-green-200">
+                        </Badge> : <Badge variant="outline" className="text-green-600 border-green-200">
                           <Star className="h-3 w-3 mr-1" />
                           Rated
-                        </Badge>
-                      )}
+                        </Badge>}
                     </div>
 
                     {/* Restaurant info */}
@@ -1468,12 +1185,10 @@ export function FriendsActivityPage() {
                       <p className="text-sm text-muted-foreground mb-2">{restaurant.cuisine}</p>
                       
                       {/* Rating */}
-                      {restaurant.rating && !restaurant.is_wishlist && (
-                        <div className="flex items-center gap-2 mb-2">
+                      {restaurant.rating && !restaurant.is_wishlist && <div className="flex items-center gap-2 mb-2">
                           <StarRating rating={restaurant.rating} readonly size="sm" />
-                          <span className="text-sm font-medium">{restaurant.rating}/10</span>
-                        </div>
-                      )}
+                          
+                        </div>}
 
                       {/* Location */}
                       <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
@@ -1483,12 +1198,8 @@ export function FriendsActivityPage() {
 
                       {/* Additional info */}
                       <div className="flex items-center gap-4 text-sm">
-                        {restaurant.price_range && (
-                          <PriceRange priceRange={restaurant.price_range} />
-                        )}
-                        {restaurant.michelin_stars && restaurant.michelin_stars > 0 && (
-                          <MichelinStars stars={restaurant.michelin_stars} />
-                        )}
+                        {restaurant.price_range && <PriceRange priceRange={restaurant.price_range} />}
+                        {restaurant.michelin_stars && restaurant.michelin_stars > 0 && <MichelinStars stars={restaurant.michelin_stars} />}
                       </div>
 
                       {/* Date */}
@@ -1500,82 +1211,52 @@ export function FriendsActivityPage() {
                       </div>
 
                       {/* Notes preview */}
-                      {restaurant.notes && (
-                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                      {restaurant.notes && <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
                           "{restaurant.notes}"
-                        </p>
-                      )}
+                        </p>}
                     </div>
                   </div>
                 </CardContent>
-              </Card>
-              ))}
+              </Card>)}
 
             {/* Skeleton cards for loading more - show immediately when loading starts */}
-            {isLoadingMore && (
-              <>
-                {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
-                  <RestaurantActivityCardSkeleton key={`skeleton-loading-${index}`} />
-                ))}
-              </>
-            )}
+            {isLoadingMore && <>
+                {Array.from({
+              length: ITEMS_PER_PAGE
+            }).map((_, index) => <RestaurantActivityCardSkeleton key={`skeleton-loading-${index}`} />)}
+              </>}
             </div>
 
             {/* Pagination Controls */}
             <div className="flex justify-center items-center gap-4 pt-8">
               {/* Previous Page Button */}
-              {currentPage > 1 && (
-                <Button 
-                  onClick={loadPreviousPage}
-                  disabled={isLoadingMore}
-                  size="lg"
-                  variant="outline"
-                  className="min-w-32 flex items-center gap-2"
-                >
-                  {isLoadingMore ? 'Loading...' : (
-                    <>
+              {currentPage > 1 && <Button onClick={loadPreviousPage} disabled={isLoadingMore} size="lg" variant="outline" className="min-w-32 flex items-center gap-2">
+                  {isLoadingMore ? 'Loading...' : <>
                       <ChevronLeft className="h-4 w-4" />
                       Previous Page ({currentPage - 1})
-                    </>
-                  )}
-                </Button>
-              )}
+                    </>}
+                </Button>}
 
               {/* Page indicator */}
-              {(currentPage > 1 || hasMore) && (
-                <div className="text-sm text-muted-foreground font-medium px-4">
+              {(currentPage > 1 || hasMore) && <div className="text-sm text-muted-foreground font-medium px-4">
                   Page {currentPage}
-                </div>
-              )}
+                </div>}
 
               {/* Next Page Button */}
-              {hasMore && (
-                <Button 
-                  onClick={loadNextPage}
-                  disabled={isLoadingMore}
-                  size="lg"
-                  className="min-w-32 flex items-center gap-2"
-                >
-                  {isLoadingMore ? 'Loading...' : (
-                    <>
+              {hasMore && <Button onClick={loadNextPage} disabled={isLoadingMore} size="lg" className="min-w-32 flex items-center gap-2">
+                  {isLoadingMore ? 'Loading...' : <>
                       Next Page ({currentPage + 1})
                       <ChevronRight className="h-4 w-4" />
-                    </>
-                  )}
-                </Button>
-              )}
+                    </>}
+                </Button>}
               
               {/* End message */}
-              {!hasMore && friendsRestaurants.length > 0 && (
-                <div className="text-center text-muted-foreground">
+              {!hasMore && friendsRestaurants.length > 0 && <div className="text-center text-muted-foreground">
                   <p>You've reached the end of the list!</p>
                   <p className="text-sm mt-1">Page {currentPage} • {filteredRestaurants.length} restaurants shown</p>
-                </div>
-              )}
+                </div>}
             </div>
-          </>
-        )}
+          </>}
       </div>
-    </div>
-  );
+    </div>;
 }
