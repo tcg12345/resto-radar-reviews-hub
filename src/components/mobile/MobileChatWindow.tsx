@@ -660,7 +660,7 @@ export function MobileChatWindow({ roomId, onBack }: MobileChatWindowProps) {
                             />
                           </div>
                         ) : (
-                          <div className={`rounded-2xl px-4 py-3 max-w-[calc(100vw-120px)] ${
+                          <div className={`rounded-2xl px-4 py-3 max-w-[calc(100vw-120px)] overflow-hidden ${
                             isCurrentUser 
                               ? 'bg-primary text-primary-foreground' 
                               : 'bg-muted'
