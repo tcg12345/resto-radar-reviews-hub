@@ -15,9 +15,9 @@ export const MichelinStars = React.memo(({
   size = 'md' 
 }: MichelinStarsProps) => {
   const sizeClasses = {
-    sm: 'h-3 w-3 md:h-5 md:w-5',
-    md: 'h-4 w-4 md:h-6 md:w-6',
-    lg: 'h-5 w-5 md:h-8 md:w-8'
+    sm: 'h-5 w-5',
+    md: 'h-6 w-6',
+    lg: 'h-8 w-8'
   };
 
   const textSizeClasses = {
@@ -72,7 +72,7 @@ export const MichelinStars = React.memo(({
         <img 
           src="/lovable-uploads/a19328d3-fb1d-41e4-b595-caaee16a8c16.png"
           alt="Michelin"
-          className={`${size === 'sm' ? 'h-8 md:h-12' : size === 'md' ? 'h-10 md:h-16' : 'h-12 md:h-20'} object-contain`}
+          className={`${size === 'sm' ? 'h-12' : size === 'md' ? 'h-16' : 'h-20'} object-contain`}
         />
       )}
       
