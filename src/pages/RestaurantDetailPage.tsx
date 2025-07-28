@@ -697,7 +697,7 @@ export function RestaurantDetailPage() {
                   <Button
                     onClick={addToWishlist}
                     disabled={isAddingToWishlist}
-                    className="h-auto flex-col gap-2 py-4 bg-gradient-to-br from-pink-500/20 to-violet-600/20 hover:from-pink-600/30 hover:to-violet-700/30 text-white border-0"
+                    className="h-auto flex-col gap-2 py-4 bg-gradient-to-br from-pink-400/60 to-violet-500/60 hover:from-pink-500/70 hover:to-violet-600/70 text-white border-0 backdrop-blur-sm"
                     variant="outline"
                   >
                     <Heart className="h-5 w-5" />
@@ -705,7 +705,7 @@ export function RestaurantDetailPage() {
                   </Button>
 
                   {restaurant.phone_number && (
-                    <Button asChild variant="outline" className="h-auto flex-col gap-2 py-4 bg-gradient-to-br from-blue-500/20 to-cyan-600/20 hover:from-blue-600/30 hover:to-cyan-700/30 text-white border-0">
+                    <Button asChild variant="outline" className="h-auto flex-col gap-2 py-4 bg-gradient-to-br from-blue-400/60 to-cyan-500/60 hover:from-blue-500/70 hover:to-cyan-600/70 text-white border-0 backdrop-blur-sm">
                       <a href={`tel:${restaurant.phone_number}`}>
                         <Phone className="h-5 w-5" />
                         <span className="text-sm">Call</span>
@@ -714,7 +714,7 @@ export function RestaurantDetailPage() {
                   )}
 
                   {restaurant.website && (
-                    <Button asChild variant="outline" className="h-auto flex-col gap-2 py-4 bg-gradient-to-br from-green-500/20 to-emerald-600/20 hover:from-green-600/30 hover:to-emerald-700/30 text-white border-0">
+                    <Button asChild variant="outline" className="h-auto flex-col gap-2 py-4 bg-gradient-to-br from-green-400/60 to-emerald-500/60 hover:from-green-500/70 hover:to-emerald-600/70 text-white border-0 backdrop-blur-sm">
                       <a href={restaurant.website} target="_blank" rel="noopener noreferrer">
                         <Globe className="h-5 w-5" />
                         <span className="text-sm">Website</span>
@@ -722,7 +722,7 @@ export function RestaurantDetailPage() {
                     </Button>
                   )}
 
-                  <Button asChild variant="outline" className="h-auto flex-col gap-2 py-4 bg-gradient-to-br from-orange-500/20 to-red-600/20 hover:from-orange-600/30 hover:to-red-700/30 text-white border-0">
+                  <Button asChild variant="outline" className="h-auto flex-col gap-2 py-4 bg-gradient-to-br from-orange-400/60 to-red-500/60 hover:from-orange-500/70 hover:to-red-600/70 text-white border-0 backdrop-blur-sm">
                     <a
                       href={
                         restaurant.latitude && restaurant.longitude
