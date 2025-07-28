@@ -14,7 +14,6 @@ interface NavbarProps {
 }
 
 export function Navbar({ activeTab, onTabChange }: NavbarProps) {
-  console.log('Navbar received props:', { activeTab, onTabChange: typeof onTabChange });
   const { user } = useAuth();
   const navigate = useNavigate();
   const unreadMessageCount = useUnreadMessageCount();
@@ -30,22 +29,8 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
   ];
 
   const handleTabClick = (tabId: string) => {
-    console.log('Tab clicked:', tabId);
-    
-    if (tabId === 'feed') {
-      console.log('FEED CLICKED - dispatching custom event');
-      try {
-        const event = new CustomEvent('feedTabClicked');
-        console.log('Custom event created:', event);
-        window.dispatchEvent(event);
-        console.log('Custom event dispatched successfully');
-      } catch (error) {
-        console.error('Error dispatching custom event:', error);
-      }
-    } else {
-      console.log('Non-feed tab clicked, using onTabChange for:', tabId);
-      onTabChange(tabId as any);
-    }
+    // Force all tab changes to work, including feed
+    onTabChange(tabId as any);
   };
 
   return (
