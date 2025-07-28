@@ -675,13 +675,6 @@ export default function FriendProfilePage() {
                         </div>
                       )}
 
-                      {restaurant.notes && (
-                        <div className="p-4 bg-gradient-to-r from-muted/50 to-muted/30 rounded-xl border border-border/50">
-                          <p className="text-sm text-foreground/80 line-clamp-2 leading-relaxed">
-                            "{restaurant.notes}"
-                          </p>
-                        </div>
-                      )}
 
                       {/* Footer */}
                       <div className="flex items-center justify-between pt-4 border-t border-gradient-to-r from-transparent via-border to-transparent">
