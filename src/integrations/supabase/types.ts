@@ -786,6 +786,26 @@ export type Database = {
           recent_restaurants: Json
         }[]
       }
+      get_friend_profile_with_all_data: {
+        Args: { target_user_id: string; requesting_user_id?: string }
+        Returns: {
+          can_view: boolean
+          username: string
+          name: string
+          avatar_url: string
+          is_public: boolean
+          rated_count: number
+          wishlist_count: number
+          avg_rating: number
+          top_cuisine: string
+          michelin_count: number
+          all_restaurants: Json
+          all_wishlist: Json
+          rating_distribution: Json
+          cuisine_distribution: Json
+          cities_distribution: Json
+        }[]
+      }
       get_friend_profile_with_pagination: {
         Args: {
           target_user_id: string

@@ -27,8 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { MichelinStars } from '@/components/MichelinStars';
-import { useFriendProfilePagination } from '@/hooks/useFriendProfilePagination';
-import { InfiniteScrollLoader } from '@/components/InfiniteScrollLoader';
+import { useFriendProfileOptimized } from '@/hooks/useFriendProfileOptimized';
 import { useFriends } from '@/hooks/useFriends';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -41,20 +40,16 @@ export default function FriendProfilePage() {
   const { friends } = useFriends();
   const { toast } = useToast();
   
-  // Use the new pagination hook
+  // Use the optimized hook for instant loading
   const {
     profileData,
-    restaurants: paginatedRestaurants,
-    wishlist: paginatedWishlist,
+    computedAnalytics,
+    restaurants: allRestaurants,
+    wishlist: allWishlist,
     isLoading,
-    isLoadingMore,
-    hasMoreRestaurants,
-    hasMoreWishlist,
     error,
-    loadMoreRestaurants,
-    loadMoreWishlist,
     refresh
-  } = useFriendProfilePagination(actualUserId || '');
+  } = useFriendProfileOptimized(actualUserId || '');
   
   const [friend, setFriend] = useState<any>(null);
   
@@ -91,48 +86,15 @@ export default function FriendProfilePage() {
     }
   }, [actualUserId, profileData, friends]);
 
-  const calculateTopCuisines = (restaurantData: any[]) => {
-    const cuisineCount: { [key: string]: number } = {};
-    restaurantData.forEach(r => {
-      if (r.cuisine) {
-        cuisineCount[r.cuisine] = (cuisineCount[r.cuisine] || 0) + 1;
-      }
-    });
-    
-    return Object.entries(cuisineCount)
-      .map(([cuisine, count]) => ({ cuisine, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 10);
-  };
-
-  const calculateRatingDistribution = (ratedRestaurants: any[]) => {
-    const ratingDistribution: { [key: string]: number } = {
-      '0-2': 0,
-      '2-4': 0,
-      '4-6': 0,
-      '6-8': 0,
-      '8-10': 0
-    };
-    
-    const ratedWithScores = ratedRestaurants.filter(r => r.rating);
-    ratedWithScores.forEach(r => {
-      const rating = r.rating;
-      if (rating >= 0 && rating < 2) ratingDistribution['0-2']++;
-      else if (rating >= 2 && rating < 4) ratingDistribution['2-4']++;
-      else if (rating >= 4 && rating < 6) ratingDistribution['4-6']++;
-      else if (rating >= 6 && rating < 8) ratingDistribution['6-8']++;
-      else if (rating >= 8 && rating <= 10) ratingDistribution['8-10']++;
-    });
-    
-    return ratingDistribution;
-  };
-
-  const topCuisines = useMemo(() => calculateTopCuisines(paginatedRestaurants), [paginatedRestaurants]);
-  const ratingDistribution = useMemo(() => calculateRatingDistribution(paginatedRestaurants), [paginatedRestaurants]);
-  const michelinCount = useMemo(() => paginatedRestaurants.filter(r => r.michelin_stars > 0).length, [paginatedRestaurants]);
+  // Use the computed analytics from the optimized hook, fallback to computing if needed
+  const topCuisines = computedAnalytics?.topCuisines || 
+    (profileData?.cuisine_distribution || []).slice(0, 10);
+  
+  const ratingDistribution = computedAnalytics?.ratingDistribution || 
+    (profileData?.rating_distribution || {});
 
   const filteredRestaurants = useMemo(() => {
-    let filtered = paginatedRestaurants.filter(restaurant => {
+    let filtered = allRestaurants.filter(restaurant => {
       const matchesSearch = restaurant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           restaurant.cuisine.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           (restaurant.address && restaurant.address.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -168,33 +130,18 @@ export default function FriendProfilePage() {
     }
 
     return filtered;
-  }, [paginatedRestaurants, searchTerm, cuisineFilter, cityFilter, sortBy, ratingFilter]);
+  }, [allRestaurants, searchTerm, cuisineFilter, cityFilter, sortBy, ratingFilter]);
 
   const availableCuisines = useMemo(() => {
-    const cuisineCount: { [key: string]: number } = {};
-    paginatedRestaurants.forEach(r => {
-      if (r.cuisine) {
-        cuisineCount[r.cuisine] = (cuisineCount[r.cuisine] || 0) + 1;
-      }
-    });
-    
-    return Object.entries(cuisineCount)
-      .map(([cuisine, count]) => ({ cuisine, count }))
+    return (profileData?.cuisine_distribution || [])
+      .map((item: any) => ({ cuisine: item.cuisine, count: item.count }))
       .sort((a, b) => a.cuisine.localeCompare(b.cuisine));
-  }, [paginatedRestaurants]);
+  }, [profileData]);
 
   const availableCities = useMemo(() => {
-    const cityCount: { [key: string]: number } = {};
-    paginatedRestaurants.forEach(r => {
-      if (r.city) {
-        cityCount[r.city] = (cityCount[r.city] || 0) + 1;
-      }
-    });
-    
-    return Object.entries(cityCount)
-      .map(([city, count]) => ({ city, count }))
-      .sort((a, b) => b.count - a.count);
-  }, [paginatedRestaurants]);
+    return (profileData?.cities_distribution || [])
+      .map((item: any) => ({ city: item.city, count: item.count }));
+  }, [profileData]);
 
   if (isLoading || !friend || !profileData) {
     return <FriendProfileSkeleton />
@@ -245,10 +192,9 @@ export default function FriendProfilePage() {
                 onClick={refresh} 
                 variant="outline" 
                 size="sm"
-                disabled={isLoadingMore}
                 className="hover:bg-primary hover:text-primary-foreground"
               >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isLoadingMore ? 'animate-spin' : ''}`} />
+                <RefreshCw className="h-4 w-4 mr-2" />
                 Refresh
               </Button>
             </div>
@@ -301,7 +247,7 @@ export default function FriendProfilePage() {
                   <Award className="h-5 w-5 text-purple-500" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold">{michelinCount || 0}</div>
+                  <div className="text-2xl font-bold">{profileData.michelin_count || 0}</div>
                   <div className="text-sm text-muted-foreground">Michelin</div>
                 </div>
               </div>
@@ -341,7 +287,7 @@ export default function FriendProfilePage() {
               </TabsTrigger>
               <TabsTrigger value="wishlist" className="flex items-center gap-2 text-sm">
                 <Heart className="h-4 w-4" />
-                Wishlist ({paginatedWishlist.length})
+                Wishlist ({allWishlist.length})
               </TabsTrigger>
               <TabsTrigger value="analytics" className="flex items-center gap-2 text-sm">
                 <PieChart className="h-4 w-4" />
@@ -483,13 +429,6 @@ export default function FriendProfilePage() {
                 ))}
               </div>
 
-              <InfiniteScrollLoader
-                hasMore={hasMoreRestaurants}
-                isLoading={isLoadingMore}
-                onLoadMore={loadMoreRestaurants}
-                loadMoreText="Load More Restaurants"
-              />
-
               {filteredRestaurants.length === 0 && (
                 <Card className="p-12 text-center">
                   <Utensils className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -502,7 +441,7 @@ export default function FriendProfilePage() {
             {/* Wishlist Tab */}
             <TabsContent value="wishlist" className="space-y-6 mt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {paginatedWishlist.map((restaurant) => (
+                {allWishlist.map((restaurant) => (
                   <Card 
                     key={restaurant.id} 
                     className="p-6 hover:shadow-xl transition-all duration-300 cursor-pointer group border-l-4 border-l-orange-500/20 hover:border-l-orange-500 hover:scale-[1.02]"
@@ -549,14 +488,7 @@ export default function FriendProfilePage() {
                 ))}
               </div>
 
-              <InfiniteScrollLoader
-                hasMore={hasMoreWishlist}
-                isLoading={isLoadingMore}
-                onLoadMore={loadMoreWishlist}
-                loadMoreText="Load More Wishlist Items"
-              />
-
-              {paginatedWishlist.length === 0 && (
+              {allWishlist.length === 0 && (
                 <Card className="p-12 text-center">
                   <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <h3 className="text-lg font-semibold mb-2">No wishlist items</h3>
