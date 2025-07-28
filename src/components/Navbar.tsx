@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { MapPin, Star, Heart, Home, Search, Settings, Users, MessageCircle, Calendar } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -9,8 +10,8 @@ import { NotificationsPanel } from '@/components/NotificationsPanel';
 import { useUnreadMessageCount } from '@/hooks/useUnreadMessageCount';
 
 interface NavbarProps {
-  activeTab: 'home' | 'feed' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'travel';
-  onTabChange: (tab: 'home' | 'feed' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'travel') => void;
+  activeTab: 'home' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'travel';
+  onTabChange: (tab: 'home' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'travel') => void;
 }
 
 export function Navbar({ activeTab, onTabChange }: NavbarProps) {
@@ -20,18 +21,12 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
 
   const tabs = [
     { id: 'home' as const, label: 'Home', icon: Home, shortLabel: 'Home' },
-    { id: 'feed' as const, label: 'Feed', icon: Users, shortLabel: 'Feed' },
     { id: 'search' as const, label: 'Search & Discover', icon: Search, shortLabel: 'Search' },
     { id: 'rated' as const, label: 'My Ratings', icon: Star, shortLabel: 'Rated' },
     { id: 'wishlist' as const, label: 'Wishlist', icon: Heart, shortLabel: 'Wishlist' },
     { id: 'travel' as const, label: 'Travel', icon: Calendar, shortLabel: 'Travel' },
-    { id: 'friends' as const, label: 'Friends', icon: MessageCircle, shortLabel: 'Friends' },
+    { id: 'friends' as const, label: 'Friends', icon: Users, shortLabel: 'Friends' },
   ];
-
-  const handleTabClick = (tabId: string) => {
-    // Force all tab changes to work, including feed
-    onTabChange(tabId as any);
-  };
 
   return (
     <>
@@ -51,7 +46,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
                     key={tab.id}
                     variant={activeTab === tab.id ? 'default' : 'ghost'}
                     size="sm"
-                    onClick={() => handleTabClick(tab.id)}
+                    onClick={() => onTabChange(tab.id)}
                     className={`relative px-4 py-2 transition-all duration-200 ${
                       activeTab === tab.id 
                         ? 'bg-primary text-primary-foreground shadow-sm' 
@@ -160,7 +155,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
         </div>
       </nav>
 
-      {/* Mobile Bottom Navigation */}
+      {/* Mobile Bottom Navigation - Modern Circular Design */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t border-border/20">
         <div className="pb-safe-area-bottom">
           <div className="flex justify-around items-center px-4 py-2">
@@ -172,7 +167,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleTabClick(tab.id)}
+                    onClick={() => onTabChange(tab.id)}
                     className={`relative h-10 w-10 rounded-full mobile-tap-target transition-all duration-300 transform ${
                       isActive 
                         ? 'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg scale-110 shadow-primary/25' 

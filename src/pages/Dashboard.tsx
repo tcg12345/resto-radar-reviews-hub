@@ -9,13 +9,11 @@ import HomePage from '@/pages/HomePage';
 import UnifiedSearchPage from '@/pages/UnifiedSearchPage';
 import SettingsPage from '@/pages/SettingsPage';
 import { FriendsPage } from '@/pages/FriendsPage';
-import { MobileFeedPage } from '@/pages/mobile/MobileFeedPage';
-import { DesktopFeedPage } from '@/pages/DesktopFeedPage';
 import { AIChatbot } from '@/components/AIChatbot';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState<'home' | 'feed' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'travel'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'travel'>('home');
   const [shouldOpenAddDialog, setShouldOpenAddDialog] = useState(false);
   const [viewFriendId, setViewFriendId] = useState<string | null>(null);
   const { restaurants, addRestaurant, updateRestaurant, deleteRestaurant } = useRestaurants();
@@ -24,9 +22,7 @@ export default function Dashboard() {
 
   // Handle navigation state from other pages
   useEffect(() => {
-    console.log('useEffect triggered with location.state:', location.state);
     if (location.state?.activeTab) {
-      console.log('Setting activeTab from location.state:', location.state.activeTab);
       setActiveTab(location.state.activeTab);
     }
     if (location.state?.viewFriendId) {
@@ -34,7 +30,6 @@ export default function Dashboard() {
     }
     // Clear navigation state after using it
     if (location.state) {
-      console.log('Clearing location.state');
       navigate(location.pathname, { replace: true, state: null });
     }
   }, [location.state, navigate]);
@@ -44,28 +39,13 @@ export default function Dashboard() {
     setActiveTab('rated');
   };
 
-  const handleTabChange = (tab: 'home' | 'feed' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'travel') => {
-    setActiveTab(tab);
-  };
-
-
   const renderContent = () => {
-    switch (activeTab) {
-      case 'home':
-        return <HomePage onNavigate={setActiveTab} onOpenAddRestaurant={handleOpenAddRestaurant} />;
-      case 'feed':
-        return (
-          <>
-            <div className="lg:hidden">
-              <MobileFeedPage />
-            </div>
-            <div className="hidden lg:block">
-              <DesktopFeedPage />
-            </div>
-          </>
-        );
-      case 'rated':
-        return (
+    return (
+      <div className="relative w-full h-full">
+        <div className={`${activeTab === 'home' ? 'block' : 'hidden'}`}>
+          <HomePage onNavigate={setActiveTab} onOpenAddRestaurant={handleOpenAddRestaurant} />
+        </div>
+        <div className={`${activeTab === 'rated' ? 'block' : 'hidden'}`}>
           <RatedRestaurantsPage
             restaurants={restaurants}
             onAddRestaurant={addRestaurant}
@@ -76,9 +56,8 @@ export default function Dashboard() {
             onNavigateToMap={() => navigate('/map')}
             onOpenSettings={() => setActiveTab('settings')}
           />
-        );
-      case 'wishlist':
-        return (
+        </div>
+        <div className={`${activeTab === 'wishlist' ? 'block' : 'hidden'}`}>
           <WishlistPage
             restaurants={restaurants}
             onAddRestaurant={addRestaurant}
@@ -86,22 +65,21 @@ export default function Dashboard() {
             onDeleteRestaurant={deleteRestaurant}
             onNavigateToMap={() => navigate('/map')}
           />
-        );
-      case 'search':
-        return <UnifiedSearchPage />;
-      case 'settings':
-        return <SettingsPage onBack={() => setActiveTab('home')} />;
-      case 'friends':
-        return (
+        </div>
+        <div className={`${activeTab === 'search' ? 'block' : 'hidden'}`}>
+          <UnifiedSearchPage />
+        </div>
+        <div className={`${activeTab === 'settings' ? 'block' : 'hidden'}`}>
+          <SettingsPage onBack={() => setActiveTab('home')} />
+        </div>
+        <div className={`${activeTab === 'friends' ? 'block' : 'hidden'}`}>
           <FriendsPage 
             initialViewFriendId={viewFriendId} 
             onInitialViewProcessed={() => setViewFriendId(null)}
           />
-        );
-      default:
-        console.log('DASHBOARD: Rendering DEFAULT (home) content');
-        return <HomePage onNavigate={setActiveTab} onOpenAddRestaurant={handleOpenAddRestaurant} />;
-    }
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -109,7 +87,7 @@ export default function Dashboard() {
       {activeTab !== 'settings' && (
         <Navbar 
           activeTab={activeTab} 
-          onTabChange={handleTabChange} 
+          onTabChange={setActiveTab} 
         />
       )}
       
