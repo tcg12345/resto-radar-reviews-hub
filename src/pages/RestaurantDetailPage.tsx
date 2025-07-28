@@ -336,10 +336,10 @@ export function RestaurantDetailPage() {
           <div className="p-4 space-y-4">
             {/* Restaurant Title */}
             <div className="space-y-2">
-              <div className="flex items-start gap-2">
+              <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold flex-1 leading-tight">{restaurant.name}</h1>
                 {restaurant.michelin_stars && restaurant.michelin_stars > 0 && (
-                  <div className="mt-1">
+                  <div>
                     <MichelinStars stars={restaurant.michelin_stars} size="md" readonly showLogo={true} />
                   </div>
                 )}
