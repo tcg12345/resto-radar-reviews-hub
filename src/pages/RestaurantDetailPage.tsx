@@ -658,10 +658,10 @@ export function RestaurantDetailPage() {
         </div>
 
         {/* Main Content Grid */}
-        <div className="flex min-h-screen">
+        <div className="flex">
           {/* Main Content Area */}
-          <div className="flex-1 p-8">
-            <div className="max-w-4xl space-y-8">
+          <div className="flex-1 p-8 pr-4">
+            <div className="space-y-8">
               
               {/* Photo Gallery */}
               {!restaurant.is_wishlist && restaurant.photos && restaurant.photos.length > 0 && (
@@ -918,7 +918,7 @@ export function RestaurantDetailPage() {
           </div>
 
           {/* Sidebar */}
-          <div className="w-80 bg-muted/30 p-6 border-l">
+          <div className="w-96 bg-muted/30 p-6 border-l flex-shrink-0">
             <div className="sticky top-6 space-y-6">
               {/* Quick Stats */}
               <Card>
