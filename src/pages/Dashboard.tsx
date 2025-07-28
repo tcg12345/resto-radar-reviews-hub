@@ -10,6 +10,7 @@ import UnifiedSearchPage from '@/pages/UnifiedSearchPage';
 import SettingsPage from '@/pages/SettingsPage';
 import { FriendsPage } from '@/pages/FriendsPage';
 import { MobileFeedPage } from '@/pages/mobile/MobileFeedPage';
+import { DesktopFeedPage } from '@/pages/DesktopFeedPage';
 import { AIChatbot } from '@/components/AIChatbot';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 
@@ -46,8 +47,13 @@ export default function Dashboard() {
         <div className={`${activeTab === 'home' ? 'block' : 'hidden'}`}>
           <HomePage onNavigate={setActiveTab} onOpenAddRestaurant={handleOpenAddRestaurant} />
         </div>
-        <div className={`${activeTab === 'feed' ? 'block' : 'hidden'} lg:hidden`}>
-          <MobileFeedPage />
+        <div className={`${activeTab === 'feed' ? 'block' : 'hidden'}`}>
+          <div className="lg:hidden">
+            <MobileFeedPage />
+          </div>
+          <div className="hidden lg:block">
+            <DesktopFeedPage />
+          </div>
         </div>
         <div className={`${activeTab === 'rated' ? 'block' : 'hidden'}`}>
           <RatedRestaurantsPage
