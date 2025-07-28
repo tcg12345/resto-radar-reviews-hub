@@ -6,13 +6,15 @@ interface MichelinStarsProps {
   onStarsChange?: (stars: number | undefined) => void;
   readonly?: boolean;
   size?: 'sm' | 'md' | 'lg';
+  showLogo?: boolean;
 }
 
 export const MichelinStars = React.memo(({ 
   stars, 
   onStarsChange, 
   readonly = false, 
-  size = 'md' 
+  size = 'md',
+  showLogo = true 
 }: MichelinStarsProps) => {
   const sizeClasses = {
     sm: 'h-5 w-5',
@@ -68,7 +70,7 @@ export const MichelinStars = React.memo(({
         }
       </div>
       
-      {displayStars > 0 && (
+      {displayStars > 0 && showLogo && (
         <img 
           src="/lovable-uploads/a19328d3-fb1d-41e4-b595-caaee16a8c16.png"
           alt="Michelin"
