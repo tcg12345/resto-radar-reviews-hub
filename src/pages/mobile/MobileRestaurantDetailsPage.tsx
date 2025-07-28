@@ -395,59 +395,76 @@ export default function MobileRestaurantDetailsPage() {
               </div>
             </div>
 
-            {/* Contact & Hours in Card Format */}
-            {(restaurant.phone_number || restaurant.website || restaurant.opening_hours) && (
-              <div className="bg-muted/30 rounded-lg p-3 space-y-3">
-                {restaurant.phone_number && (
+            {/* Contact Info Cards */}
+            <div className="space-y-2">
+              {restaurant.phone_number && (
+                <div className="bg-muted/30 rounded-lg p-3">
                   <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <span className="text-sm font-medium">Phone: </span>
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Phone</p>
                       <a 
                         href={`tel:${restaurant.phone_number}`}
-                        className="text-sm text-primary hover:underline"
+                        className="text-sm font-medium text-primary hover:underline"
                       >
                         {restaurant.phone_number}
                       </a>
                     </div>
                   </div>
-                )}
-                
-                {restaurant.website && (
+                </div>
+              )}
+              
+              {restaurant.website && (
+                <div className="bg-muted/30 rounded-lg p-3">
                   <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <div className="flex-1 min-w-0">
+                    <Globe className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Website</p>
                       <a 
                         href={restaurant.website}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-primary hover:underline flex items-center gap-1"
+                        className="text-sm font-medium text-primary hover:underline flex items-center gap-1"
                       >
                         Visit Website
                         <ExternalLink className="h-3 w-3" />
                       </a>
                     </div>
                   </div>
-                )}
+                </div>
+              )}
 
-                {restaurant.opening_hours && (
-                  <div className="flex items-start gap-2">
-                    <Clock className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium mb-1">Hours</p>
-                      <div className="text-xs text-muted-foreground space-y-0.5">
-                        {restaurant.opening_hours.split('\n').filter(Boolean).slice(0, 3).map((hour, index) => (
-                          <div key={index}>{hour.trim()}</div>
-                        ))}
-                        {restaurant.opening_hours.split('\n').filter(Boolean).length > 3 && (
-                          <div className="text-primary">+ more hours</div>
-                        )}
+              {/* Opening Hours Dropdown */}
+              {restaurant.opening_hours && (
+                <div className="bg-muted/30 rounded-lg overflow-hidden">
+                  <details className="group">
+                    <summary className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Opening Hours</p>
+                          <p className="text-sm font-medium">
+                            {restaurant.opening_hours.split('\n').filter(Boolean)[0]?.trim() || 'View hours'}
+                          </p>
+                        </div>
                       </div>
+                      <div className="transform group-open:rotate-180 transition-transform">
+                        <svg className="h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </summary>
+                    <div className="px-3 pb-3 space-y-1 border-t border-muted">
+                      {restaurant.opening_hours.split('\n').filter(Boolean).map((hour, index) => (
+                        <div key={index} className="text-xs text-muted-foreground py-0.5">
+                          {hour.trim()}
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
+                  </details>
+                </div>
+              )}
+            </div>
 
             {/* Visit Date */}
             {restaurant.date_visited && (
