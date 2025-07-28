@@ -38,7 +38,7 @@ export const MichelinStars = React.memo(({
   return (
     <div className="flex items-center gap-2">
       <div className="flex items-center gap-1">
-        {readonly 
+        {readonly || displayStars > 0 
           ? Array.from({ length: displayStars }, (_, index) => (
               <MichelinStarIcon
                 key={index}
