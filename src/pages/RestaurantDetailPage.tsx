@@ -639,12 +639,12 @@ export function RestaurantDetailPage() {
             {/* Restaurant Header */}
             <div className="space-y-4">
               <div className="space-y-2">
-                <div className="flex items-start gap-3">
+                <div className="flex items-center gap-3">
                   <h1 className="text-3xl md:text-4xl font-bold text-foreground leading-tight flex-1">
                     {restaurant.name}
                   </h1>
                   {restaurant.michelin_stars && restaurant.michelin_stars > 0 && (
-                    <div className="mt-1">
+                    <div>
                       <MichelinStars stars={restaurant.michelin_stars} size="lg" readonly showLogo={true} />
                     </div>
                   )}
