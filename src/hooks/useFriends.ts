@@ -10,6 +10,8 @@ export interface Friend {
   avatar_url: string | null;
   is_public: boolean;
   score: number;
+  restaurant_count?: number;
+  wishlist_count?: number;
 }
 
 export interface FriendRequest {
@@ -64,13 +66,43 @@ export function useFriends() {
 
       // Handle friends data
       if (friendsResult.error) throw friendsResult.error;
+      
+      // Get detailed stats for each friend
+      const friendIds = (friendsResult.data || []).map((f: any) => f.friend_id);
+      let friendsStats: any = {};
+      
+      if (friendIds.length > 0) {
+        // Fetch restaurant and wishlist counts for all friends
+        const { data: statsData } = await supabase
+          .from('restaurants')
+          .select('user_id, is_wishlist')
+          .in('user_id', friendIds);
+        
+        // Calculate counts for each friend
+        const statsByUser = (statsData || []).reduce((acc: any, restaurant: any) => {
+          if (!acc[restaurant.user_id]) {
+            acc[restaurant.user_id] = { restaurant_count: 0, wishlist_count: 0 };
+          }
+          if (restaurant.is_wishlist) {
+            acc[restaurant.user_id].wishlist_count++;
+          } else {
+            acc[restaurant.user_id].restaurant_count++;
+          }
+          return acc;
+        }, {});
+        
+        friendsStats = statsByUser;
+      }
+      
       const mappedFriends: Friend[] = (friendsResult.data || []).map((friend: any) => ({
         id: friend.friend_id,
         username: friend.username || '',
         name: friend.name,
         avatar_url: friend.avatar_url,
         is_public: friend.is_public || false,
-        score: friend.score || 0
+        score: friend.score || 0,
+        restaurant_count: friendsStats[friend.friend_id]?.restaurant_count || 0,
+        wishlist_count: friendsStats[friend.friend_id]?.wishlist_count || 0
       }));
       setFriends(mappedFriends);
 
