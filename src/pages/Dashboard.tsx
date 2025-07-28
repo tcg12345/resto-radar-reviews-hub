@@ -24,7 +24,9 @@ export default function Dashboard() {
 
   // Handle navigation state from other pages
   useEffect(() => {
+    console.log('useEffect triggered with location.state:', location.state);
     if (location.state?.activeTab) {
+      console.log('Setting activeTab from location.state:', location.state.activeTab);
       setActiveTab(location.state.activeTab);
     }
     if (location.state?.viewFriendId) {
@@ -32,6 +34,7 @@ export default function Dashboard() {
     }
     // Clear navigation state after using it
     if (location.state) {
+      console.log('Clearing location.state');
       navigate(location.pathname, { replace: true, state: null });
     }
   }, [location.state, navigate]);
@@ -43,12 +46,18 @@ export default function Dashboard() {
 
   const handleTabChange = (tab: 'home' | 'feed' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'travel') => {
     console.log('Dashboard: Tab change requested:', tab);
-    console.log('Dashboard: Current activeTab:', activeTab);
+    console.log('Dashboard: Current activeTab before change:', activeTab);
+    
     if (tab === 'feed') {
-      console.log('Dashboard: Setting activeTab to feed');
+      console.log('Dashboard: FEED tab requested - setting state');
     }
+    
     setActiveTab(tab);
-    console.log('Dashboard: setActiveTab called with:', tab);
+    
+    // Add a setTimeout to check if the state actually changed
+    setTimeout(() => {
+      console.log('Dashboard: activeTab after setTimeout:', activeTab);
+    }, 100);
   };
 
   const renderContent = () => {
