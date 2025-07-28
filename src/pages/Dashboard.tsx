@@ -15,6 +15,7 @@ import { AIChatbot } from '@/components/AIChatbot';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 
 export default function Dashboard() {
+  console.log('Dashboard component rendered');
   const [activeTab, setActiveTab] = useState<'home' | 'feed' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'travel'>('home');
   const [shouldOpenAddDialog, setShouldOpenAddDialog] = useState(false);
   const [viewFriendId, setViewFriendId] = useState<string | null>(null);
@@ -51,19 +52,27 @@ export default function Dashboard() {
 
   // Custom event listener for feed tab
   useEffect(() => {
-    console.log('Setting up feed tab event listener');
+    console.log('Dashboard useEffect: Setting up feed tab event listener');
     
-    const handleFeedTabClick = () => {
-      console.log('Custom event: Feed tab clicked - setting activeTab to feed');
+    const handleFeedTabClick = (e) => {
+      console.log('Dashboard: Custom event received!', e);
+      console.log('Dashboard: Setting activeTab to feed');
       setActiveTab('feed');
-      console.log('activeTab should now be feed');
+      console.log('Dashboard: activeTab state should now be feed');
     };
 
+    console.log('Dashboard: Adding event listener to window');
     window.addEventListener('feedTabClicked', handleFeedTabClick);
-    console.log('Event listener added for feedTabClicked');
+    console.log('Dashboard: Event listener added successfully');
+    
+    // Test the event listener immediately
+    setTimeout(() => {
+      console.log('Dashboard: Testing event listener with manual dispatch');
+      window.dispatchEvent(new CustomEvent('feedTabClicked'));
+    }, 1000);
     
     return () => {
-      console.log('Cleaning up feed tab event listener');
+      console.log('Dashboard: Cleaning up feed tab event listener');
       window.removeEventListener('feedTabClicked', handleFeedTabClick);
     };
   }, []);
