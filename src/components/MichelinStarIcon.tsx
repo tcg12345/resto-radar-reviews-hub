@@ -16,7 +16,7 @@ export const MichelinStarIcon = React.memo(({
     <img 
       src="/lovable-uploads/4184d3a1-346a-454b-ad4f-5db720774949.png"
       alt="Michelin Star"
-      className={`${className} mt-0.5`}
+      className={`${className} mt-1`}
       style={{ 
         objectFit: 'contain',
         filter: fill !== 'currentColor' && fill !== '#dc2626' ? `hue-rotate(${getHueRotation(fill)})` : undefined
