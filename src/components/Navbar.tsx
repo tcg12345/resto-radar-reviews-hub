@@ -10,8 +10,8 @@ import { NotificationsPanel } from '@/components/NotificationsPanel';
 import { useUnreadMessageCount } from '@/hooks/useUnreadMessageCount';
 
 interface NavbarProps {
-  activeTab: 'home' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'travel';
-  onTabChange: (tab: 'home' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'travel') => void;
+  activeTab: 'home' | 'feed' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'travel';
+  onTabChange: (tab: 'home' | 'feed' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'travel') => void;
 }
 
 export function Navbar({ activeTab, onTabChange }: NavbarProps) {
@@ -21,11 +21,12 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
 
   const tabs = [
     { id: 'home' as const, label: 'Home', icon: Home, shortLabel: 'Home' },
+    { id: 'feed' as const, label: 'Feed', icon: Users, shortLabel: 'Feed' },
     { id: 'search' as const, label: 'Search & Discover', icon: Search, shortLabel: 'Search' },
     { id: 'rated' as const, label: 'My Ratings', icon: Star, shortLabel: 'Rated' },
     { id: 'wishlist' as const, label: 'Wishlist', icon: Heart, shortLabel: 'Wishlist' },
     { id: 'travel' as const, label: 'Travel', icon: Calendar, shortLabel: 'Travel' },
-    { id: 'friends' as const, label: 'Friends', icon: Users, shortLabel: 'Friends' },
+    { id: 'friends' as const, label: 'Friends', icon: MessageCircle, shortLabel: 'Friends' },
   ];
 
   return (
