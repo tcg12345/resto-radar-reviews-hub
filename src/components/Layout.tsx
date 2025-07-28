@@ -37,7 +37,15 @@ export function Layout({
         navigate('/settings');
         break;
       case 'friends':
-        navigate('/friends');
+        // Check if we're already on a friend profile page
+        const currentPath = window.location.pathname;
+        if (currentPath.startsWith('/friends/')) {
+          // Already on a friend profile, don't navigate away - just stay there
+          return;
+        } else {
+          // Navigate to main friends page
+          navigate('/friends');
+        }
         break;
       case 'travel':
         navigate('/travel');
