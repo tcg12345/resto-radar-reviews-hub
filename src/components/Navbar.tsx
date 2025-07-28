@@ -15,6 +15,7 @@ interface NavbarProps {
 }
 
 export function Navbar({ activeTab, onTabChange }: NavbarProps) {
+  console.log('Navbar received props:', { activeTab, onTabChange: typeof onTabChange });
   const { user } = useAuth();
   const navigate = useNavigate();
   const unreadMessageCount = useUnreadMessageCount();
@@ -47,7 +48,10 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
                     key={tab.id}
                     variant={activeTab === tab.id ? 'default' : 'ghost'}
                     size="sm"
-                    onClick={() => onTabChange(tab.id)}
+                    onClick={() => {
+                      console.log('Desktop tab clicked:', tab.id);
+                      onTabChange(tab.id);
+                    }}
                     className={`relative px-4 py-2 transition-all duration-200 ${
                       activeTab === tab.id 
                         ? 'bg-primary text-primary-foreground shadow-sm' 
