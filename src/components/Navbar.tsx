@@ -178,15 +178,13 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => {
-                      console.log('Tab clicked:', tab.id);
-                      try {
-                        console.log('About to call onTabChange with:', tab.id);
-                        onTabChange(tab.id);
-                        console.log('onTabChange called successfully');
-                      } catch (error) {
-                        console.error('Error calling onTabChange:', error);
+                    onClick={(e) => {
+                      console.log('MOBILE CLICKED:', tab.id);
+                      if (tab.id === 'feed') {
+                        console.log('FEED CLICKED - forcing navigation');
+                        window.location.hash = 'feed-debug';
                       }
+                      onTabChange(tab.id);
                     }}
                     className={`relative h-10 w-10 rounded-full mobile-tap-target transition-all duration-300 transform ${
                       isActive 
