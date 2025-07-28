@@ -1,118 +1,117 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Star, 
-  Users,
-  Sparkles,
-  TrendingUp,
-  Award,
-  RefreshCw,
-  Filter,
-  Plus,
-  Search,
-  Heart,
-  MessageSquare,
-  UserPlus,
-  Trophy,
-  Zap,
+  MapPin, 
+  Heart, 
+  Plus, 
+  TrendingUp, 
+  Award, 
+  ChefHat,
   Clock,
-  Flame,
-  Camera
+  Users,
+  Bot,
+  Search,
+  Zap,
+  ThumbsUp,
+  MessageCircle,
+  Share2,
+  MoreHorizontal,
+  Utensils,
+  Camera,
+  Globe2,
+  Sparkles,
+  ArrowRight,
+  Filter,
+  RefreshCw
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 import { useFriends } from '@/hooks/useFriends';
-import { useFriendRestaurants } from '@/hooks/useFriendRestaurants';
-import { SwipeableRecommendations } from '@/components/feed/SwipeableRecommendations';
-import { FriendActivityCard } from '@/components/feed/FriendActivityCard';
-import { FeedSection } from '@/components/feed/FeedSection';
-import { InfiniteScrollLoader } from '@/components/InfiniteScrollLoader';
-import { formatDistanceToNow } from 'date-fns';
+import { PersonalizedRecommendations } from '@/components/PersonalizedRecommendations';
+import { LazyImage } from '@/components/LazyImage';
 
 interface FeedPageProps {
-  onNavigate: (tab: 'home' | 'rated' | 'wishlist' | 'search' | 'friends') => void;
+  onNavigate: (tab: 'rated' | 'wishlist' | 'search' | 'friends') => void;
   onOpenAddRestaurant: () => void;
 }
 
-interface FeedActivity {
+interface FeedItem {
   id: string;
-  type: 'friend_rating' | 'friend_wishlist' | 'personal_rating' | 'milestone' | 'trending_cuisine' | 'recommendation';
+  type: 'restaurant_rating' | 'friend_activity' | 'recommendation' | 'milestone' | 'trending';
   timestamp: Date;
-  data: any;
+  content: any;
+  priority: number;
 }
 
 export function FeedPage({ onNavigate, onOpenAddRestaurant }: FeedPageProps) {
   const { user, profile } = useAuth();
   const { restaurants } = useRestaurants();
   const { friends } = useFriends();
-  const { fetchAllFriendsRestaurants } = useFriendRestaurants();
-  
-  const [activities, setActivities] = useState<FeedActivity[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [page, setPage] = useState(0);
-  const [filter, setFilter] = useState<'all' | 'friends' | 'personal'>('all');
+  const [filter, setFilter] = useState<'all' | 'friends' | 'recommendations' | 'personal'>('all');
 
   const ratedRestaurants = restaurants.filter(r => !r.isWishlist && r.rating);
-  const wishlistRestaurants = restaurants.filter(r => r.isWishlist);
+  const recentRestaurants = [...ratedRestaurants]
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    .slice(0, 5);
 
-  // Load initial feed data
+  // Generate feed items
   useEffect(() => {
-    if (user) {
-      loadFeedData(true);
-    }
-  }, [user]);
+    const generateFeedItems = () => {
+      const items: FeedItem[] = [];
 
-  const loadFeedData = async (refresh = false) => {
-    try {
-      if (refresh) {
-        setIsLoading(true);
-        setPage(0);
-        setActivities([]);
-      }
-
-      // Load friend activities
-      const { activities: friendActivities, hasMore: friendsHasMore } = await fetchAllFriendsRestaurants(refresh ? 0 : page, 20);
-      
-      // Generate personal activities from user's recent restaurants
-      const personalActivities: FeedActivity[] = [];
-      
-      // Add recent ratings
-      const recentRatings = [...ratedRestaurants]
-        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-        .slice(0, 5)
-        .map(restaurant => ({
-          id: `personal-rating-${restaurant.id}`,
-          type: 'personal_rating' as const,
+      // Recent restaurant ratings
+      recentRestaurants.forEach((restaurant, index) => {
+        items.push({
+          id: `rating-${restaurant.id}`,
+          type: 'restaurant_rating',
           timestamp: new Date(restaurant.updatedAt),
-          data: {
+          content: {
             restaurant,
-            user: profile
-          }
-        }));
+            user: profile,
+            isOwn: true
+          },
+          priority: 8 - index
+        });
+      });
 
-      personalActivities.push(...recentRatings);
-
-      // Add milestone achievements
-      if (ratedRestaurants.length === 10 || ratedRestaurants.length === 25 || ratedRestaurants.length === 50 || ratedRestaurants.length === 100) {
-        personalActivities.push({
-          id: `milestone-${ratedRestaurants.length}`,
+      // Milestone achievements
+      if (ratedRestaurants.length === 10) {
+        items.push({
+          id: 'milestone-10',
           type: 'milestone',
           timestamp: new Date(),
-          data: {
+          content: {
             type: 'restaurants_milestone',
-            count: ratedRestaurants.length,
-            title: getMilestoneTitle(ratedRestaurants.length),
-            description: getMilestoneDescription(ratedRestaurants.length)
-          }
+            count: 10,
+            title: '🎉 First 10 Restaurants!',
+            description: 'You\'ve rated your first 10 restaurants. Keep exploring!'
+          },
+          priority: 9
         });
       }
 
-      // Add trending cuisine info
+      if (ratedRestaurants.length === 50) {
+        items.push({
+          id: 'milestone-50',
+          type: 'milestone',
+          timestamp: new Date(),
+          content: {
+            type: 'restaurants_milestone',
+            count: 50,
+            title: '🏆 Food Explorer!',
+            description: 'Wow! 50 restaurants rated. You\'re a true food explorer!'
+          },
+          priority: 9
+        });
+      }
+
+      // Trending topics
       const cuisineStats = ratedRestaurants.reduce((acc, r) => {
         acc[r.cuisine] = (acc[r.cuisine] || 0) + 1;
         return acc;
@@ -121,128 +120,82 @@ export function FeedPage({ onNavigate, onOpenAddRestaurant }: FeedPageProps) {
       const topCuisine = Object.entries(cuisineStats)
         .sort(([,a], [,b]) => b - a)[0];
 
-      if (topCuisine && topCuisine[1] >= 3) {
-        personalActivities.push({
+      if (topCuisine) {
+        items.push({
           id: 'trending-cuisine',
-          type: 'trending_cuisine',
+          type: 'trending',
           timestamp: new Date(),
-          data: {
+          content: {
+            type: 'cuisine_trend',
             cuisine: topCuisine[0],
             count: topCuisine[1],
             restaurants: ratedRestaurants.filter(r => r.cuisine === topCuisine[0]).slice(0, 3)
-          }
+          },
+          priority: 6
         });
       }
 
-      // Convert friend activities to our format
-      const formattedFriendActivities: FeedActivity[] = friendActivities.map(activity => ({
-        id: `friend-${activity.id}-${activity.userId}`,
-        type: 'friend_rating' as const,
-        timestamp: new Date(activity.updatedAt),
-        data: {
-          friend: {
-            id: activity.userId,
-            username: activity.friend_username,
-            name: activity.friend_username,
-            avatar_url: null
-          },
-          restaurant: {
-            id: activity.id,
-            name: activity.name,
-            cuisine: activity.cuisine,
-            rating: activity.rating,
-            photos: activity.photos || [],
-            address: activity.address || '',
-            city: activity.city || '',
-            notes: activity.notes
-          }
-        }
-      }));
+      // AI Recommendations placeholder
+      items.push({
+        id: 'ai-recommendations',
+        type: 'recommendation',
+        timestamp: new Date(),
+        content: {
+          type: 'ai_suggestions',
+          title: 'Discover New Flavors',
+          description: 'AI-powered recommendations based on your taste',
+          suggestions: ['Try Japanese cuisine near you', 'Explore fine dining options', 'Find hidden gems']
+        },
+        priority: 7
+      });
 
-      // Combine and sort all activities
-      const allActivities = [...personalActivities, ...formattedFriendActivities]
-        .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+      // Sort by priority and timestamp
+      return items.sort((a, b) => {
+        if (a.priority !== b.priority) return b.priority - a.priority;
+        return b.timestamp.getTime() - a.timestamp.getTime();
+      });
+    };
 
-      if (refresh) {
-        setActivities(allActivities);
-      } else {
-        setActivities(prev => [...prev, ...allActivities]);
-      }
-
-      setHasMore(friendsHasMore);
-      setPage(prev => prev + 1);
-
-    } catch (error) {
-      console.error('Error loading feed data:', error);
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  };
-
-  const getMilestoneTitle = (count: number) => {
-    switch (count) {
-      case 10: return '🎉 First 10 Restaurants!';
-      case 25: return '🍴 Getting Serious!';
-      case 50: return '🏆 Food Explorer!';
-      case 100: return '👑 Foodie Legend!';
-      default: return `🎯 ${count} Restaurants!`;
-    }
-  };
-
-  const getMilestoneDescription = (count: number) => {
-    switch (count) {
-      case 10: return 'You\'ve rated your first 10 restaurants. Keep exploring!';
-      case 25: return 'Quarter-century of dining experiences!';
-      case 50: return 'Wow! You\'re becoming a true food connoisseur!';
-      case 100: return 'Incredible! You\'ve explored 100 restaurants!';
-      default: return `Amazing milestone! ${count} restaurants rated.`;
-    }
-  };
-
-  const loadMoreActivities = useCallback(() => {
-    if (!isLoading && hasMore) {
-      loadFeedData(false);
-    }
-  }, [isLoading, hasMore, page]);
+    setFeedItems(generateFeedItems());
+  }, [restaurants, profile, ratedRestaurants, recentRestaurants]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await loadFeedData(true);
+    // Simulate refresh delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsRefreshing(false);
   };
 
-  const filteredActivities = activities.filter(activity => {
+  const formatTimeAgo = (date: Date) => {
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString();
+  };
+
+  const filteredItems = feedItems.filter(item => {
     if (filter === 'all') return true;
-    if (filter === 'personal') return activity.type === 'personal_rating' || activity.type === 'milestone' || activity.type === 'trending_cuisine';
-    if (filter === 'friends') return activity.type === 'friend_rating' || activity.type === 'friend_wishlist';
+    if (filter === 'personal') return item.type === 'restaurant_rating' || item.type === 'milestone';
+    if (filter === 'recommendations') return item.type === 'recommendation';
+    if (filter === 'friends') return item.type === 'friend_activity';
     return true;
   });
 
-  const renderActivity = (activity: FeedActivity) => {
-    switch (activity.type) {
-      case 'friend_rating':
+  const renderFeedItem = (item: FeedItem) => {
+    switch (item.type) {
+      case 'restaurant_rating':
+        const { restaurant, user, isOwn } = item.content;
         return (
-          <FriendActivityCard
-            key={activity.id}
-            activity={{
-              id: activity.id,
-              friend: activity.data.friend,
-              restaurant: activity.data.restaurant,
-              timestamp: activity.timestamp,
-              type: 'rating'
-            }}
-            onLike={() => {/* TODO: Implement like functionality */}}
-            onComment={() => {/* TODO: Implement comment functionality */}}
-            onShare={() => {/* TODO: Implement share functionality */}}
-            onViewRestaurant={() => {/* TODO: Implement view restaurant functionality */}}
-          />
-        );
-
-      case 'personal_rating':
-        const { restaurant, user } = activity.data;
-        return (
-          <Card key={activity.id} className="bg-card border border-border shadow-sm">
+          <Card key={item.id} className="bg-card border border-border shadow-sm hover:shadow-md transition-all duration-200">
             <CardContent className="p-4">
+              {/* Header */}
               <div className="flex items-center space-x-3 mb-3">
                 <Avatar className="h-10 w-10">
                   <AvatarImage src={user?.avatar_url} />
@@ -252,19 +205,33 @@ export function FeedPage({ onNavigate, onOpenAddRestaurant }: FeedPageProps) {
                 </Avatar>
                 <div className="flex-1">
                   <div className="flex items-center space-x-2">
-                    <span className="font-semibold text-sm">You</span>
+                    <span className="font-semibold text-sm">
+                      {isOwn ? 'You' : (user?.name || user?.username || 'Someone')}
+                    </span>
                     <span className="text-muted-foreground text-sm">rated a restaurant</span>
                   </div>
                   <span className="text-muted-foreground text-xs">
-                    {formatDistanceToNow(activity.timestamp, { addSuffix: true })}
+                    {formatTimeAgo(item.timestamp)}
                   </span>
                 </div>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
               </div>
 
-              <div className="bg-muted/30 rounded-lg p-4">
+              {/* Restaurant Content */}
+              <div className="bg-muted/30 rounded-lg p-4 mb-3">
                 <div className="flex items-start space-x-3">
                   <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary/70 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Camera className="h-8 w-8 text-white" />
+                    {restaurant.photos && restaurant.photos.length > 0 ? (
+                      <LazyImage
+                        src={restaurant.photos[0]}
+                        alt={restaurant.name}
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                    ) : (
+                      <ChefHat className="h-8 w-8 text-white" />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-foreground mb-1">{restaurant.name}</h3>
@@ -283,22 +250,54 @@ export function FeedPage({ onNavigate, onOpenAddRestaurant }: FeedPageProps) {
                           {'$'.repeat(restaurant.priceRange)}
                         </Badge>
                       )}
+                      {restaurant.michelinStars && (
+                        <Badge variant="secondary" className="text-xs">
+                          {restaurant.michelinStars}⭐
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 </div>
+                {restaurant.notes && (
+                  <p className="text-sm text-muted-foreground mt-3 italic">
+                    "{restaurant.notes}"
+                  </p>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground">
+                    <ThumbsUp className="h-4 w-4 mr-1" />
+                    <span className="text-xs">Like</span>
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground">
+                    <MessageCircle className="h-4 w-4 mr-1" />
+                    <span className="text-xs">Comment</span>
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground">
+                    <Share2 className="h-4 w-4 mr-1" />
+                    <span className="text-xs">Share</span>
+                  </Button>
+                </div>
+                <Button variant="ghost" size="sm" className="h-8 px-2 text-primary">
+                  <MapPin className="h-4 w-4 mr-1" />
+                  <span className="text-xs">View</span>
+                </Button>
               </div>
             </CardContent>
           </Card>
         );
 
       case 'milestone':
-        const { title, description } = activity.data;
+        const { title, description, count: milestoneCount } = item.content;
         return (
-          <Card key={activity.id} className="bg-gradient-to-br from-primary/5 to-secondary/5 border border-primary/20 shadow-sm">
+          <Card key={item.id} className="bg-gradient-to-br from-primary/5 to-secondary/5 border border-primary/20 shadow-sm">
             <CardContent className="p-4">
               <div className="flex items-center space-x-3 mb-3">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
-                  <Trophy className="h-6 w-6 text-white" />
+                  <Award className="h-6 w-6 text-white" />
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-foreground">{title}</h3>
@@ -310,26 +309,26 @@ export function FeedPage({ onNavigate, onOpenAddRestaurant }: FeedPageProps) {
                   Achievement Unlocked
                 </Badge>
                 <span className="text-xs text-muted-foreground">
-                  {formatDistanceToNow(activity.timestamp, { addSuffix: true })}
+                  {formatTimeAgo(item.timestamp)}
                 </span>
               </div>
             </CardContent>
           </Card>
         );
 
-      case 'trending_cuisine':
-        const { cuisine, count, restaurants: trendingRestaurants } = activity.data;
+      case 'trending':
+        const { cuisine, count: cuisineCount, restaurants: trendingRestaurants } = item.content;
         return (
-          <Card key={activity.id} className="bg-card border border-border shadow-sm">
+          <Card key={item.id} className="bg-card border border-border shadow-sm">
             <CardContent className="p-4">
               <div className="flex items-center space-x-3 mb-3">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
-                  <Flame className="h-5 w-5 text-white" />
+                  <TrendingUp className="h-5 w-5 text-white" />
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-foreground">Your {cuisine} Journey</h3>
                   <p className="text-sm text-muted-foreground">
-                    You've explored {count} {cuisine.toLowerCase()} restaurants
+                    You've explored {cuisineCount} {cuisine.toLowerCase()} restaurants
                   </p>
                 </div>
               </div>
@@ -337,17 +336,51 @@ export function FeedPage({ onNavigate, onOpenAddRestaurant }: FeedPageProps) {
               <div className="space-y-2 mb-3">
                 {trendingRestaurants.slice(0, 2).map((restaurant: any) => (
                   <div key={restaurant.id} className="flex items-center space-x-2 p-2 rounded-lg bg-muted/30">
-                    <Star className="h-4 w-4 text-primary" />
+                    <ChefHat className="h-4 w-4 text-primary" />
                     <span className="text-sm font-medium">{restaurant.name}</span>
                     <div className="flex items-center space-x-1 ml-auto">
-                      <span className="text-xs">{restaurant.rating}⭐</span>
+                      <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                      <span className="text-xs">{restaurant.rating}</span>
                     </div>
                   </div>
                 ))}
               </div>
 
               <Button variant="outline" size="sm" className="w-full" onClick={() => onNavigate('rated')}>
+                <ArrowRight className="h-4 w-4 mr-2" />
                 Explore More {cuisine}
+              </Button>
+            </CardContent>
+          </Card>
+        );
+
+      case 'recommendation':
+        const { title: recTitle, description: recDescription, suggestions } = item.content;
+        return (
+          <Card key={item.id} className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 border border-purple-200 dark:border-purple-800">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center">
+                  <Sparkles className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-foreground">{recTitle}</h3>
+                  <p className="text-sm text-muted-foreground">{recDescription}</p>
+                </div>
+              </div>
+              
+              <div className="space-y-2 mb-3">
+                {suggestions.map((suggestion: string, index: number) => (
+                  <div key={index} className="flex items-center space-x-2 p-2 rounded-lg bg-white/50 dark:bg-white/5">
+                    <Bot className="h-4 w-4 text-purple-500" />
+                    <span className="text-sm">{suggestion}</span>
+                  </div>
+                ))}
+              </div>
+
+              <Button className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600" onClick={() => onNavigate('search')}>
+                <Search className="h-4 w-4 mr-2" />
+                Explore AI Recommendations
               </Button>
             </CardContent>
           </Card>
@@ -484,8 +517,8 @@ export function FeedPage({ onNavigate, onOpenAddRestaurant }: FeedPageProps) {
 
         {/* Feed Items */}
         <div className="space-y-4">
-          {filteredActivities.length > 0 ? (
-            filteredActivities.map(renderActivity)
+          {filteredItems.length > 0 ? (
+            filteredItems.map(renderFeedItem)
           ) : (
             <Card className="bg-card border border-border shadow-sm">
               <CardContent className="p-8 text-center">
@@ -512,7 +545,7 @@ export function FeedPage({ onNavigate, onOpenAddRestaurant }: FeedPageProps) {
         </div>
 
         {/* Load More - Desktop */}
-        {filteredActivities.length > 0 && (
+        {filteredItems.length > 0 && (
           <div className="hidden md:flex justify-center pt-4">
             <Button variant="outline" disabled>
               <RefreshCw className="h-4 w-4 mr-2" />
