@@ -21,7 +21,7 @@ export default function Index() {
   // Show home page if user is authenticated, otherwise show landing page
   return user ? (
     <RestaurantProvider>
-      <Layout activeTab="home">
+      <Layout activeTab="feed">
         <HomePageWrapper />
       </Layout>
     </RestaurantProvider>
