@@ -1118,10 +1118,10 @@ export function FriendsActivityPage() {
 
                     {/* Restaurant Name & Basic Info */}
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-sm leading-tight line-clamp-1 flex-1">{restaurant.name}</h3>
+                      <div className="flex items-center mb-1">
+                        <h3 className="font-semibold text-sm leading-tight line-clamp-1">{restaurant.name}</h3>
                         {restaurant.michelin_stars && restaurant.michelin_stars > 0 && (
-                          <MichelinStars stars={restaurant.michelin_stars} size="sm" readonly showLogo={false} />
+                          <MichelinStars stars={restaurant.michelin_stars} size="md" readonly showLogo={false} />
                         )}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
@@ -1181,10 +1181,10 @@ export function FriendsActivityPage() {
 
                     {/* Restaurant info */}
                     <div>
-                      <div className="flex items-center gap-3 mb-1">
-                        <h3 className="font-semibold text-lg flex-1">{restaurant.name}</h3>
+                      <div className="flex items-center mb-1">
+                        <h3 className="font-semibold text-lg">{restaurant.name}</h3>
                         {restaurant.michelin_stars && restaurant.michelin_stars > 0 && (
-                          <MichelinStars stars={restaurant.michelin_stars} size="sm" readonly showLogo={false} />
+                          <MichelinStars stars={restaurant.michelin_stars} size="md" readonly showLogo={false} />
                         )}
                       </div>
                       <p className="text-sm text-muted-foreground mb-2">{restaurant.cuisine}</p>
