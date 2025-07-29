@@ -39,7 +39,7 @@ export function RecommendationCard({ restaurant, onAdd, onAddToWishlist }: Recom
   };
 
   return (
-    <div className="border-b border-border py-4 hover:bg-muted/50 transition-colors duration-200">
+    <div className="border-b border-border py-4 hover:bg-muted/50 transition-colors duration-200 -mx-4">
       <div className="px-4">
       {/* Header with name and rating */}
       <div className="flex items-start justify-between mb-3">
