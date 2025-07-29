@@ -88,14 +88,18 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
     }
 
     return () => observer.disconnect();
-  }, [displayedCount, allLoadedRecommendations.length, isLoadingMore]);
+  }, [isLoadingMore]); // Only depend on isLoadingMore to prevent frequent recreation
 
-  // Preload more data when we're running low - much more aggressive
+  // Preload more data when we're running low
   useEffect(() => {
     const remainingItems = allLoadedRecommendations.length - displayedCount;
-    if (remainingItems < 100 && !isLoadingMore && userCities.length > 0) {
-      // Load multiple batches in parallel for faster preloading
-      loadMultipleBatchesInBackground();
+    if (remainingItems < 50 && !isLoadingMore && userCities.length > 0 && allLoadedRecommendations.length > 0) {
+      // Add a small delay to prevent rapid multiple calls
+      const timeoutId = setTimeout(() => {
+        loadMultipleBatchesInBackground();
+      }, 1000);
+      
+      return () => clearTimeout(timeoutId);
     }
   }, [displayedCount, allLoadedRecommendations.length, isLoadingMore, userCities.length]);
 
@@ -104,15 +108,29 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
     
     setIsLoadingMore(true);
     
+    // Set a timeout to prevent getting stuck in loading state
+    const timeoutId = setTimeout(() => {
+      console.warn('Background loading timed out, resetting loading state');
+      setIsLoadingMore(false);
+    }, 30000); // 30 seconds timeout
+    
     try {
-      // Load from 3 cities in parallel
+      // Load from 2 cities in parallel (reduced from 3 for better performance)
       const citiesToLoad = [];
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 2; i++) {
         const cityIndex = (currentCityIndex + i) % userCities.length;
         citiesToLoad.push(userCities[cityIndex]);
       }
       
-      const promises = citiesToLoad.map(city => fetchRecommendationsForCity(city));
+      const promises = citiesToLoad.map(city => 
+        Promise.race([
+          fetchRecommendationsForCity(city),
+          new Promise<RecommendationData[]>((resolve) => 
+            setTimeout(() => resolve([]), 15000) // 15 second timeout per city
+          )
+        ])
+      );
+      
       const results = await Promise.all(promises);
       const allNewRecs = results.flat();
       
@@ -134,11 +152,12 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
         });
       }
       
-      // Move forward by 3 cities
-      setCurrentCityIndex(prev => prev + 3);
+      // Move forward by 2 cities
+      setCurrentCityIndex(prev => prev + 2);
     } catch (error) {
       console.error('Error loading multiple batches:', error);
     } finally {
+      clearTimeout(timeoutId);
       setIsLoadingMore(false);
     }
   };
