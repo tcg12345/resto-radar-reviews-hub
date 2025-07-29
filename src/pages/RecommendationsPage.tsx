@@ -337,13 +337,11 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
       {/* Map Button - Fixed in bottom right, above nav bar */}
       <Button
         onClick={() => setShowMap(true)}
-        className={`fixed bottom-24 right-6 z-40 shadow-lg ${
-          isMobile ? 'h-12 px-3' : ''
-        }`}
-        size={isMobile ? "sm" : "lg"}
+        className="fixed bottom-24 right-6 z-40 shadow-lg"
+        size="lg"
       >
-        <Map className={`${isMobile ? 'h-4 w-4 mr-2' : 'h-4 w-4 mr-2'}`} />
-        {isMobile ? 'Map' : 'Map View'}
+        <Map className="h-4 w-4 mr-2" />
+        Map
       </Button>
 
       <div className="p-4 lg:p-6">
