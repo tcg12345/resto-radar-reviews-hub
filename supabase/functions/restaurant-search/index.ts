@@ -13,10 +13,12 @@ const corsHeaders = {
 };
 
 interface RestaurantSearchRequest {
-  query: string;
+  query?: string;
   location: string;
   radius?: number;
   limit?: number;
+  type?: string;
+  keyword?: string;
 }
 
 serve(async (req) => {
@@ -31,19 +33,39 @@ serve(async (req) => {
       throw new Error('Google Places API key not found');
     }
 
-    const { query, location, radius = 10000, limit = 100 }: RestaurantSearchRequest = await req.json();
+    const { query, location, radius = 10000, limit = 20, type = 'restaurant', keyword }: RestaurantSearchRequest = await req.json();
 
-    if (!query || query.trim().length === 0) {
-      throw new Error('Search query is required');
+    // Handle both search modes: text search (with query) and nearby search (with location coordinates)
+    const isNearbySearch = !query && location.includes(','); // lat,lng format
+    
+    if (!isNearbySearch && (!query || query.trim().length === 0)) {
+      throw new Error('Search query is required for text search');
     }
 
-    console.log('Searching restaurants:', { query, location, radius, limit });
+    if (!location) {
+      throw new Error('Location is required');
+    }
+
+    console.log('Searching restaurants:', { query, location, radius, limit, type, keyword, isNearbySearch });
 
     // First, geocode the location if provided
     let searchLocation = location || 'current location';
     let lat, lng;
 
-    if (location && location !== 'current location') {
+    // Handle coordinate-based search vs text-based search
+    if (isNearbySearch) {
+      // Parse coordinates from location string (lat,lng)
+      const [latStr, lngStr] = location.split(',');
+      lat = parseFloat(latStr.trim());
+      lng = parseFloat(lngStr.trim());
+      
+      if (isNaN(lat) || isNaN(lng)) {
+        throw new Error('Invalid coordinates provided');
+      }
+      
+      console.log(`Using provided coordinates: ${lat}, ${lng}`);
+    } else if (location && location !== 'current location') {
+      // Geocode the location if provided as text
       const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location)}&key=${googlePlacesApiKey}`;
       
       try {
@@ -60,11 +82,6 @@ serve(async (req) => {
       }
     }
 
-    // Build the search query for Places API and support pagination for more results
-    const searchQuery = location && location !== 'current location' 
-      ? `${query} restaurants in ${location}` 
-      : `${query} restaurant`;
-    
     // Get all results with pagination support
     let allResults: any[] = [];
     let nextPageToken: string | null = null;
@@ -72,12 +89,26 @@ serve(async (req) => {
     const maxPages = 3; // Google allows up to 60 results per query (20 per page * 3 pages)
 
     do {
-      let placesUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(searchQuery)}&type=restaurant&key=${googlePlacesApiKey}`;
+      let placesUrl: string;
       
-      // Always try to use location+radius for better location filtering
-      if (lat && lng) {
-        placesUrl += `&location=${lat},${lng}&radius=${radius}`;
-        console.log(`Using coordinates: ${lat}, ${lng} with ${radius}m radius`);
+      if (isNearbySearch && lat && lng) {
+        // Use nearby search for coordinate-based searches
+        const searchKeyword = keyword || 'restaurant';
+        placesUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=${type}&keyword=${encodeURIComponent(searchKeyword)}&key=${googlePlacesApiKey}`;
+        console.log(`Using nearby search with keyword: ${searchKeyword}`);
+      } else {
+        // Use text search for query-based searches  
+        const searchQuery = location && location !== 'current location' 
+          ? `${query} restaurants in ${location}` 
+          : `${query} restaurant`;
+        
+        placesUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(searchQuery)}&type=restaurant&key=${googlePlacesApiKey}`;
+        
+        // Add location+radius for better location filtering if we have coordinates
+        if (lat && lng) {
+          placesUrl += `&location=${lat},${lng}&radius=${radius}`;
+          console.log(`Using coordinates: ${lat}, ${lng} with ${radius}m radius`);
+        }
       }
 
       // Add page token for subsequent requests
@@ -282,8 +313,8 @@ serve(async (req) => {
     console.log(`Found ${restaurants.length} restaurants`);
 
     return new Response(JSON.stringify({
-      success: true,
-      restaurants,
+      results: restaurants,
+      status: 'OK',
       total: restaurants.length
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
