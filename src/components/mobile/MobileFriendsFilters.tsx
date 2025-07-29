@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -169,118 +169,154 @@ export function MobileFriendsFilters({
         </Select>
 
         {/* Advanced Filters Button */}
-        <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
-          <SheetTrigger asChild>
-            <Button variant="outline" className="relative">
-              <Filter className="h-4 w-4 mr-2" />
-              Filters
-              {totalActiveFilters > 0 && (
-                <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 text-xs p-0 flex items-center justify-center">
-                  {totalActiveFilters}
-                </Badge>
-              )}
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="bottom" className="h-[80vh]">
-            <SheetHeader>
-              <SheetTitle>Filters</SheetTitle>
-              <SheetDescription>
-                Refine your search results
-              </SheetDescription>
-            </SheetHeader>
-            
-            <ScrollArea className="h-full mt-4">
-              <div className="space-y-6 pb-20">
-                {/* Cuisines */}
-                <div>
-                  <h3 className="font-medium mb-3">Cuisines</h3>
-                  <div className="space-y-2">
-                    {uniqueCuisines.map((cuisine) => (
-                      <div key={cuisine} className="flex items-center space-x-3">
-                        <Checkbox
-                          id={`cuisine-${cuisine}`}
-                          checked={selectedCuisines.includes(cuisine)}
-                          onCheckedChange={() => handleCuisineToggle(cuisine)}
-                        />
-                        <label 
-                          htmlFor={`cuisine-${cuisine}`} 
-                          className="text-sm flex-1 cursor-pointer flex justify-between"
-                        >
-                          <span>{cuisine}</span>
-                          <span className="text-muted-foreground">({filterCounts.cuisines[cuisine] || 0})</span>
-                        </label>
-                      </div>
-                    ))}
-                  </div>
+        <Dialog open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
+          <Button 
+            variant="outline" 
+            className="relative"
+            onClick={() => setIsFilterSheetOpen(true)}
+          >
+            <Filter className="h-4 w-4 mr-2" />
+            Filters
+            {totalActiveFilters > 0 && (
+              <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 text-xs p-0 flex items-center justify-center">
+                {totalActiveFilters}
+              </Badge>
+            )}
+          </Button>
+          
+          <DialogContent className="h-[70vh] max-h-[600px] w-[95vw] max-w-none p-0 gap-0 rounded-t-lg rounded-b-none fixed bottom-0 left-1/2 -translate-x-1/2 translate-y-0">
+            <div className="flex flex-col h-full">
+              {/* Header */}
+              <div className="flex items-center justify-between p-4 border-b">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-5 w-5" />
+                  <h2 className="text-lg font-semibold">Filters</h2>
+                  {totalActiveFilters > 0 && (
+                    <Badge variant="secondary" className="h-5 px-2 text-xs">
+                      {totalActiveFilters}
+                    </Badge>
+                  )}
                 </div>
-
-                <Separator />
-
-                {/* Cities */}
-                <div>
-                  <h3 className="font-medium mb-3">Cities</h3>
-                  <div className="space-y-2">
-                    {uniqueCities.map((city) => (
-                      <div key={city} className="flex items-center space-x-3">
-                        <Checkbox
-                          id={`city-${city}`}
-                          checked={selectedCities.includes(city)}
-                          onCheckedChange={() => handleCityToggle(city)}
-                        />
-                        <label 
-                          htmlFor={`city-${city}`} 
-                          className="text-sm flex-1 cursor-pointer flex justify-between"
-                        >
-                          <span>{city}</span>
-                          <span className="text-muted-foreground">({filterCounts.cities[city] || 0})</span>
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Friends */}
-                <div>
-                  <h3 className="font-medium mb-3">Friends</h3>
-                  <div className="space-y-2">
-                    {uniqueFriends.map((friend) => (
-                      <div key={friend.id} className="flex items-center space-x-3">
-                        <Checkbox
-                          id={`friend-${friend.id}`}
-                          checked={selectedFriends.includes(friend.id)}
-                          onCheckedChange={() => handleFriendToggle(friend.id)}
-                        />
-                        <label 
-                          htmlFor={`friend-${friend.id}`} 
-                          className="text-sm flex-1 cursor-pointer flex justify-between"
-                        >
-                          <span>{friend.name}</span>
-                          <span className="text-muted-foreground">({friend.count})</span>
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsFilterSheetOpen(false)}
+                  className="h-8 w-8 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
-            </ScrollArea>
 
-            {/* Sheet Footer */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-background border-t">
-              <div className="flex gap-2">
-                {hasActiveFilters && (
-                  <Button variant="outline" onClick={onClearFilters} className="flex-1">
-                    Clear All
-                  </Button>
-                )}
-                <Button onClick={() => setIsFilterSheetOpen(false)} className="flex-1">
-                  Apply Filters
+              {/* Content */}
+              <ScrollArea className="flex-1 p-4">
+                <div className="space-y-6">
+                  {/* Cuisines */}
+                  <div>
+                    <h3 className="font-medium mb-3 flex items-center gap-2">
+                      <span>🍽️</span>
+                      Cuisines
+                      {selectedCuisines.length > 0 && (
+                        <Badge variant="outline" className="h-5 px-2 text-xs">
+                          {selectedCuisines.length}
+                        </Badge>
+                      )}
+                    </h3>
+                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                      {uniqueCuisines.map((cuisine) => (
+                        <div key={cuisine} className="flex items-center justify-between py-1">
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              checked={selectedCuisines.includes(cuisine)}
+                              onCheckedChange={() => handleCuisineToggle(cuisine)}
+                            />
+                            <span className="text-sm">{cuisine}</span>
+                          </div>
+                          <span className="text-xs text-muted-foreground">({filterCounts.cuisines[cuisine] || 0})</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Cities */}
+                  <div>
+                    <h3 className="font-medium mb-3 flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      Cities
+                      {selectedCities.length > 0 && (
+                        <Badge variant="outline" className="h-5 px-2 text-xs">
+                          {selectedCities.length}
+                        </Badge>
+                      )}
+                    </h3>
+                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                      {uniqueCities.map((city) => (
+                        <div key={city} className="flex items-center justify-between py-1">
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              checked={selectedCities.includes(city)}
+                              onCheckedChange={() => handleCityToggle(city)}
+                            />
+                            <span className="text-sm">{city}</span>
+                          </div>
+                          <span className="text-xs text-muted-foreground">({filterCounts.cities[city] || 0})</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Friends */}
+                  <div>
+                    <h3 className="font-medium mb-3 flex items-center gap-2">
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      Friends
+                      {selectedFriends.length > 0 && (
+                        <Badge variant="outline" className="h-5 px-2 text-xs">
+                          {selectedFriends.length}
+                        </Badge>
+                      )}
+                    </h3>
+                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                      {uniqueFriends.map((friend) => (
+                        <div key={friend.id} className="flex items-center justify-between py-1">
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              checked={selectedFriends.includes(friend.id)}
+                              onCheckedChange={() => handleFriendToggle(friend.id)}
+                            />
+                            <span className="text-sm">{friend.name}</span>
+                          </div>
+                          <span className="text-xs text-muted-foreground">({friend.count})</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </ScrollArea>
+
+              {/* Footer Buttons */}
+              <div className="flex p-4 gap-3 border-t bg-background">
+                <Button
+                  variant="outline"
+                  onClick={onClearFilters}
+                  className="flex-1"
+                  disabled={!hasActiveFilters}
+                >
+                  Clear All
+                </Button>
+                <Button
+                  onClick={() => setIsFilterSheetOpen(false)}
+                  className="flex-1 bg-primary hover:bg-primary/90"
+                >
+                  Apply
                 </Button>
               </div>
             </div>
-          </SheetContent>
-        </Sheet>
+          </DialogContent>
+        </Dialog>
 
         {/* Clear All Button (when filters are active) */}
         {hasActiveFilters && (
