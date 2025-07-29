@@ -30,6 +30,8 @@ interface RecommendationData {
 
 export function RecommendationsPage({ restaurants, onAddRestaurant }: RecommendationsPageProps) {
   const [recommendations, setRecommendations] = useState<RecommendationData[]>([]);
+  const [displayedCount, setDisplayedCount] = useState(20);
+  const [allLoadedRecommendations, setAllLoadedRecommendations] = useState<RecommendationData[]>([]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [userCities, setUserCities] = useState<string[]>([]);
   const [currentCityIndex, setCurrentCityIndex] = useState(0);
@@ -52,6 +54,11 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
 
   const ratedRestaurants = restaurants.filter(r => !r.isWishlist && r.rating);
 
+  // Update displayed recommendations when displayedCount changes
+  useEffect(() => {
+    setRecommendations(allLoadedRecommendations.slice(0, displayedCount));
+  }, [allLoadedRecommendations, displayedCount]);
+
   // Load initial recommendations instantly
   useEffect(() => {
     if (ratedRestaurants.length > 0 && !hasLoadedInitial) {
@@ -65,12 +72,12 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
     }
   }, [ratedRestaurants.length, hasLoadedInitial]);
 
-  // Infinite scroll observer
+  // Infinite scroll observer - now just shows more from preloaded data
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !isLoadingMore && userCities.length > 0) {
-          loadMoreRecommendations();
+        if (entries[0].isIntersecting && !isLoadingMore) {
+          handleInfiniteScroll();
         }
       },
       { threshold: 0.1 }
@@ -81,7 +88,15 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
     }
 
     return () => observer.disconnect();
-  }, [isLoadingMore, userCities.length, currentCityIndex]);
+  }, [displayedCount, allLoadedRecommendations.length, isLoadingMore]);
+
+  // Preload more data when we're running low
+  useEffect(() => {
+    const remainingItems = allLoadedRecommendations.length - displayedCount;
+    if (remainingItems < 30 && !isLoadingMore && userCities.length > 0) {
+      loadMoreRecommendationsInBackground();
+    }
+  }, [displayedCount, allLoadedRecommendations.length, isLoadingMore, userCities.length]);
 
   const getCacheKey = (city: string) => {
     return `recommendations_${city}_v2`;
@@ -116,27 +131,13 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
     }
   };
 
-  const loadInitialRecommendations = async (cities: string[]) => {
-    // First, load any cached data instantly
-    const cachedData: RecommendationData[] = [];
-    cities.forEach(city => {
-      const cached = getCachedRecommendations(city);
-      cachedData.push(...cached);
-    });
-    
-    if (cachedData.length > 0) {
-      // Show cached data instantly
-      const shuffled = cachedData.sort(() => Math.random() - 0.5);
-      setRecommendations(shuffled.slice(0, 50));
-    }
-    
-    // Then load fresh data for the first city
-    if (cities.length > 0) {
-      loadMoreRecommendations();
-    }
+  const handleInfiniteScroll = () => {
+    // Instantly show more from already loaded data
+    const newDisplayedCount = Math.min(displayedCount + 20, allLoadedRecommendations.length);
+    setDisplayedCount(newDisplayedCount);
   };
 
-  const loadMoreRecommendations = async () => {
+  const loadMoreRecommendationsInBackground = async () => {
     if (isLoadingMore || userCities.length === 0) return;
     
     setIsLoadingMore(true);
@@ -146,7 +147,7 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
       const newRecommendations = await fetchRecommendationsForCity(city);
       
       if (newRecommendations.length > 0) {
-        setRecommendations(prev => {
+        setAllLoadedRecommendations(prev => {
           const combined = [...prev, ...newRecommendations];
           // Remove duplicates based on place_id
           const unique = combined.filter((item, index, arr) => 
@@ -165,6 +166,52 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
       console.error('Error loading more recommendations:', error);
     } finally {
       setIsLoadingMore(false);
+    }
+  };
+
+  const loadInitialRecommendations = async (cities: string[]) => {
+    // First, load any cached data instantly
+    const cachedData: RecommendationData[] = [];
+    cities.forEach(city => {
+      const cached = getCachedRecommendations(city);
+      cachedData.push(...cached);
+    });
+    
+    if (cachedData.length > 0) {
+      // Show cached data instantly
+      const shuffled = cachedData.sort(() => Math.random() - 0.5);
+      setAllLoadedRecommendations(shuffled);
+    }
+    
+    // Load fresh data from multiple cities in parallel
+    const initialBatches = cities.slice(0, 3); // Load from first 3 cities
+    const promises = initialBatches.map(city => fetchRecommendationsForCity(city));
+    
+    try {
+      const results = await Promise.all(promises);
+      const allNewRecs = results.flat();
+      
+      if (allNewRecs.length > 0) {
+        const shuffled = allNewRecs.sort(() => Math.random() - 0.5);
+        setAllLoadedRecommendations(prev => {
+          const combined = [...prev, ...shuffled];
+          const unique = combined.filter((item, index, arr) => 
+            arr.findIndex(t => t.place_id === item.place_id) === index
+          );
+          return unique;
+        });
+        
+        // Cache all the new data
+        results.forEach((cityResults, index) => {
+          if (cityResults.length > 0) {
+            setCachedRecommendations(initialBatches[index], cityResults);
+          }
+        });
+      }
+      
+      setCurrentCityIndex(3); // Start next loads from city 3
+    } catch (error) {
+      console.error('Error loading initial recommendations:', error);
     }
   };
 
