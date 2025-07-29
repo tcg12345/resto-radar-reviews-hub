@@ -5,15 +5,17 @@ import { Navbar } from '@/components/Navbar';
 import { RatedRestaurantsPage } from '@/pages/RatedRestaurantsPage';
 import { MapPage } from '@/pages/MapPage';
 import { WishlistPage } from '@/pages/WishlistPage';
-import HomePage from '@/pages/HomePage';
 import UnifiedSearchPage from '@/pages/UnifiedSearchPage';
 import SettingsPage from '@/pages/SettingsPage';
 import { FriendsPage } from '@/pages/FriendsPage';
+import { FeedPage } from '@/pages/FeedPage';
+import HomePageWrapper from '@/pages/HomePageWrapper';
+import { SavedPlacesPage } from '@/pages/SavedPlacesPage';
 import { AIChatbot } from '@/components/AIChatbot';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState<'home' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'travel'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'saved' | 'search' | 'settings' | 'friends' | 'travel'>('home');
   const [shouldOpenAddDialog, setShouldOpenAddDialog] = useState(false);
   const [viewFriendId, setViewFriendId] = useState<string | null>(null);
   const { restaurants, addRestaurant, updateRestaurant, deleteRestaurant } = useRestaurants();
@@ -36,34 +38,21 @@ export default function Dashboard() {
 
   const handleOpenAddRestaurant = () => {
     setShouldOpenAddDialog(true);
-    setActiveTab('rated');
+    setActiveTab('saved');
   };
 
   const renderContent = () => {
     return (
       <div className="relative w-full h-full">
         <div className={`${activeTab === 'home' ? 'block' : 'hidden'}`}>
-          <HomePage onNavigate={setActiveTab} onOpenAddRestaurant={handleOpenAddRestaurant} />
+          <HomePageWrapper />
         </div>
-        <div className={`${activeTab === 'rated' ? 'block' : 'hidden'}`}>
-          <RatedRestaurantsPage
-            restaurants={restaurants}
-            onAddRestaurant={addRestaurant}
-            onEditRestaurant={updateRestaurant}
-            onDeleteRestaurant={deleteRestaurant}
-            shouldOpenAddDialog={shouldOpenAddDialog}
-            onAddDialogClose={() => setShouldOpenAddDialog(false)}
+        <div className={`${activeTab === 'saved' ? 'block' : 'hidden'}`}>
+          <SavedPlacesPage 
             onNavigateToMap={() => navigate('/map')}
             onOpenSettings={() => setActiveTab('settings')}
-          />
-        </div>
-        <div className={`${activeTab === 'wishlist' ? 'block' : 'hidden'}`}>
-          <WishlistPage
-            restaurants={restaurants}
-            onAddRestaurant={addRestaurant}
-            onEditRestaurant={updateRestaurant}
-            onDeleteRestaurant={deleteRestaurant}
-            onNavigateToMap={() => navigate('/map')}
+            shouldOpenAddDialog={shouldOpenAddDialog}
+            onAddDialogClose={() => setShouldOpenAddDialog(false)}
           />
         </div>
         <div className={`${activeTab === 'search' ? 'block' : 'hidden'}`}>
