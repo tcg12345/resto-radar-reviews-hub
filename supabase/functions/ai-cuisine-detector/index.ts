@@ -2,6 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const tripAdvisorApiKey = Deno.env.get('TRIPADVISOR_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -26,6 +27,22 @@ serve(async (req) => {
     }
 
     console.log(`Detecting cuisine for: ${restaurantName} at ${address || 'unknown address'}`);
+
+    // First try TripAdvisor API for more accurate cuisine information
+    let tripAdvisorCuisine = null;
+    if (tripAdvisorApiKey) {
+      try {
+        tripAdvisorCuisine = await getTripAdvisorCuisine(restaurantName, address);
+        if (tripAdvisorCuisine && tripAdvisorCuisine !== 'International') {
+          console.log(`TripAdvisor cuisine found: ${tripAdvisorCuisine} for ${restaurantName}`);
+          return new Response(JSON.stringify({ cuisine: tripAdvisorCuisine }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      } catch (tripAdvisorError) {
+        console.log(`TripAdvisor lookup failed for ${restaurantName}, falling back to AI:`, tripAdvisorError);
+      }
+    }
 
     const prompt = `Analyze this restaurant and determine its specific cuisine type based on the name and location details.
 
@@ -168,4 +185,102 @@ function extractCuisineFromName(name: string): string {
   }
   
   return 'International';
+}
+
+// Function to get cuisine from TripAdvisor API
+async function getTripAdvisorCuisine(restaurantName: string, address?: string): Promise<string | null> {
+  try {
+    const searchQuery = address ? `${restaurantName} ${address}` : restaurantName;
+    console.log(`Searching TripAdvisor for: ${searchQuery}`);
+    
+    const searchResponse = await fetch(`https://api.content.tripadvisor.com/api/v1/location/search?key=${tripAdvisorApiKey}&searchQuery=${encodeURIComponent(searchQuery)}&category=restaurants`);
+    
+    if (!searchResponse.ok) {
+      console.log(`TripAdvisor search failed with status: ${searchResponse.status}`);
+      return null;
+    }
+    
+    const searchData = await searchResponse.json();
+    
+    if (!searchData.data || searchData.data.length === 0) {
+      console.log(`No TripAdvisor results found for: ${searchQuery}`);
+      return null;
+    }
+    
+    // Get details for the first matching location
+    const locationId = searchData.data[0].location_id;
+    const detailsResponse = await fetch(`https://api.content.tripadvisor.com/api/v1/location/${locationId}/details?key=${tripAdvisorApiKey}`);
+    
+    if (!detailsResponse.ok) {
+      console.log(`TripAdvisor details failed with status: ${detailsResponse.status}`);
+      return null;
+    }
+    
+    const detailsData = await detailsResponse.json();
+    
+    // Extract cuisine from various fields
+    let cuisine = null;
+    
+    // Check cuisine field if available
+    if (detailsData.cuisine && detailsData.cuisine.length > 0) {
+      cuisine = detailsData.cuisine[0].name;
+    }
+    
+    // Check subcategory for cuisine info
+    if (!cuisine && detailsData.subcategory && detailsData.subcategory.length > 0) {
+      for (const subcat of detailsData.subcategory) {
+        if (subcat.name && !subcat.name.toLowerCase().includes('restaurant') && !subcat.name.toLowerCase().includes('dining')) {
+          cuisine = subcat.name;
+          break;
+        }
+      }
+    }
+    
+    // Check category as last resort
+    if (!cuisine && detailsData.category && detailsData.category.name && 
+        !detailsData.category.name.toLowerCase().includes('restaurant')) {
+      cuisine = detailsData.category.name;
+    }
+    
+    if (cuisine) {
+      // Clean up the cuisine name
+      cuisine = cuisine.replace(/\b(restaurant|cuisine|food)\b/gi, '').trim();
+      
+      // Map common TripAdvisor terms to standard cuisine types
+      const cuisineMapping: { [key: string]: string } = {
+        'steakhouse': 'American Steakhouse',
+        'seafood': 'Seafood',
+        'american': 'American',
+        'italian': 'Italian',
+        'french': 'French',
+        'japanese': 'Japanese',
+        'chinese': 'Chinese',
+        'mexican': 'Mexican',
+        'indian': 'Indian',
+        'thai': 'Thai',
+        'mediterranean': 'Mediterranean',
+        'greek': 'Greek',
+        'spanish': 'Spanish',
+        'asian': 'Asian',
+        'barbecue': 'BBQ American',
+        'pub': 'American Pub'
+      };
+      
+      const cuisineLower = cuisine.toLowerCase();
+      for (const [key, value] of Object.entries(cuisineMapping)) {
+        if (cuisineLower.includes(key)) {
+          return value;
+        }
+      }
+      
+      // Return the cleaned cuisine if no mapping found
+      return cuisine.charAt(0).toUpperCase() + cuisine.slice(1).toLowerCase();
+    }
+    
+    return null;
+    
+  } catch (error) {
+    console.error('Error fetching from TripAdvisor:', error);
+    return null;
+  }
 }
