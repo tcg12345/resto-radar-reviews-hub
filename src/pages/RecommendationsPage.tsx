@@ -43,34 +43,61 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
 
     setIsLoading(true);
     try {
-      console.log('Rated restaurants:', ratedRestaurants);
+      console.log('All rated restaurants:', ratedRestaurants);
       
       // Calculate average location from rated restaurants that have coordinates
-      const restaurantsWithCoords = ratedRestaurants.filter(r => r.latitude && r.longitude);
-      console.log('Restaurants with coordinates:', restaurantsWithCoords);
+      const restaurantsWithCoords = ratedRestaurants.filter(r => 
+        r.latitude && r.longitude && 
+        !isNaN(r.latitude) && !isNaN(r.longitude) &&
+        Math.abs(r.latitude) <= 90 && Math.abs(r.longitude) <= 180
+      );
       
-      let avgLat, avgLng;
+      console.log('Restaurants with valid coordinates:', restaurantsWithCoords.map(r => ({
+        name: r.name,
+        lat: r.latitude,
+        lng: r.longitude,
+        city: r.city
+      })));
+      
       let searchLocation = '';
+      let useCoordinates = false;
       
       if (restaurantsWithCoords.length > 0) {
-        avgLat = restaurantsWithCoords.reduce((sum, r) => sum + r.latitude!, 0) / restaurantsWithCoords.length;
-        avgLng = restaurantsWithCoords.reduce((sum, r) => sum + r.longitude!, 0) / restaurantsWithCoords.length;
-        searchLocation = `${avgLat},${avgLng}`;
-        console.log('Using average coordinates:', { avgLat, avgLng });
-      } else {
+        const avgLat = restaurantsWithCoords.reduce((sum, r) => sum + r.latitude!, 0) / restaurantsWithCoords.length;
+        const avgLng = restaurantsWithCoords.reduce((sum, r) => sum + r.longitude!, 0) / restaurantsWithCoords.length;
+        
+        // Sanity check on calculated coordinates
+        if (Math.abs(avgLat) <= 90 && Math.abs(avgLng) <= 180) {
+          searchLocation = `${avgLat},${avgLng}`;
+          useCoordinates = true;
+          console.log('Using average coordinates:', { avgLat, avgLng });
+        } else {
+          console.warn('Invalid average coordinates calculated:', { avgLat, avgLng });
+        }
+      }
+      
+      if (!useCoordinates) {
         // Fallback: use the most common city from rated restaurants
         const cities = ratedRestaurants.map(r => r.city).filter(Boolean);
-        const cityCount = cities.reduce((acc, city) => {
-          acc[city] = (acc[city] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>);
+        console.log('Available cities from rated restaurants:', cities);
         
-        const mostCommonCity = Object.keys(cityCount).reduce((a, b) => 
-          cityCount[a] > cityCount[b] ? a : b, cities[0] || 'New York'
-        );
-        
-        searchLocation = mostCommonCity;
-        console.log('Using city fallback:', mostCommonCity);
+        if (cities.length > 0) {
+          const cityCount = cities.reduce((acc, city) => {
+            acc[city] = (acc[city] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>);
+          
+          const mostCommonCity = Object.keys(cityCount).reduce((a, b) => 
+            cityCount[a] > cityCount[b] ? a : b
+          );
+          
+          searchLocation = mostCommonCity;
+          console.log('Using most common city:', mostCommonCity, 'from counts:', cityCount);
+        } else {
+          // Last resort fallback - use a major city
+          searchLocation = 'New York, NY';
+          console.log('Using fallback location: New York, NY');
+        }
       }
 
       const userPriceRanges = ratedRestaurants
@@ -82,19 +109,19 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
         : 2;
 
       const userCuisines = [...new Set(ratedRestaurants.map(r => r.cuisine).filter(Boolean))];
-      console.log('User preferences:', { avgPriceRange, userCuisines, searchLocation });
+      console.log('User preferences:', { avgPriceRange, userCuisines, searchLocation, useCoordinates });
 
       // Search for restaurants near the user's typical dining locations
-      const requestBody = restaurantsWithCoords.length > 0 ? {
+      const requestBody = useCoordinates ? {
         location: searchLocation,
-        radius: 10000, // 10km radius
+        radius: 15000, // 15km radius for coordinate search
         type: 'restaurant',
-        keyword: userCuisines.length > 0 ? userCuisines.join(' OR ') : 'restaurant'
+        keyword: userCuisines.length > 0 ? userCuisines.slice(0, 3).join(' OR ') : 'restaurant'
       } : {
-        query: userCuisines.length > 0 ? userCuisines[0] : 'restaurant',
+        query: `${userCuisines.length > 0 ? userCuisines[0] + ' ' : ''}restaurant`,
         location: searchLocation,
-        radius: 10000,
-        limit: 20
+        radius: 25000, // 25km radius for text search
+        limit: 30
       };
 
       console.log('Making request to restaurant-search:', requestBody);
