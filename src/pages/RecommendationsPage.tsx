@@ -74,105 +74,67 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
     return () => observer.disconnect();
   }, [displayedCount, allRecommendations.length, isLoading]);
 
+  const getCacheKey = (cities: string[]) => {
+    return `recommendations_${cities.sort().join('_')}_${ratedRestaurants.length}`;
+  };
+
+  const getCachedRecommendations = (cities: string[]): RecommendationData[] | null => {
+    try {
+      const cacheKey = getCacheKey(cities);
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        const data = JSON.parse(cached);
+        const cacheAge = Date.now() - data.timestamp;
+        // Cache valid for 6 hours
+        if (cacheAge < 6 * 60 * 60 * 1000) {
+          console.log(`Serving cached recommendations (${data.recommendations.length} items)`);
+          return data.recommendations;
+        }
+      }
+    } catch (error) {
+      console.error('Error reading cache:', error);
+    }
+    return null;
+  };
+
+  const setCachedRecommendations = (cities: string[], recommendations: RecommendationData[]) => {
+    try {
+      const cacheKey = getCacheKey(cities);
+      const data = {
+        recommendations,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(cacheKey, JSON.stringify(data));
+      console.log(`Cached ${recommendations.length} recommendations`);
+    } catch (error) {
+      console.error('Error caching recommendations:', error);
+    }
+  };
+
   const preloadAllRecommendations = async (cities: string[]) => {
+    // First, try to load from cache instantly
+    const cached = getCachedRecommendations(cities);
+    if (cached && cached.length > 0) {
+      setAllRecommendations(cached);
+      setIsLoading(false);
+      setIsPreloading(false);
+      
+      // Refresh cache in background (no loading state)
+      refreshRecommendationsInBackground(cities);
+      return;
+    }
+
+    // If no cache, show loading and fetch
     setIsLoading(true);
     setIsPreloading(true);
     
     try {
-      console.log(`Pre-loading recommendations for ${cities.length} cities:`, cities);
-      
-      // Calculate overall user preferences
-      const userPriceRanges = ratedRestaurants
-        .filter(r => r.priceRange)
-        .map(r => r.priceRange!);
-      
-      const globalAvgPriceRange = userPriceRanges.length > 0 
-        ? Math.round(userPriceRanges.reduce((sum, p) => sum + p, 0) / userPriceRanges.length)
-        : 2;
-
-      // Create parallel requests for all cities
-      const cityPromises = cities.map(async (city, index) => {
-        try {
-          console.log(`Fetching recommendations for ${city} (${index + 1}/${cities.length})`);
-          
-          // Get city-specific preferences
-          const cityRestaurants = ratedRestaurants.filter(r => r.city === city);
-          const cityUserCuisines = [...new Set(cityRestaurants.map(r => r.cuisine).filter(Boolean))];
-          
-          const requestBody = {
-            query: `${cityUserCuisines.length > 0 ? cityUserCuisines[0] + ' ' : ''}restaurant`,
-            location: city,
-            radius: 25000,
-            limit: 20 // Get more per city since we're pre-loading
-          };
-
-          const { data, error } = await supabase.functions.invoke('restaurant-search', {
-            body: requestBody
-          });
-
-          if (error) {
-            console.error(`Error fetching ${city}:`, error);
-            return [];
-          }
-
-          if (data?.results && data.results.length > 0) {
-            // Filter and process results
-            const filteredResults = data.results.filter((place: any) => {
-              const placePriceLevel = place.priceRange || place.price_level || 2;
-              const priceMatch = Math.abs(placePriceLevel - globalAvgPriceRange) <= 1;
-              
-              // Filter out restaurants the user has already rated
-              const alreadyRated = ratedRestaurants.some(rated => 
-                rated.name.toLowerCase().includes(place.name.toLowerCase()) ||
-                place.name.toLowerCase().includes(rated.name.toLowerCase())
-              );
-              
-              return priceMatch && !alreadyRated;
-            });
-            
-            const processedRecommendations = filteredResults
-              .slice(0, 15) // Take 15 per city
-              .map((place: any) => ({
-                name: place.name,
-                cuisine: place.cuisine || 'Restaurant',
-                address: place.address || place.formatted_address || place.vicinity || '',
-                rating: place.rating,
-                priceRange: place.priceRange || place.price_level,
-                distance: place.distance,
-                openingHours: place.currentDayHours || (place.isOpen ? 'Open now' : 'Closed'),
-                isOpen: place.isOpen,
-                photos: place.photos || [],
-                place_id: place.id || place.place_id,
-                latitude: place.location?.lat || place.geometry?.location?.lat,
-                longitude: place.location?.lng || place.geometry?.location?.lng,
-                city: city // Add city info for debugging
-              }));
-
-            console.log(`Processed ${processedRecommendations.length} recommendations for ${city}`);
-            return processedRecommendations;
-          }
-          
-          return [];
-        } catch (error) {
-          console.error(`Error processing ${city}:`, error);
-          return [];
-        }
-      });
-
-      // Wait for all cities to complete in parallel
-      const allCityResults = await Promise.all(cityPromises);
-      
-      // Flatten and shuffle for variety
-      const allRecs = allCityResults.flat();
-      
-      // Shuffle to mix cities together
-      const shuffledRecs = allRecs.sort(() => Math.random() - 0.5);
-      
-      console.log(`Pre-loaded ${shuffledRecs.length} total recommendations from ${cities.length} cities`);
-      setAllRecommendations(shuffledRecs);
-      
+      console.log(`Loading recommendations for ${cities.length} cities:`, cities);
+      const recommendations = await fetchRecommendations(cities);
+      setAllRecommendations(recommendations);
+      setCachedRecommendations(cities, recommendations);
     } catch (error) {
-      console.error('Error pre-loading recommendations:', error);
+      console.error('Error loading recommendations:', error);
       toast({
         title: "Error",
         description: "Failed to load recommendations. Please try again.",
@@ -182,6 +144,110 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
       setIsLoading(false);
       setIsPreloading(false);
     }
+  };
+
+  const refreshRecommendationsInBackground = async (cities: string[]) => {
+    try {
+      console.log(`Refreshing recommendations in background for ${cities.length} cities`);
+      const recommendations = await fetchRecommendations(cities);
+      setAllRecommendations(recommendations);
+      setCachedRecommendations(cities, recommendations);
+      console.log('Background refresh completed');
+    } catch (error) {
+      console.error('Background refresh failed:', error);
+    }
+  };
+
+  const fetchRecommendations = async (cities: string[]): Promise<RecommendationData[]> => {
+    // Calculate overall user preferences
+    const userPriceRanges = ratedRestaurants
+      .filter(r => r.priceRange)
+      .map(r => r.priceRange!);
+    
+    const globalAvgPriceRange = userPriceRanges.length > 0 
+      ? Math.round(userPriceRanges.reduce((sum, p) => sum + p, 0) / userPriceRanges.length)
+      : 2;
+
+    // Create parallel requests for all cities
+    const cityPromises = cities.map(async (city, index) => {
+      try {
+        console.log(`Fetching recommendations for ${city} (${index + 1}/${cities.length})`);
+        
+        // Get city-specific preferences
+        const cityRestaurants = ratedRestaurants.filter(r => r.city === city);
+        const cityUserCuisines = [...new Set(cityRestaurants.map(r => r.cuisine).filter(Boolean))];
+        
+        const requestBody = {
+          query: `${cityUserCuisines.length > 0 ? cityUserCuisines[0] + ' ' : ''}restaurant`,
+          location: city,
+          radius: 25000,
+          limit: 20
+        };
+
+        const { data, error } = await supabase.functions.invoke('restaurant-search', {
+          body: requestBody
+        });
+
+        if (error) {
+          console.error(`Error fetching ${city}:`, error);
+          return [];
+        }
+
+        if (data?.results && data.results.length > 0) {
+          // Filter and process results
+          const filteredResults = data.results.filter((place: any) => {
+            const placePriceLevel = place.priceRange || place.price_level || 2;
+            const priceMatch = Math.abs(placePriceLevel - globalAvgPriceRange) <= 1;
+            
+            // Filter out restaurants the user has already rated
+            const alreadyRated = ratedRestaurants.some(rated => 
+              rated.name.toLowerCase().includes(place.name.toLowerCase()) ||
+              place.name.toLowerCase().includes(rated.name.toLowerCase())
+            );
+            
+            return priceMatch && !alreadyRated;
+          });
+          
+          const processedRecommendations = filteredResults
+            .slice(0, 15)
+            .map((place: any) => ({
+              name: place.name,
+              cuisine: place.cuisine || 'Restaurant',
+              address: place.address || place.formatted_address || place.vicinity || '',
+              rating: place.rating,
+              priceRange: place.priceRange || place.price_level,
+              distance: place.distance,
+              openingHours: place.currentDayHours || (place.isOpen ? 'Open now' : 'Closed'),
+              isOpen: place.isOpen,
+              photos: place.photos || [],
+              place_id: place.id || place.place_id,
+              latitude: place.location?.lat || place.geometry?.location?.lat,
+              longitude: place.location?.lng || place.geometry?.location?.lng,
+              city: city
+            }));
+
+          console.log(`Processed ${processedRecommendations.length} recommendations for ${city}`);
+          return processedRecommendations;
+        }
+        
+        return [];
+      } catch (error) {
+        console.error(`Error processing ${city}:`, error);
+        return [];
+      }
+    });
+
+    // Wait for all cities to complete in parallel
+    const allCityResults = await Promise.all(cityPromises);
+    
+    // Flatten and shuffle for variety
+    const allRecs = allCityResults.flat();
+    
+    // Shuffle to mix cities together
+    const shuffledRecs = allRecs.sort(() => Math.random() - 0.5);
+    
+    console.log(`Loaded ${shuffledRecs.length} total recommendations from ${cities.length} cities`);
+    return shuffledRecs;
   };
 
   const handleAddRating = (recommendation: RecommendationData) => {
