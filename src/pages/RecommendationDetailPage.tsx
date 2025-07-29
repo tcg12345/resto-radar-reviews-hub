@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, MapPin, Clock, Phone, Globe, Star, Heart, Plus, Share2 } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Phone, Globe, Star, Heart, Plus, Share2, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -92,6 +92,19 @@ export function RecommendationDetailPage() {
   const handleWebsite = () => {
     if (restaurant?.website) {
       window.open(restaurant.website, '_blank');
+    }
+  };
+
+  const handleDirections = () => {
+    if (restaurant?.latitude && restaurant?.longitude) {
+      // Use device's default map app
+      const url = `https://maps.google.com/maps?daddr=${restaurant.latitude},${restaurant.longitude}`;
+      window.open(url, '_blank');
+    } else if (restaurant?.address) {
+      // Fallback to address search
+      const encodedAddress = encodeURIComponent(`${restaurant.address}, ${restaurant.city || ''}`);
+      const url = `https://maps.google.com/maps?daddr=${encodedAddress}`;
+      window.open(url, '_blank');
     }
   };
 
@@ -237,9 +250,41 @@ export function RecommendationDetailPage() {
 
           <Separator />
 
-          {/* Action Buttons */}
+          {/* Primary Action Buttons */}
+          <div className="grid grid-cols-3 gap-3">
+            {(restaurant.phone || restaurant.formatted_phone_number) && (
+              <Button 
+                onClick={handleCall} 
+                className="flex items-center gap-2"
+                variant="default"
+              >
+                <Phone className="h-4 w-4" />
+                Call
+              </Button>
+            )}
+            <Button 
+              onClick={handleDirections} 
+              className="flex items-center gap-2"
+              variant="default"
+            >
+              <Navigation className="h-4 w-4" />
+              Directions
+            </Button>
+            {restaurant.website && (
+              <Button 
+                onClick={handleWebsite} 
+                className="flex items-center gap-2"
+                variant="default"
+              >
+                <Globe className="h-4 w-4" />
+                Website
+              </Button>
+            )}
+          </div>
+
+          {/* Secondary Action Buttons */}
           <div className="grid grid-cols-2 gap-3">
-            <Button onClick={handleAddToList} className="flex items-center gap-2">
+            <Button onClick={handleAddToList} variant="outline" className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
               Add to List
             </Button>
