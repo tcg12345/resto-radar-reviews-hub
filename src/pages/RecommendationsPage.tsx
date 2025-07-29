@@ -296,7 +296,7 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
     return [];
   };
 
-  // New function to enhance cuisine information
+  // Enhanced function to get accurate cuisine information
   const enhanceCuisineInformation = async (recommendations: RecommendationData[]): Promise<RecommendationData[]> => {
     const enhancedRecommendations = await Promise.all(
       recommendations.map(async (rec) => {
@@ -306,11 +306,12 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
             const { data, error } = await supabase.functions.invoke('ai-cuisine-detector', {
               body: { 
                 restaurantName: rec.name,
-                address: rec.address
+                address: rec.address,
+                types: [] // Add Google Places types if available
               }
             });
             
-            if (!error && data?.cuisine) {
+            if (!error && data?.cuisine && data.cuisine !== 'Restaurant') {
               return { ...rec, cuisine: data.cuisine };
             }
           } catch (error) {
