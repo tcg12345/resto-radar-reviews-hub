@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuCheckboxItem, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { FriendsFiltersDialog } from '@/components/FriendsFiltersDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -96,6 +97,11 @@ export function FriendsActivityPage() {
     cities: Record<string, number>;
     cuisines: Record<string, number>;
   } | null>(null);
+  
+  // Mobile state
+  const [isMobile, setIsMobile] = useState(false);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  
   const dataFetched = useRef(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadingTriggerRef = useRef<HTMLDivElement>(null);
@@ -218,6 +224,17 @@ export function FriendsActivityPage() {
       }
     };
   }, [searchQuery]);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // md breakpoint
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Update URL parameters when filters change
   useEffect(() => {
@@ -778,85 +795,105 @@ export function FriendsActivityPage() {
 
         {/* Filters and Sort Row */}
         <div className="flex gap-3">
-          {/* Single Filters Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="flex-1 h-12 flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <Filter className="h-4 w-4" />
-                  Filters
-                  {selectedCuisines.length + selectedCities.length + selectedFriends.length > 0 && <Badge variant="secondary" className="ml-1 h-5 px-2 text-xs">
-                      {selectedCuisines.length + selectedCities.length + selectedFriends.length}
-                    </Badge>}
-                </span>
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-72">
-              {/* Friends Filter Sub-Dropdown */}
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger className="flex items-center justify-between">
-                  <span>Friends</span>
-                  {selectedFriends.length > 0 && <Badge variant="secondary" className="ml-2 h-4 px-1.5 text-xs">
-                      {selectedFriends.length}
-                    </Badge>}
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent className="w-64 max-h-64 overflow-y-auto [&[data-side=right]]:translate-x-[-100%] [&[data-side=right]]:left-0">
-                  {uniqueFriends.map(friend => <DropdownMenuCheckboxItem key={friend.id} checked={selectedFriends.includes(friend.id)} onCheckedChange={checked => {
-                  if (checked) {
-                    setSelectedFriends(prev => [...prev, friend.id]);
-                  } else {
-                    setSelectedFriends(prev => prev.filter(f => f !== friend.id));
-                  }
-                }}>
-                      {friend.name} ({friend.count})
-                    </DropdownMenuCheckboxItem>)}
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-              
-              {/* City Filter Sub-Dropdown */}
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger className="flex items-center justify-between">
-                  <span>Cities</span>
-                  {selectedCities.length > 0 && <Badge variant="secondary" className="ml-2 h-4 px-1.5 text-xs">
-                      {selectedCities.length}
-                    </Badge>}
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent className="w-64 max-h-64 overflow-y-auto [&[data-side=right]]:translate-x-[-100%] [&[data-side=right]]:left-0">
-                  {uniqueCities.map(city => <DropdownMenuCheckboxItem key={city} checked={selectedCities.includes(city)} onCheckedChange={checked => {
-                  if (checked) {
-                    setSelectedCities(prev => [...prev, city]);
-                  } else {
-                    setSelectedCities(prev => prev.filter(c => c !== city));
-                  }
-                }}>
-                      {city} ({filterCounts.cities[city] || 0})
-                    </DropdownMenuCheckboxItem>)}
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-              
-              {/* Cuisine Filter Sub-Dropdown */}
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger className="flex items-center justify-between">
-                  <span>Cuisines</span>
-                  {selectedCuisines.length > 0 && <Badge variant="secondary" className="ml-2 h-4 px-1.5 text-xs">
-                      {selectedCuisines.length}
-                    </Badge>}
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent className="w-64 max-h-64 overflow-y-auto [&[data-side=right]]:translate-x-[-100%] [&[data-side=right]]:left-0">
-                  {uniqueCuisines.map(cuisine => <DropdownMenuCheckboxItem key={cuisine} checked={selectedCuisines.includes(cuisine)} onCheckedChange={checked => {
-                  if (checked) {
-                    setSelectedCuisines(prev => [...prev, cuisine]);
-                  } else {
-                    setSelectedCuisines(prev => prev.filter(c => c !== cuisine));
-                  }
-                }}>
-                      {cuisine} ({filterCounts.cuisines[cuisine] || 0})
-                    </DropdownMenuCheckboxItem>)}
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* Mobile Filters Button */}
+          {isMobile ? (
+            <Button 
+              variant="outline" 
+              className="flex-1 h-12 flex items-center justify-between"
+              onClick={() => setShowMobileFilters(true)}
+            >
+              <span className="flex items-center gap-2">
+                <Filter className="h-4 w-4" />
+                Filters
+                {selectedCuisines.length + selectedCities.length + selectedFriends.length > 0 && (
+                  <Badge variant="secondary" className="ml-1 h-5 px-2 text-xs">
+                    {selectedCuisines.length + selectedCities.length + selectedFriends.length}
+                  </Badge>
+                )}
+              </span>
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+          ) : (
+            /* Desktop Filters Dropdown */
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex-1 h-12 flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Filter className="h-4 w-4" />
+                    Filters
+                    {selectedCuisines.length + selectedCities.length + selectedFriends.length > 0 && <Badge variant="secondary" className="ml-1 h-5 px-2 text-xs">
+                        {selectedCuisines.length + selectedCities.length + selectedFriends.length}
+                      </Badge>}
+                  </span>
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-72">
+                {/* Friends Filter Sub-Dropdown */}
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger className="flex items-center justify-between">
+                    <span>Friends</span>
+                    {selectedFriends.length > 0 && <Badge variant="secondary" className="ml-2 h-4 px-1.5 text-xs">
+                        {selectedFriends.length}
+                      </Badge>}
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="w-64 max-h-64 overflow-y-auto [&[data-side=right]]:translate-x-[-100%] [&[data-side=right]]:left-0">
+                    {uniqueFriends.map(friend => <DropdownMenuCheckboxItem key={friend.id} checked={selectedFriends.includes(friend.id)} onCheckedChange={checked => {
+                    if (checked) {
+                      setSelectedFriends(prev => [...prev, friend.id]);
+                    } else {
+                      setSelectedFriends(prev => prev.filter(f => f !== friend.id));
+                    }
+                  }}>
+                        {friend.name} ({friend.count})
+                      </DropdownMenuCheckboxItem>)}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+                
+                {/* City Filter Sub-Dropdown */}
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger className="flex items-center justify-between">
+                    <span>Cities</span>
+                    {selectedCities.length > 0 && <Badge variant="secondary" className="ml-2 h-4 px-1.5 text-xs">
+                        {selectedCities.length}
+                      </Badge>}
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="w-64 max-h-64 overflow-y-auto [&[data-side=right]]:translate-x-[-100%] [&[data-side=right]]:left-0">
+                    {uniqueCities.map(city => <DropdownMenuCheckboxItem key={city} checked={selectedCities.includes(city)} onCheckedChange={checked => {
+                    if (checked) {
+                      setSelectedCities(prev => [...prev, city]);
+                    } else {
+                      setSelectedCities(prev => prev.filter(c => c !== city));
+                    }
+                  }}>
+                        {city} ({filterCounts.cities[city] || 0})
+                      </DropdownMenuCheckboxItem>)}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+                
+                {/* Cuisine Filter Sub-Dropdown */}
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger className="flex items-center justify-between">
+                    <span>Cuisines</span>
+                    {selectedCuisines.length > 0 && <Badge variant="secondary" className="ml-2 h-4 px-1.5 text-xs">
+                        {selectedCuisines.length}
+                      </Badge>}
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="w-64 max-h-64 overflow-y-auto [&[data-side=right]]:translate-x-[-100%] [&[data-side=right]]:left-0">
+                    {uniqueCuisines.map(cuisine => <DropdownMenuCheckboxItem key={cuisine} checked={selectedCuisines.includes(cuisine)} onCheckedChange={checked => {
+                    if (checked) {
+                      setSelectedCuisines(prev => [...prev, cuisine]);
+                    } else {
+                      setSelectedCuisines(prev => prev.filter(c => c !== cuisine));
+                    }
+                  }}>
+                        {cuisine} ({filterCounts.cuisines[cuisine] || 0})
+                      </DropdownMenuCheckboxItem>)}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
           {/* Sort Dropdown */}
           <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
@@ -871,6 +908,22 @@ export function FriendsActivityPage() {
             </SelectContent>
           </Select>
         </div>
+
+        {/* Mobile Filters Dialog */}
+        <FriendsFiltersDialog
+          open={showMobileFilters}
+          onOpenChange={setShowMobileFilters}
+          uniqueFriends={uniqueFriends}
+          uniqueCities={uniqueCities}
+          uniqueCuisines={uniqueCuisines}
+          selectedFriends={selectedFriends}
+          selectedCities={selectedCities}
+          selectedCuisines={selectedCuisines}
+          onFriendsChange={setSelectedFriends}
+          onCitiesChange={setSelectedCities}
+          onCuisinesChange={setSelectedCuisines}
+          filterCounts={filterCounts}
+        />
 
         {/* Selected Filter Tags */}
         {(selectedFriends.length > 0 || selectedCities.length > 0 || selectedCuisines.length > 0) && <div className="flex flex-wrap gap-2">
