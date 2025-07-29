@@ -42,7 +42,7 @@ export function RecommendationCard({ restaurant, onAdd, onAddToWishlist }: Recom
     <div className="border-b border-border py-4 hover:bg-muted/50 transition-colors duration-200 -mx-4">
       <div className="px-4">
       {/* Header with name and rating */}
-      <div className="flex items-start justify-between mb-1">
+      <div className="flex items-start justify-between">
         <h3 className="font-semibold text-lg text-foreground leading-tight">{restaurant.name}</h3>
         {restaurant.rating && (
           <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center">
@@ -52,7 +52,7 @@ export function RecommendationCard({ restaurant, onAdd, onAddToWishlist }: Recom
       </div>
 
       {/* Cuisine and price */}
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-1">
         <span className="text-muted-foreground text-sm">{getPriceDisplay(restaurant.priceRange)}</span>
         {restaurant.priceRange && restaurant.cuisine && (
           <span className="w-1 h-1 rounded-full bg-muted-foreground"></span>
@@ -61,7 +61,7 @@ export function RecommendationCard({ restaurant, onAdd, onAddToWishlist }: Recom
       </div>
 
       {/* Location */}
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-2">
         <MapPin className="h-3 w-3 text-muted-foreground" />
         <span className="text-xs text-muted-foreground">{restaurant.address}</span>
       </div>
