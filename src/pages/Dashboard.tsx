@@ -14,7 +14,7 @@ import { AIChatbot } from '@/components/AIChatbot';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState<'home' | 'feed' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'travel'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'rated' | 'wishlist' | 'search' | 'settings' | 'friends' | 'travel'>('home');
   const [shouldOpenAddDialog, setShouldOpenAddDialog] = useState(false);
   const [viewFriendId, setViewFriendId] = useState<string | null>(null);
   const { restaurants, addRestaurant, updateRestaurant, deleteRestaurant } = useRestaurants();
@@ -46,9 +46,6 @@ export default function Dashboard() {
         <div className={`${activeTab === 'home' ? 'block' : 'hidden'}`}>
           <HomePageWrapper />
         </div>
-        <div className={`${activeTab === 'feed' ? 'block' : 'hidden'}`}>
-          <FeedPage onNavigate={setActiveTab} onOpenAddRestaurant={handleOpenAddRestaurant} />
-        </div>
         <div className={`${activeTab === 'rated' ? 'block' : 'hidden'}`}>
           <RatedRestaurantsPage
             restaurants={restaurants}
@@ -74,7 +71,7 @@ export default function Dashboard() {
           <UnifiedSearchPage />
         </div>
         <div className={`${activeTab === 'settings' ? 'block' : 'hidden'}`}>
-          <SettingsPage onBack={() => setActiveTab('feed')} />
+          <SettingsPage onBack={() => setActiveTab('home')} />
         </div>
         <div className={`${activeTab === 'friends' ? 'block' : 'hidden'}`}>
           <FriendsPage 

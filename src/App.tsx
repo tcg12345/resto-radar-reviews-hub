@@ -54,7 +54,7 @@ const App = () => (
                 <Route path="/demo" element={<DemoPage />} />
                 
                 {/* Individual section routes */}
-                <Route path="/home" element={<RequireAuth><Layout activeTab="feed"><HomePageWrapper /></Layout></RequireAuth>} />
+                <Route path="/home" element={<RequireAuth><Layout activeTab="home"><HomePageWrapper /></Layout></RequireAuth>} />
                 <Route path="/rated" element={<RequireAuth><Layout activeTab="rated"><RatedRestaurantsPageWrapper /></Layout></RequireAuth>} />
                 <Route path="/wishlist" element={<RequireAuth><Layout activeTab="wishlist"><WishlistPageWrapper /></Layout></RequireAuth>} />
                 <Route path="/map" element={<RequireAuth><Layout activeTab="search" showChatbot={false}><MapPageWrapper /></Layout></RequireAuth>} />
