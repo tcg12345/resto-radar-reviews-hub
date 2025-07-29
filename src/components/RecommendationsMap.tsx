@@ -33,6 +33,7 @@ export function RecommendationsMap({ userRatedRestaurants, onClose, onAddRestaur
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<mapboxgl.Marker[]>([]);
+  const currentPopup = useRef<mapboxgl.Popup | null>(null);
   const { token, isLoading } = useMapboxToken();
   const [recommendations, setRecommendations] = useState<Restaurant[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -345,18 +346,35 @@ export function RecommendationsMap({ userRatedRestaurants, onClose, onAddRestaur
               </div>
             `;
 
+            const popup = new mapboxgl.Popup({ 
+              offset: 25,
+              closeButton: true,
+              closeOnClick: true,
+              maxWidth: '300px',
+              className: 'custom-popup'
+            }).setHTML(popupHTML);
+
             const marker = new mapboxgl.Marker({
               color: '#ef4444'
             })
               .setLngLat([restaurant.longitude, restaurant.latitude])
-              .setPopup(new mapboxgl.Popup({ 
-                offset: 25,
-                closeButton: true,
-                closeOnClick: false,
-                maxWidth: '300px',
-                className: 'custom-popup'
-              }).setHTML(popupHTML))
+              .setPopup(popup)
               .addTo(map.current!);
+
+            // Close any existing popup when this marker is clicked
+            marker.getElement().addEventListener('click', () => {
+              if (currentPopup.current && currentPopup.current !== popup) {
+                currentPopup.current.remove();
+              }
+              currentPopup.current = popup;
+            });
+            
+            // Track popup close events
+            popup.on('close', () => {
+              if (currentPopup.current === popup) {
+                currentPopup.current = null;
+              }
+            });
             
             markers.current.push(marker);
           }
