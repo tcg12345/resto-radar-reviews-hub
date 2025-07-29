@@ -37,7 +37,7 @@ export function SavedPlacesPage({
           <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto">
             <TabsTrigger value="rated" className="text-sm font-medium">My Ratings</TabsTrigger>
             <TabsTrigger value="wishlist" className="text-sm font-medium">Wishlist</TabsTrigger>
-            <TabsTrigger value="recommendations" className="text-xs sm:text-sm font-medium px-2 sm:px-3">Recommendations</TabsTrigger>
+            <TabsTrigger value="recommendations" className="text-sm font-medium">Recs</TabsTrigger>
           </TabsList>
         </div>
         
