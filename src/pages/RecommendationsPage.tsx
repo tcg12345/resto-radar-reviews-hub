@@ -43,14 +43,35 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
 
     setIsLoading(true);
     try {
-      // Calculate average location and price range from rated restaurants
-      const avgLat = ratedRestaurants
-        .filter(r => r.latitude)
-        .reduce((sum, r) => sum + (r.latitude || 0), 0) / ratedRestaurants.filter(r => r.latitude).length;
+      console.log('Rated restaurants:', ratedRestaurants);
       
-      const avgLng = ratedRestaurants
-        .filter(r => r.longitude)
-        .reduce((sum, r) => sum + (r.longitude || 0), 0) / ratedRestaurants.filter(r => r.longitude).length;
+      // Calculate average location from rated restaurants that have coordinates
+      const restaurantsWithCoords = ratedRestaurants.filter(r => r.latitude && r.longitude);
+      console.log('Restaurants with coordinates:', restaurantsWithCoords);
+      
+      let avgLat, avgLng;
+      let searchLocation = '';
+      
+      if (restaurantsWithCoords.length > 0) {
+        avgLat = restaurantsWithCoords.reduce((sum, r) => sum + r.latitude!, 0) / restaurantsWithCoords.length;
+        avgLng = restaurantsWithCoords.reduce((sum, r) => sum + r.longitude!, 0) / restaurantsWithCoords.length;
+        searchLocation = `${avgLat},${avgLng}`;
+        console.log('Using average coordinates:', { avgLat, avgLng });
+      } else {
+        // Fallback: use the most common city from rated restaurants
+        const cities = ratedRestaurants.map(r => r.city).filter(Boolean);
+        const cityCount = cities.reduce((acc, city) => {
+          acc[city] = (acc[city] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+        
+        const mostCommonCity = Object.keys(cityCount).reduce((a, b) => 
+          cityCount[a] > cityCount[b] ? a : b, cities[0] || 'New York'
+        );
+        
+        searchLocation = mostCommonCity;
+        console.log('Using city fallback:', mostCommonCity);
+      }
 
       const userPriceRanges = ratedRestaurants
         .filter(r => r.priceRange)
@@ -61,16 +82,28 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
         : 2;
 
       const userCuisines = [...new Set(ratedRestaurants.map(r => r.cuisine).filter(Boolean))];
+      console.log('User preferences:', { avgPriceRange, userCuisines, searchLocation });
 
       // Search for restaurants near the user's typical dining locations
+      const requestBody = restaurantsWithCoords.length > 0 ? {
+        location: searchLocation,
+        radius: 10000, // 10km radius
+        type: 'restaurant',
+        keyword: userCuisines.length > 0 ? userCuisines.join(' OR ') : 'restaurant'
+      } : {
+        query: userCuisines.length > 0 ? userCuisines[0] : 'restaurant',
+        location: searchLocation,
+        radius: 10000,
+        limit: 20
+      };
+
+      console.log('Making request to restaurant-search:', requestBody);
+
       const { data, error } = await supabase.functions.invoke('restaurant-search', {
-        body: {
-          location: `${avgLat},${avgLng}`,
-          radius: 10000, // 10km radius
-          type: 'restaurant',
-          keyword: userCuisines.length > 0 ? userCuisines.join(' OR ') : 'restaurant'
-        }
+        body: requestBody
       });
+
+      console.log('Restaurant search response:', { data, error });
 
       if (error) throw error;
 
@@ -79,30 +112,30 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
         const processedRecommendations = data.results
           .filter((place: any) => {
             // Filter by price range (±1 level from user's average)
-            const placePriceLevel = place.price_level || 2;
+            const placePriceLevel = place.priceRange || place.price_level || 2;
             return Math.abs(placePriceLevel - avgPriceRange) <= 1;
           })
           .slice(0, 20) // Limit to top 20
           .map((place: any) => ({
             name: place.name,
-            cuisine: place.types?.find((type: string) => 
-              ['restaurant', 'food', 'meal_takeaway', 'meal_delivery'].includes(type)
-            ) || 'Restaurant',
-            address: place.vicinity || place.formatted_address || '',
+            cuisine: place.cuisine || 'Restaurant',
+            address: place.address || place.formatted_address || place.vicinity || '',
             rating: place.rating,
-            priceRange: place.price_level,
+            priceRange: place.priceRange || place.price_level,
             distance: place.distance,
-            openingHours: place.opening_hours?.open_now !== undefined 
-              ? (place.opening_hours.open_now ? 'Open now' : 'Closed')
-              : undefined,
-            isOpen: place.opening_hours?.open_now,
-            photos: place.photos ? [place.photos[0]?.photo_reference] : [],
-            place_id: place.place_id,
-            latitude: place.geometry?.location?.lat,
-            longitude: place.geometry?.location?.lng
+            openingHours: place.currentDayHours || (place.isOpen ? 'Open now' : 'Closed'),
+            isOpen: place.isOpen,
+            photos: place.photos || [],
+            place_id: place.id || place.place_id,
+            latitude: place.location?.lat || place.geometry?.location?.lat,
+            longitude: place.location?.lng || place.geometry?.location?.lng
           }));
 
+        console.log('Processed recommendations:', processedRecommendations);
         setRecommendations(processedRecommendations);
+      } else {
+        console.log('No results in response');
+        setRecommendations([]);
       }
     } catch (error) {
       console.error('Error fetching recommendations:', error);

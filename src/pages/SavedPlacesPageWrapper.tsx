@@ -5,7 +5,7 @@ import { SavedPlacesPage } from './SavedPlacesPage';
 interface SavedPlacesPageWrapperProps {
   shouldOpenAddDialog?: boolean;
   onAddDialogClose?: () => void;
-  activeSubTab?: 'rated' | 'wishlist';
+  activeSubTab?: 'rated' | 'wishlist' | 'recommendations';
 }
 
 export default function SavedPlacesPageWrapper({ 
