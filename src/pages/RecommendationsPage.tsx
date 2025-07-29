@@ -30,13 +30,14 @@ interface RecommendationData {
 
 export function RecommendationsPage({ restaurants, onAddRestaurant }: RecommendationsPageProps) {
   const [recommendations, setRecommendations] = useState<RecommendationData[]>([]);
-  const [allRecommendations, setAllRecommendations] = useState<RecommendationData[]>([]);
-  const [displayedCount, setDisplayedCount] = useState(12);
   const [isLoading, setIsLoading] = useState(false);
-  const [isPreloading, setIsPreloading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [userCities, setUserCities] = useState<string[]>([]);
   const [showMap, setShowMap] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [nextPageTokens, setNextPageTokens] = useState<{[key: string]: string}>({});
+  const [currentCityIndex, setCurrentCityIndex] = useState(0);
   const { toast } = useToast();
   const observerTarget = useRef<HTMLDivElement>(null);
 
@@ -58,23 +59,20 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
       // Get unique cities from rated restaurants
       const cities = [...new Set(ratedRestaurants.map(r => r.city).filter(Boolean))];
       setUserCities(cities);
-      setAllRecommendations([]);
-      setDisplayedCount(12);
-      preloadAllRecommendations(cities);
+      setRecommendations([]);
+      setHasMore(true);
+      setNextPageTokens({});
+      setCurrentCityIndex(0);
+      loadInitialRecommendations(cities);
     }
   }, [ratedRestaurants.length]);
-
-  // Update displayed recommendations when displayedCount changes
-  useEffect(() => {
-    setRecommendations(allRecommendations.slice(0, displayedCount));
-  }, [allRecommendations, displayedCount]);
 
   // Infinite scroll observer
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && displayedCount < allRecommendations.length && !isLoading) {
-          setDisplayedCount(prev => Math.min(prev + 12, allRecommendations.length));
+        if (entries[0].isIntersecting && hasMore && !isLoading && !isLoadingMore) {
+          loadMoreRecommendations();
         }
       },
       { threshold: 0.1 }
@@ -85,7 +83,7 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
     }
 
     return () => observer.disconnect();
-  }, [displayedCount, allRecommendations.length, isLoading]);
+  }, [hasMore, isLoading, isLoadingMore]);
 
   const getCacheKey = (cities: string[]) => {
     return `recommendations_${cities.sort().join('_')}_${ratedRestaurants.length}`;
@@ -124,30 +122,25 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
     }
   };
 
-  const preloadAllRecommendations = async (cities: string[]) => {
+  const loadInitialRecommendations = async (cities: string[]) => {
     // First, try to load from cache instantly
     const cached = getCachedRecommendations(cities);
     if (cached && cached.length > 0) {
-      setAllRecommendations(cached);
+      setRecommendations(cached.slice(0, 20));
       setIsLoading(false);
-      setIsPreloading(false);
-      
-      // Refresh cache in background (no loading state)
-      refreshRecommendationsInBackground(cities);
       return;
     }
 
     // If no cache, show loading and fetch
     setIsLoading(true);
-    setIsPreloading(true);
     
     try {
-      console.log(`Loading recommendations for ${cities.length} cities:`, cities);
-      const recommendations = await fetchRecommendations(cities);
-      setAllRecommendations(recommendations);
+      console.log(`Loading initial recommendations for ${cities.length} cities:`, cities);
+      const recommendations = await fetchRecommendationsForCity(cities[0], null);
+      setRecommendations(recommendations);
       setCachedRecommendations(cities, recommendations);
     } catch (error) {
-      console.error('Error loading recommendations:', error);
+      console.error('Error loading initial recommendations:', error);
       toast({
         title: "Error",
         description: "Failed to load recommendations. Please try again.",
@@ -155,23 +148,41 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
       });
     } finally {
       setIsLoading(false);
-      setIsPreloading(false);
     }
   };
 
-  const refreshRecommendationsInBackground = async (cities: string[]) => {
+  const loadMoreRecommendations = async () => {
+    if (!hasMore || isLoadingMore || userCities.length === 0) return;
+
+    setIsLoadingMore(true);
+    
     try {
-      console.log(`Refreshing recommendations in background for ${cities.length} cities`);
-      const recommendations = await fetchRecommendations(cities);
-      setAllRecommendations(recommendations);
-      setCachedRecommendations(cities, recommendations);
-      console.log('Background refresh completed');
+      const cityToSearch = userCities[currentCityIndex % userCities.length];
+      const nextPageToken = nextPageTokens[cityToSearch] || null;
+      
+      console.log(`Loading more recommendations for ${cityToSearch}, page token: ${nextPageToken}`);
+      
+      const newRecommendations = await fetchRecommendationsForCity(cityToSearch, nextPageToken);
+      
+      if (newRecommendations.length === 0) {
+        // Move to next city or stop if we've cycled through all
+        const nextCityIndex = currentCityIndex + 1;
+        if (nextCityIndex >= userCities.length * 3) { // Limit to 3 cycles through cities
+          setHasMore(false);
+        } else {
+          setCurrentCityIndex(nextCityIndex);
+        }
+      } else {
+        setRecommendations(prev => [...prev, ...newRecommendations]);
+      }
     } catch (error) {
-      console.error('Background refresh failed:', error);
+      console.error('Error loading more recommendations:', error);
+    } finally {
+      setIsLoadingMore(false);
     }
   };
 
-  const fetchRecommendations = async (cities: string[]): Promise<RecommendationData[]> => {
+  const fetchRecommendationsForCity = async (city: string, pageToken: string | null): Promise<RecommendationData[]> => {
     // Calculate overall user preferences
     const userPriceRanges = ratedRestaurants
       .filter(r => r.priceRange)
@@ -181,86 +192,87 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
       ? Math.round(userPriceRanges.reduce((sum, p) => sum + p, 0) / userPriceRanges.length)
       : 2;
 
-    // Create parallel requests for all cities
-    const cityPromises = cities.map(async (city, index) => {
-      try {
-        console.log(`Fetching recommendations for ${city} (${index + 1}/${cities.length})`);
-        
-        // Get city-specific preferences
-        const cityRestaurants = ratedRestaurants.filter(r => r.city === city);
-        const cityUserCuisines = [...new Set(cityRestaurants.map(r => r.cuisine).filter(Boolean))];
-        
-        const requestBody = {
-          query: `${cityUserCuisines.length > 0 ? cityUserCuisines[0] + ' ' : ''}restaurant`,
-          location: city,
-          radius: 25000,
-          limit: 20
-        };
+    try {
+      console.log(`Fetching recommendations for ${city}${pageToken ? ` (page token: ${pageToken})` : ''}`);
+      
+      // Get city-specific preferences
+      const cityRestaurants = ratedRestaurants.filter(r => r.city === city);
+      const cityUserCuisines = [...new Set(cityRestaurants.map(r => r.cuisine).filter(Boolean))];
+      
+      const requestBody = {
+        query: `${cityUserCuisines.length > 0 ? cityUserCuisines[0] + ' ' : ''}restaurant`,
+        location: city,
+        radius: 25000,
+        limit: 20,
+        pageToken: pageToken
+      };
 
-        const { data, error } = await supabase.functions.invoke('restaurant-search', {
-          body: requestBody
-        });
+      const { data, error } = await supabase.functions.invoke('restaurant-search', {
+        body: requestBody
+      });
 
-        if (error) {
-          console.error(`Error fetching ${city}:`, error);
-          return [];
-        }
-
-        if (data?.results && data.results.length > 0) {
-          // Filter and process results
-          const filteredResults = data.results.filter((place: any) => {
-            const placePriceLevel = place.priceRange || place.price_level || 2;
-            const priceMatch = Math.abs(placePriceLevel - globalAvgPriceRange) <= 1;
-            
-            // Filter out restaurants the user has already rated
-            const alreadyRated = ratedRestaurants.some(rated => 
-              rated.name.toLowerCase().includes(place.name.toLowerCase()) ||
-              place.name.toLowerCase().includes(rated.name.toLowerCase())
-            );
-            
-            return priceMatch && !alreadyRated;
-          });
-          
-          const processedRecommendations = filteredResults
-            .slice(0, 15)
-            .map((place: any) => ({
-              name: place.name,
-              cuisine: place.cuisine || 'Restaurant',
-              address: place.address || place.formatted_address || place.vicinity || '',
-              rating: place.rating,
-              priceRange: place.priceRange || place.price_level,
-              distance: place.distance,
-              openingHours: place.currentDayHours || (place.isOpen ? 'Open now' : 'Closed'),
-              isOpen: place.isOpen,
-              photos: place.photos || [],
-              place_id: place.id || place.place_id,
-              latitude: place.location?.lat || place.geometry?.location?.lat,
-              longitude: place.location?.lng || place.geometry?.location?.lng,
-              city: city
-            }));
-
-          console.log(`Processed ${processedRecommendations.length} recommendations for ${city}`);
-          return processedRecommendations;
-        }
-        
-        return [];
-      } catch (error) {
-        console.error(`Error processing ${city}:`, error);
+      if (error) {
+        console.error(`Error fetching ${city}:`, error);
         return [];
       }
-    });
 
-    // Wait for all cities to complete in parallel
-    const allCityResults = await Promise.all(cityPromises);
-    
-    // Flatten and shuffle for variety
-    const allRecs = allCityResults.flat();
-    
-    // Shuffle to mix cities together
-    const shuffledRecs = allRecs.sort(() => Math.random() - 0.5);
-    
-    console.log(`Loaded ${shuffledRecs.length} total recommendations from ${cities.length} cities`);
-    return shuffledRecs;
+      // Store next page token if available
+      if (data?.nextPageToken) {
+        setNextPageTokens(prev => ({
+          ...prev,
+          [city]: data.nextPageToken
+        }));
+      } else {
+        // No more pages for this city, move to next city
+        setCurrentCityIndex(prev => prev + 1);
+      }
+
+      if (data?.results && data.results.length > 0) {
+        // Filter and process results
+        const filteredResults = data.results.filter((place: any) => {
+          const placePriceLevel = place.priceRange || place.price_level || 2;
+          const priceMatch = Math.abs(placePriceLevel - globalAvgPriceRange) <= 1;
+          
+          // Filter out restaurants the user has already rated
+          const alreadyRated = ratedRestaurants.some(rated => 
+            rated.name.toLowerCase().includes(place.name.toLowerCase()) ||
+            place.name.toLowerCase().includes(rated.name.toLowerCase())
+          );
+          
+          // Filter out duplicates from existing recommendations
+          const alreadyRecommended = recommendations.some(rec =>
+            rec.place_id === (place.id || place.place_id) ||
+            rec.name.toLowerCase() === place.name.toLowerCase()
+          );
+          
+          return priceMatch && !alreadyRated && !alreadyRecommended;
+        });
+        
+        const processedRecommendations = filteredResults.map((place: any) => ({
+          name: place.name,
+          cuisine: place.cuisine || 'Restaurant',
+          address: place.address || place.formatted_address || place.vicinity || '',
+          rating: place.rating,
+          priceRange: place.priceRange || place.price_level,
+          distance: place.distance,
+          openingHours: place.currentDayHours || (place.isOpen ? 'Open now' : 'Closed'),
+          isOpen: place.isOpen,
+          photos: place.photos || [],
+          place_id: place.id || place.place_id,
+          latitude: place.location?.lat || place.geometry?.location?.lat,
+          longitude: place.location?.lng || place.geometry?.location?.lng,
+          city: city
+        }));
+
+        console.log(`Processed ${processedRecommendations.length} new recommendations for ${city}`);
+        return processedRecommendations;
+      }
+      
+      return [];
+    } catch (error) {
+      console.error(`Error processing ${city}:`, error);
+      return [];
+    }
   };
 
   const handleAddRating = (recommendation: RecommendationData) => {
@@ -348,9 +360,9 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
         <div className="mb-6">
           <h2 className="text-2xl font-bold mb-2">Recommended For You</h2>
           <p className="text-muted-foreground text-sm">
-            {isPreloading 
+            {isLoading 
               ? `Loading recommendations from ${userCities.length} cities...`
-              : `Showing ${recommendations.length} of ${allRecommendations.length} restaurants from ${userCities.length} cities`
+              : `Showing ${recommendations.length} restaurants from ${userCities.length} cities`
             }
           </p>
         </div>
@@ -362,7 +374,7 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="space-y-0">
               {recommendations.map((recommendation, index) => (
                 <RecommendationCard
                   key={`${recommendation.place_id}-${index}`}
@@ -375,11 +387,14 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
             
             {/* Infinite scroll target */}
             <div ref={observerTarget} className="flex justify-center py-8">
-              {displayedCount < allRecommendations.length && (
+              {isLoadingMore && (
                 <div className="flex items-center gap-2">
                   <Loader2 className="h-5 w-5 animate-spin text-primary" />
                   <span className="text-sm text-muted-foreground">Loading more...</span>
                 </div>
+              )}
+              {!hasMore && recommendations.length > 0 && (
+                <p className="text-sm text-muted-foreground">No more restaurants to show</p>
               )}
             </div>
           </>
