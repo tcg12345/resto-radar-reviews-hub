@@ -13,12 +13,14 @@ interface Restaurant {
   name: string;
   address: string;
   cuisine?: string;
-  priceRange?: string;
+  priceRange?: number;
   rating?: number;
   latitude?: number;
   longitude?: number;
   photos?: string[];
   reasoning?: string;
+  reviewCount?: number;
+  googleMapsUrl?: string;
 }
 
 interface RecommendationsMapProps {
@@ -184,12 +186,14 @@ export function RecommendationsMap({ userRatedRestaurants, onClose, onAddRestaur
             name: restaurant.name,
             address: restaurant.address,
             cuisine: restaurant.cuisine || 'Restaurant',
-            priceRange: restaurant.priceRange || 1,
+            priceRange: typeof restaurant.priceRange === 'number' ? restaurant.priceRange : 1,
             rating: restaurant.rating,
             latitude: restaurant.location?.lat,
             longitude: restaurant.location?.lng,
             photos: restaurant.photos || [],
-            reasoning: `Found in search area`
+            reasoning: `Found in search area`,
+            reviewCount: restaurant.reviewCount || 0,
+            googleMapsUrl: restaurant.googleMapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.name + ' ' + restaurant.address)}`
           }));
 
         console.log('After basic filtering:', filteredRecommendations.length);
@@ -208,20 +212,150 @@ export function RecommendationsMap({ userRatedRestaurants, onClose, onAddRestaur
         markers.current.forEach(marker => marker.remove());
         markers.current = [];
 
-        // Add new markers to map
+        // Add new markers to map with beautiful styled popups
         filteredRecommendations.forEach((restaurant: Restaurant) => {
           if (restaurant.latitude && restaurant.longitude) {
+            // Create a beautiful popup HTML
+            const priceDisplay = '$'.repeat(restaurant.priceRange || 1);
+            const ratingStars = '★'.repeat(Math.floor(restaurant.rating || 0)) + 
+                               '☆'.repeat(5 - Math.floor(restaurant.rating || 0));
+            
+            const popupHTML = `
+              <div class="restaurant-popup" style="
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                max-width: 280px;
+                padding: 0;
+                margin: 0;
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+                background: white;
+              ">
+                <div style="
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                  color: white;
+                  padding: 16px;
+                  text-align: center;
+                ">
+                  <h3 style="
+                    margin: 0 0 8px 0;
+                    font-size: 18px;
+                    font-weight: 600;
+                    line-height: 1.3;
+                  ">${restaurant.name}</h3>
+                  <div style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 12px;
+                    margin-top: 8px;
+                  ">
+                    <span style="
+                      background: rgba(255, 255, 255, 0.2);
+                      padding: 4px 8px;
+                      border-radius: 6px;
+                      font-size: 12px;
+                      font-weight: 500;
+                    ">${restaurant.cuisine || 'Restaurant'}</span>
+                    <span style="
+                      background: rgba(255, 255, 255, 0.2);
+                      padding: 4px 8px;
+                      border-radius: 6px;
+                      font-size: 12px;
+                      font-weight: 500;
+                    ">${priceDisplay}</span>
+                  </div>
+                </div>
+                
+                <div style="padding: 16px;">
+                  <div style="
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin-bottom: 12px;
+                  ">
+                    <span style="
+                      color: #fbbf24;
+                      font-size: 16px;
+                      line-height: 1;
+                    ">${ratingStars}</span>
+                    <span style="
+                      font-weight: 600;
+                      color: #374151;
+                      font-size: 14px;
+                    ">${restaurant.rating?.toFixed(1) || 'N/A'}</span>
+                    <span style="
+                      color: #6b7280;
+                      font-size: 12px;
+                    ">(${restaurant.reviewCount || 0} reviews)</span>
+                  </div>
+                  
+                  <div style="
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 8px;
+                    margin-bottom: 12px;
+                  ">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#6b7280" style="margin-top: 2px; flex-shrink: 0;">
+                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                    </svg>
+                    <span style="
+                      color: #6b7280;
+                      font-size: 12px;
+                      line-height: 1.4;
+                    ">${restaurant.address}</span>
+                  </div>
+                  
+                  <div style="
+                    border-top: 1px solid #e5e7eb;
+                    padding-top: 12px;
+                    display: flex;
+                    gap: 8px;
+                  ">
+                    <button onclick="window.open('${restaurant.googleMapsUrl}', '_blank')" style="
+                      flex: 1;
+                      background: #667eea;
+                      color: white;
+                      border: none;
+                      padding: 8px 12px;
+                      border-radius: 6px;
+                      font-size: 12px;
+                      font-weight: 500;
+                      cursor: pointer;
+                      transition: background 0.2s;
+                    " onmouseover="this.style.background='#5a67d8'" onmouseout="this.style.background='#667eea'">
+                      View on Maps
+                    </button>
+                    <button onclick="navigator.share ? navigator.share({title: '${restaurant.name}', url: '${restaurant.googleMapsUrl}'}) : navigator.clipboard.writeText('${restaurant.googleMapsUrl}')" style="
+                      flex: 1;
+                      background: #f3f4f6;
+                      color: #374151;
+                      border: none;
+                      padding: 8px 12px;
+                      border-radius: 6px;
+                      font-size: 12px;
+                      font-weight: 500;
+                      cursor: pointer;
+                      transition: background 0.2s;
+                    " onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                      Share
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `;
+
             const marker = new mapboxgl.Marker({
               color: '#ef4444'
             })
               .setLngLat([restaurant.longitude, restaurant.latitude])
-              .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`
-                <div class="p-2">
-                  <h3 class="font-semibold">${restaurant.name}</h3>
-                  <p class="text-sm text-gray-600">${restaurant.cuisine || ''}</p>
-                  <p class="text-sm">${restaurant.priceRange || ''}</p>
-                </div>
-              `))
+              .setPopup(new mapboxgl.Popup({ 
+                offset: 25,
+                closeButton: true,
+                closeOnClick: false,
+                maxWidth: '300px',
+                className: 'custom-popup'
+              }).setHTML(popupHTML))
               .addTo(map.current!);
             
             markers.current.push(marker);
@@ -309,7 +443,7 @@ export function RecommendationsMap({ userRatedRestaurants, onClose, onAddRestaur
                   restaurant={{
                     ...restaurant,
                     cuisine: restaurant.cuisine || 'Restaurant',
-                    priceRange: restaurant.priceRange ? restaurant.priceRange.length : 1
+                    priceRange: typeof restaurant.priceRange === 'number' ? restaurant.priceRange : 1
                   }}
                   onAdd={() => onAddRestaurant({ ...restaurant, userRating: 5 })}
                   onAddToWishlist={() => onAddRestaurant({ ...restaurant, isWishlist: true })}
