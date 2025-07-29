@@ -39,7 +39,8 @@ export function RecommendationCard({ restaurant, onAdd, onAddToWishlist }: Recom
   };
 
   return (
-    <div className="border-b border-border py-4 px-4 hover:bg-muted/50 transition-colors duration-200">
+    <div className="border-b border-border py-4 hover:bg-muted/50 transition-colors duration-200">
+      <div className="px-4">
       {/* Header with name and rating */}
       <div className="flex items-start justify-between mb-3">
         <h3 className="font-semibold text-lg text-foreground leading-tight">{restaurant.name}</h3>
@@ -96,6 +97,7 @@ export function RecommendationCard({ restaurant, onAdd, onAddToWishlist }: Recom
             <Heart className="h-4 w-4" />
           </Button>
         </div>
+      </div>
       </div>
     </div>
   );
