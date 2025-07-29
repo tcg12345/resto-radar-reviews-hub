@@ -34,7 +34,7 @@ serve(async (req) => {
       throw new Error('Google Places API key not found');
     }
 
-    const { query, location, radius = 10000, limit = 20, type = 'restaurant', keyword, skipEnrichment = false }: RestaurantSearchRequest = await req.json();
+    const { query, location, radius = 10000, limit = 20, type = 'restaurant', keyword }: RestaurantSearchRequest = await req.json();
 
     // Handle both search modes: text search (with query) and nearby search (with location coordinates)
     const isNearbySearch = !query && location.includes(','); // lat,lng format
@@ -150,93 +150,46 @@ serve(async (req) => {
 
     console.log(`Final total results: ${allResults.length}`);
 
-    const restaurants = await Promise.all(
-      allResults.slice(0, limit).map(async (place: any) => {
-        // Get detailed information for each restaurant
-        let detailedPlace = place;
+    const restaurants = allResults.slice(0, limit).map((place: any) => {
+      // Use basic place data for ultra-fast results - no additional API calls
+      const restaurant = {
+        id: place.place_id,
+        name: place.name,
+        address: place.formatted_address || place.vicinity,
+        rating: place.rating || 0,
+        reviewCount: place.user_ratings_total || 0,
+        priceRange: place.price_level || 2,
+        isOpen: place.opening_hours?.open_now,
+        phoneNumber: place.formatted_phone_number || '',
+        website: '',
+        openingHours: [],
+        currentDayHours: place.opening_hours?.open_now ? 'Open now' : 'Check hours',
+        photos: place.photos?.slice(0, 3).map((photo: any) => 
+          `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo.photo_reference}&key=${googlePlacesApiKey}`
+        ) || [],
+        location: {
+          lat: place.geometry?.location?.lat || 0,
+          lng: place.geometry?.location?.lng || 0,
+        },
+        cuisine: 'Restaurant',
+        googleMapsUrl: `https://www.google.com/maps/place/?q=place_id:${place.place_id}`,
+        michelinStars: 0
+      };
+
+      // Quick cuisine detection from Google Places types
+      if (place.types && place.types.length > 0) {
+        const cuisineType = place.types
+          .find((type: string) => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))
+          ?.replace(/_/g, ' ')
+          .replace(/\b\w/g, (l: string) => l.toUpperCase());
         
-        try {
-          const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,formatted_address,rating,user_ratings_total,price_level,opening_hours,formatted_phone_number,website,geometry,types,photos&key=${googlePlacesApiKey}`;
-          
-          const detailsResponse = await fetch(detailsUrl);
-          if (detailsResponse.ok) {
-            const detailsData = await detailsResponse.json();
-            if (detailsData.status === 'OK' && detailsData.result) {
-              detailedPlace = { ...place, ...detailsData.result };
-              console.log(`Got details for ${place.name}:`, {
-                hasOpeningHours: !!detailsData.result.opening_hours,
-                hasWeekdayText: !!detailsData.result.opening_hours?.weekday_text,
-                hasWebsite: !!detailsData.result.website
-              });
-            }
-          }
-        } catch (error) {
-          console.warn(`Failed to get details for ${place.name}:`, error);
+        if (cuisineType) {
+          restaurant.cuisine = cuisineType;
         }
+      }
 
-        // Determine current day opening hours
-        const today = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
-        let currentDayHours;
-        
-        if (detailedPlace.opening_hours?.weekday_text) {
-          const todayHours = detailedPlace.opening_hours.weekday_text[today === 0 ? 6 : today - 1]; // Adjust for Sunday
-          if (todayHours) {
-            const timeMatch = todayHours.match(/:\s*(.+)/);
-            currentDayHours = timeMatch ? timeMatch[1].trim() : todayHours;
-          }
-        }
-
-        const restaurant = {
-          id: detailedPlace.place_id,
-          name: detailedPlace.name,
-          address: detailedPlace.formatted_address,
-          rating: detailedPlace.rating || 0,
-          reviewCount: detailedPlace.user_ratings_total,
-          priceRange: detailedPlace.price_level || 2,
-          isOpen: detailedPlace.opening_hours?.open_now,
-          phoneNumber: detailedPlace.formatted_phone_number,
-          website: detailedPlace.website,
-          openingHours: detailedPlace.opening_hours?.weekday_text || [],
-          currentDayHours,
-          photos: detailedPlace.photos?.map((photo: any) => 
-            `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo.photo_reference}&key=${googlePlacesApiKey}`
-          ) || [],
-          location: {
-            lat: detailedPlace.geometry?.location?.lat || 0,
-            lng: detailedPlace.geometry?.location?.lng || 0,
-          },
-          cuisine: 'Restaurant', // Will be determined by AI below
-          googleMapsUrl: `https://www.google.com/maps/place/?q=place_id:${detailedPlace.place_id}`,
-          michelinStars: 0 // Google Places doesn't provide Michelin stars
-        };
-
-        // Use Google Places data only - no external API calls needed
-        if (detailedPlace.types && detailedPlace.types.length > 0) {
-          // Find a meaningful cuisine type from Google Places types
-          const cuisineType = detailedPlace.types
-            .find((type: string) => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))
-            ?.replace(/_/g, ' ')
-            .replace(/\b\w/g, (l: string) => l.toUpperCase());
-          
-          if (cuisineType) {
-            restaurant.cuisine = cuisineType;
-          }
-        }
-
-
-        console.log(`Final restaurant ${detailedPlace.name}:`, {
-          hasWebsite: !!restaurant.website,
-          website: restaurant.website,
-          hasOpeningHours: restaurant.openingHours.length > 0,
-          currentDayHours: restaurant.currentDayHours,
-          openingHoursRaw: detailedPlace.opening_hours?.weekday_text,
-          hasOpeningHoursData: !!detailedPlace.opening_hours,
-          todayIndex: today === 0 ? 6 : today - 1
-        });
-
-        return restaurant;
-      }) || []
-    );
+      return restaurant;
+    });
 
     console.log(`Found ${restaurants.length} restaurants`);
 

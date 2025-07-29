@@ -105,12 +105,12 @@ export function RecommendationsMap({ userRatedRestaurants, onClose, onAddRestaur
       // Use visible area size to determine radius - search slightly beyond visible area
       const radius = Math.max(300, Math.min(visibleAreaKm * 600, 3000)); // 300m to 3km
       
-      // MASSIVE limits - show ALL restaurants in visible area
-      const limit = zoom > 17 ? 500 :   // Show ALL restaurants when extremely zoomed in
-                    zoom > 15 ? 400 :   // Show many restaurants for small areas
-                    zoom > 13 ? 300 :   // City blocks
-                    zoom > 11 ? 200 :   // Neighborhoods  
-                    150;                // Districts
+      // ULTRA AGGRESSIVE limits - show massive amounts of restaurants in small areas
+      const limit = zoom > 17 ? 1000 :  // Show ALL restaurants when extremely zoomed in
+                    zoom > 15 ? 800 :   // Show many restaurants for small areas
+                    zoom > 13 ? 600 :   // City blocks
+                    zoom > 11 ? 400 :   // Neighborhoods  
+                    300;                // Districts
       
       console.log('Optimized search parameters:', {
         zoom,
