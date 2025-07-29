@@ -30,10 +30,12 @@ interface RecommendationsMapProps {
 export function RecommendationsMap({ userRatedRestaurants, onClose, onAddRestaurant }: RecommendationsMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const markers = useRef<mapboxgl.Marker[]>([]);
   const { token, isLoading } = useMapboxToken();
   const [recommendations, setRecommendations] = useState<Restaurant[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchButton, setShowSearchButton] = useState(true);
+  const [searchCache, setSearchCache] = useState<Map<string, Restaurant[]>>(new Map());
 
   // Calculate user's preferred price range
   const getUserPreferredPriceRange = () => {
@@ -117,35 +119,42 @@ export function RecommendationsMap({ userRatedRestaurants, onClose, onAddRestaur
       }
 
       if (data?.results) {
-        // Filter restaurants by location bounds and less restrictive price filtering
+        console.log('Raw API results count:', data.results.length);
+        console.log('First 3 raw results:', data.results.slice(0, 3));
+        
+        // MINIMAL filtering - just check for valid coordinates and basic bounds
         const filteredRecommendations = data.results
           .filter((restaurant: any) => {
-            // Check if restaurant has valid coordinates
-            if (!restaurant.location?.lat || !restaurant.location?.lng) return false;
-            
-            // Check if restaurant is within map bounds
-            const inBounds = restaurant.location.lat >= bounds.getSouth() &&
-                           restaurant.location.lat <= bounds.getNorth() &&
-                           restaurant.location.lng >= bounds.getWest() &&
-                           restaurant.location.lng <= bounds.getEast();
-            
-            if (!inBounds) return false;
-            
-            // Very permissive price filtering - only filter if zoomed out AND user has strong preferences
-            if (userRatedRestaurants.length > 5 && zoom < 14) {
-              const restaurantPriceLevel = restaurant.priceRange || 1;
-              
-              // Convert preferred price range symbols to numbers for comparison
-              const preferredPriceLevel = preferredPriceRange === '$' ? 1 :
-                                        preferredPriceRange === '$$' ? 2 :
-                                        preferredPriceRange === '$$$' ? 3 : 4;
-              
-              // Allow restaurants within ±2 price levels (very permissive)
-              return Math.abs(restaurantPriceLevel - preferredPriceLevel) <= 2;
+            // Check if restaurant has any location data
+            const hasLocation = restaurant.location?.lat && restaurant.location?.lng;
+            if (!hasLocation) {
+              console.log('Restaurant missing location:', restaurant.name);
+              return false;
             }
             
-            // When zoomed in or user has few ratings, show ALL restaurants
-            return true;
+            // Very loose bounds check - expand bounds by 50% to catch edge cases
+            const boundsPadding = 0.01; // ~1km padding
+            const expandedBounds = {
+              south: bounds.getSouth() - boundsPadding,
+              north: bounds.getNorth() + boundsPadding,
+              west: bounds.getWest() - boundsPadding,
+              east: bounds.getEast() + boundsPadding
+            };
+            
+            const inBounds = restaurant.location.lat >= expandedBounds.south &&
+                           restaurant.location.lat <= expandedBounds.north &&
+                           restaurant.location.lng >= expandedBounds.west &&
+                           restaurant.location.lng <= expandedBounds.east;
+            
+            if (!inBounds) {
+              console.log('Restaurant out of bounds:', restaurant.name, {
+                lat: restaurant.location.lat,
+                lng: restaurant.location.lng,
+                bounds: expandedBounds
+              });
+            }
+            
+            return inBounds;
           })
           .map((restaurant: any) => ({
             id: restaurant.id,
@@ -157,14 +166,26 @@ export function RecommendationsMap({ userRatedRestaurants, onClose, onAddRestaur
             latitude: restaurant.location?.lat,
             longitude: restaurant.location?.lng,
             photos: restaurant.photos || [],
-            reasoning: `Recommended based on your preference for ${preferredPriceRange} restaurants. This ${restaurant.cuisine || 'restaurant'} matches your taste profile.`
+            reasoning: `Found in search area`
           }));
 
-        console.log('Map search - Filtered recommendations:', filteredRecommendations.length);
+        console.log('After basic filtering:', filteredRecommendations.length);
+        console.log('Filtered recommendations:', filteredRecommendations.slice(0, 3));
 
         setRecommendations(filteredRecommendations);
+        
+        // Cache results for faster future searches
+        const cacheKey = `${center.lat.toFixed(4)},${center.lng.toFixed(4)},${Math.floor(zoom)}`;
+        const newCache = new Map(searchCache);
+        newCache.set(cacheKey, filteredRecommendations);
+        setSearchCache(newCache);
+        console.log('Cached results for key:', cacheKey);
 
-        // Add markers to map
+        // Clear existing markers
+        markers.current.forEach(marker => marker.remove());
+        markers.current = [];
+
+        // Add new markers to map
         filteredRecommendations.forEach((restaurant: Restaurant) => {
           if (restaurant.latitude && restaurant.longitude) {
             const marker = new mapboxgl.Marker({
@@ -179,6 +200,8 @@ export function RecommendationsMap({ userRatedRestaurants, onClose, onAddRestaur
                 </div>
               `))
               .addTo(map.current!);
+            
+            markers.current.push(marker);
           }
         });
       }
