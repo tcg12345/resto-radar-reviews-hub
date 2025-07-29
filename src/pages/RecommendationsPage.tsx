@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Restaurant, RestaurantFormData } from '@/types/restaurant';
 import { RecommendationCard } from '@/components/RecommendationCard';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,93 +28,73 @@ interface RecommendationData {
 export function RecommendationsPage({ restaurants, onAddRestaurant }: RecommendationsPageProps) {
   const [recommendations, setRecommendations] = useState<RecommendationData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [currentCityIndex, setCurrentCityIndex] = useState(0);
+  const [userCities, setUserCities] = useState<string[]>([]);
+  const [hasMore, setHasMore] = useState(true);
   const { toast } = useToast();
+  const observerTarget = useRef<HTMLDivElement>(null);
 
   const ratedRestaurants = restaurants.filter(r => !r.isWishlist && r.rating);
 
   useEffect(() => {
     if (ratedRestaurants.length > 0) {
-      fetchRecommendations();
+      // Get unique cities from rated restaurants
+      const cities = [...new Set(ratedRestaurants.map(r => r.city).filter(Boolean))];
+      setUserCities(cities);
+      setCurrentCityIndex(0);
+      setRecommendations([]);
+      setHasMore(true);
+      fetchRecommendations(cities, 0, true);
     }
   }, [ratedRestaurants.length]);
 
-  const fetchRecommendations = async () => {
-    if (ratedRestaurants.length === 0) return;
+  // Infinite scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoading && !isLoadingMore) {
+          loadMoreRecommendations();
+        }
+      },
+      { threshold: 0.1 }
+    );
 
-    setIsLoading(true);
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasMore, isLoading, isLoadingMore, userCities, currentCityIndex]);
+
+  const loadMoreRecommendations = useCallback(async () => {
+    if (!hasMore || isLoadingMore || userCities.length === 0) return;
+    
+    setIsLoadingMore(true);
     try {
-      console.log('All rated restaurants:', ratedRestaurants);
-      
-      // Calculate average location from rated restaurants that have coordinates
-      const restaurantsWithCoords = ratedRestaurants.filter(r => 
-        r.latitude && r.longitude && 
-        !isNaN(r.latitude) && !isNaN(r.longitude) &&
-        Math.abs(r.latitude) <= 90 && Math.abs(r.longitude) <= 180
-      );
-      
-      console.log('Restaurants with valid coordinates:', restaurantsWithCoords.map(r => ({
-        name: r.name,
-        lat: r.latitude,
-        lng: r.longitude,
-        city: r.city
-      })));
-      
-      // Show a sample of the coordinates to debug the ocean issue
-      console.log('First 5 restaurant coordinates:', restaurantsWithCoords.slice(0, 5).map(r => 
-        `${r.name}: ${r.latitude}, ${r.longitude}`
-      ));
-      
-      let searchLocation = '';
-      let useCoordinates = false;
-      
-      if (restaurantsWithCoords.length > 0) {
-        const avgLat = restaurantsWithCoords.reduce((sum, r) => sum + r.latitude!, 0) / restaurantsWithCoords.length;
-        const avgLng = restaurantsWithCoords.reduce((sum, r) => sum + r.longitude!, 0) / restaurantsWithCoords.length;
-        
-        console.log('Calculated average coordinates:', { avgLat, avgLng });
-        
-        // Check if coordinates seem reasonable (not in the ocean)
-        // Valid land coordinates should be within reasonable bounds and not in the middle of the ocean
-        const isValidLocation = (
-          Math.abs(avgLat) <= 90 && Math.abs(avgLng) <= 180 &&
-          // Avoid the mid-Atlantic where your current coordinates are pointing
-          !(avgLat > 35 && avgLat < 45 && avgLng > -75 && avgLng < -60)
-        );
-        
-        if (isValidLocation) {
-          searchLocation = `${avgLat},${avgLng}`;
-          useCoordinates = true;
-          console.log('Using average coordinates:', { avgLat, avgLng });
-        } else {
-          console.warn('Coordinates seem to be in ocean/invalid location, falling back to city search');
-        }
-      }
-      
-      if (!useCoordinates) {
-        // Fallback: use the most common city from rated restaurants
-        const cities = ratedRestaurants.map(r => r.city).filter(Boolean);
-        console.log('Available cities from rated restaurants:', cities);
-        
-        if (cities.length > 0) {
-          const cityCount = cities.reduce((acc, city) => {
-            acc[city] = (acc[city] || 0) + 1;
-            return acc;
-          }, {} as Record<string, number>);
-          
-          const mostCommonCity = Object.keys(cityCount).reduce((a, b) => 
-            cityCount[a] > cityCount[b] ? a : b
-          );
-          
-          searchLocation = mostCommonCity;
-          console.log('Using most common city:', mostCommonCity, 'from counts:', cityCount);
-        } else {
-          // Last resort fallback - use a major city
-          searchLocation = 'New York, NY';
-          console.log('Using fallback location: New York, NY');
-        }
-      }
+      const nextCityIndex = (currentCityIndex + 1) % userCities.length;
+      await fetchRecommendations(userCities, nextCityIndex, false);
+      setCurrentCityIndex(nextCityIndex);
+    } catch (error) {
+      console.error('Error loading more recommendations:', error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [currentCityIndex, userCities, hasMore, isLoadingMore]);
 
-      const userPriceRanges = ratedRestaurants
+  const fetchRecommendations = async (cities: string[], cityIndex: number, isInitial: boolean = false) => {
+    if (cities.length === 0) return;
+    if (isInitial) {
+      setIsLoading(true);
+    }
+
+    try {
+      const currentCity = cities[cityIndex];
+      console.log(`Fetching recommendations for city: ${currentCity} (${cityIndex + 1}/${cities.length})`);
+      
+      // Get restaurants from this specific city to understand local preferences
+      const cityRestaurants = ratedRestaurants.filter(r => r.city === currentCity);
+      const userPriceRanges = cityRestaurants
         .filter(r => r.priceRange)
         .map(r => r.priceRange!);
       
@@ -122,20 +102,15 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
         ? Math.round(userPriceRanges.reduce((sum, p) => sum + p, 0) / userPriceRanges.length)
         : 2;
 
-      const userCuisines = [...new Set(ratedRestaurants.map(r => r.cuisine).filter(Boolean))];
-      console.log('User preferences:', { avgPriceRange, userCuisines, searchLocation, useCoordinates });
+      const cityUserCuisines = [...new Set(cityRestaurants.map(r => r.cuisine).filter(Boolean))];
+      console.log(`${currentCity} preferences:`, { avgPriceRange, cityUserCuisines });
 
-      // Search for restaurants near the user's typical dining locations
-      const requestBody = useCoordinates ? {
-        location: searchLocation,
-        radius: 15000, // 15km radius for coordinate search
-        type: 'restaurant',
-        keyword: userCuisines.length > 0 ? userCuisines.slice(0, 3).join(' OR ') : 'restaurant'
-      } : {
-        query: `${userCuisines.length > 0 ? userCuisines[0] + ' ' : ''}restaurant`,
-        location: searchLocation,
-        radius: 25000, // 25km radius for text search
-        limit: 30
+      // Search for restaurants in this specific city
+      const requestBody = {
+        query: `${cityUserCuisines.length > 0 ? cityUserCuisines[0] + ' ' : ''}restaurant`,
+        location: currentCity,
+        radius: 25000, // 25km radius
+        limit: 15 // Get 15 restaurants per city
       };
 
       console.log('Making request to restaurant-search:', requestBody);
@@ -145,27 +120,33 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
       });
 
       console.log('Restaurant search response:', { data, error });
-      console.log('Raw API results before filtering:', data?.results?.length || 0);
-      console.log('Sample raw results:', data?.results?.slice(0, 2));
 
-      if (error) throw error;
+      if (error) {
+        console.error('API Error:', error);
+        return;
+      }
 
       if (data?.results && data.results.length > 0) {
-        console.log(`Got ${data.results.length} raw results from API`);
+        console.log(`Got ${data.results.length} raw results from API for ${currentCity}`);
         
         // Filter and process results
         const filteredResults = data.results.filter((place: any) => {
-          // Filter by price range (±1 level from user's average)
           const placePriceLevel = place.priceRange || place.price_level || 2;
           const priceMatch = Math.abs(placePriceLevel - avgPriceRange) <= 1;
-          console.log(`${place.name}: price ${placePriceLevel} vs user avg ${avgPriceRange}, match: ${priceMatch}`);
-          return priceMatch;
+          
+          // Also filter out restaurants the user has already rated
+          const alreadyRated = ratedRestaurants.some(rated => 
+            rated.name.toLowerCase().includes(place.name.toLowerCase()) ||
+            place.name.toLowerCase().includes(rated.name.toLowerCase())
+          );
+          
+          return priceMatch && !alreadyRated;
         });
         
-        console.log(`${filteredResults.length} results after price filtering`);
+        console.log(`${filteredResults.length} results after filtering for ${currentCity}`);
         
         const processedRecommendations = filteredResults
-          .slice(0, 20) // Limit to top 20
+          .slice(0, 12) // Take 12 per city for variety
           .map((place: any) => ({
             name: place.name,
             cuisine: place.cuisine || 'Restaurant',
@@ -181,21 +162,32 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
             longitude: place.location?.lng || place.geometry?.location?.lng
           }));
 
-        console.log('Processed recommendations:', processedRecommendations);
-        setRecommendations(processedRecommendations);
+        console.log(`Processed ${processedRecommendations.length} recommendations for ${currentCity}`);
+        
+        if (isInitial) {
+          setRecommendations(processedRecommendations);
+        } else {
+          setRecommendations(prev => [...prev, ...processedRecommendations]);
+        }
       } else {
-        console.log('No results in response');
-        setRecommendations([]);
+        console.log(`No results for ${currentCity}`);
+        if (isInitial) {
+          setRecommendations([]);
+        }
       }
     } catch (error) {
       console.error('Error fetching recommendations:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load recommendations. Please try again.",
-        variant: "destructive",
-      });
+      if (isInitial) {
+        toast({
+          title: "Error",
+          description: "Failed to load recommendations. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
-      setIsLoading(false);
+      if (isInitial) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -258,7 +250,7 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
         <div className="mb-6">
           <h2 className="text-2xl font-bold mb-2">Recommended For You</h2>
           <p className="text-muted-foreground text-sm">
-            Based on {ratedRestaurants.length} restaurants you've rated
+            Based on {ratedRestaurants.length} restaurants you've rated across {userCities.length} cities
           </p>
         </div>
 
@@ -267,16 +259,28 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {recommendations.map((recommendation, index) => (
-              <RecommendationCard
-                key={index}
-                restaurant={recommendation}
-                onAdd={() => handleAddRating(recommendation)}
-                onAddToWishlist={() => handleAddToWishlist(recommendation)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {recommendations.map((recommendation, index) => (
+                <RecommendationCard
+                  key={`${recommendation.place_id}-${index}`}
+                  restaurant={recommendation}
+                  onAdd={() => handleAddRating(recommendation)}
+                  onAddToWishlist={() => handleAddToWishlist(recommendation)}
+                />
+              ))}
+            </div>
+            
+            {/* Infinite scroll loader */}
+            <div ref={observerTarget} className="flex justify-center py-8">
+              {isLoadingMore && (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  <span className="text-sm text-muted-foreground">Loading more recommendations...</span>
+                </div>
+              )}
+            </div>
+          </>
         )}
 
         {!isLoading && recommendations.length === 0 && ratedRestaurants.length > 0 && (
