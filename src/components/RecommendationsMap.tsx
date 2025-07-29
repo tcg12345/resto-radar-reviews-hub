@@ -123,8 +123,7 @@ export function RecommendationsMap({ userRatedRestaurants, onClose, onAddRestaur
         location: `${center.lat},${center.lng}`,
         radius: Math.round(radius),
         limit: limit,
-        type: 'restaurant',
-        skipEnrichment: true // Skip slow Yelp data for faster results
+        type: 'restaurant'
       };
       
       console.log('Map search - Request body:', requestBody);
