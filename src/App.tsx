@@ -21,8 +21,7 @@ import FriendProfilePage from "./pages/FriendProfilePage";
 import { ChatListPage } from "./pages/ChatListPage";
 import { ChatPage } from "./pages/ChatPage";
 import HomePageWrapper from "./pages/HomePageWrapper";
-import RatedRestaurantsPageWrapper from "./pages/RatedRestaurantsPageWrapper";
-import WishlistPageWrapper from "./pages/WishlistPageWrapper";
+import SavedPlacesPageWrapper from "./pages/SavedPlacesPageWrapper";
 import MapPageWrapper from "./pages/MapPageWrapper";
 import UnifiedSearchPage from "./pages/UnifiedSearchPage";
 import SettingsPageWrapper from "./pages/SettingsPageWrapper";
@@ -55,8 +54,9 @@ const App = () => (
                 
                 {/* Individual section routes */}
                 <Route path="/home" element={<RequireAuth><Layout activeTab="home"><HomePageWrapper /></Layout></RequireAuth>} />
-                <Route path="/rated" element={<RequireAuth><Layout activeTab="rated"><RatedRestaurantsPageWrapper /></Layout></RequireAuth>} />
-                <Route path="/wishlist" element={<RequireAuth><Layout activeTab="wishlist"><WishlistPageWrapper /></Layout></RequireAuth>} />
+                <Route path="/places" element={<RequireAuth><Layout activeTab="places"><SavedPlacesPageWrapper /></Layout></RequireAuth>} />
+                <Route path="/rated" element={<RequireAuth><Layout activeTab="places"><SavedPlacesPageWrapper activeSubTab="rated" /></Layout></RequireAuth>} />
+                <Route path="/wishlist" element={<RequireAuth><Layout activeTab="places"><SavedPlacesPageWrapper activeSubTab="wishlist" /></Layout></RequireAuth>} />
                 <Route path="/map" element={<RequireAuth><Layout activeTab="search" showChatbot={false}><MapPageWrapper /></Layout></RequireAuth>} />
                 <Route path="/travel" element={<RequireAuth><Layout activeTab="travel"><TravelPage /></Layout></RequireAuth>} />
                 <Route path="/trip/:tripId" element={<RequireAuth><TripDetailPage /></RequireAuth>} />

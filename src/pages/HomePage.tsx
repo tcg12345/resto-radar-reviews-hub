@@ -27,7 +27,7 @@ import { useRestaurants } from '@/contexts/RestaurantContext';
 import { useNavigate } from 'react-router-dom';
 
 interface HomePageProps {
-  onNavigate: (tab: 'rated' | 'wishlist' | 'search' | 'friends') => void;
+  onNavigate: (tab: 'places' | 'search' | 'friends') => void;
   onOpenAddRestaurant: () => void;
 }
 
@@ -144,14 +144,14 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
       description: 'Places you want to try',
       icon: Heart,
       color: 'bg-red-500',
-      action: () => onNavigate('wishlist')
+      action: () => onNavigate('places')
     },
     {
       title: 'My Ratings',
       description: 'View all your reviews',
       icon: Star,
       color: 'bg-yellow-500',
-      action: () => onNavigate('rated')
+      action: () => onNavigate('places')
     },
     {
       title: 'Friends',
@@ -326,7 +326,7 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
                     <Button 
                       variant="outline" 
                       className="w-full mt-3 border-primary/20 text-primary hover:bg-primary/5"
-                      onClick={() => onNavigate('rated')}
+                      onClick={() => onNavigate('places')}
                     >
                       View All
                     </Button>
@@ -637,7 +637,7 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
                   <Button 
                     variant="outline" 
                     className="w-full mt-4"
-                    onClick={() => onNavigate('rated')}
+                    onClick={() => onNavigate('places')}
                   >
                     View All Ratings
                   </Button>
