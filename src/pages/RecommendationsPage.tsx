@@ -334,18 +334,19 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
 
   return (
     <div className="w-full h-full relative">
+      {/* Map Button - Fixed in bottom right, always visible while scrolling */}
+      <Button
+        onClick={() => setShowMap(true)}
+        className={`fixed bottom-6 right-6 z-50 shadow-lg ${
+          isMobile ? 'h-12 w-12 p-0' : ''
+        }`}
+        size={isMobile ? "sm" : "lg"}
+      >
+        <Map className={`${isMobile ? 'h-5 w-5' : 'h-4 w-4 mr-2'}`} />
+        {!isMobile && 'Map View'}
+      </Button>
+
       <div className="p-4 lg:p-6">
-        {/* Map Button - Positioned in bottom right of content area */}
-        <Button
-          onClick={() => setShowMap(true)}
-          className={`absolute bottom-4 right-4 z-40 shadow-lg ${
-            isMobile ? 'h-12 w-12 p-0' : ''
-          }`}
-          size={isMobile ? "sm" : "lg"}
-        >
-          <Map className={`${isMobile ? 'h-5 w-5' : 'h-4 w-4 mr-2'}`} />
-          {!isMobile && 'Map View'}
-        </Button>
         <div className="mb-6">
           <h2 className="text-2xl font-bold mb-2">Recommended For You</h2>
           <p className="text-muted-foreground text-sm">
