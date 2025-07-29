@@ -61,24 +61,14 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
 
   // Load initial recommendations instantly
   useEffect(() => {
-    console.log('Initial loading effect triggered:', { 
-      ratedRestaurantsLength: ratedRestaurants.length, 
-      hasLoadedInitial 
-    });
-    
     if (ratedRestaurants.length > 0 && !hasLoadedInitial) {
       const cities = [...new Set(ratedRestaurants.map(r => r.city).filter(Boolean))];
-      console.log('User cities extracted:', cities);
       setUserCities(cities);
       setCurrentCityIndex(0);
       
       // Load cached data first, then fetch new data
-      if (cities.length > 0) {
-        loadInitialRecommendations(cities);
-        setHasLoadedInitial(true);
-      } else {
-        console.log('No cities found from rated restaurants');
-      }
+      loadInitialRecommendations(cities);
+      setHasLoadedInitial(true);
     }
   }, [ratedRestaurants.length, hasLoadedInitial]);
 
@@ -98,13 +88,13 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
     }
 
     return () => observer.disconnect();
-  }, [isLoadingMore]); // Only depend on isLoadingMore to prevent frequent recreation
+  }, [displayedCount, allLoadedRecommendations.length, isLoadingMore]);
 
-  // Preload more data when we're running low - keep a large buffer
+  // Preload more data when we're running low - much more aggressive
   useEffect(() => {
     const remainingItems = allLoadedRecommendations.length - displayedCount;
-    if (remainingItems < 100 && !isLoadingMore && userCities.length > 0 && allLoadedRecommendations.length > 0) {
-      // Load immediately, no delay
+    if (remainingItems < 100 && !isLoadingMore && userCities.length > 0) {
+      // Load multiple batches in parallel for faster preloading
       loadMultipleBatchesInBackground();
     }
   }, [displayedCount, allLoadedRecommendations.length, isLoadingMore, userCities.length]);
@@ -114,29 +104,15 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
     
     setIsLoadingMore(true);
     
-    // Set a timeout to prevent getting stuck in loading state
-    const timeoutId = setTimeout(() => {
-      console.warn('Background loading timed out, resetting loading state');
-      setIsLoadingMore(false);
-    }, 30000); // 30 seconds timeout
-    
     try {
-      // Load from 3 cities in parallel for better buffer
+      // Load from 3 cities in parallel
       const citiesToLoad = [];
       for (let i = 0; i < 3; i++) {
         const cityIndex = (currentCityIndex + i) % userCities.length;
         citiesToLoad.push(userCities[cityIndex]);
       }
       
-      const promises = citiesToLoad.map(city => 
-        Promise.race([
-          fetchRecommendationsForCity(city),
-          new Promise<RecommendationData[]>((resolve) => 
-            setTimeout(() => resolve([]), 15000) // 15 second timeout per city
-          )
-        ])
-      );
-      
+      const promises = citiesToLoad.map(city => fetchRecommendationsForCity(city));
       const results = await Promise.all(promises);
       const allNewRecs = results.flat();
       
@@ -163,7 +139,6 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
     } catch (error) {
       console.error('Error loading multiple batches:', error);
     } finally {
-      clearTimeout(timeoutId);
       setIsLoadingMore(false);
     }
   };
@@ -201,16 +176,10 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
     }
   };
 
-  const handleInfiniteScroll = async () => {
-    // First, instantly show more from already loaded data
+  const handleInfiniteScroll = () => {
+    // Instantly show more from already loaded data
     const newDisplayedCount = Math.min(displayedCount + 20, allLoadedRecommendations.length);
     setDisplayedCount(newDisplayedCount);
-    
-    // If we're running low on loaded data, immediately load more
-    const remainingItems = allLoadedRecommendations.length - newDisplayedCount;
-    if (remainingItems < 40 && !isLoadingMore && userCities.length > 0) {
-      loadMultipleBatchesInBackground();
-    }
   };
 
 
@@ -228,8 +197,8 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
       setAllLoadedRecommendations(shuffled);
     }
     
-    // Load fresh data from more cities initially for a bigger buffer
-    const initialBatches = cities.slice(0, Math.min(5, cities.length)); // Load from first 5 cities
+    // Load fresh data from multiple cities in parallel
+    const initialBatches = cities.slice(0, 3); // Load from first 3 cities
     const promises = initialBatches.map(city => fetchRecommendationsForCity(city));
     
     try {
