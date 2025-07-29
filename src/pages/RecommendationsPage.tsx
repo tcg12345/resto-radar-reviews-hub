@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Restaurant, RestaurantFormData } from '@/types/restaurant';
 import { RecommendationCard } from '@/components/RecommendationCard';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, MapPin } from 'lucide-react';
+import { Loader2, MapPin, Map } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { RecommendationsMap } from '@/components/RecommendationsMap';
+import { Button } from '@/components/ui/button';
 
 interface RecommendationsPageProps {
   restaurants: Restaurant[];
@@ -32,6 +34,7 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
   const [isLoading, setIsLoading] = useState(false);
   const [isPreloading, setIsPreloading] = useState(false);
   const [userCities, setUserCities] = useState<string[]>([]);
+  const [showMap, setShowMap] = useState(false);
   const { toast } = useToast();
   const observerTarget = useRef<HTMLDivElement>(null);
 
@@ -234,8 +237,28 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
     );
   }
 
+  if (showMap) {
+    return (
+      <RecommendationsMap
+        userRatedRestaurants={ratedRestaurants}
+        onClose={() => setShowMap(false)}
+        onAddRestaurant={onAddRestaurant}
+      />
+    );
+  }
+
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full relative">
+      {/* Map Button - Fixed in bottom right */}
+      <Button
+        onClick={() => setShowMap(true)}
+        className="fixed bottom-6 right-6 z-40 shadow-lg"
+        size="lg"
+      >
+        <Map className="h-4 w-4 mr-2" />
+        Map View
+      </Button>
+
       <div className="p-4 lg:p-6">
         <div className="mb-6">
           <h2 className="text-2xl font-bold mb-2">Recommended For You</h2>
