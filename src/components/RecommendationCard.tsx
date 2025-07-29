@@ -42,7 +42,7 @@ export function RecommendationCard({ restaurant, onAdd, onAddToWishlist }: Recom
     <div className="border-b border-border py-4 hover:bg-muted/50 transition-colors duration-200 -mx-4">
       <div className="px-4">
       {/* Header with name and rating */}
-      <div className="flex items-start justify-between mb-3">
+      <div className="flex items-start justify-between mb-1">
         <h3 className="font-semibold text-lg text-foreground leading-tight">{restaurant.name}</h3>
         {restaurant.rating && (
           <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center">
