@@ -649,7 +649,9 @@ export function FriendsActivityPage() {
         </div>
       </div>;
   }
-  return <div className="w-full p-6 space-y-6">
+  return (
+    <div className="w-full">
+      <div className="p-6 space-y-6">
       {/* Header */}
       <div className="space-y-4">
         <div className="flex items-center gap-3">
@@ -1121,9 +1123,10 @@ export function FriendsActivityPage() {
         </CardContent>
       </Card>
 
-      {/* Results */}
-        <div className="space-y-4">
-        <div className="flex items-center justify-between">
+      {/* Activity Feed Section - Outside padding for edge-to-edge cards */}
+      <div className="space-y-6">
+        {/* Results Header */}
+        <div className="px-6">
           <h2 className="text-xl font-semibold">
             {filteredRestaurants.length} {filteredRestaurants.length === 1 ? 'Item' : 'Items'}
             {friendsRestaurants.length > 0 && hasMore && <span className="text-sm text-muted-foreground ml-2">
@@ -1132,15 +1135,20 @@ export function FriendsActivityPage() {
           </h2>
         </div>
 
-        {friendsRestaurants.length === 0 && !isLoading ? <Card>
-            <CardContent className="p-12 text-center">
-              <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">No Activity Found</h3>
-              <p className="text-muted-foreground">
-                {friendsRestaurants.length === 0 && !isLoading ? "Your friends haven't added any restaurants yet." : "No restaurants match your current filters."}
-              </p>
-            </CardContent>
-          </Card> : <>
+        {friendsRestaurants.length === 0 && !isLoading ? (
+          <div className="px-6">
+            <Card>
+              <CardContent className="p-12 text-center">
+                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium mb-2">No Activity Found</h3>
+                <p className="text-muted-foreground">
+                  {friendsRestaurants.length === 0 && !isLoading ? "Your friends haven't added any restaurants yet." : "No restaurants match your current filters."}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          <>
             <div className="space-y-0">
               {filteredRestaurants.map(restaurant => <div key={restaurant.id} className="border-t border-b border-border hover:bg-accent/50 transition-colors cursor-pointer p-4" onClick={() => {
             // Preserve current search parameters for when user returns
@@ -1275,43 +1283,61 @@ export function FriendsActivityPage() {
                 </div>)}
 
             {/* Skeleton cards for loading more - show immediately when loading starts */}
-            {isLoadingMore && <>
-                {Array.from({
-              length: ITEMS_PER_PAGE
-            }).map((_, index) => <RestaurantActivityCardSkeleton key={`skeleton-loading-${index}`} />)}
-              </>}
+            {isLoadingMore && (
+              <>
+                {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
+                  <RestaurantActivityCardSkeleton key={`skeleton-loading-${index}`} />
+                ))}
+              </>
+            )}
             </div>
 
             {/* Pagination Controls */}
-            <div className="flex justify-center items-center gap-4 pt-8">
-              {/* Previous Page Button */}
-              {currentPage > 1 && <Button onClick={loadPreviousPage} disabled={isLoadingMore} size="lg" variant="outline" className="min-w-32 flex items-center gap-2">
-                  {isLoadingMore ? 'Loading...' : <>
-                      <ChevronLeft className="h-4 w-4" />
-                      Previous Page ({currentPage - 1})
-                    </>}
-                </Button>}
+            <div className="px-6">
+              <div className="flex justify-center items-center gap-4 pt-8">
+                {/* Previous Page Button */}
+                {currentPage > 1 && (
+                  <Button onClick={loadPreviousPage} disabled={isLoadingMore} size="lg" variant="outline" className="min-w-32 flex items-center gap-2">
+                    {isLoadingMore ? 'Loading...' : (
+                      <>
+                        <ChevronLeft className="h-4 w-4" />
+                        Previous Page ({currentPage - 1})
+                      </>
+                    )}
+                  </Button>
+                )}
 
-              {/* Page indicator */}
-              {(currentPage > 1 || hasMore) && <div className="text-sm text-muted-foreground font-medium px-4">
-                  Page {currentPage}
-                </div>}
+                {/* Page indicator */}
+                {(currentPage > 1 || hasMore) && (
+                  <div className="text-sm text-muted-foreground font-medium px-4">
+                    Page {currentPage}
+                  </div>
+                )}
 
-              {/* Next Page Button */}
-              {hasMore && <Button onClick={loadNextPage} disabled={isLoadingMore} size="lg" className="min-w-32 flex items-center gap-2">
-                  {isLoadingMore ? 'Loading...' : <>
-                      Next Page ({currentPage + 1})
-                      <ChevronRight className="h-4 w-4" />
-                    </>}
-                </Button>}
-              
-              {/* End message */}
-              {!hasMore && friendsRestaurants.length > 0 && <div className="text-center text-muted-foreground">
-                  <p>You've reached the end of the list!</p>
-                  <p className="text-sm mt-1">Page {currentPage} • {filteredRestaurants.length} restaurants shown</p>
-                </div>}
+                {/* Next Page Button */}
+                {hasMore && (
+                  <Button onClick={loadNextPage} disabled={isLoadingMore} size="lg" className="min-w-32 flex items-center gap-2">
+                    {isLoadingMore ? 'Loading...' : (
+                      <>
+                        Next Page ({currentPage + 1})
+                        <ChevronRight className="h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
+                )}
+                
+                {/* End message */}
+                {!hasMore && friendsRestaurants.length > 0 && (
+                  <div className="text-center text-muted-foreground">
+                    <p>You've reached the end of the list!</p>
+                    <p className="text-sm mt-1">Page {currentPage} • {filteredRestaurants.length} restaurants shown</p>
+                  </div>
+                )}
+              </div>
             </div>
-          </>}
+          </>
+        )}
       </div>
-    </div>;
+    </div>
+  );
 }
