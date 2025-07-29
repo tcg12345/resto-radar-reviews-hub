@@ -14,6 +14,7 @@ import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/AuthPage";
 import DemoPage from "./pages/DemoPage";
 import { RestaurantDetailPage } from "./pages/RestaurantDetailPage";
+import { RecommendationDetailPage } from "./pages/RecommendationDetailPage";
 import { FriendsActivityPage } from "./pages/FriendsActivityPage";
 import { Layout } from "./components/Layout";
 import { FriendsPage } from "./pages/FriendsPage";
@@ -84,6 +85,7 @@ const App = () => (
                 
                 {/* Restaurant detail routes */}
                 <Route path="/restaurant/:restaurantId" element={<RequireAuth><RestaurantDetailPage /></RequireAuth>} />
+                <Route path="/recommendation/:place_id" element={<RequireAuth><RecommendationDetailPage /></RequireAuth>} />
                 <Route path="/mobile/restaurant/:restaurantId" element={<RequireAuth><MobileRestaurantDetailsPage /></RequireAuth>} />
                 
                 {/* Main route - shows landing page or dashboard based on auth */}

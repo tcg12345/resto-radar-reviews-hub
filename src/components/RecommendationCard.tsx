@@ -2,6 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Clock, Plus, Heart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useNavigate } from 'react-router-dom';
 
 interface RecommendationCardProps {
   restaurant: {
@@ -14,12 +15,19 @@ interface RecommendationCardProps {
     openingHours?: string;
     isOpen?: boolean;
     photos?: string[];
+    place_id?: string;
+    latitude?: number;
+    longitude?: number;
+    city?: string;
+    website?: string;
+    phone?: string;
   };
   onAdd?: () => void;
   onAddToWishlist?: () => void;
 }
 
 export function RecommendationCard({ restaurant, onAdd, onAddToWishlist }: RecommendationCardProps) {
+  const navigate = useNavigate();
   const getPriceDisplay = (priceRange?: number) => {
     if (!priceRange) return '';
     return '$'.repeat(priceRange);
@@ -38,8 +46,24 @@ export function RecommendationCard({ restaurant, onAdd, onAddToWishlist }: Recom
     return `Closed${restaurant.openingHours ? ` • Opens ${restaurant.openingHours}` : ''}`;
   };
 
+  const handleCardClick = () => {
+    // Navigate to recommendation detail page with restaurant data
+    const place_id = restaurant.place_id || 'unknown';
+    navigate(`/recommendation/${place_id}`, {
+      state: { restaurant }
+    });
+  };
+
+  const handleButtonClick = (e: React.MouseEvent, action: () => void) => {
+    e.stopPropagation(); // Prevent card click when clicking buttons
+    action();
+  };
+
   return (
-    <div className="border-b border-border py-4 hover:bg-muted/50 transition-colors duration-200 -mx-4">
+    <div 
+      className="border-b border-border py-4 hover:bg-muted/50 transition-colors duration-200 -mx-4 cursor-pointer"
+      onClick={handleCardClick}
+    >
       <div className="px-4">
       {/* Header with name and rating */}
       <div className="flex items-start justify-between">
@@ -81,7 +105,7 @@ export function RecommendationCard({ restaurant, onAdd, onAddToWishlist }: Recom
         {/* Action buttons */}
         <div className="flex gap-2">
           <Button
-            onClick={onAdd}
+            onClick={(e) => handleButtonClick(e, onAdd || (() => {}))}
             variant="outline"
             size="sm"
             className="h-8 w-8 p-0"
@@ -89,7 +113,7 @@ export function RecommendationCard({ restaurant, onAdd, onAddToWishlist }: Recom
             <Plus className="h-4 w-4" />
           </Button>
           <Button
-            onClick={onAddToWishlist}
+            onClick={(e) => handleButtonClick(e, onAddToWishlist || (() => {}))}
             variant="outline"
             size="sm"
             className="h-8 w-8 p-0"
