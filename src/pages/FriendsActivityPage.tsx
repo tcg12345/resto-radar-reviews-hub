@@ -1122,6 +1122,7 @@ export function FriendsActivityPage() {
             </div>}
         </CardContent>
       </Card>
+      </div>
 
       {/* Activity Feed Section - Outside padding for edge-to-edge cards */}
       <div className="space-y-6">
