@@ -91,14 +91,37 @@ export function RecommendationsMap({ userRatedRestaurants, onClose, onAddRestaur
     console.log('Map search - Preferred price range:', preferredPriceRange);
 
     try {
-      // Get nearby restaurants with dynamic parameters
+      // Much higher limits for small areas to show ALL available restaurants
       const zoom = map.current.getZoom();
-      const radius = zoom > 15 ? 1000 : zoom > 13 ? 2500 : zoom > 11 ? 5000 : 10000;
-      const limit = zoom > 15 ? 100 : zoom > 13 ? 80 : 60;
+      
+      // Calculate search radius based on visible map area
+      const mapBounds = map.current.getBounds();
+      const ne = mapBounds.getNorthEast();
+      const sw = mapBounds.getSouthWest();
+      const mapWidthKm = Math.abs(ne.lng - sw.lng) * 111; // roughly 111km per degree
+      const mapHeightKm = Math.abs(ne.lat - sw.lat) * 111;
+      const visibleAreaKm = Math.max(mapWidthKm, mapHeightKm);
+      
+      // Use visible area size to determine radius - search slightly beyond visible area
+      const radius = Math.max(300, Math.min(visibleAreaKm * 600, 3000)); // 300m to 3km
+      
+      // AGGRESSIVE limits - show as many restaurants as possible in small areas
+      const limit = zoom > 17 ? 300 :   // Show ALL restaurants when extremely zoomed in
+                    zoom > 15 ? 200 :   // Show many restaurants for small areas
+                    zoom > 13 ? 150 :   // City blocks
+                    zoom > 11 ? 100 :   // Neighborhoods  
+                    80;                 // Districts
+      
+      console.log('Optimized search parameters:', {
+        zoom,
+        visibleAreaKm: visibleAreaKm.toFixed(2),
+        searchRadius: radius,
+        limit
+      });
       
       const requestBody = {
-        location: `${center.lat},${center.lng}`, // lat,lng format for nearby search
-        radius: radius,
+        location: `${center.lat},${center.lng}`,
+        radius: Math.round(radius),
         limit: limit,
         type: 'restaurant'
       };
@@ -132,29 +155,29 @@ export function RecommendationsMap({ userRatedRestaurants, onClose, onAddRestaur
               return false;
             }
             
-            // Very loose bounds check - expand bounds by 50% to catch edge cases
-            const boundsPadding = 0.01; // ~1km padding
-            const expandedBounds = {
-              south: bounds.getSouth() - boundsPadding,
-              north: bounds.getNorth() + boundsPadding,
-              west: bounds.getWest() - boundsPadding,
-              east: bounds.getEast() + boundsPadding
+            // PRECISE bounds check - only show restaurants in visible map area
+            // NO padding - exact visible area only
+            const exactBounds = {
+              south: bounds.getSouth(),
+              north: bounds.getNorth(), 
+              west: bounds.getWest(),
+              east: bounds.getEast()
             };
             
-            const inBounds = restaurant.location.lat >= expandedBounds.south &&
-                           restaurant.location.lat <= expandedBounds.north &&
-                           restaurant.location.lng >= expandedBounds.west &&
-                           restaurant.location.lng <= expandedBounds.east;
+            const inVisibleArea = restaurant.location.lat >= exactBounds.south &&
+                                restaurant.location.lat <= exactBounds.north &&
+                                restaurant.location.lng >= exactBounds.west &&
+                                restaurant.location.lng <= exactBounds.east;
             
-            if (!inBounds) {
-              console.log('Restaurant out of bounds:', restaurant.name, {
+            if (!inVisibleArea) {
+              console.log('Restaurant outside visible area:', restaurant.name, {
                 lat: restaurant.location.lat,
                 lng: restaurant.location.lng,
-                bounds: expandedBounds
+                visibleBounds: exactBounds
               });
             }
             
-            return inBounds;
+            return inVisibleArea;
           })
           .map((restaurant: any) => ({
             id: restaurant.id,
