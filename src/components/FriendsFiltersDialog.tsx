@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { Filter, Users, MapPin, Utensils, ChevronDown } from 'lucide-react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface FriendsFiltersDialogProps {
@@ -86,9 +84,18 @@ export function FriendsFiltersDialog({
 
   const totalFilters = localFriends.length + localCities.length + localCuisines.length;
 
+  if (!open) return null;
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="h-[80vh] w-[100vw] max-w-none p-0 gap-0 rounded-t-xl rounded-b-none fixed bottom-0 left-1/2 -translate-x-1/2 translate-y-0 z-50 bg-background border-t">
+    <>
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 bg-black/50 z-40"
+        onClick={() => onOpenChange(false)}
+      />
+      
+      {/* Bottom Sheet */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t rounded-t-xl animate-in slide-in-from-bottom duration-300 h-[80vh]">
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b bg-background">
@@ -237,7 +244,7 @@ export function FriendsFiltersDialog({
             </Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </>
   );
 }
