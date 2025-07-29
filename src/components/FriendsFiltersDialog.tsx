@@ -97,8 +97,13 @@ export function FriendsFiltersDialog({
       {/* Bottom Sheet */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t rounded-t-xl animate-in slide-in-from-bottom duration-300 h-[80vh]">
         <div className="flex flex-col h-full">
+          {/* Drag Handle */}
+          <div className="flex justify-center py-2">
+            <div className="w-8 h-1 bg-muted-foreground/30 rounded-full"></div>
+          </div>
+          
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b bg-background">
+          <div className="flex items-center justify-between px-4 pb-4 bg-background">
             <div className="flex items-center gap-2">
               <Filter className="h-5 w-5" />
               <h2 className="text-lg font-semibold">Filters</h2>
