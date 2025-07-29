@@ -184,7 +184,7 @@ export function MobileFriendsFilters({
             )}
           </Button>
           
-          <DialogContent className="h-[70vh] max-h-[600px] w-[95vw] max-w-none p-0 gap-0 rounded-t-lg rounded-b-none fixed bottom-0 left-1/2 -translate-x-1/2 translate-y-0">
+          <DialogContent className="h-[90vh] w-full max-w-none p-0 gap-0 rounded-t-lg rounded-b-none fixed bottom-0 left-0 translate-x-0 translate-y-0">
             <div className="flex flex-col h-full">
               {/* Header */}
               <div className="flex items-center justify-between p-4 border-b">
@@ -221,7 +221,7 @@ export function MobileFriendsFilters({
                         </Badge>
                       )}
                     </h3>
-                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                    <div className="space-y-2">
                       {uniqueCuisines.map((cuisine) => (
                         <div key={cuisine} className="flex items-center justify-between py-1">
                           <div className="flex items-center space-x-2">
@@ -250,7 +250,7 @@ export function MobileFriendsFilters({
                         </Badge>
                       )}
                     </h3>
-                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                    <div className="space-y-2">
                       {uniqueCities.map((city) => (
                         <div key={city} className="flex items-center justify-between py-1">
                           <div className="flex items-center space-x-2">
@@ -279,7 +279,7 @@ export function MobileFriendsFilters({
                         </Badge>
                       )}
                     </h3>
-                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                    <div className="space-y-2">
                       {uniqueFriends.map((friend) => (
                         <div key={friend.id} className="flex items-center justify-between py-1">
                           <div className="flex items-center space-x-2">
@@ -318,12 +318,6 @@ export function MobileFriendsFilters({
           </DialogContent>
         </Dialog>
 
-        {/* Clear All Button (when filters are active) */}
-        {hasActiveFilters && (
-          <Button variant="ghost" size="sm" onClick={onClearFilters}>
-            <X className="h-4 w-4" />
-          </Button>
-        )}
       </div>
 
       {/* Active Filter Tags */}
