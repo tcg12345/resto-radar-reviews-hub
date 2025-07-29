@@ -89,11 +89,15 @@ export function RecommendationsMap({ userRatedRestaurants, onClose, onAddRestaur
     console.log('Map search - Preferred price range:', preferredPriceRange);
 
     try {
-      // Get nearby restaurants with price filtering  
+      // Get nearby restaurants with dynamic parameters
+      const zoom = map.current.getZoom();
+      const radius = zoom > 15 ? 1000 : zoom > 13 ? 2500 : zoom > 11 ? 5000 : 10000;
+      const limit = zoom > 15 ? 100 : zoom > 13 ? 80 : 60;
+      
       const requestBody = {
         location: `${center.lat},${center.lng}`, // lat,lng format for nearby search
-        radius: 5000, // 5km radius
-        limit: 50,
+        radius: radius,
+        limit: limit,
         type: 'restaurant'
       };
       
@@ -113,7 +117,7 @@ export function RecommendationsMap({ userRatedRestaurants, onClose, onAddRestaur
       }
 
       if (data?.results) {
-        // Filter restaurants by preferred price range and location bounds
+        // Filter restaurants by location bounds and less restrictive price filtering
         const filteredRecommendations = data.results
           .filter((restaurant: any) => {
             // Check if restaurant has valid coordinates
@@ -127,8 +131,8 @@ export function RecommendationsMap({ userRatedRestaurants, onClose, onAddRestaur
             
             if (!inBounds) return false;
             
-            // Filter by preferred price range (if user has preferences)
-            if (userRatedRestaurants.length > 0) {
+            // Very permissive price filtering - only filter if zoomed out AND user has strong preferences
+            if (userRatedRestaurants.length > 5 && zoom < 14) {
               const restaurantPriceLevel = restaurant.priceRange || 1;
               
               // Convert preferred price range symbols to numbers for comparison
@@ -136,10 +140,11 @@ export function RecommendationsMap({ userRatedRestaurants, onClose, onAddRestaur
                                         preferredPriceRange === '$$' ? 2 :
                                         preferredPriceRange === '$$$' ? 3 : 4;
               
-              // Allow restaurants within ±1 price level of preference
-              return Math.abs(restaurantPriceLevel - preferredPriceLevel) <= 1;
+              // Allow restaurants within ±2 price levels (very permissive)
+              return Math.abs(restaurantPriceLevel - preferredPriceLevel) <= 2;
             }
             
+            // When zoomed in or user has few ratings, show ALL restaurants
             return true;
           })
           .map((restaurant: any) => ({
