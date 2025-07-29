@@ -61,14 +61,24 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
 
   // Load initial recommendations instantly
   useEffect(() => {
+    console.log('Initial loading effect triggered:', { 
+      ratedRestaurantsLength: ratedRestaurants.length, 
+      hasLoadedInitial 
+    });
+    
     if (ratedRestaurants.length > 0 && !hasLoadedInitial) {
       const cities = [...new Set(ratedRestaurants.map(r => r.city).filter(Boolean))];
+      console.log('User cities extracted:', cities);
       setUserCities(cities);
       setCurrentCityIndex(0);
       
       // Load cached data first, then fetch new data
-      loadInitialRecommendations(cities);
-      setHasLoadedInitial(true);
+      if (cities.length > 0) {
+        loadInitialRecommendations(cities);
+        setHasLoadedInitial(true);
+      } else {
+        console.log('No cities found from rated restaurants');
+      }
     }
   }, [ratedRestaurants.length, hasLoadedInitial]);
 
