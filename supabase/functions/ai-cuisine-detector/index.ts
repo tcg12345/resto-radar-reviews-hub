@@ -168,4 +168,4 @@ function extractCuisineFromName(name: string): string {
   }
   
   return 'International';
-});
+}
