@@ -90,13 +90,58 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
     return () => observer.disconnect();
   }, [displayedCount, allLoadedRecommendations.length, isLoadingMore]);
 
-  // Preload more data when we're running low
+  // Preload more data when we're running low - much more aggressive
   useEffect(() => {
     const remainingItems = allLoadedRecommendations.length - displayedCount;
-    if (remainingItems < 30 && !isLoadingMore && userCities.length > 0) {
-      loadMoreRecommendationsInBackground();
+    if (remainingItems < 100 && !isLoadingMore && userCities.length > 0) {
+      // Load multiple batches in parallel for faster preloading
+      loadMultipleBatchesInBackground();
     }
   }, [displayedCount, allLoadedRecommendations.length, isLoadingMore, userCities.length]);
+
+  const loadMultipleBatchesInBackground = async () => {
+    if (isLoadingMore || userCities.length === 0) return;
+    
+    setIsLoadingMore(true);
+    
+    try {
+      // Load from 3 cities in parallel
+      const citiesToLoad = [];
+      for (let i = 0; i < 3; i++) {
+        const cityIndex = (currentCityIndex + i) % userCities.length;
+        citiesToLoad.push(userCities[cityIndex]);
+      }
+      
+      const promises = citiesToLoad.map(city => fetchRecommendationsForCity(city));
+      const results = await Promise.all(promises);
+      const allNewRecs = results.flat();
+      
+      if (allNewRecs.length > 0) {
+        const shuffled = allNewRecs.sort(() => Math.random() - 0.5);
+        setAllLoadedRecommendations(prev => {
+          const combined = [...prev, ...shuffled];
+          const unique = combined.filter((item, index, arr) => 
+            arr.findIndex(t => t.place_id === item.place_id) === index
+          );
+          return unique;
+        });
+        
+        // Cache all the new data
+        results.forEach((cityResults, index) => {
+          if (cityResults.length > 0) {
+            setCachedRecommendations(citiesToLoad[index], cityResults);
+          }
+        });
+      }
+      
+      // Move forward by 3 cities
+      setCurrentCityIndex(prev => prev + 3);
+    } catch (error) {
+      console.error('Error loading multiple batches:', error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   const getCacheKey = (city: string) => {
     return `recommendations_${city}_v2`;
@@ -137,37 +182,6 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
     setDisplayedCount(newDisplayedCount);
   };
 
-  const loadMoreRecommendationsInBackground = async () => {
-    if (isLoadingMore || userCities.length === 0) return;
-    
-    setIsLoadingMore(true);
-    
-    try {
-      const city = userCities[currentCityIndex % userCities.length];
-      const newRecommendations = await fetchRecommendationsForCity(city);
-      
-      if (newRecommendations.length > 0) {
-        setAllLoadedRecommendations(prev => {
-          const combined = [...prev, ...newRecommendations];
-          // Remove duplicates based on place_id
-          const unique = combined.filter((item, index, arr) => 
-            arr.findIndex(t => t.place_id === item.place_id) === index
-          );
-          return unique;
-        });
-        
-        // Cache the new data
-        setCachedRecommendations(city, newRecommendations);
-      }
-      
-      // Move to next city for next load
-      setCurrentCityIndex(prev => prev + 1);
-    } catch (error) {
-      console.error('Error loading more recommendations:', error);
-    } finally {
-      setIsLoadingMore(false);
-    }
-  };
 
   const loadInitialRecommendations = async (cities: string[]) => {
     // First, load any cached data instantly
