@@ -1,442 +1,307 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  Star, 
-  MapPin, 
-  Heart, 
-  Plus, 
-  TrendingUp, 
-  Award, 
-  ChefHat,
-  Clock,
-  Users,
-  Bot,
-  Search,
-  Zap,
-  ThumbsUp,
-  MessageCircle,
-  Share2,
-  MoreHorizontal,
-  Utensils,
-  Camera,
-  Globe2,
-  Sparkles,
-  ArrowRight,
-  Filter,
-  RefreshCw
-} from 'lucide-react';
+import { RefreshCw, Filter, Plus, Search, MapPin } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 import { useFriends } from '@/hooks/useFriends';
-import { PersonalizedRecommendations } from '@/components/PersonalizedRecommendations';
-import { LazyImage } from '@/components/LazyImage';
+import { InfiniteScrollLoader } from '@/components/InfiniteScrollLoader';
+import { FriendActivityCard } from '@/components/feed/FriendActivityCard';
+import { TrendingSection } from '@/components/feed/TrendingSection';
+import { AIPersonalizedPicks } from '@/components/feed/AIPersonalizedPicks';
+import { NewlyOpenedSection } from '@/components/feed/NewlyOpenedSection';
+import { RestaurantOfTheDay } from '@/components/feed/RestaurantOfTheDay';
+import { QuickReactionsSection } from '@/components/feed/QuickReactionsSection';
 
 interface FeedPageProps {
   onNavigate: (tab: 'rated' | 'wishlist' | 'search' | 'friends') => void;
   onOpenAddRestaurant: () => void;
 }
 
-interface FeedItem {
-  id: string;
-  type: 'restaurant_rating' | 'friend_activity' | 'recommendation' | 'milestone' | 'trending';
-  timestamp: Date;
-  content: any;
-  priority: number;
-}
+// Mock data - in a real app, this would come from APIs
+const mockFriendActivities = [
+  {
+    id: '1',
+    friend: {
+      id: 'friend1',
+      username: 'foodie_alex',
+      name: 'Alex Chen',
+      avatar_url: '/lovable-uploads/11b9bd4d-7516-4300-afc4-5916a04a932f.png'
+    },
+    restaurant: {
+      id: 'rest1',
+      name: 'Nobu Downtown',
+      cuisine: 'Japanese',
+      address: '195 Broadway',
+      city: 'New York',
+      rating: 4.8,
+      photos: ['/lovable-uploads/36b2db2e-b9a4-4f96-bf7f-75386a541657.png'],
+      price_range: 4,
+      michelin_stars: 1
+    },
+    activity: {
+      type: 'rating' as const,
+      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+      rating: 4.8,
+      review: 'Absolutely incredible omakase experience! The black cod was perfection.'
+    }
+  },
+  {
+    id: '2',
+    friend: {
+      id: 'friend2',
+      username: 'pasta_lover',
+      name: 'Maria Santos',
+      avatar_url: '/lovable-uploads/42e9db1d-cc84-4c54-9adb-50dc08b98369.png'
+    },
+    restaurant: {
+      id: 'rest2',
+      name: 'Don Angie',
+      cuisine: 'Italian-American',
+      address: '103 Greenwich Ave',
+      city: 'New York',
+      rating: 4.6,
+      photos: ['/lovable-uploads/4184d3a1-346a-454b-ad4f-5db720774949.png'],
+      price_range: 3
+    },
+    activity: {
+      type: 'wishlist' as const,
+      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()
+    }
+  }
+];
+
+const mockTrendingRestaurants = [
+  {
+    id: 'trend1',
+    name: 'Casa Cipriani',
+    cuisine: 'Italian',
+    city: 'New York',
+    rating: 4.7,
+    photos: ['/lovable-uploads/72105a14-071b-4a8c-a0c5-981aa2ca4064.png'],
+    trending_score: 25,
+    price_range: 4
+  },
+  {
+    id: 'trend2',
+    name: 'Atomix',
+    cuisine: 'Korean',
+    city: 'New York',
+    rating: 4.9,
+    photos: ['/lovable-uploads/7f2af544-2da2-4215-9cdf-78845079ddea.png'],
+    trending_score: 18,
+    price_range: 4
+  },
+  {
+    id: 'trend3',
+    name: 'Prince Street Pizza',
+    cuisine: 'Italian',
+    city: 'New York',
+    rating: 4.4,
+    photos: ['/lovable-uploads/a19328d3-fb1d-41e4-b595-caaee16a8c16.png'],
+    trending_score: 15,
+    price_range: 1
+  }
+];
+
+const mockPersonalizedPicks = [
+  {
+    id: 'ai1',
+    name: 'Sushi Nakazawa',
+    cuisine: 'Japanese',
+    city: 'New York',
+    rating: 4.8,
+    photos: ['/lovable-uploads/ae2b0f9b-0084-4b18-97d0-fcf000255bd3.png'],
+    match_score: 95,
+    reason: 'Based on your love for omakase and high-end sushi experiences',
+    price_range: 4,
+    distance: '0.8 mi'
+  },
+  {
+    id: 'ai2',
+    name: 'Via Carota',
+    cuisine: 'Italian',
+    city: 'New York',
+    rating: 4.5,
+    photos: ['/lovable-uploads/c58d19e3-6527-466e-bc23-7de1acec9f44.png'],
+    match_score: 88,
+    reason: 'Perfect for intimate dinners, matches your preference for cozy atmospheres',
+    price_range: 3,
+    distance: '1.2 mi'
+  },
+  {
+    id: 'ai3',
+    name: 'Katz\'s Delicatessen',
+    cuisine: 'American',
+    city: 'New York',
+    rating: 4.3,
+    photos: ['/lovable-uploads/d3e2619d-3039-47d4-ae30-f20881868a4f.png'],
+    match_score: 82,
+    reason: 'An iconic NYC experience that aligns with your adventurous food spirit',
+    price_range: 2,
+    distance: '2.1 mi'
+  }
+];
+
+const mockNewlyOpened = [
+  {
+    id: 'new1',
+    name: 'Odo',
+    cuisine: 'Japanese',
+    city: 'New York',
+    address: '17 Ave B',
+    photos: ['/lovable-uploads/11b9bd4d-7516-4300-afc4-5916a04a932f.png'],
+    opening_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    price_range: 4
+  },
+  {
+    id: 'new2',
+    name: 'Saga',
+    cuisine: 'American',
+    city: 'New York',
+    address: '70 Pine St',
+    photos: ['/lovable-uploads/36b2db2e-b9a4-4f96-bf7f-75386a541657.png'],
+    opening_date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+    price_range: 4
+  }
+];
+
+const mockRestaurantOfTheDay = {
+  id: 'rotd1',
+  name: 'Le Bernardin',
+  cuisine: 'French Seafood',
+  city: 'New York',
+  address: '155 W 51st St',
+  rating: 4.9,
+  photos: ['/lovable-uploads/42e9db1d-cc84-4c54-9adb-50dc08b98369.png'],
+  description: 'Exquisite French seafood restaurant helmed by Chef Eric Ripert. A temple to the sea with unparalleled technique and artistry in every dish.',
+  price_range: 4,
+  michelin_stars: 3,
+  featured_reason: 'Celebrating 35 years of culinary excellence with a special anniversary tasting menu'
+};
 
 export function FeedPage({ onNavigate, onOpenAddRestaurant }: FeedPageProps) {
   const { user, profile } = useAuth();
   const { restaurants } = useRestaurants();
   const { friends } = useFriends();
-  const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
+  
+  const [activities, setActivities] = useState(mockFriendActivities);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [filter, setFilter] = useState<'all' | 'friends' | 'recommendations' | 'personal'>('all');
+  const [isLoading, setIsLoading] = useState(false);
+  const [filter, setFilter] = useState<'all' | 'friends' | 'trending' | 'personal'>('all');
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
 
-  const ratedRestaurants = restaurants.filter(r => !r.isWishlist && r.rating);
-  const recentRestaurants = [...ratedRestaurants]
-    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-    .slice(0, 5);
+  const userLocation = 'New York'; // In real app, get from user's location
 
-  // Generate feed items
-  useEffect(() => {
-    const generateFeedItems = () => {
-      const items: FeedItem[] = [];
-
-      // Recent restaurant ratings
-      recentRestaurants.forEach((restaurant, index) => {
-        items.push({
-          id: `rating-${restaurant.id}`,
-          type: 'restaurant_rating',
-          timestamp: new Date(restaurant.updatedAt),
-          content: {
-            restaurant,
-            user: profile,
-            isOwn: true
-          },
-          priority: 8 - index
-        });
-      });
-
-      // Milestone achievements
-      if (ratedRestaurants.length === 10) {
-        items.push({
-          id: 'milestone-10',
-          type: 'milestone',
-          timestamp: new Date(),
-          content: {
-            type: 'restaurants_milestone',
-            count: 10,
-            title: '🎉 First 10 Restaurants!',
-            description: 'You\'ve rated your first 10 restaurants. Keep exploring!'
-          },
-          priority: 9
-        });
-      }
-
-      if (ratedRestaurants.length === 50) {
-        items.push({
-          id: 'milestone-50',
-          type: 'milestone',
-          timestamp: new Date(),
-          content: {
-            type: 'restaurants_milestone',
-            count: 50,
-            title: '🏆 Food Explorer!',
-            description: 'Wow! 50 restaurants rated. You\'re a true food explorer!'
-          },
-          priority: 9
-        });
-      }
-
-      // Trending topics
-      const cuisineStats = ratedRestaurants.reduce((acc, r) => {
-        acc[r.cuisine] = (acc[r.cuisine] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-
-      const topCuisine = Object.entries(cuisineStats)
-        .sort(([,a], [,b]) => b - a)[0];
-
-      if (topCuisine) {
-        items.push({
-          id: 'trending-cuisine',
-          type: 'trending',
-          timestamp: new Date(),
-          content: {
-            type: 'cuisine_trend',
-            cuisine: topCuisine[0],
-            count: topCuisine[1],
-            restaurants: ratedRestaurants.filter(r => r.cuisine === topCuisine[0]).slice(0, 3)
-          },
-          priority: 6
-        });
-      }
-
-      // AI Recommendations placeholder
-      items.push({
-        id: 'ai-recommendations',
-        type: 'recommendation',
-        timestamp: new Date(),
-        content: {
-          type: 'ai_suggestions',
-          title: 'Discover New Flavors',
-          description: 'AI-powered recommendations based on your taste',
-          suggestions: ['Try Japanese cuisine near you', 'Explore fine dining options', 'Find hidden gems']
-        },
-        priority: 7
-      });
-
-      // Sort by priority and timestamp
-      return items.sort((a, b) => {
-        if (a.priority !== b.priority) return b.priority - a.priority;
-        return b.timestamp.getTime() - a.timestamp.getTime();
-      });
-    };
-
-    setFeedItems(generateFeedItems());
-  }, [restaurants, profile, ratedRestaurants, recentRestaurants]);
-
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    // Simulate refresh delay
+    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     setIsRefreshing(false);
-  };
+    setPage(1);
+    setHasMore(true);
+  }, []);
 
-  const formatTimeAgo = (date: Date) => {
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString();
-  };
-
-  const filteredItems = feedItems.filter(item => {
-    if (filter === 'all') return true;
-    if (filter === 'personal') return item.type === 'restaurant_rating' || item.type === 'milestone';
-    if (filter === 'recommendations') return item.type === 'recommendation';
-    if (filter === 'friends') return item.type === 'friend_activity';
-    return true;
-  });
-
-  const renderFeedItem = (item: FeedItem) => {
-    switch (item.type) {
-      case 'restaurant_rating':
-        const { restaurant, user, isOwn } = item.content;
-        return (
-          <Card key={item.id} className="bg-card border border-border shadow-sm hover:shadow-md transition-all duration-200">
-            <CardContent className="p-4">
-              {/* Header */}
-              <div className="flex items-center space-x-3 mb-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={user?.avatar_url} />
-                  <AvatarFallback className="bg-primary text-primary-foreground">
-                    {user?.name?.[0] || user?.username?.[0] || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-semibold text-sm">
-                      {isOwn ? 'You' : (user?.name || user?.username || 'Someone')}
-                    </span>
-                    <span className="text-muted-foreground text-sm">rated a restaurant</span>
-                  </div>
-                  <span className="text-muted-foreground text-xs">
-                    {formatTimeAgo(item.timestamp)}
-                  </span>
-                </div>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {/* Restaurant Content */}
-              <div className="bg-muted/30 rounded-lg p-4 mb-3">
-                <div className="flex items-start space-x-3">
-                  <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary/70 rounded-lg flex items-center justify-center flex-shrink-0">
-                    {restaurant.photos && restaurant.photos.length > 0 ? (
-                      <LazyImage
-                        src={restaurant.photos[0]}
-                        alt={restaurant.name}
-                        className="w-full h-full object-cover rounded-lg"
-                      />
-                    ) : (
-                      <ChefHat className="h-8 w-8 text-white" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-foreground mb-1">{restaurant.name}</h3>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {restaurant.cuisine} • {restaurant.city}
-                    </p>
-                    <div className="flex items-center space-x-2">
-                      <div className="flex items-center space-x-1 bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded-full">
-                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                        <span className="font-semibold text-xs text-yellow-700 dark:text-yellow-300">
-                          {restaurant.rating}
-                        </span>
-                      </div>
-                      {restaurant.priceRange && (
-                        <Badge variant="outline" className="text-xs">
-                          {'$'.repeat(restaurant.priceRange)}
-                        </Badge>
-                      )}
-                      {restaurant.michelinStars && (
-                        <Badge variant="secondary" className="text-xs">
-                          {restaurant.michelinStars}⭐
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                {restaurant.notes && (
-                  <p className="text-sm text-muted-foreground mt-3 italic">
-                    "{restaurant.notes}"
-                  </p>
-                )}
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground">
-                    <ThumbsUp className="h-4 w-4 mr-1" />
-                    <span className="text-xs">Like</span>
-                  </Button>
-                  <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground">
-                    <MessageCircle className="h-4 w-4 mr-1" />
-                    <span className="text-xs">Comment</span>
-                  </Button>
-                  <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground">
-                    <Share2 className="h-4 w-4 mr-1" />
-                    <span className="text-xs">Share</span>
-                  </Button>
-                </div>
-                <Button variant="ghost" size="sm" className="h-8 px-2 text-primary">
-                  <MapPin className="h-4 w-4 mr-1" />
-                  <span className="text-xs">View</span>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        );
-
-      case 'milestone':
-        const { title, description, count: milestoneCount } = item.content;
-        return (
-          <Card key={item.id} className="bg-gradient-to-br from-primary/5 to-secondary/5 border border-primary/20 shadow-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
-                  <Award className="h-6 w-6 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-foreground">{title}</h3>
-                  <p className="text-sm text-muted-foreground">{description}</p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <Badge variant="secondary" className="bg-primary/10 text-primary">
-                  Achievement Unlocked
-                </Badge>
-                <span className="text-xs text-muted-foreground">
-                  {formatTimeAgo(item.timestamp)}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        );
-
-      case 'trending':
-        const { cuisine, count: cuisineCount, restaurants: trendingRestaurants } = item.content;
-        return (
-          <Card key={item.id} className="bg-card border border-border shadow-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
-                  <TrendingUp className="h-5 w-5 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-foreground">Your {cuisine} Journey</h3>
-                  <p className="text-sm text-muted-foreground">
-                    You've explored {cuisineCount} {cuisine.toLowerCase()} restaurants
-                  </p>
-                </div>
-              </div>
-              
-              <div className="space-y-2 mb-3">
-                {trendingRestaurants.slice(0, 2).map((restaurant: any) => (
-                  <div key={restaurant.id} className="flex items-center space-x-2 p-2 rounded-lg bg-muted/30">
-                    <ChefHat className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium">{restaurant.name}</span>
-                    <div className="flex items-center space-x-1 ml-auto">
-                      <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                      <span className="text-xs">{restaurant.rating}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <Button variant="outline" size="sm" className="w-full" onClick={() => onNavigate('rated')}>
-                <ArrowRight className="h-4 w-4 mr-2" />
-                Explore More {cuisine}
-              </Button>
-            </CardContent>
-          </Card>
-        );
-
-      case 'recommendation':
-        const { title: recTitle, description: recDescription, suggestions } = item.content;
-        return (
-          <Card key={item.id} className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 border border-purple-200 dark:border-purple-800">
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center">
-                  <Sparkles className="h-5 w-5 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-foreground">{recTitle}</h3>
-                  <p className="text-sm text-muted-foreground">{recDescription}</p>
-                </div>
-              </div>
-              
-              <div className="space-y-2 mb-3">
-                {suggestions.map((suggestion: string, index: number) => (
-                  <div key={index} className="flex items-center space-x-2 p-2 rounded-lg bg-white/50 dark:bg-white/5">
-                    <Bot className="h-4 w-4 text-purple-500" />
-                    <span className="text-sm">{suggestion}</span>
-                  </div>
-                ))}
-              </div>
-
-              <Button className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600" onClick={() => onNavigate('search')}>
-                <Search className="h-4 w-4 mr-2" />
-                Explore AI Recommendations
-              </Button>
-            </CardContent>
-          </Card>
-        );
-
-      default:
-        return null;
+  const loadMore = useCallback(async () => {
+    if (!hasMore || isLoading) return;
+    
+    setIsLoading(true);
+    // Simulate loading more activities
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // In real app, fetch more data
+    if (page >= 3) {
+      setHasMore(false);
+    } else {
+      setPage(prev => prev + 1);
     }
-  };
+    setIsLoading(false);
+  }, [hasMore, isLoading, page]);
+
+  const handleRestaurantClick = useCallback((restaurantId: string) => {
+    console.log('Navigate to restaurant:', restaurantId);
+    // In real app, navigate to restaurant details
+  }, []);
+
+  const handleFriendClick = useCallback((friendId: string) => {
+    console.log('Navigate to friend:', friendId);
+    onNavigate('friends');
+  }, [onNavigate]);
+
+  const handleAddToWishlist = useCallback((restaurantId: string) => {
+    console.log('Add to wishlist:', restaurantId);
+    // In real app, add to wishlist
+  }, []);
+
+  const handleShare = useCallback((restaurantId: string) => {
+    console.log('Share restaurant:', restaurantId);
+    // In real app, open share dialog
+  }, []);
+
+  const handleReactionClick = useCallback((reactionId: string) => {
+    console.log('Reaction clicked:', reactionId);
+    // In real app, track reaction
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
       {/* Mobile Header */}
-      <div className="md:hidden bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-40">
+      <div className="md:hidden bg-background/95 backdrop-blur-sm border-b border-border/50 sticky top-0 z-40">
         <div className="flex items-center justify-between p-4">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
-              <Zap className="h-4 w-4 text-white" />
+              <span className="text-white font-bold text-sm">🍽️</span>
             </div>
-            <h1 className="text-lg font-bold text-foreground">Feed</h1>
+            <h1 className="text-xl font-bold text-foreground">Feed</h1>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="h-8 w-8 p-0"
+              className="h-9 w-9 p-0 rounded-full"
             >
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             </Button>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-9 w-9 p-0 rounded-full"
+            >
               <Filter className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="default" 
+              size="sm" 
+              onClick={onOpenAddRestaurant}
+              className="h-9 w-9 p-0 rounded-full bg-primary hover:bg-primary/90"
+            >
+              <Plus className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex items-center space-x-1 px-4 pb-3">
+        {/* Filter Pills */}
+        <div className="flex items-center gap-2 px-4 pb-3 overflow-x-auto scrollbar-hide">
           {[
-            { id: 'all', label: 'All' },
-            { id: 'personal', label: 'Personal' },
-            { id: 'recommendations', label: 'AI' },
-            { id: 'friends', label: 'Friends' }
+            { id: 'all', label: 'All', icon: '📱' },
+            { id: 'friends', label: 'Friends', icon: '👥' },
+            { id: 'trending', label: 'Trending', icon: '🔥' },
+            { id: 'personal', label: 'For You', icon: '✨' }
           ].map((tab) => (
             <Button
               key={tab.id}
-              variant={filter === tab.id ? "default" : "ghost"}
+              variant={filter === tab.id ? "default" : "outline"}
               size="sm"
               onClick={() => setFilter(tab.id as any)}
-              className={`h-8 text-xs transition-all duration-200 ${
+              className={`h-8 whitespace-nowrap transition-all duration-200 ${
                 filter === tab.id 
                   ? 'bg-primary text-primary-foreground shadow-sm' 
-                  : 'text-muted-foreground hover:text-foreground'
+                  : 'text-muted-foreground hover:text-foreground border-border/50'
               }`}
             >
+              <span className="mr-1">{tab.icon}</span>
               {tab.label}
             </Button>
           ))}
@@ -444,115 +309,150 @@ export function FeedPage({ onNavigate, onOpenAddRestaurant }: FeedPageProps) {
       </div>
 
       {/* Desktop Header */}
-      <div className="hidden md:block bg-background border-b border-border">
-        <div className="max-w-4xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
-                <Zap className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">Your Feed</h1>
-                <p className="text-muted-foreground">Discover restaurants, friends, and recommendations</p>
-              </div>
+      <div className="hidden md:block bg-background border-b border-border/50 sticky top-0 z-40">
+        <div className="max-w-4xl mx-auto flex items-center justify-between p-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
+              <span className="text-white font-bold text-lg">🍽️</span>
             </div>
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-1 bg-muted/50 rounded-lg p-1">
-                {[
-                  { id: 'all', label: 'All' },
-                  { id: 'personal', label: 'Personal' },
-                  { id: 'recommendations', label: 'AI' },
-                  { id: 'friends', label: 'Friends' }
-                ].map((tab) => (
-                  <Button
-                    key={tab.id}
-                    variant={filter === tab.id ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setFilter(tab.id as any)}
-                    className={`transition-all duration-200 ${
-                      filter === tab.id 
-                        ? 'bg-primary text-primary-foreground shadow-sm' 
-                        : 'hover:bg-muted'
-                    }`}
-                  >
-                    {tab.label}
-                  </Button>
-                ))}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Your Food Feed</h1>
+              <p className="text-muted-foreground">Discover, explore, and connect through food</p>
             </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <Button variant="default" onClick={onOpenAddRestaurant} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Restaurant
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="max-w-4xl mx-auto p-4 space-y-4 pb-20 md:pb-4">
-        {/* Quick Actions - Mobile Only */}
-        <div className="md:hidden grid grid-cols-2 gap-3 mb-6">
-          <Button
-            variant="outline"
-            className="h-14 flex-col space-y-1 border-primary/20 hover:bg-primary/5"
-            onClick={onOpenAddRestaurant}
-          >
-            <Plus className="h-5 w-5 text-primary" />
-            <span className="text-xs">Add Restaurant</span>
-          </Button>
-          <Button
-            variant="outline"
-            className="h-14 flex-col space-y-1 border-primary/20 hover:bg-primary/5"
-            onClick={() => onNavigate('search')}
-          >
-            <Search className="h-5 w-5 text-primary" />
-            <span className="text-xs">Discover</span>
-          </Button>
+      {/* Main Feed Content */}
+      <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
+        {/* Restaurant of the Day */}
+        <RestaurantOfTheDay
+          restaurant={mockRestaurantOfTheDay}
+          onRestaurantClick={handleRestaurantClick}
+          onAddToWishlist={handleAddToWishlist}
+          onShare={handleShare}
+        />
+
+        {/* Quick Actions Row */}
+        <div className="grid md:grid-cols-2 gap-6">
+          <QuickReactionsSection
+            reactions={[]}
+            onReactionClick={handleReactionClick}
+          />
+          <div className="space-y-4">
+            <Button 
+              variant="outline" 
+              className="w-full h-16 gap-3 border-2 border-dashed border-border hover:border-primary/50 hover:bg-primary/5"
+              onClick={() => onNavigate('search')}
+            >
+              <Search className="h-5 w-5" />
+              <div className="text-left">
+                <div className="font-semibold">Discover Restaurants</div>
+                <div className="text-xs text-muted-foreground">Find your next favorite spot</div>
+              </div>
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full h-16 gap-3 border-2 border-dashed border-border hover:border-primary/50 hover:bg-primary/5"
+              onClick={() => onNavigate('friends')}
+            >
+              <MapPin className="h-5 w-5" />
+              <div className="text-left">
+                <div className="font-semibold">Explore Near You</div>
+                <div className="text-xs text-muted-foreground">See what's popular nearby</div>
+              </div>
+            </Button>
+          </div>
         </div>
 
-        {/* Feed Items */}
-        <div className="space-y-4">
-          {filteredItems.length > 0 ? (
-            filteredItems.map(renderFeedItem)
-          ) : (
-            <Card className="bg-card border border-border shadow-sm">
-              <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
-                  <Zap className="h-8 w-8 text-muted-foreground" />
+        {/* Content Sections */}
+        <div className="grid gap-6">
+          {/* AI Personalized Picks */}
+          <AIPersonalizedPicks
+            restaurants={mockPersonalizedPicks}
+            onRestaurantClick={handleRestaurantClick}
+            onViewAll={() => onNavigate('search')}
+          />
+
+          {/* Trending Section */}
+          <TrendingSection
+            location={userLocation}
+            restaurants={mockTrendingRestaurants}
+            onRestaurantClick={handleRestaurantClick}
+            onViewAll={() => onNavigate('search')}
+          />
+
+          {/* Newly Opened */}
+          <NewlyOpenedSection
+            restaurants={mockNewlyOpened}
+            onRestaurantClick={handleRestaurantClick}
+            onAddToWishlist={handleAddToWishlist}
+            onViewAll={() => onNavigate('search')}
+          />
+
+          {/* Friend Activities */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-foreground">Friend Activity</h2>
+              <Button variant="ghost" size="sm" onClick={() => onNavigate('friends')}>
+                View All
+              </Button>
+            </div>
+            
+            {activities.length > 0 ? (
+              <div className="space-y-4">
+                {activities.map((activity) => (
+                  <FriendActivityCard
+                    key={activity.id}
+                    friend={activity.friend}
+                    restaurant={activity.restaurant}
+                    activity={activity.activity}
+                    onRestaurantClick={handleRestaurantClick}
+                    onFriendClick={handleFriendClick}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+                  👥
                 </div>
-                <h3 className="font-semibold text-foreground mb-2">Your feed is empty</h3>
-                <p className="text-muted-foreground mb-4">
-                  Start rating restaurants and connecting with friends to see activity here!
-                </p>
-                <div className="flex justify-center space-x-3">
-                  <Button onClick={onOpenAddRestaurant}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Restaurant
-                  </Button>
-                  <Button variant="outline" onClick={() => onNavigate('friends')}>
-                    <Users className="h-4 w-4 mr-2" />
-                    Find Friends
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                <h3 className="font-semibold mb-2">No friend activity yet</h3>
+                <p className="text-sm mb-4">Connect with friends to see their restaurant discoveries</p>
+                <Button variant="outline" onClick={() => onNavigate('friends')}>
+                  Find Friends
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Infinite Scroll Loader */}
+          {hasMore && (
+            <InfiniteScrollLoader 
+              onLoadMore={loadMore}
+              hasMore={hasMore}
+              isLoading={isLoading}
+            />
           )}
         </div>
 
-        {/* Load More - Desktop */}
-        {filteredItems.length > 0 && (
-          <div className="hidden md:flex justify-center pt-4">
-            <Button variant="outline" disabled>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              All caught up!
-            </Button>
-          </div>
-        )}
+        {/* Bottom Spacer for Mobile */}
+        <div className="h-20 md:h-0" />
       </div>
     </div>
   );
