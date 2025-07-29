@@ -273,7 +273,7 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
         return priceMatch && !alreadyRated;
       });
       
-      return filteredResults.map((place: any) => ({
+      const basicRecommendations = filteredResults.map((place: any) => ({
         name: place.name,
         cuisine: place.cuisine || 'Restaurant',
         address: place.address || place.formatted_address || place.vicinity || '',
@@ -287,9 +287,41 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
         latitude: place.location?.lat || place.geometry?.location?.lat,
         longitude: place.location?.lng || place.geometry?.location?.lng,
       }));
+
+      // Enhance cuisine information for restaurants that have generic "Restaurant" cuisine
+      const enhancedRecommendations = await enhanceCuisineInformation(basicRecommendations);
+      return enhancedRecommendations;
     }
     
     return [];
+  };
+
+  // New function to enhance cuisine information
+  const enhanceCuisineInformation = async (recommendations: RecommendationData[]): Promise<RecommendationData[]> => {
+    const enhancedRecommendations = await Promise.all(
+      recommendations.map(async (rec) => {
+        // Only enhance if cuisine is generic "Restaurant"
+        if (rec.cuisine === 'Restaurant') {
+          try {
+            const { data, error } = await supabase.functions.invoke('ai-cuisine-detector', {
+              body: { 
+                restaurantName: rec.name,
+                address: rec.address
+              }
+            });
+            
+            if (!error && data?.cuisine) {
+              return { ...rec, cuisine: data.cuisine };
+            }
+          } catch (error) {
+            console.error('Error detecting cuisine for', rec.name, error);
+          }
+        }
+        return rec;
+      })
+    );
+    
+    return enhancedRecommendations;
   };
 
   const handleAddRating = (recommendation: RecommendationData) => {
