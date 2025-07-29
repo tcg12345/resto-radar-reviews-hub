@@ -85,14 +85,15 @@ export function RecommendationsMap({ userRatedRestaurants, onClose, onAddRestaur
     const center = map.current.getCenter();
 
     try {
-      // Get nearby restaurants with price filtering
-      const { data, error } = await supabase.functions.invoke('restaurant-discovery', {
+      // Get nearby restaurants with price filtering  
+      const { data, error } = await supabase.functions.invoke('restaurant-search', {
         body: {
+          query: 'restaurant',
           latitude: center.lat,
           longitude: center.lng,
           radius: 5000, // 5km radius
-          priceRange: preferredPriceRange,
-          limit: 50
+          limit: 50,
+          type: 'restaurant'
         }
       });
 
@@ -102,18 +103,26 @@ export function RecommendationsMap({ userRatedRestaurants, onClose, onAddRestaur
         return;
       }
 
-      if (data?.restaurants) {
-        const filteredRecommendations = data.restaurants
+      if (data?.results) {
+        const filteredRecommendations = data.results
           .filter((restaurant: any) => 
-            restaurant.latitude && 
-            restaurant.longitude &&
-            restaurant.latitude >= bounds.getSouth() &&
-            restaurant.latitude <= bounds.getNorth() &&
-            restaurant.longitude >= bounds.getWest() &&
-            restaurant.longitude <= bounds.getEast()
+            restaurant.location?.lat && 
+            restaurant.location?.lng &&
+            restaurant.location.lat >= bounds.getSouth() &&
+            restaurant.location.lat <= bounds.getNorth() &&
+            restaurant.location.lng >= bounds.getWest() &&
+            restaurant.location.lng <= bounds.getEast()
           )
           .map((restaurant: any) => ({
-            ...restaurant,
+            id: restaurant.id,
+            name: restaurant.name,
+            address: restaurant.address,
+            cuisine: restaurant.cuisine || 'Restaurant',
+            priceRange: restaurant.priceRange || 1,
+            rating: restaurant.rating,
+            latitude: restaurant.location?.lat,
+            longitude: restaurant.location?.lng,
+            photos: restaurant.photos || [],
             reasoning: `Recommended based on your preference for ${preferredPriceRange} restaurants. This ${restaurant.cuisine || 'restaurant'} matches your taste profile.`
           }));
 
