@@ -31,7 +31,7 @@ interface RecommendationData {
 export function RecommendationsPage({ restaurants, onAddRestaurant }: RecommendationsPageProps) {
   const [recommendations, setRecommendations] = useState<RecommendationData[]>([]);
   const [allRecommendations, setAllRecommendations] = useState<RecommendationData[]>([]);
-  const [displayedCount, setDisplayedCount] = useState(50);
+  const [displayedCount, setDisplayedCount] = useState(12);
   const [isLoading, setIsLoading] = useState(false);
   const [isPreloading, setIsPreloading] = useState(false);
   const [userCities, setUserCities] = useState<string[]>([]);
@@ -59,7 +59,7 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
       const cities = [...new Set(ratedRestaurants.map(r => r.city).filter(Boolean))];
       setUserCities(cities);
       setAllRecommendations([]);
-      setDisplayedCount(50);
+      setDisplayedCount(12);
       preloadAllRecommendations(cities);
     }
   }, [ratedRestaurants.length]);
@@ -69,12 +69,12 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
     setRecommendations(allRecommendations.slice(0, displayedCount));
   }, [allRecommendations, displayedCount]);
 
-  // Infinite scroll observer - now just shows more from preloaded data
+  // Infinite scroll observer
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && displayedCount < allRecommendations.length && !isLoading) {
-          setDisplayedCount(prev => Math.min(prev + 30, allRecommendations.length));
+          setDisplayedCount(prev => Math.min(prev + 12, allRecommendations.length));
         }
       },
       { threshold: 0.1 }
@@ -181,7 +181,7 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
       ? Math.round(userPriceRanges.reduce((sum, p) => sum + p, 0) / userPriceRanges.length)
       : 2;
 
-    // Create parallel requests for all cities to get lots of data
+    // Create parallel requests for all cities
     const cityPromises = cities.map(async (city, index) => {
       try {
         console.log(`Fetching recommendations for ${city} (${index + 1}/${cities.length})`);
@@ -194,7 +194,7 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
           query: `${cityUserCuisines.length > 0 ? cityUserCuisines[0] + ' ' : ''}restaurant`,
           location: city,
           radius: 25000,
-          limit: 60 // Increased limit to get more restaurants per city
+          limit: 20
         };
 
         const { data, error } = await supabase.functions.invoke('restaurant-search', {
@@ -221,21 +221,23 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
             return priceMatch && !alreadyRated;
           });
           
-          const processedRecommendations = filteredResults.map((place: any) => ({
-            name: place.name,
-            cuisine: place.cuisine || 'Restaurant',
-            address: place.address || place.formatted_address || place.vicinity || '',
-            rating: place.rating,
-            priceRange: place.priceRange || place.price_level,
-            distance: place.distance,
-            openingHours: place.currentDayHours || (place.isOpen ? 'Open now' : 'Closed'),
-            isOpen: place.isOpen,
-            photos: place.photos || [],
-            place_id: place.id || place.place_id,
-            latitude: place.location?.lat || place.geometry?.location?.lat,
-            longitude: place.location?.lng || place.geometry?.location?.lng,
-            city: city
-          }));
+          const processedRecommendations = filteredResults
+            .slice(0, 15)
+            .map((place: any) => ({
+              name: place.name,
+              cuisine: place.cuisine || 'Restaurant',
+              address: place.address || place.formatted_address || place.vicinity || '',
+              rating: place.rating,
+              priceRange: place.priceRange || place.price_level,
+              distance: place.distance,
+              openingHours: place.currentDayHours || (place.isOpen ? 'Open now' : 'Closed'),
+              isOpen: place.isOpen,
+              photos: place.photos || [],
+              place_id: place.id || place.place_id,
+              latitude: place.location?.lat || place.geometry?.location?.lat,
+              longitude: place.location?.lng || place.geometry?.location?.lng,
+              city: city
+            }));
 
           console.log(`Processed ${processedRecommendations.length} recommendations for ${city}`);
           return processedRecommendations;
@@ -360,7 +362,7 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
           </div>
         ) : (
           <>
-            <div className="space-y-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {recommendations.map((recommendation, index) => (
                 <RecommendationCard
                   key={`${recommendation.place_id}-${index}`}
