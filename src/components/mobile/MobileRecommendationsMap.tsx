@@ -44,22 +44,32 @@ export function MobileRecommendationsMap({ userRatedRestaurants, onClose, onAddR
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [bottomSheetHeight, setBottomSheetHeight] = useState('33%');
 
-  // Calculate user's preferred price range
+  // Calculate user's preferred price range and determine search strategy
   const getUserPreferredPriceRange = () => {
-    if (!userRatedRestaurants.length) return '$';
+    if (!userRatedRestaurants.length) return { range: '$$$', isExpensive: true };
     
     const priceCounts = userRatedRestaurants.reduce((acc, restaurant) => {
-      const price = restaurant.priceRange || '$';
-      acc[price] = (acc[price] || 0) + 1;
+      const price = restaurant.priceRange || 1;
+      const priceStr = '$'.repeat(price);
+      acc[priceStr] = (acc[priceStr] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
-    return Object.entries(priceCounts).reduce((a, b) => 
+    const mostCommonPrice = Object.entries(priceCounts).reduce((a, b) => 
       priceCounts[a[0]] > priceCounts[b[0]] ? a : b
     )[0];
+
+    const isExpensive = mostCommonPrice.length >= 3; // 3+ dollar signs
+    
+    return { 
+      range: mostCommonPrice, 
+      isExpensive,
+      defaultRange: isExpensive ? '$$$' : '$'
+    };
   };
 
-  const preferredPriceRange = getUserPreferredPriceRange();
+  const userPricePreference = getUserPreferredPriceRange();
+  const preferredPriceRange = userPricePreference.range;
 
   useEffect(() => {
     if (!token || !mapContainer.current) return;
@@ -130,14 +140,27 @@ export function MobileRecommendationsMap({ userRatedRestaurants, onClose, onAddR
                   zoom > 15 ? 150 :   
                   zoom > 13 ? 100 :   
                   zoom > 11 ? 80 :   
-                  60;                
+                  60;
+
+    // Determine price range strategy based on zoom level and user preferences
+    const isZoomedIn = zoom > 15; // Consider zoom > 15 as "zoomed in"
+    let targetPriceRanges: number[];
+    
+    if (userPricePreference.isExpensive) {
+      // User prefers expensive restaurants (3-4 dollar signs)
+      targetPriceRanges = isZoomedIn ? [1, 2] : [3, 4]; // Show cheaper when zoomed in
+    } else {
+      // User prefers cheaper restaurants (1-2 dollar signs)
+      targetPriceRanges = [1, 2]; // Always show cheaper restaurants
+    }
 
     try {
       const requestBody = {
         location: `${center.lat},${center.lng}`,
         radius: Math.round(radius),
         limit: limit,
-        type: 'restaurant'
+        type: 'restaurant',
+        priceRanges: targetPriceRanges
       };
       
       const { data, error } = await supabase.functions.invoke('restaurant-search', {
@@ -284,7 +307,10 @@ export function MobileRecommendationsMap({ userRatedRestaurants, onClose, onAddR
         {/* Price Range Info */}
         <div className="absolute bottom-20 left-4 bg-card p-2 rounded-lg shadow-lg z-10">
           <p className="text-xs text-muted-foreground">
-            Showing {preferredPriceRange} restaurants
+            {userPricePreference.isExpensive ? 'Premium restaurants' : 'Budget-friendly restaurants'}
+          </p>
+          <p className="text-xs text-muted-foreground opacity-75">
+            Zoom in for more variety
           </p>
         </div>
       </div>
