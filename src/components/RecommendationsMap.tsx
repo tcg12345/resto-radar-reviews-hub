@@ -84,18 +84,27 @@ export function RecommendationsMap({ userRatedRestaurants, onClose, onAddRestaur
     const bounds = map.current.getBounds();
     const center = map.current.getCenter();
 
+    console.log('Map search - Center:', center);
+    console.log('Map search - Bounds:', bounds);
+    console.log('Map search - Preferred price range:', preferredPriceRange);
+
     try {
       // Get nearby restaurants with price filtering  
+      const requestBody = {
+        location: `${center.lat},${center.lng}`, // lat,lng format for nearby search
+        radius: 5000, // 5km radius
+        limit: 50,
+        type: 'restaurant'
+      };
+      
+      console.log('Map search - Request body:', requestBody);
+      
       const { data, error } = await supabase.functions.invoke('restaurant-search', {
-        body: {
-          query: 'restaurant',
-          latitude: center.lat,
-          longitude: center.lng,
-          radius: 5000, // 5km radius
-          limit: 50,
-          type: 'restaurant'
-        }
+        body: requestBody
       });
+
+      console.log('Map search - Response data:', data);
+      console.log('Map search - Response error:', error);
 
       if (error) {
         console.error('Error fetching recommendations:', error);
@@ -104,15 +113,35 @@ export function RecommendationsMap({ userRatedRestaurants, onClose, onAddRestaur
       }
 
       if (data?.results) {
+        // Filter restaurants by preferred price range and location bounds
         const filteredRecommendations = data.results
-          .filter((restaurant: any) => 
-            restaurant.location?.lat && 
-            restaurant.location?.lng &&
-            restaurant.location.lat >= bounds.getSouth() &&
-            restaurant.location.lat <= bounds.getNorth() &&
-            restaurant.location.lng >= bounds.getWest() &&
-            restaurant.location.lng <= bounds.getEast()
-          )
+          .filter((restaurant: any) => {
+            // Check if restaurant has valid coordinates
+            if (!restaurant.location?.lat || !restaurant.location?.lng) return false;
+            
+            // Check if restaurant is within map bounds
+            const inBounds = restaurant.location.lat >= bounds.getSouth() &&
+                           restaurant.location.lat <= bounds.getNorth() &&
+                           restaurant.location.lng >= bounds.getWest() &&
+                           restaurant.location.lng <= bounds.getEast();
+            
+            if (!inBounds) return false;
+            
+            // Filter by preferred price range (if user has preferences)
+            if (userRatedRestaurants.length > 0) {
+              const restaurantPriceLevel = restaurant.priceRange || 1;
+              
+              // Convert preferred price range symbols to numbers for comparison
+              const preferredPriceLevel = preferredPriceRange === '$' ? 1 :
+                                        preferredPriceRange === '$$' ? 2 :
+                                        preferredPriceRange === '$$$' ? 3 : 4;
+              
+              // Allow restaurants within ±1 price level of preference
+              return Math.abs(restaurantPriceLevel - preferredPriceLevel) <= 1;
+            }
+            
+            return true;
+          })
           .map((restaurant: any) => ({
             id: restaurant.id,
             name: restaurant.name,
@@ -125,6 +154,8 @@ export function RecommendationsMap({ userRatedRestaurants, onClose, onAddRestaur
             photos: restaurant.photos || [],
             reasoning: `Recommended based on your preference for ${preferredPriceRange} restaurants. This ${restaurant.cuisine || 'restaurant'} matches your taste profile.`
           }));
+
+        console.log('Map search - Filtered recommendations:', filteredRecommendations.length);
 
         setRecommendations(filteredRecommendations);
 
