@@ -88,7 +88,7 @@ export function FriendsFiltersDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="h-[95vh] w-full max-w-none p-0 gap-0 rounded-none fixed inset-0 z-50 bg-background">
+      <DialogContent className="h-[80vh] w-full max-w-none p-0 gap-0 rounded-t-xl rounded-b-none fixed bottom-0 left-0 right-0 translate-y-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom z-50 bg-background border-t">
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b bg-background">
