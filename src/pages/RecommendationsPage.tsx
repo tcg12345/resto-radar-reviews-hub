@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Restaurant, RestaurantFormData } from '@/types/restaurant';
 import { RecommendationCard } from '@/components/RecommendationCard';
+import { RecommendationFilters } from '@/components/RecommendationFilters';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, MapPin, Map } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -26,6 +27,7 @@ interface RecommendationData {
   place_id?: string;
   latitude?: number;
   longitude?: number;
+  city?: string;
 }
 
 export function RecommendationsPage({ restaurants, onAddRestaurant }: RecommendationsPageProps) {
@@ -38,6 +40,12 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
   const [showMap, setShowMap] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [hasLoadedInitial, setHasLoadedInitial] = useState(false);
+  
+  // Filter states
+  const [selectedCities, setSelectedCities] = useState<string[]>([]);
+  const [selectedPriceRanges, setSelectedPriceRanges] = useState<number[]>([]);
+  const [filteredRecommendations, setFilteredRecommendations] = useState<RecommendationData[]>([]);
+  
   const { toast } = useToast();
   const observerTarget = useRef<HTMLDivElement>(null);
 
@@ -54,10 +62,31 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
 
   const ratedRestaurants = restaurants.filter(r => !r.isWishlist && r.rating);
 
-  // Update displayed recommendations when displayedCount changes
+  // Apply filters to recommendations
   useEffect(() => {
-    setRecommendations(allLoadedRecommendations.slice(0, displayedCount));
-  }, [allLoadedRecommendations, displayedCount]);
+    let filtered = allLoadedRecommendations;
+    
+    // Filter by selected cities
+    if (selectedCities.length > 0) {
+      filtered = filtered.filter(rec => 
+        rec.city && selectedCities.includes(rec.city)
+      );
+    }
+    
+    // Filter by selected price ranges
+    if (selectedPriceRanges.length > 0) {
+      filtered = filtered.filter(rec => 
+        rec.priceRange && selectedPriceRanges.includes(rec.priceRange)
+      );
+    }
+    
+    setFilteredRecommendations(filtered);
+  }, [allLoadedRecommendations, selectedCities, selectedPriceRanges]);
+
+  // Update displayed recommendations when displayedCount or filters change
+  useEffect(() => {
+    setRecommendations(filteredRecommendations.slice(0, displayedCount));
+  }, [filteredRecommendations, displayedCount]);
 
   // Load initial recommendations instantly
   useEffect(() => {
@@ -92,12 +121,12 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
 
   // Preload more data when we're running low - much more aggressive
   useEffect(() => {
-    const remainingItems = allLoadedRecommendations.length - displayedCount;
+    const remainingItems = filteredRecommendations.length - displayedCount;
     if (remainingItems < 100 && !isLoadingMore && userCities.length > 0) {
       // Load multiple batches in parallel for faster preloading
       loadMultipleBatchesInBackground();
     }
-  }, [displayedCount, allLoadedRecommendations.length, isLoadingMore, userCities.length]);
+  }, [displayedCount, filteredRecommendations.length, isLoadingMore, userCities.length]);
 
   const loadMultipleBatchesInBackground = async () => {
     if (isLoadingMore || userCities.length === 0) return;
@@ -178,7 +207,7 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
 
   const handleInfiniteScroll = () => {
     // Instantly show more from already loaded data
-    const newDisplayedCount = Math.min(displayedCount + 20, allLoadedRecommendations.length);
+    const newDisplayedCount = Math.min(displayedCount + 20, filteredRecommendations.length);
     setDisplayedCount(newDisplayedCount);
   };
 
@@ -286,6 +315,7 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
         place_id: place.id || place.place_id,
         latitude: place.location?.lat || place.geometry?.location?.lat,
         longitude: place.location?.lng || place.geometry?.location?.lng,
+        city: city,
       }));
 
       // Enhance cuisine information for restaurants that have generic "Restaurant" cuisine
@@ -412,6 +442,16 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
             Showing {recommendations.length} restaurants from {userCities.length} cities
           </p>
         </div>
+
+        {/* Filters */}
+        <RecommendationFilters
+          availableCities={userCities}
+          selectedCities={selectedCities}
+          selectedPriceRanges={selectedPriceRanges}
+          onCityChange={setSelectedCities}
+          onPriceRangeChange={setSelectedPriceRanges}
+          isMobile={isMobile}
+        />
 
         <div className="space-y-0">
           {recommendations.map((recommendation, index) => (
