@@ -92,10 +92,9 @@ export default function SearchTabsPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={handleTabChange}>
-          <TabsList className="grid w-full grid-cols-4 gap-0 h-10 p-1">
+          <TabsList className="grid w-full grid-cols-3 gap-0 h-10 p-1">
             <TabsTrigger value="global" className="text-sm px-3 py-1.5">Search</TabsTrigger>
             <TabsTrigger value="smart" className="text-sm px-3 py-1.5">Discovery</TabsTrigger>
-            <TabsTrigger value="recommendations" className="text-sm px-3 py-1.5">Recommendations</TabsTrigger>
             <TabsTrigger value="friends" className="text-sm px-3 py-1.5">Friends</TabsTrigger>
           </TabsList>
 
@@ -105,10 +104,6 @@ export default function SearchTabsPage() {
 
           <TabsContent value="smart" className="space-y-6">
             <DiscoverPage />
-          </TabsContent>
-
-          <TabsContent value="recommendations" className="space-y-6">
-            <PersonalizedRecommendations />
           </TabsContent>
 
           <TabsContent value="friends" className="space-y-6">
