@@ -67,15 +67,53 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
     }
   }, [ratedRestaurants.length]);
 
+  const loadMoreRecommendations = useCallback(async () => {
+    if (!hasMore || isLoadingMore || userCities.length === 0) return;
+
+    setIsLoadingMore(true);
+    
+    try {
+      const cityToSearch = userCities[currentCityIndex % userCities.length];
+      const nextPageToken = nextPageTokens[cityToSearch] || null;
+      
+      console.log(`Loading more recommendations for ${cityToSearch}, page token: ${nextPageToken}, city index: ${currentCityIndex}`);
+      
+      const newRecommendations = await fetchRecommendationsForCity(cityToSearch, nextPageToken);
+      
+      if (newRecommendations.length === 0) {
+        // Move to next city
+        const nextCityIndex = currentCityIndex + 1;
+        setCurrentCityIndex(nextCityIndex);
+        
+        // If we've cycled through all cities multiple times with no results, stop
+        if (nextCityIndex >= userCities.length * 5) {
+          console.log('Reached maximum city cycles, stopping infinite scroll');
+          setHasMore(false);
+        } else {
+          // Try again with the next city immediately
+          setTimeout(() => loadMoreRecommendations(), 100);
+        }
+      } else {
+        setRecommendations(prev => [...prev, ...newRecommendations]);
+        console.log(`Added ${newRecommendations.length} new recommendations, total: ${recommendations.length + newRecommendations.length}`);
+      }
+    } catch (error) {
+      console.error('Error loading more recommendations:', error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [hasMore, isLoadingMore, userCities, currentCityIndex, nextPageTokens]);
+
   // Infinite scroll observer
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasMore && !isLoading && !isLoadingMore) {
+          console.log('Intersection detected, loading more recommendations...');
           loadMoreRecommendations();
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.5, rootMargin: '200px' } // Trigger earlier
     );
 
     if (observerTarget.current) {
@@ -83,7 +121,7 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
     }
 
     return () => observer.disconnect();
-  }, [hasMore, isLoading, isLoadingMore]);
+  }, [hasMore, isLoading, isLoadingMore, loadMoreRecommendations]);
 
   const getCacheKey = (cities: string[]) => {
     return `recommendations_${cities.sort().join('_')}_${ratedRestaurants.length}`;
@@ -123,22 +161,25 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
   };
 
   const loadInitialRecommendations = async (cities: string[]) => {
-    // First, try to load from cache instantly
-    const cached = getCachedRecommendations(cities);
-    if (cached && cached.length > 0) {
-      setRecommendations(cached.slice(0, 20));
-      setIsLoading(false);
-      return;
-    }
-
-    // If no cache, show loading and fetch
     setIsLoading(true);
     
     try {
       console.log(`Loading initial recommendations for ${cities.length} cities:`, cities);
-      const recommendations = await fetchRecommendationsForCity(cities[0], null);
-      setRecommendations(recommendations);
-      setCachedRecommendations(cities, recommendations);
+      
+      // Load from multiple cities initially to get a good starting set
+      const initialBatches = await Promise.all(
+        cities.slice(0, Math.min(3, cities.length)).map(city => 
+          fetchRecommendationsForCity(city, null)
+        )
+      );
+      
+      const initialRecommendations = initialBatches.flat();
+      
+      if (initialRecommendations.length > 0) {
+        setRecommendations(initialRecommendations);
+        // Start from city index 3 (or 0 if we have fewer cities) for next loads
+        setCurrentCityIndex(Math.min(3, cities.length));
+      }
     } catch (error) {
       console.error('Error loading initial recommendations:', error);
       toast({
@@ -148,37 +189,6 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
       });
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const loadMoreRecommendations = async () => {
-    if (!hasMore || isLoadingMore || userCities.length === 0) return;
-
-    setIsLoadingMore(true);
-    
-    try {
-      const cityToSearch = userCities[currentCityIndex % userCities.length];
-      const nextPageToken = nextPageTokens[cityToSearch] || null;
-      
-      console.log(`Loading more recommendations for ${cityToSearch}, page token: ${nextPageToken}`);
-      
-      const newRecommendations = await fetchRecommendationsForCity(cityToSearch, nextPageToken);
-      
-      if (newRecommendations.length === 0) {
-        // Move to next city or stop if we've cycled through all
-        const nextCityIndex = currentCityIndex + 1;
-        if (nextCityIndex >= userCities.length * 3) { // Limit to 3 cycles through cities
-          setHasMore(false);
-        } else {
-          setCurrentCityIndex(nextCityIndex);
-        }
-      } else {
-        setRecommendations(prev => [...prev, ...newRecommendations]);
-      }
-    } catch (error) {
-      console.error('Error loading more recommendations:', error);
-    } finally {
-      setIsLoadingMore(false);
     }
   };
 
