@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loader2, MapPin, Map } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { RecommendationsMap } from '@/components/RecommendationsMap';
+import { MobileRecommendationsMap } from '@/components/mobile/MobileRecommendationsMap';
 import { Button } from '@/components/ui/button';
 
 interface RecommendationsPageProps {
@@ -35,8 +36,20 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
   const [isPreloading, setIsPreloading] = useState(false);
   const [userCities, setUserCities] = useState<string[]>([]);
   const [showMap, setShowMap] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const { toast } = useToast();
   const observerTarget = useRef<HTMLDivElement>(null);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // md breakpoint
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const ratedRestaurants = restaurants.filter(r => !r.isWishlist && r.rating);
 
@@ -304,7 +317,13 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
   }
 
   if (showMap) {
-    return (
+    return isMobile ? (
+      <MobileRecommendationsMap
+        userRatedRestaurants={ratedRestaurants}
+        onClose={() => setShowMap(false)}
+        onAddRestaurant={onAddRestaurant}
+      />
+    ) : (
       <RecommendationsMap
         userRatedRestaurants={ratedRestaurants}
         onClose={() => setShowMap(false)}
@@ -315,14 +334,16 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
 
   return (
     <div className="w-full h-full relative">
-      {/* Map Button - Fixed in bottom right */}
+      {/* Map Button - Fixed in bottom right, mobile-optimized */}
       <Button
         onClick={() => setShowMap(true)}
-        className="fixed bottom-6 right-6 z-40 shadow-lg"
-        size="lg"
+        className={`fixed bottom-6 right-6 z-40 shadow-lg ${
+          isMobile ? 'h-12 w-12 p-0' : ''
+        }`}
+        size={isMobile ? "sm" : "lg"}
       >
-        <Map className="h-4 w-4 mr-2" />
-        Map View
+        <Map className={`${isMobile ? 'h-5 w-5' : 'h-4 w-4 mr-2'}`} />
+        {!isMobile && 'Map View'}
       </Button>
 
       <div className="p-4 lg:p-6">
