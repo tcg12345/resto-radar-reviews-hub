@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { Search, X, MapPin } from 'lucide-react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Search, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -42,25 +41,31 @@ export function CityFilterDialog({
     onOpenChange(false);
   };
 
+  if (!open) return null;
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="h-[90vh] max-h-[800px] w-[95vw] max-w-none p-0 gap-0 rounded-t-lg rounded-b-none fixed bottom-0 left-1/2 -translate-x-1/2 translate-y-0">
+    <>
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 bg-black/60 z-40"
+        onClick={() => onOpenChange(false)}
+      />
+      
+      {/* Bottom Sheet */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t rounded-t-xl animate-in slide-in-from-bottom duration-300 h-[80vh]">
         <div className="flex flex-col h-full">
+          {/* Drag Handle */}
+          <div className="flex justify-center py-2">
+            <div className="w-8 h-1 bg-muted-foreground/30 rounded-full"></div>
+          </div>
+          
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b">
+          <div className="flex items-center justify-between px-4 pb-4 bg-background">
             <h2 className="text-lg font-semibold">City</h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onOpenChange(false)}
-              className="h-8 w-8 p-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
           </div>
 
           {/* Search */}
-          <div className="p-4 border-b">
+          <div className="px-4 pb-4 bg-background">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -73,7 +78,7 @@ export function CityFilterDialog({
           </div>
 
           {/* Current Location Option */}
-          <div className="p-4 border-b">
+          <div className="px-4 pb-4 border-b bg-background">
             <div className="flex items-center space-x-3">
               <MapPin className="h-5 w-5 text-primary" />
               <span className="text-primary font-medium">Current Location</span>
@@ -87,7 +92,7 @@ export function CityFilterDialog({
           </div>
 
           {/* Cities List */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto bg-background">
             {filteredCities.map((city) => (
               <div key={city} className="flex items-center justify-between p-4 border-b border-border/50">
                 <span className="text-sm">{city}</span>
@@ -117,7 +122,7 @@ export function CityFilterDialog({
             </Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </>
   );
 }
