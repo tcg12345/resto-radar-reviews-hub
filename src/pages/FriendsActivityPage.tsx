@@ -1141,14 +1141,13 @@ export function FriendsActivityPage() {
               </p>
             </CardContent>
           </Card> : <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredRestaurants.map(restaurant => <Card key={restaurant.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => {
+            <div className="space-y-0">
+              {filteredRestaurants.map(restaurant => <div key={restaurant.id} className="border-t border-b border-border hover:bg-accent/50 transition-colors cursor-pointer p-4" onClick={() => {
             // Preserve current search parameters for when user returns
             const currentSearch = searchParams.toString();
             const returnUrl = currentSearch ? `/search/friends?${currentSearch}` : '/search/friends';
             navigate(`/restaurant/${restaurant.id}?friendId=${restaurant.friend.id}&fromFriendsActivity=true&returnUrl=${encodeURIComponent(returnUrl)}`);
           }}>
-                <CardContent className="p-3 md:p-6">
                   {/* Mobile Layout - Optimized for small screens */}
                   <div className="md:hidden space-y-3">
                     {/* Friend Info Header - Compact */}
@@ -1273,8 +1272,7 @@ export function FriendsActivityPage() {
                         </p>}
                     </div>
                   </div>
-                </CardContent>
-              </Card>)}
+                </div>)}
 
             {/* Skeleton cards for loading more - show immediately when loading starts */}
             {isLoadingMore && <>
