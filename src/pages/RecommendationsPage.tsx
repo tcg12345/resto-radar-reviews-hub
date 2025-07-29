@@ -59,6 +59,11 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
         city: r.city
       })));
       
+      // Show a sample of the coordinates to debug the ocean issue
+      console.log('First 5 restaurant coordinates:', restaurantsWithCoords.slice(0, 5).map(r => 
+        `${r.name}: ${r.latitude}, ${r.longitude}`
+      ));
+      
       let searchLocation = '';
       let useCoordinates = false;
       
@@ -66,13 +71,22 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
         const avgLat = restaurantsWithCoords.reduce((sum, r) => sum + r.latitude!, 0) / restaurantsWithCoords.length;
         const avgLng = restaurantsWithCoords.reduce((sum, r) => sum + r.longitude!, 0) / restaurantsWithCoords.length;
         
-        // Sanity check on calculated coordinates
-        if (Math.abs(avgLat) <= 90 && Math.abs(avgLng) <= 180) {
+        console.log('Calculated average coordinates:', { avgLat, avgLng });
+        
+        // Check if coordinates seem reasonable (not in the ocean)
+        // Valid land coordinates should be within reasonable bounds and not in the middle of the ocean
+        const isValidLocation = (
+          Math.abs(avgLat) <= 90 && Math.abs(avgLng) <= 180 &&
+          // Avoid the mid-Atlantic where your current coordinates are pointing
+          !(avgLat > 35 && avgLat < 45 && avgLng > -75 && avgLng < -60)
+        );
+        
+        if (isValidLocation) {
           searchLocation = `${avgLat},${avgLng}`;
           useCoordinates = true;
           console.log('Using average coordinates:', { avgLat, avgLng });
         } else {
-          console.warn('Invalid average coordinates calculated:', { avgLat, avgLng });
+          console.warn('Coordinates seem to be in ocean/invalid location, falling back to city search');
         }
       }
       
@@ -131,17 +145,26 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
       });
 
       console.log('Restaurant search response:', { data, error });
+      console.log('Raw API results before filtering:', data?.results?.length || 0);
+      console.log('Sample raw results:', data?.results?.slice(0, 2));
 
       if (error) throw error;
 
-      if (data?.results) {
+      if (data?.results && data.results.length > 0) {
+        console.log(`Got ${data.results.length} raw results from API`);
+        
         // Filter and process results
-        const processedRecommendations = data.results
-          .filter((place: any) => {
-            // Filter by price range (±1 level from user's average)
-            const placePriceLevel = place.priceRange || place.price_level || 2;
-            return Math.abs(placePriceLevel - avgPriceRange) <= 1;
-          })
+        const filteredResults = data.results.filter((place: any) => {
+          // Filter by price range (±1 level from user's average)
+          const placePriceLevel = place.priceRange || place.price_level || 2;
+          const priceMatch = Math.abs(placePriceLevel - avgPriceRange) <= 1;
+          console.log(`${place.name}: price ${placePriceLevel} vs user avg ${avgPriceRange}, match: ${priceMatch}`);
+          return priceMatch;
+        });
+        
+        console.log(`${filteredResults.length} results after price filtering`);
+        
+        const processedRecommendations = filteredResults
           .slice(0, 20) // Limit to top 20
           .map((place: any) => ({
             name: place.name,
