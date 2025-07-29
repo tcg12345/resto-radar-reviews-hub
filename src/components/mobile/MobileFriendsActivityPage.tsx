@@ -366,7 +366,7 @@ export function MobileFriendsActivityPage() {
 
       {/* Content */}
       <ScrollArea className="flex-1">
-        <div className="p-4 space-y-3">
+        <div className="space-y-0">
           {activeTab === 'friends' ? (
             <>
               {filteredFriends.length === 0 ? (
@@ -378,38 +378,36 @@ export function MobileFriendsActivityPage() {
                 </div>
               ) : (
                 filteredFriends.map((friend) => (
-                  <Card 
+                  <div 
                     key={friend.friend_id} 
-                    className="cursor-pointer hover:bg-muted/50 transition-colors active:scale-[0.98]"
+                    className="cursor-pointer hover:bg-muted/50 transition-colors active:scale-[0.98] border-t border-b border-border p-4"
                   >
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage src={friend.avatar_url} />
-                          <AvatarFallback>
-                            {(friend.name || friend.username || 'U').charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium truncate">{friend.name}</h3>
-                          <p className="text-sm text-muted-foreground truncate">@{friend.username}</p>
-                          {friend.compatibility_score && (
-                            <div className="flex items-center gap-1 mt-1">
-                              <Star className="h-3 w-3 text-yellow-500" />
-                              <span className="text-xs text-muted-foreground">
-                                {Math.round(friend.compatibility_score)}% compatible
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        
-                        <Button variant="outline" size="sm" className="h-8 px-3 text-xs">
-                          View Profile
-                        </Button>
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={friend.avatar_url} />
+                        <AvatarFallback>
+                          {(friend.name || friend.username || 'U').charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium truncate">{friend.name}</h3>
+                        <p className="text-sm text-muted-foreground truncate">@{friend.username}</p>
+                        {friend.compatibility_score && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <Star className="h-3 w-3 text-yellow-500" />
+                            <span className="text-xs text-muted-foreground">
+                              {Math.round(friend.compatibility_score)}% compatible
+                            </span>
+                          </div>
+                        )}
                       </div>
-                    </CardContent>
-                  </Card>
+                      
+                      <Button variant="outline" size="sm" className="h-8 px-3 text-xs">
+                        View Profile
+                      </Button>
+                    </div>
+                  </div>
                 ))
               )}
             </>
@@ -424,73 +422,71 @@ export function MobileFriendsActivityPage() {
                 </div>
               ) : (
                 filteredActivities.map((activity) => (
-                  <Card 
+                  <div 
                     key={activity.id} 
-                    className="cursor-pointer hover:bg-muted/50 transition-colors active:scale-[0.98]"
+                    className="cursor-pointer hover:bg-muted/50 transition-colors active:scale-[0.98] border-t border-b border-border p-4"
                   >
-                    <CardContent className="p-4">
-                      <div className="flex gap-3">
-                        <Avatar className="h-10 w-10 flex-shrink-0">
-                          <AvatarImage src={activity.profiles?.avatar_url} />
-                          <AvatarFallback>
-                            {(activity.profiles?.name || 'U').charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        
-                        <div className="flex-1 min-w-0 space-y-2">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm">
-                                <span className="font-medium">{activity.profiles?.name}</span>
-                                {activity.is_wishlist ? ' added to wishlist' : ' visited'}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {formatTimeAgo(activity.created_at)}
-                              </p>
-                            </div>
-                            
-                            {activity.is_wishlist && (
-                              <Badge variant="secondary" className="text-xs ml-2">
-                                Wishlist
-                              </Badge>
-                            )}
+                    <div className="flex gap-3">
+                      <Avatar className="h-10 w-10 flex-shrink-0">
+                        <AvatarImage src={activity.profiles?.avatar_url} />
+                        <AvatarFallback>
+                          {(activity.profiles?.name || 'U').charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      
+                      <div className="flex-1 min-w-0 space-y-2">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm">
+                              <span className="font-medium">{activity.profiles?.name}</span>
+                              {activity.is_wishlist ? ' added to wishlist' : ' visited'}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {formatTimeAgo(activity.created_at)}
+                            </p>
                           </div>
                           
-                          <div className="bg-muted/50 rounded-lg p-3">
-                            <div className="flex items-start justify-between mb-2">
-                              <h4 className="font-medium text-sm truncate">{activity.name}</h4>
-                              {activity.rating && !activity.is_wishlist && (
-                                <div className="flex items-center gap-1 ml-2 flex-shrink-0">
-                                  <Star className="h-3 w-3 text-yellow-500" />
-                                  <span className="text-xs">{activity.rating}/5</span>
-                                </div>
-                              )}
-                            </div>
-                            
-                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                              {activity.cuisine && (
-                                <Badge variant="outline" className="text-xs">
-                                  {activity.cuisine}
-                                </Badge>
-                              )}
-                              {activity.price_range && (
-                                <span className="font-medium">{activity.price_range}</span>
-                              )}
-                            </div>
-                            
-                            {activity.city && (
-                              <div className="flex items-center gap-1 mt-2">
-                                <MapPin className="h-3 w-3 text-muted-foreground" />
-                                <span className="text-xs text-muted-foreground truncate">
-                                  {activity.city}, {activity.country}
-                                </span>
+                          {activity.is_wishlist && (
+                            <Badge variant="secondary" className="text-xs ml-2">
+                              Wishlist
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        <div className="bg-muted/50 rounded-lg p-3">
+                          <div className="flex items-start justify-between mb-2">
+                            <h4 className="font-medium text-sm truncate">{activity.name}</h4>
+                            {activity.rating && !activity.is_wishlist && (
+                              <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                                <Star className="h-3 w-3 text-yellow-500" />
+                                <span className="text-xs">{activity.rating}/5</span>
                               </div>
                             )}
                           </div>
+                          
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            {activity.cuisine && (
+                              <Badge variant="outline" className="text-xs">
+                                {activity.cuisine}
+                              </Badge>
+                            )}
+                            {activity.price_range && (
+                              <span className="font-medium">{activity.price_range}</span>
+                            )}
+                          </div>
+                          
+                          {activity.city && (
+                            <div className="flex items-center gap-1 mt-2">
+                              <MapPin className="h-3 w-3 text-muted-foreground" />
+                              <span className="text-xs text-muted-foreground truncate">
+                                {activity.city}, {activity.country}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 ))
               )}
             </>
