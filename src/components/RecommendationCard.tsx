@@ -39,35 +39,35 @@ export function RecommendationCard({ restaurant, onAdd, onAddToWishlist }: Recom
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-all duration-200 border border-border/50">
-      <CardContent className="p-4">
-        {/* Header with name and rating */}
-        <div className="flex items-start justify-between mb-3">
-          <h3 className="font-semibold text-lg text-foreground leading-tight">{restaurant.name}</h3>
-          {restaurant.rating && (
-            <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center">
-              <span className="text-sm font-bold text-primary">{restaurant.rating.toFixed(1)}</span>
-            </div>
-          )}
-        </div>
+    <div className="border-b border-border py-4 px-4 hover:bg-muted/50 transition-colors duration-200">
+      {/* Header with name and rating */}
+      <div className="flex items-start justify-between mb-3">
+        <h3 className="font-semibold text-lg text-foreground leading-tight">{restaurant.name}</h3>
+        {restaurant.rating && (
+          <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center">
+            <span className="text-sm font-bold text-primary">{restaurant.rating.toFixed(1)}</span>
+          </div>
+        )}
+      </div>
 
-        {/* Cuisine and price */}
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-muted-foreground text-sm">{getPriceDisplay(restaurant.priceRange)}</span>
-          {restaurant.priceRange && restaurant.cuisine && (
-            <span className="w-1 h-1 rounded-full bg-muted-foreground"></span>
-          )}
-          <span className="text-muted-foreground text-sm">{restaurant.cuisine}</span>
-        </div>
+      {/* Cuisine and price */}
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-muted-foreground text-sm">{getPriceDisplay(restaurant.priceRange)}</span>
+        {restaurant.priceRange && restaurant.cuisine && (
+          <span className="w-1 h-1 rounded-full bg-muted-foreground"></span>
+        )}
+        <span className="text-muted-foreground text-sm">{restaurant.cuisine}</span>
+      </div>
 
-        {/* Location */}
-        <div className="flex items-center gap-2 mb-3">
-          <MapPin className="h-3 w-3 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">{restaurant.address}</span>
-        </div>
+      {/* Location */}
+      <div className="flex items-center gap-2 mb-3">
+        <MapPin className="h-3 w-3 text-muted-foreground" />
+        <span className="text-xs text-muted-foreground">{restaurant.address}</span>
+      </div>
 
-        {/* Distance and hours */}
-        <div className="flex items-center justify-between mb-4">
+      {/* Distance, hours, and action buttons */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
           {restaurant.distance && (
             <span className="text-xs text-muted-foreground">{formatDistance(restaurant.distance)}</span>
           )}
@@ -76,27 +76,27 @@ export function RecommendationCard({ restaurant, onAdd, onAddToWishlist }: Recom
             <span className="text-xs text-muted-foreground">{getOpeningStatus()}</span>
           </div>
         </div>
-
+        
         {/* Action buttons */}
         <div className="flex gap-2">
           <Button
             onClick={onAdd}
+            variant="outline"
             size="sm"
-            className="flex-1 h-8"
+            className="h-8 w-8 p-0"
           >
-            <Plus className="h-3 w-3 mr-1" />
-            Add Rating
+            <Plus className="h-4 w-4" />
           </Button>
           <Button
             onClick={onAddToWishlist}
             variant="outline"
             size="sm"
-            className="h-8 px-3"
+            className="h-8 w-8 p-0"
           >
-            <Heart className="h-3 w-3" />
+            <Heart className="h-4 w-4" />
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
