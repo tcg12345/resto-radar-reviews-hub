@@ -337,7 +337,7 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
       {/* Map Button - Fixed in bottom right, above nav bar */}
       <Button
         onClick={() => setShowMap(true)}
-        className="fixed bottom-24 right-6 z-40 shadow-lg px-3 py-2 md:px-4 md:py-2"
+        className="fixed bottom-16 right-6 z-40 shadow-lg px-3 py-2 md:px-4 md:py-2"
         size="sm"
       >
         <Map className="h-4 w-4 mr-1 md:mr-2" />
