@@ -105,12 +105,12 @@ export function RecommendationsMap({ userRatedRestaurants, onClose, onAddRestaur
       // Use visible area size to determine radius - search slightly beyond visible area
       const radius = Math.max(300, Math.min(visibleAreaKm * 600, 3000)); // 300m to 3km
       
-      // AGGRESSIVE limits - show as many restaurants as possible in small areas
-      const limit = zoom > 17 ? 300 :   // Show ALL restaurants when extremely zoomed in
-                    zoom > 15 ? 200 :   // Show many restaurants for small areas
-                    zoom > 13 ? 150 :   // City blocks
-                    zoom > 11 ? 100 :   // Neighborhoods  
-                    80;                 // Districts
+      // MASSIVE limits - show ALL restaurants in visible area
+      const limit = zoom > 17 ? 500 :   // Show ALL restaurants when extremely zoomed in
+                    zoom > 15 ? 400 :   // Show many restaurants for small areas
+                    zoom > 13 ? 300 :   // City blocks
+                    zoom > 11 ? 200 :   // Neighborhoods  
+                    150;                // Districts
       
       console.log('Optimized search parameters:', {
         zoom,
@@ -123,7 +123,8 @@ export function RecommendationsMap({ userRatedRestaurants, onClose, onAddRestaur
         location: `${center.lat},${center.lng}`,
         radius: Math.round(radius),
         limit: limit,
-        type: 'restaurant'
+        type: 'restaurant',
+        skipEnrichment: true // Skip slow Yelp data for faster results
       };
       
       console.log('Map search - Request body:', requestBody);
@@ -270,6 +271,16 @@ export function RecommendationsMap({ userRatedRestaurants, onClose, onAddRestaur
             <SearchIcon className="h-4 w-4 mr-2" />
             {isSearching ? 'Searching...' : 'Search This Area'}
           </Button>
+        )}
+
+        {/* Loading Overlay */}
+        {isSearching && (
+          <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-20">
+            <div className="bg-card p-6 rounded-lg shadow-lg flex items-center space-x-3">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+              <span className="text-lg font-medium">Finding restaurants...</span>
+            </div>
+          </div>
         )}
 
         {/* Price Range Info */}

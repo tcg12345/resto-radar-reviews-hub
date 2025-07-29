@@ -19,6 +19,7 @@ interface RestaurantSearchRequest {
   limit?: number;
   type?: string;
   keyword?: string;
+  skipEnrichment?: boolean;
 }
 
 serve(async (req) => {
@@ -33,7 +34,7 @@ serve(async (req) => {
       throw new Error('Google Places API key not found');
     }
 
-    const { query, location, radius = 10000, limit = 20, type = 'restaurant', keyword }: RestaurantSearchRequest = await req.json();
+    const { query, location, radius = 10000, limit = 20, type = 'restaurant', keyword, skipEnrichment = false }: RestaurantSearchRequest = await req.json();
 
     // Handle both search modes: text search (with query) and nearby search (with location coordinates)
     const isNearbySearch = !query && location.includes(','); // lat,lng format
@@ -209,90 +210,105 @@ serve(async (req) => {
           michelinStars: 0 // Google Places doesn't provide Michelin stars
         };
 
-        // Determine cuisine using AI
-        try {
-          const supabaseUrl = Deno.env.get('SUPABASE_URL');
-          const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
-          
-          if (supabaseUrl && supabaseAnonKey) {
-            const cuisineResponse = await fetch(`${supabaseUrl}/functions/v1/determine-cuisine`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${supabaseAnonKey}`,
-              },
-              body: JSON.stringify({
-                restaurantName: restaurant.name,
-                address: restaurant.address,
-                types: detailedPlace.types || []
-              })
-            });
+        // Skip slow enrichment if requested for faster results
+        if (!skipEnrichment) {
+          // Determine cuisine using AI
+          try {
+            const supabaseUrl = Deno.env.get('SUPABASE_URL');
+            const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+            
+            if (supabaseUrl && supabaseAnonKey) {
+              const cuisineResponse = await fetch(`${supabaseUrl}/functions/v1/determine-cuisine`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${supabaseAnonKey}`,
+                },
+                body: JSON.stringify({
+                  restaurantName: restaurant.name,
+                  address: restaurant.address,
+                  types: detailedPlace.types || []
+                })
+              });
 
-            if (cuisineResponse.ok) {
-              const cuisineData = await cuisineResponse.json();
-              if (cuisineData.cuisine && cuisineData.cuisine !== 'Restaurant') {
-                restaurant.cuisine = cuisineData.cuisine;
+              if (cuisineResponse.ok) {
+                const cuisineData = await cuisineResponse.json();
+                if (cuisineData.cuisine && cuisineData.cuisine !== 'Restaurant') {
+                  restaurant.cuisine = cuisineData.cuisine;
+                }
               }
             }
+          } catch (error) {
+            console.warn(`Failed to determine cuisine for ${restaurant.name}:`, error);
           }
-        } catch (error) {
-          console.warn(`Failed to determine cuisine for ${restaurant.name}:`, error);
-        }
 
-        // Enhance with Yelp data
-        try {
-          console.log(`Attempting to get Yelp data for ${restaurant.name} at ${restaurant.address}`);
-          
-          const { data: yelpData, error: yelpError } = await supabase.functions.invoke('yelp-restaurant-data', {
-            body: {
-              action: 'search',
-              term: restaurant.name,
-              location: restaurant.address,
-              limit: 1,
-              sort_by: 'best_match'
-            }
-          });
-
-          console.log(`Yelp response for ${restaurant.name}:`, { 
-            error: yelpError, 
-            hasData: !!yelpData, 
-            businessCount: yelpData?.businesses?.length || 0 
-          });
-
-          if (!yelpError && yelpData?.businesses?.length > 0) {
-            const yelpBusiness = yelpData.businesses[0];
+          // Enhance with Yelp data
+          try {
+            console.log(`Attempting to get Yelp data for ${restaurant.name} at ${restaurant.address}`);
             
-            // Create yelpData object similar to discover function
-            restaurant.yelpData = {
-              id: yelpBusiness.id,
-              url: yelpBusiness.url,
-              categories: yelpBusiness.categories?.map((cat: any) => cat.title) || [],
-              price: yelpBusiness.price || undefined,
-              photos: yelpBusiness.photos || [],
-              transactions: yelpBusiness.transactions || []
-            };
-
-            console.log(`Successfully enhanced ${restaurant.name} with Yelp data:`, {
-              hasYelpData: !!restaurant.yelpData,
-              price: restaurant.yelpData.price,
-              transactions: restaurant.yelpData.transactions,
-              url: restaurant.yelpData.url
+            const { data: yelpData, error: yelpError } = await supabase.functions.invoke('yelp-restaurant-data', {
+              body: {
+                action: 'search',
+                term: restaurant.name,
+                location: restaurant.address,
+                limit: 1,
+                sort_by: 'best_match'
+              }
             });
 
-            // Use Yelp rating if available and higher
-            if (yelpBusiness.rating && yelpBusiness.rating > restaurant.rating) {
-              restaurant.rating = yelpBusiness.rating;
-            }
+            console.log(`Yelp response for ${restaurant.name}:`, { 
+              error: yelpError, 
+              hasData: !!yelpData, 
+              businessCount: yelpData?.businesses?.length || 0 
+            });
 
-            // Use Yelp review count if available and higher
-            if (yelpBusiness.review_count && yelpBusiness.review_count > (restaurant.reviewCount || 0)) {
-              restaurant.reviewCount = yelpBusiness.review_count;
+            if (!yelpError && yelpData?.businesses?.length > 0) {
+              const yelpBusiness = yelpData.businesses[0];
+              
+              // Create yelpData object similar to discover function
+              restaurant.yelpData = {
+                id: yelpBusiness.id,
+                url: yelpBusiness.url,
+                categories: yelpBusiness.categories?.map((cat: any) => cat.title) || [],
+                price: yelpBusiness.price || undefined,
+                photos: yelpBusiness.photos || [],
+                transactions: yelpBusiness.transactions || []
+              };
+
+              console.log(`Successfully enhanced ${restaurant.name} with Yelp data:`, {
+                hasYelpData: !!restaurant.yelpData,
+                price: restaurant.yelpData.price,
+                transactions: restaurant.yelpData.transactions,
+                url: restaurant.yelpData.url
+              });
+
+              // Use Yelp rating if available and higher
+              if (yelpBusiness.rating && yelpBusiness.rating > restaurant.rating) {
+                restaurant.rating = yelpBusiness.rating;
+              }
+
+              // Use Yelp review count if available and higher
+              if (yelpBusiness.review_count && yelpBusiness.review_count > (restaurant.reviewCount || 0)) {
+                restaurant.reviewCount = yelpBusiness.review_count;
+              }
+            } else {
+              console.log(`No Yelp data found for ${restaurant.name}: ${yelpError?.message || 'No businesses returned'}`);
             }
-          } else {
-            console.log(`No Yelp data found for ${restaurant.name}: ${yelpError?.message || 'No businesses returned'}`);
+          } catch (error) {
+            console.warn(`Failed to get Yelp data for ${restaurant.name}:`, error);
           }
-        } catch (error) {
-          console.warn(`Failed to get Yelp data for ${restaurant.name}:`, error);
+        } else {
+          // Use basic cuisine from Google Places types for fast results
+          if (detailedPlace.types && detailedPlace.types.length > 0) {
+            const basicCuisine = detailedPlace.types
+              .find((type: string) => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))
+              ?.replace(/_/g, ' ')
+              .replace(/\b\w/g, (l: string) => l.toUpperCase());
+            
+            if (basicCuisine) {
+              restaurant.cuisine = basicCuisine;
+            }
+          }
         }
 
 
