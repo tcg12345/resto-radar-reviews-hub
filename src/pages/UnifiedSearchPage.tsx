@@ -87,7 +87,7 @@ export default function UnifiedSearchPage() {
     lat: number;
     lng: number;
   } | null>(null);
-  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [recentRestaurants, setRecentRestaurants] = useState<GooglePlaceResult[]>([]);
   const [recommendedPlaces, setRecommendedPlaces] = useState<GooglePlaceResult[]>([]);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
   const [userRestaurants, setUserRestaurants] = useState<any[]>([]);
@@ -113,14 +113,14 @@ export default function UnifiedSearchPage() {
     }
   }, []);
 
-  // Load recent searches and user's restaurants for recommendations
+  // Load recent restaurants and user's restaurants for recommendations
   const loadInitialData = async () => {
     if (!user) return;
     
-    // Load recent searches from localStorage
-    const savedSearches = localStorage.getItem('recentRestaurantSearches');
-    if (savedSearches) {
-      setRecentSearches(JSON.parse(savedSearches).slice(0, 5));
+    // Load recent clicked restaurants from localStorage
+    const savedRestaurants = localStorage.getItem('recentClickedRestaurants');
+    if (savedRestaurants) {
+      setRecentRestaurants(JSON.parse(savedRestaurants).slice(0, 5));
     }
     
     // Load user's restaurants to generate location-based recommendations
@@ -183,22 +183,20 @@ export default function UnifiedSearchPage() {
     }
   };
 
-  // Save search to recent searches
-  const saveToRecentSearches = (query: string) => {
-    if (!query.trim()) return;
-    
-    const savedSearches = localStorage.getItem('recentRestaurantSearches');
-    let searches = savedSearches ? JSON.parse(savedSearches) : [];
+  // Save clicked restaurant to recent restaurants
+  const saveToRecentRestaurants = (place: GooglePlaceResult) => {
+    const savedRestaurants = localStorage.getItem('recentClickedRestaurants');
+    let restaurants = savedRestaurants ? JSON.parse(savedRestaurants) : [];
     
     // Remove if already exists and add to beginning
-    searches = searches.filter((s: string) => s !== query);
-    searches.unshift(query);
+    restaurants = restaurants.filter((r: GooglePlaceResult) => r.place_id !== place.place_id);
+    restaurants.unshift(place);
     
     // Keep only 10 most recent
-    searches = searches.slice(0, 10);
+    restaurants = restaurants.slice(0, 10);
     
-    localStorage.setItem('recentRestaurantSearches', JSON.stringify(searches));
-    setRecentSearches(searches.slice(0, 5));
+    localStorage.setItem('recentClickedRestaurants', JSON.stringify(restaurants));
+    setRecentRestaurants(restaurants.slice(0, 5));
   };
 
   // Click outside handler to hide dropdown
@@ -370,9 +368,6 @@ export default function UnifiedSearchPage() {
     setShowLiveResults(false);
     if (!searchQuery.trim()) return;
     
-    // Save search query to recent searches
-    saveToRecentSearches(searchQuery);
-    
     setIsLoading(true);
     try {
       // Simplified search for speed - use text-based search
@@ -418,6 +413,9 @@ export default function UnifiedSearchPage() {
     }
   };
   const handlePlaceClick = async (place: GooglePlaceResult) => {
+    // Save clicked restaurant to recent restaurants
+    saveToRecentRestaurants(place);
+    
     // Show modal immediately with basic data
     setSelectedPlace({
       ...place,
@@ -687,34 +685,49 @@ export default function UnifiedSearchPage() {
             </Button>
           </div>
 
-          {/* Recent Searches */}
-          {recentSearches.length > 0 && (
+          {/* Recent Restaurants */}
+          {recentRestaurants.length > 0 && (
             <div className="space-y-3">
               <h3 className="text-lg font-semibold text-foreground">Recents</h3>
               <div className="space-y-2">
-                {recentSearches.map((search, index) => (
+                {recentRestaurants.map((restaurant, index) => (
                   <div 
-                    key={index}
+                    key={restaurant.place_id}
                     className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                    onClick={() => {
-                      setSearchQuery(search);
-                      setTimeout(() => handleSearch(), 100);
-                    }}
+                    onClick={() => handlePlaceClick(restaurant)}
                   >
                     <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
                       <Clock className="w-4 h-4 text-muted-foreground" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm">{search}</p>
+                      <p className="font-medium text-sm line-clamp-1">{restaurant.name}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-1">
+                        {(() => {
+                          const parts = restaurant.formatted_address?.split(', ') || [];
+                          if (parts.length >= 2) {
+                            if (parts[parts.length - 1] === 'United States') {
+                              const city = parts[parts.length - 3] || '';
+                              const stateWithZip = parts[parts.length - 2] || '';
+                              const state = stateWithZip.replace(/\s+\d{5}(-\d{4})?$/, '');
+                              return parts.length >= 3 ? `${city}, ${state}` : state;
+                            }
+                            const city = parts[parts.length - 2] || '';
+                            const country = parts[parts.length - 1] || '';
+                            const cleanCity = city.replace(/\s+[A-Z0-9]{2,10}$/, '');
+                            return `${cleanCity}, ${country}`;
+                          }
+                          return parts[0] || '';
+                        })()}
+                      </p>
                     </div>
                     <Button 
                       variant="ghost" 
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        const updatedSearches = recentSearches.filter(s => s !== search);
-                        setRecentSearches(updatedSearches);
-                        localStorage.setItem('recentRestaurantSearches', JSON.stringify(updatedSearches));
+                        const updatedRestaurants = recentRestaurants.filter(r => r.place_id !== restaurant.place_id);
+                        setRecentRestaurants(updatedRestaurants);
+                        localStorage.setItem('recentClickedRestaurants', JSON.stringify(updatedRestaurants));
                       }}
                       className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                     >
@@ -797,8 +810,8 @@ export default function UnifiedSearchPage() {
             </div>
           )}
 
-          {/* Empty state when no recent searches or recommendations */}
-          {recentSearches.length === 0 && userRestaurants.length === 0 && (
+          {/* Empty state when no recent restaurants or recommendations */}
+          {recentRestaurants.length === 0 && userRestaurants.length === 0 && (
             <div className="text-center py-12">
               <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
                 <Search className="w-8 h-8 text-muted-foreground" />
