@@ -74,7 +74,7 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
   };
 
   return (
-    <div className="grid gap-4 lg:gap-4 -mx-4 lg:mx-0">
+    <div className="grid gap-4">
       {/* Main Add Event Button */}
       <Card className="bg-primary/5 border-primary/20">
         <CardContent className="pt-6">
@@ -102,110 +102,111 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
         const dateStr = format(day, 'yyyy-MM-dd');
         
         return (
-          <Card key={day.toISOString()} className="transition-all duration-200 hover:shadow-md md:rounded-lg md:border md:shadow-sm rounded-none border-0 border-t border-b shadow-none mx-0 lg:mx-0 lg:rounded-lg lg:border lg:shadow-sm">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg">
-                    Day {index + 1} - {format(day, 'EEEE, MMMM do')}
-                  </CardTitle>
-                  <CardDescription className="space-y-1">
-                    {isMultiCity && getCityForDate(day) && (
-                      <div className="flex items-center gap-1 text-primary font-medium">
-                        <MapPin className="w-3 h-3" />
-                        {getCityForDate(day)}
+          <div key={day.toISOString()} className="lg:contents">
+            <Card className="transition-all duration-200 hover:shadow-md lg:rounded-lg lg:border lg:shadow-sm rounded-none border-0 border-t border-b shadow-none relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen lg:left-auto lg:right-auto lg:ml-0 lg:mr-0 lg:w-auto">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg">
+                      Day {index + 1} - {format(day, 'EEEE, MMMM do')}
+                    </CardTitle>
+                    <CardDescription className="space-y-1">
+                      {isMultiCity && getCityForDate(day) && (
+                        <div className="flex items-center gap-1 text-primary font-medium">
+                          <MapPin className="w-3 h-3" />
+                          {getCityForDate(day)}
+                        </div>
+                      )}
+                      <div>
+                        {dayEvents.length > 0 
+                          ? `${dayEvents.length} ${dayEvents.length === 1 ? 'event' : 'events'} planned`
+                          : 'No events planned'
+                        }
                       </div>
-                    )}
-                    <div>
-                      {dayEvents.length > 0 
-                        ? `${dayEvents.length} ${dayEvents.length === 1 ? 'event' : 'events'} planned`
-                        : 'No events planned'
-                      }
-                    </div>
-                  </CardDescription>
+                    </CardDescription>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onAddEvent(dateStr)}
+                    className="flex items-center gap-2 shrink-0"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Event
+                  </Button>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onAddEvent(dateStr)}
-                  className="flex items-center gap-2 shrink-0"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Event
-                </Button>
-              </div>
-            </CardHeader>
-            
-            <CardContent className="pt-0">
-              {dayEvents.length > 0 ? (
-                <div className="space-y-3">
-                  {dayEvents.map((event, eventIndex) => (
-                    <div key={event.id}>
-                      <div className={`p-4 rounded-lg border transition-all duration-200 hover:shadow-sm ${getEventColor(event.type)}`}>
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start gap-3 flex-1">
-                            <div className="mt-0.5">
-                              {getEventIcon(event.type)}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="font-medium text-sm">{event.time}</span>
-                                <Badge variant="secondary" className="text-xs">
-                                  {event.type}
-                                </Badge>
+              </CardHeader>
+              
+              <CardContent className="pt-0">
+                {dayEvents.length > 0 ? (
+                  <div className="space-y-3">
+                    {dayEvents.map((event, eventIndex) => (
+                      <div key={event.id}>
+                        <div className={`p-4 rounded-lg border transition-all duration-200 hover:shadow-sm ${getEventColor(event.type)}`}>
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start gap-3 flex-1">
+                              <div className="mt-0.5">
+                                {getEventIcon(event.type)}
                               </div>
-                              <h4 className="font-semibold text-base mb-1 break-words">
-                                {event.title}
-                              </h4>
-                              {event.description && (
-                                <p className="text-sm opacity-90 mb-2 break-words">
-                                  {event.description}
-                                </p>
-                              )}
-                              {event.restaurantData && (
-                                <div className="space-y-2">
-                                  <div className="flex items-center gap-1 text-sm opacity-90">
-                                    <MapPin className="w-3 h-3" />
-                                    <span className="break-words">{event.restaurantData.address}</span>
-                                  </div>
-                                  <div className="flex items-center gap-2 mt-2">
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => {
-                                        const query = encodeURIComponent(event.restaurantData?.address || event.title);
-                                        window.open(`https://www.google.com/maps/dir/?api=1&destination=${query}`, '_blank');
-                                      }}
-                                      className="flex items-center gap-1 h-8 px-3 text-xs"
-                                    >
-                                      <Compass className="w-3 h-3" />
-                                      Directions
-                                    </Button>
-                                    {event.restaurantData.website && (
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => window.open(event.restaurantData.website, '_blank')}
-                                        className="flex items-center gap-1 h-8 px-3 text-xs"
-                                      >
-                                        <ExternalLink className="w-3 h-3" />
-                                        Website
-                                      </Button>
-                                    )}
-                                    {event.restaurantData.phone && (
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => window.open(`tel:${event.restaurantData.phone}`, '_self')}
-                                        className="flex items-center gap-1 h-8 px-3 text-xs"
-                                      >
-                                        <Phone className="w-3 h-3" />
-                                        Call
-                                      </Button>
-                                    )}
-                                  </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="font-medium text-sm">{event.time}</span>
+                                  <Badge variant="secondary" className="text-xs">
+                                    {event.type}
+                                  </Badge>
                                 </div>
-                              )}
+                                <h4 className="font-semibold text-base mb-1 break-words">
+                                  {event.title}
+                                </h4>
+                                {event.description && (
+                                  <p className="text-sm opacity-90 mb-2 break-words">
+                                    {event.description}
+                                  </p>
+                                )}
+                                {event.restaurantData && (
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-1 text-sm opacity-90">
+                                      <MapPin className="w-3 h-3" />
+                                      <span className="break-words">{event.restaurantData.address}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 mt-2">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                          const query = encodeURIComponent(event.restaurantData?.address || event.title);
+                                          window.open(`https://www.google.com/maps/dir/?api=1&destination=${query}`, '_blank');
+                                        }}
+                                        className="flex items-center gap-1 h-8 px-3 text-xs"
+                                      >
+                                        <Compass className="w-3 h-3" />
+                                        Directions
+                                      </Button>
+                                      {event.restaurantData.website && (
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => window.open(event.restaurantData.website, '_blank')}
+                                          className="flex items-center gap-1 h-8 px-3 text-xs"
+                                        >
+                                          <ExternalLink className="w-3 h-3" />
+                                          Website
+                                        </Button>
+                                      )}
+                                      {event.restaurantData.phone && (
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => window.open(`tel:${event.restaurantData.phone}`, '_self')}
+                                          className="flex items-center gap-1 h-8 px-3 text-xs"
+                                        >
+                                          <Phone className="w-3 h-3" />
+                                          Call
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
                                {event.attractionData && (
                                  <div className="space-y-2">
                                    <div className="flex items-center gap-1 text-sm opacity-90">
@@ -258,53 +259,54 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
                                    </div>
                                  </div>
                                )}
+                              </div>
                             </div>
+                            
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 shrink-0"
+                                >
+                                  <MoreVertical className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => onEditEvent(event)}
+                                  className="flex items-center gap-2"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                  Edit Event
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => onDeleteEvent(event.id)}
+                                  className="flex items-center gap-2 text-destructive"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                  Delete Event
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
-                          
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0 shrink-0"
-                              >
-                                <MoreVertical className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => onEditEvent(event)}
-                                className="flex items-center gap-2"
-                              >
-                                <Edit className="w-4 h-4" />
-                                Edit Event
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => onDeleteEvent(event.id)}
-                                className="flex items-center gap-2 text-destructive"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                                Delete Event
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
                         </div>
+                        {eventIndex < dayEvents.length - 1 && (
+                          <Separator className="my-3" />
+                        )}
                       </div>
-                      {eventIndex < dayEvents.length - 1 && (
-                        <Separator className="my-3" />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  <p>No events scheduled for this day</p>
-                  <p className="text-sm">Click "Add Event" to get started</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p>No events scheduled for this day</p>
+                    <p className="text-sm">Click "Add Event" to get started</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         );
       })}
     </div>
