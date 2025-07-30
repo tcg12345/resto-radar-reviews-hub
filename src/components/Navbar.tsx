@@ -173,12 +173,12 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/40 hover:scale-105'
                     }`}
                   >
-                    <Icon className={`h-5 w-5 transition-all duration-300 ${
-                      isActive ? 'text-primary' : ''
+                    <Icon className={`transition-all duration-300 ${
+                      isActive ? 'text-primary h-6 w-6' : 'h-5 w-5'
                     }`} />
                   </Button>
-                  <span className={`text-[9px] font-medium transition-all duration-300 pb-2 ${
-                    isActive ? 'text-primary' : 'text-muted-foreground'
+                  <span className={`transition-all duration-300 pb-2 ${
+                    isActive ? 'text-primary text-[10px] font-bold' : 'text-muted-foreground text-[9px] font-medium'
                   }`}>
                     {tab.shortLabel}
                   </span>
