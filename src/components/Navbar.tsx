@@ -162,7 +162,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (
-                <div key={tab.id} className="flex flex-col items-center">
+                <div key={tab.id} className="flex flex-col items-center gap-0.5">
                   <Button
                     variant="ghost"
                     size="icon"
