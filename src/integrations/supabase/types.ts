@@ -597,6 +597,8 @@ export type Database = {
           opening_hours: string | null
           phone_number: string | null
           photo_captions: string[] | null
+          photo_dish_names: string[] | null
+          photo_notes: string[] | null
           photos: string[] | null
           price_range: number | null
           rating: number | null
@@ -625,6 +627,8 @@ export type Database = {
           opening_hours?: string | null
           phone_number?: string | null
           photo_captions?: string[] | null
+          photo_dish_names?: string[] | null
+          photo_notes?: string[] | null
           photos?: string[] | null
           price_range?: number | null
           rating?: number | null
@@ -653,6 +657,8 @@ export type Database = {
           opening_hours?: string | null
           phone_number?: string | null
           photo_captions?: string[] | null
+          photo_dish_names?: string[] | null
+          photo_notes?: string[] | null
           photos?: string[] | null
           price_range?: number | null
           rating?: number | null

@@ -16,6 +16,8 @@ interface DbRestaurant {
   date_visited: string | null;
   photos: string[];
   photo_captions: string[] | null;
+  photo_dish_names: string[] | null;
+  photo_notes: string[] | null;
   is_wishlist: boolean;
   latitude: number | null;
   longitude: number | null;
@@ -60,7 +62,8 @@ const mapDbRestaurantToRestaurant = (dbRestaurant: DbRestaurant): Restaurant => 
   notes: dbRestaurant.notes ?? undefined,
   dateVisited: dbRestaurant.date_visited ?? undefined,
   photos: dbRestaurant.photos,
-  photoDishNames: dbRestaurant.photo_dish_names || [],
+    photoDishNames: dbRestaurant.photo_dish_names || [],
+    photoNotes: dbRestaurant.photo_notes || [],
   isWishlist: dbRestaurant.is_wishlist,
   latitude: dbRestaurant.latitude ?? undefined,
   longitude: dbRestaurant.longitude ?? undefined,
@@ -98,7 +101,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
           // User is authenticated, fetch their restaurants with optimized query (excluding photos for faster loading)
           const { data, error } = await supabase
             .from('restaurants')
-            .select('id, name, address, city, country, cuisine, rating, notes, date_visited, is_wishlist, latitude, longitude, category_ratings, use_weighted_rating, price_range, michelin_stars, created_at, updated_at, user_id, opening_hours, website, phone_number, reservable, reservation_url, photo_captions')
+            .select('id, name, address, city, country, cuisine, rating, notes, date_visited, is_wishlist, latitude, longitude, category_ratings, use_weighted_rating, price_range, michelin_stars, created_at, updated_at, user_id, opening_hours, website, phone_number, reservable, reservation_url, photo_dish_names, photo_notes')
             .eq('user_id', session.user.id)
             .order('created_at', { ascending: false });
 
@@ -108,7 +111,9 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
             setRestaurants((data || []).map(restaurant => mapDbRestaurantToRestaurant({
               ...restaurant,
               photos: [], // Initialize with empty array, load photos lazily when needed
-              photo_captions: restaurant.photo_captions || []
+              photo_captions: [],
+              photo_dish_names: restaurant.photo_dish_names || [],
+              photo_notes: restaurant.photo_notes || []
             })));
           }
         } else if (isSubscribed) {
@@ -250,6 +255,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         date_visited: data.dateVisited ? data.dateVisited : null,
         photos: photoDataUrls,
         photo_dish_names: data.photoDishNames || [],
+        photo_notes: data.photoNotes || [],
         is_wishlist: data.isWishlist,
         latitude: coordinates?.latitude ?? null,
         longitude: coordinates?.longitude ?? null,
@@ -320,6 +326,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       // Handle photo removal and combine with new photos
       let updatedPhotos = [...existingRestaurant.photos];
       let updatedDishNames = [...(existingRestaurant.photoDishNames || [])];
+      let updatedNotes = [...(existingRestaurant.photoNotes || [])];
       
       // Remove photos and captions that were marked for deletion (in reverse order to maintain correct indexes)
       if (data.removedPhotoIndexes && data.removedPhotoIndexes.length > 0) {
@@ -327,7 +334,8 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         sortedIndexes.forEach(index => {
           if (index >= 0 && index < updatedPhotos.length) {
             updatedPhotos.splice(index, 1);
-            updatedCaptions.splice(index, 1);
+            updatedDishNames.splice(index, 1);
+            updatedNotes.splice(index, 1);
           }
         });
       }
@@ -335,6 +343,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       // Add new photos and captions
       const combinedPhotos = [...updatedPhotos, ...newPhotoDataUrls];
       const combinedDishNames = [...updatedDishNames, ...(data.photoDishNames || [])];
+      const combinedNotes = [...updatedNotes, ...(data.photoNotes || [])];
       
       // Geocode the address if it changed using the edge function
       let coordinates = {
@@ -371,7 +380,8 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
           notes: data.notes ?? null,
           date_visited: data.dateVisited ? data.dateVisited : null,
           photos: combinedPhotos,
-          photo_captions: combinedCaptions,
+          photo_dish_names: combinedDishNames,
+          photo_notes: combinedNotes,
           is_wishlist: data.isWishlist,
           latitude: coordinates.latitude ?? null,
           longitude: coordinates.longitude ?? null,
@@ -447,7 +457,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
     try {
       const { data, error } = await supabase
         .from('restaurants')
-        .select('photos, photo_captions')
+        .select('photos, photo_dish_names, photo_notes')
         .eq('id', id)
         .single();
 
@@ -460,7 +470,8 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
               ? { 
                   ...restaurant, 
                   photos: data.photos || [],
-                  photoCaptions: data.photo_captions || []
+                  photoDishNames: data.photo_dish_names || [],
+                  photoNotes: data.photo_notes || []
                 }
               : restaurant
           )

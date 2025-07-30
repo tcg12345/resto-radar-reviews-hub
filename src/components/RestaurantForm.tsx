@@ -338,7 +338,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
   };
 
   const handleDishNameChange = (index: number, dishName: string) => {
-    const sanitizedDishName = sanitizeInput(dishName, 100);
+    const sanitizedDishName = dishName.substring(0, 50); // 50 char limit, no sanitization to allow spaces
     setPhotoDishNames(prev => {
       const newDishNames = [...prev];
       newDishNames[index] = sanitizedDishName;
@@ -347,7 +347,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
   };
 
   const handlePhotoNotesChange = (index: number, notes: string) => {
-    const sanitizedNotes = sanitizeInput(notes, 300);
+    const sanitizedNotes = notes.substring(0, 300); // 300 char limit, no sanitization to allow spaces
     setPhotoNotes(prev => {
       const newNotes = [...prev];
       newNotes[index] = sanitizedNotes;
@@ -1216,12 +1216,14 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
                     value={photoDishNames[index] || ''}
                     onChange={(e) => handleDishNameChange(index, e.target.value)}
                     className="text-xs"
+                    maxLength={50}
                   />
                   <Textarea
                     placeholder="Notes about this photo..."
                     value={photoNotes[index] || ''}
                     onChange={(e) => handlePhotoNotesChange(index, e.target.value)}
                     className="text-xs min-h-[60px] resize-none"
+                    maxLength={300}
                   />
                 </div>
               </div>
