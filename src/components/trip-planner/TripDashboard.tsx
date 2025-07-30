@@ -11,68 +11,56 @@ import { TripList } from './TripList';
 import { TripStats } from './TripStats';
 import { CreateTripDialog } from './CreateTripDialog';
 import { TripFilters } from './TripFilters';
-
 type ViewMode = 'grid' | 'list';
 type SortBy = 'recent' | 'oldest' | 'name' | 'rating' | 'places';
-
 export function TripDashboard() {
-  const { trips, loading } = useTrips();
+  const {
+    trips,
+    loading
+  } = useTrips();
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortBy>('recent');
   const [showFilters, setShowFilters] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'upcoming' | 'completed' | 'in-progress'>('all');
-
-  const filteredAndSortedTrips = trips
-    .filter(trip => {
-      const matchesSearch = trip.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          trip.destination.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      if (selectedStatus === 'all') return matchesSearch;
-      
-      const now = new Date();
-      const startDate = trip.start_date ? new Date(trip.start_date) : null;
-      const endDate = trip.end_date ? new Date(trip.end_date) : null;
-      
-      switch (selectedStatus) {
-        case 'upcoming':
-          return matchesSearch && startDate && startDate > now;
-        case 'completed':
-          return matchesSearch && endDate && endDate < now;
-        case 'in-progress':
-          return matchesSearch && startDate && endDate && 
-                 startDate <= now && endDate >= now;
-        default:
-          return matchesSearch;
-      }
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'recent':
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        case 'oldest':
-          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-        case 'name':
-          return a.title.localeCompare(b.title);
-        default:
-          return 0;
-      }
-    });
-
+  const filteredAndSortedTrips = trips.filter(trip => {
+    const matchesSearch = trip.title.toLowerCase().includes(searchQuery.toLowerCase()) || trip.destination.toLowerCase().includes(searchQuery.toLowerCase());
+    if (selectedStatus === 'all') return matchesSearch;
+    const now = new Date();
+    const startDate = trip.start_date ? new Date(trip.start_date) : null;
+    const endDate = trip.end_date ? new Date(trip.end_date) : null;
+    switch (selectedStatus) {
+      case 'upcoming':
+        return matchesSearch && startDate && startDate > now;
+      case 'completed':
+        return matchesSearch && endDate && endDate < now;
+      case 'in-progress':
+        return matchesSearch && startDate && endDate && startDate <= now && endDate >= now;
+      default:
+        return matchesSearch;
+    }
+  }).sort((a, b) => {
+    switch (sortBy) {
+      case 'recent':
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      case 'oldest':
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      case 'name':
+        return a.title.localeCompare(b.title);
+      default:
+        return 0;
+    }
+  });
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
+    return <div className="flex items-center justify-center py-12">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="text-muted-foreground">Loading your trips...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="w-full px-4 lg:px-6 space-y-6">
+  return <div className="w-full px-4 lg:px-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
@@ -85,19 +73,8 @@ export function TripDashboard() {
         </div>
         
         <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2"
-          >
-            <Filter className="w-4 h-4" />
-            Filters
-          </Button>
-          <Button
-            onClick={() => setIsCreateDialogOpen(true)}
-            className="flex items-center gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
-          >
+          
+          <Button onClick={() => setIsCreateDialogOpen(true)} className="flex items-center gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70">
             <Plus className="w-4 h-4" />
             New Trip
           </Button>
@@ -114,12 +91,7 @@ export function TripDashboard() {
             {/* Search */}
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search trips by name or destination..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
+              <Input placeholder="Search trips by name or destination..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
             </div>
 
             {/* Status Filter */}
@@ -149,20 +121,10 @@ export function TripDashboard() {
 
             {/* View Mode */}
             <div className="flex items-center border rounded-lg p-1">
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-                className="h-8 w-8 p-0"
-              >
+              <Button variant={viewMode === 'grid' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('grid')} className="h-8 w-8 p-0">
                 <Grid3X3 className="w-4 h-4" />
               </Button>
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-                className="h-8 w-8 p-0"
-              >
+              <Button variant={viewMode === 'list' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('list')} className="h-8 w-8 p-0">
                 <List className="w-4 h-4" />
               </Button>
             </div>
@@ -174,23 +136,17 @@ export function TripDashboard() {
               <Badge variant="secondary" className="bg-primary/10 text-primary">
                 {filteredAndSortedTrips.length} {filteredAndSortedTrips.length === 1 ? 'trip' : 'trips'}
               </Badge>
-              {searchQuery && (
-                <Badge variant="outline">
+              {searchQuery && <Badge variant="outline">
                   Search: "{searchQuery}"
-                </Badge>
-              )}
-              {selectedStatus !== 'all' && (
-                <Badge variant="outline">
+                </Badge>}
+              {selectedStatus !== 'all' && <Badge variant="outline">
                   {selectedStatus}
-                </Badge>
-              )}
+                </Badge>}
             </div>
             
-            {filteredAndSortedTrips.length > 0 && (
-              <p className="text-sm text-muted-foreground">
+            {filteredAndSortedTrips.length > 0 && <p className="text-sm text-muted-foreground">
                 Sorted by {sortBy === 'recent' ? 'most recent' : sortBy === 'oldest' ? 'oldest first' : sortBy}
-              </p>
-            )}
+              </p>}
           </div>
         </CardContent>
       </Card>
@@ -199,8 +155,7 @@ export function TripDashboard() {
       {showFilters && <TripFilters />}
 
       {/* Trip Content */}
-      {filteredAndSortedTrips.length === 0 ? (
-        <Card className="border-dashed border-2 border-muted-foreground/25">
+      {filteredAndSortedTrips.length === 0 ? <Card className="border-dashed border-2 border-muted-foreground/25">
           <CardContent className="p-12 text-center">
             <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
               <Map className="w-8 h-8 text-primary" />
@@ -209,37 +164,18 @@ export function TripDashboard() {
               {trips.length === 0 ? 'Start Your Journey' : 'No trips found'}
             </h3>
             <p className="text-muted-foreground mb-6 w-full max-w-none">
-              {trips.length === 0 
-                ? 'Create your first trip to begin collecting memories and rating amazing places!'
-                : 'Try adjusting your search or filters to find what you\'re looking for.'
-              }
+              {trips.length === 0 ? 'Create your first trip to begin collecting memories and rating amazing places!' : 'Try adjusting your search or filters to find what you\'re looking for.'}
             </p>
-            {trips.length === 0 && (
-              <Button 
-                onClick={() => setIsCreateDialogOpen(true)}
-                className="bg-gradient-to-r from-primary to-primary/80"
-              >
+            {trips.length === 0 && <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-gradient-to-r from-primary to-primary/80">
                 <Plus className="w-4 h-4 mr-2" />
                 Create First Trip
-              </Button>
-            )}
+              </Button>}
           </CardContent>
-        </Card>
-      ) : (
-        <>
-          {viewMode === 'grid' ? (
-            <TripGrid trips={filteredAndSortedTrips} />
-          ) : (
-            <TripList trips={filteredAndSortedTrips} />
-          )}
-        </>
-      )}
+        </Card> : <>
+          {viewMode === 'grid' ? <TripGrid trips={filteredAndSortedTrips} /> : <TripList trips={filteredAndSortedTrips} />}
+        </>}
 
       {/* Create Trip Dialog */}
-      <CreateTripDialog
-        isOpen={isCreateDialogOpen}
-        onClose={() => setIsCreateDialogOpen(false)}
-      />
-    </div>
-  );
+      <CreateTripDialog isOpen={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)} />
+    </div>;
 }
