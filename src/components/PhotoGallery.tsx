@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { X, ChevronLeft, ChevronRight, Download, Grid3X3 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Download, Grid3X3, ArrowLeft, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { Input } from '@/components/ui/input';
 
 interface PhotoGalleryProps {
   photos: string[];
@@ -25,11 +26,15 @@ export function PhotoGallery({
 }: PhotoGalleryProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [showGrid, setShowGrid] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearchPage, setShowSearchPage] = useState(true);
 
   useEffect(() => {
     setCurrentIndex(initialIndex);
     setShowGrid(false);
-  }, [initialIndex, isOpen]);
+    setSearchQuery('');
+    setShowSearchPage(isMobile);
+  }, [initialIndex, isOpen, isMobile]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -37,24 +42,25 @@ export function PhotoGallery({
     const handleKeyDown = (e: KeyboardEvent) => {
       switch (e.key) {
         case 'Escape':
-          if (showGrid) {
+          if (showGrid || (!isMobile && showSearchPage)) {
             setShowGrid(false);
+            setShowSearchPage(false);
           } else {
             onClose();
           }
           break;
         case 'ArrowLeft':
-          if (!showGrid) goToPrevious();
+          if (!showGrid && !showSearchPage) goToPrevious();
           break;
         case 'ArrowRight':
-          if (!showGrid) goToNext();
+          if (!showGrid && !showSearchPage) goToNext();
           break;
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, currentIndex, photos.length, showGrid]);
+  }, [isOpen, currentIndex, photos.length, showGrid, showSearchPage, isMobile]);
 
   const goToNext = () => {
     setCurrentIndex((prev) => (prev + 1) % photos.length);
@@ -76,28 +82,122 @@ export function PhotoGallery({
   const selectPhoto = (index: number) => {
     setCurrentIndex(index);
     setShowGrid(false);
+    setShowSearchPage(false);
   };
+
+  // Filter photos based on search query
+  const filteredPhotos = photos.filter((_, index) => {
+    const caption = photoCaptions[index] || '';
+    return caption.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   if (!isOpen || photos.length === 0) return null;
 
-  // Mobile version with bottom sheet
+  // Mobile version with full-page grid
   if (isMobile) {
     return (
-      <Sheet open={isOpen} onOpenChange={onClose}>
-        <SheetContent 
-          side="bottom" 
-          className="h-[90vh] p-0 bg-black/95 border-0"
-        >
-          <div className="relative w-full h-full flex flex-col">
+      <div className="fixed inset-0 z-50 bg-background">
+        {showSearchPage ? (
+          <>
+            {/* Mobile Grid View */}
+            <div className="sticky top-0 z-10 bg-background border-b">
+              <div className="flex items-center gap-4 p-4">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onClose}
+                  className="h-8 w-8"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <h1 className="text-lg font-semibold flex-1 text-center pr-8">
+                  {restaurantName || 'Photos'}
+                </h1>
+              </div>
+              
+              {/* Search Bar */}
+              <div className="px-4 pb-4">
+                <div className="relative">
+                  <Input
+                    type="text"
+                    placeholder="Search photos..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pr-10"
+                  />
+                  {searchQuery && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6"
+                      onClick={() => setSearchQuery('')}
+                    >
+                      ×
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Photo Grid */}
+            <div className="p-4">
+              <div className="grid grid-cols-2 gap-3">
+                {(searchQuery ? filteredPhotos : photos).map((photo, index) => {
+                  const originalIndex = searchQuery 
+                    ? photos.findIndex(p => p === photo)
+                    : index;
+                  
+                  const caption = photoCaptions[originalIndex];
+                  
+                  return (
+                    <div
+                      key={originalIndex}
+                      className="relative aspect-square rounded-xl overflow-hidden cursor-pointer group"
+                      onClick={() => selectPhoto(originalIndex)}
+                    >
+                      <img
+                        src={photo}
+                        alt={caption || `Photo ${originalIndex + 1}`}
+                        className="w-full h-full object-cover transition-transform duration-200 group-active:scale-95"
+                      />
+                      
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                      
+                      <div className="absolute top-3 left-3">
+                        <Heart className="h-5 w-5 text-white fill-white/20" />
+                      </div>
+                      
+                      {caption && (
+                        <div className="absolute bottom-3 left-3 right-3">
+                          <p className="text-white text-sm font-medium truncate">
+                            {caption}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {searchQuery && filteredPhotos.length === 0 && (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No photos found for "{searchQuery}"</p>
+                </div>
+              )}
+            </div>
+          </>
+        ) : (
+          /* Mobile Single Photo View */
+          <div className="relative w-full h-full flex flex-col bg-black">
             {/* Header */}
             <div className="flex items-center justify-between p-4 bg-black/80 backdrop-blur-sm">
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-10 w-10 text-white hover:bg-white/20"
-                onClick={onClose}
+                onClick={() => setShowSearchPage(true)}
               >
-                <X className="h-5 w-5" />
+                <ArrowLeft className="h-5 w-5" />
               </Button>
               
               <div className="text-white text-sm font-medium">
@@ -124,9 +224,9 @@ export function PhotoGallery({
               </div>
             </div>
 
-            {/* Grid View */}
-            {showGrid && (
-              <div className="flex-1 p-4 overflow-y-auto">
+            {showGrid ? (
+              /* Mobile Grid in Photo View */
+              <div className="flex-1 p-4 overflow-y-auto bg-black">
                 <div className="grid grid-cols-3 gap-2">
                   {photos.map((photo, index) => (
                     <button
@@ -152,19 +252,16 @@ export function PhotoGallery({
                   ))}
                 </div>
               </div>
-            )}
-
-            {/* Single Photo View */}
-            {!showGrid && (
+            ) : (
+              /* Single Photo Display */
               <>
-                <div className="flex-1 relative flex items-center justify-center p-4">
+                <div className="flex-1 relative flex items-center justify-center">
                   <img
                     src={photos[currentIndex]}
                     alt={`${restaurantName || 'Restaurant'} photo ${currentIndex + 1}`}
                     className="max-w-full max-h-full object-contain"
                   />
                   
-                  {/* Navigation buttons */}
                   {photos.length > 1 && (
                     <>
                       <Button
@@ -188,7 +285,6 @@ export function PhotoGallery({
                   )}
                 </div>
 
-                {/* Caption */}
                 {photoCaptions[currentIndex] && (
                   <div className="p-4 bg-black/80 backdrop-blur-sm">
                     <p className="text-white text-sm text-center">
@@ -199,8 +295,8 @@ export function PhotoGallery({
               </>
             )}
           </div>
-        </SheetContent>
-      </Sheet>
+        )}
+      </div>
     );
   }
 
