@@ -252,7 +252,7 @@ export function RatedRestaurantsFilterDialog({
                 <CollapsibleTrigger asChild>
                   <div className="flex items-center justify-between py-4 px-0 border-b border-border cursor-pointer hover:bg-muted/50">
                     <div className="flex items-center gap-3">
-                      <DollarSign className="h-5 w-5 text-muted-foreground" />
+                      <DollarSign className="h-5 w-5 text-green-600" />
                       <span className="text-sm font-medium">Price Range</span>
                       {filterPrices.length > 0 && (
                         <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded-full">
