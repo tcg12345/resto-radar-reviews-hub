@@ -201,7 +201,7 @@ export function RestaurantCard({
                     <span className="text-green-600 mobile-badge text-sm lg:text-base">{`${'$'.repeat(restaurant.priceRange)}`}</span>
                     <span className="text-muted-foreground">•</span>
                   </>}
-                <span className="text-foreground mobile-truncate mobile-flex-shrink">{restaurant.cuisine}</span>
+                <span className="text-foreground mobile-truncate mobile-flex-shrink px-[6px]">{restaurant.cuisine}</span>
               </div>
             </div>
           </div>
