@@ -412,26 +412,20 @@ export default function MobileSearchRestaurantDetailsPage() {
 
             {/* Cuisine and Categories */}
             <div className="flex flex-wrap gap-2">
-              {(() => {
+              {!isEnhancingWithAI && (() => {
                 const cuisine = restaurant.aiAnalysis?.cuisine || restaurant.fallbackCuisine || 
                   restaurant.types.find(type => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 'Restaurant';
                 return (
-                  <Badge variant="outline" className="flex items-center gap-1">
+                  <Badge variant="outline">
                     {cuisine}
-                    {isEnhancingWithAI && (
-                      <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                    )}
                   </Badge>
                 );
               })()}
               
               {/* Michelin Stars */}
-              {(restaurant.michelinStars || isEnhancingWithAI) && (
-                <Badge variant="outline" className="flex items-center gap-1">
-                  <MichelinStars stars={restaurant.michelinStars || 0} />
-                  {isEnhancingWithAI && (
-                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                  )}
+              {!isEnhancingWithAI && restaurant.michelinStars && restaurant.michelinStars > 0 && (
+                <Badge variant="outline">
+                  <MichelinStars stars={restaurant.michelinStars} />
                 </Badge>
               )}
               
