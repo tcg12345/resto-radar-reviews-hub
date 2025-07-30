@@ -39,15 +39,53 @@ export function RecommendationDetailPage() {
   const [restaurant, setRestaurant] = useState<RecommendationRestaurant | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [photos, setPhotos] = useState<string[]>([]);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
 
   // Get restaurant data from location state if available
   const restaurantFromState = location.state?.restaurant as RecommendationRestaurant;
+
+  const fetchPlaceDetails = async (placeId: string) => {
+    try {
+      setIsLoadingDetails(true);
+      const response = await fetch('/api/supabase/functions/v1/google-places-search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          place_id: placeId,
+          fields: ['website', 'formatted_phone_number', 'opening_hours']
+        }),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.result) {
+          setRestaurant(prev => prev ? {
+            ...prev,
+            website: data.result.website || prev.website,
+            formatted_phone_number: data.result.formatted_phone_number || prev.formatted_phone_number,
+            opening_hours: data.result.opening_hours || prev.opening_hours
+          } : null);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching place details:', error);
+    } finally {
+      setIsLoadingDetails(false);
+    }
+  };
 
   useEffect(() => {
     if (restaurantFromState) {
       setRestaurant(restaurantFromState);
       setPhotos(restaurantFromState.photos || []);
       setIsLoading(false);
+      
+      // Fetch additional details if we have a place_id and missing website/phone
+      if (restaurantFromState.place_id && (!restaurantFromState.website || !restaurantFromState.formatted_phone_number)) {
+        fetchPlaceDetails(restaurantFromState.place_id);
+      }
     } else if (place_id) {
       // If no state data, you could fetch from Google Places API here
       // For now, we'll show an error since we don't have the data
