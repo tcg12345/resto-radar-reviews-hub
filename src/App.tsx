@@ -29,6 +29,7 @@ import SettingsPageWrapper from "./pages/SettingsPageWrapper";
 import SearchTabsPage from "./pages/SearchTabsPage";
 import MobileFriendProfilePage from "./pages/mobile/MobileFriendProfilePage";
 import MobileRestaurantDetailsPage from "./pages/mobile/MobileRestaurantDetailsPage";
+import MobileSearchRestaurantDetailsPage from "./pages/mobile/MobileSearchRestaurantDetailsPage";
 import TravelPage from "./pages/TravelPage";
 import TripDetailPage from "./pages/TripDetailPage";
 import { SharedTripPage } from "./pages/SharedTripPage";
@@ -87,6 +88,7 @@ const App = () => (
                 <Route path="/restaurant/:restaurantId" element={<RequireAuth><RestaurantDetailPage /></RequireAuth>} />
                 <Route path="/recommendation/:place_id" element={<RequireAuth><RecommendationDetailPage /></RequireAuth>} />
                 <Route path="/mobile/restaurant/:restaurantId" element={<RequireAuth><MobileRestaurantDetailsPage /></RequireAuth>} />
+                <Route path="/mobile/search/restaurant" element={<RequireAuth><MobileSearchRestaurantDetailsPage /></RequireAuth>} />
                 
                 {/* Main route - shows landing page or dashboard based on auth */}
                 <Route path="/" element={<Index />} />

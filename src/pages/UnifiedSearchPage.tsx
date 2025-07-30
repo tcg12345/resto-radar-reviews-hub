@@ -417,7 +417,15 @@ export default function UnifiedSearchPage() {
     // Save clicked restaurant to recent restaurants
     saveToRecentRestaurants(place);
     
-    // Show modal immediately with basic data
+    // On mobile, navigate to full page. On desktop, show modal
+    if (window.innerWidth < 768) { // md breakpoint
+      // Navigate to mobile restaurant details page
+      const placeData = encodeURIComponent(JSON.stringify(place));
+      navigate(`/mobile/search/restaurant?data=${placeData}`);
+      return;
+    }
+    
+    // Desktop behavior - show modal
     setSelectedPlace({
       ...place,
       formatted_phone_number: undefined,
@@ -1063,7 +1071,7 @@ export default function UnifiedSearchPage() {
           </TabsContent>
         </Tabs>}
 
-      {/* Restaurant Profile Modal */}
-      {selectedPlace && <RestaurantProfileModal place={selectedPlace} onClose={() => setSelectedPlace(null)} />}
+      {/* Restaurant Profile Modal - Desktop Only */}
+      {selectedPlace && window.innerWidth >= 768 && <RestaurantProfileModal place={selectedPlace} onClose={() => setSelectedPlace(null)} />}
     </div>;
 }

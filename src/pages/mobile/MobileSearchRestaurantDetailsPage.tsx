@@ -1,0 +1,482 @@
+import { useState, useEffect } from 'react';
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Star, MapPin, Phone, Globe, Clock, Heart, Plus, ExternalLink } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
+import { ReservationWidget } from '@/components/ReservationWidget';
+
+interface GooglePlaceResult {
+  place_id: string;
+  name: string;
+  formatted_address: string;
+  rating?: number;
+  user_ratings_total?: number;
+  price_level?: number;
+  photos?: Array<{
+    photo_reference: string;
+    height: number;
+    width: number;
+  }>;
+  geometry: {
+    location: {
+      lat: number;
+      lng: number;
+    };
+  };
+  types: string[];
+  opening_hours?: {
+    open_now: boolean;
+    weekday_text?: string[];
+  };
+  formatted_phone_number?: string;
+  website?: string;
+  reviews?: Array<{
+    author_name: string;
+    rating: number;
+    text: string;
+    time: number;
+  }>;
+  yelpData?: {
+    id: string;
+    url: string;
+    categories: string[];
+    price?: string;
+    photos: string[];
+    transactions: string[];
+    menu_url?: string;
+  };
+  aiAnalysis?: {
+    cuisine: string;
+    categories: string[];
+  };
+  fallbackCuisine?: string;
+}
+
+export default function MobileSearchRestaurantDetailsPage() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const placeData = searchParams.get('data');
+  const [restaurant, setRestaurant] = useState<GooglePlaceResult | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
+
+  useEffect(() => {
+    if (placeData) {
+      try {
+        const parsedData = JSON.parse(decodeURIComponent(placeData));
+        setRestaurant(parsedData);
+        
+        // Load additional details if we have a place_id
+        if (parsedData.place_id) {
+          loadPlaceDetails(parsedData.place_id, parsedData);
+        } else {
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('Error parsing place data:', error);
+        toast.error('Invalid restaurant data');
+        navigate(-1);
+      }
+    } else {
+      toast.error('No restaurant data provided');
+      navigate(-1);
+    }
+  }, [placeData, navigate]);
+
+  const loadPlaceDetails = async (placeId: string, basicData: GooglePlaceResult) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('google-places-search', {
+        body: {
+          placeId: placeId,
+          type: 'details'
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.status === 'OK') {
+        const detailedPlace = { ...basicData, ...data.result };
+        setRestaurant(detailedPlace);
+
+        // Load Yelp data in background
+        supabase.functions.invoke('yelp-restaurant-data', {
+          body: {
+            action: 'search',
+            term: detailedPlace.name,
+            location: detailedPlace.formatted_address,
+            limit: 1,
+            sort_by: 'best_match'
+          }
+        }).then(({ data: yelpData, error: yelpError }) => {
+          if (!yelpError && yelpData?.businesses?.length > 0) {
+            const yelpBusiness = yelpData.businesses[0];
+            setRestaurant(prev => prev ? {
+              ...prev,
+              yelpData: {
+                id: yelpBusiness.id,
+                url: yelpBusiness.url,
+                categories: yelpBusiness.categories?.map((cat: any) => cat.title) || [],
+                price: yelpBusiness.price || undefined,
+                photos: yelpBusiness.photos || [],
+                transactions: yelpBusiness.transactions || [],
+                menu_url: yelpBusiness.menu_url || undefined
+              }
+            } : null);
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Failed to get place details:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAddToWishlist = async () => {
+    if (!user || !restaurant) {
+      toast.error('Please log in to add restaurants');
+      return;
+    }
+
+    setIsAddingToWishlist(true);
+    try {
+      const { error } = await supabase.from('restaurants').insert({
+        name: restaurant.name,
+        address: restaurant.formatted_address,
+        city: restaurant.formatted_address.split(',')[1]?.trim() || '',
+        cuisine: restaurant.aiAnalysis?.cuisine || restaurant.fallbackCuisine || 'Various',
+        latitude: restaurant.geometry.location.lat,
+        longitude: restaurant.geometry.location.lng,
+        rating: null,
+        is_wishlist: true,
+        user_id: user.id,
+        website: restaurant.website,
+        opening_hours: restaurant.opening_hours?.weekday_text?.join('\n'),
+        price_range: restaurant.price_level,
+        phone_number: restaurant.formatted_phone_number
+      });
+
+      if (error) throw error;
+      toast.success('Added to wishlist!');
+    } catch (error) {
+      console.error('Error adding to wishlist:', error);
+      toast.error('Failed to add to wishlist');
+    } finally {
+      setIsAddingToWishlist(false);
+    }
+  };
+
+  const handleAddRating = async () => {
+    if (!user || !restaurant) {
+      toast.error('Please log in to rate restaurants');
+      return;
+    }
+
+    try {
+      const { error } = await supabase.from('restaurants').insert({
+        name: restaurant.name,
+        address: restaurant.formatted_address,
+        city: restaurant.formatted_address.split(',')[1]?.trim() || '',
+        cuisine: restaurant.aiAnalysis?.cuisine || restaurant.fallbackCuisine || 'Various',
+        latitude: restaurant.geometry.location.lat,
+        longitude: restaurant.geometry.location.lng,
+        rating: null,
+        is_wishlist: false,
+        user_id: user.id,
+        website: restaurant.website,
+        opening_hours: restaurant.opening_hours?.weekday_text?.join('\n'),
+        price_range: restaurant.price_level,
+        phone_number: restaurant.formatted_phone_number
+      });
+
+      if (error) throw error;
+      toast.success('Restaurant added! You can now rate it from your places.');
+    } catch (error) {
+      console.error('Error adding restaurant:', error);
+      toast.error('Failed to add restaurant');
+    }
+  };
+
+  const getPriceDisplay = (priceLevel?: number) => {
+    if (!priceLevel) return 'Price not available';
+    return '$'.repeat(priceLevel);
+  };
+
+  const getPhotoUrl = (photoReference: string) => {
+    // Use direct URL without environment variable since Lovable doesn't support VITE_ vars
+    return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photoReference}&key=AIzaSyDGyJd_l_BZAnseiAx5a5n4a1nSBqnS4dA`;
+  };
+
+  if (isLoading || !restaurant) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
+          <div className="flex items-center gap-3 p-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(-1)}
+              className="h-8 w-8 p-0"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div className="h-4 bg-muted rounded animate-pulse w-32"></div>
+          </div>
+        </div>
+        <div className="p-4 space-y-4">
+          <div className="h-48 bg-muted rounded-lg animate-pulse"></div>
+          <div className="space-y-2">
+            <div className="h-6 bg-muted rounded animate-pulse"></div>
+            <div className="h-4 bg-muted rounded animate-pulse w-2/3"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
+        <div className="flex items-center gap-3 p-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(-1)}
+            className="h-8 w-8 p-0"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="font-semibold text-lg line-clamp-1">{restaurant.name}</h1>
+        </div>
+      </div>
+
+      <div className="pb-safe">
+        {/* Hero Image */}
+        {(restaurant.photos?.length > 0 || restaurant.yelpData?.photos?.length > 0) && (
+          <div className="aspect-video relative">
+            <img
+              src={
+                restaurant.yelpData?.photos?.[0] ||
+                (restaurant.photos?.[0] ? getPhotoUrl(restaurant.photos[0].photo_reference) : '')
+              }
+              alt={restaurant.name}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+              }}
+            />
+          </div>
+        )}
+
+        <div className="p-4 space-y-6">
+          {/* Basic Info */}
+          <div className="space-y-3">
+            <div className="flex items-start justify-between">
+              <div className="flex-1 min-w-0">
+                <h1 className="text-2xl font-bold leading-tight">{restaurant.name}</h1>
+                <div className="flex items-center gap-2 text-muted-foreground mt-1">
+                  <MapPin className="h-4 w-4 flex-shrink-0" />
+                  <span className="text-sm line-clamp-2">{restaurant.formatted_address}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Rating and Price */}
+            <div className="flex items-center gap-4 flex-wrap">
+              {restaurant.rating && (
+                <div className="flex items-center gap-1">
+                  <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                  <span className="font-medium">{restaurant.rating}</span>
+                  {restaurant.user_ratings_total && (
+                    <span className="text-sm text-muted-foreground">
+                      ({restaurant.user_ratings_total.toLocaleString()})
+                    </span>
+                  )}
+                </div>
+              )}
+              
+              {(restaurant.price_level || restaurant.yelpData?.price) && (
+                <div className="text-lg font-bold text-green-600">
+                  {restaurant.yelpData?.price || getPriceDisplay(restaurant.price_level)}
+                </div>
+              )}
+
+              {restaurant.opening_hours?.open_now !== undefined && (
+                <Badge variant={restaurant.opening_hours.open_now ? "default" : "destructive"}>
+                  {restaurant.opening_hours.open_now ? "Open" : "Closed"}
+                </Badge>
+              )}
+            </div>
+
+            {/* Cuisine and Categories */}
+            <div className="flex flex-wrap gap-2">
+              {(() => {
+                const cuisine = restaurant.aiAnalysis?.cuisine || restaurant.fallbackCuisine || 
+                  restaurant.types.find(type => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 'Restaurant';
+                return <Badge variant="outline">{cuisine}</Badge>;
+              })()}
+              
+              {restaurant.yelpData?.categories?.slice(0, 2).map((category, index) => (
+                <Badge key={index} variant="outline">{category}</Badge>
+              ))}
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              onClick={handleAddToWishlist}
+              disabled={isAddingToWishlist}
+              className="flex items-center gap-2"
+              variant="outline"
+            >
+              <Heart className="h-4 w-4" />
+              {isAddingToWishlist ? 'Adding...' : 'Add to Wishlist'}
+            </Button>
+            <Button
+              onClick={handleAddRating}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Rate Restaurant
+            </Button>
+          </div>
+
+          {/* Contact Info */}
+          {(restaurant.formatted_phone_number || restaurant.website) && (
+            <Card>
+              <CardContent className="p-4 space-y-3">
+                <h3 className="font-semibold">Contact Information</h3>
+                
+                {restaurant.formatted_phone_number && (
+                  <div className="flex items-center gap-3">
+                    <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <a 
+                      href={`tel:${restaurant.formatted_phone_number}`}
+                      className="text-primary hover:underline"
+                    >
+                      {restaurant.formatted_phone_number}
+                    </a>
+                  </div>
+                )}
+                
+                {restaurant.website && (
+                  <div className="flex items-center gap-3">
+                    <Globe className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <a 
+                      href={restaurant.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline flex items-center gap-1"
+                    >
+                      Visit Website
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Hours */}
+          {restaurant.opening_hours?.weekday_text && (
+            <Card>
+              <CardContent className="p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <h3 className="font-semibold">Hours</h3>
+                </div>
+                <div className="space-y-1">
+                  {restaurant.opening_hours.weekday_text.map((hours, index) => (
+                    <div key={index} className="text-sm">
+                      {hours}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Yelp Data */}
+          {restaurant.yelpData && (
+            <Card>
+              <CardContent className="p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold">Yelp Information</h3>
+                  <Badge variant="secondary" className="bg-red-100 text-red-800 border-red-200">
+                    Yelp ✓
+                  </Badge>
+                </div>
+                
+                {restaurant.yelpData.transactions?.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {restaurant.yelpData.transactions.map((transaction, index) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {transaction === 'delivery' && '🚚 Delivery'}
+                        {transaction === 'pickup' && '🛍️ Pickup'}
+                        {transaction === 'restaurant_reservation' && '📅 Reservations'}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+
+                <Button
+                  variant="outline"
+                  onClick={() => window.open(restaurant.yelpData!.url, '_blank')}
+                  className="w-full"
+                >
+                  View on Yelp
+                  <ExternalLink className="h-4 w-4 ml-2" />
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Reservation Widget */}
+          <ReservationWidget restaurant={{
+            id: restaurant.place_id,
+            name: restaurant.name,
+            phone_number: restaurant.formatted_phone_number,
+            website: restaurant.website
+          }} />
+
+          {/* Reviews Preview */}
+          {restaurant.reviews && restaurant.reviews.length > 0 && (
+            <Card>
+              <CardContent className="p-4 space-y-4">
+                <h3 className="font-semibold">Recent Reviews</h3>
+                {restaurant.reviews.slice(0, 3).map((review, index) => (
+                  <div key={index} className="space-y-2 pb-3 border-b last:border-b-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-sm">{review.author_name}</span>
+                      <div className="flex items-center">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-3 w-3 ${
+                              i < review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground line-clamp-3">
+                      {review.text}
+                    </p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
