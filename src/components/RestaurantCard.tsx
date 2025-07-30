@@ -265,20 +265,20 @@ export function RestaurantCard({
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {restaurant.rating !== undefined && <div className="min-w-0">
+              <div className="grid grid-cols-2 gap-4">
+                {restaurant.rating !== undefined && <div>
                     <h4 className="font-semibold mb-2">Rating</h4>
                     <div className="flex items-center gap-2">
                       {restaurant.googleMapsUrl ? <a href={`https://www.google.com/search?q=${encodeURIComponent(`${restaurant.name} ${restaurant.address}`)}`} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity">
                           <StarRating rating={restaurant.rating} readonly size="sm" />
                         </a> : <StarRating rating={restaurant.rating} readonly size="sm" />}
-                      {restaurant.reviewCount && restaurant.reviewCount > 0 && <a href={`https://www.google.com/search?q=${encodeURIComponent(`${restaurant.name} ${restaurant.address}`)}`} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:underline truncate">
+                      {restaurant.reviewCount && restaurant.reviewCount > 0 && <a href={`https://www.google.com/search?q=${encodeURIComponent(`${restaurant.name} ${restaurant.address}`)}`} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:underline">
                           ({restaurant.reviewCount.toLocaleString()} reviews)
                         </a>}
                     </div>
                   </div>}
                 
-                {restaurant.priceRange && <div className="min-w-0">
+                {restaurant.priceRange && <div>
                     <h4 className="font-semibold mb-2">Price Range</h4>
                     <PriceRange priceRange={restaurant.priceRange} readonly size="sm" />
                   </div>}

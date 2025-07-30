@@ -79,7 +79,6 @@ interface UnifiedRestaurantDetailsProps {
   isLoading?: boolean;
   onToggleWishlist?: () => void;
   canAddToWishlist?: boolean;
-  onAddRating?: () => void;
   isMobile?: boolean;
 }
 
@@ -90,7 +89,6 @@ export function UnifiedRestaurantDetails({
   isLoading = false,
   onToggleWishlist,
   canAddToWishlist = true,
-  onAddRating,
   isMobile = false
 }: UnifiedRestaurantDetailsProps) {
   const navigate = useNavigate();
@@ -436,26 +434,16 @@ export function UnifiedRestaurantDetails({
           </div>
 
           {/* Secondary Action Buttons */}
-          {(canAddToWishlist || onAddRating) && (
-            <div className={`grid ${canAddToWishlist && onAddRating ? 'grid-cols-3' : 'grid-cols-2'} gap-3`}>
-              {canAddToWishlist && (
-                <>
-                  <Button onClick={handleAddToWishlist} variant="outline" className="flex items-center gap-2" disabled={isAdding}>
-                    <Plus className="h-4 w-4" />
-                    {isAdding ? 'Adding...' : 'Add to List'}
-                  </Button>
-                  <Button variant="outline" onClick={handleAddToWishlist} className="flex items-center gap-2" disabled={isAdding}>
-                    <Heart className="h-4 w-4" />
-                    {isAdding ? 'Adding...' : 'Wishlist'}
-                  </Button>
-                </>
-              )}
-              {onAddRating && (
-                <Button variant="outline" onClick={onAddRating} className="flex items-center gap-2">
-                  <Star className="h-4 w-4" />
-                  Rate
-                </Button>
-              )}
+          {canAddToWishlist && (
+            <div className="grid grid-cols-2 gap-3">
+              <Button onClick={handleAddToWishlist} variant="outline" className="flex items-center gap-2" disabled={isAdding}>
+                <Plus className="h-4 w-4" />
+                {isAdding ? 'Adding...' : 'Add to List'}
+              </Button>
+              <Button variant="outline" onClick={handleAddToWishlist} className="flex items-center gap-2" disabled={isAdding}>
+                <Heart className="h-4 w-4" />
+                {isAdding ? 'Adding...' : 'Wishlist'}
+              </Button>
             </div>
           )}
 
