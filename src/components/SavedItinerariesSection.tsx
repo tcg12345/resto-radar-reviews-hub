@@ -227,7 +227,8 @@ export function SavedItinerariesSection({ onLoadItinerary }: SavedItinerariesSec
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Desktop Header */}
+      <div className="hidden md:flex items-center justify-between">
         <div>
           <h3 className="text-xl font-semibold">Saved Itineraries</h3>
           <p className="text-muted-foreground">
@@ -240,8 +241,22 @@ export function SavedItinerariesSection({ onLoadItinerary }: SavedItinerariesSec
         </Button>
       </div>
 
+      {/* Mobile Header - Compact */}
+      <div className="md:hidden flex items-center justify-between mb-4">
+        <div>
+          <h3 className="text-lg font-semibold">My Trips</h3>
+          <p className="text-sm text-muted-foreground">
+            {savedItineraries.length} saved
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={loadSavedItineraries}>
+          <Clock className="w-4 h-4" />
+        </Button>
+      </div>
+
       <Tabs value={filter} onValueChange={(value) => setFilter(value as ItineraryFilter)} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        {/* Desktop Tabs */}
+        <TabsList className="hidden md:grid w-full grid-cols-4">
           <TabsTrigger value="all" className="flex items-center gap-2">
             All ({counts.all})
           </TabsTrigger>
@@ -253,6 +268,22 @@ export function SavedItinerariesSection({ onLoadItinerary }: SavedItinerariesSec
           </TabsTrigger>
           <TabsTrigger value="future" className="flex items-center gap-2">
             Future ({counts.future})
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Mobile Tabs - Compact */}
+        <TabsList className="md:hidden grid w-full grid-cols-4 h-8">
+          <TabsTrigger value="all" className="text-xs px-1">
+            All
+          </TabsTrigger>
+          <TabsTrigger value="current" className="text-xs px-1">
+            Active
+          </TabsTrigger>
+          <TabsTrigger value="past" className="text-xs px-1">
+            Past
+          </TabsTrigger>
+          <TabsTrigger value="future" className="text-xs px-1">
+            Future
           </TabsTrigger>
         </TabsList>
 
@@ -271,105 +302,216 @@ export function SavedItinerariesSection({ onLoadItinerary }: SavedItinerariesSec
             <div className="grid gap-4">
               {filteredItineraries.map((itinerary) => (
                 <Card key={itinerary.id} className="transition-all duration-200 hover:shadow-md">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <CardTitle className="flex items-center gap-2 mb-2">
-                          <Calendar className="w-5 h-5" />
-                          {itinerary.title}
-                        </CardTitle>
-                        <CardDescription className="space-y-2">
-                          <div className="flex items-center gap-4 text-sm">
+                  {/* Desktop Layout */}
+                  <div className="hidden md:block">
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <CardTitle className="flex items-center gap-2 mb-2">
+                            <Calendar className="w-5 h-5" />
+                            {itinerary.title}
+                          </CardTitle>
+                          <CardDescription className="space-y-2">
+                            <div className="flex items-center gap-4 text-sm">
+                              <span>
+                                {format(itinerary.startDate, 'MMM do')} - {format(itinerary.endDate, 'MMM do, yyyy')}
+                              </span>
+                              {itinerary.isMultiCity && (
+                                <Badge variant="outline">Multi-city</Badge>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {itinerary.locations.map((location, index) => (
+                                <Badge key={location.id} variant="secondary" className="flex items-center gap-1">
+                                  <MapPin className="w-3 h-3" />
+                                  {location.name}
+                                </Badge>
+                              ))}
+                            </div>
+                          </CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2 ml-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => onLoadItinerary(itinerary)}
+                            className="flex items-center gap-2"
+                          >
+                            <Edit className="w-4 h-4" />
+                            Load & Edit
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => exportItinerary(itinerary)}
+                            className="flex items-center gap-2"
+                          >
+                            <Download className="w-4 h-4" />
+                            Export
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex items-center gap-2 text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                Delete
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Itinerary</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete "{itinerary.title}"? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteItinerary(itinerary.id!)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </div>
+                    </CardHeader>
+                  </div>
+
+                  {/* Mobile Layout - Compact and Touch-Friendly */}
+                  <div className="md:hidden">
+                    <CardHeader className="pb-3">
+                      <div className="space-y-3">
+                        {/* Title and Date */}
+                        <div>
+                          <CardTitle className="text-base leading-tight mb-1">
+                            {itinerary.title}
+                          </CardTitle>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Calendar className="w-3 h-3" />
                             <span>
                               {format(itinerary.startDate, 'MMM do')} - {format(itinerary.endDate, 'MMM do, yyyy')}
                             </span>
-                            {itinerary.isMultiCity && (
-                              <Badge variant="outline">Multi-city</Badge>
-                            )}
                           </div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            {itinerary.locations.map((location, index) => (
-                              <Badge key={location.id} variant="secondary" className="flex items-center gap-1">
-                                <MapPin className="w-3 h-3" />
-                                {location.name}
-                              </Badge>
-                            ))}
-                          </div>
-                        </CardDescription>
-                      </div>
-                      <div className="flex items-center gap-2 ml-4">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => onLoadItinerary(itinerary)}
-                          className="flex items-center gap-2"
-                        >
-                          <Edit className="w-4 h-4" />
-                          Load & Edit
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => exportItinerary(itinerary)}
-                          className="flex items-center gap-2"
-                        >
-                          <Download className="w-4 h-4" />
-                          Export
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
+                        </div>
+
+                        {/* Locations - Horizontal scroll on mobile */}
+                        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+                          {itinerary.locations.map((location) => (
+                            <Badge key={location.id} variant="secondary" className="flex items-center gap-1 text-xs whitespace-nowrap flex-shrink-0">
+                              <MapPin className="w-2.5 h-2.5" />
+                              {location.name}
+                            </Badge>
+                          ))}
+                          {itinerary.isMultiCity && (
+                            <Badge variant="outline" className="text-xs whitespace-nowrap flex-shrink-0">Multi-city</Badge>
+                          )}
+                        </div>
+
+                        {/* Action Buttons - Stacked on mobile */}
+                        <div className="flex flex-col gap-2">
+                          <div className="flex gap-2">
                             <Button
                               variant="outline"
                               size="sm"
-                              className="flex items-center gap-2 text-destructive hover:text-destructive"
+                              onClick={() => onLoadItinerary(itinerary)}
+                              className="flex-1 h-8 text-xs"
                             >
-                              <Trash2 className="w-4 h-4" />
-                              Delete
+                              <Edit className="w-3 h-3 mr-1" />
+                              Edit
                             </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Itinerary</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete "{itinerary.title}"? This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => deleteItinerary(itinerary.id!)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => exportItinerary(itinerary)}
+                              className="flex-1 h-8 text-xs"
+                            >
+                              <Download className="w-3 h-3 mr-1" />
+                              Export
+                            </Button>
+                          </div>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full h-8 text-xs text-destructive hover:text-destructive border-destructive/20"
                               >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                                <Trash2 className="w-3 h-3 mr-1" />
+                                Delete Trip
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Itinerary</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete "{itinerary.title}"? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteItinerary(itinerary.id!)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       </div>
-                    </div>
-                  </CardHeader>
+                    </CardHeader>
+                  </div>
                   
                   {itinerary.events.length > 0 && (
                     <CardContent className="pt-0">
                       <Separator className="mb-4" />
                       <div className="space-y-2">
-                        <h4 className="font-medium text-sm">Events ({itinerary.events.length})</h4>
-                        <div className="grid gap-2">
-                          {itinerary.events.slice(0, 3).map((event) => (
-                            <div key={event.id} className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Badge variant="outline" className="text-xs">
+                        {/* Desktop Events Layout */}
+                        <div className="hidden md:block">
+                          <h4 className="font-medium text-sm">Events ({itinerary.events.length})</h4>
+                          <div className="grid gap-2">
+                            {itinerary.events.slice(0, 3).map((event) => (
+                              <div key={event.id} className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Badge variant="outline" className="text-xs">
+                                  {event.type}
+                                </Badge>
+                                <span>{event.date}</span>
+                                <span>{event.time}</span>
+                                <span className="truncate">{event.title}</span>
+                              </div>
+                            ))}
+                            {itinerary.events.length > 3 && (
+                              <div className="text-sm text-muted-foreground">
+                                ... and {itinerary.events.length - 3} more events
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Mobile Events Layout - More compact */}
+                        <div className="md:hidden">
+                          <h4 className="font-medium text-xs mb-2 text-muted-foreground">
+                            {itinerary.events.length} Events
+                          </h4>
+                          <div className="flex gap-1 flex-wrap">
+                            {itinerary.events.slice(0, 2).map((event) => (
+                              <Badge key={event.id} variant="outline" className="text-xs">
                                 {event.type}
                               </Badge>
-                              <span>{event.date}</span>
-                              <span>{event.time}</span>
-                              <span className="truncate">{event.title}</span>
-                            </div>
-                          ))}
-                          {itinerary.events.length > 3 && (
-                            <div className="text-sm text-muted-foreground">
-                              ... and {itinerary.events.length - 3} more events
-                            </div>
-                          )}
+                            ))}
+                            {itinerary.events.length > 2 && (
+                              <Badge variant="secondary" className="text-xs">
+                                +{itinerary.events.length - 2}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </CardContent>
