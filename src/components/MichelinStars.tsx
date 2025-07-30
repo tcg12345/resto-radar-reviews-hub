@@ -45,7 +45,7 @@ export const MichelinStars = React.memo(({
       
       {displayStars > 0 && showLogo && <>
           
-          <img src="/lovable-uploads/a19328d3-fb1d-41e4-b595-caaee16a8c16.png" alt="Michelin" className={`${sizeClasses[size]} object-contain ml-1`} />
+          <img src="/lovable-uploads/a19328d3-fb1d-41e4-b595-caaee16a8c16.png" alt="Michelin" className={`${size === 'sm' ? 'h-6' : size === 'md' ? 'h-8' : 'h-10'} object-contain ml-1`} />
         </>}
       
       {!readonly && onStarsChange && displayStars === 0 && <span className={`text-muted-foreground ${textSizeClasses[size]}`}>
