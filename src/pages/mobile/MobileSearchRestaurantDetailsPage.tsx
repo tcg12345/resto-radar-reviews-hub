@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { ReservationWidget } from '@/components/ReservationWidget';
+import { RestaurantLocationMap } from '@/components/RestaurantLocationMap';
 
 interface GooglePlaceResult {
   place_id: string;
@@ -403,6 +404,24 @@ export default function MobileSearchRestaurantDetailsPage() {
               </CardContent>
             </Card>
           )}
+
+          {/* Location Map */}
+          <Card>
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <h3 className="font-semibold">Location</h3>
+              </div>
+              <div className="h-64 w-full rounded-lg overflow-hidden border">
+                <RestaurantLocationMap
+                  latitude={restaurant.geometry.location.lat}
+                  longitude={restaurant.geometry.location.lng}
+                  name={restaurant.name}
+                  address={restaurant.formatted_address}
+                />
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Yelp Data */}
           {restaurant.yelpData && (
