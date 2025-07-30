@@ -116,13 +116,5 @@ export function ReservationWidget({
       toast.info('Phone number not available');
     }
   };
-  return <Card className={cn("w-full", className)}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
-          Make a Reservation
-        </CardTitle>
-      </CardHeader>
-      
-    </Card>;
+  return;
 }
