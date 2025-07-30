@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Filter, X, ChevronDown, ChevronUp, Utensils, DollarSign, Star } from 'lucide-react';
+import { Filter, X, ChevronDown, ChevronUp, Utensils, DollarSign } from 'lucide-react';
+import { MichelinStarIcon } from '@/components/MichelinStarIcon';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -288,7 +289,7 @@ export function RatedRestaurantsFilterDialog({
                 <CollapsibleTrigger asChild>
                   <div className="flex items-center justify-between py-4 px-0 border-b border-border cursor-pointer hover:bg-muted/50">
                     <div className="flex items-center gap-3">
-                      <Star className="h-5 w-5 text-muted-foreground" />
+                      <MichelinStarIcon className="h-5 w-5 text-muted-foreground" />
                       <span className="text-sm font-medium">Michelin Stars</span>
                       {filterMichelins.length > 0 && (
                         <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded-full">
