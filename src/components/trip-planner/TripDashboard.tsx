@@ -86,8 +86,54 @@ export function TripDashboard() {
 
       {/* Controls */}
       <Card className="border-2 border-primary/10">
-        <CardContent className="p-4">
-          <div className="flex flex-col lg:flex-row gap-4">
+        <CardContent className="p-3 md:p-4">
+          {/* Mobile Layout */}
+          <div className="lg:hidden space-y-3">
+            {/* Search - Full width on mobile */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input placeholder="Search trips..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 h-10" />
+            </div>
+
+            {/* Filters Row - Compact on mobile */}
+            <div className="flex gap-2">
+              <Select value={selectedStatus} onValueChange={(value: any) => setSelectedStatus(value)}>
+                <SelectTrigger className="flex-1 h-9 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="upcoming">Upcoming</SelectItem>
+                  <SelectItem value="in-progress">In Progress</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={sortBy} onValueChange={(value: SortBy) => setSortBy(value)}>
+                <SelectTrigger className="flex-1 h-9 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="recent">Recent</SelectItem>
+                  <SelectItem value="oldest">Oldest</SelectItem>
+                  <SelectItem value="name">Name</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* View Mode - Compact */}
+              <div className="flex items-center border rounded-md">
+                <Button variant={viewMode === 'grid' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('grid')} className="h-9 w-9 p-0">
+                  <Grid3X3 className="w-3.5 h-3.5" />
+                </Button>
+                <Button variant={viewMode === 'list' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('list')} className="h-9 w-9 p-0">
+                  <List className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden lg:flex flex-row gap-4">
             {/* Search */}
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
