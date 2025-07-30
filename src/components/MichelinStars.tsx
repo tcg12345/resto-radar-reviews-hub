@@ -71,11 +71,16 @@ export const MichelinStars = React.memo(({
       </div>
       
       {displayStars > 0 && showLogo && (
-        <img 
-          src="/lovable-uploads/a19328d3-fb1d-41e4-b595-caaee16a8c16.png"
-          alt="Michelin"
-          className={`${size === 'sm' ? 'h-14' : size === 'md' ? 'h-18' : 'h-24'} object-contain -ml-2 mt-1`}
-        />
+        <>
+          <span className={`${textSizeClasses[size]} font-medium ml-1`}>
+            {displayStars} Star{displayStars > 1 ? 's' : ''}
+          </span>
+          <img 
+            src="/lovable-uploads/a19328d3-fb1d-41e4-b595-caaee16a8c16.png"
+            alt="Michelin"
+            className={`${size === 'sm' ? 'h-4' : size === 'md' ? 'h-5' : 'h-6'} object-contain ml-1`}
+          />
+        </>
       )}
       
       {!readonly && onStarsChange && displayStars === 0 && (
