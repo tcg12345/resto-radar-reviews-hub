@@ -151,9 +151,18 @@ export function RestaurantCard({
         </CardContent>
       </Card>;
   }
-  return <>
-      <PhotoGallery photos={restaurant.photos} photoCaptions={restaurant.photoCaptions} initialIndex={currentPhotoIndex} isOpen={isGalleryOpen} onClose={() => setIsGalleryOpen(false)} restaurantName={restaurant.name} isMobile={isMobile} />
-    <Card className="overflow-hidden bg-card shadow-sm hover:shadow-md transition-shadow duration-300 lg:shadow-md lg:hover:shadow-lg flex flex-col h-full">
+  return (
+    <>
+      <PhotoGallery 
+        photos={restaurant.photos} 
+        photoCaptions={restaurant.photoCaptions} 
+        initialIndex={currentPhotoIndex} 
+        isOpen={isGalleryOpen} 
+        onClose={() => setIsGalleryOpen(false)} 
+        restaurantName={restaurant.name} 
+        isMobile={isMobile} 
+      />
+      <Card className="overflow-hidden bg-card shadow-sm hover:shadow-md transition-shadow duration-300 lg:shadow-md lg:hover:shadow-lg flex flex-col h-full">
       {/* Show photo section based on restaurant type */}
       {restaurant.photos.length > 0 || !restaurant.isWishlist ? <div className="relative aspect-video w-full overflow-hidden bg-muted lg:aspect-video">
           {restaurant.photos.length > 0 ? <>
@@ -387,5 +396,6 @@ export function RestaurantCard({
       
       {/* Share Restaurant Dialog */}
       <ShareRestaurantDialog restaurant={restaurant} isOpen={isShareDialogOpen} onOpenChange={setIsShareDialogOpen} />
-    </>;
+     </>
+  );
 }
