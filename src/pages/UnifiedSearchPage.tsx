@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, MapPin, Star, Heart, Phone, Globe, Navigation, Clock, Plus, Truck, ShoppingBag, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -149,7 +149,7 @@ export default function UnifiedSearchPage() {
   };
 
   // Generate recommendations based on locations where user has rated restaurants
-  const generateLocationBasedRecommendations = async (userRestaurants: any[], isLoadMore = false) => {
+  const generateLocationBasedRecommendations = useCallback(async (userRestaurants: any[], isLoadMore = false) => {
     if (!userRestaurants.length) return;
     
     if (isLoadMore) {
@@ -214,13 +214,13 @@ export default function UnifiedSearchPage() {
         setIsLoadingRecommendations(false);
       }
     }
-  };
+  }, [nextPageToken, setRecommendedPlaces, setNextPageToken, setHasMoreRecommendations, setIsLoadingRecommendations, setIsLoadingMoreRecommendations]);
 
-  const loadMoreRecommendations = () => {
-    if (!isLoadingMoreRecommendations && hasMoreRecommendations && nextPageToken) {
+  const loadMoreRecommendations = useCallback(() => {
+    if (!isLoadingMoreRecommendations && hasMoreRecommendations && nextPageToken && userRestaurants.length > 0) {
       generateLocationBasedRecommendations(userRestaurants, true);
     }
-  };
+  }, [isLoadingMoreRecommendations, hasMoreRecommendations, nextPageToken, userRestaurants]);
 
   // Save clicked restaurant to recent restaurants
   const saveToRecentRestaurants = (place: GooglePlaceResult) => {
