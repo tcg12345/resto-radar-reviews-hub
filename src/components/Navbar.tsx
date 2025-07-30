@@ -157,7 +157,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
       {/* Mobile Bottom Navigation - Modern Circular Design */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t border-border/20">
         <div className="pb-safe-area-bottom">
-          <div className="flex justify-around items-center px-4 py-4 pb-6">
+          <div className="flex justify-around items-center px-4 pt-2 pb-6">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -174,11 +174,11 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
                     }`}
                   >
                     <Icon className={`transition-all duration-300 ${
-                      isActive ? 'text-primary h-6 w-6' : 'h-5 w-5'
+                      isActive ? 'text-primary h-7 w-7' : 'h-6 w-6'
                     }`} />
                   </Button>
                   <span className={`transition-all duration-300 -mt-2 pb-1 ${
-                    isActive ? 'text-primary text-[10px] font-bold' : 'text-muted-foreground text-[9px] font-medium'
+                    isActive ? 'text-primary text-[11px] font-bold' : 'text-muted-foreground text-[10px] font-medium'
                   }`}>
                     {tab.shortLabel}
                   </span>
