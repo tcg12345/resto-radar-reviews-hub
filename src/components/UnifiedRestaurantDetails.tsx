@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { 
   ArrowLeft, 
   MapPin, 
@@ -96,6 +97,7 @@ export function UnifiedRestaurantDetails({
 }: UnifiedRestaurantDetailsProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const actualIsMobile = useIsMobile();
   const [photos, setPhotos] = useState<string[]>([]);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [restaurantData, setRestaurantData] = useState(restaurant);
@@ -575,7 +577,7 @@ export function UnifiedRestaurantDetails({
         isOpen={isPhotoGalleryOpen}
         onClose={() => setIsPhotoGalleryOpen(false)}
         restaurantName={restaurantData.name}
-        isMobile={isMobile}
+        isMobile={actualIsMobile}
       />
     </div>
   );
