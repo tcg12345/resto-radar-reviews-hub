@@ -25,6 +25,7 @@ export const MichelinStars = React.memo(({
     lg: 'text-base'
   };
   const displayStars = stars || 0;
+  console.log('MichelinStars component received:', { stars, displayStars, readonly });
   const handleStarClick = (starCount: number) => {
     if (readonly) return;
     // If clicking the same number of stars, remove all stars

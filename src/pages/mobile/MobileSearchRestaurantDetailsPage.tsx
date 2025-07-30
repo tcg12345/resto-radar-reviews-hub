@@ -224,6 +224,12 @@ export default function MobileSearchRestaurantDetailsPage() {
           michelinResult.data.michelinStars : (prev.michelinStars || 0)
       } : null);
       
+      console.log('AI Enhancement Results:', {
+        cuisine: cuisineResult?.data?.cuisine,
+        michelinStars: michelinResult?.data?.michelinStars,
+        restaurantName: restaurant.name
+      });
+      
     } catch (error) {
       console.error('Error enhancing restaurant with AI:', error);
       // Silently fail - don't show error to user for this enhancement
@@ -423,11 +429,14 @@ export default function MobileSearchRestaurantDetailsPage() {
               })()}
               
               {/* Michelin Stars */}
-              {!isEnhancingWithAI && restaurant.michelinStars && restaurant.michelinStars > 0 && (
-                <Badge variant="outline">
-                  <MichelinStars stars={restaurant.michelinStars} readonly={true} size="sm" />
-                </Badge>
-              )}
+              {!isEnhancingWithAI && restaurant.michelinStars && restaurant.michelinStars > 0 && (() => {
+                console.log('Displaying Michelin stars:', restaurant.michelinStars, 'for restaurant:', restaurant.name);
+                return (
+                  <Badge variant="outline">
+                    <MichelinStars stars={restaurant.michelinStars} readonly={true} size="sm" />
+                  </Badge>
+                );
+              })()}
               
               {restaurant.yelpData?.categories?.slice(0, 2).map((category, index) => (
                 <Badge key={index} variant="outline">{category}</Badge>
