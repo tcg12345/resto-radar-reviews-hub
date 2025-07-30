@@ -686,62 +686,65 @@ export default function UnifiedSearchPage() {
             </Button>
           </div>
 
-          {/* Recent Restaurants */}
+          {/* Recent Restaurants Section */}
           {(() => {
-            console.log('Checking recentClickedRestaurants length:', recentClickedRestaurants?.length);
-            return recentClickedRestaurants.length > 0;
-          })() && (
-            <div className="space-y-3">
-              <h3 className="text-lg font-semibold text-foreground">Recents</h3>
-              <div className="space-y-2">
-                {recentClickedRestaurants.map((restaurant, index) => (
-                  <div 
-                    key={restaurant.place_id}
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                    onClick={() => handlePlaceClick(restaurant)}
-                  >
-                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                      <Clock className="w-4 h-4 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm line-clamp-1">{restaurant.name}</p>
-                      <p className="text-xs text-muted-foreground line-clamp-1">
-                        {(() => {
-                          const parts = restaurant.formatted_address?.split(', ') || [];
-                          if (parts.length >= 2) {
-                            if (parts[parts.length - 1] === 'United States') {
-                              const city = parts[parts.length - 3] || '';
-                              const stateWithZip = parts[parts.length - 2] || '';
-                              const state = stateWithZip.replace(/\s+\d{5}(-\d{4})?$/, '');
-                              return parts.length >= 3 ? `${city}, ${state}` : state;
-                            }
-                            const city = parts[parts.length - 2] || '';
-                            const country = parts[parts.length - 1] || '';
-                            const cleanCity = city.replace(/\s+[A-Z0-9]{2,10}$/, '');
-                            return `${cleanCity}, ${country}`;
-                          }
-                          return parts[0] || '';
-                        })()}
-                      </p>
-                    </div>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const updatedRestaurants = recentClickedRestaurants.filter(r => r.place_id !== restaurant.place_id);
-                        setRecentClickedRestaurants(updatedRestaurants);
-                        localStorage.setItem('recentClickedRestaurants', JSON.stringify(updatedRestaurants));
-                      }}
-                      className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+            console.log('Checking recent clicked restaurants length:', recentClickedRestaurants?.length);
+            const hasRecentItems = recentClickedRestaurants && recentClickedRestaurants.length > 0;
+            if (!hasRecentItems) return null;
+            
+            return (
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-foreground">Recents</h3>
+                <div className="space-y-2">
+                  {recentClickedRestaurants.map((restaurantItem, idx) => (
+                    <div 
+                      key={restaurantItem.place_id}
+                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                      onClick={() => handlePlaceClick(restaurantItem)}
                     >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
+                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                        <Clock className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm line-clamp-1">{restaurantItem.name}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-1">
+                          {(() => {
+                            const addressParts = restaurantItem.formatted_address?.split(', ') || [];
+                            if (addressParts.length >= 2) {
+                              if (addressParts[addressParts.length - 1] === 'United States') {
+                                const cityPart = addressParts[addressParts.length - 3] || '';
+                                const stateWithZip = addressParts[addressParts.length - 2] || '';
+                                const statePart = stateWithZip.replace(/\s+\d{5}(-\d{4})?$/, '');
+                                return addressParts.length >= 3 ? `${cityPart}, ${statePart}` : statePart;
+                              }
+                              const cityPart = addressParts[addressParts.length - 2] || '';
+                              const countryPart = addressParts[addressParts.length - 1] || '';
+                              const cleanCity = cityPart.replace(/\s+[A-Z0-9]{2,10}$/, '');
+                              return `${cleanCity}, ${countryPart}`;
+                            }
+                            return addressParts[0] || '';
+                          })()}
+                        </p>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const filteredItems = recentClickedRestaurants.filter(r => r.place_id !== restaurantItem.place_id);
+                          setRecentClickedRestaurants(filteredItems);
+                          localStorage.setItem('recentClickedRestaurants', JSON.stringify(filteredItems));
+                        }}
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Location-based Recommendations */}
           {userRestaurants.length > 0 && (
@@ -815,7 +818,11 @@ export default function UnifiedSearchPage() {
           )}
 
           {/* Empty state when no recent restaurants or recommendations */}
-          {recentClickedRestaurants.length === 0 && userRestaurants.length === 0 && (
+          {(() => {
+            const hasRecentItems = recentClickedRestaurants && recentClickedRestaurants.length > 0;
+            const hasUserRestaurants = userRestaurants && userRestaurants.length > 0;
+            return !hasRecentItems && !hasUserRestaurants;
+          })() && (
             <div className="text-center py-12">
               <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
                 <Search className="w-8 h-8 text-muted-foreground" />
