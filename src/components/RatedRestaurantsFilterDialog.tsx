@@ -58,17 +58,24 @@ export function RatedRestaurantsFilterDialog({
   // Prevent background scrolling when dialog is open
   useEffect(() => {
     if (open) {
+      const originalStyle = window.getComputedStyle(document.body);
+      const originalOverflow = originalStyle.overflow;
+      const originalTouchAction = originalStyle.touchAction;
+      
       document.body.style.overflow = 'hidden';
       document.body.style.touchAction = 'none';
-    } else {
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.height = '100%';
+      
+      return () => {
+        document.body.style.overflow = originalOverflow;
+        document.body.style.touchAction = originalTouchAction;
+        document.body.style.position = '';
+        document.body.style.width = '';
+        document.body.style.height = '';
+      };
     }
-
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
-    };
   }, [open]);
 
   if (!open) return null;
@@ -94,13 +101,13 @@ export function RatedRestaurantsFilterDialog({
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/60 z-[60]"
+        className="fixed inset-0 bg-black/60 z-[100]"
         onClick={() => onOpenChange(false)}
       />
       
       {/* Bottom Sheet */}
-      <div className="fixed bottom-0 left-0 right-0 z-[70] bg-background border-t rounded-t-xl animate-in slide-in-from-bottom duration-300 h-[85vh] touch-pan-y">
-        <div className="flex flex-col h-full">
+      <div className="fixed bottom-0 left-0 right-0 z-[110] bg-background border-t rounded-t-xl animate-in slide-in-from-bottom duration-300 h-[85vh] touch-pan-y overscroll-contain">
+        <div className="flex flex-col h-full overscroll-contain">
           {/* Drag Handle */}
           <div className="flex justify-center py-2">
             <div className="w-8 h-1 bg-muted-foreground/30 rounded-full"></div>
@@ -112,7 +119,7 @@ export function RatedRestaurantsFilterDialog({
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto bg-background">
+          <div className="flex-1 overflow-y-auto bg-background overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
             <div className="p-4 space-y-6">
               {/* Sort Options */}
               <div>
