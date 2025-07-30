@@ -97,11 +97,10 @@ export function FriendsActivityPage() {
     cities: Record<string, number>;
     cuisines: Record<string, number>;
   } | null>(null);
-  
+
   // Mobile state
   const [isMobile, setIsMobile] = useState(false);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  
   const dataFetched = useRef(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadingTriggerRef = useRef<HTMLDivElement>(null);
@@ -230,7 +229,6 @@ export function FriendsActivityPage() {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768); // md breakpoint
     };
-    
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -649,8 +647,7 @@ export function FriendsActivityPage() {
         </div>
       </div>;
   }
-  return (
-    <div className="w-full">
+  return <div className="w-full">
       <div className="p-6 space-y-6">
       {/* Header */}
       <div className="space-y-4">
@@ -786,38 +783,29 @@ export function FriendsActivityPage() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search restaurants, friends..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={e => {
-          if (e.key === 'Enter') {
-            if (searchTimeoutRef.current) {
-              clearTimeout(searchTimeoutRef.current);
+            if (e.key === 'Enter') {
+              if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+              }
+              setDebouncedSearchQuery(searchQuery);
             }
-            setDebouncedSearchQuery(searchQuery);
-          }
-        }} className="pl-10 h-12 text-base" />
+          }} className="pl-10 h-12 text-base" />
         </div>
 
         {/* Filters and Sort Row */}
         <div className="flex gap-3">
           {/* Mobile Filters Button */}
-          {isMobile ? (
-            <Button 
-              variant="outline" 
-              className="flex-1 h-12 flex items-center justify-between"
-              onClick={() => setShowMobileFilters(true)}
-            >
+          {isMobile ? <Button variant="outline" className="flex-1 h-12 flex items-center justify-between" onClick={() => setShowMobileFilters(true)}>
               <span className="flex items-center gap-2">
                 <Filter className="h-4 w-4" />
                 Filters
-                {selectedCuisines.length + selectedCities.length + selectedFriends.length > 0 && (
-                  <Badge variant="secondary" className="ml-1 h-5 px-2 text-xs">
+                {selectedCuisines.length + selectedCities.length + selectedFriends.length > 0 && <Badge variant="secondary" className="ml-1 h-5 px-2 text-xs">
                     {selectedCuisines.length + selectedCities.length + selectedFriends.length}
-                  </Badge>
-                )}
+                  </Badge>}
               </span>
               <ChevronDown className="h-4 w-4" />
-            </Button>
-          ) : (
-            /* Desktop Filters Dropdown */
-            <DropdownMenu>
+            </Button> : (/* Desktop Filters Dropdown */
+          <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="flex-1 h-12 flex items-center justify-between">
                   <span className="flex items-center gap-2">
@@ -894,8 +882,7 @@ export function FriendsActivityPage() {
                   </DropdownMenuSubContent>
                 </DropdownMenuSub>
               </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+            </DropdownMenu>)}
 
           {/* Sort Dropdown */}
           <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
@@ -912,29 +899,16 @@ export function FriendsActivityPage() {
         </div>
 
         {/* Mobile Filters Dialog */}
-        <FriendsFiltersDialog
-          open={showMobileFilters}
-          onOpenChange={setShowMobileFilters}
-          uniqueFriends={uniqueFriends}
-          uniqueCities={uniqueCities}
-          uniqueCuisines={uniqueCuisines}
-          selectedFriends={selectedFriends}
-          selectedCities={selectedCities}
-          selectedCuisines={selectedCuisines}
-          onFriendsChange={setSelectedFriends}
-          onCitiesChange={setSelectedCities}
-          onCuisinesChange={setSelectedCuisines}
-          filterCounts={filterCounts}
-        />
+        <FriendsFiltersDialog open={showMobileFilters} onOpenChange={setShowMobileFilters} uniqueFriends={uniqueFriends} uniqueCities={uniqueCities} uniqueCuisines={uniqueCuisines} selectedFriends={selectedFriends} selectedCities={selectedCities} selectedCuisines={selectedCuisines} onFriendsChange={setSelectedFriends} onCitiesChange={setSelectedCities} onCuisinesChange={setSelectedCuisines} filterCounts={filterCounts} />
 
         {/* Selected Filter Tags */}
         {(selectedFriends.length > 0 || selectedCities.length > 0 || selectedCuisines.length > 0) && <div className="flex flex-wrap gap-2">
             {selectedFriends.map(friendId => {
-          const friend = uniqueFriends.find(f => f.id === friendId);
-          return <Badge key={`friend-${friendId}`} variant="default" className="cursor-pointer hover:bg-primary/80 text-xs h-6 px-2" onClick={() => setSelectedFriends(prev => prev.filter(f => f !== friendId))}>
+            const friend = uniqueFriends.find(f => f.id === friendId);
+            return <Badge key={`friend-${friendId}`} variant="default" className="cursor-pointer hover:bg-primary/80 text-xs h-6 px-2" onClick={() => setSelectedFriends(prev => prev.filter(f => f !== friendId))}>
                   {friend?.name} ×
                 </Badge>;
-        })}
+          })}
             
             {selectedCities.map(city => <Badge key={`city-${city}`} variant="default" className="cursor-pointer hover:bg-primary/80 text-xs h-6 px-2" onClick={() => setSelectedCities(prev => prev.filter(c => c !== city))}>
                 {city} ×
@@ -948,12 +922,12 @@ export function FriendsActivityPage() {
         {/* Clear All Filters Button */}
         {(selectedCuisines.length > 0 || selectedCities.length > 0 || selectedFriends.length > 0 || debouncedSearchQuery) && <div className="flex justify-center">
             <Button variant="outline" size="sm" onClick={() => {
-          setSelectedCuisines([]);
-          setSelectedCities([]);
-          setSelectedFriends([]);
-          setSearchQuery('');
-          setDebouncedSearchQuery('');
-        }} className="text-xs">
+            setSelectedCuisines([]);
+            setSelectedCities([]);
+            setSelectedFriends([]);
+            setSearchQuery('');
+            setDebouncedSearchQuery('');
+          }} className="text-xs">
               Clear All Filters
             </Button>
           </div>}
@@ -970,13 +944,13 @@ export function FriendsActivityPage() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <Input placeholder="Search restaurants, friends..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={e => {
-            if (e.key === 'Enter') {
-              if (searchTimeoutRef.current) {
-                clearTimeout(searchTimeoutRef.current);
+              if (e.key === 'Enter') {
+                if (searchTimeoutRef.current) {
+                  clearTimeout(searchTimeoutRef.current);
+                }
+                setDebouncedSearchQuery(searchQuery);
               }
-              setDebouncedSearchQuery(searchQuery);
-            }
-          }} className="lg:col-span-2" />
+            }} className="lg:col-span-2" />
             
             <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
               <SelectTrigger className="bg-background border-border">
@@ -994,12 +968,12 @@ export function FriendsActivityPage() {
           {/* Clear All Filters Button */}
           {(selectedCuisines.length > 0 || selectedCities.length > 0 || selectedFriends.length > 0 || debouncedSearchQuery) && <div className="flex justify-end">
               <Button variant="outline" size="sm" onClick={() => {
-            setSelectedCuisines([]);
-            setSelectedCities([]);
-            setSelectedFriends([]);
-            setSearchQuery('');
-            setDebouncedSearchQuery('');
-          }} className="text-xs">
+              setSelectedCuisines([]);
+              setSelectedCities([]);
+              setSelectedFriends([]);
+              setSearchQuery('');
+              setDebouncedSearchQuery('');
+            }} className="text-xs">
                 Clear All Filters
               </Button>
             </div>}
@@ -1023,12 +997,12 @@ export function FriendsActivityPage() {
                 <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto p-2 border rounded-md bg-background">
                   {uniqueFriends.map(friend => <div key={friend.id} className="flex items-center space-x-2">
                       <Checkbox id={`friend-${friend.id}`} checked={selectedFriends.includes(friend.id)} onCheckedChange={checked => {
-                    if (checked) {
-                      setSelectedFriends(prev => [...prev, friend.id]);
-                    } else {
-                      setSelectedFriends(prev => prev.filter(f => f !== friend.id));
-                    }
-                  }} />
+                      if (checked) {
+                        setSelectedFriends(prev => [...prev, friend.id]);
+                      } else {
+                        setSelectedFriends(prev => prev.filter(f => f !== friend.id));
+                      }
+                    }} />
                       <label htmlFor={`friend-${friend.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
                         {friend.name} ({friend.count})
                       </label>
@@ -1054,12 +1028,12 @@ export function FriendsActivityPage() {
                 <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto p-2 border rounded-md bg-background">
                   {uniqueCities.map(city => <div key={city} className="flex items-center space-x-2">
                       <Checkbox id={`city-${city}`} checked={selectedCities.includes(city)} onCheckedChange={checked => {
-                    if (checked) {
-                      setSelectedCities(prev => [...prev, city]);
-                    } else {
-                      setSelectedCities(prev => prev.filter(c => c !== city));
-                    }
-                  }} />
+                      if (checked) {
+                        setSelectedCities(prev => [...prev, city]);
+                      } else {
+                        setSelectedCities(prev => prev.filter(c => c !== city));
+                      }
+                    }} />
                       <label htmlFor={`city-${city}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
                         {city} ({filterCounts.cities[city] || 0})
                       </label>
@@ -1085,12 +1059,12 @@ export function FriendsActivityPage() {
                 <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto p-2 border rounded-md bg-background">
                   {uniqueCuisines.map(cuisine => <div key={cuisine} className="flex items-center space-x-2">
                       <Checkbox id={`cuisine-${cuisine}`} checked={selectedCuisines.includes(cuisine)} onCheckedChange={checked => {
-                    if (checked) {
-                      setSelectedCuisines(prev => [...prev, cuisine]);
-                    } else {
-                      setSelectedCuisines(prev => prev.filter(c => c !== cuisine));
-                    }
-                  }} />
+                      if (checked) {
+                        setSelectedCuisines(prev => [...prev, cuisine]);
+                      } else {
+                        setSelectedCuisines(prev => prev.filter(c => c !== cuisine));
+                      }
+                    }} />
                       <label htmlFor={`cuisine-${cuisine}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
                         {cuisine} ({filterCounts.cuisines[cuisine] || 0})
                       </label>
@@ -1104,11 +1078,11 @@ export function FriendsActivityPage() {
           {(selectedFriends.length > 0 || selectedCities.length > 0 || selectedCuisines.length > 0) && <div className="flex flex-wrap gap-2 mt-4">
               {/* Selected Friends Tags */}
               {selectedFriends.map(friendId => {
-            const friend = uniqueFriends.find(f => f.id === friendId);
-            return <Badge key={`friend-${friendId}`} variant="default" className="cursor-pointer hover:bg-primary/80" onClick={() => setSelectedFriends(prev => prev.filter(f => f !== friendId))}>
+              const friend = uniqueFriends.find(f => f.id === friendId);
+              return <Badge key={`friend-${friendId}`} variant="default" className="cursor-pointer hover:bg-primary/80" onClick={() => setSelectedFriends(prev => prev.filter(f => f !== friendId))}>
                     {friend?.name} ×
                   </Badge>;
-          })}
+            })}
               
               {/* Selected City Tags */}
               {selectedCities.map(city => <Badge key={`city-${city}`} variant="default" className="cursor-pointer hover:bg-primary/80" onClick={() => setSelectedCities(prev => prev.filter(c => c !== city))}>
@@ -1136,8 +1110,7 @@ export function FriendsActivityPage() {
           </h2>
         </div>
 
-        {friendsRestaurants.length === 0 && !isLoading ? (
-          <div className="px-6">
+        {friendsRestaurants.length === 0 && !isLoading ? <div className="px-6">
             <Card>
               <CardContent className="p-12 text-center">
                 <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -1147,9 +1120,7 @@ export function FriendsActivityPage() {
                 </p>
               </CardContent>
             </Card>
-          </div>
-        ) : (
-          <>
+          </div> : <>
             <div className="space-y-0">
               {filteredRestaurants.map(restaurant => <div key={restaurant.id} className="border-t border-b border-border hover:bg-accent/50 transition-colors cursor-pointer p-4" onClick={() => {
             // Preserve current search parameters for when user returns
@@ -1181,9 +1152,7 @@ export function FriendsActivityPage() {
                     <div>
                       <div className="flex items-center gap-1 mb-1">
                         <h3 className="font-semibold text-sm leading-tight line-clamp-1">{restaurant.name}</h3>
-                         {restaurant.michelin_stars && restaurant.michelin_stars > 0 && (
-                           <MichelinStars stars={restaurant.michelin_stars} size="sm" readonly showLogo={false} />
-                         )}
+                         {restaurant.michelin_stars && restaurant.michelin_stars > 0 && <MichelinStars stars={restaurant.michelin_stars} size="sm" readonly showLogo={false} />}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
                         <span className="truncate">{restaurant.cuisine}</span>
@@ -1244,9 +1213,7 @@ export function FriendsActivityPage() {
                     <div>
                       <div className="flex items-center gap-1 mb-1">
                         <h3 className="font-semibold text-lg">{restaurant.name}</h3>
-                         {restaurant.michelin_stars && restaurant.michelin_stars > 0 && (
-                           <MichelinStars stars={restaurant.michelin_stars} size="sm" readonly showLogo={false} />
-                         )}
+                         {restaurant.michelin_stars && restaurant.michelin_stars > 0 && <MichelinStars stars={restaurant.michelin_stars} size="sm" readonly showLogo={false} />}
                       </div>
                       <p className="text-sm text-muted-foreground mb-2">{restaurant.cuisine}</p>
                       
@@ -1284,63 +1251,47 @@ export function FriendsActivityPage() {
                 </div>)}
 
             {/* Skeleton cards for loading more - show immediately when loading starts */}
-            {isLoadingMore && (
-              <>
-                {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
-                  <RestaurantActivityCardSkeleton key={`skeleton-loading-${index}`} />
-                ))}
-              </>
-            )}
+            {isLoadingMore && <>
+                {Array.from({
+              length: ITEMS_PER_PAGE
+            }).map((_, index) => <RestaurantActivityCardSkeleton key={`skeleton-loading-${index}`} />)}
+              </>}
             </div>
 
             {/* Pagination Controls */}
             <div className="px-6">
-              <div className="flex flex-row justify-center items-center gap-2 sm:gap-4 pt-8">
+              <div className="flex flex-row justify-center items-center gap-2 sm:gap-4 pt-8 px-0 my-[5px] py-[17px]">
                 {/* Previous Page Button */}
-                {currentPage > 1 && (
-                  <Button onClick={loadPreviousPage} disabled={isLoadingMore} size="sm" variant="outline" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    {isLoadingMore ? 'Loading...' : (
-                      <>
+                {currentPage > 1 && <Button onClick={loadPreviousPage} disabled={isLoadingMore} size="sm" variant="outline" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    {isLoadingMore ? 'Loading...' : <>
                         <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
                         <span className="hidden sm:inline">Previous Page ({currentPage - 1})</span>
                         <span className="sm:hidden">Prev</span>
-                      </>
-                    )}
-                  </Button>
-                )}
+                      </>}
+                  </Button>}
 
                 {/* Page indicator */}
-                {(currentPage > 1 || hasMore) && (
-                  <div className="text-xs sm:text-sm text-muted-foreground font-medium px-2 sm:px-4 whitespace-nowrap">
+                {(currentPage > 1 || hasMore) && <div className="text-xs sm:text-sm text-muted-foreground font-medium px-2 sm:px-4 whitespace-nowrap">
                     Page {currentPage}
-                  </div>
-                )}
+                  </div>}
 
                 {/* Next Page Button */}
-                {hasMore && (
-                  <Button onClick={loadNextPage} disabled={isLoadingMore} size="sm" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    {isLoadingMore ? 'Loading...' : (
-                      <>
+                {hasMore && <Button onClick={loadNextPage} disabled={isLoadingMore} size="sm" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    {isLoadingMore ? 'Loading...' : <>
                         <span className="hidden sm:inline">Next Page ({currentPage + 1})</span>
                         <span className="sm:hidden">Next</span>
                         <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
-                      </>
-                    )}
-                  </Button>
-                )}
+                      </>}
+                  </Button>}
                 
                 {/* End message */}
-                {!hasMore && friendsRestaurants.length > 0 && (
-                  <div className="text-center text-muted-foreground">
+                {!hasMore && friendsRestaurants.length > 0 && <div className="text-center text-muted-foreground">
                     <p>You've reached the end of the list!</p>
                     <p className="text-sm mt-1">Page {currentPage} • {filteredRestaurants.length} restaurants shown</p>
-                  </div>
-                )}
+                  </div>}
               </div>
             </div>
-          </>
-        )}
+          </>}
       </div>
-    </div>
-  );
+    </div>;
 }
