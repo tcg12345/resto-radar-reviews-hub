@@ -157,30 +157,30 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
       {/* Mobile Bottom Navigation - Modern Circular Design */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t border-border/20">
         <div className="pb-safe-area-bottom">
-          <div className="flex justify-around items-center px-4 py-2">
+          <div className="flex justify-around items-center px-4 py-3">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (
-                <div key={tab.id} className="flex flex-col items-center gap-0.5">
+                <div key={tab.id} className="flex flex-col items-center gap-1">
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => onTabChange(tab.id)}
-                    className={`relative h-10 w-10 rounded-full mobile-tap-target transition-all duration-300 transform ${
+                    className={`relative h-12 w-12 rounded-full mobile-tap-target transition-all duration-300 transform ${
                       isActive 
                         ? 'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg scale-110 shadow-primary/25' 
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/40 hover:scale-105'
                     }`}
                   >
-                    <Icon className={`h-4 w-4 transition-all duration-300 ${
+                    <Icon className={`h-5 w-5 transition-all duration-300 ${
                       isActive ? 'text-primary-foreground' : ''
                     }`} />
                     {isActive && (
                       <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 blur-sm" />
                     )}
                   </Button>
-                  <span className={`text-[9px] font-medium transition-all duration-300 pb-[10px] ${
+                  <span className={`text-[10px] font-medium transition-all duration-300 pb-[12px] ${
                     isActive ? 'text-primary' : 'text-muted-foreground'
                   }`}>
                     {tab.shortLabel}
