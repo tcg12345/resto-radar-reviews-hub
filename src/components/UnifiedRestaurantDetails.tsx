@@ -26,6 +26,7 @@ import { MichelinStars } from '@/components/MichelinStars';
 import { StarRating } from '@/components/StarRating';
 import { RestaurantLocationMap } from '@/components/RestaurantLocationMap';
 import { PhotoGallery } from '@/components/PhotoGallery';
+import { MobilePhotoGalleryPage } from '@/components/MobilePhotoGalleryPage';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -569,14 +570,24 @@ export function UnifiedRestaurantDetails({
       </div>
 
       {/* Photo Gallery */}
-      <PhotoGallery
-        photos={photos}
-        photoCaptions={restaurantData.photoCaptions || restaurantData.photo_captions}
-        isOpen={isPhotoGalleryOpen}
-        onClose={() => setIsPhotoGalleryOpen(false)}
-        restaurantName={restaurantData.name}
-        isMobile={isMobile}
-      />
+      {isMobile ? (
+        <MobilePhotoGalleryPage
+          photos={photos}
+          photoCaptions={restaurantData.photoCaptions || restaurantData.photo_captions}
+          isOpen={isPhotoGalleryOpen}
+          onClose={() => setIsPhotoGalleryOpen(false)}
+          restaurantName={restaurantData.name}
+        />
+      ) : (
+        <PhotoGallery
+          photos={photos}
+          photoCaptions={restaurantData.photoCaptions || restaurantData.photo_captions}
+          isOpen={isPhotoGalleryOpen}
+          onClose={() => setIsPhotoGalleryOpen(false)}
+          restaurantName={restaurantData.name}
+          isMobile={false}
+        />
+      )}
     </div>
   );
 }
