@@ -624,7 +624,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
         
         <TabsContent value="builder" className="mt-6 space-y-6">
           {/* Header with date range and actions */}
-          <Card>
+          <Card className="lg:rounded-lg lg:border lg:shadow-sm rounded-none border-0 border-t border-b shadow-none relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen lg:left-auto lg:right-auto lg:ml-0 lg:mr-0 lg:w-auto">
             <CardHeader className="pb-4">
               {/* Mobile-optimized layout */}
               <div className="space-y-4">
