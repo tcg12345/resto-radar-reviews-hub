@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { format } from 'date-fns';
 import { MapPin, Clock, Tag, Edit2, Trash2, Eye, Bot, ExternalLink, Phone, Globe, Share2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -73,6 +74,7 @@ export function RestaurantCard({
   onDelete,
   showAIReviewAssistant = false
 }: RestaurantCardProps) {
+  const isMobile = useIsMobile();
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [isLoadingPhotos, setIsLoadingPhotos] = useState(false);
@@ -150,7 +152,7 @@ export function RestaurantCard({
       </Card>;
   }
   return <>
-      <PhotoGallery photos={restaurant.photos} initialIndex={currentPhotoIndex} isOpen={isGalleryOpen} onClose={() => setIsGalleryOpen(false)} restaurantName={restaurant.name} />
+      <PhotoGallery photos={restaurant.photos} photoCaptions={restaurant.photoCaptions} initialIndex={currentPhotoIndex} isOpen={isGalleryOpen} onClose={() => setIsGalleryOpen(false)} restaurantName={restaurant.name} isMobile={isMobile} />
     <Card className="overflow-hidden bg-card shadow-sm hover:shadow-md transition-shadow duration-300 lg:shadow-md lg:hover:shadow-lg flex flex-col h-full">
       {/* Show photo section based on restaurant type */}
       {restaurant.photos.length > 0 || !restaurant.isWishlist ? <div className="relative aspect-video w-full overflow-hidden bg-muted lg:aspect-video">

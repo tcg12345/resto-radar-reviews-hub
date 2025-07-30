@@ -575,6 +575,7 @@ export function UnifiedRestaurantDetails({
         isOpen={isPhotoGalleryOpen}
         onClose={() => setIsPhotoGalleryOpen(false)}
         restaurantName={restaurantData.name}
+        isMobile={isMobile}
       />
     </div>
   );

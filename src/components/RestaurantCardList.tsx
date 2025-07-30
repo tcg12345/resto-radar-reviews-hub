@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { format } from 'date-fns';
 import { MapPin, Clock, Edit2, Trash2, Eye, Share2, Phone, Globe } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -46,6 +47,7 @@ function LocationDisplay({ restaurant }: { restaurant: Restaurant }) {
 }
 
 export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantCardListProps) {
+  const isMobile = useIsMobile();
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -82,10 +84,12 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
     <>
       <PhotoGallery 
         photos={restaurant.photos} 
+        photoCaptions={restaurant.photoCaptions}
         initialIndex={currentPhotoIndex} 
         isOpen={isGalleryOpen} 
         onClose={() => setIsGalleryOpen(false)} 
-        restaurantName={restaurant.name} 
+        restaurantName={restaurant.name}
+        isMobile={isMobile}
       />
       
       <Card className="overflow-hidden bg-card shadow-sm hover:shadow-md transition-shadow duration-300">

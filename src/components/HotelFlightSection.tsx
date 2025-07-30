@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { Hotel, Plane, Plus, MapPin, ExternalLink, Phone, Navigation, Eye, Radar, Star, Camera, Calendar, Users } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -70,6 +71,7 @@ export function HotelFlightSection({
   onRemoveHotel, 
   onRemoveFlight 
 }: HotelFlightSectionProps) {
+  const isMobile = useIsMobile();
   const [isHotelDialogOpen, setIsHotelDialogOpen] = useState(false);
   const [isFlightDialogOpen, setIsFlightDialogOpen] = useState(false);
   const [selectedHotel, setSelectedHotel] = useState<HotelBooking | null>(null);
@@ -977,6 +979,7 @@ export function HotelFlightSection({
         isOpen={isPhotoGalleryOpen}
         onClose={() => setIsPhotoGalleryOpen(false)}
         restaurantName={selectedHotel?.hotel.name}
+        isMobile={isMobile}
       />
     </div>
   );
