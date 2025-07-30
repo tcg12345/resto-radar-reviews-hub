@@ -82,7 +82,7 @@ export function MobileTripSwipePanel({
       {/* Backdrop overlay when expanded */}
       {isExpanded && (
         <div 
-          className="fixed inset-0 bg-black/20 z-40 md:hidden"
+          className="fixed inset-0 bg-black/20 z-[9998] md:hidden"
           onClick={() => setIsExpanded(false)}
         />
       )}
@@ -90,7 +90,7 @@ export function MobileTripSwipePanel({
       {/* Swipe Panel */}
       <div 
         ref={panelRef}
-        className={`fixed bottom-0 left-0 right-0 bg-background rounded-t-2xl shadow-2xl border-t border-border/50 transition-transform duration-300 ease-out z-50 md:hidden ${
+        className={`fixed bottom-0 left-0 right-0 bg-background rounded-t-2xl shadow-2xl border-t border-border/50 transition-transform duration-300 ease-out z-[9999] md:hidden ${
           isExpanded ? 'translate-y-0' : 'translate-y-[calc(100%-80px)]'
         }`}
         style={{ 
