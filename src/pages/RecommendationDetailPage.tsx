@@ -233,7 +233,7 @@ export function RecommendationDetailPage() {
       <div className="pb-safe">
         {/* Photos */}
         {photos.length > 0 && (
-          <div className="aspect-video bg-muted relative overflow-hidden">
+          <div className="aspect-video md:h-64 bg-muted relative overflow-hidden">
             <img 
               src={photos[0]} 
               alt={restaurant.name}
