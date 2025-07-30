@@ -1,12 +1,6 @@
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { MapPin, Star, Globe, Phone, Clock, Plus, Check } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
+import React from 'react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { UnifiedRestaurantDetails } from '@/components/UnifiedRestaurantDetails';
 
 interface SharedRestaurant {
   id: string;
@@ -27,9 +21,16 @@ interface SharedRestaurant {
   openingHours?: string;
   reservable?: boolean;
   reservationUrl?: string;
+  sharedBy?: {
+    id: string;
+    name: string;
+    username?: string;
+    avatar_url?: string;
+  };
+  isWishlist?: boolean;
 }
 
-interface RestaurantDetailsModalProps {
+interface SharedRestaurantDetailsModalProps {
   restaurant: SharedRestaurant;
   isOpen: boolean;
   onClose: () => void;
@@ -41,217 +42,43 @@ export function SharedRestaurantDetailsModal({
   isOpen, 
   onClose, 
   canAddToWishlist 
-}: RestaurantDetailsModalProps) {
-  const { user } = useAuth();
-  const [isAdding, setIsAdding] = useState(false);
-  const [isAdded, setIsAdded] = useState(false);
+}: SharedRestaurantDetailsModalProps) {
+  if (!restaurant) return null;
 
-  const getPriceRangeDisplay = (priceRange?: number) => {
-    if (!priceRange) return null;
-    return '$'.repeat(priceRange);
-  };
-
-  const addToWishlist = async () => {
-    if (!user || !restaurant) return;
-
-    setIsAdding(true);
-    try {
-      const { error } = await supabase
-        .from('restaurants')
-        .insert({
-          name: restaurant.name,
-          address: restaurant.address,
-          city: restaurant.city,
-          country: restaurant.country,
-          cuisine: restaurant.cuisine,
-          price_range: restaurant.priceRange,
-          michelin_stars: restaurant.michelinStars,
-          photos: restaurant.photos || [],
-          notes: restaurant.notes,
-          latitude: restaurant.latitude,
-          longitude: restaurant.longitude,
-          website: restaurant.website,
-          phone_number: restaurant.phone_number,
-          opening_hours: restaurant.openingHours,
-          reservable: restaurant.reservable || false,
-          reservation_url: restaurant.reservationUrl,
-          is_wishlist: true,
-          user_id: user.id
-        });
-
-      if (error) {
-        console.error('Error adding to wishlist:', error);
-        toast('Failed to add to wishlist');
-        return;
-      }
-
-      setIsAdded(true);
-      toast('Added to wishlist!');
-    } catch (error) {
-      console.error('Error adding to wishlist:', error);
-      toast('Failed to add to wishlist');
-    } finally {
-      setIsAdding(false);
-    }
+  // Transform shared restaurant data to unified format
+  const unifiedRestaurant = {
+    id: restaurant.id,
+    name: restaurant.name,
+    address: restaurant.address,
+    city: restaurant.city,
+    country: restaurant.country,
+    cuisine: restaurant.cuisine,
+    rating: restaurant.rating,
+    priceRange: restaurant.priceRange,
+    michelinStars: restaurant.michelinStars,
+    photos: restaurant.photos,
+    notes: restaurant.notes,
+    latitude: restaurant.latitude,
+    longitude: restaurant.longitude,
+    website: restaurant.website,
+    phone_number: restaurant.phone_number,
+    openingHours: restaurant.openingHours,
+    reservable: restaurant.reservable,
+    reservationUrl: restaurant.reservationUrl,
+    isSharedRestaurant: !!restaurant.sharedBy,
+    sharedBy: restaurant.sharedBy,
+    isWishlist: restaurant.isWishlist,
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            <span>{restaurant.name}</span>
-            {canAddToWishlist && (
-              <Button
-                onClick={addToWishlist}
-                disabled={isAdding || isAdded}
-                size="sm"
-                variant={isAdded ? "outline" : "default"}
-              >
-                {isAdded ? (
-                  <>
-                    <Check className="h-4 w-4 mr-2" />
-                    Added
-                  </>
-                ) : (
-                  <>
-                    <Plus className="h-4 w-4 mr-2" />
-                    {isAdding ? 'Adding...' : 'Add to Wishlist'}
-                  </>
-                )}
-              </Button>
-            )}
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          {/* Rating and Badges */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {restaurant.rating && (
-              <Badge variant="secondary">
-                <Star className="h-3 w-3 mr-1" />
-                {restaurant.rating}/10
-              </Badge>
-            )}
-            {restaurant.michelinStars && (
-              <Badge variant="outline">
-                {'⭐'.repeat(restaurant.michelinStars)} Michelin
-              </Badge>
-            )}
-            {restaurant.priceRange && (
-              <Badge variant="outline">
-                {getPriceRangeDisplay(restaurant.priceRange)}
-              </Badge>
-            )}
-            <Badge variant="secondary">{restaurant.cuisine}</Badge>
-          </div>
-
-          <Separator />
-
-          {/* Address */}
-          <div className="flex items-start gap-3">
-            <MapPin className="h-4 w-4 mt-1 text-muted-foreground shrink-0" />
-            <div>
-              <p className="font-medium">Address</p>
-              <p className="text-sm text-muted-foreground">
-                {restaurant.address}
-                <br />
-                {restaurant.city}
-                {restaurant.country && `, ${restaurant.country}`}
-              </p>
-            </div>
-          </div>
-
-          {/* Contact Info */}
-          {(restaurant.phone_number || restaurant.website) && (
-            <>
-              <Separator />
-              <div className="space-y-3">
-                {restaurant.phone_number && (
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium">Phone</p>
-                      <a 
-                        href={`tel:${restaurant.phone_number}`}
-                        className="text-sm text-primary hover:underline"
-                      >
-                        {restaurant.phone_number}
-                      </a>
-                    </div>
-                  </div>
-                )}
-                
-                {restaurant.website && (
-                  <div className="flex items-center gap-3">
-                    <Globe className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium">Website</p>
-                      <a 
-                        href={restaurant.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-primary hover:underline"
-                      >
-                        Visit Website
-                      </a>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-
-          {/* Opening Hours */}
-          {restaurant.openingHours && (
-            <>
-              <Separator />
-              <div className="flex items-start gap-3">
-                <Clock className="h-4 w-4 mt-1 text-muted-foreground" />
-                <div>
-                  <p className="font-medium">Opening Hours</p>
-                  <p className="text-sm text-muted-foreground whitespace-pre-line">
-                    {restaurant.openingHours}
-                  </p>
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* Notes */}
-          {restaurant.notes && (
-            <>
-              <Separator />
-              <div>
-                <p className="font-medium mb-2">Notes</p>
-                <p className="text-sm text-muted-foreground whitespace-pre-line">
-                  {restaurant.notes}
-                </p>
-              </div>
-            </>
-          )}
-
-          {/* Reservation */}
-          {restaurant.reservable && (
-            <>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <p className="font-medium">Reservations Available</p>
-                {restaurant.reservationUrl && (
-                  <Button variant="outline" size="sm" asChild>
-                    <a 
-                      href={restaurant.reservationUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Make Reservation
-                    </a>
-                  </Button>
-                )}
-              </div>
-            </>
-          )}
-        </div>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0">
+        <UnifiedRestaurantDetails
+          restaurant={unifiedRestaurant}
+          onBack={onClose}
+          showBackButton={false}
+          canAddToWishlist={canAddToWishlist}
+        />
       </DialogContent>
     </Dialog>
   );

@@ -1117,7 +1117,7 @@ export default function RestaurantSearchPage() {
           restaurant={detailsRestaurant}
           isOpen={detailsModalOpen}
           onClose={() => setDetailsModalOpen(false)}
-          onSaveToWishlist={handleSaveToWishlist}
+          onSaveToWishlist={detailsRestaurant ? () => handleSaveToWishlist(detailsRestaurant) : undefined}
         />
       </div>
     </div>
