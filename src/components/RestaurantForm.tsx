@@ -895,10 +895,12 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       <div className="space-y-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="name" className={isNewRestaurant && !isRestaurantSelected ? "text-muted-foreground" : ""}>
+            <Label htmlFor="name" className={isNewRestaurant ? "text-muted-foreground" : ""}>
               Restaurant Name *
-              {isNewRestaurant && !isRestaurantSelected && (
-                <span className="text-xs text-muted-foreground ml-2">(Use search above to fill)</span>
+              {isNewRestaurant && (
+                <span className="text-xs text-muted-foreground ml-2">
+                  {!isRestaurantSelected ? "(Use search above to fill)" : "(Auto-filled from search)"}
+                </span>
               )}
             </Label>
             <Input
@@ -906,10 +908,10 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
               name="name"
               value={formData.name}
               onChange={handleInputChange}
-              placeholder={isNewRestaurant && !isRestaurantSelected ? "Search for restaurant above to auto-fill" : "Restaurant name"}
+              placeholder={isNewRestaurant ? "Search for restaurant above to auto-fill" : "Restaurant name"}
               required
-              disabled={isNewRestaurant && !isRestaurantSelected}
-              className={isNewRestaurant && !isRestaurantSelected ? "bg-muted/50 text-muted-foreground cursor-not-allowed" : ""}
+              disabled={isNewRestaurant}
+              className={isNewRestaurant ? "bg-muted/50 text-muted-foreground cursor-not-allowed" : ""}
             />
           </div>
 
@@ -945,10 +947,12 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="address" className={isNewRestaurant && !isRestaurantSelected ? "text-muted-foreground" : ""}>
+          <Label htmlFor="address" className={isNewRestaurant ? "text-muted-foreground" : ""}>
             Address *
-            {isNewRestaurant && !isRestaurantSelected && (
-              <span className="text-xs text-muted-foreground ml-2">(Use search above to fill)</span>
+            {isNewRestaurant && (
+              <span className="text-xs text-muted-foreground ml-2">
+                {!isRestaurantSelected ? "(Use search above to fill)" : "(Auto-filled from search)"}
+              </span>
             )}
           </Label>
           <div className="flex items-center gap-2">
@@ -958,19 +962,21 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
               name="address"
               value={formData.address}
               onChange={handleInputChange}
-              placeholder={isNewRestaurant && !isRestaurantSelected ? "Search for restaurant above to auto-fill" : "Full address"}
+              placeholder={isNewRestaurant ? "Search for restaurant above to auto-fill" : "Full address"}
               required
-              disabled={isNewRestaurant && !isRestaurantSelected}
-              className={`flex-1 ${isNewRestaurant && !isRestaurantSelected ? "bg-muted/50 text-muted-foreground cursor-not-allowed" : ""}`}
+              disabled={isNewRestaurant}
+              className={`flex-1 ${isNewRestaurant ? "bg-muted/50 text-muted-foreground cursor-not-allowed" : ""}`}
             />
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="city" className={isNewRestaurant && !isRestaurantSelected ? "text-muted-foreground" : ""}>
+          <Label htmlFor="city" className={isNewRestaurant ? "text-muted-foreground" : ""}>
             City *
-            {isNewRestaurant && !isRestaurantSelected && (
-              <span className="text-xs text-muted-foreground ml-2">(Use search above to fill)</span>
+            {isNewRestaurant && (
+              <span className="text-xs text-muted-foreground ml-2">
+                {!isRestaurantSelected ? "(Use search above to fill)" : "(Auto-filled from search)"}
+              </span>
             )}
           </Label>
           <Input
@@ -978,10 +984,10 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
             name="city"
             value={formData.city}
             onChange={handleInputChange}
-            placeholder={isNewRestaurant && !isRestaurantSelected ? "Search for restaurant above to auto-fill" : "City"}
+            placeholder={isNewRestaurant ? "Search for restaurant above to auto-fill" : "City"}
             required
-            disabled={isNewRestaurant && !isRestaurantSelected}
-            className={isNewRestaurant && !isRestaurantSelected ? "bg-muted/50 text-muted-foreground cursor-not-allowed" : ""}
+            disabled={isNewRestaurant}
+            className={isNewRestaurant ? "bg-muted/50 text-muted-foreground cursor-not-allowed" : ""}
           />
         </div>
 
