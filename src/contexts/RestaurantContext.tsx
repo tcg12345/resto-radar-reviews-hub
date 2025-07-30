@@ -15,6 +15,7 @@ interface DbRestaurant {
   notes: string | null;
   date_visited: string | null;
   photos: string[];
+  photo_captions: string[] | null;
   is_wishlist: boolean;
   latitude: number | null;
   longitude: number | null;
@@ -59,6 +60,7 @@ const mapDbRestaurantToRestaurant = (dbRestaurant: DbRestaurant): Restaurant => 
   notes: dbRestaurant.notes ?? undefined,
   dateVisited: dbRestaurant.date_visited ?? undefined,
   photos: dbRestaurant.photos,
+  photoCaptions: dbRestaurant.photo_captions || [],
   isWishlist: dbRestaurant.is_wishlist,
   latitude: dbRestaurant.latitude ?? undefined,
   longitude: dbRestaurant.longitude ?? undefined,
@@ -96,7 +98,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
           // User is authenticated, fetch their restaurants with optimized query (excluding photos for faster loading)
           const { data, error } = await supabase
             .from('restaurants')
-            .select('id, name, address, city, country, cuisine, rating, notes, date_visited, is_wishlist, latitude, longitude, category_ratings, use_weighted_rating, price_range, michelin_stars, created_at, updated_at, user_id, opening_hours, website, phone_number, reservable, reservation_url')
+            .select('id, name, address, city, country, cuisine, rating, notes, date_visited, is_wishlist, latitude, longitude, category_ratings, use_weighted_rating, price_range, michelin_stars, created_at, updated_at, user_id, opening_hours, website, phone_number, reservable, reservation_url, photo_captions')
             .eq('user_id', session.user.id)
             .order('created_at', { ascending: false });
 
@@ -105,7 +107,8 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
           if (isSubscribed) {
             setRestaurants((data || []).map(restaurant => mapDbRestaurantToRestaurant({
               ...restaurant,
-              photos: [] // Initialize with empty array, load photos lazily when needed
+              photos: [], // Initialize with empty array, load photos lazily when needed
+              photo_captions: restaurant.photo_captions || []
             })));
           }
         } else if (isSubscribed) {
@@ -246,6 +249,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         notes: data.notes ?? null,
         date_visited: data.dateVisited ? data.dateVisited : null,
         photos: photoDataUrls,
+        photo_captions: data.photoCaptions || [],
         is_wishlist: data.isWishlist,
         latitude: coordinates?.latitude ?? null,
         longitude: coordinates?.longitude ?? null,
@@ -315,19 +319,22 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       
       // Handle photo removal and combine with new photos
       let updatedPhotos = [...existingRestaurant.photos];
+      let updatedCaptions = [...(existingRestaurant.photoCaptions || [])];
       
-      // Remove photos that were marked for deletion (in reverse order to maintain correct indexes)
+      // Remove photos and captions that were marked for deletion (in reverse order to maintain correct indexes)
       if (data.removedPhotoIndexes && data.removedPhotoIndexes.length > 0) {
         const sortedIndexes = [...data.removedPhotoIndexes].sort((a, b) => b - a);
         sortedIndexes.forEach(index => {
           if (index >= 0 && index < updatedPhotos.length) {
             updatedPhotos.splice(index, 1);
+            updatedCaptions.splice(index, 1);
           }
         });
       }
       
-      // Add new photos
+      // Add new photos and captions
       const combinedPhotos = [...updatedPhotos, ...newPhotoDataUrls];
+      const combinedCaptions = [...updatedCaptions, ...(data.photoCaptions || [])];
       
       // Geocode the address if it changed using the edge function
       let coordinates = {
@@ -364,6 +371,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
           notes: data.notes ?? null,
           date_visited: data.dateVisited ? data.dateVisited : null,
           photos: combinedPhotos,
+          photo_captions: combinedCaptions,
           is_wishlist: data.isWishlist,
           latitude: coordinates.latitude ?? null,
           longitude: coordinates.longitude ?? null,
@@ -439,7 +447,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
     try {
       const { data, error } = await supabase
         .from('restaurants')
-        .select('photos')
+        .select('photos, photo_captions')
         .eq('id', id)
         .single();
 
@@ -449,7 +457,11 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         setRestaurants(prev => 
           prev.map(restaurant => 
             restaurant.id === id 
-              ? { ...restaurant, photos: data.photos || [] }
+              ? { 
+                  ...restaurant, 
+                  photos: data.photos || [],
+                  photoCaptions: data.photo_captions || []
+                }
               : restaurant
           )
         );

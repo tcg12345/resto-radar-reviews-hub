@@ -345,6 +345,7 @@ export type Database = {
           notes: string | null
           overall_rating: number | null
           phone_number: string | null
+          photo_captions: string[] | null
           photos: string[] | null
           place_id: string | null
           place_name: string
@@ -368,6 +369,7 @@ export type Database = {
           notes?: string | null
           overall_rating?: number | null
           phone_number?: string | null
+          photo_captions?: string[] | null
           photos?: string[] | null
           place_id?: string | null
           place_name: string
@@ -391,6 +393,7 @@ export type Database = {
           notes?: string | null
           overall_rating?: number | null
           phone_number?: string | null
+          photo_captions?: string[] | null
           photos?: string[] | null
           place_id?: string | null
           place_name?: string
@@ -593,6 +596,7 @@ export type Database = {
           notes: string | null
           opening_hours: string | null
           phone_number: string | null
+          photo_captions: string[] | null
           photos: string[] | null
           price_range: number | null
           rating: number | null
@@ -620,6 +624,7 @@ export type Database = {
           notes?: string | null
           opening_hours?: string | null
           phone_number?: string | null
+          photo_captions?: string[] | null
           photos?: string[] | null
           price_range?: number | null
           rating?: number | null
@@ -647,6 +652,7 @@ export type Database = {
           notes?: string | null
           opening_hours?: string | null
           phone_number?: string | null
+          photo_captions?: string[] | null
           photos?: string[] | null
           price_range?: number | null
           rating?: number | null

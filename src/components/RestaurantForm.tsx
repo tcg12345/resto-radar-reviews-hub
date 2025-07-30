@@ -96,6 +96,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     notes: initialData?.notes || '',
     dateVisited: initialData?.dateVisited || '',
     photos: [],
+    photoCaptions: initialData?.photoCaptions || [],
     isWishlist: initialData?.isWishlist || defaultWishlist,
     // Include Google Places data when editing existing restaurants
     ...(initialData && {
@@ -114,6 +115,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
   );
 
   const [previewImages, setPreviewImages] = useState<string[]>(initialData?.photos || []);
+  const [photoCaptions, setPhotoCaptions] = useState<string[]>(initialData?.photoCaptions || []);
 
   const sanitizeInput = (input: string, maxLength: number = 255) => {
     return input
@@ -230,9 +232,11 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       setFormData(prev => ({
         ...prev,
         photos: [...prev.photos, ...newFiles],
+        photoCaptions: [...prev.photoCaptions, ...new Array(newFiles.length).fill('')]
       }));
       
       setPreviewImages(prev => [...prev, ...newPreviews]);
+      setPhotoCaptions(prev => [...prev, ...new Array(newFiles.length).fill('')]);
       
       if (newFiles.length > 5) {
         toast.success(`${newFiles.length} photos added successfully!`);
@@ -273,9 +277,11 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
         setFormData(prev => ({
           ...prev,
           photos: [...prev.photos, file],
+          photoCaptions: [...prev.photoCaptions, '']
         }));
 
         setPreviewImages(prev => [...prev, thumbnail]);
+        setPhotoCaptions(prev => [...prev, '']);
       }
     } catch (error) {
       console.error('Error selecting photo from gallery:', error);
@@ -312,9 +318,11 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
         setFormData(prev => ({
           ...prev,
           photos: [...prev.photos, file],
+          photoCaptions: [...prev.photoCaptions, '']
         }));
 
         setPreviewImages(prev => [...prev, thumbnail]);
+        setPhotoCaptions(prev => [...prev, '']);
       }
     } catch (error) {
       console.error('Error taking photo:', error);
@@ -325,11 +333,32 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     }
   };
 
+  const handleCaptionChange = (index: number, caption: string) => {
+    const sanitizedCaption = sanitizeInput(caption, 200);
+    setPhotoCaptions(prev => {
+      const newCaptions = [...prev];
+      newCaptions[index] = sanitizedCaption;
+      return newCaptions;
+    });
+    
+    // Update form data captions for new photos
+    const existingPhotosCount = initialData?.photos.length || 0;
+    if (index >= existingPhotosCount) {
+      const adjustedIndex = index - existingPhotosCount;
+      setFormData(prev => {
+        const newCaptions = [...prev.photoCaptions];
+        newCaptions[adjustedIndex] = sanitizedCaption;
+        return { ...prev, photoCaptions: newCaptions };
+      });
+    }
+  };
+
   const removePhoto = (index: number) => {
     const existingPhotosCount = initialData?.photos.length || 0;
     
-    // Remove from preview images
+    // Remove from preview images and captions
     setPreviewImages(prev => prev.filter((_, i) => i !== index));
+    setPhotoCaptions(prev => prev.filter((_, i) => i !== index));
     
     if (index < existingPhotosCount) {
       // This is an existing photo - track it for removal
@@ -340,6 +369,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       setFormData(prev => ({
         ...prev,
         photos: prev.photos.filter((_, i) => i !== adjustedIndex),
+        photoCaptions: prev.photoCaptions.filter((_, i) => i !== adjustedIndex),
       }));
     }
   };
@@ -347,12 +377,19 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
   const reorderPhotos = (fromIndex: number, toIndex: number) => {
     if (fromIndex === toIndex) return;
     
-    // Reorder preview images
+    // Reorder preview images and captions
     setPreviewImages(prev => {
       const newImages = [...prev];
       const [movedImage] = newImages.splice(fromIndex, 1);
       newImages.splice(toIndex, 0, movedImage);
       return newImages;
+    });
+    
+    setPhotoCaptions(prev => {
+      const newCaptions = [...prev];
+      const [movedCaption] = newCaptions.splice(fromIndex, 1);
+      newCaptions.splice(toIndex, 0, movedCaption);
+      return newCaptions;
     });
     
     // Reorder form data photos for new photos
@@ -493,9 +530,11 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       setFormData(prev => ({
         ...prev,
         photos: [...prev.photos, ...files],
+        photoCaptions: [...prev.photoCaptions, ...new Array(files.length).fill('')]
       }));
       
       setPreviewImages(prev => [...prev, ...newPreviews]);
+      setPhotoCaptions(prev => [...prev, ...new Array(files.length).fill('')]);
       
       if (files.length > 1) {
         toast.success(`${files.length} photos added successfully!`);
@@ -760,6 +799,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     // Always preserve Google Places data if it exists (from either new selection or existing data)
     const submissionData = {
       ...formData,
+      photoCaptions: photoCaptions,
       removedPhotoIndexes: removedPhotoIndexes,
       // Always include Google Places fields - preserve existing data if not in current form
       website: formDataWithPlaces.website ?? (initialData as any)?.website ?? null,
@@ -1079,54 +1119,62 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
             )}
             
             {previewImages.map((src, index) => (
-              <div 
-                key={index} 
-                className={`group relative aspect-square overflow-hidden rounded-md border transition-all duration-200 ${
-                  draggedPhotoIndex === index 
-                    ? 'opacity-50 scale-95 cursor-grabbing' 
-                    : 'cursor-grab hover:shadow-lg'
-                }`}
-                draggable
-                onDragStart={(e) => {
-                  console.log('Drag start:', index);
-                  handlePhotoDragStart(e, index);
-                }}
-                onDragEnd={(e) => {
-                  console.log('Drag end:', index);
-                  handlePhotoDragEnd(e);
-                }}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  e.dataTransfer.dropEffect = 'move';
-                }}
-                onDrop={(e) => {
-                  console.log('Drop on:', index);
-                  handlePhotoDrop(e, index);
-                }}
-                onDragEnter={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-              >
-                <LazyImage
-                  src={src}
-                  alt={`Preview ${index + 1}`}
-                  className="h-full w-full object-cover pointer-events-none select-none"
-                />
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removePhoto(index);
+              <div key={index} className="space-y-2">
+                <div 
+                  className={`group relative aspect-square overflow-hidden rounded-md border transition-all duration-200 ${
+                    draggedPhotoIndex === index 
+                      ? 'opacity-50 scale-95 cursor-grabbing' 
+                      : 'cursor-grab hover:shadow-lg'
+                  }`}
+                  draggable
+                  onDragStart={(e) => {
+                    console.log('Drag start:', index);
+                    handlePhotoDragStart(e, index);
                   }}
-                  className="absolute top-2 right-2 flex items-center justify-center w-8 h-8 bg-red-500/80 hover:bg-red-500 rounded-full opacity-0 transition-opacity group-hover:opacity-100 z-10"
+                  onDragEnd={(e) => {
+                    console.log('Drag end:', index);
+                    handlePhotoDragEnd(e);
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.dataTransfer.dropEffect = 'move';
+                  }}
+                  onDrop={(e) => {
+                    console.log('Drop on:', index);
+                    handlePhotoDrop(e, index);
+                  }}
+                  onDragEnter={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
                 >
-                  <Trash2 className="h-4 w-4 text-white" />
-                </button>
-                <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                  {index + 1}
+                  <LazyImage
+                    src={src}
+                    alt={`Preview ${index + 1}`}
+                    className="h-full w-full object-cover pointer-events-none select-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removePhoto(index);
+                    }}
+                    className="absolute top-2 right-2 flex items-center justify-center w-8 h-8 bg-red-500/80 hover:bg-red-500 rounded-full opacity-0 transition-opacity group-hover:opacity-100 z-10"
+                  >
+                    <Trash2 className="h-4 w-4 text-white" />
+                  </button>
+                  <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                    {index + 1}
+                  </div>
                 </div>
+                <Input
+                  type="text"
+                  placeholder="Add caption..."
+                  value={photoCaptions[index] || ''}
+                  onChange={(e) => handleCaptionChange(index, e.target.value)}
+                  className="text-xs"
+                />
               </div>
             ))}
 

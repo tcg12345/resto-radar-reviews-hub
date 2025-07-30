@@ -110,6 +110,7 @@ export function usePlaceRatings(tripId?: string) {
         category_ratings: restaurantData.categoryRatings,
         notes: restaurantData.notes,
         photos: restaurantData.photos || [],
+        photo_captions: restaurantData.photoCaptions || [],
         website: restaurantData.website,
         phone_number: restaurantData.phoneNumber || restaurantData.phone_number,
         price_range: restaurantData.priceRange,

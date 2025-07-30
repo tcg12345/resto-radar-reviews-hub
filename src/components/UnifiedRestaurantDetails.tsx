@@ -54,6 +54,8 @@ interface UnifiedRestaurantData {
   latitude?: number;
   longitude?: number;
   notes?: string;
+  photoCaptions?: string[];
+  photo_captions?: string[];
   dateVisited?: string;
   date_visited?: string;
   isWishlist?: boolean;
@@ -569,6 +571,7 @@ export function UnifiedRestaurantDetails({
       {/* Photo Gallery */}
       <PhotoGallery
         photos={photos}
+        photoCaptions={restaurantData.photoCaptions || restaurantData.photo_captions}
         isOpen={isPhotoGalleryOpen}
         onClose={() => setIsPhotoGalleryOpen(false)}
         restaurantName={restaurantData.name}

@@ -5,6 +5,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 interface PhotoGalleryProps {
   photos: string[];
+  photoCaptions?: string[];
   initialIndex?: number;
   isOpen: boolean;
   onClose: () => void;
@@ -13,6 +14,7 @@ interface PhotoGalleryProps {
 
 export function PhotoGallery({ 
   photos, 
+  photoCaptions = [],
   initialIndex = 0, 
   isOpen, 
   onClose, 
@@ -96,13 +98,20 @@ export function PhotoGallery({
           )}
 
           {/* Main image */}
-          <div className="relative w-full h-full flex items-center justify-center p-8">
+          <div className="relative w-full h-full flex flex-col items-center justify-center p-8">
             <img
               src={photos[currentIndex]}
               alt={`${restaurantName || 'Restaurant'} photo ${currentIndex + 1}`}
               className="max-w-full max-h-full object-contain"
               style={{ imageRendering: 'auto' }}
             />
+            
+            {/* Caption */}
+            {photoCaptions[currentIndex] && (
+              <div className="absolute bottom-16 left-1/2 -translate-x-1/2 max-w-[80%] bg-black/80 text-white px-4 py-2 rounded-lg text-center">
+                <p className="text-sm">{photoCaptions[currentIndex]}</p>
+              </div>
+            )}
           </div>
 
           {/* Navigation buttons */}
