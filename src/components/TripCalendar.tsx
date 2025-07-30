@@ -102,7 +102,7 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
         const dateStr = format(day, 'yyyy-MM-dd');
         
         return (
-          <Card key={day.toISOString()} className="transition-all duration-200 hover:shadow-md">
+          <Card key={day.toISOString()} className="transition-all duration-200 hover:shadow-md md:rounded-lg md:border md:shadow-sm rounded-none border-0 border-t border-b shadow-none -mx-4 md:mx-0">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div>
