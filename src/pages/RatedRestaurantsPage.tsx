@@ -269,7 +269,7 @@ export function RatedRestaurantsPage({
     <div className="w-full max-w-none py-6 mobile-container px-4 lg:px-6">
       <div className="mb-3 lg:mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <h2 className="hidden lg:block text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Rated Restaurants</h2>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 -mt-1">
           <ViewToggle currentView={view} onViewChange={setView} storageKey="rated-restaurants-view" />
           <Button size="sm" onClick={() => setIsAddDialogOpen(true)} className="mobile-button">
             <Plus className="mr-1 lg:mr-2 h-3 w-3 lg:h-4 lg:w-4" />
