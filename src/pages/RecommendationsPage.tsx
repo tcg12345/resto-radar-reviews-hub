@@ -106,9 +106,12 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
     const observer = new IntersectionObserver(
       (entries) => {
         console.log('Intersection observer triggered:', entries[0].isIntersecting, 'isLoadingMore:', isLoadingMore, 'displayedCount:', displayedCount, 'total:', filteredRecommendations.length);
-        if (entries[0].isIntersecting && !isLoadingMore && displayedCount < filteredRecommendations.length) {
-          console.log('Calling handleInfiniteScroll');
-          handleInfiniteScroll();
+        if (entries[0].isIntersecting && !isLoadingMore) {
+          // Either show more cached data OR load new data from API
+          if (displayedCount < filteredRecommendations.length || userCities.length > 0) {
+            console.log('Calling handleInfiniteScroll');
+            handleInfiniteScroll();
+          }
         }
       },
       { threshold: 0.1 }
@@ -120,13 +123,14 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
     }
 
     return () => observer.disconnect();
-  }, [displayedCount, filteredRecommendations.length, isLoadingMore]);
+  }, [displayedCount, filteredRecommendations.length, isLoadingMore, userCities.length]);
 
-  // Preload more data when we're running low - much more aggressive
+  // Reduced preload trigger to avoid conflicts with manual infinite scroll
   useEffect(() => {
     const remainingItems = filteredRecommendations.length - displayedCount;
-    if (remainingItems < 100 && !isLoadingMore && userCities.length > 0) {
-      // Load multiple batches in parallel for faster preloading
+    if (remainingItems < 20 && !isLoadingMore && userCities.length > 0) {
+      // Only preload when we're very close to running out
+      console.log('Background preload triggered, remaining items:', remainingItems);
       loadMultipleBatchesInBackground();
     }
   }, [displayedCount, filteredRecommendations.length, isLoadingMore, userCities.length]);
@@ -208,12 +212,59 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
     }
   };
 
-  const handleInfiniteScroll = () => {
-    // Instantly show more from already loaded data
+  const handleInfiniteScroll = async () => {
     console.log('handleInfiniteScroll called: current displayed:', displayedCount, 'total available:', filteredRecommendations.length);
-    const newDisplayedCount = Math.min(displayedCount + 20, filteredRecommendations.length);
-    console.log('Setting new displayedCount to:', newDisplayedCount);
-    setDisplayedCount(newDisplayedCount);
+    
+    // If we have more cached data, show it instantly
+    if (displayedCount < filteredRecommendations.length) {
+      const newDisplayedCount = Math.min(displayedCount + 20, filteredRecommendations.length);
+      console.log('Setting new displayedCount to:', newDisplayedCount);
+      setDisplayedCount(newDisplayedCount);
+    } 
+    // If we've shown all cached data, load more from API
+    else if (!isLoadingMore && userCities.length > 0) {
+      console.log('Need to load more data from API');
+      await loadMoreFromAPI();
+    }
+  };
+
+  const loadMoreFromAPI = async () => {
+    if (isLoadingMore || userCities.length === 0) return;
+    
+    setIsLoadingMore(true);
+    
+    try {
+      // Load from next city
+      const cityIndex = currentCityIndex % userCities.length;
+      const city = userCities[cityIndex];
+      console.log('Loading more from city:', city);
+      
+      const newRecs = await fetchRecommendationsForCity(city);
+      
+      if (newRecs.length > 0) {
+        const shuffled = newRecs.sort(() => Math.random() - 0.5);
+        setAllLoadedRecommendations(prev => {
+          const combined = [...prev, ...shuffled];
+          const unique = combined.filter((item, index, arr) => 
+            arr.findIndex(t => t.place_id === item.place_id) === index
+          );
+          return unique;
+        });
+        
+        // Cache the new data
+        setCachedRecommendations(city, newRecs);
+        
+        // Move to next city for next load
+        setCurrentCityIndex(prev => prev + 1);
+        
+        // Instantly show some of the new data
+        setDisplayedCount(prev => prev + 20);
+      }
+    } catch (error) {
+      console.error('Error loading more recommendations:', error);
+    } finally {
+      setIsLoadingMore(false);
+    }
   };
 
 
