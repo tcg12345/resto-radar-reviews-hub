@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -286,18 +285,16 @@ export function RestaurantProfileModal({
 
   return (
     <>
-      <Dialog open={true} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0">
-          <UnifiedRestaurantDetails
-            restaurant={unifiedRestaurant}
-            onBack={onClose}
-            showBackButton={false}
-            onToggleWishlist={handleAddToWishlist}
-            onAddRating={handleAddToRatings}
-            canAddToWishlist={true}
-          />
-        </DialogContent>
-      </Dialog>
+      <div className="min-h-screen bg-background">
+        <UnifiedRestaurantDetails
+          restaurant={unifiedRestaurant}
+          onBack={onClose}
+          showBackButton={true}
+          onToggleWishlist={handleAddToWishlist}
+          onAddRating={handleAddToRatings}
+          canAddToWishlist={true}
+        />
+      </div>
       {isRestaurantDialogOpen && (
         <RestaurantDialog 
           isOpen={isRestaurantDialogOpen}
