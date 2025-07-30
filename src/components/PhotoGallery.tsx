@@ -96,11 +96,11 @@ export function PhotoGallery({
   // Mobile version with full-page grid
   if (isMobile) {
     return (
-      <div className="fixed inset-0 z-50 bg-background">
+      <div className="fixed inset-0 z-50 bg-background flex flex-col overflow-hidden">
         {showSearchPage ? (
           <>
             {/* Mobile Grid View */}
-            <div className="sticky top-0 z-10 bg-background border-b">
+            <div className="sticky top-0 z-10 bg-background border-b flex-shrink-0">
               <div className="flex items-center gap-4 p-4">
                 <Button
                   variant="ghost"
@@ -139,51 +139,53 @@ export function PhotoGallery({
               </div>
             </div>
 
-            {/* Photo Grid */}
-            <div className="p-4">
-              <div className="grid grid-cols-2 gap-3">
-                {(searchQuery ? filteredPhotos : photos).map((photo, index) => {
-                  const originalIndex = searchQuery 
-                    ? photos.findIndex(p => p === photo)
-                    : index;
-                  
-                  const caption = photoCaptions[originalIndex];
-                  
-                  return (
-                    <div
-                      key={originalIndex}
-                      className="relative aspect-square rounded-xl overflow-hidden cursor-pointer group"
-                      onClick={() => selectPhoto(originalIndex)}
-                    >
-                      <img
-                        src={photo}
-                        alt={caption || `Photo ${originalIndex + 1}`}
-                        className="w-full h-full object-cover transition-transform duration-200 group-active:scale-95"
-                      />
-                      
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                      
-                      <div className="absolute top-3 left-3">
-                        <Heart className="h-5 w-5 text-white fill-white/20" />
-                      </div>
-                      
-                      {caption && (
-                        <div className="absolute bottom-3 left-3 right-3">
-                          <p className="text-white text-sm font-medium truncate">
-                            {caption}
-                          </p>
+            {/* Photo Grid - Scrollable */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-4">
+                <div className="grid grid-cols-2 gap-3">
+                  {(searchQuery ? filteredPhotos : photos).map((photo, index) => {
+                    const originalIndex = searchQuery 
+                      ? photos.findIndex(p => p === photo)
+                      : index;
+                    
+                    const caption = photoCaptions[originalIndex];
+                    
+                    return (
+                      <div
+                        key={originalIndex}
+                        className="relative aspect-square rounded-xl overflow-hidden cursor-pointer group"
+                        onClick={() => selectPhoto(originalIndex)}
+                      >
+                        <img
+                          src={photo}
+                          alt={caption || `Photo ${originalIndex + 1}`}
+                          className="w-full h-full object-cover transition-transform duration-200 group-active:scale-95"
+                        />
+                        
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                        
+                        <div className="absolute top-3 left-3">
+                          <Heart className="h-5 w-5 text-white fill-white/20" />
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {searchQuery && filteredPhotos.length === 0 && (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">No photos found for "{searchQuery}"</p>
+                        
+                        {caption && (
+                          <div className="absolute bottom-3 left-3 right-3">
+                            <p className="text-white text-sm font-medium truncate">
+                              {caption}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              )}
+
+                {searchQuery && filteredPhotos.length === 0 && (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No photos found for "{searchQuery}"</p>
+                  </div>
+                )}
+              </div>
             </div>
           </>
         ) : (
