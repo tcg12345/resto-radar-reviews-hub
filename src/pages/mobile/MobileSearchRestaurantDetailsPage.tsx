@@ -425,7 +425,7 @@ export default function MobileSearchRestaurantDetailsPage() {
               {/* Michelin Stars */}
               {!isEnhancingWithAI && restaurant.michelinStars && restaurant.michelinStars > 0 && (
                 <Badge variant="outline">
-                  <MichelinStars stars={restaurant.michelinStars} />
+                  <MichelinStars stars={restaurant.michelinStars} readonly={true} size="sm" />
                 </Badge>
               )}
               
