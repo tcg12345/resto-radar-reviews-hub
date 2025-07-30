@@ -50,8 +50,8 @@ export function RecommendationDetailPage() {
       setIsLoadingDetails(true);
       const { data, error } = await supabase.functions.invoke('google-places-search', {
         body: {
-          place_id: placeId,
-          fields: ['website', 'formatted_phone_number', 'opening_hours']
+          type: 'details',
+          placeId: placeId,
         }
       });
       
@@ -65,6 +65,7 @@ export function RecommendationDetailPage() {
           ...prev,
           website: data.result.website || prev.website,
           formatted_phone_number: data.result.formatted_phone_number || prev.formatted_phone_number,
+          phone: data.result.formatted_phone_number || prev.phone,
           opening_hours: data.result.opening_hours || prev.opening_hours
         } : null);
       }
