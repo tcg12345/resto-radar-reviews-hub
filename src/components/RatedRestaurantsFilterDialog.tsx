@@ -72,14 +72,16 @@ export function RatedRestaurantsFilterDialog({
       document.body.style.top = `-${scrollY}px`;
       document.body.style.width = '100%';
       document.body.style.overflow = 'hidden';
-      document.body.style.touchAction = 'none';
-      
+      document.documentElement.classList.add('overflow-hidden');
+      document.body.classList.add('overflow-hidden');
+
       return () => {
         document.body.style.position = '';
         document.body.style.top = '';
         document.body.style.width = '';
         document.body.style.overflow = '';
-        document.body.style.touchAction = '';
+        document.documentElement.classList.remove('overflow-hidden');
+        document.body.classList.remove('overflow-hidden');
         window.scrollTo(0, scrollY);
       };
     }
@@ -117,11 +119,11 @@ export function RatedRestaurantsFilterDialog({
   const hasActiveFilters = filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0 || ratingRange[0] > 0 || ratingRange[1] < 10;
   return <>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/60 z-[200]" onClick={() => onOpenChange(false)} />
+      <div className="fixed inset-0 bg-black/60 z-[9998]" onClick={() => onOpenChange(false)} />
       
       {/* Bottom Sheet */}
-      <div className="fixed bottom-0 left-0 right-0 z-[210] bg-background border-t rounded-t-xl animate-in slide-in-from-bottom duration-300 h-[85vh]" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
-        <div className="flex flex-col h-full touch-pan-y overscroll-contain">
+      <div className="fixed bottom-0 left-0 right-0 z-[9999] bg-background border-t rounded-t-xl animate-in slide-in-from-bottom duration-300 h-[85vh] overflow-hidden" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+        <div className="flex flex-col h-full">
           {/* Drag Handle */}
           <div className="flex justify-center py-2 cursor-pointer">
             <div className="w-8 h-1 bg-muted-foreground/30 rounded-full"></div>
@@ -133,7 +135,7 @@ export function RatedRestaurantsFilterDialog({
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto bg-background touch-pan-y overscroll-contain" style={{
+          <div className="flex-1 overflow-y-auto bg-background" style={{
           WebkitOverflowScrolling: 'touch'
         }}>
             <div className="p-4 space-y-6">
