@@ -671,6 +671,38 @@ export type Database = {
         }
         Relationships: []
       }
+      review_helpfulness: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_helpful: boolean
+          review_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_helpful: boolean
+          review_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_helpful?: boolean
+          review_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_helpfulness_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "user_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       settings: {
         Row: {
           created_at: string
@@ -733,6 +765,57 @@ export type Database = {
           start_date?: string | null
           title?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_reviews: {
+        Row: {
+          category_ratings: Json | null
+          created_at: string | null
+          helpful_count: number | null
+          id: string
+          overall_rating: number | null
+          photo_captions: string[] | null
+          photo_dish_names: string[] | null
+          photos: string[] | null
+          restaurant_address: string
+          restaurant_name: string
+          restaurant_place_id: string | null
+          review_text: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          category_ratings?: Json | null
+          created_at?: string | null
+          helpful_count?: number | null
+          id?: string
+          overall_rating?: number | null
+          photo_captions?: string[] | null
+          photo_dish_names?: string[] | null
+          photos?: string[] | null
+          restaurant_address: string
+          restaurant_name: string
+          restaurant_place_id?: string | null
+          review_text?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          category_ratings?: Json | null
+          created_at?: string | null
+          helpful_count?: number | null
+          id?: string
+          overall_rating?: number | null
+          photo_captions?: string[] | null
+          photo_dish_names?: string[] | null
+          photos?: string[] | null
+          restaurant_address?: string
+          restaurant_name?: string
+          restaurant_place_id?: string | null
+          review_text?: string | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -896,6 +979,37 @@ export type Database = {
       get_or_create_dm_room: {
         Args: { other_user_id: string }
         Returns: string
+      }
+      get_restaurant_community_stats: {
+        Args: { place_id_param: string }
+        Returns: {
+          average_rating: number
+          total_reviews: number
+          rating_distribution: Json
+          recent_photos: Json
+        }[]
+      }
+      get_restaurant_reviews: {
+        Args: {
+          place_id_param: string
+          page_limit?: number
+          page_offset?: number
+          sort_by?: string
+        }
+        Returns: {
+          review_id: string
+          user_id: string
+          username: string
+          overall_rating: number
+          category_ratings: Json
+          review_text: string
+          photos: string[]
+          photo_captions: string[]
+          photo_dish_names: string[]
+          helpful_count: number
+          created_at: string
+          user_found_helpful: boolean
+        }[]
       }
       get_user_score: {
         Args: { user_id: string }
