@@ -930,7 +930,7 @@ export default function UnifiedSearchPage() {
                 {[...Array(6)].map((_, i) => <SearchResultSkeleton key={i} />)}
               </div> : <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                  {searchResults.map(place => <Card key={place.place_id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handlePlaceClick(place)}>
-                     <CardContent className="p-3 lg:p-4">
+                     <CardContent className="p-2 lg:p-4">
                        {/* Mobile Layout - Compact like suggestions */}
                        <div className="lg:hidden">
                          <div className="flex justify-between items-center">
