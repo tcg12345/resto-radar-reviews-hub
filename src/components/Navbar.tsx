@@ -167,18 +167,15 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
                     variant="ghost"
                     size="icon"
                     onClick={() => onTabChange(tab.id)}
-                    className={`relative h-11 w-11 rounded-full mobile-tap-target transition-all duration-300 transform ${
+                    className={`relative h-11 w-11 mobile-tap-target transition-all duration-300 ${
                       isActive 
-                        ? 'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg scale-110 shadow-primary/25' 
+                        ? 'text-primary bg-transparent hover:bg-transparent' 
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/40 hover:scale-105'
                     }`}
                   >
                     <Icon className={`h-5 w-5 transition-all duration-300 ${
-                      isActive ? 'text-primary-foreground' : ''
+                      isActive ? 'text-primary' : ''
                     }`} />
-                    {isActive && (
-                      <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 blur-sm" />
-                    )}
                   </Button>
                   <span className={`text-[9px] font-medium transition-all duration-300 pb-2 ${
                     isActive ? 'text-primary' : 'text-muted-foreground'
