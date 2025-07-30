@@ -70,21 +70,21 @@ export function TripStats({ trips }: TripStatsProps) {
         const Icon = stat.icon;
         return (
           <Card key={stat.label} className="border-0 shadow-md hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
+            <CardContent className="p-3 md:p-6">
               <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">
+                <div className="space-y-1 md:space-y-2">
+                  <p className="text-xs md:text-sm font-medium text-muted-foreground">
                     {stat.label}
                   </p>
-                  <p className="text-3xl font-bold">
+                  <p className="text-2xl md:text-3xl font-bold">
                     {stat.value}
                   </p>
                   <Badge variant="secondary" className="text-xs">
                     {stat.trend}
                   </Badge>
                 </div>
-                <div className={`p-3 rounded-full ${stat.bgColor}`}>
-                  <Icon className={`w-6 h-6 ${stat.color}`} />
+                <div className={`p-2 md:p-3 rounded-full ${stat.bgColor}`}>
+                  <Icon className={`w-5 h-5 md:w-6 md:h-6 ${stat.color}`} />
                 </div>
               </div>
             </CardContent>
