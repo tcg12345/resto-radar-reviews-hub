@@ -56,8 +56,8 @@ export function MobileUnifiedSearchPage() {
   const [currentExample, setCurrentExample] = useState(0);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState<SearchFilters>({
-    cuisine: '',
-    priceRange: '',
+    cuisine: 'all',
+    priceRange: 'all',
     rating: [0],
     location: ''
   });
@@ -154,14 +154,14 @@ export function MobileUnifiedSearchPage() {
 
   const clearFilters = () => {
     setFilters({
-      cuisine: '',
-      priceRange: '',
+      cuisine: 'all',
+      priceRange: 'all',
       rating: [0],
       location: ''
     });
   };
 
-  const hasActiveFilters = filters.cuisine || filters.priceRange || filters.rating[0] > 0 || filters.location;
+  const hasActiveFilters = filters.cuisine && filters.cuisine !== 'all' || filters.priceRange && filters.priceRange !== 'all' || filters.rating[0] > 0 || filters.location;
 
   return (
     <div className="flex flex-col h-full bg-background">
@@ -214,7 +214,7 @@ export function MobileUnifiedSearchPage() {
                       <SelectValue placeholder="Any cuisine" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Any cuisine</SelectItem>
+                      <SelectItem value="all">Any cuisine</SelectItem>
                       {CUISINES.map(cuisine => (
                         <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
                       ))}
@@ -229,7 +229,7 @@ export function MobileUnifiedSearchPage() {
                       <SelectValue placeholder="Any price" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Any price</SelectItem>
+                      <SelectItem value="all">Any price</SelectItem>
                       <SelectItem value="$">$ - Budget</SelectItem>
                       <SelectItem value="$$">$$ - Moderate</SelectItem>
                       <SelectItem value="$$$">$$$ - Expensive</SelectItem>

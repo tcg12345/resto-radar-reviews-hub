@@ -41,7 +41,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
   const [searchQuery, setSearchQuery] = useState('');
   const [hotels, setHotels] = useState<HotelWithLocation[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState<string>('');
+  const [selectedLocation, setSelectedLocation] = useState<string>('all');
   const [checkInDate, setCheckInDate] = useState<Date>();
   const [checkOutDate, setCheckOutDate] = useState<Date>();
   const [isCheckInOpen, setIsCheckInOpen] = useState(false);
@@ -58,7 +58,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
     setIsSearching(true);
     try {
       // If no specific location selected, search in all itinerary locations
-      const searchLocations = selectedLocation ? [selectedLocation] : locations.map(loc => loc.name);
+      const searchLocations = selectedLocation && selectedLocation !== 'all' ? [selectedLocation] : locations.map(loc => loc.name);
       
       if (searchLocations.length === 0) {
         toast.error('No locations available for search');
@@ -113,7 +113,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
   const handleClose = () => {
     setSearchQuery('');
     setHotels([]);
-    setSelectedLocation('');
+    setSelectedLocation('all');
     setCheckInDate(undefined);
     setCheckOutDate(undefined);
     setIsCheckInOpen(false);
@@ -204,7 +204,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
                   <SelectValue placeholder={isMultiCity ? "Select location" : locations[0]?.name || "Select location"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {isMultiCity && <SelectItem value="">All locations</SelectItem>}
+                  {isMultiCity && <SelectItem value="all">All locations</SelectItem>}
                   {locations.map((location) => (
                     <SelectItem key={location.id} value={location.name}>
                       {location.name}
@@ -304,7 +304,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
                   {hotels.length} Available Hotels
                 </h3>
                 <Badge variant="secondary" className="px-3 py-1">
-                  {selectedLocation || 'All locations'}
+                  {selectedLocation && selectedLocation !== 'all' ? selectedLocation : 'All locations'}
                 </Badge>
               </div>
               

@@ -36,8 +36,8 @@ export function MobileFriendsActivityPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'friends' | 'activity'>('friends');
   const [filters, setFilters] = useState<FriendFilter>({
-    cuisine: '',
-    priceRange: '',
+    cuisine: 'all',
+    priceRange: 'all',
     rating: [0],
     location: '',
     activityType: 'all'
@@ -119,11 +119,11 @@ export function MobileFriendsActivityPage() {
       );
     }
 
-    if (filters.cuisine) {
+    if (filters.cuisine && filters.cuisine !== 'all') {
       matches = matches && activity.cuisine === filters.cuisine;
     }
 
-    if (filters.priceRange) {
+    if (filters.priceRange && filters.priceRange !== 'all') {
       matches = matches && activity.price_range === filters.priceRange;
     }
 
@@ -159,15 +159,17 @@ export function MobileFriendsActivityPage() {
 
   const clearFilters = () => {
     setFilters({
-      cuisine: '',
-      priceRange: '',
+      cuisine: 'all',
+      priceRange: 'all',
       rating: [0],
       location: '',
       activityType: 'all'
     });
   };
 
-  const hasActiveFilters = filters.cuisine || filters.priceRange || filters.rating[0] > 0 || 
+  const hasActiveFilters = filters.cuisine && filters.cuisine !== 'all' || 
+                          filters.priceRange && filters.priceRange !== 'all' || 
+                          filters.rating[0] > 0 || 
                           filters.location || filters.activityType !== 'all';
 
   const formatTimeAgo = (date: string) => {
@@ -255,7 +257,7 @@ export function MobileFriendsActivityPage() {
                           <SelectValue placeholder="Any cuisine" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Any cuisine</SelectItem>
+                          <SelectItem value="all">Any cuisine</SelectItem>
                           {CUISINES.map(cuisine => (
                             <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
                           ))}
@@ -273,7 +275,7 @@ export function MobileFriendsActivityPage() {
                           <SelectValue placeholder="Any price" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Any price</SelectItem>
+                          <SelectItem value="all">Any price</SelectItem>
                           <SelectItem value="$">$ - Budget</SelectItem>
                           <SelectItem value="$$">$$ - Moderate</SelectItem>
                           <SelectItem value="$$$">$$$ - Expensive</SelectItem>
