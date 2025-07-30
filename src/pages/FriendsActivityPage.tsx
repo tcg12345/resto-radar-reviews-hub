@@ -1295,14 +1295,15 @@ export function FriendsActivityPage() {
 
             {/* Pagination Controls */}
             <div className="px-6">
-              <div className="flex justify-center items-center gap-4 pt-8">
+              <div className="flex flex-row justify-center items-center gap-2 sm:gap-4 pt-8">
                 {/* Previous Page Button */}
                 {currentPage > 1 && (
-                  <Button onClick={loadPreviousPage} disabled={isLoadingMore} size="lg" variant="outline" className="min-w-32 flex items-center gap-2">
+                  <Button onClick={loadPreviousPage} disabled={isLoadingMore} size="sm" variant="outline" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                     {isLoadingMore ? 'Loading...' : (
                       <>
-                        <ChevronLeft className="h-4 w-4" />
-                        Previous Page ({currentPage - 1})
+                        <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="hidden sm:inline">Previous Page ({currentPage - 1})</span>
+                        <span className="sm:hidden">Prev</span>
                       </>
                     )}
                   </Button>
@@ -1310,18 +1311,19 @@ export function FriendsActivityPage() {
 
                 {/* Page indicator */}
                 {(currentPage > 1 || hasMore) && (
-                  <div className="text-sm text-muted-foreground font-medium px-4">
+                  <div className="text-xs sm:text-sm text-muted-foreground font-medium px-2 sm:px-4 whitespace-nowrap">
                     Page {currentPage}
                   </div>
                 )}
 
                 {/* Next Page Button */}
                 {hasMore && (
-                  <Button onClick={loadNextPage} disabled={isLoadingMore} size="lg" className="min-w-32 flex items-center gap-2">
+                  <Button onClick={loadNextPage} disabled={isLoadingMore} size="sm" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                     {isLoadingMore ? 'Loading...' : (
                       <>
-                        Next Page ({currentPage + 1})
-                        <ChevronRight className="h-4 w-4" />
+                        <span className="hidden sm:inline">Next Page ({currentPage + 1})</span>
+                        <span className="sm:hidden">Next</span>
+                        <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
                       </>
                     )}
                   </Button>
