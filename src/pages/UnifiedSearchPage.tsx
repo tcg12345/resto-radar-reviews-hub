@@ -733,10 +733,10 @@ export default function UnifiedSearchPage() {
                 ))}
               </div>
             ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 auto-rows-fr">
                  {searchResults.map(place => (
-                   <Card key={place.place_id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handlePlaceClick(place)}>
-                     <CardContent className="p-3 lg:p-4">
+                   <Card key={place.place_id} className="cursor-pointer hover:shadow-lg transition-shadow w-full max-w-full overflow-hidden" onClick={() => handlePlaceClick(place)}>
+                     <CardContent className="p-3 lg:p-4 h-full flex flex-col">
                        {/* Mobile Layout - Compact like suggestions */}
                        <div className="lg:hidden">
                          <div className="flex justify-between items-center">
