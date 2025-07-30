@@ -103,6 +103,7 @@ export function UnifiedRestaurantDetails({
   const [restaurantData, setRestaurantData] = useState(restaurant);
   const [isAdding, setIsAdding] = useState(false);
   const [isPhotoGalleryOpen, setIsPhotoGalleryOpen] = useState(false);
+  const [isEnhancingWithAI, setIsEnhancingWithAI] = useState(false);
 
   useEffect(() => {
     setRestaurantData(restaurant);
@@ -112,7 +113,95 @@ export function UnifiedRestaurantDetails({
     if (restaurant.place_id && (!restaurant.website || !restaurant.formatted_phone_number)) {
       fetchPlaceDetails(restaurant.place_id);
     }
+    
+    // Enhance with AI if cuisine is generic or Michelin stars are unknown
+    if (shouldEnhanceWithAI(restaurant)) {
+      enhanceWithAI(restaurant);
+    }
   }, [restaurant]);
+
+  const shouldEnhanceWithAI = (restaurant: UnifiedRestaurantData): boolean => {
+    const hasGenericCuisine = !restaurant.cuisine || 
+      restaurant.cuisine.toLowerCase().includes('restaurant') ||
+      restaurant.cuisine.toLowerCase().includes('bar') ||
+      restaurant.cuisine.toLowerCase().includes('food') ||
+      restaurant.cuisine.toLowerCase().includes('establishment');
+    
+    const hasMissingMichelinInfo = restaurant.michelinStars === undefined && 
+      restaurant.michelin_stars === undefined;
+    
+    return hasGenericCuisine || hasMissingMichelinInfo;
+  };
+
+  const enhanceWithAI = async (restaurant: UnifiedRestaurantData) => {
+    try {
+      setIsEnhancingWithAI(true);
+      
+      // Run both AI functions in parallel for speed
+      const promises = [];
+      
+      // Enhance cuisine if needed
+      const hasGenericCuisine = !restaurant.cuisine || 
+        restaurant.cuisine.toLowerCase().includes('restaurant') ||
+        restaurant.cuisine.toLowerCase().includes('bar') ||
+        restaurant.cuisine.toLowerCase().includes('food') ||
+        restaurant.cuisine.toLowerCase().includes('establishment');
+      
+      if (hasGenericCuisine) {
+        promises.push(
+          supabase.functions.invoke('ai-cuisine-detector', {
+            body: {
+              restaurantName: restaurant.name,
+              address: restaurant.address,
+              types: restaurant.cuisine ? [restaurant.cuisine] : []
+            }
+          })
+        );
+      } else {
+        promises.push(Promise.resolve({ data: { cuisine: restaurant.cuisine } }));
+      }
+      
+      // Detect Michelin stars if missing
+      const hasMissingMichelinInfo = restaurant.michelinStars === undefined && 
+        restaurant.michelin_stars === undefined;
+      
+      if (hasMissingMichelinInfo) {
+        promises.push(
+          supabase.functions.invoke('ai-michelin-detector', {
+            body: {
+              name: restaurant.name,
+              address: restaurant.address,
+              city: restaurant.city || '',
+              country: restaurant.country || '',
+              cuisine: restaurant.cuisine,
+              notes: restaurant.notes || ''
+            }
+          })
+        );
+      } else {
+        promises.push(Promise.resolve({ 
+          data: { michelinStars: restaurant.michelinStars || restaurant.michelin_stars } 
+        }));
+      }
+      
+      // Wait for both to complete
+      const [cuisineResult, michelinResult] = await Promise.all(promises);
+      
+      // Update restaurant data with AI enhancements
+      setRestaurantData(prev => ({
+        ...prev,
+        cuisine: cuisineResult?.data?.cuisine || prev.cuisine,
+        michelinStars: michelinResult?.data?.michelinStars !== undefined ? 
+          michelinResult.data.michelinStars : (prev.michelinStars || prev.michelin_stars || 0)
+      }));
+      
+    } catch (error) {
+      console.error('Error enhancing restaurant with AI:', error);
+      // Silently fail - don't show error to user for this enhancement
+    } finally {
+      setIsEnhancingWithAI(false);
+    }
+  };
 
   const fetchPlaceDetails = async (placeId: string) => {
     try {
@@ -382,12 +471,18 @@ export function UnifiedRestaurantDetails({
                       {getPriceDisplay(restaurantData.priceRange || restaurantData.price_range)}
                     </Badge>
                   )}
-                  <Badge variant="outline" className="text-sm">
+                  <Badge variant="outline" className="text-sm flex items-center gap-1">
                     {restaurantData.cuisine}
+                    {isEnhancingWithAI && (
+                      <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+                    )}
                   </Badge>
-                  {restaurantData.michelinStars || restaurantData.michelin_stars ? (
-                    <Badge variant="outline" className="text-sm">
+                  {(restaurantData.michelinStars || restaurantData.michelin_stars || isEnhancingWithAI) ? (
+                    <Badge variant="outline" className="text-sm flex items-center gap-1">
                       <MichelinStars stars={restaurantData.michelinStars || restaurantData.michelin_stars || 0} />
+                      {isEnhancingWithAI && (
+                        <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+                      )}
                     </Badge>
                   ) : null}
                 </div>
