@@ -97,14 +97,14 @@ export function MobileTripSwipePanel({
           height: '85vh',
           maxHeight: '85vh'
         }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
       >
-        {/* Swipe Indicator */}
+        {/* Swipe Indicator - Only handle touch events here */}
         <div 
           className="flex flex-col items-center pt-3 pb-2 cursor-pointer"
           onClick={handleIndicatorClick}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
           <div className="w-12 h-1 bg-muted-foreground/30 rounded-full mb-3" />
           <div className="flex items-center gap-2 text-muted-foreground">
