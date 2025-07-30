@@ -116,5 +116,163 @@ export function ReservationWidget({
       toast.info('Phone number not available');
     }
   };
-  return;
+  return (
+    <Card className={cn("w-full", className)}>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Calendar className="h-5 w-5" />
+          Make a Reservation
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Quick Action Buttons */}
+        <div className="flex gap-2 mb-4">
+          {restaurant.opentable_id && (
+            <Button 
+              onClick={handleOpenTableRedirect}
+              className="flex-1 flex items-center gap-2"
+              variant="outline"
+            >
+              <ExternalLink className="h-4 w-4" />
+              OpenTable
+            </Button>
+          )}
+          {restaurant.phone_number && (
+            <Button 
+              onClick={handlePhoneCall}
+              className="flex-1 flex items-center gap-2"
+              variant="outline"
+            >
+              <Phone className="h-4 w-4" />
+              Call
+            </Button>
+          )}
+        </div>
+
+        {/* Reservation Form */}
+        <form onSubmit={handleReservationSubmit} className="space-y-4">
+          {/* Date Selection */}
+          <div className="space-y-2">
+            <Label htmlFor="date">Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !selectedDate && "text-muted-foreground"
+                  )}
+                >
+                  <Calendar className="mr-2 h-4 w-4" />
+                  {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <DatePicker
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  disabled={(date) => date < new Date()}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Time Selection */}
+          <div className="space-y-2">
+            <Label htmlFor="time">Time</Label>
+            <Select value={selectedTime} onValueChange={setSelectedTime}>
+              <SelectTrigger>
+                <Clock className="mr-2 h-4 w-4" />
+                <SelectValue placeholder="Select time" />
+              </SelectTrigger>
+              <SelectContent>
+                {timeSlots.map((time) => (
+                  <SelectItem key={time} value={time}>
+                    {time}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Party Size */}
+          <div className="space-y-2">
+            <Label htmlFor="party-size">Party Size</Label>
+            <Select value={partySize} onValueChange={setPartySize}>
+              <SelectTrigger>
+                <Users className="mr-2 h-4 w-4" />
+                <SelectValue placeholder="Number of guests" />
+              </SelectTrigger>
+              <SelectContent>
+                {partySizes.map((size) => (
+                  <SelectItem key={size} value={size.toString()}>
+                    {size} {size === 1 ? 'guest' : 'guests'}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Customer Information */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Name *</Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="Your full name"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email *</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="your.email@example.com"
+                value={customerEmail}
+                onChange={(e) => setCustomerEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="(555) 123-4567"
+                value={customerPhone}
+                onChange={(e) => setCustomerPhone(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="requests">Special Requests</Label>
+              <Textarea
+                id="requests"
+                placeholder="Any dietary restrictions, special occasions, or other requests..."
+                value={specialRequests}
+                onChange={(e) => setSpecialRequests(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Submitting...' : 'Request Reservation'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
 }
