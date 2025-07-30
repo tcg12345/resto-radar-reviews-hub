@@ -399,6 +399,11 @@ export default function UnifiedSearchPage() {
   const getPhotoUrl = (photoReference: string) => {
     return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photoReference}&key=${import.meta.env.VITE_GOOGLE_PLACES_API_KEY}`;
   };
+  // If a place is selected, show the restaurant details page instead of search results
+  if (selectedPlace) {
+    return <RestaurantProfileModal place={selectedPlace} onClose={() => setSelectedPlace(null)} />;
+  }
+
   return (
     <div className="w-full">
       {/* Modern Search Section - Remove overflow hidden */}
@@ -903,8 +908,6 @@ export default function UnifiedSearchPage() {
         </Tabs>
       )}
 
-      {/* Restaurant Profile Modal */}
-      {selectedPlace && <RestaurantProfileModal place={selectedPlace} onClose={() => setSelectedPlace(null)} />}
     </div>
   );
 }
