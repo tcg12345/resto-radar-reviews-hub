@@ -189,7 +189,10 @@ export default function UnifiedSearchPage() {
           }));
           
           if (isLoadMore) {
-            setRecommendedPlaces(prev => [...prev, ...recommendations]);
+            // Filter out duplicates based on place_id
+            const existingPlaceIds = new Set(recommendedPlaces.map(place => place.place_id));
+            const newRecommendations = recommendations.filter(place => !existingPlaceIds.has(place.place_id));
+            setRecommendedPlaces(prev => [...prev, ...newRecommendations]);
           } else {
             setRecommendedPlaces(recommendations);
           }
