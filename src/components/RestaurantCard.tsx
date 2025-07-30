@@ -184,7 +184,7 @@ export function RestaurantCard({
       
       <CardHeader className="pb-0 lg:pb-0 p-2 lg:p-4">
         <div className="mobile-space-compact lg:space-y-1">
-          <CardTitle className="text-sm lg:text-lg font-bold mobile-truncate-2">{restaurant.name}</CardTitle>
+          <CardTitle className="lg:text-lg mobile-truncate-2 text-lg font-extrabold">{restaurant.name}</CardTitle>
            <div className="mobile-space-compact lg:space-y-1">
              {restaurant.rating !== undefined && <div className="mobile-rating-container flex items-center">
                        {restaurant.googleMapsUrl ? <a href={`https://www.google.com/search?q=${encodeURIComponent(`${restaurant.name} ${restaurant.address}`)}`} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity mobile-flex-shrink" onClick={e => e.stopPropagation()}>
