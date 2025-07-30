@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, MapPin, Star, Heart, Phone, Globe, Navigation, Clock, Plus, Truck, ShoppingBag, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +12,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { GlobalSearchMap } from '@/components/GlobalSearchMap';
 import { PersonalizedRecommendations } from '@/components/PersonalizedRecommendations';
-import { RestaurantProfileModal } from '@/components/RestaurantProfileModal';
 import { DiscoverPage } from '@/pages/DiscoverPage';
 import { SearchResultSkeleton } from '@/components/skeletons/SearchResultSkeleton';
 interface GooglePlaceResult {
@@ -69,6 +68,7 @@ interface PlaceDetails extends GooglePlaceResult {
 export type SearchType = 'name' | 'cuisine' | 'description';
 export default function UnifiedSearchPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const {
     user
   } = useAuth();
@@ -81,7 +81,6 @@ export default function UnifiedSearchPage() {
   const [showLiveResults, setShowLiveResults] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLiveSearching, setIsLiveSearching] = useState(false);
-  const [selectedPlace, setSelectedPlace] = useState<PlaceDetails | null>(null);
   const [activeTab, setActiveTab] = useState<'global' | 'smart' | 'recommendations'>('global');
   const [userLocation, setUserLocation] = useState<{
     lat: number;
@@ -184,10 +183,7 @@ export default function UnifiedSearchPage() {
     }
     try {
       // Get place details first
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('google-places-search', {
+      const { data, error } = await supabase.functions.invoke('google-places-search', {
         body: {
           placeId: place.place_id,
           type: 'details'
@@ -197,33 +193,28 @@ export default function UnifiedSearchPage() {
       const placeDetails = data.result;
 
       // Create a restaurant entry in wishlist mode first
-      const {
-        error: insertError
-      } = await supabase.from('restaurants').insert({
+      const { error: insertError } = await supabase.from('restaurants').insert({
         name: place.name,
         address: place.formatted_address,
         city: place.formatted_address.split(',')[1]?.trim() || '',
-        cuisine: 'Various',
-        // Will be determined later
+        cuisine: 'Various', // Will be determined later
         latitude: place.geometry.location.lat,
         longitude: place.geometry.location.lng,
-        rating: null,
-        // No rating yet - they will add it
-        is_wishlist: false,
-        // Not wishlist, they're rating it
+        rating: null, // No rating yet - they will add it
+        is_wishlist: false, // Not wishlist, they're rating it
         user_id: user.id,
         website: placeDetails?.website,
         opening_hours: placeDetails?.opening_hours?.weekday_text?.join('\n'),
         price_range: place.price_level
       });
       if (insertError) throw insertError;
+      
       toast.success('Restaurant added! Please rate your experience.');
       setShowLiveResults(false);
       setSearchQuery('');
 
-      // Navigate to ratings page or open rating modal
-      // For now, we'll show the place details to allow rating
-      setSelectedPlace(placeDetails);
+      // Navigate to the recommendation detail page to allow rating
+      navigate(`/recommendation/${place.place_id}?returnUrl=${encodeURIComponent(location.pathname + location.search)}`);
     } catch (error) {
       console.error('Error adding restaurant:', error);
       toast.error('Failed to add restaurant');
@@ -317,80 +308,8 @@ export default function UnifiedSearchPage() {
     }
   };
   const handlePlaceClick = async (place: GooglePlaceResult) => {
-    // Show modal immediately with basic data
-    setSelectedPlace({
-      ...place,
-      formatted_phone_number: undefined,
-      website: undefined,
-      opening_hours: place.opening_hours ? {
-        open_now: place.opening_hours.open_now,
-        weekday_text: []
-      } : undefined,
-      reviews: []
-    });
-
-    // Load detailed data in background
-    try {
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('google-places-search', {
-        body: {
-          placeId: place.place_id,
-          type: 'details'
-        }
-      });
-      if (error) throw error;
-      if (data.status === 'OK') {
-        const detailedPlace = data.result;
-
-        // Update modal with detailed Google data only for instant loading
-        setSelectedPlace(detailedPlace);
-
-        // Fetch Yelp data in background for the modal
-        console.log('Starting Yelp API call for restaurant:', detailedPlace.name);
-        supabase.functions.invoke('yelp-restaurant-data', {
-          body: {
-            action: 'search',
-            term: detailedPlace.name,
-            location: detailedPlace.formatted_address,
-            limit: 1,
-            sort_by: 'best_match'
-          }
-        }).then(({
-          data: yelpData,
-          error: yelpError
-        }) => {
-          console.log('Yelp API response:', yelpData, 'Error:', yelpError);
-          if (!yelpError && yelpData?.businesses?.length > 0) {
-            const yelpBusiness = yelpData.businesses[0];
-            console.log('Found Yelp business:', yelpBusiness, 'URL:', yelpBusiness.url);
-
-            // Update the modal with Yelp data
-            setSelectedPlace(prev => prev ? {
-              ...prev,
-              yelpData: {
-                id: yelpBusiness.id,
-                url: yelpBusiness.url,
-                categories: yelpBusiness.categories?.map((cat: any) => cat.title) || [],
-                price: yelpBusiness.price || undefined,
-                photos: yelpBusiness.photos || [],
-                transactions: yelpBusiness.transactions || [],
-                menu_url: yelpBusiness.menu_url || undefined
-              }
-            } : null);
-            console.log('Yelp data successfully added to modal!');
-          } else {
-            console.log('No Yelp data found:', yelpError || 'No businesses returned');
-          }
-        }).catch(error => {
-          console.error('Yelp API call failed:', error);
-        });
-      }
-    } catch (error) {
-      console.error('Failed to get place details:', error);
-      toast.error('Failed to load restaurant details');
-    }
+    // Navigate to the recommendation detail page, same as other restaurant details
+    navigate(`/recommendation/${place.place_id}?returnUrl=${encodeURIComponent(location.pathname + location.search)}`);
   };
   const getPriceDisplay = (priceLevel?: number) => {
     if (!priceLevel) return 'Price not available';
@@ -399,11 +318,6 @@ export default function UnifiedSearchPage() {
   const getPhotoUrl = (photoReference: string) => {
     return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photoReference}&key=${import.meta.env.VITE_GOOGLE_PLACES_API_KEY}`;
   };
-  // If a place is selected, show the restaurant details page instead of search results
-  if (selectedPlace) {
-    return <RestaurantProfileModal place={selectedPlace} onClose={() => setSelectedPlace(null)} />;
-  }
-
   return (
     <div className="w-full">
       {/* Modern Search Section - Remove overflow hidden */}
