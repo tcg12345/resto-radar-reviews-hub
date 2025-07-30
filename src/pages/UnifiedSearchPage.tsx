@@ -87,8 +87,17 @@ export default function UnifiedSearchPage() {
     lat: number;
     lng: number;
   } | null>(null);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [recommendedPlaces, setRecommendedPlaces] = useState<GooglePlaceResult[]>([]);
+  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
+  const [userRestaurants, setUserRestaurants] = useState<any[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Load initial data on component mount
+  useEffect(() => {
+    loadInitialData();
+  }, [user]);
 
   // Get user's location
   useEffect(() => {
@@ -103,6 +112,94 @@ export default function UnifiedSearchPage() {
       });
     }
   }, []);
+
+  // Load recent searches and user's restaurants for recommendations
+  const loadInitialData = async () => {
+    if (!user) return;
+    
+    // Load recent searches from localStorage
+    const savedSearches = localStorage.getItem('recentRestaurantSearches');
+    if (savedSearches) {
+      setRecentSearches(JSON.parse(savedSearches).slice(0, 5));
+    }
+    
+    // Load user's restaurants to generate location-based recommendations
+    try {
+      const { data: restaurants, error } = await supabase
+        .from('restaurants')
+        .select('city, country, latitude, longitude')
+        .eq('user_id', user.id)
+        .not('rating', 'is', null); // Only rated restaurants
+      
+      if (error) throw error;
+      setUserRestaurants(restaurants || []);
+      
+      // Generate recommendations based on user's rated restaurant locations
+      if (restaurants && restaurants.length > 0) {
+        generateLocationBasedRecommendations(restaurants);
+      }
+    } catch (error) {
+      console.error('Error loading user restaurants:', error);
+    }
+  };
+
+  // Generate recommendations based on locations where user has rated restaurants
+  const generateLocationBasedRecommendations = async (userRestaurants: any[]) => {
+    if (!userRestaurants.length) return;
+    
+    setIsLoadingRecommendations(true);
+    try {
+      // Get unique cities from user's restaurants
+      const cities = [...new Set(userRestaurants.map(r => r.city).filter(Boolean))];
+      
+      // Pick a random city from user's history
+      const randomCity = cities[Math.floor(Math.random() * cities.length)];
+      
+      if (randomCity) {
+        const { data, error } = await supabase.functions.invoke('google-places-search', {
+          body: {
+            query: `restaurants in ${randomCity}`,
+            type: 'search',
+            radius: 25000
+          }
+        });
+        
+        if (!error && data?.status === 'OK' && data.results?.length > 0) {
+          // Filter out restaurants user might already have
+          const recommendations = data.results.slice(0, 5).map((result: any) => ({
+            ...result,
+            fallbackCuisine: result.types.find((type: string) => 
+              !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type)
+            )?.replace(/_/g, ' ') || 'Restaurant'
+          }));
+          
+          setRecommendedPlaces(recommendations);
+        }
+      }
+    } catch (error) {
+      console.error('Error generating recommendations:', error);
+    } finally {
+      setIsLoadingRecommendations(false);
+    }
+  };
+
+  // Save search to recent searches
+  const saveToRecentSearches = (query: string) => {
+    if (!query.trim()) return;
+    
+    const savedSearches = localStorage.getItem('recentRestaurantSearches');
+    let searches = savedSearches ? JSON.parse(savedSearches) : [];
+    
+    // Remove if already exists and add to beginning
+    searches = searches.filter((s: string) => s !== query);
+    searches.unshift(query);
+    
+    // Keep only 10 most recent
+    searches = searches.slice(0, 10);
+    
+    localStorage.setItem('recentRestaurantSearches', JSON.stringify(searches));
+    setRecentSearches(searches.slice(0, 5));
+  };
 
   // Click outside handler to hide dropdown
   useEffect(() => {
@@ -272,6 +369,10 @@ export default function UnifiedSearchPage() {
     // Hide live results when official search is triggered
     setShowLiveResults(false);
     if (!searchQuery.trim()) return;
+    
+    // Save search query to recent searches
+    saveToRecentSearches(searchQuery);
+    
     setIsLoading(true);
     try {
       // Simplified search for speed - use text-based search
@@ -566,6 +667,150 @@ export default function UnifiedSearchPage() {
           </div>
         </div>
       </div>
+      
+      {/* Mobile Instant Suggestions - Show when no search query and user is logged in */}
+      {!searchQuery && !showLiveResults && user && (searchResults.length === 0 || !isLoading) && (
+        <div className="lg:hidden mt-6 space-y-6">
+          {/* Filter Pills */}
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            <Button variant="default" size="sm" className="flex-shrink-0 rounded-full bg-primary text-primary-foreground">
+              Reserve now
+            </Button>
+            <Button variant="outline" size="sm" className="flex-shrink-0 rounded-full">
+              ❤️ Recs
+            </Button>
+            <Button variant="outline" size="sm" className="flex-shrink-0 rounded-full">
+              📈 Trending
+            </Button>
+            <Button variant="outline" size="sm" className="flex-shrink-0 rounded-full">
+              🔥 Popular
+            </Button>
+          </div>
+
+          {/* Recent Searches */}
+          {recentSearches.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold text-foreground">Recents</h3>
+              <div className="space-y-2">
+                {recentSearches.map((search, index) => (
+                  <div 
+                    key={index}
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                    onClick={() => {
+                      setSearchQuery(search);
+                      setTimeout(() => handleSearch(), 100);
+                    }}
+                  >
+                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                      <Clock className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm">{search}</p>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const updatedSearches = recentSearches.filter(s => s !== search);
+                        setRecentSearches(updatedSearches);
+                        localStorage.setItem('recentRestaurantSearches', JSON.stringify(updatedSearches));
+                      }}
+                      className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Location-based Recommendations */}
+          {userRestaurants.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold text-foreground">
+                Places you may have been in {userRestaurants[0]?.city || 'your area'}
+              </h3>
+              
+              {isLoadingRecommendations ? (
+                <div className="space-y-2">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="flex items-center gap-3 p-3">
+                      <div className="w-8 h-8 rounded-full bg-muted animate-pulse"></div>
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-muted rounded animate-pulse w-3/4"></div>
+                        <div className="h-3 bg-muted rounded animate-pulse w-1/2"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {recommendedPlaces.map((place, index) => (
+                    <div 
+                      key={place.place_id}
+                      className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                      onClick={() => handlePlaceClick(place)}
+                    >
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <Navigation className="w-4 h-4 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm line-clamp-1">{place.name}</p>
+                          <p className="text-xs text-muted-foreground line-clamp-1">
+                            {(() => {
+                              const parts = place.formatted_address?.split(', ') || [];
+                              if (parts.length >= 2) {
+                                if (parts[parts.length - 1] === 'United States') {
+                                  const city = parts[parts.length - 3] || '';
+                                  const stateWithZip = parts[parts.length - 2] || '';
+                                  const state = stateWithZip.replace(/\s+\d{5}(-\d{4})?$/, '');
+                                  return parts.length >= 3 ? `${city}, ${state}` : state;
+                                }
+                                const city = parts[parts.length - 2] || '';
+                                const country = parts[parts.length - 1] || '';
+                                const cleanCity = city.replace(/\s+[A-Z0-9]{2,10}$/, '');
+                                return `${cleanCity}, ${country}`;
+                              }
+                              return parts[0] || '';
+                            })()}
+                          </p>
+                        </div>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleQuickAdd(place);
+                        }}
+                        className="h-8 w-8 p-0 rounded-full flex-shrink-0"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Empty state when no recent searches or recommendations */}
+          {recentSearches.length === 0 && userRestaurants.length === 0 && (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                <Search className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Start exploring</h3>
+              <p className="text-muted-foreground text-sm">
+                Search for restaurants to start building your personal recommendations
+              </p>
+            </div>
+          )}
+        </div>
+      )}
       
       {/* Mobile Live Search Suggestions - Show below search form */}
       {showLiveResults && (liveSearchResults.length > 0 || isLiveSearching) && <div className="lg:hidden mt-4">
