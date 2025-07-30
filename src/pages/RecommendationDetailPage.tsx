@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { PhotoGallery } from '@/components/PhotoGallery';
 import { PriceRange } from '@/components/PriceRange';
 import { OpeningHoursDisplay } from '@/components/OpeningHoursDisplay';
+import { supabase } from '@/integrations/supabase/client';
 
 interface RecommendationRestaurant {
   name: string;
@@ -47,27 +48,25 @@ export function RecommendationDetailPage() {
   const fetchPlaceDetails = async (placeId: string) => {
     try {
       setIsLoadingDetails(true);
-      const response = await fetch('/api/supabase/functions/v1/google-places-search', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke('google-places-search', {
+        body: {
           place_id: placeId,
           fields: ['website', 'formatted_phone_number', 'opening_hours']
-        }),
+        }
       });
       
-      if (response.ok) {
-        const data = await response.json();
-        if (data.result) {
-          setRestaurant(prev => prev ? {
-            ...prev,
-            website: data.result.website || prev.website,
-            formatted_phone_number: data.result.formatted_phone_number || prev.formatted_phone_number,
-            opening_hours: data.result.opening_hours || prev.opening_hours
-          } : null);
-        }
+      if (error) {
+        console.error('Error fetching place details:', error);
+        return;
+      }
+      
+      if (data?.result) {
+        setRestaurant(prev => prev ? {
+          ...prev,
+          website: data.result.website || prev.website,
+          formatted_phone_number: data.result.formatted_phone_number || prev.formatted_phone_number,
+          opening_hours: data.result.opening_hours || prev.opening_hours
+        } : null);
       }
     } catch (error) {
       console.error('Error fetching place details:', error);
