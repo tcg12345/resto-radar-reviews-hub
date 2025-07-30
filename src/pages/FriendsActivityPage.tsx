@@ -451,10 +451,10 @@ export function FriendsActivityPage() {
       await loadRestaurantBatch(allFriendIds, friendsData, newOffset, true);
       setCurrentPage(nextPage);
 
-      // Force immediate scroll to top
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-      window.scrollTo(0, 0);
+      // Force scroll to top after content is rendered
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
     } catch (error) {
       console.error('❌ Error loading next page:', error);
       toast.error('Failed to load next page');
