@@ -25,6 +25,7 @@ import { PriceRange } from '@/components/PriceRange';
 import { MichelinStars } from '@/components/MichelinStars';
 import { StarRating } from '@/components/StarRating';
 import { RestaurantLocationMap } from '@/components/RestaurantLocationMap';
+import { PhotoGallery } from '@/components/PhotoGallery';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -97,6 +98,7 @@ export function UnifiedRestaurantDetails({
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [restaurantData, setRestaurantData] = useState(restaurant);
   const [isAdding, setIsAdding] = useState(false);
+  const [isPhotoGalleryOpen, setIsPhotoGalleryOpen] = useState(false);
 
   useEffect(() => {
     setRestaurantData(restaurant);
@@ -323,12 +325,20 @@ export function UnifiedRestaurantDetails({
       <div className={isMobile ? "pb-safe" : ""}>
         {/* Photos */}
         {photos.length > 0 && (
-          <div className={`${isMobile ? 'aspect-video' : 'aspect-video md:h-64'} bg-muted relative overflow-hidden`}>
+          <div 
+            className={`${isMobile ? 'aspect-video' : 'aspect-video md:h-64'} bg-muted relative overflow-hidden cursor-pointer group`}
+            onClick={() => setIsPhotoGalleryOpen(true)}
+          >
             <img 
               src={photos[0]} 
               alt={restaurantData.name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-transform group-hover:scale-105"
             />
+            {photos.length > 1 && (
+              <div className="absolute top-3 right-3 bg-black/70 text-white px-2 py-1 rounded-md text-sm">
+                +{photos.length - 1} more
+              </div>
+            )}
           </div>
         )}
 
@@ -555,6 +565,14 @@ export function UnifiedRestaurantDetails({
           </div>
         </div>
       </div>
+
+      {/* Photo Gallery */}
+      <PhotoGallery
+        photos={photos}
+        isOpen={isPhotoGalleryOpen}
+        onClose={() => setIsPhotoGalleryOpen(false)}
+        restaurantName={restaurantData.name}
+      />
     </div>
   );
 }
