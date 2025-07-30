@@ -213,7 +213,7 @@ export function RatedRestaurantsFilterDialog({
               {/* Cuisine Filter */}
               <Collapsible open={cuisineOpen} onOpenChange={setCuisineOpen}>
                 <CollapsibleTrigger asChild>
-                  <div className="flex items-center justify-between py-4 px-0 border-t border-b border-border cursor-pointer hover:bg-muted/50">
+                  <div className="flex items-center justify-between py-4 px-0 border-b border-border cursor-pointer hover:bg-muted/50">
                     <div className="flex items-center gap-3">
                       <Utensils className="h-5 w-5 text-orange-600" />
                       <span className="text-sm font-medium">Cuisine</span>
@@ -226,7 +226,7 @@ export function RatedRestaurantsFilterDialog({
                     {cuisineOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                   </div>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="border-b border-border -mt-1">
+                <CollapsibleContent className="-mt-1">
                   <div className="p-4 space-y-3">
                     {cuisineCounts.map(({ cuisine, count }) => (
                       <div key={cuisine} className="flex items-center justify-between">
@@ -263,7 +263,7 @@ export function RatedRestaurantsFilterDialog({
                     {priceOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                   </div>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="border-b border-border -mt-1">
+                <CollapsibleContent className="-mt-1">
                   <div className="p-4 space-y-3">
                     {priceCounts.map(({ price, count }) => (
                       <div key={price} className="flex items-center justify-between">
@@ -300,7 +300,7 @@ export function RatedRestaurantsFilterDialog({
                     {michelinOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                   </div>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="border-b border-border -mt-1">
+                <CollapsibleContent className="-mt-1">
                   <div className="p-4 space-y-3">
                     {michelinCounts.map(({ michelin, count }) => (
                       <div key={michelin} className="flex items-center justify-between">
