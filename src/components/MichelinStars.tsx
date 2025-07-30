@@ -32,7 +32,7 @@ export const MichelinStars = React.memo(({
     onStarsChange?.(newStars);
   };
   return <div className="flex items-center gap-0">
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0.5">
         {readonly ? Array.from({
         length: displayStars
       }, (_, index) => <MichelinStarIcon key={index} className={`${sizeClasses[size]} text-red-600`} />) : [1, 2, 3].map(starCount => {
@@ -45,7 +45,7 @@ export const MichelinStars = React.memo(({
       
       {displayStars > 0 && showLogo && <>
           
-          <img src="/lovable-uploads/a19328d3-fb1d-41e4-b595-caaee16a8c16.png" alt="Michelin" className={`${size === 'sm' ? 'h-12' : size === 'md' ? 'h-16' : 'h-20'} object-contain ml-1`} />
+          <img src="/lovable-uploads/a19328d3-fb1d-41e4-b595-caaee16a8c16.png" alt="Michelin" className={`${size === 'sm' ? 'h-12' : size === 'md' ? 'h-16' : 'h-20'} object-contain ml-0.5`} />
         </>}
       
       {!readonly && onStarsChange && displayStars === 0 && <span className={`text-muted-foreground ${textSizeClasses[size]}`}>
