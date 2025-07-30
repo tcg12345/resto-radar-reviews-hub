@@ -420,10 +420,10 @@ export default function UnifiedSearchPage() {
           <div className="space-y-3 sm:space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 sm:gap-6 items-start">
               {/* Main Search Input */}
-              <div className="lg:col-span-2 space-y-2 relative" ref={searchRef}>
+              <div className="col-span-1 lg:col-span-2 space-y-2 relative" ref={searchRef}>
                 <div className="relative group">
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary-glow/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="relative bg-background/80 backdrop-blur-sm rounded-xl border border-border group-hover:border-primary/50 transition-all duration-300">
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary-glow/20 rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="relative bg-background/80 backdrop-blur-sm rounded-lg border border-border group-hover:border-primary/50 transition-all duration-300">
                     <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 group-hover:text-primary transition-colors duration-300" />
                     <Input placeholder="🔍 What are you craving? Search by name, cuisine, atmosphere, or special dishes..." value={searchQuery} onChange={e => {
                     setSearchQuery(e.target.value);
@@ -508,10 +508,10 @@ export default function UnifiedSearchPage() {
               </div>
               
               {/* Location Input */}
-              <div className="space-y-2">
+              <div className="col-span-1 space-y-2">
                 <div className="relative group">
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary-glow/20 to-primary/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="relative bg-background/80 backdrop-blur-sm rounded-xl border border-border group-hover:border-primary/50 transition-all duration-300">
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary-glow/20 to-primary/20 rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="relative bg-background/80 backdrop-blur-sm rounded-lg border border-border group-hover:border-primary/50 transition-all duration-300">
                     <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
                     <Input placeholder="📍 Location (optional)" value={locationQuery} onChange={e => {
                     setLocationQuery(e.target.value);
@@ -539,8 +539,8 @@ export default function UnifiedSearchPage() {
                 </div>
               </div>
               
-              {/* Search Button - More compact on mobile */}
-              <div className="space-y-2">
+              {/* Search Button - Hidden on mobile */}
+              <div className="hidden lg:block space-y-2">
                 <div className="h-12 sm:h-14 flex items-end">
                   <Button onClick={handleSearch} disabled={isLoading} className="w-full h-12 sm:h-14 text-base sm:text-lg font-semibold bg-gradient-to-r from-primary to-primary-glow hover:from-primary-glow hover:to-primary shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:transform-none disabled:scale-100">
                     {isLoading ? <div className="flex items-center gap-2">
