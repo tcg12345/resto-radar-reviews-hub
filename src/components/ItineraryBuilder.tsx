@@ -625,76 +625,91 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
         <TabsContent value="builder" className="mt-6 space-y-6">
           {/* Header with date range and actions */}
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="w-5 h-5" />
-                    {currentItinerary?.title}
+            <CardHeader className="pb-4">
+              {/* Mobile-optimized layout */}
+              <div className="space-y-4">
+                {/* Title and Multi-city Badge Row */}
+                <div className="flex items-start justify-between gap-2">
+                  <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+                    <Calendar className="w-5 h-5 shrink-0" />
+                    <span className="truncate">{currentItinerary?.title}</span>
                   </CardTitle>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span>
-                      {dateRange.start && dateRange.end ? (
-                        <>
-                          {format(dateRange.start, 'MMM do')} - {format(dateRange.end, 'MMM do')} 
-                          ({tripDays} {tripDays === 1 ? 'day' : 'days'})
-                        </>
-                      ) : (
-                        'Dates not set'
-                      )}
-                    </span>
-                    {currentItinerary?.isMultiCity && (
-                      <Badge variant="outline">Multi-city</Badge>
+                  {currentItinerary?.isMultiCity && (
+                    <Badge variant="outline" className="shrink-0">Multi-city</Badge>
+                  )}
+                </div>
+                
+                {/* Date Range - Full width on mobile */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <div className="text-sm text-muted-foreground flex-1">
+                    {dateRange.start && dateRange.end ? (
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1">
+                        <span>{format(dateRange.start, 'MMM do')} - {format(dateRange.end, 'MMM do')}</span>
+                        <span className="text-xs">({tripDays} {tripDays === 1 ? 'day' : 'days'})</span>
+                      </div>
+                    ) : (
+                      'Dates not set'
                     )}
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {currentItinerary?.locations.map((location, index) => (
-                      <Badge key={location.id} variant="secondary" className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {location.name}
-                        {location.iataCode && ` (${location.iataCode})`}
-                      </Badge>
-                    ))}
+                  <div className="sm:ml-auto">
+                    <DateRangePicker
+                      startDate={dateRange.start}
+                      endDate={dateRange.end}
+                      onDateRangeChange={handleDateRangeChange}
+                    />
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-2">
-                  <DateRangePicker
-                    startDate={dateRange.start}
-                    endDate={dateRange.end}
-                    onDateRangeChange={handleDateRangeChange}
-                  />
-                </div>
+                {/* Locations - Vertical layout on mobile for better readability */}
+                {currentItinerary?.locations && currentItinerary.locations.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Destinations
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {currentItinerary.locations.map((location, index) => (
+                        <Badge key={location.id} variant="secondary" className="flex items-center gap-1 text-xs">
+                          <MapPin className="w-3 h-3" />
+                          {location.name}
+                          {location.iataCode && ` (${location.iataCode})`}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2 flex-wrap">
+            <CardContent className="pt-0">
+              {/* Action buttons - Better mobile layout */}
+              <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setIsSaveDialogOpen(true)}
-                  className="flex items-center gap-2"
+                  className="flex items-center justify-center gap-2 text-xs"
                 >
                   <Save className="w-4 h-4" />
-                  Save Itinerary
+                  <span className="hidden sm:inline">Save Itinerary</span>
+                  <span className="sm:hidden">Save</span>
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setIsShareDialogOpen(true)}
-                  className="flex items-center gap-2"
+                  className="flex items-center justify-center gap-2 text-xs"
                 >
                   <Share2 className="w-4 h-4" />
-                  Share
+                  <span>Share</span>
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setIsExportDialogOpen(true)}
-                  className="flex items-center gap-2"
+                  className="flex items-center justify-center gap-2 text-xs col-span-2 sm:col-span-1"
                 >
                   <Download className="w-4 h-4" />
-                  Export PDF
+                  <span className="hidden sm:inline">Export PDF</span>
+                  <span className="sm:hidden">Export</span>
                 </Button>
                 <Button
                   variant="outline"
