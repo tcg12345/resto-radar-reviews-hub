@@ -36,6 +36,19 @@ export function PhotoGallery({
     setShowSearchPage(isMobile);
   }, [initialIndex, isOpen, isMobile]);
 
+  // Prevent body scroll when photo gallery is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   useEffect(() => {
     if (!isOpen) return;
 
