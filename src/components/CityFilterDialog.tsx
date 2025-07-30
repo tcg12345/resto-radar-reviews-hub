@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,22 @@ export function CityFilterDialog({
   onCityChange
 }: CityFilterDialogProps) {
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Prevent background scrolling when dialog is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [open]);
 
   const filteredCities = availableCities.filter(city =>
     city.toLowerCase().includes(searchQuery.toLowerCase())
@@ -52,7 +68,7 @@ export function CityFilterDialog({
       />
       
       {/* Bottom Sheet */}
-      <div className="fixed bottom-0 left-0 right-0 z-[70] bg-background border-t rounded-t-xl animate-in slide-in-from-bottom duration-300 h-[80vh]">
+      <div className="fixed bottom-0 left-0 right-0 z-[70] bg-background border-t rounded-t-xl animate-in slide-in-from-bottom duration-300 h-[80vh] touch-pan-y">
         <div className="flex flex-col h-full">
           {/* Drag Handle */}
           <div className="flex justify-center py-2">

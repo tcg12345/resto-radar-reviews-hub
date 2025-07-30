@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Filter, X, ChevronDown, ChevronUp, Utensils, DollarSign } from 'lucide-react';
 import { MichelinStarIcon } from '@/components/MichelinStarIcon';
 import { Button } from '@/components/ui/button';
@@ -55,6 +55,22 @@ export function RatedRestaurantsFilterDialog({
   const [priceOpen, setPriceOpen] = useState(false);
   const [michelinOpen, setMichelinOpen] = useState(false);
 
+  // Prevent background scrolling when dialog is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [open]);
+
   if (!open) return null;
 
   const handleApply = () => {
@@ -83,7 +99,7 @@ export function RatedRestaurantsFilterDialog({
       />
       
       {/* Bottom Sheet */}
-      <div className="fixed bottom-0 left-0 right-0 z-[70] bg-background border-t rounded-t-xl animate-in slide-in-from-bottom duration-300 h-[85vh]">
+      <div className="fixed bottom-0 left-0 right-0 z-[70] bg-background border-t rounded-t-xl animate-in slide-in-from-bottom duration-300 h-[85vh] touch-pan-y">
         <div className="flex flex-col h-full">
           {/* Drag Handle */}
           <div className="flex justify-center py-2">
