@@ -26,22 +26,20 @@ export function CityFilterDialog({
   // Prevent background scrolling when dialog is open
   useEffect(() => {
     if (open) {
-      const originalStyle = window.getComputedStyle(document.body);
-      const originalOverflow = originalStyle.overflow;
-      const originalTouchAction = originalStyle.touchAction;
-      
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
       document.body.style.overflow = 'hidden';
       document.body.style.touchAction = 'none';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      document.body.style.height = '100%';
       
       return () => {
-        document.body.style.overflow = originalOverflow;
-        document.body.style.touchAction = originalTouchAction;
         document.body.style.position = '';
+        document.body.style.top = '';
         document.body.style.width = '';
-        document.body.style.height = '';
+        document.body.style.overflow = '';
+        document.body.style.touchAction = '';
+        window.scrollTo(0, scrollY);
       };
     }
   }, [open]);
@@ -93,18 +91,18 @@ export function CityFilterDialog({
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/60 z-[100]"
+        className="fixed inset-0 bg-black/60 z-[200]"
         onClick={() => onOpenChange(false)}
       />
       
       {/* Bottom Sheet */}
       <div 
-        className="fixed bottom-0 left-0 right-0 z-[110] bg-background border-t rounded-t-xl animate-in slide-in-from-bottom duration-300 h-[80vh] touch-pan-y overscroll-contain"
+        className="fixed bottom-0 left-0 right-0 z-[210] bg-background border-t rounded-t-xl animate-in slide-in-from-bottom duration-300 h-[80vh]"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <div className="flex flex-col h-full overscroll-contain">
+        <div className="flex flex-col h-full touch-pan-y overscroll-contain">
           {/* Drag Handle */}
           <div className="flex justify-center py-2 cursor-pointer">
             <div className="w-8 h-1 bg-muted-foreground/30 rounded-full"></div>
@@ -143,7 +141,7 @@ export function CityFilterDialog({
           </div>
 
           {/* Cities List */}
-          <div className="flex-1 overflow-y-auto bg-background overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div className="flex-1 overflow-y-auto bg-background touch-pan-y overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
             {filteredCities.map((city) => (
               <div key={city} className="flex items-center justify-between p-4 border-b border-border/50">
                 <span className="text-sm">{city}</span>
