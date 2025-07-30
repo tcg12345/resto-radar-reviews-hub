@@ -15,6 +15,7 @@ import { PersonalizedRecommendations } from '@/components/PersonalizedRecommenda
 import { RestaurantProfileModal } from '@/components/RestaurantProfileModal';
 import { DiscoverPage } from '@/pages/DiscoverPage';
 import { SearchResultSkeleton } from '@/components/skeletons/SearchResultSkeleton';
+import { InfiniteScrollLoader } from '@/components/InfiniteScrollLoader';
 interface GooglePlaceResult {
   place_id: string;
   name: string;
@@ -91,6 +92,9 @@ export default function UnifiedSearchPage() {
   const [recentClickedRestaurants, setRecentClickedRestaurants] = useState<GooglePlaceResult[]>([]);
   const [recommendedPlaces, setRecommendedPlaces] = useState<GooglePlaceResult[]>([]);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
+  const [isLoadingMoreRecommendations, setIsLoadingMoreRecommendations] = useState(false);
+  const [hasMoreRecommendations, setHasMoreRecommendations] = useState(true);
+  const [nextPageToken, setNextPageToken] = useState<string | null>(null);
   const [userRestaurants, setUserRestaurants] = useState<any[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -145,10 +149,15 @@ export default function UnifiedSearchPage() {
   };
 
   // Generate recommendations based on locations where user has rated restaurants
-  const generateLocationBasedRecommendations = async (userRestaurants: any[]) => {
+  const generateLocationBasedRecommendations = async (userRestaurants: any[], isLoadMore = false) => {
     if (!userRestaurants.length) return;
     
-    setIsLoadingRecommendations(true);
+    if (isLoadMore) {
+      setIsLoadingMoreRecommendations(true);
+    } else {
+      setIsLoadingRecommendations(true);
+    }
+    
     try {
       // Get unique cities from user's restaurants
       const cities = [...new Set(userRestaurants.map(r => r.city).filter(Boolean))];
@@ -157,30 +166,56 @@ export default function UnifiedSearchPage() {
       const randomCity = cities[Math.floor(Math.random() * cities.length)];
       
       if (randomCity) {
+        const params: any = {
+          query: `restaurants in ${randomCity}`,
+          type: 'search',
+          radius: 25000
+        };
+
+        if (isLoadMore && nextPageToken) {
+          params.pagetoken = nextPageToken;
+        }
+
         const { data, error } = await supabase.functions.invoke('google-places-search', {
-          body: {
-            query: `restaurants in ${randomCity}`,
-            type: 'search',
-            radius: 25000
-          }
+          body: params
         });
         
         if (!error && data?.status === 'OK' && data.results?.length > 0) {
-          // Filter out restaurants user might already have
-          const recommendations = data.results.slice(0, 5).map((result: any) => ({
+          const recommendations = data.results.map((result: any) => ({
             ...result,
             fallbackCuisine: result.types.find((type: string) => 
               !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type)
             )?.replace(/_/g, ' ') || 'Restaurant'
           }));
           
-          setRecommendedPlaces(recommendations);
+          if (isLoadMore) {
+            setRecommendedPlaces(prev => [...prev, ...recommendations]);
+          } else {
+            setRecommendedPlaces(recommendations);
+          }
+          
+          // Update pagination state
+          setNextPageToken(data.next_page_token || null);
+          setHasMoreRecommendations(!!data.next_page_token && data.results.length > 0);
+        } else {
+          setHasMoreRecommendations(false);
         }
       }
     } catch (error) {
       console.error('Error generating recommendations:', error);
+      setHasMoreRecommendations(false);
     } finally {
-      setIsLoadingRecommendations(false);
+      if (isLoadMore) {
+        setIsLoadingMoreRecommendations(false);
+      } else {
+        setIsLoadingRecommendations(false);
+      }
+    }
+  };
+
+  const loadMoreRecommendations = () => {
+    if (!isLoadingMoreRecommendations && hasMoreRecommendations && nextPageToken) {
+      generateLocationBasedRecommendations(userRestaurants, true);
     }
   };
 
@@ -820,6 +855,13 @@ export default function UnifiedSearchPage() {
                       </Button>
                     </div>
                   ))}
+                  
+                  {/* Infinite scroll loader for recommendations */}
+                  <InfiniteScrollLoader
+                    hasMore={hasMoreRecommendations}
+                    isLoading={isLoadingMoreRecommendations}
+                    onLoadMore={loadMoreRecommendations}
+                  />
                 </div>
               )}
             </div>
