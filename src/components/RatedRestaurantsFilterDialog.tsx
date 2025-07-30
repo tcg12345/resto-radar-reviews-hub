@@ -215,7 +215,7 @@ export function RatedRestaurantsFilterDialog({
                 <CollapsibleTrigger asChild>
                   <div className="flex items-center justify-between py-4 px-0 border-t border-b border-border cursor-pointer hover:bg-muted/50">
                     <div className="flex items-center gap-3">
-                      <Utensils className="h-5 w-5 text-muted-foreground" />
+                      <Utensils className="h-5 w-5 text-orange-600" />
                       <span className="text-sm font-medium">Cuisine</span>
                       {filterCuisines.length > 0 && (
                         <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded-full">
