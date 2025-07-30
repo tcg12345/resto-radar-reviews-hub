@@ -155,7 +155,7 @@ export function RestaurantCard({
     <>
       <PhotoGallery 
         photos={restaurant.photos} 
-        photoCaptions={restaurant.photoCaptions} 
+        photoCaptions={restaurant.photoDishNames || []} 
         initialIndex={currentPhotoIndex} 
         isOpen={isGalleryOpen} 
         onClose={() => setIsGalleryOpen(false)} 

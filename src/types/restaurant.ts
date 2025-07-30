@@ -24,7 +24,6 @@ export interface Restaurant {
   priceRange?: number; // 1-4 dollar signs
   michelinStars?: number; // 1-3 Michelin stars
   photos: string[];
-  photoCaptions?: string[];
   photoDishNames?: string[];
   photoNotes?: string[];
   notes?: string;
@@ -49,7 +48,6 @@ export interface RestaurantFormData {
   priceRange?: number; // 1-4 dollar signs
   michelinStars?: number; // 1-3 Michelin stars
   photos: File[];
-  photoCaptions?: string[];
   photoDishNames?: string[];
   photoNotes?: string[];
   notes?: string;

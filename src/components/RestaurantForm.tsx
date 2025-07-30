@@ -100,7 +100,6 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     notes: initialData?.notes || '',
     dateVisited: initialData?.dateVisited || '',
     photos: [],
-    photoCaptions: initialData?.photoCaptions || [],
     isWishlist: initialData?.isWishlist || defaultWishlist,
     // Include Google Places data when editing existing restaurants
     ...(initialData && {
@@ -119,7 +118,6 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
   );
 
   const [previewImages, setPreviewImages] = useState<string[]>(initialData?.photos || []);
-  const [photoCaptions, setPhotoCaptions] = useState<string[]>(initialData?.photoCaptions || []);
   const [photoDishNames, setPhotoDishNames] = useState<string[]>(initialData?.photoDishNames || []);
   const [photoNotes, setPhotoNotes] = useState<string[]>(initialData?.photoNotes || []);
 
@@ -237,12 +235,10 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       
       setFormData(prev => ({
         ...prev,
-        photos: [...prev.photos, ...newFiles],
-        photoCaptions: [...prev.photoCaptions, ...new Array(newFiles.length).fill('')]
+        photos: [...prev.photos, ...newFiles]
       }));
       
       setPreviewImages(prev => [...prev, ...newPreviews]);
-      setPhotoCaptions(prev => [...prev, ...new Array(newFiles.length).fill('')]);
       setPhotoDishNames(prev => [...prev, ...new Array(newFiles.length).fill('')]);
       setPhotoNotes(prev => [...prev, ...new Array(newFiles.length).fill('')]);
       
@@ -284,12 +280,10 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
 
         setFormData(prev => ({
           ...prev,
-          photos: [...prev.photos, file],
-          photoCaptions: [...prev.photoCaptions, '']
+          photos: [...prev.photos, file]
         }));
 
         setPreviewImages(prev => [...prev, thumbnail]);
-        setPhotoCaptions(prev => [...prev, '']);
         setPhotoDishNames(prev => [...prev, '']);
         setPhotoNotes(prev => [...prev, '']);
       }
@@ -327,12 +321,10 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
 
         setFormData(prev => ({
           ...prev,
-          photos: [...prev.photos, file],
-          photoCaptions: [...prev.photoCaptions, '']
+          photos: [...prev.photos, file]
         }));
 
         setPreviewImages(prev => [...prev, thumbnail]);
-        setPhotoCaptions(prev => [...prev, '']);
         setPhotoDishNames(prev => [...prev, '']);
         setPhotoNotes(prev => [...prev, '']);
       }
@@ -342,26 +334,6 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       setIsProcessingPhotos(false);
       setPhotoProgress(0);
       setPhotosToProcess(0);
-    }
-  };
-
-  const handleCaptionChange = (index: number, caption: string) => {
-    const sanitizedCaption = sanitizeInput(caption, 200);
-    setPhotoCaptions(prev => {
-      const newCaptions = [...prev];
-      newCaptions[index] = sanitizedCaption;
-      return newCaptions;
-    });
-    
-    // Update form data captions for new photos
-    const existingPhotosCount = initialData?.photos.length || 0;
-    if (index >= existingPhotosCount) {
-      const adjustedIndex = index - existingPhotosCount;
-      setFormData(prev => {
-        const newCaptions = [...prev.photoCaptions];
-        newCaptions[adjustedIndex] = sanitizedCaption;
-        return { ...prev, photoCaptions: newCaptions };
-      });
     }
   };
 
@@ -388,7 +360,6 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     
     // Remove from preview images and all associated arrays
     setPreviewImages(prev => prev.filter((_, i) => i !== index));
-    setPhotoCaptions(prev => prev.filter((_, i) => i !== index));
     setPhotoDishNames(prev => prev.filter((_, i) => i !== index));
     setPhotoNotes(prev => prev.filter((_, i) => i !== index));
     
@@ -400,8 +371,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       const adjustedIndex = index - existingPhotosCount;
       setFormData(prev => ({
         ...prev,
-        photos: prev.photos.filter((_, i) => i !== adjustedIndex),
-        photoCaptions: prev.photoCaptions.filter((_, i) => i !== adjustedIndex),
+        photos: prev.photos.filter((_, i) => i !== adjustedIndex)
       }));
     }
   };
@@ -409,7 +379,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
   const reorderPhotos = (fromIndex: number, toIndex: number) => {
     if (fromIndex === toIndex) return;
     
-    // Reorder preview images and captions
+    // Reorder preview images and associated arrays
     setPreviewImages(prev => {
       const newImages = [...prev];
       const [movedImage] = newImages.splice(fromIndex, 1);
@@ -417,11 +387,18 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       return newImages;
     });
     
-    setPhotoCaptions(prev => {
-      const newCaptions = [...prev];
-      const [movedCaption] = newCaptions.splice(fromIndex, 1);
-      newCaptions.splice(toIndex, 0, movedCaption);
-      return newCaptions;
+    setPhotoDishNames(prev => {
+      const newDishNames = [...prev];
+      const [movedDishName] = newDishNames.splice(fromIndex, 1);
+      newDishNames.splice(toIndex, 0, movedDishName);
+      return newDishNames;
+    });
+    
+    setPhotoNotes(prev => {
+      const newNotes = [...prev];
+      const [movedNote] = newNotes.splice(fromIndex, 1);
+      newNotes.splice(toIndex, 0, movedNote);
+      return newNotes;
     });
     
     // Reorder form data photos for new photos
@@ -561,12 +538,12 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       
       setFormData(prev => ({
         ...prev,
-        photos: [...prev.photos, ...files],
-        photoCaptions: [...prev.photoCaptions, ...new Array(files.length).fill('')]
+        photos: [...prev.photos, ...files]
       }));
       
       setPreviewImages(prev => [...prev, ...newPreviews]);
-      setPhotoCaptions(prev => [...prev, ...new Array(files.length).fill('')]);
+      setPhotoDishNames(prev => [...prev, ...new Array(files.length).fill('')]);
+      setPhotoNotes(prev => [...prev, ...new Array(files.length).fill('')]);
       
       if (files.length > 1) {
         toast.success(`${files.length} photos added successfully!`);
@@ -836,7 +813,6 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     // Always preserve Google Places data if it exists (from either new selection or existing data)
     const submissionData = {
       ...formData,
-      photoCaptions: photoCaptions,
       photoDishNames: photoDishNames,
       photoNotes: photoNotes,
       removedPhotoIndexes: removedPhotoIndexes,
@@ -1239,13 +1215,6 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
                     placeholder="Dish name..."
                     value={photoDishNames[index] || ''}
                     onChange={(e) => handleDishNameChange(index, e.target.value)}
-                    className="text-xs"
-                  />
-                  <Input
-                    type="text"
-                    placeholder="Add caption..."
-                    value={photoCaptions[index] || ''}
-                    onChange={(e) => handleCaptionChange(index, e.target.value)}
                     className="text-xs"
                   />
                   <Textarea

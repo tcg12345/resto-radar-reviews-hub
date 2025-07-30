@@ -60,7 +60,7 @@ const mapDbRestaurantToRestaurant = (dbRestaurant: DbRestaurant): Restaurant => 
   notes: dbRestaurant.notes ?? undefined,
   dateVisited: dbRestaurant.date_visited ?? undefined,
   photos: dbRestaurant.photos,
-  photoCaptions: dbRestaurant.photo_captions || [],
+  photoDishNames: dbRestaurant.photo_dish_names || [],
   isWishlist: dbRestaurant.is_wishlist,
   latitude: dbRestaurant.latitude ?? undefined,
   longitude: dbRestaurant.longitude ?? undefined,
@@ -249,7 +249,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         notes: data.notes ?? null,
         date_visited: data.dateVisited ? data.dateVisited : null,
         photos: photoDataUrls,
-        photo_captions: data.photoCaptions || [],
+        photo_dish_names: data.photoDishNames || [],
         is_wishlist: data.isWishlist,
         latitude: coordinates?.latitude ?? null,
         longitude: coordinates?.longitude ?? null,
@@ -319,7 +319,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       
       // Handle photo removal and combine with new photos
       let updatedPhotos = [...existingRestaurant.photos];
-      let updatedCaptions = [...(existingRestaurant.photoCaptions || [])];
+      let updatedDishNames = [...(existingRestaurant.photoDishNames || [])];
       
       // Remove photos and captions that were marked for deletion (in reverse order to maintain correct indexes)
       if (data.removedPhotoIndexes && data.removedPhotoIndexes.length > 0) {
@@ -334,7 +334,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       
       // Add new photos and captions
       const combinedPhotos = [...updatedPhotos, ...newPhotoDataUrls];
-      const combinedCaptions = [...updatedCaptions, ...(data.photoCaptions || [])];
+      const combinedDishNames = [...updatedDishNames, ...(data.photoDishNames || [])];
       
       // Geocode the address if it changed using the edge function
       let coordinates = {
