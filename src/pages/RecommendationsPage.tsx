@@ -105,7 +105,9 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !isLoadingMore) {
+        console.log('Intersection observer triggered:', entries[0].isIntersecting, 'isLoadingMore:', isLoadingMore, 'displayedCount:', displayedCount, 'total:', filteredRecommendations.length);
+        if (entries[0].isIntersecting && !isLoadingMore && displayedCount < filteredRecommendations.length) {
+          console.log('Calling handleInfiniteScroll');
           handleInfiniteScroll();
         }
       },
@@ -114,10 +116,11 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
 
     if (observerTarget.current) {
       observer.observe(observerTarget.current);
+      console.log('Observer attached to target');
     }
 
     return () => observer.disconnect();
-  }, [displayedCount, allLoadedRecommendations.length, isLoadingMore]);
+  }, [displayedCount, filteredRecommendations.length, isLoadingMore]);
 
   // Preload more data when we're running low - much more aggressive
   useEffect(() => {
@@ -207,7 +210,9 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
 
   const handleInfiniteScroll = () => {
     // Instantly show more from already loaded data
+    console.log('handleInfiniteScroll called: current displayed:', displayedCount, 'total available:', filteredRecommendations.length);
     const newDisplayedCount = Math.min(displayedCount + 20, filteredRecommendations.length);
+    console.log('Setting new displayedCount to:', newDisplayedCount);
     setDisplayedCount(newDisplayedCount);
   };
 
@@ -466,12 +471,21 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
         
         {/* Infinite scroll target */}
         <div ref={observerTarget} className="flex justify-center py-8">
-          {isLoadingMore && (
+          {displayedCount < filteredRecommendations.length ? (
             <div className="flex items-center gap-2">
               <Loader2 className="h-5 w-5 animate-spin text-primary" />
-              <span className="text-sm text-muted-foreground">Loading more...</span>
+              <span className="text-sm text-muted-foreground">Loading more recommendations...</span>
             </div>
-          )}
+          ) : isLoadingMore ? (
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              <span className="text-sm text-muted-foreground">Finding new restaurants...</span>
+            </div>
+          ) : filteredRecommendations.length > 20 ? (
+            <div className="text-sm text-muted-foreground">
+              You've seen all {filteredRecommendations.length} recommendations
+            </div>
+          ) : null}
         </div>
 
         {recommendations.length === 0 && !isLoadingMore && (
