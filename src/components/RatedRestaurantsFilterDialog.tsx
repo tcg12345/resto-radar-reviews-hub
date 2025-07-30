@@ -180,7 +180,7 @@ export function RatedRestaurantsFilterDialog({
                 <div className="flex items-center space-x-2">
                   <span className="text-sm text-muted-foreground w-8 px-[16px] mx-0 py-0 my-0">{tempRatingRange[0]}</span>
                   <Slider value={tempRatingRange} onValueChange={value => setTempRatingRange(value as [number, number])} max={10} min={0} step={0.1} className="flex-1" />
-                  <span className="text-sm text-muted-foreground w-8">{tempRatingRange[1]}</span>
+                  <span className="text-sm text-muted-foreground w-8 px-[6px]">{tempRatingRange[1]}</span>
                 </div>
               </div>
 
