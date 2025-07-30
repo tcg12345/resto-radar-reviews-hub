@@ -276,42 +276,44 @@ export function RatedRestaurantsFilterDialog({
                 </CollapsibleContent>
               </Collapsible>
 
-              {/* Michelin Filter */}
-              <Collapsible open={michelinOpen} onOpenChange={setMichelinOpen}>
-                <CollapsibleTrigger asChild>
-                  <div className="flex items-center justify-between py-4 px-0 border-b border-border cursor-pointer hover:bg-muted/50">
-                    <div className="flex items-center gap-3">
-                      <MichelinStarIcon className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-sm font-medium">Michelin Stars</span>
-                      {filterMichelins.length > 0 && (
-                        <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded-full">
-                          {filterMichelins.length}
-                        </span>
-                      )}
-                    </div>
-                    {michelinOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-                  </div>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="-mt-1">
-                  <div className="p-4 space-y-3">
-                    {michelinCounts.map(({ michelin, count }) => (
-                      <div key={michelin} className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <Checkbox
-                            id={`michelin-${michelin}`}
-                            checked={filterMichelins.includes(michelin)}
-                            onCheckedChange={() => onMichelinToggle(michelin)}
-                          />
-                          <label htmlFor={`michelin-${michelin}`} className="text-sm cursor-pointer">
-                            {`${michelin} Michelin Star${michelin === '1' ? '' : 's'}`}
-                          </label>
-                        </div>
-                        <span className="text-xs text-muted-foreground">({count})</span>
+              {/* Michelin Filter - Only show if user has restaurants with Michelin stars */}
+              {michelinCounts.length > 0 && (
+                <Collapsible open={michelinOpen} onOpenChange={setMichelinOpen}>
+                  <CollapsibleTrigger asChild>
+                    <div className="flex items-center justify-between py-4 px-0 border-b border-border cursor-pointer hover:bg-muted/50">
+                      <div className="flex items-center gap-3">
+                        <MichelinStarIcon className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-sm font-medium">Michelin Stars</span>
+                        {filterMichelins.length > 0 && (
+                          <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded-full">
+                            {filterMichelins.length}
+                          </span>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
+                      {michelinOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="-mt-1">
+                    <div className="p-4 space-y-3">
+                      {michelinCounts.map(({ michelin, count }) => (
+                        <div key={michelin} className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <Checkbox
+                              id={`michelin-${michelin}`}
+                              checked={filterMichelins.includes(michelin)}
+                              onCheckedChange={() => onMichelinToggle(michelin)}
+                            />
+                            <label htmlFor={`michelin-${michelin}`} className="text-sm cursor-pointer">
+                              {`${michelin} Michelin Star${michelin === '1' ? '' : 's'}`}
+                            </label>
+                          </div>
+                          <span className="text-xs text-muted-foreground">({count})</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              )}
             </div>
           </div>
 
