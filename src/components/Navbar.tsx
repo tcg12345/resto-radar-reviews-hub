@@ -177,7 +177,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
                       isActive ? 'text-primary h-6 w-6' : 'h-5 w-5'
                     }`} />
                   </Button>
-                  <span className={`transition-all duration-300 pb-2 ${
+                  <span className={`transition-all duration-300 pb-1 ${
                     isActive ? 'text-primary text-[10px] font-bold' : 'text-muted-foreground text-[9px] font-medium'
                   }`}>
                     {tab.shortLabel}
