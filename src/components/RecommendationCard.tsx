@@ -61,10 +61,10 @@ export function RecommendationCard({ restaurant, onAdd, onAddToWishlist }: Recom
 
   return (
     <div 
-      className="border-b border-border py-4 hover:bg-muted/50 transition-colors duration-200 -mx-4 cursor-pointer"
+      className="lg:border lg:border-border lg:rounded-lg lg:p-4 lg:shadow-sm lg:hover:shadow-md lg:bg-card border-b border-border py-4 hover:bg-muted/50 lg:hover:bg-muted/30 transition-all duration-200 lg:mx-0 -mx-4 cursor-pointer"
       onClick={handleCardClick}
     >
-      <div className="px-4">
+      <div className="lg:px-0 px-4">
       {/* Header with name and rating */}
       <div className="flex items-start justify-between">
         <h3 className="font-semibold text-lg text-foreground leading-tight">{restaurant.name}</h3>

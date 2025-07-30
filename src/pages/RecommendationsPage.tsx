@@ -453,7 +453,7 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
           isMobile={isMobile}
         />
 
-        <div className="space-y-0">
+        <div className="lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4 lg:space-y-0 space-y-0">
           {recommendations.map((recommendation, index) => (
             <RecommendationCard
               key={`${recommendation.place_id}-${index}`}
