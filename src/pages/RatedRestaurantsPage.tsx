@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Check, ChevronDown, X, Sliders, MapPin } from 'lucide-react';
+import { Plus, Check, ChevronDown, X, Sliders, MapPin, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RestaurantCard } from '@/components/RestaurantCard';
@@ -14,6 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
+import { RatedRestaurantsFilterDialog } from '@/components/RatedRestaurantsFilterDialog';
 
 
 interface RatedRestaurantsPageProps {
@@ -50,6 +51,7 @@ export function RatedRestaurantsPage({
   const [ratingRange, setRatingRange] = useState<[number, number]>([0, 10]);
   const [tempRatingRange, setTempRatingRange] = useState<[number, number]>([0, 10]);
   const { view, setView } = useViewToggle('rated-restaurants-view', 'grid');
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const ratedRestaurants = restaurants.filter((r) => !r.isWishlist);
 
@@ -282,7 +284,27 @@ export function RatedRestaurantsPage({
         </div>
       </div>
 
-      <div className="mb-6 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+      {/* Mobile layout - Search + Filter button */}
+      <div className="mb-6 flex items-center gap-2 sm:hidden">
+        <div className="flex-1">
+          <Input
+            placeholder="Search restaurants..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowMobileFilters(true)}
+          className="h-10 w-10 p-0"
+        >
+          <Filter className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* Desktop layout - Original layout */}
+      <div className="mb-6 hidden sm:flex flex-col items-start gap-4 sm:flex-row sm:items-center">
         <div className="flex w-full items-center gap-2 sm:w-auto">
           <Input
             placeholder="Search restaurants..."
@@ -598,6 +620,26 @@ export function RatedRestaurantsPage({
         title="Delete Restaurant"
         description="Are you sure you want to delete this restaurant? This action cannot be undone."
         confirmText="Delete"
+      />
+
+      {/* Mobile Filter Dialog */}
+      <RatedRestaurantsFilterDialog
+        open={showMobileFilters}
+        onOpenChange={setShowMobileFilters}
+        filterCuisines={filterCuisines}
+        filterPrices={filterPrices}
+        filterMichelins={filterMichelins}
+        ratingRange={ratingRange}
+        sortBy={sortBy}
+        cuisineCounts={cuisineCounts}
+        priceCounts={priceCounts}
+        michelinCounts={michelinCounts}
+        onCuisineToggle={toggleCuisine}
+        onPriceToggle={togglePrice}
+        onMichelinToggle={toggleMichelin}
+        onRatingRangeChange={setRatingRange}
+        onSortByChange={setSortBy}
+        onClearFilters={clearFilters}
       />
     </div>
   );
