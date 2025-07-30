@@ -292,6 +292,16 @@ export function FriendsActivityPage() {
     });
     return filtered;
   }, [friendsRestaurants, debouncedSearchQuery, sortBy, selectedCuisines, selectedCities, selectedFriends]);
+
+  // Scroll to top on page change
+  useEffect(() => {
+    // Delay to ensure DOM is updated with new content
+    const timeout = setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 50);
+
+    return () => clearTimeout(timeout);
+  }, [currentPage]);
   useEffect(() => {
     if (user && !dataFetched.current) {
       loadInitialData();
@@ -450,11 +460,6 @@ export function FriendsActivityPage() {
       // Load the next page and replace all restaurants (pagination behavior)
       await loadRestaurantBatch(allFriendIds, friendsData, newOffset, true);
       setCurrentPage(nextPage);
-
-      // Force scroll to top after content is rendered
-      setTimeout(() => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }, 100);
     } catch (error) {
       console.error('❌ Error loading next page:', error);
       toast.error('Failed to load next page');
@@ -478,11 +483,6 @@ export function FriendsActivityPage() {
       // Load the previous page and replace all restaurants
       await loadRestaurantBatch(allFriendIds, friendsData, newOffset, true);
       setCurrentPage(prevPage);
-
-      // Force immediate scroll to top
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-      window.scrollTo(0, 0);
     } catch (error) {
       console.error('❌ Error loading previous page:', error);
       toast.error('Failed to load previous page');
