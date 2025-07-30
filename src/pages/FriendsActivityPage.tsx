@@ -293,23 +293,32 @@ export function FriendsActivityPage() {
     return filtered;
   }, [friendsRestaurants, debouncedSearchQuery, sortBy, selectedCuisines, selectedCities, selectedFriends]);
 
-  // Scroll to top on page change - increased delay and more aggressive scrolling
+  // Scroll to top on page change - disable any intersection observers temporarily
   useEffect(() => {
     if (currentPage > 1 || currentPage === 1) {
-      // Multiple timeouts to ensure scroll happens after all rendering
-      const timeout1 = setTimeout(() => {
+      // Disconnect intersection observer to prevent interference
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+      
+      // Force scroll to top immediately
+      const scrollToTop = () => {
         document.documentElement.scrollTop = 0;
         document.body.scrollTop = 0;
         window.scrollTo(0, 0);
-      }, 100);
+      };
       
-      const timeout2 = setTimeout(() => {
-        window.scrollTo({ top: 0, behavior: 'instant' });
-      }, 200);
+      scrollToTop();
+      
+      // Multiple attempts to ensure scroll stays at top
+      const timeout1 = setTimeout(scrollToTop, 50);
+      const timeout2 = setTimeout(scrollToTop, 150);
+      const timeout3 = setTimeout(scrollToTop, 300);
 
       return () => {
         clearTimeout(timeout1);
         clearTimeout(timeout2);
+        clearTimeout(timeout3);
       };
     }
   }, [currentPage]);
