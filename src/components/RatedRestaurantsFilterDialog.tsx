@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Filter, X } from 'lucide-react';
+import { Filter, X, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface RatedRestaurantsFilterDialogProps {
   open: boolean;
@@ -208,67 +209,142 @@ export function RatedRestaurantsFilterDialog({
               {/* Cuisine Filter */}
               <div>
                 <Label className="text-sm font-medium mb-3 block">Cuisine</Label>
-                <div className="space-y-3">
-                  {cuisineCounts.map(({ cuisine, count }) => (
-                    <div key={cuisine} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <Checkbox
-                          id={`cuisine-${cuisine}`}
-                          checked={filterCuisines.includes(cuisine)}
-                          onCheckedChange={() => onCuisineToggle(cuisine)}
-                        />
-                        <label htmlFor={`cuisine-${cuisine}`} className="text-sm cursor-pointer">
-                          {cuisine}
-                        </label>
+                <Select 
+                  value={filterCuisines.length === 1 ? filterCuisines[0] : ""}
+                  onValueChange={(value) => {
+                    if (value && !filterCuisines.includes(value)) {
+                      onCuisineToggle(value);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={
+                      filterCuisines.length === 0 
+                        ? 'Select cuisine' 
+                        : filterCuisines.length === 1 
+                          ? filterCuisines[0]
+                          : `${filterCuisines.length} cuisines selected`
+                    } />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cuisineCounts.map(({ cuisine, count }) => (
+                      <SelectItem key={cuisine} value={cuisine}>
+                        {cuisine} ({count})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                {/* Selected cuisines */}
+                {filterCuisines.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {filterCuisines.map((cuisine) => (
+                      <div key={cuisine} className="flex items-center gap-1 bg-muted px-2 py-1 rounded-md text-xs">
+                        <span>{cuisine}</span>
+                        <button
+                          onClick={() => onCuisineToggle(cuisine)}
+                          className="text-muted-foreground hover:text-foreground"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
                       </div>
-                      <span className="text-xs text-muted-foreground">({count})</span>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Price Filter */}
               <div>
                 <Label className="text-sm font-medium mb-3 block">Price Range</Label>
-                <div className="space-y-3">
-                  {priceCounts.map(({ price, count }) => (
-                    <div key={price} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <Checkbox
-                          id={`price-${price}`}
-                          checked={filterPrices.includes(price)}
-                          onCheckedChange={() => onPriceToggle(price)}
-                        />
-                        <label htmlFor={`price-${price}`} className="text-sm cursor-pointer">
-                          {getPriceDisplay(price)}
-                        </label>
+                <Select 
+                  value={filterPrices.length === 1 ? filterPrices[0] : ""}
+                  onValueChange={(value) => {
+                    if (value && !filterPrices.includes(value)) {
+                      onPriceToggle(value);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={
+                      filterPrices.length === 0 
+                        ? 'Select price range' 
+                        : filterPrices.length === 1 
+                          ? getPriceDisplay(filterPrices[0])
+                          : `${filterPrices.length} price ranges selected`
+                    } />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {priceCounts.map(({ price, count }) => (
+                      <SelectItem key={price} value={price}>
+                        {getPriceDisplay(price)} ({count})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                {/* Selected prices */}
+                {filterPrices.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {filterPrices.map((price) => (
+                      <div key={price} className="flex items-center gap-1 bg-muted px-2 py-1 rounded-md text-xs">
+                        <span>{getPriceDisplay(price)}</span>
+                        <button
+                          onClick={() => onPriceToggle(price)}
+                          className="text-muted-foreground hover:text-foreground"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
                       </div>
-                      <span className="text-xs text-muted-foreground">({count})</span>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Michelin Filter */}
               <div>
                 <Label className="text-sm font-medium mb-3 block">Michelin Stars</Label>
-                <div className="space-y-3">
-                  {michelinCounts.map(({ michelin, count }) => (
-                    <div key={michelin} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <Checkbox
-                          id={`michelin-${michelin}`}
-                          checked={filterMichelins.includes(michelin)}
-                          onCheckedChange={() => onMichelinToggle(michelin)}
-                        />
-                        <label htmlFor={`michelin-${michelin}`} className="text-sm cursor-pointer">
-                          {`${michelin} Michelin Star${michelin === '1' ? '' : 's'}`}
-                        </label>
+                <Select 
+                  value={filterMichelins.length === 1 ? filterMichelins[0] : ""}
+                  onValueChange={(value) => {
+                    if (value && !filterMichelins.includes(value)) {
+                      onMichelinToggle(value);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={
+                      filterMichelins.length === 0 
+                        ? 'Select Michelin stars' 
+                        : filterMichelins.length === 1 
+                          ? `${filterMichelins[0]} Star${filterMichelins[0] === '1' ? '' : 's'}`
+                          : `${filterMichelins.length} selections`
+                    } />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {michelinCounts.map(({ michelin, count }) => (
+                      <SelectItem key={michelin} value={michelin}>
+                        {`${michelin} Michelin Star${michelin === '1' ? '' : 's'}`} ({count})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                {/* Selected Michelin stars */}
+                {filterMichelins.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {filterMichelins.map((michelin) => (
+                      <div key={michelin} className="flex items-center gap-1 bg-muted px-2 py-1 rounded-md text-xs">
+                        <span>{`${michelin} Star${michelin === '1' ? '' : 's'}`}</span>
+                        <button
+                          onClick={() => onMichelinToggle(michelin)}
+                          className="text-muted-foreground hover:text-foreground"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
                       </div>
-                      <span className="text-xs text-muted-foreground">({count})</span>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
