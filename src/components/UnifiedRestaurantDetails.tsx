@@ -27,6 +27,10 @@ import { MichelinStars } from '@/components/MichelinStars';
 import { StarRating } from '@/components/StarRating';
 import { RestaurantLocationMap } from '@/components/RestaurantLocationMap';
 import { PhotoGallery } from '@/components/PhotoGallery';
+import { CommunityRating } from '@/components/CommunityRating';
+import { CommunityPhotoGallery } from '@/components/CommunityPhotoGallery';
+import { UserReviewDialog } from '@/components/UserReviewDialog';
+import { useRestaurantReviews } from '@/hooks/useRestaurantReviews';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -104,6 +108,15 @@ export function UnifiedRestaurantDetails({
   const [isAdding, setIsAdding] = useState(false);
   const [isPhotoGalleryOpen, setIsPhotoGalleryOpen] = useState(false);
   const [isEnhancingWithAI, setIsEnhancingWithAI] = useState(false);
+  const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+  
+  // Community features
+  const { 
+    communityStats, 
+    reviews, 
+    isLoading: isLoadingReviews, 
+    submitReview 
+  } = useRestaurantReviews(restaurantData.place_id);
 
   useEffect(() => {
     setRestaurantData(restaurant);
@@ -645,6 +658,39 @@ export function UnifiedRestaurantDetails({
               </Card>
             )}
 
+            {/* Community Rating */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Community</h2>
+                {user && (
+                  <Button
+                    onClick={() => setIsReviewDialogOpen(true)}
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <Star className="h-4 w-4" />
+                    Write Review
+                  </Button>
+                )}
+              </div>
+              
+              <CommunityRating 
+                stats={communityStats} 
+                isLoading={isLoadingReviews} 
+              />
+              
+              <CommunityPhotoGallery 
+                stats={communityStats}
+                isLoading={isLoadingReviews}
+                onPhotoClick={(index, photos) => {
+                  setPhotos(photos);
+                  setIsPhotoGalleryOpen(true);
+                }}
+              />
+            </div>
+
+            <Separator />
+
             {/* Map */}
             {restaurantData.latitude && restaurantData.longitude && (
               <Card>
@@ -673,6 +719,15 @@ export function UnifiedRestaurantDetails({
         onClose={() => setIsPhotoGalleryOpen(false)}
         restaurantName={restaurantData.name}
         isMobile={actualIsMobile}
+      />
+
+      {/* Review Dialog */}
+      <UserReviewDialog
+        isOpen={isReviewDialogOpen}
+        onClose={() => setIsReviewDialogOpen(false)}
+        restaurantName={restaurantData.name}
+        restaurantAddress={restaurantData.address}
+        onSubmit={submitReview}
       />
     </div>
   );
