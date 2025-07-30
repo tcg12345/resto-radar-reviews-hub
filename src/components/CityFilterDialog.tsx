@@ -20,6 +20,8 @@ export function CityFilterDialog({
   onCityChange
 }: CityFilterDialogProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   // Prevent background scrolling when dialog is open
   useEffect(() => {
@@ -43,6 +45,27 @@ export function CityFilterDialog({
       };
     }
   }, [open]);
+
+  // Touch handlers for swipe down to close
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientY);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isDownSwipe = distance < -50; // Swipe down at least 50px
+    
+    if (isDownSwipe) {
+      onOpenChange(false);
+    }
+  };
 
   const filteredCities = availableCities.filter(city =>
     city.toLowerCase().includes(searchQuery.toLowerCase())
@@ -75,10 +98,15 @@ export function CityFilterDialog({
       />
       
       {/* Bottom Sheet */}
-      <div className="fixed bottom-0 left-0 right-0 z-[110] bg-background border-t rounded-t-xl animate-in slide-in-from-bottom duration-300 h-[80vh] touch-pan-y overscroll-contain">
+      <div 
+        className="fixed bottom-0 left-0 right-0 z-[110] bg-background border-t rounded-t-xl animate-in slide-in-from-bottom duration-300 h-[80vh] touch-pan-y overscroll-contain"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         <div className="flex flex-col h-full overscroll-contain">
           {/* Drag Handle */}
-          <div className="flex justify-center py-2">
+          <div className="flex justify-center py-2 cursor-pointer">
             <div className="w-8 h-1 bg-muted-foreground/30 rounded-full"></div>
           </div>
           
