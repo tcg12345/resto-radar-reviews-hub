@@ -65,32 +65,32 @@ export function TripStats({ trips }: TripStatsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      {stats.map((stat) => {
-        const Icon = stat.icon;
-        return (
-          <Card key={stat.label} className="border-0 shadow-md hover:shadow-lg transition-shadow">
-            <CardContent className="p-3 md:p-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1 md:space-y-2">
+    <Card className="border-0 shadow-md">
+      <CardContent className="p-4 md:p-6">
+        <div className="grid grid-cols-2 gap-4 md:gap-6">
+          {stats.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <div key={stat.label} className="flex flex-col items-center text-center space-y-2">
+                <div className={`p-2 md:p-3 rounded-full ${stat.bgColor} mb-1`}>
+                  <Icon className={`w-5 h-5 md:w-6 md:h-6 ${stat.color}`} />
+                </div>
+                <div className="space-y-1">
                   <p className="text-xs md:text-sm font-medium text-muted-foreground">
                     {stat.label}
                   </p>
-                  <p className="text-2xl md:text-3xl font-bold">
+                  <p className="text-xl md:text-2xl font-bold">
                     {stat.value}
                   </p>
                   <Badge variant="secondary" className="text-xs">
                     {stat.trend}
                   </Badge>
                 </div>
-                <div className={`p-2 md:p-3 rounded-full ${stat.bgColor}`}>
-                  <Icon className={`w-5 h-5 md:w-6 md:h-6 ${stat.color}`} />
-                </div>
               </div>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
