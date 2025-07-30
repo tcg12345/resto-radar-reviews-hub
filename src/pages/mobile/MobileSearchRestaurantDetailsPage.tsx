@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { ReservationWidget } from '@/components/ReservationWidget';
 import { RestaurantLocationMap } from '@/components/RestaurantLocationMap';
+import { MichelinStars } from '@/components/MichelinStars';
 
 interface GooglePlaceResult {
   place_id: string;
@@ -54,6 +55,7 @@ interface GooglePlaceResult {
     cuisine: string;
     categories: string[];
   };
+  michelinStars?: number;
   fallbackCuisine?: string;
 }
 
@@ -65,6 +67,7 @@ export default function MobileSearchRestaurantDetailsPage() {
   const [restaurant, setRestaurant] = useState<GooglePlaceResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
+  const [isEnhancingWithAI, setIsEnhancingWithAI] = useState(false);
 
   useEffect(() => {
     if (placeData) {
@@ -130,11 +133,102 @@ export default function MobileSearchRestaurantDetailsPage() {
             } : null);
           }
         });
+        
+        // Enhance with AI after basic data is loaded
+        enhanceWithAI(detailedPlace);
       }
     } catch (error) {
       console.error('Failed to get place details:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const shouldEnhanceWithAI = (restaurant: GooglePlaceResult): boolean => {
+    const hasGenericCuisine = !restaurant.aiAnalysis?.cuisine && (
+      !restaurant.fallbackCuisine ||
+      restaurant.fallbackCuisine.toLowerCase().includes('restaurant') ||
+      restaurant.fallbackCuisine.toLowerCase().includes('bar') ||
+      restaurant.fallbackCuisine.toLowerCase().includes('food') ||
+      restaurant.fallbackCuisine.toLowerCase().includes('establishment')
+    );
+    
+    const hasMissingMichelinInfo = restaurant.michelinStars === undefined;
+    
+    return hasGenericCuisine || hasMissingMichelinInfo;
+  };
+
+  const enhanceWithAI = async (restaurant: GooglePlaceResult) => {
+    if (!shouldEnhanceWithAI(restaurant)) return;
+    
+    try {
+      setIsEnhancingWithAI(true);
+      
+      // Run both AI functions in parallel for speed
+      const promises = [];
+      
+      // Enhance cuisine if needed
+      const hasGenericCuisine = !restaurant.aiAnalysis?.cuisine && (
+        !restaurant.fallbackCuisine ||
+        restaurant.fallbackCuisine.toLowerCase().includes('restaurant') ||
+        restaurant.fallbackCuisine.toLowerCase().includes('bar') ||
+        restaurant.fallbackCuisine.toLowerCase().includes('food') ||
+        restaurant.fallbackCuisine.toLowerCase().includes('establishment')
+      );
+      
+      if (hasGenericCuisine) {
+        promises.push(
+          supabase.functions.invoke('ai-cuisine-detector', {
+            body: {
+              restaurantName: restaurant.name,
+              address: restaurant.formatted_address,
+              types: restaurant.types || []
+            }
+          })
+        );
+      } else {
+        promises.push(Promise.resolve({ data: { cuisine: restaurant.aiAnalysis?.cuisine || restaurant.fallbackCuisine } }));
+      }
+      
+      // Detect Michelin stars if missing
+      const hasMissingMichelinInfo = restaurant.michelinStars === undefined;
+      
+      if (hasMissingMichelinInfo) {
+        promises.push(
+          supabase.functions.invoke('ai-michelin-detector', {
+            body: {
+              name: restaurant.name,
+              address: restaurant.formatted_address,
+              city: restaurant.formatted_address.split(',')[1]?.trim() || '',
+              country: restaurant.formatted_address.split(',').pop()?.trim() || '',
+              cuisine: restaurant.aiAnalysis?.cuisine || restaurant.fallbackCuisine || '',
+              notes: ''
+            }
+          })
+        );
+      } else {
+        promises.push(Promise.resolve({ data: { michelinStars: restaurant.michelinStars } }));
+      }
+      
+      // Wait for both to complete
+      const [cuisineResult, michelinResult] = await Promise.all(promises);
+      
+      // Update restaurant data with AI enhancements
+      setRestaurant(prev => prev ? {
+        ...prev,
+        aiAnalysis: {
+          cuisine: cuisineResult?.data?.cuisine || prev.aiAnalysis?.cuisine || prev.fallbackCuisine || 'Restaurant',
+          categories: prev.aiAnalysis?.categories || []
+        },
+        michelinStars: michelinResult?.data?.michelinStars !== undefined ? 
+          michelinResult.data.michelinStars : (prev.michelinStars || 0)
+      } : null);
+      
+    } catch (error) {
+      console.error('Error enhancing restaurant with AI:', error);
+      // Silently fail - don't show error to user for this enhancement
+    } finally {
+      setIsEnhancingWithAI(false);
     }
   };
 
@@ -321,8 +415,25 @@ export default function MobileSearchRestaurantDetailsPage() {
               {(() => {
                 const cuisine = restaurant.aiAnalysis?.cuisine || restaurant.fallbackCuisine || 
                   restaurant.types.find(type => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 'Restaurant';
-                return <Badge variant="outline">{cuisine}</Badge>;
+                return (
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    {cuisine}
+                    {isEnhancingWithAI && (
+                      <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+                    )}
+                  </Badge>
+                );
               })()}
+              
+              {/* Michelin Stars */}
+              {(restaurant.michelinStars || isEnhancingWithAI) && (
+                <Badge variant="outline" className="flex items-center gap-1">
+                  <MichelinStars stars={restaurant.michelinStars || 0} />
+                  {isEnhancingWithAI && (
+                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+                  )}
+                </Badge>
+              )}
               
               {restaurant.yelpData?.categories?.slice(0, 2).map((category, index) => (
                 <Badge key={index} variant="outline">{category}</Badge>
