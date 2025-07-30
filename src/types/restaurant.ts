@@ -25,6 +25,8 @@ export interface Restaurant {
   michelinStars?: number; // 1-3 Michelin stars
   photos: string[];
   photoCaptions?: string[];
+  photoDishNames?: string[];
+  photoNotes?: string[];
   notes?: string;
   dateVisited?: string;
   latitude?: number;
@@ -48,6 +50,8 @@ export interface RestaurantFormData {
   michelinStars?: number; // 1-3 Michelin stars
   photos: File[];
   photoCaptions?: string[];
+  photoDishNames?: string[];
+  photoNotes?: string[];
   notes?: string;
   dateVisited?: string;
   isWishlist: boolean;

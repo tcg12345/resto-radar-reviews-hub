@@ -120,6 +120,8 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
 
   const [previewImages, setPreviewImages] = useState<string[]>(initialData?.photos || []);
   const [photoCaptions, setPhotoCaptions] = useState<string[]>(initialData?.photoCaptions || []);
+  const [photoDishNames, setPhotoDishNames] = useState<string[]>(initialData?.photoDishNames || []);
+  const [photoNotes, setPhotoNotes] = useState<string[]>(initialData?.photoNotes || []);
 
   const sanitizeInput = (input: string, maxLength: number = 255) => {
     return input
@@ -241,6 +243,8 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       
       setPreviewImages(prev => [...prev, ...newPreviews]);
       setPhotoCaptions(prev => [...prev, ...new Array(newFiles.length).fill('')]);
+      setPhotoDishNames(prev => [...prev, ...new Array(newFiles.length).fill('')]);
+      setPhotoNotes(prev => [...prev, ...new Array(newFiles.length).fill('')]);
       
       if (newFiles.length > 5) {
         toast.success(`${newFiles.length} photos added successfully!`);
@@ -286,6 +290,8 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
 
         setPreviewImages(prev => [...prev, thumbnail]);
         setPhotoCaptions(prev => [...prev, '']);
+        setPhotoDishNames(prev => [...prev, '']);
+        setPhotoNotes(prev => [...prev, '']);
       }
     } catch (error) {
       console.error('Error selecting photo from gallery:', error);
@@ -327,6 +333,8 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
 
         setPreviewImages(prev => [...prev, thumbnail]);
         setPhotoCaptions(prev => [...prev, '']);
+        setPhotoDishNames(prev => [...prev, '']);
+        setPhotoNotes(prev => [...prev, '']);
       }
     } catch (error) {
       console.error('Error taking photo:', error);
@@ -357,12 +365,32 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     }
   };
 
+  const handleDishNameChange = (index: number, dishName: string) => {
+    const sanitizedDishName = sanitizeInput(dishName, 100);
+    setPhotoDishNames(prev => {
+      const newDishNames = [...prev];
+      newDishNames[index] = sanitizedDishName;
+      return newDishNames;
+    });
+  };
+
+  const handlePhotoNotesChange = (index: number, notes: string) => {
+    const sanitizedNotes = sanitizeInput(notes, 300);
+    setPhotoNotes(prev => {
+      const newNotes = [...prev];
+      newNotes[index] = sanitizedNotes;
+      return newNotes;
+    });
+  };
+
   const removePhoto = (index: number) => {
     const existingPhotosCount = initialData?.photos.length || 0;
     
-    // Remove from preview images and captions
+    // Remove from preview images and all associated arrays
     setPreviewImages(prev => prev.filter((_, i) => i !== index));
     setPhotoCaptions(prev => prev.filter((_, i) => i !== index));
+    setPhotoDishNames(prev => prev.filter((_, i) => i !== index));
+    setPhotoNotes(prev => prev.filter((_, i) => i !== index));
     
     if (index < existingPhotosCount) {
       // This is an existing photo - track it for removal
@@ -809,6 +837,8 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     const submissionData = {
       ...formData,
       photoCaptions: photoCaptions,
+      photoDishNames: photoDishNames,
+      photoNotes: photoNotes,
       removedPhotoIndexes: removedPhotoIndexes,
       // Always include Google Places fields - preserve existing data if not in current form
       website: formDataWithPlaces.website ?? (initialData as any)?.website ?? null,
@@ -1203,13 +1233,28 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
                     {index + 1}
                   </div>
                 </div>
-                <Input
-                  type="text"
-                  placeholder="Add caption..."
-                  value={photoCaptions[index] || ''}
-                  onChange={(e) => handleCaptionChange(index, e.target.value)}
-                  className="text-xs"
-                />
+                <div className="space-y-1">
+                  <Input
+                    type="text"
+                    placeholder="Dish name..."
+                    value={photoDishNames[index] || ''}
+                    onChange={(e) => handleDishNameChange(index, e.target.value)}
+                    className="text-xs"
+                  />
+                  <Input
+                    type="text"
+                    placeholder="Add caption..."
+                    value={photoCaptions[index] || ''}
+                    onChange={(e) => handleCaptionChange(index, e.target.value)}
+                    className="text-xs"
+                  />
+                  <Textarea
+                    placeholder="Notes about this photo..."
+                    value={photoNotes[index] || ''}
+                    onChange={(e) => handlePhotoNotesChange(index, e.target.value)}
+                    className="text-xs min-h-[60px] resize-none"
+                  />
+                </div>
               </div>
             ))}
 
