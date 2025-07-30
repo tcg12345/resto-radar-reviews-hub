@@ -91,16 +91,8 @@ export function RatedRestaurantsFilterDialog({
           </div>
           
           {/* Header */}
-          <div className="flex items-center justify-between px-4 pb-4 bg-background border-b">
+          <div className="flex items-center justify-center px-4 pb-4 bg-background border-b">
             <h2 className="text-lg font-semibold">Filters & Sort</h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onOpenChange(false)}
-              className="h-8 w-8 p-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
           </div>
 
           {/* Content */}
