@@ -78,12 +78,12 @@ export function RatedRestaurantsFilterDialog({
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/60 z-40"
+        className="fixed inset-0 bg-black/60 z-[60]"
         onClick={() => onOpenChange(false)}
       />
       
       {/* Bottom Sheet */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t rounded-t-xl animate-in slide-in-from-bottom duration-300 h-[85vh]">
+      <div className="fixed bottom-0 left-0 right-0 z-[70] bg-background border-t rounded-t-xl animate-in slide-in-from-bottom duration-300 h-[85vh]">
         <div className="flex flex-col h-full">
           {/* Drag Handle */}
           <div className="flex justify-center py-2">
