@@ -68,6 +68,7 @@ interface PlaceDetails extends GooglePlaceResult {
 }
 export type SearchType = 'name' | 'cuisine' | 'description';
 export default function UnifiedSearchPage() {
+  console.log('UnifiedSearchPage component starting...');
   const navigate = useNavigate();
   const {
     user
@@ -87,7 +88,7 @@ export default function UnifiedSearchPage() {
     lat: number;
     lng: number;
   } | null>(null);
-  const [recentRestaurants, setRecentRestaurants] = useState<GooglePlaceResult[]>([]);
+  const [recentClickedRestaurants, setRecentClickedRestaurants] = useState<GooglePlaceResult[]>([]);
   const [recommendedPlaces, setRecommendedPlaces] = useState<GooglePlaceResult[]>([]);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
   const [userRestaurants, setUserRestaurants] = useState<any[]>([]);
@@ -120,7 +121,7 @@ export default function UnifiedSearchPage() {
     // Load recent clicked restaurants from localStorage
     const savedRestaurants = localStorage.getItem('recentClickedRestaurants');
     if (savedRestaurants) {
-      setRecentRestaurants(JSON.parse(savedRestaurants).slice(0, 5));
+      setRecentClickedRestaurants(JSON.parse(savedRestaurants).slice(0, 5));
     }
     
     // Load user's restaurants to generate location-based recommendations
@@ -196,7 +197,7 @@ export default function UnifiedSearchPage() {
     restaurants = restaurants.slice(0, 10);
     
     localStorage.setItem('recentClickedRestaurants', JSON.stringify(restaurants));
-    setRecentRestaurants(restaurants.slice(0, 5));
+    setRecentClickedRestaurants(restaurants.slice(0, 5));
   };
 
   // Click outside handler to hide dropdown
@@ -666,7 +667,7 @@ export default function UnifiedSearchPage() {
         </div>
       </div>
       
-      {/* Mobile Instant Suggestions - Show when no search query and user is logged in */}
+      {/* Mobile Instant Suggestions Section - Show when no search query and user is logged in */}
       {!searchQuery && !showLiveResults && user && (searchResults.length === 0 || !isLoading) && (
         <div className="lg:hidden mt-6 space-y-6">
           {/* Filter Pills */}
@@ -686,11 +687,14 @@ export default function UnifiedSearchPage() {
           </div>
 
           {/* Recent Restaurants */}
-          {recentRestaurants.length > 0 && (
+          {(() => {
+            console.log('Checking recentClickedRestaurants length:', recentClickedRestaurants?.length);
+            return recentClickedRestaurants.length > 0;
+          })() && (
             <div className="space-y-3">
               <h3 className="text-lg font-semibold text-foreground">Recents</h3>
               <div className="space-y-2">
-                {recentRestaurants.map((restaurant, index) => (
+                {recentClickedRestaurants.map((restaurant, index) => (
                   <div 
                     key={restaurant.place_id}
                     className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
@@ -725,8 +729,8 @@ export default function UnifiedSearchPage() {
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        const updatedRestaurants = recentRestaurants.filter(r => r.place_id !== restaurant.place_id);
-                        setRecentRestaurants(updatedRestaurants);
+                        const updatedRestaurants = recentClickedRestaurants.filter(r => r.place_id !== restaurant.place_id);
+                        setRecentClickedRestaurants(updatedRestaurants);
                         localStorage.setItem('recentClickedRestaurants', JSON.stringify(updatedRestaurants));
                       }}
                       className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
@@ -811,7 +815,7 @@ export default function UnifiedSearchPage() {
           )}
 
           {/* Empty state when no recent restaurants or recommendations */}
-          {recentRestaurants.length === 0 && userRestaurants.length === 0 && (
+          {recentClickedRestaurants.length === 0 && userRestaurants.length === 0 && (
             <div className="text-center py-12">
               <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
                 <Search className="w-8 h-8 text-muted-foreground" />
