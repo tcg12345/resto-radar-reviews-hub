@@ -377,7 +377,7 @@ export default function FriendProfilePage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Cuisines</SelectItem>
-                        {availableCuisines.map(({ cuisine, count }) => (
+                        {availableCuisines.filter(({ cuisine }) => cuisine && cuisine.trim() !== '').map(({ cuisine, count }) => (
                           <SelectItem key={cuisine} value={cuisine}>{cuisine} ({count})</SelectItem>
                         ))}
                       </SelectContent>
@@ -587,7 +587,7 @@ export default function FriendProfilePage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Cuisines</SelectItem>
-                      {availableCuisines.map(({ cuisine, count }) => (
+                      {availableCuisines.filter(({ cuisine }) => cuisine && cuisine.trim() !== '').map(({ cuisine, count }) => (
                         <SelectItem key={cuisine} value={cuisine}>{cuisine} ({count})</SelectItem>
                       ))}
                     </SelectContent>
@@ -599,7 +599,7 @@ export default function FriendProfilePage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Cities</SelectItem>
-                      {availableCities.map(({ city, count }) => (
+                      {availableCities.filter(({ city }) => city && city.trim() !== '').map(({ city, count }) => (
                         <SelectItem key={city} value={city}>{city} ({count})</SelectItem>
                       ))}
                     </SelectContent>
