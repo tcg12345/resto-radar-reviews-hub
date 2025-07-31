@@ -11,7 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 import { CommunityRating } from '@/components/CommunityRating';
 import { CommunityPhotoGallery } from '@/components/CommunityPhotoGallery';
-import { UserReviewDialog } from '@/components/UserReviewDialog';
+
 import { useRestaurantReviews } from '@/hooks/useRestaurantReviews';
 
 import { 
@@ -104,7 +104,7 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist,
   const [isMoreInfoOpen, setIsMoreInfoOpen] = useState(false);
   const [showFullWeekHours, setShowFullWeekHours] = useState(false);
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
-  const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+  
   
   // Use restaurant place_id if available, otherwise fallback to restaurant.id
   const placeId = restaurant.id;
@@ -483,17 +483,6 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist,
                    </Button>
                  )}
                  
-                 {user && (
-                   <Button
-                     variant="ghost"
-                     size="sm"
-                     className="h-8 text-xs w-full justify-start"
-                     onClick={() => setIsReviewDialogOpen(true)}
-                   >
-                     <Star className="h-3 w-3 mr-2" />
-                     Write Review
-                   </Button>
-                 )}
                 </div>
                
                 {/* Community Rating */}
@@ -513,14 +502,6 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist,
           </div>
         </CardContent>
 
-        {/* Review Dialog */}
-        <UserReviewDialog
-          isOpen={isReviewDialogOpen}
-          onClose={() => setIsReviewDialogOpen(false)}
-          restaurantName={restaurant.name}
-          restaurantAddress={restaurant.address}
-          onSubmit={submitReview}
-        />
       </Card>
     );
   }

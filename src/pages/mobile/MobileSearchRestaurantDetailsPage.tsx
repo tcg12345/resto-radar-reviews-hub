@@ -12,7 +12,7 @@ import { RestaurantLocationMap } from '@/components/RestaurantLocationMap';
 import { MichelinStars } from '@/components/MichelinStars';
 import { FriendRatingDisplay } from '@/components/FriendRatingDisplay';
 import { FriendPhotoGallery } from '@/components/FriendPhotoGallery';
-import { UserReviewDialog } from '@/components/UserReviewDialog';
+
 import { useRestaurantReviews } from '@/hooks/useRestaurantReviews';
 
 interface GooglePlaceResult {
@@ -72,7 +72,7 @@ export default function MobileSearchRestaurantDetailsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
   const [isEnhancingWithAI, setIsEnhancingWithAI] = useState(false);
-  const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+  
   
   // Use restaurant place_id for community reviews
   const { communityStats, isLoading: isLoadingReviews, submitReview } = useRestaurantReviews(restaurant?.place_id || null);
@@ -622,29 +622,9 @@ export default function MobileSearchRestaurantDetailsPage() {
             totalCommunityReviews={communityStats?.totalReviews}
           />
 
-          {/* User Review Section */}
-          {user && (
-            <Button
-              onClick={() => setIsReviewDialogOpen(true)}
-              className="w-full flex items-center gap-2"
-            >
-              <Star className="h-4 w-4" />
-              Write a Review
-            </Button>
-          )}
         </div>
       </div>
 
-      {/* User Review Dialog */}
-      {restaurant && (
-        <UserReviewDialog
-          isOpen={isReviewDialogOpen}
-          onClose={() => setIsReviewDialogOpen(false)}
-          restaurantName={restaurant.name}
-          restaurantAddress={restaurant.formatted_address}
-          onSubmit={submitReview}
-        />
-      )}
     </div>
   );
 }
