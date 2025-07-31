@@ -77,6 +77,16 @@ export default function MobileSearchRestaurantDetailsPage() {
   // Use restaurant place_id for community reviews
   const { communityStats, isLoading: isLoadingReviews } = useRestaurantReviews(restaurant?.place_id || null);
 
+  const handleBack = () => {
+    // Check if we have history to go back to
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      // Fallback to search page if no history
+      navigate('/search');
+    }
+  };
+
   useEffect(() => {
     if (placeData) {
       try {
@@ -92,11 +102,11 @@ export default function MobileSearchRestaurantDetailsPage() {
       } catch (error) {
         console.error('Error parsing place data:', error);
         toast.error('Invalid restaurant data');
-        navigate(-1);
+        handleBack();
       }
     } else {
       toast.error('No restaurant data provided');
-      navigate(-1);
+      handleBack();
     }
   }, [placeData, navigate]);
 
@@ -329,7 +339,7 @@ export default function MobileSearchRestaurantDetailsPage() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate(-1)}
+              onClick={handleBack}
               className="h-8 w-8 p-0"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -356,7 +366,7 @@ export default function MobileSearchRestaurantDetailsPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate(-1)}
+            onClick={handleBack}
             className="h-8 w-8 p-0"
           >
             <ArrowLeft className="h-4 w-4" />
