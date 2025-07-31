@@ -34,13 +34,18 @@ export default function CommunityPhotoGalleryPage() {
       const photos: Array<CommunityPhoto & { photoIndex: number; photoUrl: string }> = [];
       
       communityStats.recentPhotos.forEach((photoData) => {
-        photoData.photos.forEach((photoUrl, index) => {
-          photos.push({
-            ...photoData,
-            photoIndex: index,
-            photoUrl: photoUrl
+        // Check if photos array exists and has items
+        if (photoData.photos && Array.isArray(photoData.photos)) {
+          photoData.photos.forEach((photoUrl, index) => {
+            if (photoUrl) { // Make sure the photo URL is not empty
+              photos.push({
+                ...photoData,
+                photoIndex: index,
+                photoUrl: photoUrl
+              });
+            }
           });
-        });
+        }
       });
       
       setAllPhotos(photos);
@@ -147,7 +152,11 @@ export default function CommunityPhotoGalleryPage() {
               >
                 <LazyImage
                   src={photo.photoUrl}
-                  alt={photo.captions[photo.photoIndex] || photo.dish_names[photo.photoIndex] || `Photo by ${photo.username}`}
+                  alt={
+                    (photo.captions && photo.captions[photo.photoIndex]) || 
+                    (photo.dish_names && photo.dish_names[photo.photoIndex]) || 
+                    `Photo by ${photo.username}`
+                  }
                   className="w-full h-full object-cover transition-transform group-hover:scale-105"
                 />
               </div>
@@ -161,12 +170,12 @@ export default function CommunityPhotoGalleryPage() {
                   <span>{format(new Date(photo.created_at), 'MMM d')}</span>
                 </div>
                 
-                {(photo.captions[photo.photoIndex] || photo.dish_names[photo.photoIndex]) && (
+                {((photo.captions && photo.captions[photo.photoIndex]) || (photo.dish_names && photo.dish_names[photo.photoIndex])) && (
                   <p className="text-white text-xs mt-1 line-clamp-2">
-                    {photo.dish_names[photo.photoIndex] && (
+                    {photo.dish_names && photo.dish_names[photo.photoIndex] && (
                       <span className="font-medium">{photo.dish_names[photo.photoIndex]} • </span>
                     )}
-                    {photo.captions[photo.photoIndex]}
+                    {photo.captions && photo.captions[photo.photoIndex]}
                   </p>
                 )}
               </div>
