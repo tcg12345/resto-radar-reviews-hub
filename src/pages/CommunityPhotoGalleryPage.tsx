@@ -203,7 +203,7 @@ export default function CommunityPhotoGalleryPage() {
           className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
           onClick={closePhotoModal}
         >
-          <div className="relative max-w-full max-h-full">
+          <div className="relative max-w-full max-h-full flex flex-col">
             <Button
               variant="ghost"
               size="sm"
@@ -240,14 +240,14 @@ export default function CommunityPhotoGalleryPage() {
             <img
               src={currentPhoto.photoUrl}
               alt="Full size photo"
-              className="max-w-full max-h-full object-contain rounded-lg"
+              className="max-w-full max-h-[70vh] object-contain rounded-lg"
               onClick={(e) => e.stopPropagation()}
             />
             
-            {/* Photo Info Overlay */}
+            {/* Photo Info Below */}
             {((currentPhoto.dish_names && currentPhoto.dish_names[currentPhoto.photoIndex]) || 
               (currentPhoto.captions && currentPhoto.captions[currentPhoto.photoIndex])) && (
-              <div className="absolute bottom-4 left-4 right-4 bg-black/70 backdrop-blur-sm rounded-lg p-4">
+              <div className="mt-4 bg-black/70 backdrop-blur-sm rounded-lg p-4 max-w-md mx-auto">
                 <div className="flex items-center gap-2 text-white text-sm mb-2">
                   <User className="h-4 w-4" />
                   <span className="font-medium">{currentPhoto.username}</span>
