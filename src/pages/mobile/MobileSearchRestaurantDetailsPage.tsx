@@ -75,7 +75,10 @@ export default function MobileSearchRestaurantDetailsPage() {
   
   
   // Use restaurant place_id for community reviews
-  const { communityStats, isLoading: isLoadingReviews } = useRestaurantReviews(restaurant?.place_id || null);
+  const { communityStats, isLoading: isLoadingReviews } = useRestaurantReviews(
+    restaurant?.place_id || null,
+    restaurant?.name || null
+  );
 
   const handleBack = () => {
     // Check if we have history to go back to

@@ -34,7 +34,7 @@ export interface UserReview {
   userFoundHelpful: boolean;
 }
 
-export function useRestaurantReviews(restaurantPlaceId?: string) {
+export function useRestaurantReviews(restaurantPlaceId?: string, restaurantName?: string) {
   const { user } = useAuth();
   const [communityStats, setCommunityStats] = useState<CommunityStats | null>(null);
   const [reviews, setReviews] = useState<UserReview[]>([]);
@@ -48,6 +48,7 @@ export function useRestaurantReviews(restaurantPlaceId?: string) {
     try {
       const { data, error } = await supabase.rpc('get_restaurant_community_stats', {
         place_id_param: restaurantPlaceId,
+        restaurant_name_param: restaurantName || null,
         requesting_user_id: user?.id || null
       });
       
@@ -192,7 +193,7 @@ export function useRestaurantReviews(restaurantPlaceId?: string) {
       fetchCommunityStats();
       fetchReviews();
     }
-  }, [restaurantPlaceId]);
+  }, [restaurantPlaceId, restaurantName]);
 
   return {
     communityStats,
