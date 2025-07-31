@@ -75,7 +75,7 @@ export default function MobileSearchRestaurantDetailsPage() {
   
   
   // Use restaurant place_id for community reviews
-  const { communityStats, isLoading: isLoadingReviews, submitReview } = useRestaurantReviews(restaurant?.place_id || null);
+  const { communityStats, isLoading: isLoadingReviews } = useRestaurantReviews(restaurant?.place_id || null);
 
   useEffect(() => {
     if (placeData) {
