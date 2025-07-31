@@ -453,9 +453,14 @@ export default function MobileSearchRestaurantDetailsPage() {
               })()}
               
               {/* Michelin Stars */}
-              {!isEnhancingWithAI && restaurant.michelinStars && restaurant.michelinStars > 0 && (() => {
-                console.log('Displaying Michelin stars:', restaurant.michelinStars, 'for restaurant:', restaurant.name);
-                return (
+              {(() => {
+                console.log('Michelin stars check:', {
+                  michelinStars: restaurant.michelinStars,
+                  isEnhancingWithAI,
+                  hasStars: restaurant.michelinStars && restaurant.michelinStars > 0,
+                  restaurantName: restaurant.name
+                });
+                return !isEnhancingWithAI && restaurant.michelinStars && restaurant.michelinStars > 0 && (
                   <Badge variant="outline">
                     <MichelinStars stars={restaurant.michelinStars} readonly={true} size="sm" />
                   </Badge>
