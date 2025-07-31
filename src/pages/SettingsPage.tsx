@@ -167,7 +167,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
       // Delete in sequence to avoid conflicts
       const deletions = [
         { name: 'settings', promise: supabase.from('settings').delete().eq('user_id', user.id) },
-        { name: 'reservations', promise: supabase.from('reservations').delete().eq('user_id', user.id) },
+        
         { name: 'friend_requests', promise: supabase.from('friend_requests').delete().or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`) },
         { name: 'friends', promise: supabase.from('friends').delete().or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`) },
         { name: 'restaurants', promise: supabase.from('restaurants').delete().eq('user_id', user.id) },

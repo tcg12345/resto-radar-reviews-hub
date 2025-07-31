@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { ReservationWidget } from '@/components/ReservationWidget';
+
 import { RestaurantLocationMap } from '@/components/RestaurantLocationMap';
 import { MichelinStars } from '@/components/MichelinStars';
 import { FriendRatingDisplay } from '@/components/FriendRatingDisplay';
@@ -586,13 +586,6 @@ export default function MobileSearchRestaurantDetailsPage() {
             </Card>
           )}
 
-          {/* Reservation Widget */}
-          <ReservationWidget restaurant={{
-            id: restaurant.place_id,
-            name: restaurant.name,
-            phone_number: restaurant.formatted_phone_number,
-            website: restaurant.website
-          }} />
 
           {/* Reviews Preview */}
           {restaurant.reviews && restaurant.reviews.length > 0 && (

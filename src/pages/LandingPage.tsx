@@ -59,13 +59,6 @@ const features = [
     gradient: 'from-green-500 to-green-600'
   },
   {
-    icon: Calendar,
-    title: 'Reservations',
-    description: 'Book tables directly through the app with integrated reservation management.',
-    color: 'text-orange-500',
-    gradient: 'from-orange-500 to-orange-600'
-  },
-  {
     icon: Camera,
     title: 'Photo Gallery',
     description: 'Capture and organize photos of your meals with automatic gallery creation.',
