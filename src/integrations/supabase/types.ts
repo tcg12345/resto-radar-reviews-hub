@@ -992,6 +992,29 @@ export type Database = {
           recent_photos: Json
         }[]
       }
+      get_restaurant_reviews: {
+        Args: {
+          place_id_param: string
+          page_limit?: number
+          page_offset?: number
+          sort_by?: string
+          requesting_user_id?: string
+        }
+        Returns: {
+          review_id: string
+          user_id: string
+          username: string
+          overall_rating: number
+          category_ratings: Json
+          review_text: string
+          photos: string[]
+          photo_captions: string[]
+          photo_dish_names: string[]
+          helpful_count: number
+          created_at: string
+          user_found_helpful: boolean
+        }[]
+      }
       get_user_score: {
         Args: { user_id: string }
         Returns: number

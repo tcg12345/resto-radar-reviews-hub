@@ -47,9 +47,7 @@ export function useRestaurantReviews(restaurantPlaceId?: string, restaurantName?
     
     try {
       const { data, error } = await supabase.rpc('get_restaurant_community_stats', {
-        place_id_param: restaurantPlaceId,
-        restaurant_name_param: restaurantName || null,
-        requesting_user_id: user?.id || null
+        place_id_param: restaurantPlaceId
       });
       
       if (error) throw error;
@@ -124,11 +122,17 @@ export function useRestaurantReviews(restaurantPlaceId?: string, restaurantName?
     
     try {
       if (isHelpful) {
-        await supabase.from('review_helpfulness').insert({
-          review_id: reviewId,
-          user_id: user.id,
-          is_helpful: true
-        });
+        // First try to find existing record and update/insert
+        const { error: upsertError } = await supabase.from('review_helpfulness')
+          .upsert({
+            review_id: reviewId,
+            user_id: user.id,
+            is_helpful: true
+          }, {
+            onConflict: 'review_id,user_id'
+          });
+        
+        if (upsertError) throw upsertError;
       } else {
         await supabase.from('review_helpfulness')
           .delete()
