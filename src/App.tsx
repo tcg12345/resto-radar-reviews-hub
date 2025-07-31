@@ -34,6 +34,7 @@ import TravelPage from "./pages/TravelPage";
 import TripDetailPage from "./pages/TripDetailPage";
 import { SharedTripPage } from "./pages/SharedTripPage";
 import RestaurantPhotosPage from "./pages/RestaurantPhotosPage";
+import CommunityPhotoGalleryPage from "./pages/CommunityPhotoGalleryPage";
 
 
 const queryClient = new QueryClient();
@@ -88,6 +89,7 @@ const App = () => (
                 {/* Restaurant detail routes */}
                 <Route path="/restaurant/:restaurantId" element={<RequireAuth><RestaurantDetailPage /></RequireAuth>} />
                 <Route path="/restaurant/:restaurantId/photos" element={<RequireAuth><RestaurantPhotosPage /></RequireAuth>} />
+                <Route path="/restaurant/:placeId/community-photos" element={<RequireAuth><CommunityPhotoGalleryPage /></RequireAuth>} />
                 <Route path="/recommendation/:place_id" element={<RequireAuth><RecommendationDetailPage /></RequireAuth>} />
                 <Route path="/mobile/restaurant/:restaurantId" element={<RequireAuth><MobileRestaurantDetailsPage /></RequireAuth>} />
                 <Route path="/mobile/search/restaurant" element={<RequireAuth><MobileSearchRestaurantDetailsPage /></RequireAuth>} />

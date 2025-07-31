@@ -1,0 +1,204 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, User, Star, Calendar } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { LazyImage } from '@/components/LazyImage';
+import { useRestaurantReviews } from '@/hooks/useRestaurantReviews';
+import { format } from 'date-fns';
+
+interface CommunityPhoto {
+  review_id: string;
+  user_id: string;
+  username: string;
+  photos: string[];
+  captions: string[];
+  dish_names: string[];
+  created_at: string;
+  helpful_count: number;
+}
+
+export default function CommunityPhotoGalleryPage() {
+  const { placeId } = useParams();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const restaurantName = searchParams.get('name') || 'Restaurant';
+  
+  const { communityStats, isLoading } = useRestaurantReviews(placeId, restaurantName);
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const [allPhotos, setAllPhotos] = useState<Array<CommunityPhoto & { photoIndex: number; photoUrl: string }>>([]);
+
+  useEffect(() => {
+    if (communityStats?.recentPhotos) {
+      // Flatten all photos from all users into a single array
+      const photos: Array<CommunityPhoto & { photoIndex: number; photoUrl: string }> = [];
+      
+      communityStats.recentPhotos.forEach((photoData) => {
+        photoData.photos.forEach((photoUrl, index) => {
+          photos.push({
+            ...photoData,
+            photoIndex: index,
+            photoUrl: photoUrl
+          });
+        });
+      });
+      
+      setAllPhotos(photos);
+    }
+  }, [communityStats]);
+
+  const handleBack = () => {
+    navigate(-1);
+  };
+
+  const openPhotoModal = (photoUrl: string) => {
+    setSelectedPhoto(photoUrl);
+  };
+
+  const closePhotoModal = () => {
+    setSelectedPhoto(null);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
+          <div className="flex items-center gap-3 p-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleBack}
+              className="h-8 w-8 p-0"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="font-semibold text-lg">Community Photos</h1>
+          </div>
+        </div>
+        <div className="p-4">
+          <div className="grid grid-cols-2 gap-3">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="aspect-square bg-muted rounded-lg animate-pulse" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!allPhotos.length) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
+          <div className="flex items-center gap-3 p-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleBack}
+              className="h-8 w-8 p-0"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="font-semibold text-lg">Community Photos</h1>
+          </div>
+        </div>
+        <div className="flex flex-col items-center justify-center p-8 text-center min-h-[50vh]">
+          <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+            <User className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold mb-2">No Community Photos Yet</h3>
+          <p className="text-muted-foreground mb-4">
+            Be the first to share photos of {restaurantName}!
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
+        <div className="flex items-center gap-3 p-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleBack}
+            className="h-8 w-8 p-0"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex-1">
+            <h1 className="font-semibold text-lg">Community Photos</h1>
+            <p className="text-sm text-muted-foreground">{restaurantName}</p>
+          </div>
+          <Badge variant="secondary">{allPhotos.length} photos</Badge>
+        </div>
+      </div>
+
+      {/* Photo Grid */}
+      <div className="p-4 pb-safe">
+        <div className="grid grid-cols-2 gap-3">
+          {allPhotos.map((photo, index) => (
+            <div key={`${photo.review_id}-${photo.photoIndex}`} className="group relative">
+              <div 
+                className="aspect-square cursor-pointer overflow-hidden rounded-lg bg-muted"
+                onClick={() => openPhotoModal(photo.photoUrl)}
+              >
+                <LazyImage
+                  src={photo.photoUrl}
+                  alt={photo.captions[photo.photoIndex] || photo.dish_names[photo.photoIndex] || `Photo by ${photo.username}`}
+                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                />
+              </div>
+              
+              {/* Photo Info Overlay */}
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 rounded-b-lg">
+                <div className="flex items-center gap-2 text-white text-xs">
+                  <User className="h-3 w-3" />
+                  <span className="font-medium">{photo.username}</span>
+                  <Calendar className="h-3 w-3 ml-auto" />
+                  <span>{format(new Date(photo.created_at), 'MMM d')}</span>
+                </div>
+                
+                {(photo.captions[photo.photoIndex] || photo.dish_names[photo.photoIndex]) && (
+                  <p className="text-white text-xs mt-1 line-clamp-2">
+                    {photo.dish_names[photo.photoIndex] && (
+                      <span className="font-medium">{photo.dish_names[photo.photoIndex]} • </span>
+                    )}
+                    {photo.captions[photo.photoIndex]}
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Photo Modal */}
+      {selectedPhoto && (
+        <div 
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          onClick={closePhotoModal}
+        >
+          <div className="relative max-w-full max-h-full">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={closePhotoModal}
+              className="absolute top-4 right-4 z-10 h-8 w-8 p-0 bg-black/50 hover:bg-black/70 text-white"
+            >
+              ×
+            </Button>
+            <img
+              src={selectedPhoto}
+              alt="Full size photo"
+              className="max-w-full max-h-full object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

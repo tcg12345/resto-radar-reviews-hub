@@ -385,7 +385,7 @@ export default function MobileSearchRestaurantDetailsPage() {
         {(restaurant.photos?.length > 0 || restaurant.yelpData?.photos?.length > 0) && (
           <div 
             className="aspect-video relative cursor-pointer group"
-            onClick={() => navigate(`/restaurant/${restaurant.place_id}/photos?placeId=${restaurant.place_id}`)}
+            onClick={() => navigate(`/restaurant/${restaurant.place_id}/community-photos?name=${encodeURIComponent(restaurant.name)}`)}
           >
             <img
               src={
@@ -400,7 +400,7 @@ export default function MobileSearchRestaurantDetailsPage() {
               }}
             />
             <div className="absolute top-3 right-3 bg-black/70 text-white px-2 py-1 rounded-md text-sm">
-              View all photos
+              View community photos
             </div>
           </div>
         )}
