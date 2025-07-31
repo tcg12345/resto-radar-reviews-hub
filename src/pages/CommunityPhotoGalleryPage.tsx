@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Star, Calendar } from 'lucide-react';
+import { ArrowLeft, User, Star, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { LazyImage } from '@/components/LazyImage';
@@ -25,7 +25,7 @@ export default function CommunityPhotoGalleryPage() {
   const restaurantName = searchParams.get('name') || 'Restaurant';
   
   const { communityStats, isLoading } = useRestaurantReviews(placeId, restaurantName);
-  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
   const [allPhotos, setAllPhotos] = useState<Array<CommunityPhoto & { photoIndex: number; photoUrl: string }>>([]);
 
   useEffect(() => {
@@ -56,12 +56,24 @@ export default function CommunityPhotoGalleryPage() {
     navigate(-1);
   };
 
-  const openPhotoModal = (photoUrl: string) => {
-    setSelectedPhoto(photoUrl);
+  const openPhotoModal = (index: number) => {
+    setSelectedPhotoIndex(index);
   };
 
   const closePhotoModal = () => {
-    setSelectedPhoto(null);
+    setSelectedPhotoIndex(null);
+  };
+
+  const goToPreviousPhoto = () => {
+    if (selectedPhotoIndex !== null && selectedPhotoIndex > 0) {
+      setSelectedPhotoIndex(selectedPhotoIndex - 1);
+    }
+  };
+
+  const goToNextPhoto = () => {
+    if (selectedPhotoIndex !== null && selectedPhotoIndex < allPhotos.length - 1) {
+      setSelectedPhotoIndex(selectedPhotoIndex + 1);
+    }
   };
 
   if (isLoading) {
@@ -148,7 +160,7 @@ export default function CommunityPhotoGalleryPage() {
             <div key={`${photo.review_id}-${photo.photoIndex}`} className="group relative">
               <div 
                 className="aspect-square cursor-pointer overflow-hidden rounded-lg bg-muted"
-                onClick={() => openPhotoModal(photo.photoUrl)}
+                onClick={() => openPhotoModal(index)}
               >
                 <LazyImage
                   src={photo.photoUrl}
@@ -183,7 +195,7 @@ export default function CommunityPhotoGalleryPage() {
       </div>
 
       {/* Photo Modal */}
-      {selectedPhoto && (
+      {selectedPhotoIndex !== null && (
         <div 
           className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
           onClick={closePhotoModal}
@@ -197,8 +209,33 @@ export default function CommunityPhotoGalleryPage() {
             >
               ×
             </Button>
+            
+            {/* Previous Arrow */}
+            {selectedPhotoIndex > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={goToPreviousPhoto}
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-10 h-12 w-12 p-0 bg-black/50 hover:bg-black/70 text-white"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </Button>
+            )}
+            
+            {/* Next Arrow */}
+            {selectedPhotoIndex < allPhotos.length - 1 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={goToNextPhoto}
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-10 h-12 w-12 p-0 bg-black/50 hover:bg-black/70 text-white"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </Button>
+            )}
+            
             <img
-              src={selectedPhoto}
+              src={allPhotos[selectedPhotoIndex].photoUrl}
               alt="Full size photo"
               className="max-w-full max-h-full object-contain rounded-lg"
               onClick={(e) => e.stopPropagation()}
