@@ -1000,20 +1000,13 @@ export type Database = {
         }[]
       }
       get_restaurant_reviews: {
-        Args:
-          | {
-              place_id_param: string
-              page_limit?: number
-              page_offset?: number
-              sort_by?: string
-            }
-          | {
-              place_id_param: string
-              page_limit?: number
-              page_offset?: number
-              sort_by?: string
-              requesting_user_id?: string
-            }
+        Args: {
+          place_id_param: string
+          page_limit?: number
+          page_offset?: number
+          sort_by?: string
+          requesting_user_id?: string
+        }
         Returns: {
           review_id: string
           user_id: string
