@@ -984,9 +984,7 @@ export type Database = {
         Returns: string
       }
       get_restaurant_community_stats: {
-        Args:
-          | { place_id_param: string }
-          | { place_id_param: string; requesting_user_id?: string }
+        Args: { place_id_param: string }
         Returns: {
           average_rating: number
           total_reviews: number
