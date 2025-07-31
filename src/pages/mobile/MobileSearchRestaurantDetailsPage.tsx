@@ -403,77 +403,82 @@ export default function MobileSearchRestaurantDetailsPage() {
         )}
 
         <div className="p-4 space-y-6">
-          {/* Basic Info */}
-          <div className="space-y-3">
-            <div className="flex items-start justify-between">
-              <div className="flex-1 min-w-0">
-                <h1 className="text-2xl font-bold leading-tight">{restaurant.name}</h1>
-                <div className="flex items-center gap-2 text-muted-foreground mt-1">
-                  <MapPin className="h-4 w-4 flex-shrink-0" />
-                  <span className="text-sm line-clamp-2">{restaurant.formatted_address}</span>
+          {/* Basic Info with Community Rating */}
+          <div className="flex gap-4">
+            {/* Main content */}
+            <div className="flex-1 space-y-3">
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-2xl font-bold leading-tight">{restaurant.name}</h1>
+                  <div className="flex items-center gap-2 text-muted-foreground mt-1">
+                    <MapPin className="h-4 w-4 flex-shrink-0" />
+                    <span className="text-sm line-clamp-2">{restaurant.formatted_address}</span>
+                  </div>
                 </div>
+              </div>
+
+              {/* Rating and Price */}
+              <div className="flex items-center gap-4 flex-wrap">
+                {restaurant.rating && (
+                  <div className="flex items-center gap-1">
+                    <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                    <span className="font-medium">{restaurant.rating}</span>
+                    {restaurant.user_ratings_total && (
+                      <span className="text-sm text-muted-foreground">
+                        ({restaurant.user_ratings_total.toLocaleString()})
+                      </span>
+                    )}
+                  </div>
+                )}
+                
+                {(restaurant.price_level || restaurant.yelpData?.price) && (
+                  <div className="text-lg font-bold text-green-600">
+                    {restaurant.yelpData?.price || getPriceDisplay(restaurant.price_level)}
+                  </div>
+                )}
+
+                {restaurant.opening_hours?.open_now !== undefined && (
+                  <Badge variant={restaurant.opening_hours.open_now ? "default" : "destructive"}>
+                    {restaurant.opening_hours.open_now ? "Open" : "Closed"}
+                  </Badge>
+                )}
+              </div>
+
+              {/* Cuisine and Categories */}
+              <div className="flex flex-wrap gap-2">
+                {!isEnhancingWithAI && (() => {
+                  const cuisine = restaurant.aiAnalysis?.cuisine || restaurant.fallbackCuisine || 
+                    restaurant.types.find(type => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 'Restaurant';
+                  return (
+                    <Badge variant="outline">
+                      {cuisine}
+                    </Badge>
+                  );
+                })()}
+                
+                {/* Michelin Stars */}
+                {!isEnhancingWithAI && restaurant.michelinStars && restaurant.michelinStars > 0 && (() => {
+                  console.log('Displaying Michelin stars:', restaurant.michelinStars, 'for restaurant:', restaurant.name);
+                  return (
+                    <Badge variant="outline">
+                      <MichelinStars stars={restaurant.michelinStars} readonly={true} size="sm" />
+                    </Badge>
+                  );
+                })()}
+                
+                {restaurant.yelpData?.categories?.slice(0, 2).map((category, index) => (
+                  <Badge key={index} variant="outline">{category}</Badge>
+                ))}
               </div>
             </div>
 
-            {/* Rating and Price */}
-            <div className="flex items-center gap-4 flex-wrap">
-              {restaurant.rating && (
-                <div className="flex items-center gap-1">
-                  <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                  <span className="font-medium">{restaurant.rating}</span>
-                  {restaurant.user_ratings_total && (
-                    <span className="text-sm text-muted-foreground">
-                      ({restaurant.user_ratings_total.toLocaleString()})
-                    </span>
-                  )}
-                </div>
-              )}
-              
-              {(restaurant.price_level || restaurant.yelpData?.price) && (
-                <div className="text-lg font-bold text-green-600">
-                  {restaurant.yelpData?.price || getPriceDisplay(restaurant.price_level)}
-                </div>
-              )}
-
-              {restaurant.opening_hours?.open_now !== undefined && (
-                <Badge variant={restaurant.opening_hours.open_now ? "default" : "destructive"}>
-                  {restaurant.opening_hours.open_now ? "Open" : "Closed"}
-                </Badge>
-              )}
+            {/* Community Rating Display on the right */}
+            <div className="flex-shrink-0">
+              <FriendRatingDisplay 
+                communityAverageRating={communityStats?.averageRating}
+                totalCommunityReviews={communityStats?.totalReviews}
+              />
             </div>
-
-            {/* Cuisine and Categories */}
-            <div className="flex flex-wrap gap-2">
-              {!isEnhancingWithAI && (() => {
-                const cuisine = restaurant.aiAnalysis?.cuisine || restaurant.fallbackCuisine || 
-                  restaurant.types.find(type => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 'Restaurant';
-                return (
-                  <Badge variant="outline">
-                    {cuisine}
-                  </Badge>
-                );
-              })()}
-              
-              {/* Michelin Stars */}
-              {!isEnhancingWithAI && restaurant.michelinStars && restaurant.michelinStars > 0 && (() => {
-                console.log('Displaying Michelin stars:', restaurant.michelinStars, 'for restaurant:', restaurant.name);
-                return (
-                  <Badge variant="outline">
-                    <MichelinStars stars={restaurant.michelinStars} readonly={true} size="sm" />
-                  </Badge>
-                );
-              })()}
-              
-              {restaurant.yelpData?.categories?.slice(0, 2).map((category, index) => (
-                <Badge key={index} variant="outline">{category}</Badge>
-              ))}
-          </div>
-
-          {/* Community Rating Display */}
-          <FriendRatingDisplay 
-            communityAverageRating={communityStats?.averageRating}
-            totalCommunityReviews={communityStats?.totalReviews}
-          />
           </div>
 
           {/* Action Buttons */}
