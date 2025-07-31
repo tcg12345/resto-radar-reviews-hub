@@ -277,7 +277,8 @@ export default function MobileSearchRestaurantDetailsPage() {
         website: restaurant.website,
         opening_hours: restaurant.opening_hours?.weekday_text?.join('\n'),
         price_range: restaurant.price_level,
-        phone_number: restaurant.formatted_phone_number
+        phone_number: restaurant.formatted_phone_number,
+        google_place_id: restaurant.place_id
       });
 
       if (error) throw error;
@@ -310,7 +311,8 @@ export default function MobileSearchRestaurantDetailsPage() {
         website: restaurant.website,
         opening_hours: restaurant.opening_hours?.weekday_text?.join('\n'),
         price_range: restaurant.price_level,
-        phone_number: restaurant.formatted_phone_number
+        phone_number: restaurant.formatted_phone_number,
+        google_place_id: restaurant.place_id
       });
 
       if (error) throw error;

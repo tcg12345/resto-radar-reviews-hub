@@ -587,6 +587,7 @@ export type Database = {
           created_at: string | null
           cuisine: string
           date_visited: string | null
+          google_place_id: string | null
           id: string
           is_wishlist: boolean | null
           latitude: number | null
@@ -617,6 +618,7 @@ export type Database = {
           created_at?: string | null
           cuisine: string
           date_visited?: string | null
+          google_place_id?: string | null
           id?: string
           is_wishlist?: boolean | null
           latitude?: number | null
@@ -647,6 +649,7 @@ export type Database = {
           created_at?: string | null
           cuisine?: string
           date_visited?: string | null
+          google_place_id?: string | null
           id?: string
           is_wishlist?: boolean | null
           latitude?: number | null
