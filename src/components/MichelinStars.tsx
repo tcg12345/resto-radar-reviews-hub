@@ -26,11 +26,6 @@ export const MichelinStars = React.memo(({
   };
   const displayStars = stars || 0;
   console.log('MichelinStars component received:', { stars, displayStars, readonly });
-  
-  // Don't render anything if no stars in readonly mode
-  if (readonly && (!stars || stars === 0)) {
-    return null;
-  }
   const handleStarClick = (starCount: number) => {
     if (readonly) return;
     // If clicking the same number of stars, remove all stars

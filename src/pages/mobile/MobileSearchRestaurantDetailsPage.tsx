@@ -239,7 +239,7 @@ export default function MobileSearchRestaurantDetailsPage() {
           categories: prev.aiAnalysis?.categories || []
         },
         michelinStars: michelinResult?.data?.michelinStars !== undefined ? 
-          michelinResult.data.michelinStars : prev.michelinStars
+          michelinResult.data.michelinStars : (prev.michelinStars || 0)
       } : null);
       
       console.log('AI Enhancement Results:', {
@@ -453,14 +453,9 @@ export default function MobileSearchRestaurantDetailsPage() {
               })()}
               
               {/* Michelin Stars */}
-              {(() => {
-                console.log('Michelin stars check:', {
-                  michelinStars: restaurant.michelinStars,
-                  isEnhancingWithAI,
-                  hasStars: restaurant.michelinStars && restaurant.michelinStars > 0,
-                  restaurantName: restaurant.name
-                });
-                return !isEnhancingWithAI && restaurant.michelinStars && restaurant.michelinStars > 0 && (
+              {!isEnhancingWithAI && restaurant.michelinStars && restaurant.michelinStars > 0 && (() => {
+                console.log('Displaying Michelin stars:', restaurant.michelinStars, 'for restaurant:', restaurant.name);
+                return (
                   <Badge variant="outline">
                     <MichelinStars stars={restaurant.michelinStars} readonly={true} size="sm" />
                   </Badge>
