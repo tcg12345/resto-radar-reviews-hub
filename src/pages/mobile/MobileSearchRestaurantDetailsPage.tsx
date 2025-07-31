@@ -10,9 +10,8 @@ import { toast } from 'sonner';
 import { ReservationWidget } from '@/components/ReservationWidget';
 import { RestaurantLocationMap } from '@/components/RestaurantLocationMap';
 import { MichelinStars } from '@/components/MichelinStars';
-import { CommunityRating } from '@/components/CommunityRating';
-import { CommunityPhotoGallery } from '@/components/CommunityPhotoGallery';
-import { UserReviewDialog } from '@/components/UserReviewDialog';
+import { FriendRatingDisplay } from '@/components/FriendRatingDisplay';
+import { FriendPhotoGallery } from '@/components/FriendPhotoGallery';
 import { useRestaurantReviews } from '@/hooks/useRestaurantReviews';
 
 interface GooglePlaceResult {
@@ -628,29 +627,15 @@ export default function MobileSearchRestaurantDetailsPage() {
                 Write a Review
               </Button>
               
-              <CommunityRating 
-                stats={communityStats} 
-                isLoading={isLoadingReviews} 
-              />
-              
-              <CommunityPhotoGallery 
-                stats={communityStats}
-                isLoading={isLoadingReviews}
-                onPhotoClick={() => {}}
+              <FriendRatingDisplay 
+                communityAverageRating={communityStats?.averageRating}
+                totalCommunityReviews={communityStats?.totalReviews}
               />
             </div>
           )}
         </div>
       </div>
 
-      {/* Review Dialog */}
-      <UserReviewDialog
-        isOpen={isReviewDialogOpen}
-        onClose={() => setIsReviewDialogOpen(false)}
-        restaurantName={restaurant.name}
-        restaurantAddress={restaurant.formatted_address}
-        onSubmit={submitReview}
-      />
     </div>
   );
 }

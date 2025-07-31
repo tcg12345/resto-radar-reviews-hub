@@ -27,9 +27,8 @@ import { MichelinStars } from '@/components/MichelinStars';
 import { StarRating } from '@/components/StarRating';
 import { RestaurantLocationMap } from '@/components/RestaurantLocationMap';
 import { PhotoGallery } from '@/components/PhotoGallery';
-import { CommunityRating } from '@/components/CommunityRating';
-import { CommunityPhotoGallery } from '@/components/CommunityPhotoGallery';
-import { UserReviewDialog } from '@/components/UserReviewDialog';
+import { FriendRatingDisplay } from '@/components/FriendRatingDisplay';
+import { FriendPhotoGallery } from '@/components/FriendPhotoGallery';
 import { useRestaurantReviews } from '@/hooks/useRestaurantReviews';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -658,36 +657,42 @@ export function UnifiedRestaurantDetails({
               </Card>
             )}
 
-            {/* Community Rating */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Community</h2>
-                {user && (
-                  <Button
-                    onClick={() => setIsReviewDialogOpen(true)}
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <Star className="h-4 w-4" />
-                    Write Review
-                  </Button>
+            {/* Friend Rating Display */}
+            {restaurantData.isSharedRestaurant ? (
+              <div className="space-y-4">
+                <FriendRatingDisplay 
+                  friendRating={restaurantData.rating}
+                  friendName={restaurantData.sharedBy?.name}
+                  communityAverageRating={communityStats?.averageRating}
+                  totalCommunityReviews={communityStats?.totalReviews}
+                />
+                
+                {/* Friend's Photos */}
+                {restaurantData.photos && restaurantData.photos.length > 0 && (
+                  <FriendPhotoGallery 
+                    friendPhotos={restaurantData.photos.map((url, index) => ({
+                      url,
+                      caption: Array.isArray(restaurantData.photoCaptions) ? restaurantData.photoCaptions[index] : '',
+                      dishName: Array.isArray(restaurantData.photo_captions) ? restaurantData.photo_captions[index] : ''
+                    }))}
+                    friendName={restaurantData.sharedBy?.name || 'Friend'}
+                    friendId={restaurantData.sharedBy?.id || ''}
+                    restaurantId={restaurantData.id || ''}
+                    restaurantPlaceId={restaurantData.place_id}
+                  />
                 )}
               </div>
-              
-              <CommunityRating 
-                stats={communityStats} 
-                isLoading={isLoadingReviews} 
-              />
-              
-              <CommunityPhotoGallery 
-                stats={communityStats}
-                isLoading={isLoadingReviews}
-                onPhotoClick={(index, photos) => {
-                  setPhotos(photos);
-                  setIsPhotoGalleryOpen(true);
-                }}
-              />
-            </div>
+            ) : (
+              /* Standard community display for non-friend restaurants */
+              communityStats && (
+                <div className="space-y-4">
+                  <FriendRatingDisplay 
+                    communityAverageRating={communityStats.averageRating}
+                    totalCommunityReviews={communityStats.totalReviews}
+                  />
+                </div>
+              )
+            )}
 
             <Separator />
 
@@ -721,14 +726,6 @@ export function UnifiedRestaurantDetails({
         isMobile={actualIsMobile}
       />
 
-      {/* Review Dialog */}
-      <UserReviewDialog
-        isOpen={isReviewDialogOpen}
-        onClose={() => setIsReviewDialogOpen(false)}
-        restaurantName={restaurantData.name}
-        restaurantAddress={restaurantData.address}
-        onSubmit={submitReview}
-      />
     </div>
   );
 }
