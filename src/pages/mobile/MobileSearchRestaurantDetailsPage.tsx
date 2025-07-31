@@ -367,19 +367,25 @@ export default function MobileSearchRestaurantDetailsPage() {
       <div className="pb-safe">
         {/* Hero Image */}
         {(restaurant.photos?.length > 0 || restaurant.yelpData?.photos?.length > 0) && (
-          <div className="aspect-video relative">
+          <div 
+            className="aspect-video relative cursor-pointer group"
+            onClick={() => navigate(`/restaurant/${restaurant.place_id}/photos?placeId=${restaurant.place_id}`)}
+          >
             <img
               src={
                 restaurant.yelpData?.photos?.[0] ||
                 (restaurant.photos?.[0] ? getPhotoUrl(restaurant.photos[0].photo_reference) : '')
               }
               alt={restaurant.name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-transform group-hover:scale-105"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
               }}
             />
+            <div className="absolute top-3 right-3 bg-black/70 text-white px-2 py-1 rounded-md text-sm">
+              View all photos
+            </div>
           </div>
         )}
 
@@ -616,22 +622,21 @@ export default function MobileSearchRestaurantDetailsPage() {
             </Card>
           )}
 
+          {/* Community Rating Display */}
+          <FriendRatingDisplay 
+            communityAverageRating={communityStats?.averageRating}
+            totalCommunityReviews={communityStats?.totalReviews}
+          />
+
           {/* User Review Section */}
           {user && (
-            <div className="space-y-4">
-              <Button
-                onClick={() => setIsReviewDialogOpen(true)}
-                className="w-full flex items-center gap-2"
-              >
-                <Star className="h-4 w-4" />
-                Write a Review
-              </Button>
-              
-              <FriendRatingDisplay 
-                communityAverageRating={communityStats?.averageRating}
-                totalCommunityReviews={communityStats?.totalReviews}
-              />
-            </div>
+            <Button
+              onClick={() => setIsReviewDialogOpen(true)}
+              className="w-full flex items-center gap-2"
+            >
+              <Star className="h-4 w-4" />
+              Write a Review
+            </Button>
           )}
         </div>
       </div>
