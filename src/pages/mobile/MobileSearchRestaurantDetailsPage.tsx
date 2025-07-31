@@ -10,6 +10,10 @@ import { toast } from 'sonner';
 import { ReservationWidget } from '@/components/ReservationWidget';
 import { RestaurantLocationMap } from '@/components/RestaurantLocationMap';
 import { MichelinStars } from '@/components/MichelinStars';
+import { CommunityRating } from '@/components/CommunityRating';
+import { CommunityPhotoGallery } from '@/components/CommunityPhotoGallery';
+import { UserReviewDialog } from '@/components/UserReviewDialog';
+import { useRestaurantReviews } from '@/hooks/useRestaurantReviews';
 
 interface GooglePlaceResult {
   place_id: string;
@@ -68,6 +72,10 @@ export default function MobileSearchRestaurantDetailsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
   const [isEnhancingWithAI, setIsEnhancingWithAI] = useState(false);
+  const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+  
+  // Use restaurant place_id for community reviews
+  const { communityStats, isLoading: isLoadingReviews, submitReview } = useRestaurantReviews(restaurant?.place_id || null);
 
   useEffect(() => {
     if (placeData) {
@@ -608,8 +616,41 @@ export default function MobileSearchRestaurantDetailsPage() {
               </CardContent>
             </Card>
           )}
+
+          {/* User Review Section */}
+          {user && (
+            <div className="space-y-4">
+              <Button
+                onClick={() => setIsReviewDialogOpen(true)}
+                className="w-full flex items-center gap-2"
+              >
+                <Star className="h-4 w-4" />
+                Write a Review
+              </Button>
+              
+              <CommunityRating 
+                stats={communityStats} 
+                isLoading={isLoadingReviews} 
+              />
+              
+              <CommunityPhotoGallery 
+                stats={communityStats}
+                isLoading={isLoadingReviews}
+                onPhotoClick={() => {}}
+              />
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Review Dialog */}
+      <UserReviewDialog
+        isOpen={isReviewDialogOpen}
+        onClose={() => setIsReviewDialogOpen(false)}
+        restaurantName={restaurant.name}
+        restaurantAddress={restaurant.formatted_address}
+        onSubmit={submitReview}
+      />
     </div>
   );
 }

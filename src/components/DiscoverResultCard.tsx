@@ -9,6 +9,10 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRestaurants } from '@/contexts/RestaurantContext';
+import { CommunityRating } from '@/components/CommunityRating';
+import { CommunityPhotoGallery } from '@/components/CommunityPhotoGallery';
+import { UserReviewDialog } from '@/components/UserReviewDialog';
+import { useRestaurantReviews } from '@/hooks/useRestaurantReviews';
 
 import { 
   Star, 
@@ -100,6 +104,11 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist,
   const [isMoreInfoOpen, setIsMoreInfoOpen] = useState(false);
   const [showFullWeekHours, setShowFullWeekHours] = useState(false);
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
+  const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+  
+  // Use restaurant place_id if available, otherwise fallback to restaurant.id
+  const placeId = restaurant.id;
+  const { communityStats, isLoading: isLoadingReviews, submitReview } = useRestaurantReviews(placeId);
 
   // Preload all data when component mounts
   useEffect(() => {
@@ -462,23 +471,56 @@ export function DiscoverResultCard({ restaurant, onToggleWishlist, isInWishlist,
                   View on Map
                 </Button>
                 
-                {restaurant.yelpData && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 text-xs w-full justify-start"
-                    onClick={() => window.open(restaurant.yelpData.url, '_blank')}
-                  >
-                    <Star className="h-3 w-3 mr-2" />
-                    View on Yelp
-                  </Button>
-                )}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-        </div>
-      </CardContent>
+                 {restaurant.yelpData && (
+                   <Button
+                     variant="ghost"
+                     size="sm"
+                     className="h-8 text-xs w-full justify-start"
+                     onClick={() => window.open(restaurant.yelpData.url, '_blank')}
+                   >
+                     <Star className="h-3 w-3 mr-2" />
+                     View on Yelp
+                   </Button>
+                 )}
+                 
+                 {user && (
+                   <Button
+                     variant="ghost"
+                     size="sm"
+                     className="h-8 text-xs w-full justify-start"
+                     onClick={() => setIsReviewDialogOpen(true)}
+                   >
+                     <Star className="h-3 w-3 mr-2" />
+                     Write Review
+                   </Button>
+                 )}
+                </div>
+               
+                {/* Community Rating */}
+                <CommunityRating 
+                  stats={communityStats} 
+                  isLoading={isLoadingReviews} 
+                />
+                
+                {/* Community Photo Gallery */}
+                <CommunityPhotoGallery 
+                  stats={communityStats}
+                  isLoading={isLoadingReviews}
+                  onPhotoClick={() => {}}
+                />
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
+        </CardContent>
 
-    </Card>
-  );
-}
+        {/* Review Dialog */}
+        <UserReviewDialog
+          isOpen={isReviewDialogOpen}
+          onClose={() => setIsReviewDialogOpen(false)}
+          restaurantName={restaurant.name}
+          restaurantAddress={restaurant.address}
+          onSubmit={submitReview}
+        />
+      </Card>
+    );
+  }
