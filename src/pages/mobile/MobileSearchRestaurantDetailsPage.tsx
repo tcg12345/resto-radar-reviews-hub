@@ -467,7 +467,13 @@ export default function MobileSearchRestaurantDetailsPage() {
               {restaurant.yelpData?.categories?.slice(0, 2).map((category, index) => (
                 <Badge key={index} variant="outline">{category}</Badge>
               ))}
-            </div>
+          </div>
+
+          {/* Community Rating Display */}
+          <FriendRatingDisplay 
+            communityAverageRating={communityStats?.averageRating}
+            totalCommunityReviews={communityStats?.totalReviews}
+          />
           </div>
 
           {/* Action Buttons */}
@@ -628,11 +634,6 @@ export default function MobileSearchRestaurantDetailsPage() {
             </Card>
           )}
 
-          {/* Community Rating Display */}
-          <FriendRatingDisplay 
-            communityAverageRating={communityStats?.averageRating}
-            totalCommunityReviews={communityStats?.totalReviews}
-          />
 
         </div>
       </div>
