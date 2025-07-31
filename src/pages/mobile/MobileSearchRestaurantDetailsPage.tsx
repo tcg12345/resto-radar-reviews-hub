@@ -239,7 +239,7 @@ export default function MobileSearchRestaurantDetailsPage() {
           categories: prev.aiAnalysis?.categories || []
         },
         michelinStars: michelinResult?.data?.michelinStars !== undefined ? 
-          michelinResult.data.michelinStars : (prev.michelinStars || 0)
+          michelinResult.data.michelinStars : prev.michelinStars
       } : null);
       
       console.log('AI Enhancement Results:', {
