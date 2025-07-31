@@ -657,42 +657,30 @@ export function UnifiedRestaurantDetails({
               </Card>
             )}
 
-            {/* Friend Rating Display */}
-            {restaurantData.isSharedRestaurant ? (
-              <div className="space-y-4">
-                <FriendRatingDisplay 
-                  friendRating={restaurantData.rating}
-                  friendName={restaurantData.sharedBy?.name}
-                  communityAverageRating={communityStats?.averageRating}
-                  totalCommunityReviews={communityStats?.totalReviews}
+            {/* Community Rating Display */}
+            <div className="space-y-4">
+              <FriendRatingDisplay 
+                friendRating={restaurantData.isSharedRestaurant ? restaurantData.rating : undefined}
+                friendName={restaurantData.isSharedRestaurant ? restaurantData.sharedBy?.name : undefined}
+                communityAverageRating={communityStats?.averageRating}
+                totalCommunityReviews={communityStats?.totalReviews}
+              />
+              
+              {/* Friend's Photos - only show for shared restaurants */}
+              {restaurantData.isSharedRestaurant && restaurantData.photos && restaurantData.photos.length > 0 && (
+                <FriendPhotoGallery 
+                  friendPhotos={restaurantData.photos.map((url, index) => ({
+                    url,
+                    caption: Array.isArray(restaurantData.photoCaptions) ? restaurantData.photoCaptions[index] : '',
+                    dishName: Array.isArray(restaurantData.photo_captions) ? restaurantData.photo_captions[index] : ''
+                  }))}
+                  friendName={restaurantData.sharedBy?.name || 'Friend'}
+                  friendId={restaurantData.sharedBy?.id || ''}
+                  restaurantId={restaurantData.id || ''}
+                  restaurantPlaceId={restaurantData.place_id}
                 />
-                
-                {/* Friend's Photos */}
-                {restaurantData.photos && restaurantData.photos.length > 0 && (
-                  <FriendPhotoGallery 
-                    friendPhotos={restaurantData.photos.map((url, index) => ({
-                      url,
-                      caption: Array.isArray(restaurantData.photoCaptions) ? restaurantData.photoCaptions[index] : '',
-                      dishName: Array.isArray(restaurantData.photo_captions) ? restaurantData.photo_captions[index] : ''
-                    }))}
-                    friendName={restaurantData.sharedBy?.name || 'Friend'}
-                    friendId={restaurantData.sharedBy?.id || ''}
-                    restaurantId={restaurantData.id || ''}
-                    restaurantPlaceId={restaurantData.place_id}
-                  />
-                )}
-              </div>
-            ) : (
-              /* Standard community display for non-friend restaurants */
-              communityStats && (
-                <div className="space-y-4">
-                  <FriendRatingDisplay 
-                    communityAverageRating={communityStats.averageRating}
-                    totalCommunityReviews={communityStats.totalReviews}
-                  />
-                </div>
-              )
-            )}
+              )}
+            </div>
 
             <Separator />
 
