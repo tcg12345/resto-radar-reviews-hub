@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 
 import { RestaurantLocationMap } from '@/components/RestaurantLocationMap';
 import { MichelinStars } from '@/components/MichelinStars';
-import { FriendRatingDisplay } from '@/components/FriendRatingDisplay';
+import { CommunityRating } from '@/components/CommunityRating';
 import { FriendPhotoGallery } from '@/components/FriendPhotoGallery';
 
 import { useRestaurantReviews } from '@/hooks/useRestaurantReviews';
@@ -472,13 +472,6 @@ export default function MobileSearchRestaurantDetailsPage() {
               </div>
             </div>
 
-            {/* Community Rating Display on the right */}
-            <div className="flex-shrink-0">
-              <FriendRatingDisplay 
-                communityAverageRating={communityStats?.averageRating}
-                totalCommunityReviews={communityStats?.totalReviews}
-              />
-            </div>
           </div>
 
           {/* Action Buttons */}
@@ -500,6 +493,12 @@ export default function MobileSearchRestaurantDetailsPage() {
               Rate Restaurant
             </Button>
           </div>
+
+          {/* Community Rating */}
+          <CommunityRating 
+            stats={communityStats} 
+            isLoading={isLoadingReviews} 
+          />
 
           {/* Contact Info */}
           {(restaurant.formatted_phone_number || restaurant.website) && (
