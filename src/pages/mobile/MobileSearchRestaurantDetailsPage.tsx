@@ -12,6 +12,7 @@ import { RestaurantLocationMap } from '@/components/RestaurantLocationMap';
 import { MichelinStars } from '@/components/MichelinStars';
 import { FriendRatingDisplay } from '@/components/FriendRatingDisplay';
 import { FriendPhotoGallery } from '@/components/FriendPhotoGallery';
+import { UserReviewDialog } from '@/components/UserReviewDialog';
 import { useRestaurantReviews } from '@/hooks/useRestaurantReviews';
 
 interface GooglePlaceResult {
@@ -641,6 +642,16 @@ export default function MobileSearchRestaurantDetailsPage() {
         </div>
       </div>
 
+      {/* User Review Dialog */}
+      {restaurant && (
+        <UserReviewDialog
+          isOpen={isReviewDialogOpen}
+          onClose={() => setIsReviewDialogOpen(false)}
+          restaurantName={restaurant.name}
+          restaurantAddress={restaurant.formatted_address}
+          onSubmit={submitReview}
+        />
+      )}
     </div>
   );
 }
