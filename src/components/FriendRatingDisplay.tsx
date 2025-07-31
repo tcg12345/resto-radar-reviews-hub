@@ -37,7 +37,7 @@ export function FriendRatingDisplay({
       {/* Community Average Rating */}
       {communityAverageRating && totalCommunityReviews && (
         <div className="flex flex-col items-center">
-          <div className="w-16 h-16 rounded-full bg-muted border-2 border-border flex items-center justify-center mb-2">
+          <div className="w-16 h-16 rounded-full bg-accent/10 border-2 border-accent flex items-center justify-center mb-2">
             <div className="text-center">
               <div className="text-lg font-bold">{communityAverageRating.toFixed(1)}</div>
               <div className="text-xs text-muted-foreground">
