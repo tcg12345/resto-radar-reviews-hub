@@ -981,7 +981,9 @@ export type Database = {
         Returns: string
       }
       get_restaurant_community_stats: {
-        Args: { place_id_param: string }
+        Args:
+          | { place_id_param: string }
+          | { place_id_param: string; requesting_user_id?: string }
         Returns: {
           average_rating: number
           total_reviews: number
@@ -990,12 +992,20 @@ export type Database = {
         }[]
       }
       get_restaurant_reviews: {
-        Args: {
-          place_id_param: string
-          page_limit?: number
-          page_offset?: number
-          sort_by?: string
-        }
+        Args:
+          | {
+              place_id_param: string
+              page_limit?: number
+              page_offset?: number
+              sort_by?: string
+            }
+          | {
+              place_id_param: string
+              page_limit?: number
+              page_offset?: number
+              sort_by?: string
+              requesting_user_id?: string
+            }
         Returns: {
           review_id: string
           user_id: string

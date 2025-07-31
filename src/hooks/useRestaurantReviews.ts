@@ -47,7 +47,8 @@ export function useRestaurantReviews(restaurantPlaceId?: string) {
     
     try {
       const { data, error } = await supabase.rpc('get_restaurant_community_stats', {
-        place_id_param: restaurantPlaceId
+        place_id_param: restaurantPlaceId,
+        requesting_user_id: user?.id || null
       });
       
       if (error) throw error;
@@ -81,7 +82,8 @@ export function useRestaurantReviews(restaurantPlaceId?: string) {
         place_id_param: restaurantPlaceId,
         page_limit: 10,
         page_offset: offset,
-        sort_by: sortBy
+        sort_by: sortBy,
+        requesting_user_id: user?.id || null
       });
       
       if (error) throw error;
