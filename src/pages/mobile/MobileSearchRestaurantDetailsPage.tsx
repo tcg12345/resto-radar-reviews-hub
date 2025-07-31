@@ -74,8 +74,7 @@ export default function MobileSearchRestaurantDetailsPage() {
   const [isEnhancingWithAI, setIsEnhancingWithAI] = useState(false);
   
   
-  // Use restaurant place_id for community reviews, but fallback to name-based lookup
-  console.log('Calling useRestaurantReviews with:', restaurant?.place_id, 'for restaurant:', restaurant?.name);
+  // Use restaurant place_id for community reviews
   const { communityStats, isLoading: isLoadingReviews } = useRestaurantReviews(restaurant?.place_id || null);
 
   const handleBack = () => {
