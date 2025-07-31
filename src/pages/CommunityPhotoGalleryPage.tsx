@@ -63,13 +63,15 @@ export default function CommunityPhotoGalleryPage() {
     setSelectedPhotoIndex(null);
   };
 
-  const goToPreviousPhoto = () => {
+  const goToPreviousPhoto = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (selectedPhotoIndex !== null && selectedPhotoIndex > 0) {
       setSelectedPhotoIndex(selectedPhotoIndex - 1);
     }
   };
 
-  const goToNextPhoto = () => {
+  const goToNextPhoto = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (selectedPhotoIndex !== null && selectedPhotoIndex < allPhotos.length - 1) {
       setSelectedPhotoIndex(selectedPhotoIndex + 1);
     }
