@@ -987,11 +987,6 @@ export type Database = {
         Args:
           | { place_id_param: string }
           | { place_id_param: string; requesting_user_id?: string }
-          | {
-              place_id_param: string
-              restaurant_name_param?: string
-              requesting_user_id?: string
-            }
         Returns: {
           average_rating: number
           total_reviews: number
