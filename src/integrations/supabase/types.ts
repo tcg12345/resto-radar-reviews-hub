@@ -1037,9 +1037,41 @@ export type Database = {
           top_cuisine: string
         }[]
       }
+      gtrgm_compress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_decompress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_in: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_options: {
+        Args: { "": unknown }
+        Returns: undefined
+      }
+      gtrgm_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
       rebuild_friend_activity_cache: {
         Args: { target_user_id: string }
         Returns: undefined
+      }
+      set_limit: {
+        Args: { "": number }
+        Returns: number
+      }
+      show_limit: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      show_trgm: {
+        Args: { "": string }
+        Returns: string[]
       }
       user_participates_in_room: {
         Args: { room_id: string; user_id: string }
