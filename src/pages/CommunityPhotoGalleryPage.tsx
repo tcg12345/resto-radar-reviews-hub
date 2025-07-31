@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Star, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, User, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { LazyImage } from '@/components/LazyImage';
 import { useRestaurantReviews } from '@/hooks/useRestaurantReviews';
-import { format } from 'date-fns';
 
 interface CommunityPhoto {
   review_id: string;
@@ -132,6 +131,8 @@ export default function CommunityPhotoGalleryPage() {
     );
   }
 
+  const currentPhoto = selectedPhotoIndex !== null ? allPhotos[selectedPhotoIndex] : null;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -195,7 +196,7 @@ export default function CommunityPhotoGalleryPage() {
       </div>
 
       {/* Photo Modal */}
-      {selectedPhotoIndex !== null && (
+      {currentPhoto && selectedPhotoIndex !== null && (
         <div 
           className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
           onClick={closePhotoModal}
@@ -235,7 +236,7 @@ export default function CommunityPhotoGalleryPage() {
             )}
             
             <img
-              src={allPhotos[selectedPhotoIndex].photoUrl}
+              src={currentPhoto.photoUrl}
               alt="Full size photo"
               className="max-w-full max-h-full object-contain rounded-lg"
               onClick={(e) => e.stopPropagation()}
