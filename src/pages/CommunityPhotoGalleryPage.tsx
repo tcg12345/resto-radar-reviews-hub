@@ -166,8 +166,6 @@ export default function CommunityPhotoGalleryPage() {
                 <div className="flex items-center gap-2 text-white text-xs">
                   <User className="h-3 w-3" />
                   <span className="font-medium">{photo.username}</span>
-                  <Calendar className="h-3 w-3 ml-auto" />
-                  <span>{format(new Date(photo.created_at), 'MMM d')}</span>
                 </div>
                 
                 {((photo.captions && photo.captions[photo.photoIndex]) || (photo.dish_names && photo.dish_names[photo.photoIndex])) && (
