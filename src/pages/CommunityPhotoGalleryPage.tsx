@@ -163,7 +163,10 @@ export default function CommunityPhotoGalleryPage() {
   if ((isLoading || !photosProcessed) && !hasPreloadedData) {
     console.log('CommunityPhotoGalleryPage - Showing skeleton. isLoading:', isLoading, 'photosProcessed:', photosProcessed, 'hasPreloadedData:', hasPreloadedData);
     return (
-      <div className="min-h-screen bg-background">
+      <>
+        {/* Mobile status bar spacer */}
+        <div className="lg:hidden h-[35px] bg-background"></div>
+        <div className="min-h-screen bg-background">
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
           <div className="flex items-center gap-3 p-4">
             <Button
@@ -180,13 +183,17 @@ export default function CommunityPhotoGalleryPage() {
         <div className="p-4">
           <CommunityPhotosSkeleton count={24} />
         </div>
-      </div>
+        </div>
+      </>
     );
   }
 
   if (photosProcessed && !allPhotos.length) {
     return (
-      <div className="min-h-screen bg-background">
+      <>
+        {/* Mobile status bar spacer */}
+        <div className="lg:hidden h-[35px] bg-background"></div>
+        <div className="min-h-screen bg-background">
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
           <div className="flex items-center gap-3 p-4">
             <Button
@@ -209,7 +216,8 @@ export default function CommunityPhotoGalleryPage() {
             Be the first to share photos of {restaurantName}!
           </p>
         </div>
-      </div>
+        </div>
+      </>
     );
   }
 
