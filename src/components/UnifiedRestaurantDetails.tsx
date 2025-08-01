@@ -516,11 +516,16 @@ export function UnifiedRestaurantDetails({
                 </div>
               </div>
               {restaurantData.rating && (
-                <div className="flex-shrink-0 w-16 h-16 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-primary">{restaurantData.rating.toFixed(1)}</div>
-                    <Star className="h-3 w-3 fill-primary text-primary mx-auto" />
+                <div className="flex-shrink-0 text-center">
+                  <div className="w-16 h-16 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center mb-1">
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-primary">{restaurantData.rating.toFixed(1)}</div>
+                      <Star className="h-3 w-3 fill-primary text-primary mx-auto" />
+                    </div>
                   </div>
+                  <p className="text-xs text-muted-foreground font-medium">
+                    {restaurantData.isSharedRestaurant && restaurantData.sharedBy ? `${restaurantData.sharedBy.name}'s Rating` : 'Your Rating'}
+                  </p>
                 </div>
               )}
             </div>
