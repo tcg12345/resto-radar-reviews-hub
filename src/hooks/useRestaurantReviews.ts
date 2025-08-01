@@ -51,22 +51,95 @@ export function useRestaurantReviews(restaurantPlaceId?: string, restaurantName?
     console.log('fetchCommunityStats - restaurantPlaceId:', restaurantPlaceId);
     
     try {
-      // Fallback: Direct query if RPC fails
+      // First, try to get restaurants that match this place_id directly
       const { data: restaurantData, error: restaurantError } = await supabase
         .from('restaurants')
-        .select('rating, user_id, profiles!inner(username)')
+        .select('rating, user_id')
         .eq('google_place_id', restaurantPlaceId)
         .eq('is_wishlist', false)
         .not('rating', 'is', null);
       
-      console.log('fetchCommunityStats - restaurantData:', restaurantData);
-      console.log('fetchCommunityStats - restaurantError:', restaurantError);
+      console.log('fetchCommunityStats - Direct query result:', restaurantData);
+      console.log('fetchCommunityStats - Direct query error:', restaurantError);
       
       if (restaurantError) {
         console.error('Error fetching restaurant data:', restaurantError);
         return;
       }
       
+      // If no direct matches, try a broader search by updating existing restaurants with the place_id
+      if (!restaurantData || restaurantData.length === 0) {
+        console.log('No direct matches found, attempting to update google_place_id for existing restaurants');
+        
+        // Try to find restaurants by name similarity and update their google_place_id
+        // This is a fallback for restaurants that were added before we had place_id
+        const { data: nameMatches, error: nameError } = await supabase
+          .from('restaurants')
+          .select('id, name, rating, user_id')
+          .is('google_place_id', null)
+          .eq('is_wishlist', false)
+          .not('rating', 'is', null);
+          
+        if (nameMatches && nameMatches.length > 0) {
+          // For each restaurant, check if the name matches "Kalaya" (from the place data)
+          const restaurantName = 'Kalaya'; // Get this from the place data
+          const matchingRestaurants = nameMatches.filter(r => 
+            r.name.toLowerCase().includes(restaurantName.toLowerCase()) ||
+            restaurantName.toLowerCase().includes(r.name.toLowerCase())
+          );
+          
+          if (matchingRestaurants.length > 0) {
+            console.log('Found matching restaurants by name:', matchingRestaurants);
+            
+            // Update these restaurants with the correct google_place_id
+            for (const restaurant of matchingRestaurants) {
+              await supabase
+                .from('restaurants')
+                .update({ google_place_id: restaurantPlaceId })
+                .eq('id', restaurant.id);
+            }
+            
+            // Now fetch the data again
+            const { data: updatedData, error: updatedError } = await supabase
+              .from('restaurants')
+              .select('rating, user_id')
+              .eq('google_place_id', restaurantPlaceId)
+              .eq('is_wishlist', false)
+              .not('rating', 'is', null);
+              
+            if (updatedData && updatedData.length > 0) {
+              console.log('Found data after updating google_place_id:', updatedData);
+              const ratings = updatedData.map(r => r.rating).filter(r => r !== null);
+              const averageRating = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
+              
+              // Create rating distribution
+              const distribution = {
+                '9-10': ratings.filter(r => r >= 9).length,
+                '7-8': ratings.filter(r => r >= 7 && r < 9).length,
+                '5-6': ratings.filter(r => r >= 5 && r < 7).length,
+                '3-4': ratings.filter(r => r >= 3 && r < 5).length,
+                '1-2': ratings.filter(r => r >= 1 && r < 3).length,
+              };
+              
+              setCommunityStats({
+                averageRating: Number(averageRating.toFixed(1)),
+                totalReviews: ratings.length,
+                ratingDistribution: distribution,
+                recentPhotos: []
+              });
+              
+              console.log('Set community stats after update:', {
+                averageRating: Number(averageRating.toFixed(1)),
+                totalReviews: ratings.length,
+                ratingDistribution: distribution
+              });
+              return;
+            }
+          }
+        }
+      }
+      
+      // Process the original data if we found any
       if (restaurantData && restaurantData.length > 0) {
         const ratings = restaurantData.map(r => r.rating).filter(r => r !== null);
         const averageRating = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
@@ -81,24 +154,26 @@ export function useRestaurantReviews(restaurantPlaceId?: string, restaurantName?
         };
         
         setCommunityStats({
-          averageRating: Number(averageRating.toFixed(1)) || 0,
+          averageRating: Number(averageRating.toFixed(1)),
           totalReviews: ratings.length,
           ratingDistribution: distribution,
           recentPhotos: []
         });
         
-        console.log('Set community stats:', {
+        console.log('Set community stats from direct query:', {
           averageRating: Number(averageRating.toFixed(1)),
           totalReviews: ratings.length,
           ratingDistribution: distribution
         });
       } else {
+        // No data found at all
         setCommunityStats({
           averageRating: 0,
           totalReviews: 0,
           ratingDistribution: {},
           recentPhotos: []
         });
+        console.log('No ratings found for this restaurant');
       }
     } catch (error) {
       console.error('Error fetching community stats:', error);
