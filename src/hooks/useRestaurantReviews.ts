@@ -48,7 +48,7 @@ export function useRestaurantReviews(restaurantPlaceId?: string, restaurantName?
       return;
     }
     
-    console.log('fetchCommunityStats - restaurantPlaceId:', restaurantPlaceId);
+    console.log('fetchCommunityStats - Starting with restaurantPlaceId:', restaurantPlaceId);
     
     try {
       // Extract restaurant name for more targeted linking
