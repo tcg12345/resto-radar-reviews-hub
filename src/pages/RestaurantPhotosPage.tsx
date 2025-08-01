@@ -180,7 +180,10 @@ export default function RestaurantPhotosPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <>
+        {/* Mobile status bar spacer */}
+        <div className="lg:hidden h-[35px] bg-background"></div>
+        <div className="min-h-screen bg-background">
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
           <div className="flex items-center gap-3 p-4">
             <Button
@@ -201,12 +204,16 @@ export default function RestaurantPhotosPage() {
             ))}
           </div>
         </div>
-      </div>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <>
+      {/* Mobile status bar spacer */}
+      <div className="lg:hidden h-[35px] bg-background"></div>
+      <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
         <div className="flex items-center gap-3 p-4">
@@ -244,6 +251,7 @@ export default function RestaurantPhotosPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
