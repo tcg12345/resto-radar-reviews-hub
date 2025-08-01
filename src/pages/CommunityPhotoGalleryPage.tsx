@@ -274,35 +274,53 @@ export default function CommunityPhotoGalleryPage() {
               .map(([dishName, photos]) => (
               <div 
                 key={dishName}
-                className="bg-card rounded-lg border p-4 cursor-pointer hover:bg-accent transition-colors"
+                className="bg-card rounded-lg border overflow-hidden cursor-pointer hover:bg-accent transition-colors"
                 onClick={() => setSelectedGroup(dishName)}
               >
-                <div className="flex items-center gap-4">
-                  <div className="grid grid-cols-3 gap-1 w-20 h-20">
-                    {photos.slice(0, 3).map((photo, idx) => (
-                      <div key={idx} className="aspect-square rounded overflow-hidden bg-muted">
-                        <LazyImage
-                          src={photo.photoUrl}
-                          alt={dishName}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    ))}
-                    {photos.length > 3 && (
-                      <div className="aspect-square rounded bg-muted/50 flex items-center justify-center text-xs font-medium text-muted-foreground">
-                        +{photos.length - 3}
+                <div className="flex">
+                  {/* Large cover photo */}
+                  <div className="w-24 h-24 flex-shrink-0">
+                    <LazyImage
+                      src={photos[0]?.photoUrl}
+                      alt={dishName}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  
+                  {/* Content and small thumbnails */}
+                  <div className="flex-1 p-3 flex flex-col justify-between min-w-0">
+                    <div>
+                      <h3 className="font-semibold text-base mb-1 truncate">{dishName}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {photos.length} photo{photos.length === 1 ? '' : 's'}
+                      </p>
+                    </div>
+                    
+                    {/* Small thumbnails row */}
+                    {photos.length > 1 && (
+                      <div className="flex gap-1 mt-2">
+                        {photos.slice(1, 4).map((photo, idx) => (
+                          <div key={idx} className="w-8 h-8 rounded overflow-hidden bg-muted flex-shrink-0">
+                            <LazyImage
+                              src={photo.photoUrl}
+                              alt={dishName}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ))}
+                        {photos.length > 4 && (
+                          <div className="w-8 h-8 rounded bg-muted/50 flex items-center justify-center text-xs font-medium text-muted-foreground flex-shrink-0">
+                            +{photos.length - 4}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
                   
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg mb-1">{dishName}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {photos.length} photo{photos.length === 1 ? '' : 's'}
-                    </p>
+                  {/* Arrow */}
+                  <div className="flex items-center pr-3">
+                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
                   </div>
-                  
-                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
                 </div>
               </div>
             ))}
