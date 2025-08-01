@@ -49,11 +49,49 @@ export function useRestaurantReviews(restaurantPlaceId?: string, restaurantName?
       return;
     }
     
-    console.log('fetchCommunityStats - Starting with restaurantPlaceId:', restaurantPlaceId);
+    console.log('🚀 fetchCommunityStats - Using NEW universal community reviews system');
+    console.log('📍 Place ID:', restaurantPlaceId);
+    console.log('🏪 Restaurant Name:', restaurantName);
     
     try {
+      // Use the new community reviews edge function for universal matching
+      const { data: communityData, error: communityError } = await supabase.functions.invoke('community-reviews', {
+        body: {
+          place_id: restaurantPlaceId,
+          restaurant_name: restaurantName
+        }
+      });
 
-      // Now try to get restaurants that match this place_id
+      if (communityError) {
+        console.error('❌ Community function error:', communityError);
+        // Fallback to old method if function fails
+        await fallbackCommunityStats();
+        return;
+      }
+
+      if (communityData) {
+        console.log('✅ Community function SUCCESS:', communityData);
+        setCommunityStats({
+          averageRating: communityData.average_rating,
+          totalReviews: communityData.total_reviews,
+          ratingDistribution: communityData.rating_distribution,
+          recentPhotos: communityData.recent_photos || []
+        });
+        console.log(`🎯 Found ${communityData.total_reviews} community reviews with average ${communityData.average_rating}`);
+        return;
+      }
+
+      // If no data returned, try fallback
+      await fallbackCommunityStats();
+    } catch (error) {
+      console.error('💥 Error in new community system, falling back:', error);
+      await fallbackCommunityStats();
+    }
+  };
+
+  const fallbackCommunityStats = async () => {
+    console.log('🔄 Using fallback community stats method');
+    try {
       const { data: restaurantData, error: restaurantError } = await supabase
         .from('restaurants')
         .select('rating, user_id')
@@ -61,20 +99,15 @@ export function useRestaurantReviews(restaurantPlaceId?: string, restaurantName?
         .eq('is_wishlist', false)
         .not('rating', 'is', null);
       
-      console.log('fetchCommunityStats - Direct query result:', restaurantData);
-      console.log('fetchCommunityStats - Direct query error:', restaurantError);
-      
       if (restaurantError) {
-        console.error('Error fetching restaurant data:', restaurantError);
+        console.error('Error in fallback method:', restaurantError);
         return;
       }
       
-      // Process the original data if we found any
       if (restaurantData && restaurantData.length > 0) {
         const ratings = restaurantData.map(r => r.rating).filter(r => r !== null);
         const averageRating = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
         
-        // Create rating distribution
         const distribution = {
           '9-10': ratings.filter(r => r >= 9).length,
           '7-8': ratings.filter(r => r >= 7 && r < 9).length,
@@ -90,23 +123,18 @@ export function useRestaurantReviews(restaurantPlaceId?: string, restaurantName?
           recentPhotos: []
         });
         
-        console.log('Set community stats from direct query:', {
-          averageRating: Number(averageRating.toFixed(1)),
-          totalReviews: ratings.length,
-          ratingDistribution: distribution
-        });
+        console.log('📊 Fallback stats set:', { averageRating: Number(averageRating.toFixed(1)), totalReviews: ratings.length });
       } else {
-        // No data found at all
         setCommunityStats({
           averageRating: 0,
           totalReviews: 0,
           ratingDistribution: {},
           recentPhotos: []
         });
-        console.log('No ratings found for this restaurant');
+        console.log('❌ No ratings found in fallback');
       }
     } catch (error) {
-      console.error('Error fetching community stats:', error);
+      console.error('💥 Error in fallback community stats:', error);
     }
   };
 
