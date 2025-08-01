@@ -44,17 +44,10 @@ export function useRestaurantReviews(restaurantPlaceId?: string, restaurantName?
   const [hasMore, setHasMore] = useState(true);
   
   const fetchCommunityStats = async () => {
-    if (!restaurantPlaceId) {
-      console.log('fetchCommunityStats - No restaurantPlaceId provided:', restaurantPlaceId);
-      return;
-    }
-    
-    console.log('🚀 fetchCommunityStats - Using NEW universal community reviews system');
-    console.log('📍 Place ID:', restaurantPlaceId);
-    console.log('🏪 Restaurant Name:', restaurantName);
+    if (!restaurantPlaceId && !restaurantName) return;
     
     try {
-      // Use the new community reviews edge function for universal matching
+      // Use the optimized edge function directly - no fallbacks for speed
       const { data: communityData, error: communityError } = await supabase.functions.invoke('community-reviews', {
         body: {
           place_id: restaurantPlaceId,
@@ -63,78 +56,41 @@ export function useRestaurantReviews(restaurantPlaceId?: string, restaurantName?
       });
 
       if (communityError) {
-        console.error('❌ Community function error:', communityError);
-        // Fallback to old method if function fails
-        await fallbackCommunityStats();
-        return;
-      }
-
-      if (communityData) {
-        console.log('✅ Community function SUCCESS:', communityData);
-        setCommunityStats({
-          averageRating: communityData.average_rating,
-          totalReviews: communityData.total_reviews,
-          ratingDistribution: communityData.rating_distribution,
-          recentPhotos: communityData.recent_photos || []
-        });
-        console.log(`🎯 Found ${communityData.total_reviews} community reviews with average ${communityData.average_rating}`);
-        return;
-      }
-
-      // If no data returned, try fallback
-      await fallbackCommunityStats();
-    } catch (error) {
-      console.error('💥 Error in new community system, falling back:', error);
-      await fallbackCommunityStats();
-    }
-  };
-
-  const fallbackCommunityStats = async () => {
-    console.log('🔄 Using fallback community stats method');
-    try {
-      const { data: restaurantData, error: restaurantError } = await supabase
-        .from('restaurants')
-        .select('rating, user_id')
-        .eq('google_place_id', restaurantPlaceId)
-        .eq('is_wishlist', false)
-        .not('rating', 'is', null);
-      
-      if (restaurantError) {
-        console.error('Error in fallback method:', restaurantError);
-        return;
-      }
-      
-      if (restaurantData && restaurantData.length > 0) {
-        const ratings = restaurantData.map(r => r.rating).filter(r => r !== null);
-        const averageRating = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
-        
-        const distribution = {
-          '9-10': ratings.filter(r => r >= 9).length,
-          '7-8': ratings.filter(r => r >= 7 && r < 9).length,
-          '5-6': ratings.filter(r => r >= 5 && r < 7).length,
-          '3-4': ratings.filter(r => r >= 3 && r < 5).length,
-          '1-2': ratings.filter(r => r >= 1 && r < 3).length,
-        };
-        
-        setCommunityStats({
-          averageRating: Number(averageRating.toFixed(1)),
-          totalReviews: ratings.length,
-          ratingDistribution: distribution,
-          recentPhotos: []
-        });
-        
-        console.log('📊 Fallback stats set:', { averageRating: Number(averageRating.toFixed(1)), totalReviews: ratings.length });
-      } else {
+        console.error('Community function error:', communityError);
         setCommunityStats({
           averageRating: 0,
           totalReviews: 0,
           ratingDistribution: {},
           recentPhotos: []
         });
-        console.log('❌ No ratings found in fallback');
+        return;
       }
+
+      if (communityData) {
+        setCommunityStats({
+          averageRating: communityData.average_rating,
+          totalReviews: communityData.total_reviews,
+          ratingDistribution: communityData.rating_distribution,
+          recentPhotos: communityData.recent_photos || []
+        });
+        return;
+      }
+
+      // No data case
+      setCommunityStats({
+        averageRating: 0,
+        totalReviews: 0,
+        ratingDistribution: {},
+        recentPhotos: []
+      });
     } catch (error) {
-      console.error('💥 Error in fallback community stats:', error);
+      console.error('Error in community system:', error);
+      setCommunityStats({
+        averageRating: 0,
+        totalReviews: 0,
+        ratingDistribution: {},
+        recentPhotos: []
+      });
     }
   };
 
