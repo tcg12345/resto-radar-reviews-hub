@@ -31,6 +31,7 @@ interface Restaurant {
   is_wishlist: boolean;
   category_ratings?: any;
   use_weighted_rating?: boolean;
+  google_place_id?: string;
 }
 
 interface Profile {
@@ -160,6 +161,7 @@ export function RestaurantDetailPage() {
   // Transform restaurant data to unified format
   const unifiedRestaurant = {
     id: restaurant.id,
+    place_id: restaurant.google_place_id,
     name: restaurant.name,
     address: restaurant.address,
     city: restaurant.city,
