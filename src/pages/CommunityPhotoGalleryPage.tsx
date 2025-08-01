@@ -216,8 +216,11 @@ export default function CommunityPhotoGalleryPage() {
   const currentPhoto = selectedPhotoIndex !== null ? displayedPhotos[selectedPhotoIndex] : null;
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
+    <>
+      {/* Mobile status bar spacer */}
+      <div className="lg:hidden h-[35px] bg-background"></div>
+      <div className="min-h-screen bg-background">
+        {/* Header */}
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
           <div className="p-4 space-y-2">
             {/* Top row with back button and title */}
@@ -478,6 +481,7 @@ export default function CommunityPhotoGalleryPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
