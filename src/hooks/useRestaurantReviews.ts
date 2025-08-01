@@ -51,7 +51,71 @@ export function useRestaurantReviews(restaurantPlaceId?: string, restaurantName?
     console.log('fetchCommunityStats - restaurantPlaceId:', restaurantPlaceId);
     
     try {
-      // First, try to get restaurants that match this place_id directly
+      // First, try to automatically link restaurants by finding unlinked ones
+      let nameToSearch = restaurantName;
+      
+      // Extract restaurant name from URL if not provided
+      if (!nameToSearch) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const dataParam = urlParams.get('data');
+        
+        if (dataParam) {
+          try {
+            const restaurantData = JSON.parse(decodeURIComponent(dataParam));
+            nameToSearch = restaurantData.name;
+          } catch (e) {
+            console.log('Could not parse restaurant data from URL');
+          }
+        }
+      }
+
+      // Try to find and link unlinked restaurants with this name
+      if (nameToSearch) {
+        try {
+          console.log('Searching for unlinked restaurants with name:', nameToSearch);
+          
+          // Find restaurants without place_id that match the name
+          const { data: unlinkedRestaurants, error: searchError } = await supabase
+            .from('restaurants')
+            .select('id, name')
+            .is('google_place_id', null)
+            .eq('is_wishlist', false)
+            .not('rating', 'is', null);
+          
+          if (!searchError && unlinkedRestaurants) {
+            const matchingRestaurants = unlinkedRestaurants.filter(r => {
+              const rName = r.name.toLowerCase().trim();
+              const searchName = nameToSearch.toLowerCase().trim();
+              
+              return rName === searchName ||
+                     rName.includes(searchName) ||
+                     searchName.includes(rName) ||
+                     (rName.length > 3 && searchName.length > 3 && 
+                      (rName.substring(0, 4) === searchName.substring(0, 4))); // First 4 chars match
+            });
+            
+            if (matchingRestaurants.length > 0) {
+              console.log(`Found ${matchingRestaurants.length} unlinked restaurants to update`);
+              
+              // Update them with the place_id
+              const { error: updateError } = await supabase
+                .from('restaurants')
+                .update({ google_place_id: restaurantPlaceId })
+                .in('id', matchingRestaurants.map(r => r.id));
+              
+              if (updateError) {
+                console.error('Error updating restaurants with place_id:', updateError);
+              } else {
+                console.log('Successfully linked restaurants to place_id');
+              }
+            }
+          }
+        } catch (linkError) {
+          console.error('Error linking restaurants:', linkError);
+        }
+      }
+
+      // Now try to get restaurants that match this place_id
       const { data: restaurantData, error: restaurantError } = await supabase
         .from('restaurants')
         .select('rating, user_id')
@@ -65,92 +129,6 @@ export function useRestaurantReviews(restaurantPlaceId?: string, restaurantName?
       if (restaurantError) {
         console.error('Error fetching restaurant data:', restaurantError);
         return;
-      }
-      
-      // If no direct matches, try a broader search by updating existing restaurants with the place_id
-      if (!restaurantData || restaurantData.length === 0) {
-        console.log('No direct matches found, attempting to update google_place_id for existing restaurants');
-        
-        // Get the restaurant name from the current restaurant object or URL data
-        // Extract restaurant name from URL params
-        const urlParams = new URLSearchParams(window.location.search);
-        const dataParam = urlParams.get('data');
-        let restaurantName = 'Unknown Restaurant';
-        
-        if (dataParam) {
-          try {
-            const restaurantData = JSON.parse(decodeURIComponent(dataParam));
-            restaurantName = restaurantData.name || 'Unknown Restaurant';
-          } catch (e) {
-            console.log('Could not parse restaurant data from URL');
-          }
-        }
-        
-        // Try to find restaurants by name similarity and update their google_place_id
-        // This is a fallback for restaurants that were added before we had place_id
-        const { data: nameMatches, error: nameError } = await supabase
-          .from('restaurants')
-          .select('id, name, rating, user_id')
-          .is('google_place_id', null)
-          .eq('is_wishlist', false)
-          .not('rating', 'is', null);
-          
-        if (nameMatches && nameMatches.length > 0) {
-          // For each restaurant, check if the name matches the current restaurant (from the place data)
-          const matchingRestaurants = nameMatches.filter(r => 
-            r.name.toLowerCase().includes(restaurantName.toLowerCase()) ||
-            restaurantName.toLowerCase().includes(r.name.toLowerCase())
-          );
-          
-          if (matchingRestaurants.length > 0) {
-            console.log('Found matching restaurants by name:', matchingRestaurants);
-            
-            // Update these restaurants with the correct google_place_id
-            for (const restaurant of matchingRestaurants) {
-              await supabase
-                .from('restaurants')
-                .update({ google_place_id: restaurantPlaceId })
-                .eq('id', restaurant.id);
-            }
-            
-            // Now fetch the data again
-            const { data: updatedData, error: updatedError } = await supabase
-              .from('restaurants')
-              .select('rating, user_id')
-              .eq('google_place_id', restaurantPlaceId)
-              .eq('is_wishlist', false)
-              .not('rating', 'is', null);
-              
-            if (updatedData && updatedData.length > 0) {
-              console.log('Found data after updating google_place_id:', updatedData);
-              const ratings = updatedData.map(r => r.rating).filter(r => r !== null);
-              const averageRating = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
-              
-              // Create rating distribution
-              const distribution = {
-                '9-10': ratings.filter(r => r >= 9).length,
-                '7-8': ratings.filter(r => r >= 7 && r < 9).length,
-                '5-6': ratings.filter(r => r >= 5 && r < 7).length,
-                '3-4': ratings.filter(r => r >= 3 && r < 5).length,
-                '1-2': ratings.filter(r => r >= 1 && r < 3).length,
-              };
-              
-              setCommunityStats({
-                averageRating: Number(averageRating.toFixed(1)),
-                totalReviews: ratings.length,
-                ratingDistribution: distribution,
-                recentPhotos: []
-              });
-              
-              console.log('Set community stats after update:', {
-                averageRating: Number(averageRating.toFixed(1)),
-                totalReviews: ratings.length,
-                ratingDistribution: distribution
-              });
-              return;
-            }
-          }
-        }
       }
       
       // Process the original data if we found any
