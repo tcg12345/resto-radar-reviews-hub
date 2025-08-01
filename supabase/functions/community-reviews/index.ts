@@ -270,14 +270,14 @@ serve(async (req) => {
     const matchesWithPhotos = uniqueMatches.filter(m => m.photos && m.photos.length > 0);
     const recentPhotos = matchesWithPhotos
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      .slice(0, 30) // Increased for pagination but limit per user
+      .slice(0, 100) // Increased limit for more photos
       .map(match => ({
         review_id: match.review_id,
         user_id: match.user_id,
         username: profilesMap.get(match.user_id) || 'Anonymous',
-        photos: (match.photos || []).slice(0, 5), // Limit photos per user for performance
-        captions: (match.photo_captions || []).slice(0, 5),
-        dish_names: (match.photo_dish_names || []).slice(0, 5),
+        photos: match.photos || [], // Show ALL photos from each user
+        captions: match.photo_captions || [],
+        dish_names: match.photo_dish_names || [],
         created_at: match.created_at,
         helpful_count: match.helpful_count
       }));

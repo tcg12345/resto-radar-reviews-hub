@@ -29,7 +29,7 @@ export default function CommunityPhotoGalleryPage() {
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
   const [allPhotos, setAllPhotos] = useState<Array<CommunityPhoto & { photoIndex: number; photoUrl: string }>>([]);
   const [displayedPhotos, setDisplayedPhotos] = useState<Array<CommunityPhoto & { photoIndex: number; photoUrl: string }>>([]);
-  const [photosPerPage] = useState(24);
+  const [photosPerPage] = useState(48);
   const [hasMorePhotos, setHasMorePhotos] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
 
@@ -119,7 +119,7 @@ export default function CommunityPhotoGalleryPage() {
           </div>
         </div>
         <div className="p-4">
-          <CommunityPhotosSkeleton count={12} />
+          <CommunityPhotosSkeleton count={24} />
         </div>
       </div>
     );
