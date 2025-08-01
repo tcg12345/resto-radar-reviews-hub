@@ -3,6 +3,7 @@ import { Star, Users } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CommunityStats } from '@/hooks/useRestaurantReviews';
+import { CommunityRatingSkeleton } from '@/components/skeletons/CommunityRatingSkeleton';
 
 interface CommunityRatingProps {
   stats: CommunityStats | null;
@@ -15,24 +16,10 @@ export function CommunityRating({ stats, isLoading }: CommunityRatingProps) {
   console.log('CommunityRating - isLoading:', isLoading);
   
   if (isLoading) {
-    return (
-      <Card>
-        <CardContent className="p-4">
-          <div className="animate-pulse space-y-3">
-            <div className="h-4 bg-muted rounded w-1/3"></div>
-            <div className="h-8 bg-muted rounded w-1/2"></div>
-            <div className="space-y-2">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="h-3 bg-muted rounded"></div>
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <CommunityRatingSkeleton />;
   }
 
-  if (!stats || stats.totalReviews === 0) {
+  if (!isLoading && (!stats || stats.totalReviews === 0)) {
     return (
       <Card>
         <CardContent className="p-4">

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { CommunityStats } from '@/hooks/useRestaurantReviews';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface CommunityPhotoGalleryProps {
   stats: CommunityStats | null;
@@ -78,12 +79,26 @@ export function CommunityPhotoGallery({ stats, isLoading, onPhotoClick }: Commun
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Community Photos</CardTitle>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-5 w-5" />
+              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-5 w-8" />
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 mt-4">
+            <Skeleton className="h-9 flex-1" />
+            <Skeleton className="h-9 w-32" />
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-              <div key={i} className="aspect-square bg-muted animate-pulse rounded-lg" />
+              <div key={i} className="aspect-square relative">
+                <Skeleton className="w-full h-full rounded-lg" />
+                {/* Shimmer effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite] rounded-lg" />
+              </div>
             ))}
           </div>
         </CardContent>
@@ -91,7 +106,7 @@ export function CommunityPhotoGallery({ stats, isLoading, onPhotoClick }: Commun
     );
   }
 
-  if (allPhotos.length === 0) {
+  if (!isLoading && allPhotos.length === 0) {
     return (
       <Card>
         <CardHeader>

@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, User, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { LazyImage } from '@/components/LazyImage';
 import { useRestaurantReviews } from '@/hooks/useRestaurantReviews';
+import { CommunityPhotosSkeleton } from '@/components/skeletons/CommunityPhotosSkeleton';
+import { InfiniteScrollLoader } from '@/components/InfiniteScrollLoader';
 
 interface CommunityPhoto {
   review_id: string;
@@ -26,6 +28,10 @@ export default function CommunityPhotoGalleryPage() {
   const { communityStats, isLoading } = useRestaurantReviews(placeId, restaurantName);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
   const [allPhotos, setAllPhotos] = useState<Array<CommunityPhoto & { photoIndex: number; photoUrl: string }>>([]);
+  const [displayedPhotos, setDisplayedPhotos] = useState<Array<CommunityPhoto & { photoIndex: number; photoUrl: string }>>([]);
+  const [photosPerPage] = useState(24);
+  const [hasMorePhotos, setHasMorePhotos] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     if (communityStats?.recentPhotos) {
@@ -48,8 +54,27 @@ export default function CommunityPhotoGalleryPage() {
       });
       
       setAllPhotos(photos);
+      // Initially show first batch
+      setDisplayedPhotos(photos.slice(0, photosPerPage));
+      setHasMorePhotos(photos.length > photosPerPage);
     }
-  }, [communityStats]);
+  }, [communityStats, photosPerPage]);
+
+  const loadMorePhotos = useCallback(() => {
+    if (loadingMore || !hasMorePhotos) return;
+    
+    setLoadingMore(true);
+    
+    // Simulate a small delay for smooth UX
+    setTimeout(() => {
+      const nextBatch = allPhotos.slice(displayedPhotos.length, displayedPhotos.length + photosPerPage);
+      const newDisplayedPhotos = [...displayedPhotos, ...nextBatch];
+      
+      setDisplayedPhotos(newDisplayedPhotos);
+      setHasMorePhotos(newDisplayedPhotos.length < allPhotos.length);
+      setLoadingMore(false);
+    }, 300);
+  }, [allPhotos, displayedPhotos, photosPerPage, loadingMore, hasMorePhotos]);
 
   const handleBack = () => {
     navigate(-1);
@@ -94,17 +119,13 @@ export default function CommunityPhotoGalleryPage() {
           </div>
         </div>
         <div className="p-4">
-          <div className="grid grid-cols-2 gap-3">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="aspect-square bg-muted rounded-lg animate-pulse" />
-            ))}
-          </div>
+          <CommunityPhotosSkeleton count={12} />
         </div>
       </div>
     );
   }
 
-  if (!allPhotos.length) {
+  if (!isLoading && !allPhotos.length) {
     return (
       <div className="min-h-screen bg-background">
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
@@ -133,7 +154,7 @@ export default function CommunityPhotoGalleryPage() {
     );
   }
 
-  const currentPhoto = selectedPhotoIndex !== null ? allPhotos[selectedPhotoIndex] : null;
+  const currentPhoto = selectedPhotoIndex !== null ? displayedPhotos[selectedPhotoIndex] : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -152,14 +173,14 @@ export default function CommunityPhotoGalleryPage() {
             <h1 className="font-semibold text-lg">Community Photos</h1>
             <p className="text-sm text-muted-foreground">{restaurantName}</p>
           </div>
-          <Badge variant="secondary">{allPhotos.length} photos</Badge>
+          <Badge variant="secondary">{allPhotos.length} photo{allPhotos.length === 1 ? '' : 's'}</Badge>
         </div>
       </div>
 
       {/* Photo Grid */}
       <div className="p-4 pb-safe">
         <div className="grid grid-cols-2 gap-3">
-          {allPhotos.map((photo, index) => (
+          {displayedPhotos.map((photo, index) => (
             <div key={`${photo.review_id}-${photo.photoIndex}`} className="group relative">
               <div 
                 className="aspect-square cursor-pointer overflow-hidden rounded-lg bg-muted"
@@ -195,6 +216,17 @@ export default function CommunityPhotoGalleryPage() {
             </div>
           ))}
         </div>
+
+        {/* Infinite Scroll Loader */}
+        {hasMorePhotos && (
+          <InfiniteScrollLoader
+            hasMore={hasMorePhotos}
+            isLoading={loadingMore}
+            onLoadMore={loadMorePhotos}
+            loadMoreText={`Load More Photos (${allPhotos.length - displayedPhotos.length} remaining)`}
+            className="mt-4"
+          />
+        )}
       </div>
 
       {/* Photo Modal */}
@@ -226,7 +258,7 @@ export default function CommunityPhotoGalleryPage() {
             )}
             
             {/* Next Arrow */}
-            {selectedPhotoIndex < allPhotos.length - 1 && (
+            {selectedPhotoIndex < displayedPhotos.length - 1 && (
               <Button
                 variant="ghost"
                 size="sm"
