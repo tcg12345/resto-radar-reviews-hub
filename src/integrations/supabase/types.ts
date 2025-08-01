@@ -1064,6 +1064,14 @@ export type Database = {
         Args: { "": string }
         Returns: string[]
       }
+      update_restaurant_google_place_id: {
+        Args: {
+          restaurant_name_param: string
+          restaurant_address_param: string
+          google_place_id_param: string
+        }
+        Returns: number
+      }
       user_participates_in_room: {
         Args: { room_id: string; user_id: string }
         Returns: boolean
