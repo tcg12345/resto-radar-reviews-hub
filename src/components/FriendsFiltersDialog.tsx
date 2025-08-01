@@ -44,6 +44,12 @@ export function FriendsFiltersDialog({
   const [friendsOpen, setFriendsOpen] = useState(false);
   const [citiesOpen, setCitiesOpen] = useState(false);
   const [cuisinesOpen, setCuisinesOpen] = useState(false);
+  
+  // Touch gesture state
+  const [isDragging, setIsDragging] = useState(false);
+  const [startY, setStartY] = useState(0);
+  const [currentY, setCurrentY] = useState(0);
+  const [dragOffset, setDragOffset] = useState(0);
 
   const handleFriendToggle = (friendId: string) => {
     setLocalFriends(prev => 
@@ -80,6 +86,40 @@ export function FriendsFiltersDialog({
     onCitiesChange(localCities);
     onCuisinesChange(localCuisines);
     onOpenChange(false);
+  };
+
+  // Touch event handlers for drag functionality
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    setStartY(e.touches[0].clientY);
+    setCurrentY(e.touches[0].clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    
+    const touchY = e.touches[0].clientY;
+    setCurrentY(touchY);
+    
+    const deltaY = touchY - startY;
+    // Only allow downward dragging (positive deltaY)
+    if (deltaY > 0) {
+      setDragOffset(deltaY);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (!isDragging) return;
+    
+    setIsDragging(false);
+    
+    // If dragged down more than 150px, close the dialog
+    if (dragOffset > 150) {
+      onOpenChange(false);
+    }
+    
+    // Reset drag offset with animation
+    setDragOffset(0);
   };
 
   const totalFilters = localFriends.length + localCities.length + localCuisines.length;
@@ -120,10 +160,21 @@ export function FriendsFiltersDialog({
       />
       
       {/* Bottom Sheet */}
-      <div className="fixed bottom-0 left-0 right-0 z-[101] bg-background border-t rounded-t-xl animate-in slide-in-from-bottom duration-300 h-[80vh]">
+      <div 
+        className="fixed bottom-0 left-0 right-0 z-[101] bg-background border-t rounded-t-xl animate-in slide-in-from-bottom duration-300 h-[80vh] transition-transform"
+        style={{
+          transform: `translateY(${dragOffset}px)`,
+          transition: isDragging ? 'none' : 'transform 0.3s ease-out'
+        }}
+      >
         <div className="flex flex-col h-full">
           {/* Drag Handle */}
-          <div className="flex justify-center py-2">
+          <div 
+            className="flex justify-center py-2 cursor-grab active:cursor-grabbing"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
             <div className="w-8 h-1 bg-muted-foreground/30 rounded-full"></div>
           </div>
           
