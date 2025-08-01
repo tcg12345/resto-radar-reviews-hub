@@ -8,6 +8,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { RestaurantProvider } from "./contexts/RestaurantContext";
 import { DiscoverProvider } from "./contexts/DiscoverContext";
 import { FriendProfilesProvider } from "./contexts/FriendProfilesContext";
+import { CommunityDataProvider } from "./contexts/CommunityDataContext";
 import { RequireAuth } from "./components/RequireAuth";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -46,7 +47,8 @@ const App = () => (
         <RestaurantProvider>
           <DiscoverProvider>
             <FriendProfilesProvider>
-              <TooltipProvider>
+              <CommunityDataProvider>
+                <TooltipProvider>
                 <Toaster />
                 <Sonner />
                 <Routes>
@@ -101,6 +103,7 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
                 </Routes>
               </TooltipProvider>
+                </CommunityDataProvider>
             </FriendProfilesProvider>
           </DiscoverProvider>
         </RestaurantProvider>

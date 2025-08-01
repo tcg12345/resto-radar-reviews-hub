@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { LazyImage } from '@/components/LazyImage';
 import { useRestaurantReviews } from '@/hooks/useRestaurantReviews';
+import { useCommunityData } from '@/contexts/CommunityDataContext';
 import { CommunityPhotosSkeleton } from '@/components/skeletons/CommunityPhotosSkeleton';
 import { InfiniteScrollLoader } from '@/components/InfiniteScrollLoader';
 
@@ -25,6 +26,7 @@ export default function CommunityPhotoGalleryPage() {
   const navigate = useNavigate();
   const restaurantName = searchParams.get('name') || 'Restaurant';
   
+  const { getPreloadedStats } = useCommunityData();
   const { communityStats, isLoading } = useRestaurantReviews(placeId, restaurantName);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
   const [allPhotos, setAllPhotos] = useState<Array<CommunityPhoto & { photoIndex: number; photoUrl: string }>>([]);
@@ -35,35 +37,50 @@ export default function CommunityPhotoGalleryPage() {
   const [photosProcessed, setPhotosProcessed] = useState(false);
 
   useEffect(() => {
+    // First check for preloaded data for instant loading
+    if (placeId) {
+      const preloadedStats = getPreloadedStats(placeId);
+      if (preloadedStats?.recentPhotos) {
+        console.log('Using preloaded community stats for instant loading!');
+        processPhotos(preloadedStats);
+        return;
+      }
+    }
+
+    // If no preloaded data, wait for the hook to fetch it
     if (communityStats?.recentPhotos) {
-      // Flatten all photos from all users into a single array
-      const photos: Array<CommunityPhoto & { photoIndex: number; photoUrl: string }> = [];
-      
-      communityStats.recentPhotos.forEach((photoData) => {
-        // Check if photos array exists and has items
-        if (photoData.photos && Array.isArray(photoData.photos)) {
-          photoData.photos.forEach((photoUrl, index) => {
-            if (photoUrl) { // Make sure the photo URL is not empty
-              photos.push({
-                ...photoData,
-                photoIndex: index,
-                photoUrl: photoUrl
-              });
-            }
-          });
-        }
-      });
-      
-      setAllPhotos(photos);
-      // Initially show first batch
-      setDisplayedPhotos(photos.slice(0, photosPerPage));
-      setHasMorePhotos(photos.length > photosPerPage);
-      setPhotosProcessed(true);
+      processPhotos(communityStats);
     } else if (!isLoading) {
       // Only mark as processed if not loading and no photos received
       setPhotosProcessed(true);
     }
-  }, [communityStats, photosPerPage, isLoading]);
+  }, [placeId, communityStats, photosPerPage, isLoading, getPreloadedStats]);
+
+  const processPhotos = (stats: any) => {
+    // Flatten all photos from all users into a single array
+    const photos: Array<CommunityPhoto & { photoIndex: number; photoUrl: string }> = [];
+    
+    stats.recentPhotos.forEach((photoData: any) => {
+      // Check if photos array exists and has items
+      if (photoData.photos && Array.isArray(photoData.photos)) {
+        photoData.photos.forEach((photoUrl: string, index: number) => {
+          if (photoUrl) { // Make sure the photo URL is not empty
+            photos.push({
+              ...photoData,
+              photoIndex: index,
+              photoUrl: photoUrl
+            });
+          }
+        });
+      }
+    });
+    
+    setAllPhotos(photos);
+    // Initially show first batch
+    setDisplayedPhotos(photos.slice(0, photosPerPage));
+    setHasMorePhotos(photos.length > photosPerPage);
+    setPhotosProcessed(true);
+  };
 
   const loadMorePhotos = useCallback(() => {
     if (loadingMore || !hasMorePhotos) return;
@@ -107,8 +124,11 @@ export default function CommunityPhotoGalleryPage() {
     }
   };
 
-  if (isLoading || !photosProcessed) {
-    console.log('CommunityPhotoGalleryPage - Showing skeleton. isLoading:', isLoading, 'photosProcessed:', photosProcessed);
+  // Check for preloaded data first to avoid showing loading unnecessarily
+  const hasPreloadedData = placeId ? getPreloadedStats(placeId)?.recentPhotos?.length > 0 : false;
+  
+  if ((isLoading || !photosProcessed) && !hasPreloadedData) {
+    console.log('CommunityPhotoGalleryPage - Showing skeleton. isLoading:', isLoading, 'photosProcessed:', photosProcessed, 'hasPreloadedData:', hasPreloadedData);
     return (
       <div className="min-h-screen bg-background">
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">

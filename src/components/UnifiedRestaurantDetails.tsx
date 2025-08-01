@@ -30,6 +30,7 @@ import { PhotoGallery } from '@/components/PhotoGallery';
 import { FriendRatingDisplay } from '@/components/FriendRatingDisplay';
 import { FriendPhotoGallery } from '@/components/FriendPhotoGallery';
 import { useRestaurantReviews } from '@/hooks/useRestaurantReviews';
+import { useCommunityData } from '@/contexts/CommunityDataContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -100,6 +101,7 @@ export function UnifiedRestaurantDetails({
 }: UnifiedRestaurantDetailsProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { setPreloadedStats } = useCommunityData();
   const actualIsMobile = useIsMobile();
   const [photos, setPhotos] = useState<string[]>([]);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
@@ -116,6 +118,13 @@ export function UnifiedRestaurantDetails({
     isLoading: isLoadingReviews, 
     submitReview 
   } = useRestaurantReviews(restaurantData.place_id);
+
+  // Save community stats to context for preloading
+  useEffect(() => {
+    if (communityStats && restaurantData.place_id) {
+      setPreloadedStats(restaurantData.place_id, communityStats);
+    }
+  }, [communityStats, restaurantData.place_id, setPreloadedStats]);
 
   useEffect(() => {
     setRestaurantData(restaurant);
