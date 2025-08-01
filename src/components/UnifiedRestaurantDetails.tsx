@@ -586,6 +586,19 @@ export function UnifiedRestaurantDetails({
 
           <Separator />
 
+          {/* Community Rating */}
+          <CommunityRating 
+            stats={communityStats} 
+            isLoading={isLoadingReviews} 
+          />
+          
+          {/* Community Photo Gallery */}
+          <CommunityPhotoGallery 
+            stats={communityStats}
+            isLoading={isLoadingReviews}
+            onPhotoClick={() => {}}
+          />
+
           {/* Details */}
           <div className="space-y-4">
             <h2 className="text-lg font-semibold">Details</h2>
@@ -697,19 +710,6 @@ export function UnifiedRestaurantDetails({
                 />
               )}
             </div>
-
-            {/* Community Rating */}
-            <CommunityRating 
-              stats={communityStats} 
-              isLoading={isLoadingReviews} 
-            />
-            
-            {/* Community Photo Gallery */}
-            <CommunityPhotoGallery 
-              stats={communityStats}
-              isLoading={isLoadingReviews}
-              onPhotoClick={() => {}}
-            />
 
             <Separator />
 
