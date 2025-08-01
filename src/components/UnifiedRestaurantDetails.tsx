@@ -27,7 +27,7 @@ import { MichelinStars } from '@/components/MichelinStars';
 import { StarRating } from '@/components/StarRating';
 import { RestaurantLocationMap } from '@/components/RestaurantLocationMap';
 import { PhotoGallery } from '@/components/PhotoGallery';
-import { FriendRatingDisplay } from '@/components/FriendRatingDisplay';
+
 import { FriendPhotoGallery } from '@/components/FriendPhotoGallery';
 import { CommunityRating } from '@/components/CommunityRating';
 import { CommunityPhotoGallery } from '@/components/CommunityPhotoGallery';
@@ -691,30 +691,21 @@ export function UnifiedRestaurantDetails({
               </Card>
             )}
 
-            {/* Community Rating Display */}
-            <div className="space-y-4">
-              <FriendRatingDisplay 
-                friendRating={restaurantData.isSharedRestaurant ? restaurantData.rating : undefined}
-                friendName={restaurantData.isSharedRestaurant ? restaurantData.sharedBy?.name : undefined}
-                communityAverageRating={communityStats?.averageRating}
-                totalCommunityReviews={communityStats?.totalReviews}
+            {/* Friend's Photos - only show for shared restaurants */}
+            {restaurantData.isSharedRestaurant && restaurantData.photos && restaurantData.photos.length > 0 && (
+              <FriendPhotoGallery 
+                friendPhotos={restaurantData.photos.map((url, index) => ({
+                  url,
+                  caption: Array.isArray(restaurantData.photoCaptions) ? restaurantData.photoCaptions[index] : '',
+                  dishName: Array.isArray(restaurantData.photo_captions) ? restaurantData.photo_captions[index] : ''
+                }))}
+                friendName={restaurantData.sharedBy?.name || 'Friend'}
+                friendId={restaurantData.sharedBy?.id || ''}
+                restaurantId={restaurantData.id || ''}
+                restaurantPlaceId={restaurantData.place_id}
               />
-              
-              {/* Friend's Photos - only show for shared restaurants */}
-              {restaurantData.isSharedRestaurant && restaurantData.photos && restaurantData.photos.length > 0 && (
-                <FriendPhotoGallery 
-                  friendPhotos={restaurantData.photos.map((url, index) => ({
-                    url,
-                    caption: Array.isArray(restaurantData.photoCaptions) ? restaurantData.photoCaptions[index] : '',
-                    dishName: Array.isArray(restaurantData.photo_captions) ? restaurantData.photo_captions[index] : ''
-                  }))}
-                  friendName={restaurantData.sharedBy?.name || 'Friend'}
-                  friendId={restaurantData.sharedBy?.id || ''}
-                  restaurantId={restaurantData.id || ''}
-                  restaurantPlaceId={restaurantData.place_id}
-                />
-              )}
-            </div>
+            )}
+          </div>
 
             <Separator />
 
@@ -748,7 +739,6 @@ export function UnifiedRestaurantDetails({
         isMobile={actualIsMobile}
       />
 
-      </div>
     </>
   );
 }
