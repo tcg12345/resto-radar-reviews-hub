@@ -110,64 +110,74 @@ serve(async (req) => {
       }
     }
 
-    // STRATEGY 3: MASSIVE name-based matching for ALL restaurants
+    // STRATEGY 3: Efficient name-based matching with database queries
     if (restaurant_name) {
-      console.log('🔍 Strategy 3: UNIVERSAL name matching for:', restaurant_name);
+      console.log('🔍 Strategy 3: Efficient name matching for:', restaurant_name);
       totalStrategiesUsed++;
       
-      // Get ALL restaurants to do universal matching
-      const { data: allRestaurants, error: allRestaurantsError } = await supabase
-        .from('restaurants')
-        .select('id, name, rating, user_id, photos, photo_captions, photo_dish_names, created_at, google_place_id')
-        .not('rating', 'is', null)
-        .eq('is_wishlist', false);
-
-      if (!allRestaurantsError && allRestaurants) {
-        console.log(`🔎 Scanning ${allRestaurants.length} restaurants for matches...`);
+      const normalizedSearchName = normalizeRestaurantName(restaurant_name);
+      const searchWords = restaurant_name.toLowerCase().split(' ');
+      const firstWord = searchWords[0];
+      
+      // Multiple efficient queries instead of scanning all
+      const nameQueries = [
+        // Exact name match
+        supabase
+          .from('restaurants')
+          .select('id, name, rating, user_id, photos, photo_captions, photo_dish_names, created_at, google_place_id')
+          .ilike('name', restaurant_name)
+          .not('rating', 'is', null)
+          .eq('is_wishlist', false)
+          .limit(20),
         
-        const normalizedSearchName = normalizeRestaurantName(restaurant_name);
-        const searchWords = restaurant_name.toLowerCase().split(' ');
-        
-        const nameMatches = allRestaurants.filter(restaurant => {
-          // Skip if already matched by exact place_id
-          if (place_id && restaurant.google_place_id === place_id) {
-            return false;
-          }
+        // Contains search name
+        supabase
+          .from('restaurants')
+          .select('id, name, rating, user_id, photos, photo_captions, photo_dish_names, created_at, google_place_id')
+          .ilike('name', `%${restaurant_name}%`)
+          .not('rating', 'is', null)
+          .eq('is_wishlist', false)
+          .limit(20),
           
-          const restaurantName = restaurant.name.toLowerCase().trim();
-          const normalizedRestaurantName = normalizeRestaurantName(restaurant.name);
-          
-          // Multiple aggressive matching strategies
-          return (
-            // Exact match
-            restaurantName === restaurant_name.toLowerCase() ||
-            // Exact normalized match
-            normalizedRestaurantName === normalizedSearchName ||
-            // Contains match (both directions)
-            restaurantName.includes(restaurant_name.toLowerCase()) ||
-            restaurant_name.toLowerCase().includes(restaurantName) ||
-            // First word match (for chains)
-            (searchWords[0].length > 3 && restaurantName.startsWith(searchWords[0])) ||
-            // Multiple word overlap
-            searchWords.filter(word => word.length > 2 && restaurantName.includes(word)).length >= 2
-          );
-        });
+        // First word match (for chains)
+        firstWord.length > 3 ? supabase
+          .from('restaurants')
+          .select('id, name, rating, user_id, photos, photo_captions, photo_dish_names, created_at, google_place_id')
+          .ilike('name', `${firstWord}%`)
+          .not('rating', 'is', null)
+          .eq('is_wishlist', false)
+          .limit(20) : null
+      ].filter(Boolean);
 
-        console.log(`✅ Found ${nameMatches.length} name-based matches`);
-        allMatches.push(...nameMatches.map(match => ({
-          rating: match.rating,
-          user_id: match.user_id,
-          photos: match.photos || [],
-          photo_captions: match.photo_captions || [],
-          photo_dish_names: match.photo_dish_names || [],
-          created_at: match.created_at,
-          helpful_count: 0,
-          review_id: match.id,
-          source: 'name_match'
-        })));
-      } else {
-        console.log('❌ Name matching strategy error:', allRestaurantsError);
-      }
+      const nameResults = await Promise.all(nameQueries);
+      
+      let nameMatches: any[] = [];
+      nameResults.forEach(result => {
+        if (!result.error && result.data) {
+          nameMatches.push(...result.data.filter(restaurant => {
+            // Skip if already matched by exact place_id
+            return !(place_id && restaurant.google_place_id === place_id);
+          }));
+        }
+      });
+
+      // Remove duplicates by id
+      const uniqueNameMatches = nameMatches.filter((match, index, self) => 
+        index === self.findIndex(m => m.id === match.id)
+      );
+
+      console.log(`✅ Found ${uniqueNameMatches.length} name-based matches`);
+      allMatches.push(...uniqueNameMatches.map(match => ({
+        rating: match.rating,
+        user_id: match.user_id,
+        photos: match.photos || [],
+        photo_captions: match.photo_captions || [],
+        photo_dish_names: match.photo_dish_names || [],
+        created_at: match.created_at,
+        helpful_count: 0,
+        review_id: match.id,
+        source: 'name_match'
+      })));
     }
 
     // STRATEGY 4: Cross-reference ALL place_ids with similar names
