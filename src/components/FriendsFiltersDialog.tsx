@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Filter, Users, MapPin, Utensils, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -83,6 +83,31 @@ export function FriendsFiltersDialog({
   };
 
   const totalFilters = localFriends.length + localCities.length + localCuisines.length;
+
+  // Prevent background scrolling on mobile when dialog is open
+  useEffect(() => {
+    if (open) {
+      // Disable background scrolling
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.height = '100%';
+    } else {
+      // Re-enable background scrolling
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+    }
+
+    // Cleanup function to restore scroll on unmount
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+    };
+  }, [open]);
 
   if (!open) return null;
 
