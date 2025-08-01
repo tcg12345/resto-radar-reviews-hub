@@ -108,6 +108,7 @@ export default function CommunityPhotoGalleryPage() {
   };
 
   if (isLoading || !photosProcessed) {
+    console.log('CommunityPhotoGalleryPage - Showing skeleton. isLoading:', isLoading, 'photosProcessed:', photosProcessed);
     return (
       <div className="min-h-screen bg-background">
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
