@@ -16,6 +16,16 @@ interface RestaurantMatch {
   helpful_count: number;
   review_id: string;
   source: string;
+  username?: string;
+}
+
+function normalizeRestaurantName(name: string): string {
+  const commonWords = ['the', 'restaurant', 'bar', 'grill', 'cafe', 'kitchen', 'house', 'dining', 'room', 'club'];
+  return name.toLowerCase()
+    .trim()
+    .split(' ')
+    .filter(word => !commonWords.includes(word))
+    .join(' ');
 }
 
 serve(async (req) => {
@@ -24,17 +34,20 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  console.log('🚀 Community Reviews Function Called');
+
   try {
     const { place_id, restaurant_name } = await req.json();
     
+    console.log('📥 Input received:', { place_id, restaurant_name });
+
     if (!place_id && !restaurant_name) {
+      console.log('❌ No place_id or restaurant_name provided');
       return new Response(JSON.stringify({ error: 'place_id or restaurant_name required' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
       });
     }
-
-    console.log(`🔍 Finding community reviews for: ${restaurant_name} (${place_id})`);
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -42,10 +55,13 @@ serve(async (req) => {
     );
 
     const allMatches: RestaurantMatch[] = [];
+    let totalStrategiesUsed = 0;
 
-    // Strategy 1: Exact Google Place ID match
+    // STRATEGY 1: Exact Google Place ID match
     if (place_id) {
-      console.log('📍 Strategy 1: Searching by place_id...');
+      console.log('📍 Strategy 1: Searching by exact place_id:', place_id);
+      totalStrategiesUsed++;
+      
       const { data: placeIdMatches, error: placeIdError } = await supabase
         .from('restaurants')
         .select('rating, user_id, photos, photo_captions, photo_dish_names, created_at, id')
@@ -54,26 +70,30 @@ serve(async (req) => {
         .eq('is_wishlist', false);
 
       if (!placeIdError && placeIdMatches) {
-        console.log(`Found ${placeIdMatches.length} ratings by place_id`);
+        console.log(`✅ Found ${placeIdMatches.length} ratings by exact place_id`);
         allMatches.push(...placeIdMatches.map(match => ({
           ...match,
           helpful_count: 0,
           review_id: match.id,
-          source: 'place_id_match'
+          source: 'exact_place_id'
         })));
+      } else {
+        console.log('❌ Place ID strategy error:', placeIdError);
       }
     }
 
-    // Strategy 2: User reviews table
+    // STRATEGY 2: User reviews table
     if (place_id) {
-      console.log('📝 Strategy 2: Searching user_reviews table...');
+      console.log('📝 Strategy 2: Searching user_reviews table for place_id:', place_id);
+      totalStrategiesUsed++;
+      
       const { data: userReviews, error: userReviewsError } = await supabase
         .from('user_reviews')
         .select('overall_rating, user_id, photos, photo_captions, photo_dish_names, created_at, helpful_count, id')
         .eq('restaurant_place_id', place_id);
 
       if (!userReviewsError && userReviews) {
-        console.log(`Found ${userReviews.length} user reviews`);
+        console.log(`✅ Found ${userReviews.length} user reviews`);
         allMatches.push(...userReviews.map(review => ({
           rating: review.overall_rating,
           user_id: review.user_id,
@@ -85,14 +105,17 @@ serve(async (req) => {
           review_id: review.id,
           source: 'user_reviews'
         })));
+      } else {
+        console.log('❌ User reviews strategy error:', userReviewsError);
       }
     }
 
-    // Strategy 3: Fuzzy name matching for all restaurants
+    // STRATEGY 3: MASSIVE name-based matching for ALL restaurants
     if (restaurant_name) {
-      console.log('🔍 Strategy 3: Fuzzy name matching...');
+      console.log('🔍 Strategy 3: UNIVERSAL name matching for:', restaurant_name);
+      totalStrategiesUsed++;
       
-      // Get ALL restaurants to do fuzzy matching
+      // Get ALL restaurants to do universal matching
       const { data: allRestaurants, error: allRestaurantsError } = await supabase
         .from('restaurants')
         .select('id, name, rating, user_id, photos, photo_captions, photo_dish_names, created_at, google_place_id')
@@ -100,44 +123,38 @@ serve(async (req) => {
         .eq('is_wishlist', false);
 
       if (!allRestaurantsError && allRestaurants) {
-        const normalizedSearchName = restaurant_name.toLowerCase().trim();
+        console.log(`🔎 Scanning ${allRestaurants.length} restaurants for matches...`);
         
-        // Multiple fuzzy matching strategies
-        const fuzzyMatches = allRestaurants.filter(restaurant => {
-          const restaurantName = restaurant.name.toLowerCase().trim();
-          
-          // Skip if already matched by place_id
+        const normalizedSearchName = normalizeRestaurantName(restaurant_name);
+        const searchWords = restaurant_name.toLowerCase().split(' ');
+        
+        const nameMatches = allRestaurants.filter(restaurant => {
+          // Skip if already matched by exact place_id
           if (place_id && restaurant.google_place_id === place_id) {
             return false;
           }
           
-          // Exact match
-          if (restaurantName === normalizedSearchName) return true;
+          const restaurantName = restaurant.name.toLowerCase().trim();
+          const normalizedRestaurantName = normalizeRestaurantName(restaurant.name);
           
-          // Contains match (both directions)
-          if (restaurantName.includes(normalizedSearchName) || normalizedSearchName.includes(restaurantName)) return true;
-          
-          // First word match (for chains)
-          const searchFirstWord = normalizedSearchName.split(' ')[0];
-          const restaurantFirstWord = restaurantName.split(' ')[0];
-          if (searchFirstWord.length > 3 && restaurantFirstWord.length > 3 && searchFirstWord === restaurantFirstWord) return true;
-          
-          // Remove common words and try again
-          const commonWords = ['the', 'restaurant', 'bar', 'grill', 'cafe', 'kitchen', 'house', 'dining'];
-          const cleanSearchName = normalizedSearchName.split(' ').filter(word => !commonWords.includes(word)).join(' ');
-          const cleanRestaurantName = restaurantName.split(' ').filter(word => !commonWords.includes(word)).join(' ');
-          
-          if (cleanSearchName && cleanRestaurantName && (
-            cleanSearchName === cleanRestaurantName ||
-            cleanSearchName.includes(cleanRestaurantName) ||
-            cleanRestaurantName.includes(cleanSearchName)
-          )) return true;
-          
-          return false;
+          // Multiple aggressive matching strategies
+          return (
+            // Exact match
+            restaurantName === restaurant_name.toLowerCase() ||
+            // Exact normalized match
+            normalizedRestaurantName === normalizedSearchName ||
+            // Contains match (both directions)
+            restaurantName.includes(restaurant_name.toLowerCase()) ||
+            restaurant_name.toLowerCase().includes(restaurantName) ||
+            // First word match (for chains)
+            (searchWords[0].length > 3 && restaurantName.startsWith(searchWords[0])) ||
+            // Multiple word overlap
+            searchWords.filter(word => word.length > 2 && restaurantName.includes(word)).length >= 2
+          );
         });
 
-        console.log(`Found ${fuzzyMatches.length} fuzzy name matches`);
-        allMatches.push(...fuzzyMatches.map(match => ({
+        console.log(`✅ Found ${nameMatches.length} name-based matches`);
+        allMatches.push(...nameMatches.map(match => ({
           rating: match.rating,
           user_id: match.user_id,
           photos: match.photos || [],
@@ -146,60 +163,86 @@ serve(async (req) => {
           created_at: match.created_at,
           helpful_count: 0,
           review_id: match.id,
-          source: 'fuzzy_name_match'
+          source: 'name_match'
         })));
+      } else {
+        console.log('❌ Name matching strategy error:', allRestaurantsError);
       }
     }
 
-    // Strategy 4: Cross-reference with user_reviews names
+    // STRATEGY 4: Cross-reference ALL place_ids with similar names
     if (restaurant_name) {
-      console.log('🔗 Strategy 4: Cross-referencing with user_reviews names...');
+      console.log('🔗 Strategy 4: Cross-referencing ALL place_ids...');
+      totalStrategiesUsed++;
       
-      // Find other place_ids that refer to the same restaurant name
-      const { data: similarUserReviews, error: similarError } = await supabase
+      // Find ALL user_reviews with similar restaurant names
+      const { data: allUserReviews, error: allUserReviewsError } = await supabase
         .from('user_reviews')
-        .select('restaurant_place_id, restaurant_name')
-        .ilike('restaurant_name', `%${restaurant_name}%`);
+        .select('restaurant_place_id, restaurant_name');
 
-      if (!similarError && similarUserReviews) {
-        for (const similarReview of similarUserReviews) {
-          if (similarReview.restaurant_place_id && similarReview.restaurant_place_id !== place_id) {
-            // Find restaurants with this similar place_id
-            const { data: crossRefMatches, error: crossRefError } = await supabase
-              .from('restaurants')
-              .select('rating, user_id, photos, photo_captions, photo_dish_names, created_at, id')
-              .eq('google_place_id', similarReview.restaurant_place_id)
-              .not('rating', 'is', null)
-              .eq('is_wishlist', false);
+      if (!allUserReviewsError && allUserReviews) {
+        const similarPlaceIds = allUserReviews
+          .filter(review => {
+            const reviewName = review.restaurant_name.toLowerCase();
+            const searchName = restaurant_name.toLowerCase();
+            return reviewName.includes(searchName) || searchName.includes(reviewName);
+          })
+          .map(review => review.restaurant_place_id)
+          .filter(pid => pid && pid !== place_id);
 
-            if (!crossRefError && crossRefMatches) {
-              console.log(`Found ${crossRefMatches.length} cross-reference matches for ${similarReview.restaurant_place_id}`);
-              allMatches.push(...crossRefMatches.map(match => ({
-                ...match,
-                helpful_count: 0,
-                review_id: match.id,
-                source: 'cross_reference'
-              })));
-            }
+        console.log(`🔍 Found ${similarPlaceIds.length} similar place_ids to check`);
+
+        // Find restaurants matching any of these place_ids
+        for (const similarPlaceId of similarPlaceIds) {
+          const { data: crossRefMatches, error: crossRefError } = await supabase
+            .from('restaurants')
+            .select('rating, user_id, photos, photo_captions, photo_dish_names, created_at, id')
+            .eq('google_place_id', similarPlaceId)
+            .not('rating', 'is', null)
+            .eq('is_wishlist', false);
+
+          if (!crossRefError && crossRefMatches) {
+            console.log(`✅ Found ${crossRefMatches.length} cross-reference matches for ${similarPlaceId}`);
+            allMatches.push(...crossRefMatches.map(match => ({
+              ...match,
+              helpful_count: 0,
+              review_id: match.id,
+              source: 'cross_reference'
+            })));
           }
         }
+      } else {
+        console.log('❌ Cross-reference strategy error:', allUserReviewsError);
       }
     }
 
-    // Remove duplicates based on review_id
+    // Remove duplicates and get user profiles
     const uniqueMatches = allMatches.filter((match, index, self) => 
       index === self.findIndex(m => m.review_id === match.review_id)
     );
 
-    console.log(`🎯 Total unique matches found: ${uniqueMatches.length}`);
-    console.log(`Sources breakdown:`, {
-      place_id_match: uniqueMatches.filter(m => m.source === 'place_id_match').length,
-      user_reviews: uniqueMatches.filter(m => m.source === 'user_reviews').length,
-      fuzzy_name_match: uniqueMatches.filter(m => m.source === 'fuzzy_name_match').length,
-      cross_reference: uniqueMatches.filter(m => m.source === 'cross_reference').length
-    });
+    console.log(`🎯 FINAL RESULTS:`);
+    console.log(`   - Total strategies used: ${totalStrategiesUsed}`);
+    console.log(`   - Raw matches found: ${allMatches.length}`);
+    console.log(`   - Unique matches: ${uniqueMatches.length}`);
+    
+    const sourceBreakdown = uniqueMatches.reduce((acc, match) => {
+      acc[match.source] = (acc[match.source] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    console.log(`   - Source breakdown:`, sourceBreakdown);
 
-    // Calculate community stats
+    // Get user profiles for usernames
+    const userIds = [...new Set(uniqueMatches.map(m => m.user_id))];
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, username')
+      .in('id', userIds);
+
+    
+    const profilesMap = new Map(profiles?.map(p => [p.id, p.username]) || []);
+
+    // Calculate stats
     const totalReviews = uniqueMatches.length;
     const averageRating = totalReviews > 0 
       ? uniqueMatches.reduce((sum, match) => sum + match.rating, 0) / totalReviews 
@@ -213,17 +256,8 @@ serve(async (req) => {
       '1-2': uniqueMatches.filter(m => m.rating >= 1 && m.rating < 3).length
     };
 
-    // Get user profiles for recent photos
+    // Get recent photos with usernames
     const matchesWithPhotos = uniqueMatches.filter(m => m.photos && m.photos.length > 0);
-    const userIds = [...new Set(matchesWithPhotos.map(m => m.user_id))];
-    
-    const { data: profiles, error: profilesError } = await supabase
-      .from('profiles')
-      .select('id, username')
-      .in('id', userIds);
-
-    const profilesMap = new Map(profiles?.map(p => [p.id, p.username]) || []);
-
     const recentPhotos = matchesWithPhotos
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       .slice(0, 20)
@@ -244,22 +278,29 @@ serve(async (req) => {
       rating_distribution: ratingDistribution,
       recent_photos: recentPhotos,
       debug: {
-        strategies_used: uniqueMatches.reduce((acc, match) => {
-          acc[match.source] = (acc[match.source] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>)
+        strategies_used: totalStrategiesUsed,
+        source_breakdown: sourceBreakdown,
+        search_terms: { place_id, restaurant_name }
       }
     };
 
-    console.log('📊 Final response:', response);
+    console.log('📊 RESPONSE SUMMARY:');
+    console.log(`   ⭐ Average rating: ${response.average_rating}`);
+    console.log(`   📝 Total reviews: ${response.total_reviews}`);
+    console.log(`   📸 Photos: ${response.recent_photos.length}`);
 
     return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('❌ Error in community-reviews function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('💥 CRITICAL ERROR in community-reviews function:', error);
+    console.error('Error stack:', error.stack);
+    return new Response(JSON.stringify({ 
+      error: error.message,
+      stack: error.stack,
+      debug: 'Function failed completely'
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
     });
