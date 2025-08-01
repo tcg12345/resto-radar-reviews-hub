@@ -218,51 +218,63 @@ export default function CommunityPhotoGalleryPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
-        <div className="flex items-center gap-3 p-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleBack}
-            className="h-8 w-8 p-0"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="font-semibold text-lg">
-              {selectedGroup ? selectedGroup : 'Community Photos'}
-            </h1>
-            <p className="text-sm text-muted-foreground">{restaurantName}</p>
-          </div>
-          
-          {/* View toggle for 20+ photos */}
-          {shouldShowGrouped && (
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
+          <div className="p-4 space-y-2">
+            {/* Top row with back button and title */}
             <div className="flex items-center gap-2">
               <Button
-                variant={viewMode === 'grouped' ? 'default' : 'outline'}
+                variant="ghost"
                 size="sm"
-                onClick={() => {
-                  setViewMode('grouped');
-                  setSelectedGroup(null);
-                }}
+                onClick={handleBack}
+                className="h-8 w-8 p-0 flex-shrink-0"
               >
-                <Folder className="h-4 w-4 mr-1" />
-                Groups
+                <ArrowLeft className="h-4 w-4" />
               </Button>
-              <Button
-                variant={viewMode === 'all' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('all')}
-              >
-                <Grid className="h-4 w-4 mr-1" />
-                All
-              </Button>
+              <div className="flex-1 min-w-0">
+                <h1 className="font-semibold text-lg truncate">
+                  {selectedGroup ? selectedGroup : 'Community Photos'}
+                </h1>
+                <p className="text-sm text-muted-foreground truncate">{restaurantName}</p>
+              </div>
             </div>
-          )}
-          
-          <Badge variant="secondary">{allPhotos.length} photo{allPhotos.length === 1 ? '' : 's'}</Badge>
+            
+            {/* Bottom row with controls and badge */}
+            <div className="flex items-center justify-between gap-2">
+              {/* View toggle for 20+ photos */}
+              {shouldShowGrouped ? (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={viewMode === 'grouped' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => {
+                      setViewMode('grouped');
+                      setSelectedGroup(null);
+                    }}
+                    className="text-xs px-2"
+                  >
+                    <Folder className="h-3 w-3 mr-1" />
+                    Groups
+                  </Button>
+                  <Button
+                    variant={viewMode === 'all' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setViewMode('all')}
+                    className="text-xs px-2"
+                  >
+                    <Grid className="h-3 w-3 mr-1" />
+                    All
+                  </Button>
+                </div>
+              ) : (
+                <div></div>
+              )}
+              
+              <Badge variant="secondary" className="text-xs flex-shrink-0">
+                {allPhotos.length} photo{allPhotos.length === 1 ? '' : 's'}
+              </Badge>
+            </div>
+          </div>
         </div>
-      </div>
 
       {/* Content */}
       <div className="p-4 pb-safe">
