@@ -543,6 +543,12 @@ export function UnifiedRestaurantDetails({
 
           <Separator />
 
+          {/* Community Rating */}
+          <CommunityRating 
+            stats={communityStats} 
+            isLoading={isLoadingReviews} 
+          />
+
           {/* Primary Action Buttons */}
           <div className="grid grid-cols-3 gap-3">
             {getPhoneNumber() && (
@@ -591,12 +597,6 @@ export function UnifiedRestaurantDetails({
 
           <Separator />
 
-          {/* Community Rating */}
-          <CommunityRating 
-            stats={communityStats} 
-            isLoading={isLoadingReviews} 
-          />
-          
           {/* Community Photo Gallery */}
           <CommunityPhotoGallery 
             stats={communityStats}
