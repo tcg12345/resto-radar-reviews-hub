@@ -274,12 +274,12 @@ export default function CommunityPhotoGalleryPage() {
               .map(([dishName, photos]) => (
               <div 
                 key={dishName}
-                className="bg-card rounded-lg border overflow-hidden cursor-pointer hover:bg-accent transition-colors"
+                className="bg-card rounded-lg border overflow-hidden cursor-pointer hover:bg-accent transition-colors h-24"
                 onClick={() => setSelectedGroup(dishName)}
               >
-                <div className="flex">
+                <div className="flex h-full">
                   {/* Large cover photo */}
-                  <div className="w-24 h-24 flex-shrink-0">
+                  <div className="w-24 h-full flex-shrink-0">
                     <LazyImage
                       src={photos[0]?.photoUrl}
                       alt={dishName}
@@ -288,7 +288,7 @@ export default function CommunityPhotoGalleryPage() {
                   </div>
                   
                   {/* Content and small thumbnails */}
-                  <div className="flex-1 p-3 flex flex-col justify-between min-w-0">
+                  <div className="flex-1 p-3 flex flex-col justify-between min-w-0 h-full">
                     <div>
                       <h3 className="font-semibold text-base mb-1 truncate">{dishName}</h3>
                       <p className="text-sm text-muted-foreground">
@@ -298,9 +298,9 @@ export default function CommunityPhotoGalleryPage() {
                     
                     {/* Small thumbnails row */}
                     {photos.length > 1 && (
-                      <div className="flex gap-1 mt-2">
+                      <div className="flex gap-1">
                         {photos.slice(1, 4).map((photo, idx) => (
-                          <div key={idx} className="w-8 h-8 rounded overflow-hidden bg-muted flex-shrink-0">
+                          <div key={idx} className="w-6 h-6 rounded overflow-hidden bg-muted flex-shrink-0">
                             <LazyImage
                               src={photo.photoUrl}
                               alt={dishName}
@@ -309,7 +309,7 @@ export default function CommunityPhotoGalleryPage() {
                           </div>
                         ))}
                         {photos.length > 4 && (
-                          <div className="w-8 h-8 rounded bg-muted/50 flex items-center justify-center text-xs font-medium text-muted-foreground flex-shrink-0">
+                          <div className="w-6 h-6 rounded bg-muted/50 flex items-center justify-center text-xs font-medium text-muted-foreground flex-shrink-0">
                             +{photos.length - 4}
                           </div>
                         )}
