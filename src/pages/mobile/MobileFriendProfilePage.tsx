@@ -213,6 +213,7 @@ export default function MobileFriendProfilePage() {
         address: restaurant.address,
         city: restaurant.city,
         cuisine: restaurant.cuisine,
+        google_place_id: restaurant.google_place_id, // Include place_id for community linking
         is_wishlist: true
       });
 

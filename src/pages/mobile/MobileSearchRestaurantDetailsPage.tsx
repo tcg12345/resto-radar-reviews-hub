@@ -278,14 +278,14 @@ export default function MobileSearchRestaurantDetailsPage() {
         cuisine: restaurant.aiAnalysis?.cuisine || restaurant.fallbackCuisine || 'Various',
         latitude: restaurant.geometry.location.lat,
         longitude: restaurant.geometry.location.lng,
+        google_place_id: restaurant.place_id, // Include place_id for community linking
         rating: null,
         is_wishlist: true,
         user_id: user.id,
         website: restaurant.website,
         opening_hours: restaurant.opening_hours?.weekday_text?.join('\n'),
         price_range: restaurant.price_level,
-        phone_number: restaurant.formatted_phone_number,
-        google_place_id: restaurant.place_id
+        phone_number: restaurant.formatted_phone_number
       });
 
       if (error) throw error;
@@ -312,14 +312,14 @@ export default function MobileSearchRestaurantDetailsPage() {
         cuisine: restaurant.aiAnalysis?.cuisine || restaurant.fallbackCuisine || 'Various',
         latitude: restaurant.geometry.location.lat,
         longitude: restaurant.geometry.location.lng,
+        google_place_id: restaurant.place_id, // Include place_id for community linking
         rating: null,
         is_wishlist: false,
         user_id: user.id,
         website: restaurant.website,
         opening_hours: restaurant.opening_hours?.weekday_text?.join('\n'),
         price_range: restaurant.price_level,
-        phone_number: restaurant.formatted_phone_number,
-        google_place_id: restaurant.place_id
+        phone_number: restaurant.formatted_phone_number
       });
 
       if (error) throw error;

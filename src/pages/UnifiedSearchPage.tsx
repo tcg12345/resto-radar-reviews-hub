@@ -341,14 +341,16 @@ export default function UnifiedSearchPage() {
         // Will be determined later
         latitude: place.geometry.location.lat,
         longitude: place.geometry.location.lng,
+        google_place_id: place.place_id, // Include place_id for community linking
         rating: null,
         // No rating yet - they will add it
-        is_wishlist: false,
-        // Not wishlist, they're rating it
+        is_wishlist: true,
         user_id: user.id,
-        website: placeDetails?.website,
-        opening_hours: placeDetails?.opening_hours?.weekday_text?.join('\n'),
-        price_range: place.price_level
+        country: place.formatted_address.split(',').pop()?.trim() || '',
+        website: placeDetails.website,
+        opening_hours: placeDetails.opening_hours?.weekday_text?.join('\n'),
+        price_range: placeDetails.price_level,
+        phone_number: placeDetails.formatted_phone_number
       });
       if (insertError) throw insertError;
       toast.success('Restaurant added! Please rate your experience.');
