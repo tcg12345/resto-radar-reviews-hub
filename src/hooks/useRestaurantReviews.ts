@@ -39,12 +39,17 @@ export function useRestaurantReviews(restaurantPlaceId?: string, restaurantName?
   const { user } = useAuth();
   const [communityStats, setCommunityStats] = useState<CommunityStats | null>(null);
   const [reviews, setReviews] = useState<UserReview[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   
   const fetchCommunityStats = async () => {
-    if (!restaurantPlaceId && !restaurantName) return;
+    if (!restaurantPlaceId && !restaurantName) {
+      setIsLoading(false);
+      return;
+    }
+    
+    setIsLoading(true);
     
     try {
       // Use the optimized edge function directly - no fallbacks for speed
@@ -63,6 +68,7 @@ export function useRestaurantReviews(restaurantPlaceId?: string, restaurantName?
           ratingDistribution: {},
           recentPhotos: []
         });
+        setIsLoading(false);
         return;
       }
 
@@ -73,6 +79,7 @@ export function useRestaurantReviews(restaurantPlaceId?: string, restaurantName?
           ratingDistribution: communityData.rating_distribution,
           recentPhotos: communityData.recent_photos || []
         });
+        setIsLoading(false);
         return;
       }
 
@@ -83,14 +90,16 @@ export function useRestaurantReviews(restaurantPlaceId?: string, restaurantName?
         ratingDistribution: {},
         recentPhotos: []
       });
+      setIsLoading(false);
     } catch (error) {
-      console.error('Error in community system:', error);
+      console.error('Error fetching community stats:', error);
       setCommunityStats({
         averageRating: 0,
         totalReviews: 0,
         ratingDistribution: {},
         recentPhotos: []
       });
+      setIsLoading(false);
     }
   };
 
