@@ -32,6 +32,7 @@ export default function CommunityPhotoGalleryPage() {
   const [photosPerPage] = useState(48);
   const [hasMorePhotos, setHasMorePhotos] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [photosProcessed, setPhotosProcessed] = useState(false);
 
   useEffect(() => {
     if (communityStats?.recentPhotos) {
@@ -57,8 +58,12 @@ export default function CommunityPhotoGalleryPage() {
       // Initially show first batch
       setDisplayedPhotos(photos.slice(0, photosPerPage));
       setHasMorePhotos(photos.length > photosPerPage);
+      setPhotosProcessed(true);
+    } else if (!isLoading) {
+      // Only mark as processed if not loading and no photos received
+      setPhotosProcessed(true);
     }
-  }, [communityStats, photosPerPage]);
+  }, [communityStats, photosPerPage, isLoading]);
 
   const loadMorePhotos = useCallback(() => {
     if (loadingMore || !hasMorePhotos) return;
@@ -102,7 +107,7 @@ export default function CommunityPhotoGalleryPage() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || !photosProcessed) {
     return (
       <div className="min-h-screen bg-background">
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
@@ -125,7 +130,7 @@ export default function CommunityPhotoGalleryPage() {
     );
   }
 
-  if (!isLoading && !allPhotos.length) {
+  if (photosProcessed && !allPhotos.length) {
     return (
       <div className="min-h-screen bg-background">
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
