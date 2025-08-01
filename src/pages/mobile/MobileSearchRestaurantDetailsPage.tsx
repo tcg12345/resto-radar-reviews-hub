@@ -370,7 +370,7 @@ export default function MobileSearchRestaurantDetailsPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b pt-safe">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b safe-area-top">
         <div className="flex items-center gap-3 p-4">
           <Button
             variant="ghost"
