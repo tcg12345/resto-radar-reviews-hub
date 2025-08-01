@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, User, ChevronLeft, ChevronRight, Grid, Folder } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { LazyImage } from '@/components/LazyImage';
@@ -35,6 +35,8 @@ export default function CommunityPhotoGalleryPage() {
   const [hasMorePhotos, setHasMorePhotos] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [photosProcessed, setPhotosProcessed] = useState(false);
+  const [viewMode, setViewMode] = useState<'grouped' | 'all'>('grouped');
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
 
   useEffect(() => {
     // First check for preloaded data for instant loading
@@ -124,6 +126,37 @@ export default function CommunityPhotoGalleryPage() {
     }
   };
 
+  // Group photos by dish name
+  const photoGroups = useMemo(() => {
+    const groups: { [key: string]: Array<CommunityPhoto & { photoIndex: number; photoUrl: string }> } = {};
+    
+    allPhotos.forEach(photo => {
+      const dishName = photo.dish_names?.[photo.photoIndex] || 'Other';
+      if (!groups[dishName]) {
+        groups[dishName] = [];
+      }
+      groups[dishName].push(photo);
+    });
+    
+    return groups;
+  }, [allPhotos]);
+
+  const shouldShowGrouped = allPhotos.length > 20;
+  const showGroupedView = shouldShowGrouped && viewMode === 'grouped' && !selectedGroup;
+  
+  // Get photos to display based on current view mode
+  const photosToDisplay = useMemo(() => {
+    if (!shouldShowGrouped || viewMode === 'all') {
+      return displayedPhotos;
+    }
+    
+    if (selectedGroup) {
+      return photoGroups[selectedGroup] || [];
+    }
+    
+    return [];
+  }, [shouldShowGrouped, viewMode, selectedGroup, displayedPhotos, photoGroups]);
+
   // Check for preloaded data first to avoid showing loading unnecessarily
   const hasPreloadedData = placeId ? getPreloadedStats(placeId)?.recentPhotos?.length > 0 : false;
   
@@ -196,62 +229,150 @@ export default function CommunityPhotoGalleryPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">
-            <h1 className="font-semibold text-lg">Community Photos</h1>
+            <h1 className="font-semibold text-lg">
+              {selectedGroup ? selectedGroup : 'Community Photos'}
+            </h1>
             <p className="text-sm text-muted-foreground">{restaurantName}</p>
           </div>
+          
+          {/* View toggle for 20+ photos */}
+          {shouldShowGrouped && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant={viewMode === 'grouped' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  setViewMode('grouped');
+                  setSelectedGroup(null);
+                }}
+              >
+                <Folder className="h-4 w-4 mr-1" />
+                Groups
+              </Button>
+              <Button
+                variant={viewMode === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('all')}
+              >
+                <Grid className="h-4 w-4 mr-1" />
+                All
+              </Button>
+            </div>
+          )}
+          
           <Badge variant="secondary">{allPhotos.length} photo{allPhotos.length === 1 ? '' : 's'}</Badge>
         </div>
       </div>
 
-      {/* Photo Grid */}
+      {/* Content */}
       <div className="p-4 pb-safe">
-        <div className="grid grid-cols-2 gap-3">
-          {displayedPhotos.map((photo, index) => (
-            <div key={`${photo.review_id}-${photo.photoIndex}`} className="group relative">
+        {showGroupedView ? (
+          /* Group Cards View */
+          <div className="grid grid-cols-1 gap-4">
+            {Object.entries(photoGroups)
+              .sort(([, a], [, b]) => b.length - a.length) // Sort by photo count
+              .map(([dishName, photos]) => (
               <div 
-                className="aspect-square cursor-pointer overflow-hidden rounded-lg bg-muted"
-                onClick={() => openPhotoModal(index)}
+                key={dishName}
+                className="bg-card rounded-lg border p-4 cursor-pointer hover:bg-accent transition-colors"
+                onClick={() => setSelectedGroup(dishName)}
               >
-                <LazyImage
-                  src={photo.photoUrl}
-                  alt={
-                    (photo.captions && photo.captions[photo.photoIndex]) || 
-                    (photo.dish_names && photo.dish_names[photo.photoIndex]) || 
-                    `Photo by ${photo.username}`
-                  }
-                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                />
-              </div>
-              
-              {/* Photo Info Overlay */}
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 rounded-b-lg">
-                <div className="flex items-center gap-2 text-white text-xs">
-                  <User className="h-3 w-3" />
-                  <span className="font-medium">{photo.username}</span>
-                </div>
-                
-                {((photo.captions && photo.captions[photo.photoIndex]) || (photo.dish_names && photo.dish_names[photo.photoIndex])) && (
-                  <p className="text-white text-xs mt-1 line-clamp-2">
-                    {photo.dish_names && photo.dish_names[photo.photoIndex] && (
-                      <span className="font-medium">{photo.dish_names[photo.photoIndex]} • </span>
+                <div className="flex items-center gap-4">
+                  <div className="grid grid-cols-3 gap-1 w-20 h-20">
+                    {photos.slice(0, 3).map((photo, idx) => (
+                      <div key={idx} className="aspect-square rounded overflow-hidden bg-muted">
+                        <LazyImage
+                          src={photo.photoUrl}
+                          alt={dishName}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ))}
+                    {photos.length > 3 && (
+                      <div className="aspect-square rounded bg-muted/50 flex items-center justify-center text-xs font-medium text-muted-foreground">
+                        +{photos.length - 3}
+                      </div>
                     )}
-                    {photo.captions && photo.captions[photo.photoIndex]}
-                  </p>
-                )}
+                  </div>
+                  
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg mb-1">{dishName}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {photos.length} photo{photos.length === 1 ? '' : 's'}
+                    </p>
+                  </div>
+                  
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                </div>
               </div>
+            ))}
+          </div>
+        ) : (
+          /* Photo Grid View */
+          <>
+            {selectedGroup && (
+              <div className="mb-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedGroup(null)}
+                  className="mb-2"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Groups
+                </Button>
+              </div>
+            )}
+            
+            <div className="grid grid-cols-2 gap-3">
+              {photosToDisplay.map((photo, index) => (
+                <div key={`${photo.review_id}-${photo.photoIndex}`} className="group relative">
+                  <div 
+                    className="aspect-square cursor-pointer overflow-hidden rounded-lg bg-muted"
+                    onClick={() => openPhotoModal(index)}
+                  >
+                    <LazyImage
+                      src={photo.photoUrl}
+                      alt={
+                        (photo.captions && photo.captions[photo.photoIndex]) || 
+                        (photo.dish_names && photo.dish_names[photo.photoIndex]) || 
+                        `Photo by ${photo.username}`
+                      }
+                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                    />
+                  </div>
+                  
+                  {/* Photo Info Overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 rounded-b-lg">
+                    <div className="flex items-center gap-2 text-white text-xs">
+                      <User className="h-3 w-3" />
+                      <span className="font-medium">{photo.username}</span>
+                    </div>
+                    
+                    {((photo.captions && photo.captions[photo.photoIndex]) || (photo.dish_names && photo.dish_names[photo.photoIndex])) && (
+                      <p className="text-white text-xs mt-1 line-clamp-2">
+                        {photo.dish_names && photo.dish_names[photo.photoIndex] && (
+                          <span className="font-medium">{photo.dish_names[photo.photoIndex]} • </span>
+                        )}
+                        {photo.captions && photo.captions[photo.photoIndex]}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        {/* Infinite Scroll Loader */}
-        {hasMorePhotos && (
-          <InfiniteScrollLoader
-            hasMore={hasMorePhotos}
-            isLoading={loadingMore}
-            onLoadMore={loadMorePhotos}
-            loadMoreText={`Load More Photos (${allPhotos.length - displayedPhotos.length} remaining)`}
-            className="mt-4"
-          />
+            {/* Infinite Scroll Loader - only for "All" view or when viewing specific group */}
+            {(viewMode === 'all' || selectedGroup) && hasMorePhotos && (
+              <InfiniteScrollLoader
+                hasMore={hasMorePhotos}
+                isLoading={loadingMore}
+                onLoadMore={loadMorePhotos}
+                loadMoreText={`Load More Photos (${allPhotos.length - displayedPhotos.length} remaining)`}
+                className="mt-4"
+              />
+            )}
+          </>
         )}
       </div>
 
