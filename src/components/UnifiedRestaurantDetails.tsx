@@ -29,6 +29,8 @@ import { RestaurantLocationMap } from '@/components/RestaurantLocationMap';
 import { PhotoGallery } from '@/components/PhotoGallery';
 import { FriendRatingDisplay } from '@/components/FriendRatingDisplay';
 import { FriendPhotoGallery } from '@/components/FriendPhotoGallery';
+import { CommunityRating } from '@/components/CommunityRating';
+import { CommunityPhotoGallery } from '@/components/CommunityPhotoGallery';
 import { useRestaurantReviews } from '@/hooks/useRestaurantReviews';
 import { useCommunityData } from '@/contexts/CommunityDataContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -695,6 +697,19 @@ export function UnifiedRestaurantDetails({
                 />
               )}
             </div>
+
+            {/* Community Rating */}
+            <CommunityRating 
+              stats={communityStats} 
+              isLoading={isLoadingReviews} 
+            />
+            
+            {/* Community Photo Gallery */}
+            <CommunityPhotoGallery 
+              stats={communityStats}
+              isLoading={isLoadingReviews}
+              onPhotoClick={() => {}}
+            />
 
             <Separator />
 
