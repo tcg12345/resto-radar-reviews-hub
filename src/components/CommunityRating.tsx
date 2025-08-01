@@ -10,6 +10,10 @@ interface CommunityRatingProps {
 }
 
 export function CommunityRating({ stats, isLoading }: CommunityRatingProps) {
+  // Debug logging
+  console.log('CommunityRating - stats:', stats);
+  console.log('CommunityRating - isLoading:', isLoading);
+  
   if (isLoading) {
     return (
       <Card>

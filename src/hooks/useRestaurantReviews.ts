@@ -45,20 +45,56 @@ export function useRestaurantReviews(restaurantPlaceId?: string, restaurantName?
   const fetchCommunityStats = async () => {
     if (!restaurantPlaceId) return;
     
+    console.log('fetchCommunityStats - restaurantPlaceId:', restaurantPlaceId);
+    
     try {
-      const { data, error } = await supabase.rpc('get_restaurant_community_stats', {
-        place_id_param: restaurantPlaceId
-      });
+      // Fallback: Direct query if RPC fails
+      const { data: restaurantData, error: restaurantError } = await supabase
+        .from('restaurants')
+        .select('rating, user_id, profiles!inner(username)')
+        .eq('google_place_id', restaurantPlaceId)
+        .eq('is_wishlist', false)
+        .not('rating', 'is', null);
       
-      if (error) throw error;
+      console.log('fetchCommunityStats - restaurantData:', restaurantData);
+      console.log('fetchCommunityStats - restaurantError:', restaurantError);
       
-      if (data && data.length > 0) {
-        const stats = data[0];
+      if (restaurantError) {
+        console.error('Error fetching restaurant data:', restaurantError);
+        return;
+      }
+      
+      if (restaurantData && restaurantData.length > 0) {
+        const ratings = restaurantData.map(r => r.rating).filter(r => r !== null);
+        const averageRating = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
+        
+        // Create rating distribution
+        const distribution = {
+          '9-10': ratings.filter(r => r >= 9).length,
+          '7-8': ratings.filter(r => r >= 7 && r < 9).length,
+          '5-6': ratings.filter(r => r >= 5 && r < 7).length,
+          '3-4': ratings.filter(r => r >= 3 && r < 5).length,
+          '1-2': ratings.filter(r => r >= 1 && r < 3).length,
+        };
+        
         setCommunityStats({
-          averageRating: Number(stats.average_rating) || 0,
-          totalReviews: Number(stats.total_reviews) || 0,
-          ratingDistribution: (stats.rating_distribution as Record<string, number>) || {},
-          recentPhotos: (stats.recent_photos as any[]) || []
+          averageRating: Number(averageRating.toFixed(1)) || 0,
+          totalReviews: ratings.length,
+          ratingDistribution: distribution,
+          recentPhotos: []
+        });
+        
+        console.log('Set community stats:', {
+          averageRating: Number(averageRating.toFixed(1)),
+          totalReviews: ratings.length,
+          ratingDistribution: distribution
+        });
+      } else {
+        setCommunityStats({
+          averageRating: 0,
+          totalReviews: 0,
+          ratingDistribution: {},
+          recentPhotos: []
         });
       }
     } catch (error) {
