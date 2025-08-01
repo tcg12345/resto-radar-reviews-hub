@@ -368,23 +368,26 @@ export default function MobileSearchRestaurantDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b safe-area-top">
-        <div className="flex items-center gap-3 p-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleBack}
-            className="h-8 w-8 p-0"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="font-semibold text-lg line-clamp-1">{restaurant.name}</h1>
+    <>
+      {/* Mobile status bar spacer */}
+      <div className="lg:hidden h-[35px] bg-background"></div>
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
+           <div className="flex items-center gap-3 p-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleBack}
+              className="h-8 w-8 p-0"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="font-semibold text-lg line-clamp-1">{restaurant.name}</h1>
+          </div>
         </div>
-      </div>
 
-      <div className="pb-safe">
+        <div className="pb-safe">
         {/* Hero Image */}
         {(restaurant.photos?.length > 0 || restaurant.yelpData?.photos?.length > 0) && (
           <div 
@@ -656,8 +659,8 @@ export default function MobileSearchRestaurantDetailsPage() {
 
 
         </div>
+        </div>
       </div>
-
-    </div>
+    </>
   );
 }
