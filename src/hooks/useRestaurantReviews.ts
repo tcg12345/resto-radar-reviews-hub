@@ -71,6 +71,21 @@ export function useRestaurantReviews(restaurantPlaceId?: string, restaurantName?
       if (!restaurantData || restaurantData.length === 0) {
         console.log('No direct matches found, attempting to update google_place_id for existing restaurants');
         
+        // Get the restaurant name from the current restaurant object or URL data
+        // Extract restaurant name from URL params
+        const urlParams = new URLSearchParams(window.location.search);
+        const dataParam = urlParams.get('data');
+        let restaurantName = 'Unknown Restaurant';
+        
+        if (dataParam) {
+          try {
+            const restaurantData = JSON.parse(decodeURIComponent(dataParam));
+            restaurantName = restaurantData.name || 'Unknown Restaurant';
+          } catch (e) {
+            console.log('Could not parse restaurant data from URL');
+          }
+        }
+        
         // Try to find restaurants by name similarity and update their google_place_id
         // This is a fallback for restaurants that were added before we had place_id
         const { data: nameMatches, error: nameError } = await supabase
@@ -81,8 +96,7 @@ export function useRestaurantReviews(restaurantPlaceId?: string, restaurantName?
           .not('rating', 'is', null);
           
         if (nameMatches && nameMatches.length > 0) {
-          // For each restaurant, check if the name matches "Kalaya" (from the place data)
-          const restaurantName = 'Kalaya'; // Get this from the place data
+          // For each restaurant, check if the name matches the current restaurant (from the place data)
           const matchingRestaurants = nameMatches.filter(r => 
             r.name.toLowerCase().includes(restaurantName.toLowerCase()) ||
             restaurantName.toLowerCase().includes(r.name.toLowerCase())
