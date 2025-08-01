@@ -30,7 +30,7 @@ import { PhotoGallery } from '@/components/PhotoGallery';
 
 import { FriendPhotoGallery } from '@/components/FriendPhotoGallery';
 import { CommunityRating } from '@/components/CommunityRating';
-import { CommunityPhotoGallery } from '@/components/CommunityPhotoGallery';
+import { UnifiedPhotoGallery } from '@/components/UnifiedPhotoGallery';
 import { useRestaurantReviews } from '@/hooks/useRestaurantReviews';
 import { useCommunityData } from '@/contexts/CommunityDataContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -597,11 +597,20 @@ export function UnifiedRestaurantDetails({
 
           <Separator />
 
-          {/* Community Photo Gallery */}
-          <CommunityPhotoGallery 
+          {/* Unified Photo Gallery - combines community and friend photos */}
+          <UnifiedPhotoGallery 
             stats={communityStats}
             isLoading={isLoadingReviews}
             onPhotoClick={() => {}}
+            friendPhotos={restaurantData.isSharedRestaurant && restaurantData.photos && restaurantData.photos.length > 0 ? restaurantData.photos.map((url, index) => ({
+              url,
+              caption: Array.isArray(restaurantData.photoCaptions) ? restaurantData.photoCaptions[index] : '',
+              dishName: Array.isArray(restaurantData.photo_captions) ? restaurantData.photo_captions[index] : ''
+            })) : undefined}
+            friendName={restaurantData.isSharedRestaurant ? restaurantData.sharedBy?.name : undefined}
+            friendId={restaurantData.isSharedRestaurant ? restaurantData.sharedBy?.id : undefined}
+            restaurantId={restaurantData.id}
+            restaurantPlaceId={restaurantData.place_id}
           />
 
           {/* Details */}
@@ -692,19 +701,7 @@ export function UnifiedRestaurantDetails({
             )}
 
             {/* Friend's Photos - only show for shared restaurants */}
-            {restaurantData.isSharedRestaurant && restaurantData.photos && restaurantData.photos.length > 0 && (
-              <FriendPhotoGallery 
-                friendPhotos={restaurantData.photos.map((url, index) => ({
-                  url,
-                  caption: Array.isArray(restaurantData.photoCaptions) ? restaurantData.photoCaptions[index] : '',
-                  dishName: Array.isArray(restaurantData.photo_captions) ? restaurantData.photo_captions[index] : ''
-                }))}
-                friendName={restaurantData.sharedBy?.name || 'Friend'}
-                friendId={restaurantData.sharedBy?.id || ''}
-                restaurantId={restaurantData.id || ''}
-                restaurantPlaceId={restaurantData.place_id}
-              />
-            )}
+            {/* This section is now handled by UnifiedPhotoGallery above */}
           </div>
 
             <Separator />
