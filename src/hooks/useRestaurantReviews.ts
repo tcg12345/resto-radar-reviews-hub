@@ -43,7 +43,10 @@ export function useRestaurantReviews(restaurantPlaceId?: string, restaurantName?
   const [hasMore, setHasMore] = useState(true);
   
   const fetchCommunityStats = async () => {
-    if (!restaurantPlaceId) return;
+    if (!restaurantPlaceId) {
+      console.log('fetchCommunityStats - No restaurantPlaceId provided:', restaurantPlaceId);
+      return;
+    }
     
     console.log('fetchCommunityStats - restaurantPlaceId:', restaurantPlaceId);
     

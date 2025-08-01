@@ -79,6 +79,10 @@ export default function MobileSearchRestaurantDetailsPage() {
     restaurant?.place_id || null,
     restaurant?.name || null
   );
+  
+  // Debug logging for place_id
+  console.log('MobileSearchRestaurantDetailsPage - restaurant?.place_id:', restaurant?.place_id);
+  console.log('MobileSearchRestaurantDetailsPage - restaurant?.name:', restaurant?.name);
 
   const handleBack = () => {
     // Check if we have history to go back to
