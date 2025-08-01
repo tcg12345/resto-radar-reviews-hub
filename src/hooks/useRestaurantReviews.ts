@@ -51,10 +51,19 @@ export function useRestaurantReviews(restaurantPlaceId?: string, restaurantName?
     console.log('fetchCommunityStats - restaurantPlaceId:', restaurantPlaceId);
     
     try {
-      // First, try to automatically link restaurants by finding unlinked ones
+      // Call the systematic linking function to ensure ALL restaurants are properly linked
+      console.log('Running systematic restaurant linking...');
+      const { error: linkingError } = await supabase.rpc('link_all_restaurants_systematically');
+      
+      if (linkingError) {
+        console.error('Error running systematic linking:', linkingError);
+      } else {
+        console.log('Systematic linking completed');
+      }
+
+      // Extract restaurant name for additional linking if needed
       let nameToSearch = restaurantName;
       
-      // Extract restaurant name from URL if not provided
       if (!nameToSearch) {
         const urlParams = new URLSearchParams(window.location.search);
         const dataParam = urlParams.get('data');
@@ -69,49 +78,23 @@ export function useRestaurantReviews(restaurantPlaceId?: string, restaurantName?
         }
       }
 
-      // Try to find and link unlinked restaurants with this name
+      // Additional targeted linking for this specific restaurant
       if (nameToSearch) {
         try {
-          console.log('Searching for unlinked restaurants with name:', nameToSearch);
+          console.log('Running targeted linking for:', nameToSearch);
           
-          // Find restaurants without place_id that match the name
-          const { data: unlinkedRestaurants, error: searchError } = await supabase
-            .from('restaurants')
-            .select('id, name')
-            .is('google_place_id', null)
-            .eq('is_wishlist', false)
-            .not('rating', 'is', null);
+          const { error: targetedLinkingError } = await supabase.rpc('link_restaurant_by_place_id', {
+            place_id_param: restaurantPlaceId,
+            restaurant_name_param: nameToSearch
+          });
           
-          if (!searchError && unlinkedRestaurants) {
-            const matchingRestaurants = unlinkedRestaurants.filter(r => {
-              const rName = r.name.toLowerCase().trim();
-              const searchName = nameToSearch.toLowerCase().trim();
-              
-              return rName === searchName ||
-                     rName.includes(searchName) ||
-                     searchName.includes(rName) ||
-                     (rName.length > 3 && searchName.length > 3 && 
-                      (rName.substring(0, 4) === searchName.substring(0, 4))); // First 4 chars match
-            });
-            
-            if (matchingRestaurants.length > 0) {
-              console.log(`Found ${matchingRestaurants.length} unlinked restaurants to update`);
-              
-              // Update them with the place_id
-              const { error: updateError } = await supabase
-                .from('restaurants')
-                .update({ google_place_id: restaurantPlaceId })
-                .in('id', matchingRestaurants.map(r => r.id));
-              
-              if (updateError) {
-                console.error('Error updating restaurants with place_id:', updateError);
-              } else {
-                console.log('Successfully linked restaurants to place_id');
-              }
-            }
+          if (targetedLinkingError) {
+            console.error('Error in targeted linking:', targetedLinkingError);
+          } else {
+            console.log('Targeted linking completed');
           }
         } catch (linkError) {
-          console.error('Error linking restaurants:', linkError);
+          console.error('Error in targeted linking:', linkError);
         }
       }
 
