@@ -377,7 +377,10 @@ export function UnifiedRestaurantDetails({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <>
+        {/* Mobile status bar spacer */}
+        <div className="lg:hidden h-[35px] bg-background flex-shrink-0"></div>
+        <div className="min-h-screen bg-background">
         {/* Header */}
         {showBackButton && (
           <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
@@ -403,12 +406,16 @@ export function UnifiedRestaurantDetails({
             <div className="h-4 bg-muted animate-pulse rounded w-1/2"></div>
           </div>
         </div>
-      </div>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <>
+      {/* Mobile status bar spacer */}
+      <div className="lg:hidden h-[35px] bg-background flex-shrink-0"></div>
+      <div className="min-h-screen bg-background">
       {/* Header */}
       {showBackButton && (
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
@@ -721,6 +728,7 @@ export function UnifiedRestaurantDetails({
         isMobile={actualIsMobile}
       />
 
-    </div>
+      </div>
+    </>
   );
 }
