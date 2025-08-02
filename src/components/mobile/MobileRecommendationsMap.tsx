@@ -228,7 +228,7 @@ export function MobileRecommendationsMap({
   }
   return <div className="fixed inset-0 bg-background z-50 flex flex-col">
       {/* Mobile Header */}
-      <div className="bg-white border-b shadow-sm p-4 flex items-center justify-between">
+      <div className="bg-gradient-to-r from-primary to-primary-glow border-b-2 border-primary/20 shadow-elegant p-6 flex items-center justify-between backdrop-blur-sm">
         <Button onClick={onClose} variant="ghost" size="sm" className="h-8 w-8 p-0">
           <X className="h-4 w-4" />
         </Button>
