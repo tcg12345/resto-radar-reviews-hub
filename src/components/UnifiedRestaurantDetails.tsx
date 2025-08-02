@@ -487,7 +487,7 @@ export function UnifiedRestaurantDetails({
 
           {/* Details */}
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Details</h2>
+            
             
             {/* Address */}
             <Card>
