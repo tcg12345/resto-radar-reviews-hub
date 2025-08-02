@@ -138,7 +138,7 @@ export function CreateTripDialog({ isOpen, onClose }: CreateTripDialogProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-background overflow-y-auto">
+    <div className="fixed inset-0 z-[60] bg-background overflow-y-auto">
       {/* Mobile status bar spacer */}
       <div className="lg:hidden h-[35px] bg-background"></div>
       
