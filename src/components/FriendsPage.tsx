@@ -215,24 +215,26 @@ export function FriendsPage({
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full h-auto p-1 flex overflow-x-auto gap-1 mb-8 bg-muted rounded-md">
-          <TabsTrigger value="friends" className="flex items-center gap-1 text-xs whitespace-nowrap px-3 py-2 flex-shrink-0">
-            <Users className="h-3 w-3" />
-            <span>Friends ({friends.length})</span>
-          </TabsTrigger>
-          <TabsTrigger value="activity" className="flex items-center gap-1 text-xs whitespace-nowrap px-3 py-2 flex-shrink-0">
-            <Activity className="h-3 w-3" />
-            <span>Activity</span>
-          </TabsTrigger>
-          <TabsTrigger value="search" className="flex items-center gap-1 text-xs whitespace-nowrap px-3 py-2 flex-shrink-0">
-            <Plus className="h-3 w-3" />
-            <span>Find Friends</span>
-          </TabsTrigger>
-          <TabsTrigger value="requests" className="flex items-center gap-1 text-xs whitespace-nowrap px-3 py-2 flex-shrink-0">
-            <Filter className="h-3 w-3" />
-            <span>Requests ({pendingRequests.length + sentRequests.length})</span>
-          </TabsTrigger>
-        </TabsList>
+        <div className="-mx-4 lg:-mx-6 px-4 lg:px-6">
+          <TabsList className="w-full h-auto p-1 flex overflow-x-auto gap-1 mb-8 bg-muted rounded-md">
+            <TabsTrigger value="friends" className="flex items-center gap-1 text-xs whitespace-nowrap px-3 py-2 flex-shrink-0">
+              <Users className="h-3 w-3" />
+              <span>Friends ({friends.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="activity" className="flex items-center gap-1 text-xs whitespace-nowrap px-3 py-2 flex-shrink-0">
+              <Activity className="h-3 w-3" />
+              <span>Activity</span>
+            </TabsTrigger>
+            <TabsTrigger value="search" className="flex items-center gap-1 text-xs whitespace-nowrap px-3 py-2 flex-shrink-0">
+              <Plus className="h-3 w-3" />
+              <span>Find Friends</span>
+            </TabsTrigger>
+            <TabsTrigger value="requests" className="flex items-center gap-1 text-xs whitespace-nowrap px-3 py-2 flex-shrink-0">
+              <Filter className="h-3 w-3" />
+              <span>Requests ({pendingRequests.length + sentRequests.length})</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="friends" className="space-y-6">
           {friends.length === 0 ? (
