@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, MapPin, Calendar, Users, Sparkles, Loader2 } from 'lucide-react';
+import { Plus, MapPin, Calendar, Users, Sparkles, Loader2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -136,21 +135,37 @@ export function CreateTripDialog({ isOpen, onClose }: CreateTripDialogProps) {
     onClose();
   };
 
+  if (!isOpen) return null;
+
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="space-y-3">
-          <DialogTitle className="flex items-center gap-3">
+    <div className="fixed inset-0 z-50 bg-background">
+      {/* Header with back arrow */}
+      <div className="sticky top-0 z-10 bg-background border-b px-4 py-3">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClose}
+            className="p-2"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div className="flex items-center gap-3">
             <div className="p-2 bg-gradient-to-r from-primary to-primary/80 rounded-lg text-white">
               <Plus className="w-5 h-5" />
             </div>
-            Create New Adventure
-          </DialogTitle>
-          <DialogDescription className="text-base">
-            Start documenting your journey and collect memories from amazing places
-          </DialogDescription>
-        </DialogHeader>
+            <div>
+              <h1 className="text-xl font-semibold">Create New Adventure</h1>
+              <p className="text-sm text-muted-foreground">
+                Start documenting your journey and collect memories from amazing places
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
+      {/* Content */}
+      <div className="px-4 py-6 max-w-2xl mx-auto">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Essential Info */}
           <Card className="border-2 border-primary/10">
@@ -402,20 +417,21 @@ export function CreateTripDialog({ isOpen, onClose }: CreateTripDialogProps) {
             </CardContent>
           </Card>
 
-          <DialogFooter className="gap-3">
-            <Button variant="outline" onClick={handleClose} disabled={isLoading}>
+          {/* Footer buttons */}
+          <div className="flex gap-3 pt-4">
+            <Button variant="outline" onClick={handleClose} disabled={isLoading} className="flex-1">
               Cancel
             </Button>
             <Button 
               type="submit" 
               disabled={isLoading || !title.trim() || !destination.trim()}
-              className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+              className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 flex-1"
             >
               {isLoading ? 'Creating...' : 'Create Trip'}
             </Button>
-          </DialogFooter>
+          </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }
