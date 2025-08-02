@@ -20,6 +20,7 @@ interface RestaurantSearchRequest {
   type?: string;
   keyword?: string;
   skipEnrichment?: boolean;
+  fastMode?: boolean;
 }
 
 serve(async (req) => {
@@ -34,7 +35,7 @@ serve(async (req) => {
       throw new Error('Google Places API key not found');
     }
 
-    const { query, location, radius = 10000, limit = 20, type = 'restaurant', keyword }: RestaurantSearchRequest = await req.json();
+    const { query, location, radius = 10000, limit = 20, type = 'restaurant', keyword, fastMode = false }: RestaurantSearchRequest = await req.json();
 
     // Handle both search modes: text search (with query) and nearby search (with location coordinates)
     const isNearbySearch = !query && location.includes(','); // lat,lng format
@@ -47,7 +48,7 @@ serve(async (req) => {
       throw new Error('Location is required');
     }
 
-    console.log('Searching restaurants:', { query, location, radius, limit, type, keyword, isNearbySearch });
+    console.log('Searching restaurants:', { query, location, radius, limit, type, keyword, isNearbySearch, fastMode });
 
     // First, geocode the location if provided
     let searchLocation = location || 'current location';
@@ -83,11 +84,84 @@ serve(async (req) => {
       }
     }
 
-    // Get all results with pagination support
+    // Fast mode: single page search only for maximum speed
+    if (fastMode && lat && lng) {
+      console.log('Using fast mode: single page nearby search');
+      
+      const searchKeyword = keyword || 'restaurant';
+      const placesUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=${type}&keyword=${encodeURIComponent(searchKeyword)}&key=${googlePlacesApiKey}`;
+      console.log('Fast mode Places API URL:', placesUrl);
+      
+      const placesResponse = await fetch(placesUrl);
+      
+      if (!placesResponse.ok) {
+        throw new Error(`Google Places API error: ${placesResponse.status}`);
+      }
+
+      const placesData = await placesResponse.json();
+      
+      if (placesData.status !== 'OK' && placesData.status !== 'ZERO_RESULTS') {
+        console.error('Places API error:', placesData);
+        throw new Error(`Google Places API error: ${placesData.status}`);
+      }
+
+      const allResults = placesData.results?.slice(0, limit) || [];
+      console.log(`Fast mode found ${allResults.length} restaurants`);
+
+      const restaurants = allResults.map((place: any) => {
+        const restaurant = {
+          id: place.place_id,
+          name: place.name,
+          address: place.formatted_address || place.vicinity,
+          rating: place.rating || 0,
+          reviewCount: place.user_ratings_total || 0,
+          priceRange: place.price_level || 2,
+          isOpen: place.opening_hours?.open_now,
+          phoneNumber: place.formatted_phone_number || '',
+          website: '',
+          openingHours: [],
+          currentDayHours: place.opening_hours?.open_now ? 'Open now' : 'Check hours',
+          photos: place.photos?.slice(0, 1).map((photo: any) => 
+            `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo.photo_reference}&key=${googlePlacesApiKey}`
+          ) || [],
+          location: {
+            lat: place.geometry?.location?.lat || 0,
+            lng: place.geometry?.location?.lng || 0,
+          },
+          cuisine: 'Restaurant',
+          googleMapsUrl: `https://www.google.com/maps/place/?q=place_id:${place.place_id}`,
+          michelinStars: 0
+        };
+
+        // Quick cuisine detection from Google Places types
+        if (place.types && place.types.length > 0) {
+          const cuisineType = place.types
+            .find((type: string) => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))
+            ?.replace(/_/g, ' ')
+            .replace(/\b\w/g, (l: string) => l.toUpperCase());
+          
+          if (cuisineType) {
+            restaurant.cuisine = cuisineType;
+          }
+        }
+
+        return restaurant;
+      });
+
+      return new Response(JSON.stringify({
+        results: restaurants,
+        status: 'OK',
+        total: restaurants.length
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Get all results with pagination support (full mode)
     let allResults: any[] = [];
     let nextPageToken: string | null = null;
     let pageCount = 0;
-    const maxPages = 3; // Google allows up to 60 results per query (20 per page * 3 pages)
+    const maxPages = 2; // Reduced for faster results
 
     do {
       let placesUrl: string;

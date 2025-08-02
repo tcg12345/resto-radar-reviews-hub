@@ -116,47 +116,32 @@ export function MobileRecommendationsMap({
     const center = map.current.getCenter();
     const zoom = map.current.getZoom();
 
-    // Calculate search radius based on visible map area
-    const mapBounds = map.current.getBounds();
-    const ne = mapBounds.getNorthEast();
-    const sw = mapBounds.getSouthWest();
-    const mapWidthKm = Math.abs(ne.lng - sw.lng) * 111;
-    const mapHeightKm = Math.abs(ne.lat - sw.lat) * 111;
-    const visibleAreaKm = Math.max(mapWidthKm, mapHeightKm);
-    const radius = Math.max(300, Math.min(visibleAreaKm * 600, 3000));
+    // Optimized search parameters for speed
+    const radius = Math.min(1000, Math.max(300, zoom > 15 ? 500 : 800)); // Smaller radius for faster results
+    const limit = 30; // Reduced limit for instant results
 
-    // Mobile-optimized limits - smaller for better performance
-    const limit = zoom > 17 ? 200 : zoom > 15 ? 150 : zoom > 13 ? 100 : zoom > 11 ? 80 : 60;
-
-    // Determine price range strategy based on zoom level and user preferences
-    const isZoomedIn = zoom > 15; // Consider zoom > 15 as "zoomed in"
-    let targetPriceRanges: number[];
-    if (userPricePreference.isExpensive) {
-      // User prefers expensive restaurants (3-4 dollar signs)
-      targetPriceRanges = isZoomedIn ? [1, 2] : [3, 4]; // Show cheaper when zoomed in
-    } else {
-      // User prefers cheaper restaurants (1-2 dollar signs)
-      targetPriceRanges = [1, 2]; // Always show cheaper restaurants
-    }
     try {
       const requestBody = {
         location: `${center.lat},${center.lng}`,
         radius: Math.round(radius),
         limit: limit,
         type: 'restaurant',
-        priceRanges: targetPriceRanges
+        fastMode: true // Add flag for faster search
       };
+      
       const {
         data,
         error
       } = await supabase.functions.invoke('restaurant-search', {
         body: requestBody
       });
+      
       if (error) {
         console.error('Error fetching recommendations:', error);
         toast.error('Failed to fetch recommendations');
         return;
       }
+      
       if (data?.results) {
         const filteredRecommendations = data.results.filter((restaurant: any) => {
           const hasLocation = restaurant.location?.lat && restaurant.location?.lng;
@@ -167,7 +152,10 @@ export function MobileRecommendationsMap({
             west: bounds.getWest(),
             east: bounds.getEast()
           };
-          return restaurant.location.lat >= exactBounds.south && restaurant.location.lat <= exactBounds.north && restaurant.location.lng >= exactBounds.west && restaurant.location.lng <= exactBounds.east;
+          return restaurant.location.lat >= exactBounds.south && 
+                 restaurant.location.lat <= exactBounds.north && 
+                 restaurant.location.lng >= exactBounds.west && 
+                 restaurant.location.lng <= exactBounds.east;
         }).map((restaurant: any) => ({
           id: restaurant.id,
           name: restaurant.name,
@@ -182,29 +170,33 @@ export function MobileRecommendationsMap({
           reviewCount: restaurant.reviewCount || 0,
           googleMapsUrl: restaurant.googleMapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.name + ' ' + restaurant.address)}`
         }));
+        
         setRecommendations(filteredRecommendations);
 
-        // Clear existing markers
+        // Clear existing markers efficiently
         markers.current.forEach(marker => marker.remove());
         markers.current = [];
 
-        // Add mobile-optimized markers
-        filteredRecommendations.forEach((restaurant: Restaurant) => {
+        // Add markers in batch for better performance
+        const newMarkers = filteredRecommendations.map((restaurant: Restaurant) => {
           if (restaurant.latitude && restaurant.longitude) {
             const marker = new mapboxgl.Marker({
               color: '#ef4444',
-              scale: 0.8 // Slightly smaller for mobile
+              scale: 0.8
             }).setLngLat([restaurant.longitude, restaurant.latitude]).addTo(map.current!);
 
-            // Mobile-optimized click handler - opens bottom sheet instead of popup
             marker.getElement().addEventListener('click', () => {
               setSelectedRestaurant(restaurant);
               setShowBottomSheet(true);
               setBottomSheetHeight('50%');
             });
-            markers.current.push(marker);
+            return marker;
           }
-        });
+          return null;
+        }).filter(Boolean);
+        
+        markers.current = newMarkers;
+        
         if (filteredRecommendations.length > 0) {
           setShowBottomSheet(true);
           setBottomSheetHeight('33%');
