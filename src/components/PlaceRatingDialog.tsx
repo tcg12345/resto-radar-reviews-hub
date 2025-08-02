@@ -24,7 +24,6 @@ import { toast } from 'sonner';
 import { LazyImage } from '@/components/LazyImage';
 import { Progress } from '@/components/ui/progress';
 import { AddItineraryToTripDialog } from '@/components/AddItineraryToTripDialog';
-
 interface PlaceRatingDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -33,7 +32,6 @@ interface PlaceRatingDialogProps {
   editPlaceId?: string | null;
   editPlaceData?: any;
 }
-
 interface GooglePlace {
   place_id: string;
   name: string;
@@ -53,7 +51,6 @@ interface GooglePlace {
   opening_hours?: any;
   photos?: any[];
 }
-
 const RATING_CATEGORIES = {
   restaurant: ['Food Quality', 'Service', 'Atmosphere', 'Value for Money'],
   attraction: ['Experience', 'Crowds', 'Value for Money', 'Accessibility'],
@@ -69,10 +66,16 @@ const RATING_CATEGORIES = {
   beach: ['Water Quality', 'Cleanliness', 'Facilities', 'Beauty'],
   landmark: ['Historical Value', 'Accessibility', 'Views', 'Experience'],
   activity: ['Fun Factor', 'Safety', 'Organization', 'Value for Money'],
-  other: ['Quality', 'Service', 'Experience', 'Value for Money'],
+  other: ['Quality', 'Service', 'Experience', 'Value for Money']
 };
-
-export function PlaceRatingDialog({ isOpen, onClose, tripId, tripTitle, editPlaceId, editPlaceData }: PlaceRatingDialogProps) {
+export function PlaceRatingDialog({
+  isOpen,
+  onClose,
+  tripId,
+  tripTitle,
+  editPlaceId,
+  editPlaceData
+}: PlaceRatingDialogProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<GooglePlace[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<GooglePlace | null>(null);
@@ -96,35 +99,38 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, tripTitle, editPlac
   const [isDragOver, setIsDragOver] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const { addRating, updateRating, addRestaurantToTrip } = usePlaceRatings(tripId || undefined);
-  const { restaurants } = useRestaurants();
-
+  const {
+    addRating,
+    updateRating,
+    addRestaurantToTrip
+  } = usePlaceRatings(tripId || undefined);
+  const {
+    restaurants
+  } = useRestaurants();
   const isEditMode = Boolean(editPlaceId && editPlaceData);
-
   const searchPlaces = async (query: string = searchQuery) => {
     if (!query.trim()) {
       setSearchResults([]);
       setShowSuggestions(false);
       return;
     }
-
     setIsSearching(true);
     setShowSuggestions(true);
     try {
-      const { data, error } = await supabase.functions.invoke('google-places-search', {
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('google-places-search', {
         body: {
           query: query,
           type: 'search'
         }
       });
-
       if (error) {
         console.error('Search error:', error);
         setSearchResults([]);
         return;
       }
-      
       const results = data?.results || data?.candidates || [];
       setSearchResults(results);
     } catch (error) {
@@ -134,24 +140,24 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, tripTitle, editPlac
       setIsSearching(false);
     }
   };
-
   const handlePlaceSelect = async (place: GooglePlace) => {
     setSelectedPlace(place);
     setSearchResults([]);
     setShowSuggestions(false);
     setSearchQuery(place.name);
-    
+
     // Fetch detailed place information including website
     try {
-      const { data, error } = await supabase.functions.invoke('google-places-search', {
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('google-places-search', {
         body: {
           placeId: place.place_id,
           type: 'details'
         }
       });
-      
       if (error) throw error;
-      
       if (data.status === 'OK' && data.result) {
         const detailedPlace = data.result;
         // Update the selected place with detailed information including website
@@ -170,7 +176,7 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, tripTitle, editPlac
       console.error('Error fetching place details:', error);
       // Continue with basic place info if details fetch fails
     }
-    
+
     // Auto-detect place type
     if (place.types.some(type => ['restaurant', 'food', 'meal_takeaway'].includes(type))) {
       setPlaceType('restaurant');
@@ -204,12 +210,11 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, tripTitle, editPlac
   // Debounced search for autocomplete
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
-    
+
     // Clear existing timeout
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
-    
     if (value.trim().length > 2) {
       // Debounce the search to avoid too many API calls
       debounceRef.current = setTimeout(() => {
@@ -244,12 +249,11 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, tripTitle, editPlac
       setOverallRating(editPlaceData.overall_rating || 0);
       const ratings = editPlaceData.category_ratings || {};
       setCategoryRatings(ratings);
-      
+
       // Extract custom categories (ones not in predefined categories)
       const predefinedCategories = RATING_CATEGORIES[editPlaceData.place_type] || [];
       const customCats = Object.keys(ratings).filter(cat => !predefinedCategories.includes(cat));
       setCustomCategories(customCats);
-      
       setNotes(editPlaceData.notes || '');
       setDateVisited(editPlaceData.date_visited ? new Date(editPlaceData.date_visited) : undefined);
       setPreviewImages(editPlaceData.photos || []);
@@ -264,11 +268,9 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, tripTitle, editPlac
       }
     };
   }, []);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedPlace || !tripId) return;
-
     setIsLoading(true);
     try {
       const ratingData = {
@@ -286,21 +288,18 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, tripTitle, editPlac
         website: selectedPlace.website,
         phone_number: selectedPlace.formatted_phone_number,
         price_range: selectedPlace.price_level,
-        photos: photos.length > 0 ? previewImages : undefined,
+        photos: photos.length > 0 ? previewImages : undefined
       };
-
       if (isEditMode && editPlaceId) {
         await updateRating(editPlaceId, ratingData);
       } else {
         await addRating(ratingData);
       }
-
       handleClose();
     } finally {
       setIsLoading(false);
     }
   };
-
   const handleClose = () => {
     setSearchQuery('');
     setSearchResults([]);
@@ -320,26 +319,24 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, tripTitle, editPlac
     setIsDragOver(false);
     onClose();
   };
-
   const addCustomCategory = () => {
     if (newCustomCategory.trim() && !customCategories.includes(newCustomCategory.trim())) {
       setCustomCategories(prev => [...prev, newCustomCategory.trim()]);
       setNewCustomCategory('');
     }
   };
-
   const removeCustomCategory = (categoryToRemove: string) => {
     setCustomCategories(prev => prev.filter(cat => cat !== categoryToRemove));
     setCategoryRatings(prev => {
-      const newRatings = { ...prev };
+      const newRatings = {
+        ...prev
+      };
       delete newRatings[categoryToRemove];
       return newRatings;
     });
   };
-
   const handleAddRestaurantToTrip = async (restaurant: any) => {
     if (!tripId) return;
-    
     setIsLoading(true);
     try {
       await addRestaurantToTrip(tripId, {
@@ -359,64 +356,40 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, tripTitle, editPlac
         michelinStars: restaurant.michelinStars,
         categoryRatings: restaurant.categoryRatings,
         dateVisited: restaurant.dateVisited,
-        uploadedPhotos: photos.length > 0 ? previewImages : undefined,
+        uploadedPhotos: photos.length > 0 ? previewImages : undefined
       });
       handleClose();
     } finally {
       setIsLoading(false);
     }
   };
-
   const renderStarRating = (rating: number, onRate: (rating: number) => void) => {
-    return (
-      <div className="flex items-center gap-1">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <button
-            key={star}
-            type="button"
-            onClick={() => onRate(star)}
-            className="text-2xl hover:scale-110 transition-transform"
-          >
-            <Star
-              className={`w-6 h-6 ${
-                star <= rating
-                  ? 'fill-yellow-400 text-yellow-400'
-                  : 'text-gray-300'
-              }`}
-            />
-          </button>
-        ))}
-      </div>
-    );
+    return <div className="flex items-center gap-1">
+        {[1, 2, 3, 4, 5].map(star => <button key={star} type="button" onClick={() => onRate(star)} className="text-2xl hover:scale-110 transition-transform">
+            <Star className={`w-6 h-6 ${star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
+          </button>)}
+      </div>;
   };
-
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
-    
     const newFiles = Array.from(e.target.files);
     const maxPhotos = 20;
-    
     if (photos.length + newFiles.length > maxPhotos) {
       toast.error(`Maximum ${maxPhotos} photos allowed`);
       return;
     }
-    
     setIsProcessingPhotos(true);
     setPhotoProgress(0);
-    
     try {
       const newPreviews: string[] = [];
-      
       for (let i = 0; i < newFiles.length; i++) {
         const file = newFiles[i];
         const thumbnail = await createThumbnail(file);
         newPreviews.push(thumbnail);
-        setPhotoProgress(Math.round(((i + 1) / newFiles.length) * 100));
+        setPhotoProgress(Math.round((i + 1) / newFiles.length * 100));
       }
-      
       setPhotos(prev => [...prev, ...newFiles]);
       setPreviewImages(prev => [...prev, ...newPreviews]);
-      
       toast.success(`${newFiles.length} photo(s) added successfully`);
     } catch (error) {
       console.error('Error processing photos:', error);
@@ -426,30 +399,26 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, tripTitle, editPlac
       setPhotoProgress(0);
     }
   };
-
   const takePhoto = async () => {
     try {
       setIsProcessingPhotos(true);
       setPhotoProgress(0);
-      
       const image = await CapacitorCamera.getPhoto({
         quality: 90,
         allowEditing: false,
         resultType: CameraResultType.DataUrl,
-        source: CameraSource.Camera,
+        source: CameraSource.Camera
       });
-
       if (image.dataUrl) {
         const response = await fetch(image.dataUrl);
         const blob = await response.blob();
-        const file = new File([blob], `camera-${Date.now()}.jpg`, { type: 'image/jpeg' });
-
+        const file = new File([blob], `camera-${Date.now()}.jpg`, {
+          type: 'image/jpeg'
+        });
         const thumbnail = await createThumbnail(file);
         setPhotoProgress(100);
-
         setPhotos(prev => [...prev, file]);
         setPreviewImages(prev => [...prev, thumbnail]);
-        
         toast.success('Photo captured successfully');
       }
     } catch (error) {
@@ -460,30 +429,26 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, tripTitle, editPlac
       setPhotoProgress(0);
     }
   };
-
   const addPhotoFromGallery = async () => {
     try {
       setIsProcessingPhotos(true);
       setPhotoProgress(0);
-      
       const image = await CapacitorCamera.getPhoto({
         quality: 90,
         allowEditing: false,
         resultType: CameraResultType.DataUrl,
-        source: CameraSource.Photos,
+        source: CameraSource.Photos
       });
-
       if (image.dataUrl) {
         const response = await fetch(image.dataUrl);
         const blob = await response.blob();
-        const file = new File([blob], `photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
-
+        const file = new File([blob], `photo-${Date.now()}.jpg`, {
+          type: 'image/jpeg'
+        });
         const thumbnail = await createThumbnail(file);
         setPhotoProgress(100);
-
         setPhotos(prev => [...prev, file]);
         setPreviewImages(prev => [...prev, thumbnail]);
-        
         toast.success('Photo added successfully');
       }
     } catch (error) {
@@ -494,60 +459,46 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, tripTitle, editPlac
       setPhotoProgress(0);
     }
   };
-
   const removePhoto = (index: number) => {
     setPhotos(prev => prev.filter((_, i) => i !== index));
     setPreviewImages(prev => prev.filter((_, i) => i !== index));
   };
-
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(true);
   };
-
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
   };
-
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
-
-    const files = Array.from(e.dataTransfer.files).filter(file => 
-      file.type.startsWith('image/')
-    );
-
+    const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
     if (files.length === 0) {
       toast.error('Please drop image files only');
       return;
     }
-
     const maxPhotos = 20;
     if (photos.length + files.length > maxPhotos) {
       toast.error(`Maximum ${maxPhotos} photos allowed`);
       return;
     }
-
     setIsProcessingPhotos(true);
     setPhotoProgress(0);
-
     try {
       const newPreviews: string[] = [];
-      
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         const thumbnail = await createThumbnail(file);
         newPreviews.push(thumbnail);
-        setPhotoProgress(Math.round(((i + 1) / files.length) * 100));
+        setPhotoProgress(Math.round((i + 1) / files.length * 100));
       }
-      
       setPhotos(prev => [...prev, ...files]);
       setPreviewImages(prev => [...prev, ...newPreviews]);
-      
       toast.success(`${files.length} photo(s) added successfully`);
     } catch (error) {
       console.error('Error processing photos:', error);
@@ -557,160 +508,114 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, tripTitle, editPlac
       setPhotoProgress(0);
     }
   };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="w-full max-w-full sm:max-w-[600px] max-h-[90vh] sm:max-h-[80vh] overflow-y-auto rounded-none sm:rounded-xl border border-border shadow-xl bg-gradient-to-br from-background to-background/95 backdrop-blur-sm p-3 sm:p-4">
+  return <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MapPin className="w-5 h-5" />
             {isEditMode ? 'Edit Place Rating' : 'Rate a Place'}
           </DialogTitle>
           <DialogDescription>
-            {isEditMode 
-              ? 'Update your rating and details for this place'
-              : 'Search for and rate places you\'ve visited on your trip'
-            }
+            {isEditMode ? 'Update your rating and details for this place' : 'Search for and rate places you\'ve visited on your trip'}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-3 h-auto gap-1 p-1">
-              <TabsTrigger value="search" className="text-xs sm:text-sm px-2 py-2">Search</TabsTrigger>
-              <TabsTrigger value="restaurants" className="text-xs sm:text-sm px-2 py-2">My Places</TabsTrigger>
-              <TabsTrigger value="itinerary" className="text-xs sm:text-sm px-2 py-2">Import</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="search">Search Places</TabsTrigger>
+              <TabsTrigger value="restaurants">My Restaurants</TabsTrigger>
+              <TabsTrigger value="itinerary">Import Itinerary</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="search" className="space-y-3 sm:space-y-6 mt-3">
+            <TabsContent value="search" className="space-y-6">
               {/* Place Search */}
               <div className="space-y-2">
-                <Label htmlFor="search" className="text-sm font-medium">Search for a place</Label>
+                <Label htmlFor="search">Search for a place</Label>
             <div className="relative">
               <div className="flex gap-2">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="search"
-                    value={searchQuery}
-                    onChange={(e) => handleSearchChange(e.target.value)}
-                    placeholder="Search restaurants, attractions, hotels, shops..."
-                    className="pl-10"
-                    onFocus={() => searchQuery.length > 2 && setShowSuggestions(true)}
-                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                    onKeyDown={(e) => {
+                  <Input id="search" value={searchQuery} onChange={e => handleSearchChange(e.target.value)} placeholder="Search restaurants, attractions, hotels, shops..." className="pl-10" onFocus={() => searchQuery.length > 2 && setShowSuggestions(true)} onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} onKeyDown={e => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
                         searchPlaces();
                       }
-                    }}
-                  />
+                    }} />
                 </div>
-                <Button 
-                  type="button" 
-                  onClick={() => searchPlaces()}
-                  disabled={!searchQuery.trim() || isSearching}
-                  className="shrink-0"
-                >
+                <Button type="button" onClick={() => searchPlaces()} disabled={!searchQuery.trim() || isSearching} className="shrink-0">
                   {isSearching ? "Searching..." : "Search"}
                 </Button>
               </div>
               
               {/* Suggestions Dropdown */}
-              {showSuggestions && searchResults.length > 0 && (
-                <div className="absolute top-full left-0 right-0 z-50 mt-1 max-h-64 overflow-y-auto bg-background border rounded-md shadow-lg">
-                  {searchResults.map((place) => (
-                    <div
-                      key={place.place_id}
-                      className="p-3 hover:bg-accent cursor-pointer border-b last:border-b-0"
-                      onClick={() => handlePlaceSelect(place)}
-                    >
+              {showSuggestions && searchResults.length > 0 && <div className="absolute top-full left-0 right-0 z-50 mt-1 max-h-64 overflow-y-auto bg-background border rounded-md shadow-lg">
+                  {searchResults.map(place => <div key={place.place_id} className="p-3 hover:bg-accent cursor-pointer border-b last:border-b-0" onClick={() => handlePlaceSelect(place)}>
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
                           <h4 className="font-medium text-sm">{place.name}</h4>
                           <p className="text-xs text-muted-foreground line-clamp-1">{place.formatted_address}</p>
                           <div className="flex items-center gap-2 mt-1">
-                            {place.rating && (
-                              <div className="flex items-center gap-1">
+                            {place.rating && <div className="flex items-center gap-1">
                                 <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                                 <span className="text-xs">{place.rating}</span>
-                              </div>
-                            )}
+                              </div>}
                             <div className="flex gap-1">
-                              {place.types.slice(0, 2).map((type) => (
-                                <Badge key={type} variant="secondary" className="text-xs px-1 py-0">
+                              {place.types.slice(0, 2).map(type => <Badge key={type} variant="secondary" className="text-xs px-1 py-0">
                                   {type.replace(/_/g, ' ')}
-                                </Badge>
-                              ))}
+                                </Badge>)}
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    </div>)}
+                </div>}
             </div>
           </div>
             </TabsContent>
 
-            <TabsContent value="restaurants" className="space-y-2 sm:space-y-4 mt-3">
+            <TabsContent value="restaurants" className="space-y-4">
               <div className="space-y-2">
                 <Label>Select from your rated restaurants</Label>
                 <div className="max-h-64 overflow-y-auto space-y-2">
-                  {restaurants?.filter(r => !r.isWishlist).map((restaurant) => (
-                    <Card key={restaurant.id} className="cursor-pointer hover:bg-accent transition-colors">
+                  {restaurants?.filter(r => !r.isWishlist).map(restaurant => <Card key={restaurant.id} className="cursor-pointer hover:bg-accent transition-colors">
                       <CardContent className="p-3">
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
                             <h4 className="font-medium text-sm">{restaurant.name}</h4>
                             <p className="text-xs text-muted-foreground">{restaurant.address}, {restaurant.city}</p>
                             <div className="flex items-center gap-2 mt-1 flex-wrap">
-                              {restaurant.rating && (
-                                <div className="flex items-center gap-1">
+                              {restaurant.rating && <div className="flex items-center gap-1">
                                   <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                                   <span className="text-xs">{restaurant.rating}</span>
-                                </div>
-                              )}
+                                </div>}
                               <Badge variant="secondary" className="text-xs px-1 py-0">
                                 {restaurant.cuisine}
                               </Badge>
-                              {restaurant.priceRange && (
-                                <Badge variant="outline" className="text-xs px-1 py-0">
+                              {restaurant.priceRange && <Badge variant="outline" className="text-xs px-1 py-0">
                                   {'$'.repeat(restaurant.priceRange)}
-                                </Badge>
-                              )}
-                              {restaurant.michelinStars && (
-                                <div className="flex items-center gap-1">
-                                  {Array.from({ length: restaurant.michelinStars }, (_, i) => (
-                                    <MichelinStarIcon key={i} className="w-3 h-3" />
-                                  ))}
-                                </div>
-                              )}
+                                </Badge>}
+                              {restaurant.michelinStars && <div className="flex items-center gap-1">
+                                  {Array.from({
+                              length: restaurant.michelinStars
+                            }, (_, i) => <MichelinStarIcon key={i} className="w-3 h-3" />)}
+                                </div>}
                             </div>
                           </div>
-                          <Button
-                            type="button"
-                            size="sm"
-                            onClick={() => handleAddRestaurantToTrip(restaurant)}
-                            disabled={isLoading}
-                          >
+                          <Button type="button" size="sm" onClick={() => handleAddRestaurantToTrip(restaurant)} disabled={isLoading}>
                             Add to Trip
                           </Button>
                         </div>
                       </CardContent>
-                    </Card>
-                  ))}
-                  {(!restaurants || restaurants.filter(r => !r.isWishlist).length === 0) && (
-                    <p className="text-center text-muted-foreground py-8">
+                    </Card>)}
+                  {(!restaurants || restaurants.filter(r => !r.isWishlist).length === 0) && <p className="text-center text-muted-foreground py-8">
                       No rated restaurants found. Rate some restaurants first to add them to your trips.
-                    </p>
-                  )}
+                    </p>}
                 </div>
               </div>
             </TabsContent>
 
-            <TabsContent value="itinerary" className="space-y-2 sm:space-y-4 mt-3">
+            <TabsContent value="itinerary" className="space-y-4">
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
                   <BookOpen className="w-4 h-4" />
@@ -719,12 +624,7 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, tripTitle, editPlac
                 <p className="text-sm text-muted-foreground">
                   Select a saved itinerary to import its restaurants and attractions into this trip.
                 </p>
-                <Button
-                  type="button"
-                  onClick={() => setIsImportItineraryOpen(true)}
-                  className="w-full"
-                  variant="outline"
-                >
+                <Button type="button" onClick={() => setIsImportItineraryOpen(true)} className="w-full" variant="outline">
                   <BookOpen className="w-4 h-4 mr-2" />
                   Browse Saved Itineraries
                 </Button>
@@ -732,8 +632,7 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, tripTitle, editPlac
             </TabsContent>
           </Tabs>
 
-          {selectedPlace && activeTab === 'search' && (
-            <>
+          {selectedPlace && activeTab === 'search' && <>
               {/* Selected Place */}
               <div className="space-y-2">
                 <Label>Selected Place</Label>
@@ -783,57 +682,37 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, tripTitle, editPlac
                 <Label>Category Ratings</Label>
                 
                 {/* Predefined Categories */}
-                {RATING_CATEGORIES[placeType].map((category) => (
-                  <div key={category} className="flex items-center justify-between">
+                {RATING_CATEGORIES[placeType].map(category => <div key={category} className="flex items-center justify-between">
                     <span className="text-sm font-medium">{category}</span>
-                    {renderStarRating(
-                      categoryRatings[category] || 0,
-                      (rating) => setCategoryRatings(prev => ({ ...prev, [category]: rating }))
-                    )}
-                  </div>
-                ))}
+                    {renderStarRating(categoryRatings[category] || 0, rating => setCategoryRatings(prev => ({
+                ...prev,
+                [category]: rating
+              })))}
+                  </div>)}
 
                 {/* Custom Categories */}
-                {customCategories.map((category) => (
-                  <div key={category} className="flex items-center justify-between">
+                {customCategories.map(category => <div key={category} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">{category}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeCustomCategory(category)}
-                        className="text-red-500 hover:text-red-700 transition-colors"
-                      >
+                      <button type="button" onClick={() => removeCustomCategory(category)} className="text-red-500 hover:text-red-700 transition-colors">
                         <X className="w-4 h-4" />
                       </button>
                     </div>
-                    {renderStarRating(
-                      categoryRatings[category] || 0,
-                      (rating) => setCategoryRatings(prev => ({ ...prev, [category]: rating }))
-                    )}
-                  </div>
-                ))}
+                    {renderStarRating(categoryRatings[category] || 0, rating => setCategoryRatings(prev => ({
+                ...prev,
+                [category]: rating
+              })))}
+                  </div>)}
 
                 {/* Add Custom Category */}
                 <div className="flex items-center gap-2 pt-2 border-t">
-                  <Input
-                    value={newCustomCategory}
-                    onChange={(e) => setNewCustomCategory(e.target.value)}
-                    placeholder="Add custom rating category..."
-                    className="flex-1"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        addCustomCategory();
-                      }
-                    }}
-                  />
-                  <Button
-                    type="button"
-                    onClick={addCustomCategory}
-                    disabled={!newCustomCategory.trim()}
-                    size="sm"
-                    variant="outline"
-                  >
+                  <Input value={newCustomCategory} onChange={e => setNewCustomCategory(e.target.value)} placeholder="Add custom rating category..." className="flex-1" onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  addCustomCategory();
+                }
+              }} />
+                  <Button type="button" onClick={addCustomCategory} disabled={!newCustomCategory.trim()} size="sm" variant="outline">
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
@@ -844,63 +723,36 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, tripTitle, editPlac
                 <Label>Date Visited</Label>
                 <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                   <PopoverTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !dateVisited && "text-muted-foreground"
-                      )}
-                      onClick={(e) => {
-                        console.log('Date button clicked', e);
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setIsDatePickerOpen(!isDatePickerOpen);
-                      }}
-                    >
+                    <Button type="button" variant="outline" className={cn("w-full justify-start text-left font-normal", !dateVisited && "text-muted-foreground")} onClick={e => {
+                  console.log('Date button clicked', e);
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDatePickerOpen(!isDatePickerOpen);
+                }}>
                       <Calendar className="mr-2 h-4 w-4" />
                       {dateVisited ? format(dateVisited, "PPP") : <span>Select a date</span>}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent 
-                    className="w-auto p-0 bg-background border shadow-lg" 
-                    align="start"
-                    side="bottom"
-                    sideOffset={4}
-                    style={{ zIndex: 9999 }}
-                  >
+                  <PopoverContent className="w-auto p-0 bg-background border shadow-lg" align="start" side="bottom" sideOffset={4} style={{
+                zIndex: 9999
+              }}>
                     <div className="p-3">
-                      <CalendarComponent
-                        mode="single"
-                        selected={dateVisited}
-                        onSelect={(date) => {
-                          console.log('Date selected:', date);
-                          setDateVisited(date);
-                          setIsDatePickerOpen(false);
-                        }}
-                        disabled={(date) => date > new Date()}
-                        initialFocus
-                        className="pointer-events-auto"
-                      />
-                      {dateVisited && (
-                        <div className="mt-3 pt-3 border-t flex justify-center">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              console.log('Clear dates clicked');
-                              setDateVisited(undefined);
-                              setIsDatePickerOpen(false);
-                            }}
-                            className="text-muted-foreground hover:text-foreground"
-                          >
+                      <CalendarComponent mode="single" selected={dateVisited} onSelect={date => {
+                    console.log('Date selected:', date);
+                    setDateVisited(date);
+                    setIsDatePickerOpen(false);
+                  }} disabled={date => date > new Date()} initialFocus className="pointer-events-auto" />
+                      {dateVisited && <div className="mt-3 pt-3 border-t flex justify-center">
+                          <Button type="button" variant="ghost" size="sm" onClick={e => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log('Clear dates clicked');
+                      setDateVisited(undefined);
+                      setIsDatePickerOpen(false);
+                    }} className="text-muted-foreground hover:text-foreground">
                             Clear dates
                           </Button>
-                        </div>
-                      )}
+                        </div>}
                     </div>
                   </PopoverContent>
                 </Popover>
@@ -911,139 +763,75 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, tripTitle, editPlac
                 <Label>Photos</Label>
                 
                 {/* Photo Upload Area */}
-                <div
-                  className={`relative border-2 border-dashed rounded-lg p-3 sm:p-6 text-center transition-colors ${
-                    isDragOver ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'
-                  }`}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                >
-                  <div className="flex flex-col items-center gap-2 sm:gap-3">
+                <div className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors ${isDragOver ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'}`} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
+                  <div className="flex flex-col items-center gap-3">
                     <div className="flex items-center gap-2">
-                      <Upload className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
-                      <span className="text-xs sm:text-sm text-muted-foreground">
+                      <Upload className="h-8 w-8 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
                         Drag & drop photos here, or click to select
                       </span>
                     </div>
                     
-                    <div className="flex flex-wrap gap-1 sm:gap-2 justify-center">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={isProcessingPhotos}
-                      >
+                    <div className="flex gap-2">
+                      <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isProcessingPhotos}>
                         <Images className="h-4 w-4 mr-2" />
                         Choose Files
                       </Button>
                       
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={addPhotoFromGallery}
-                        disabled={isProcessingPhotos}
-                      >
+                      <Button type="button" variant="outline" size="sm" onClick={addPhotoFromGallery} disabled={isProcessingPhotos}>
                         <Images className="h-4 w-4 mr-2" />
                         Gallery
                       </Button>
                       
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={takePhoto}
-                        disabled={isProcessingPhotos}
-                      >
+                      <Button type="button" variant="outline" size="sm" onClick={takePhoto} disabled={isProcessingPhotos}>
                         <Camera className="h-4 w-4 mr-2" />
                         Camera
                       </Button>
                     </div>
                   </div>
                   
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handlePhotoChange}
-                    className="hidden"
-                  />
+                  <input ref={fileInputRef} type="file" multiple accept="image/*" onChange={handlePhotoChange} className="hidden" />
                 </div>
                 
                 {/* Photo Processing Progress */}
-                {isProcessingPhotos && (
-                  <div className="space-y-2">
+                {isProcessingPhotos && <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
                       <span>Processing photos...</span>
                       <span>{photoProgress}%</span>
                     </div>
                     <Progress value={photoProgress} className="h-2" />
-                  </div>
-                )}
+                  </div>}
                 
                 {/* Photo Preview Grid */}
-                {previewImages.length > 0 && (
-                  <div className="grid grid-cols-3 gap-3">
-                    {previewImages.map((src, index) => (
-                      <div key={index} className="relative group">
-                        <LazyImage
-                          src={src}
-                          alt={`Photo ${index + 1}`}
-                          className="w-full h-24 object-cover rounded-lg"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removePhoto(index)}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
+                {previewImages.length > 0 && <div className="grid grid-cols-3 gap-3">
+                    {previewImages.map((src, index) => <div key={index} className="relative group">
+                        <LazyImage src={src} alt={`Photo ${index + 1}`} className="w-full h-24 object-cover rounded-lg" />
+                        <button type="button" onClick={() => removePhoto(index)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <Trash2 className="h-3 w-3" />
                         </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      </div>)}
+                  </div>}
               </div>
 
               {/* Notes */}
               <div className="space-y-2">
                 <Label htmlFor="notes">Notes</Label>
-                <Textarea
-                  id="notes"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Share your experience, tips, or memorable moments..."
-                  rows={3}
-                />
+                <Textarea id="notes" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Share your experience, tips, or memorable moments..." rows={3} />
               </div>
-            </>
-          )}
+            </>}
 
           <DialogFooter>
-            <Button variant="outline" onClick={handleClose} disabled={isLoading}>
+            <Button variant="outline" onClick={handleClose} disabled={isLoading} className="py-0 mx-0 my-[14px]">
               Cancel
             </Button>
-            {activeTab === 'search' && (
-              <Button
-                type="submit"
-                disabled={isLoading || !selectedPlace || !tripId}
-              >
+            {activeTab === 'search' && <Button type="submit" disabled={isLoading || !selectedPlace || !tripId}>
                 {isLoading ? 'Saving...' : 'Save Rating'}
-              </Button>
-            )}
+              </Button>}
           </DialogFooter>
         </form>
       </DialogContent>
 
       {/* Import Itinerary Dialog */}
-      <AddItineraryToTripDialog
-        isOpen={isImportItineraryOpen}
-        onClose={() => setIsImportItineraryOpen(false)}
-        tripId={tripId || ''}
-        tripTitle={tripTitle || 'Your Trip'}
-      />
-    </Dialog>
-  );
+      <AddItineraryToTripDialog isOpen={isImportItineraryOpen} onClose={() => setIsImportItineraryOpen(false)} tripId={tripId || ''} tripTitle={tripTitle || 'Your Trip'} />
+    </Dialog>;
 }
