@@ -270,7 +270,7 @@ export function MobileRecommendationsMap({
           </div>
 
           {/* Bottom Sheet Content */}
-          <div className="px-4 pb-4 h-full overflow-hidden">
+          <div className="px-4 pb-4 h-full overflow-hidden bg-gradient-to-b from-background/95 to-background/90 backdrop-blur-sm">
             {selectedRestaurant ?
         // Individual Restaurant View
         <div className="h-full flex flex-col">
