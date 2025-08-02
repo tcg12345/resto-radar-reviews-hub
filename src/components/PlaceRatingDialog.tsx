@@ -560,7 +560,7 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, tripTitle, editPlac
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="w-full max-w-full sm:max-w-[600px] max-h-[85vh] h-full sm:h-auto overflow-y-auto rounded-none sm:rounded-xl border-0 shadow-xl bg-gradient-to-br from-background to-background/95 backdrop-blur-sm p-4 sm:p-6">
+      <DialogContent className="w-full max-w-full sm:max-w-[600px] max-h-[90vh] sm:max-h-[80vh] overflow-y-auto rounded-none sm:rounded-xl border border-border shadow-xl bg-gradient-to-br from-background to-background/95 backdrop-blur-sm p-3 sm:p-4">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MapPin className="w-5 h-5" />
