@@ -216,22 +216,24 @@ export function FriendsPage({
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="w-full mb-8">
-          <TabsList className="w-full h-auto p-2 flex overflow-x-auto gap-1 bg-muted rounded-lg">
-            <TabsTrigger value="friends" className="flex items-center gap-1 text-xs whitespace-nowrap px-3 py-2 flex-shrink-0">
+          <TabsList className="w-full h-auto p-1 flex gap-1 bg-muted rounded-lg">
+            <TabsTrigger value="friends" className="flex items-center gap-1 text-xs px-2 py-2 flex-1">
               <Users className="h-3 w-3" />
-              <span>Friends ({friends.length})</span>
+              <span className="hidden sm:inline">Friends</span> 
+              <span>({friends.length})</span>
             </TabsTrigger>
-            <TabsTrigger value="activity" className="flex items-center gap-1 text-xs whitespace-nowrap px-3 py-2 flex-shrink-0">
+            <TabsTrigger value="activity" className="flex items-center gap-1 text-xs px-2 py-2 flex-1">
               <Activity className="h-3 w-3" />
-              <span>Activity</span>
+              <span className="hidden sm:inline">Activity</span>
             </TabsTrigger>
-            <TabsTrigger value="search" className="flex items-center gap-1 text-xs whitespace-nowrap px-3 py-2 flex-shrink-0">
+            <TabsTrigger value="search" className="flex items-center gap-1 text-xs px-2 py-2 flex-1">
               <Plus className="h-3 w-3" />
-              <span>Find Friends</span>
+              <span className="hidden sm:inline">Find</span>
             </TabsTrigger>
-            <TabsTrigger value="requests" className="flex items-center gap-1 text-xs whitespace-nowrap px-3 py-2 flex-shrink-0 mr-2">
+            <TabsTrigger value="requests" className="flex items-center gap-1 text-xs px-2 py-2 flex-1">
               <Filter className="h-3 w-3" />
-              <span>Requests ({pendingRequests.length + sentRequests.length})</span>
+              <span className="hidden sm:inline">Requests</span>
+              <span>({pendingRequests.length + sentRequests.length})</span>
             </TabsTrigger>
           </TabsList>
         </div>
