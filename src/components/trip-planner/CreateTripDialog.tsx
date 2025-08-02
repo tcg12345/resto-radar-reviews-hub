@@ -139,8 +139,11 @@ export function CreateTripDialog({ isOpen, onClose }: CreateTripDialogProps) {
 
   return (
     <div className="fixed inset-0 z-50 bg-background overflow-y-auto">
+      {/* Mobile status bar spacer */}
+      <div className="lg:hidden h-[35px] bg-background"></div>
+      
       {/* Header with back arrow */}
-      <div className="sticky top-0 z-10 bg-background border-b px-4 py-3">
+      <div className="sticky top-0 lg:top-[35px] z-10 bg-background border-b px-4 py-3">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
