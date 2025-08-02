@@ -265,7 +265,7 @@ export function MobileRecommendationsMap({
       height: bottomSheetHeight
     }}>
           {/* Bottom Sheet Handle */}
-          <div className="flex justify-center py-3 cursor-pointer" onClick={toggleBottomSheetHeight}>
+          <div className="flex justify-center py-3 cursor-pointer bg-gradient-to-b from-background/95 to-background/90 backdrop-blur-sm" onClick={toggleBottomSheetHeight}>
             <div className="w-10 h-1 bg-gray-300 rounded-full"></div>
           </div>
 
