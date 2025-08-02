@@ -92,7 +92,7 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
         isMobile={isMobile}
       />
       
-      <Card className="overflow-hidden bg-card shadow-sm hover:shadow-md transition-shadow duration-300">
+      <Card className="overflow-hidden bg-card shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer" onClick={() => setIsDetailsOpen(true)}>
         <div className={isMobile ? "block" : "flex"}>
           {/* Photo section - only show on desktop */}
           {!isMobile && restaurant.photos.length > 0 && (
