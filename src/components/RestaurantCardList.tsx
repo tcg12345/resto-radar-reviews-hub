@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { format } from 'date-fns';
-import { MapPin, Clock, Edit2, Trash2, Eye, Share2, Phone, Globe } from 'lucide-react';
+import { MapPin, Clock, Edit2, Trash2, Eye, Share2, Phone, Globe, Star } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -94,13 +94,9 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
       
       <Card className="overflow-hidden bg-card shadow-sm hover:shadow-md transition-shadow duration-300">
         <div className={isMobile ? "block" : "flex"}>
-          {/* Photo section */}
-          {restaurant.photos.length > 0 && (
-            <div className={`relative overflow-hidden ${
-              isMobile 
-                ? "w-full h-48" 
-                : "w-32 h-32 lg:w-40 lg:h-40 flex-shrink-0"
-            }`}>
+          {/* Photo section - only show on desktop */}
+          {!isMobile && restaurant.photos.length > 0 && (
+            <div className="w-32 h-32 lg:w-40 lg:h-40 flex-shrink-0 relative overflow-hidden">
               <img 
                 src={restaurant.photos[currentPhotoIndex]} 
                 alt={`${restaurant.name} photo`}
@@ -112,48 +108,52 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
           
           {/* Content section */}
           <div className="flex-1 flex flex-col">
-            <CardHeader className={`pb-3 ${isMobile ? "p-4" : "p-3 lg:p-4"}`}>
-              <div className={`${isMobile ? "space-y-3" : "flex justify-between items-start"}`}>
+            <CardHeader className={`${isMobile ? "py-2 px-3" : "pb-3 p-3 lg:p-4"}`}>
+              <div className={`${isMobile ? "flex items-center justify-between" : "flex justify-between items-start"}`}>
                 <div className="flex-1">
-                  <CardTitle className={`font-bold line-clamp-2 ${isMobile ? "text-xl mb-3" : "text-base lg:text-lg"}`}>
+                  <CardTitle className={`font-bold line-clamp-1 ${isMobile ? "text-base mb-1" : "text-base lg:text-lg"}`}>
                     {restaurant.name}
                   </CardTitle>
                   
-                  {/* Rating section - improved for mobile */}
-                  {restaurant.rating !== undefined && (
-                    <div className={`flex items-center gap-3 ${isMobile ? "mb-3" : "mb-2"}`}>
-                      <div className="flex items-center gap-2">
-                        <StarRating rating={restaurant.rating} readonly size={isMobile ? "md" : "sm"} />
-                        <span className={`font-semibold text-foreground ${isMobile ? "text-lg" : "text-sm"}`}>
-                          {restaurant.rating}/10
-                        </span>
+                  <div className={`flex items-center gap-3 ${isMobile ? "mb-1" : "mb-2"}`}>
+                    {/* Compact rating for mobile */}
+                    {restaurant.rating !== undefined && (
+                      <div className="flex items-center gap-1">
+                        {isMobile ? (
+                          <>
+                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                            <span className="font-semibold text-foreground text-sm">
+                              {restaurant.rating}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <StarRating rating={restaurant.rating} readonly size="sm" />
+                            <span className="font-semibold text-foreground text-sm">
+                              {restaurant.rating}/10
+                            </span>
+                          </>
+                        )}
                       </div>
-                      {restaurant.reviewCount && restaurant.reviewCount > 0 && (
-                        <span className={`text-muted-foreground ${isMobile ? "text-sm" : "text-xs"}`}>
-                          ({restaurant.reviewCount.toLocaleString()})
-                        </span>
-                      )}
-                    </div>
-                  )}
-                  
-                  {/* Michelin stars - separate line for mobile */}
-                  {restaurant.michelinStars && (
-                    <div className={`${isMobile ? "mb-3" : "mb-2"}`}>
-                      <MichelinStars stars={restaurant.michelinStars} readonly size={isMobile ? "md" : "sm"} />
-                    </div>
-                  )}
-                  
-                  {/* Price and cuisine - better spacing for mobile */}
-                  <div className={`flex items-center gap-2 ${isMobile ? "text-base mb-3" : "text-sm mb-2"}`}>
-                    {restaurant.priceRange && (
-                      <>
-                        <span className="text-green-600 font-semibold">
-                          {'$'.repeat(restaurant.priceRange)}
-                        </span>
-                        <span className="text-muted-foreground">•</span>
-                      </>
                     )}
-                    <span className="text-foreground font-medium">{restaurant.cuisine}</span>
+                    
+                    {/* Michelin stars - inline for mobile */}
+                    {restaurant.michelinStars && (
+                      <MichelinStars stars={restaurant.michelinStars} readonly size="sm" />
+                    )}
+                    
+                    {/* Price and cuisine - inline for mobile */}
+                    <div className="flex items-center gap-1 text-xs">
+                      {restaurant.priceRange && (
+                        <>
+                          <span className="text-green-600 font-semibold">
+                            {'$'.repeat(restaurant.priceRange)}
+                          </span>
+                          <span className="text-muted-foreground">•</span>
+                        </>
+                      )}
+                      <span className="text-foreground font-medium truncate">{restaurant.cuisine}</span>
+                    </div>
                   </div>
                 </div>
                 
@@ -255,43 +255,46 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
               </div>
             </CardHeader>
             
-            <CardContent className={`pt-0 flex-1 flex flex-col justify-between ${isMobile ? "p-4" : "p-3 lg:p-4"}`}>
-              <div className={`space-y-2 ${isMobile ? "mb-4" : ""}`}>
-                <div className={`flex items-center text-muted-foreground ${isMobile ? "text-sm" : "text-xs"}`}>
-                  <MapPin className={`mr-2 flex-shrink-0 ${isMobile ? "h-4 w-4" : "h-3 w-3"}`} />
-                  <LocationDisplay restaurant={restaurant} />
+            {!isMobile && (
+              <CardContent className="pt-0 flex-1 flex flex-col justify-between p-3 lg:p-4">
+                <div className="space-y-2">
+                  <div className="flex items-center text-muted-foreground text-xs">
+                    <MapPin className="mr-2 flex-shrink-0 h-3 w-3" />
+                    <LocationDisplay restaurant={restaurant} />
+                  </div>
+                  
+                  {restaurant.openingHours && (
+                    <div className="flex items-center text-muted-foreground text-xs">
+                      <Clock className="mr-2 flex-shrink-0 h-3 w-3" />
+                      <span className="line-clamp-1">
+                        {restaurant.openingHours.split('\n')[0]}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {restaurant.dateVisited && (
+                    <div className="text-muted-foreground text-xs">
+                      Visited: {format(new Date(restaurant.dateVisited), 'MMM d, yyyy')}
+                    </div>
+                  )}
+                  
+                  {restaurant.isWishlist && (
+                    <div className="inline-flex items-center rounded-full bg-accent/10 px-3 py-1 text-accent text-xs">
+                      Wishlist
+                    </div>
+                  )}
                 </div>
-                
-                {restaurant.openingHours && (
-                  <div className={`flex items-center text-muted-foreground ${isMobile ? "text-sm" : "text-xs"}`}>
-                    <Clock className={`mr-2 flex-shrink-0 ${isMobile ? "h-4 w-4" : "h-3 w-3"}`} />
-                    <span className="line-clamp-1">
-                      {restaurant.openingHours.split('\n')[0]}
-                    </span>
-                  </div>
-                )}
-                
-                {restaurant.dateVisited && (
-                  <div className={`text-muted-foreground ${isMobile ? "text-sm" : "text-xs"}`}>
-                    Visited: {format(new Date(restaurant.dateVisited), 'MMM d, yyyy')}
-                  </div>
-                )}
-                
-                {restaurant.isWishlist && (
-                  <div className={`inline-flex items-center rounded-full bg-accent/10 px-3 py-1 text-accent ${isMobile ? "text-sm" : "text-xs"}`}>
-                    Wishlist
-                  </div>
-                )}
-              </div>
-              
-              {/* Mobile action buttons */}
-              {isMobile && (
-                <div className="flex gap-2 pt-3 border-t border-border">
+              </CardContent>
+            )}
+            
+            {/* Mobile simplified content */}
+            {isMobile && (
+              <CardContent className="pt-0 px-3 pb-2">
+                <div className="flex gap-2">
                   <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
                     <DialogTrigger asChild>
-                      <Button size="sm" variant="outline" className="flex-1 h-9">
-                        <Eye className="h-4 w-4 mr-2" />
-                        View
+                      <Button size="sm" variant="outline" className="h-7 px-2">
+                        <Eye className="h-3 w-3" />
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -362,27 +365,25 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
                   <Button 
                     size="sm" 
                     variant="outline" 
-                    className="h-9 px-4" 
+                    className="h-7 px-2" 
                     onClick={() => setIsShareDialogOpen(true)}
                   >
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Share
+                    <Share2 className="h-3 w-3" />
                   </Button>
                   
                   {onDelete && (
                     <Button 
                       size="sm" 
                       variant="outline" 
-                      className="h-9 px-4 text-destructive hover:bg-destructive/10" 
+                      className="h-7 px-2 text-destructive hover:bg-destructive/10" 
                       onClick={() => onDelete(restaurant.id)}
                     >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
+                      <Trash2 className="h-3 w-3" />
                     </Button>
                   )}
                 </div>
-              )}
-            </CardContent>
+              </CardContent>
+            )}
           </div>
         </div>
       </Card>
