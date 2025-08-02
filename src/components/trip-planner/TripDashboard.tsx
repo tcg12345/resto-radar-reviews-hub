@@ -63,14 +63,7 @@ export function TripDashboard() {
   return <div className="w-full px-4 lg:px-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            Trip Dashboard
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your adventures and discover new places
-          </p>
-        </div>
+        
         
         <div className="flex items-center gap-3">
           
