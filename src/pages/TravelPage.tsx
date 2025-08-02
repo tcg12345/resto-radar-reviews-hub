@@ -47,7 +47,7 @@ export default function TravelPage() {
             </TabsTrigger>
             <TabsTrigger value="trip-planner" className="flex items-center gap-2">
               <MapPin className="w-4 h-4" />
-              Trip Planner & Ratings
+              Trip Planner
             </TabsTrigger>
           </TabsList>
           
