@@ -378,9 +378,7 @@ export function UnifiedRestaurantDetails({
         {/* Photos */}
         {photos.length > 0 && <div className={`${isMobile ? 'aspect-video' : 'aspect-video md:h-64'} bg-muted relative overflow-hidden cursor-pointer group`} onClick={() => navigate(`/restaurant/${restaurantData.place_id}/community-photos?name=${encodeURIComponent(restaurantData.name)}`)}>
             <img src={photos[0]} alt={restaurantData.name} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-            <div className="absolute top-3 right-3 bg-black/70 text-white px-2 py-1 rounded-md text-sm">
-              View community photos
-            </div>
+            <div className="absolute top-3 right-3 bg-black/70 text-white px-2 py-1 rounded-md text-sm">View more photos</div>
           </div>}
 
         {/* Main Content */}
