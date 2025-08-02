@@ -509,7 +509,7 @@ export function PlaceRatingDialog({
     }
   };
   return <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto rounded-lg mx-4">
+      <DialogContent className="sm:max-w-[600px] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] max-h-[80vh] overflow-y-auto rounded-lg mx-4">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MapPin className="w-5 h-5" />
