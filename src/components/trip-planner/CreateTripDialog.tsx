@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Plus, MapPin, Calendar, Users, Sparkles } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Plus, MapPin, Calendar, Users, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,14 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useTrips } from '@/hooks/useTrips';
+import { supabase } from '@/integrations/supabase/client';
+
+interface LocationSuggestion {
+  id: string;
+  description: string;
+  mainText: string;
+  secondaryText: string;
+}
 
 interface CreateTripDialogProps {
   isOpen: boolean;
@@ -29,7 +37,68 @@ export function CreateTripDialog({ isOpen, onClose }: CreateTripDialogProps) {
   const [isStartDatePickerOpen, setIsStartDatePickerOpen] = useState(false);
   const [isEndDatePickerOpen, setIsEndDatePickerOpen] = useState(false);
   
+  // Autocomplete state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [locationSuggestions, setLocationSuggestions] = useState<LocationSuggestion[]>([]);
+  const [isLocationLoading, setIsLocationLoading] = useState(false);
+  const [showLocationResults, setShowLocationResults] = useState(false);
+  const locationContainerRef = useRef<HTMLDivElement>(null);
+  
   const { createTrip } = useTrips();
+
+  // Click outside handler for autocomplete
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (locationContainerRef.current && !locationContainerRef.current.contains(event.target as Node)) {
+        setShowLocationResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Location suggestions effect
+  useEffect(() => {
+    const searchForLocations = async () => {
+      if (searchQuery.length < 2) {
+        setLocationSuggestions([]);
+        setShowLocationResults(false);
+        return;
+      }
+
+      setIsLocationLoading(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('location-suggestions', {
+          body: { input: searchQuery, limit: 10 }
+        });
+
+        if (error) throw error;
+        
+        setLocationSuggestions(data.suggestions || []);
+        setShowLocationResults(true);
+      } catch (error) {
+        console.error('Error searching locations:', error);
+        setLocationSuggestions([]);
+      } finally {
+        setIsLocationLoading(false);
+      }
+    };
+
+    const debounceTimer = setTimeout(searchForLocations, 300);
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery]);
+
+  const handleDestinationChange = (newValue: string) => {
+    setDestination(newValue);
+    setSearchQuery(newValue);
+  };
+
+  const handleLocationSelect = (location: LocationSuggestion) => {
+    setDestination(location.description);
+    setSearchQuery('');
+    setShowLocationResults(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +130,9 @@ export function CreateTripDialog({ isOpen, onClose }: CreateTripDialogProps) {
     setIsPublic(false);
     setIsStartDatePickerOpen(false);
     setIsEndDatePickerOpen(false);
+    setSearchQuery('');
+    setLocationSuggestions([]);
+    setShowLocationResults(false);
     onClose();
   };
 
@@ -102,16 +174,46 @@ export function CreateTripDialog({ isOpen, onClose }: CreateTripDialogProps) {
 
               <div className="space-y-2">
                 <Label htmlFor="destination">Destination *</Label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <div ref={locationContainerRef} className="relative">
+                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
                   <Input
                     id="destination"
                     value={destination}
-                    onChange={(e) => setDestination(e.target.value)}
+                    onChange={(e) => handleDestinationChange(e.target.value)}
                     placeholder="e.g., Paris, France or Multiple Cities"
-                    className="pl-10 text-base"
+                    className="pl-10 pr-10 text-base"
                     required
                   />
+                  {isLocationLoading && (
+                    <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-muted-foreground z-10" />
+                  )}
+                  
+                  {showLocationResults && locationSuggestions.length > 0 && (
+                    <div className="absolute z-50 w-full mt-1 bg-background border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                      {locationSuggestions.map((location) => (
+                        <div
+                          key={location.id}
+                          onClick={() => handleLocationSelect(location)}
+                          className="px-4 py-2 hover:bg-muted cursor-pointer border-b border-border last:border-b-0"
+                        >
+                          <div className="font-medium text-foreground">
+                            {location.mainText}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {location.secondaryText}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {showLocationResults && locationSuggestions.length === 0 && !isLocationLoading && searchQuery.length >= 2 && (
+                    <div className="absolute z-50 w-full mt-1 bg-background border border-border rounded-md shadow-lg">
+                      <div className="px-4 py-2 text-muted-foreground">
+                        No locations found
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
