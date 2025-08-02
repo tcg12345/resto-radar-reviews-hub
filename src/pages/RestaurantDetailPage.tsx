@@ -88,17 +88,23 @@ export function RestaurantDetailPage() {
 
   useEffect(() => {
     const fetchRestaurantDetails = async () => {
-      if (!restaurantId || !friendId) return;
+      if (!restaurantId) return;
       
       setIsLoading(true);
       try {
-        // Fetch restaurant details
-        const { data: restaurantData, error: restaurantError } = await supabase
+        // If there's a friendId, fetch friend's restaurant, otherwise fetch user's own restaurant
+        let restaurantQuery = supabase
           .from('restaurants')
           .select('*')
-          .eq('id', restaurantId)
-          .eq('user_id', friendId)
-          .single();
+          .eq('id', restaurantId);
+
+        if (friendId) {
+          restaurantQuery = restaurantQuery.eq('user_id', friendId);
+        } else {
+          restaurantQuery = restaurantQuery.eq('user_id', user?.id);
+        }
+
+        const { data: restaurantData, error: restaurantError } = await restaurantQuery.single();
 
         if (restaurantError) {
           console.error('Error fetching restaurant:', restaurantError);
@@ -113,17 +119,19 @@ export function RestaurantDetailPage() {
         }
         setRestaurant(enhancedRestaurant);
 
-        // Fetch friend profile
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('id, username, name, avatar_url')
-          .eq('id', friendId)
-          .single();
+        // Fetch friend profile only if friendId exists
+        if (friendId) {
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('id, username, name, avatar_url')
+            .eq('id', friendId)
+            .single();
 
-        if (profileError) {
-          console.error('Error fetching profile:', profileError);
-        } else {
-          setFriendProfile(profileData);
+          if (profileError) {
+            console.error('Error fetching profile:', profileError);
+          } else {
+            setFriendProfile(profileData);
+          }
         }
       } catch (error) {
         console.error('Error loading data:', error);
@@ -134,7 +142,7 @@ export function RestaurantDetailPage() {
     };
 
     fetchRestaurantDetails();
-  }, [restaurantId, friendId]);
+  }, [restaurantId, friendId, user?.id]);
 
   const handleBack = () => {
     if (returnUrl) {
