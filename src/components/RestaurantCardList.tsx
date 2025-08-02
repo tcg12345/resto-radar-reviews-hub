@@ -93,10 +93,14 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
       />
       
       <Card className="overflow-hidden bg-card shadow-sm hover:shadow-md transition-shadow duration-300">
-        <div className="flex">
+        <div className={isMobile ? "block" : "flex"}>
           {/* Photo section */}
           {restaurant.photos.length > 0 && (
-            <div className="relative w-32 h-32 lg:w-40 lg:h-40 flex-shrink-0 overflow-hidden">
+            <div className={`relative overflow-hidden ${
+              isMobile 
+                ? "w-full h-40" 
+                : "w-32 h-32 lg:w-40 lg:h-40 flex-shrink-0"
+            }`}>
               <img 
                 src={restaurant.photos[currentPhotoIndex]} 
                 alt={`${restaurant.name} photo`}
@@ -108,12 +112,14 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
           
           {/* Content section */}
           <div className="flex-1 flex flex-col">
-            <CardHeader className="pb-2 p-3 lg:p-4">
+            <CardHeader className={`pb-2 ${isMobile ? "p-3" : "p-3 lg:p-4"}`}>
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <CardTitle className="text-base lg:text-lg font-bold line-clamp-1">{restaurant.name}</CardTitle>
+                  <CardTitle className={`font-bold line-clamp-1 ${isMobile ? "text-lg" : "text-base lg:text-lg"}`}>
+                    {restaurant.name}
+                  </CardTitle>
                   
-                  <div className="flex items-center gap-2 mt-1">
+                  <div className={`flex items-center gap-2 mt-1 ${isMobile ? "flex-wrap" : ""}`}>
                     {restaurant.rating !== undefined && (
                       <div className="flex items-center gap-1">
                         <StarRating rating={restaurant.rating} readonly size="sm" />
@@ -130,7 +136,7 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
                     )}
                   </div>
                   
-                  <div className="flex items-center gap-1 mt-1 text-sm">
+                  <div className={`flex items-center gap-1 mt-1 text-sm ${isMobile ? "flex-wrap" : ""}`}>
                     {restaurant.priceRange && (
                       <>
                         <span className="text-green-600 font-medium">
@@ -144,11 +150,12 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
                 </div>
                 
                 {/* Action buttons */}
-                <div className="flex gap-1 ml-2">
+                <div className={`flex gap-1 ml-2 ${isMobile ? "flex-col" : ""}`}>
                   <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
                     <DialogTrigger asChild>
-                      <Button size="sm" variant="outline" className="h-7 px-2 text-xs">
+                      <Button size="sm" variant="outline" className={`text-xs ${isMobile ? "h-8 px-3" : "h-7 px-2"}`}>
                         <Eye className="h-3 w-3" />
+                        {isMobile && <span className="ml-1">View</span>}
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -219,27 +226,29 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
                   <Button 
                     size="sm" 
                     variant="outline" 
-                    className="h-7 px-2 text-xs" 
+                    className={`text-xs ${isMobile ? "h-8 px-3" : "h-7 px-2"}`} 
                     onClick={() => setIsShareDialogOpen(true)}
                   >
                     <Share2 className="h-3 w-3" />
+                    {isMobile && <span className="ml-1">Share</span>}
                   </Button>
                   
                   {onDelete && (
                     <Button 
                       size="sm" 
                       variant="outline" 
-                      className="h-7 px-2 text-xs text-destructive hover:bg-destructive/10" 
+                      className={`text-xs text-destructive hover:bg-destructive/10 ${isMobile ? "h-8 px-3" : "h-7 px-2"}`} 
                       onClick={() => onDelete(restaurant.id)}
                     >
                       <Trash2 className="h-3 w-3" />
+                      {isMobile && <span className="ml-1">Delete</span>}
                     </Button>
                   )}
                 </div>
               </div>
             </CardHeader>
             
-            <CardContent className="p-3 lg:p-4 pt-0 flex-1 flex flex-col justify-between">
+            <CardContent className={`pt-0 flex-1 flex flex-col justify-between ${isMobile ? "p-3" : "p-3 lg:p-4"}`}>
               <div className="space-y-1">
                 <div className="flex items-center text-xs text-muted-foreground">
                   <MapPin className="mr-1 h-3 w-3 flex-shrink-0" />
