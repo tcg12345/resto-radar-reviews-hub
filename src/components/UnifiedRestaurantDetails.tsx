@@ -505,31 +505,7 @@ export function UnifiedRestaurantDetails({
 
             {/* Contact */}
             {(getPhoneNumber() || restaurantData.website) && <Card>
-                <CardContent className="p-4 space-y-3">
-                  <h3 className="font-medium">Contact</h3>
-                  
-                  {getPhoneNumber() && <Button variant="ghost" onClick={handleCall} className="w-full justify-start p-0 h-auto">
-                      <div className="flex items-center gap-3">
-                        <Phone className="h-5 w-5 text-muted-foreground" />
-                        <div className="text-left">
-                          <p className="text-sm font-medium">Phone</p>
-                          <p className="text-sm text-muted-foreground">
-                            {getPhoneNumber()}
-                          </p>
-                        </div>
-                      </div>
-                    </Button>}
-
-                  {restaurantData.website && <Button variant="ghost" onClick={handleWebsite} className="w-full justify-start p-0 h-auto">
-                      <div className="flex items-center gap-3">
-                        <Globe className="h-5 w-5 text-muted-foreground" />
-                        <div className="text-left">
-                          <p className="text-sm font-medium">Website</p>
-                          <p className="text-sm text-muted-foreground">Visit website</p>
-                        </div>
-                      </div>
-                    </Button>}
-                </CardContent>
+                
               </Card>}
 
             {/* Opening Hours */}
