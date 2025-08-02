@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { format } from 'date-fns';
 import { MapPin, Clock, Tag, Edit2, Trash2, Eye, Bot, ExternalLink, Phone, Globe, Share2 } from 'lucide-react';
@@ -74,6 +75,7 @@ export function RestaurantCard({
   onDelete,
   showAIReviewAssistant = false
 }: RestaurantCardProps) {
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
@@ -246,125 +248,16 @@ export function RestaurantCard({
       </CardContent>
       
       <CardFooter className="flex mobile-grid-compact pt-0 lg:pt-1 pb-1 lg:pb-2 p-2 lg:p-4">
-        <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" variant="outline" className="flex-1 h-6 lg:h-7 px-1 lg:px-2 text-[10px] lg:text-xs mobile-button">
-              <Eye className="mr-0.5 lg:mr-1 h-2.5 w-2.5 lg:h-3 lg:w-3" />
-              <span className="hidden sm:inline">Details</span>
-              <span className="sm:hidden">Info</span>
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{restaurant.name}</DialogTitle>
-              <DialogDescription>
-                Restaurant details and information
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="font-semibold mb-2">Location</h4>
-                  <p className="text-sm text-muted-foreground flex items-center">
-                    <MapPin className="mr-1 h-3.5 w-3.5" />
-                    <LocationDisplay restaurant={restaurant} />
-                  </p>
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-2">Cuisine</h4>
-                  <p className="text-sm text-muted-foreground">{restaurant.cuisine}</p>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {restaurant.rating !== undefined && <div>
-                    <h4 className="font-semibold mb-2">Rating</h4>
-                    <div className="flex items-center gap-2">
-                      {restaurant.googleMapsUrl ? <a href={`https://www.google.com/search?q=${encodeURIComponent(`${restaurant.name} ${restaurant.address}`)}`} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity">
-                          <StarRating rating={restaurant.rating} readonly size="sm" />
-                        </a> : <StarRating rating={restaurant.rating} readonly size="sm" />}
-                      {restaurant.reviewCount && restaurant.reviewCount > 0 && <a href={`https://www.google.com/search?q=${encodeURIComponent(`${restaurant.name} ${restaurant.address}`)}`} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:underline">
-                          ({restaurant.reviewCount.toLocaleString()} reviews)
-                        </a>}
-                    </div>
-                  </div>}
-                
-                {restaurant.priceRange && <div>
-                    <h4 className="font-semibold mb-2">Price Range</h4>
-                    <PriceRange priceRange={restaurant.priceRange} readonly size="sm" />
-                  </div>}
-              </div>
-              
-              {restaurant.michelinStars && <div>
-                  <h4 className="font-semibold mb-2">Michelin Stars</h4>
-                  <MichelinStars stars={restaurant.michelinStars} readonly size="sm" />
-                </div>}
-              
-              {restaurant.dateVisited && <div>
-                  <h4 className="font-semibold mb-2">Date Visited</h4>
-                  <p className="text-sm text-muted-foreground">
-                    {format(new Date(restaurant.dateVisited), 'EEEE, MMMM do, yyyy')}
-                  </p>
-                </div>}
-              
-              {restaurant.website && <div>
-                  <h4 className="font-semibold mb-2">Website</h4>
-                  <Button variant="outline" onClick={handleOpenWebsite} className="w-full h-auto p-3 justify-start hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
-                        <Globe className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="flex flex-col items-start text-left">
-                        <span className="text-sm font-medium">Visit Website</span>
-                        <span className="text-xs text-muted-foreground truncate max-w-[200px]">
-                          {new URL(restaurant.website).hostname}
-                        </span>
-                      </div>
-                    </div>
-                  </Button>
-                </div>}
-              
-              {restaurant.phone_number && <div>
-                  <h4 className="font-semibold mb-2">Phone</h4>
-                  <Button variant="outline" onClick={handleCallPhone} className="w-full h-auto p-3 justify-start hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/20">
-                        <Phone className="h-4 w-4 text-green-600 dark:text-green-500" />
-                      </div>
-                      <div className="flex flex-col items-start text-left">
-                        <span className="text-sm font-medium">Call Restaurant</span>
-                        <span className="text-xs text-muted-foreground">
-                          {restaurant.phone_number}
-                        </span>
-                      </div>
-                    </div>
-                  </Button>
-                </div>}
-              
-              {restaurant.openingHours && <div>
-                  <OpeningHoursDisplay hours={restaurant.openingHours.split('\n')} />
-                </div>}
-              
-              {restaurant.notes && <div>
-                  <h4 className="font-semibold mb-2">Notes</h4>
-                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{restaurant.notes}</p>
-                </div>}
-              
-              {/* Action buttons inside details modal */}
-              <div className="flex gap-2 pt-4 border-t">
-                {showAIReviewAssistant && !restaurant.isWishlist && <Button size="sm" variant="outline" className="flex-1" onClick={() => setIsAIReviewOpen(true)}>
-                    <Bot className="mr-1 h-3 w-3" />
-                    AI Review
-                  </Button>}
-                
-                {onEdit && <Button size="sm" variant="outline" className="flex-1" onClick={() => onEdit(restaurant.id)}>
-                    <Edit2 className="mr-1 h-3 w-3" />
-                    Edit
-                  </Button>}
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <Button 
+          size="sm" 
+          variant="outline" 
+          className="flex-1 h-6 lg:h-7 px-1 lg:px-2 text-[10px] lg:text-xs mobile-button"
+          onClick={() => navigate(`/restaurant/${restaurant.id}`)}
+        >
+          <Eye className="mr-0.5 lg:mr-1 h-2.5 w-2.5 lg:h-3 lg:w-3" />
+          <span className="hidden sm:inline">Details</span>
+          <span className="sm:hidden">Info</span>
+        </Button>
         
         <Button size="sm" variant="outline" className="flex-1 h-6 lg:h-7 px-1.5 lg:px-2 text-[10px] lg:text-xs mobile-button" onClick={() => setIsShareDialogOpen(true)}>
           <Share2 className="mr-0.5 lg:mr-1 h-2.5 w-2.5 lg:h-3 lg:w-3" />
