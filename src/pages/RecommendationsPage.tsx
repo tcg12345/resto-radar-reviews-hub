@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Restaurant, RestaurantFormData } from '@/types/restaurant';
 import { RecommendationCard } from '@/components/RecommendationCard';
 import { RecommendationFilters } from '@/components/RecommendationFilters';
+import { InfiniteScrollLoader } from '@/components/InfiniteScrollLoader';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, MapPin, Map } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -95,23 +96,21 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
       setUserCities(cities);
       setCurrentCityIndex(0);
       
-      // Load cached data first, then fetch new data
-      loadInitialRecommendations(cities);
+      // Load cached data instantly without waiting
+      loadCachedDataInstantly(cities);
       setHasLoadedInitial(true);
+      
+      // Load fresh data in background
+      setTimeout(() => loadFreshDataInBackground(cities), 100);
     }
   }, [ratedRestaurants.length, hasLoadedInitial]);
 
-  // Infinite scroll observer - now just shows more from preloaded data
+  // Infinite scroll observer
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        console.log('Intersection observer triggered:', entries[0].isIntersecting, 'isLoadingMore:', isLoadingMore, 'displayedCount:', displayedCount, 'total:', filteredRecommendations.length);
         if (entries[0].isIntersecting && !isLoadingMore) {
-          // Either show more cached data OR load new data from API
-          if (displayedCount < filteredRecommendations.length || userCities.length > 0) {
-            console.log('Calling handleInfiniteScroll');
-            handleInfiniteScroll();
-          }
+          handleInfiniteScroll();
         }
       },
       { threshold: 0.1 }
@@ -119,19 +118,16 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
 
     if (observerTarget.current) {
       observer.observe(observerTarget.current);
-      console.log('Observer attached to target');
     }
 
     return () => observer.disconnect();
-  }, [displayedCount, filteredRecommendations.length, isLoadingMore, userCities.length]);
+  }, [displayedCount, filteredRecommendations.length, isLoadingMore]);
 
-  // Reduced preload trigger to avoid conflicts with manual infinite scroll
+  // Background preload when running low on items
   useEffect(() => {
     const remainingItems = filteredRecommendations.length - displayedCount;
-    if (remainingItems < 20 && !isLoadingMore && userCities.length > 0) {
-      // Only preload when we're very close to running out
-      console.log('Background preload triggered, remaining items:', remainingItems);
-      loadMultipleBatchesInBackground();
+    if (remainingItems < 10 && !isLoadingMore && userCities.length > 0) {
+      loadMoreFromAPI();
     }
   }, [displayedCount, filteredRecommendations.length, isLoadingMore, userCities.length]);
 
@@ -213,17 +209,12 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
   };
 
   const handleInfiniteScroll = async () => {
-    console.log('handleInfiniteScroll called: current displayed:', displayedCount, 'total available:', filteredRecommendations.length);
-    
     // If we have more cached data, show it instantly
     if (displayedCount < filteredRecommendations.length) {
-      const newDisplayedCount = Math.min(displayedCount + 20, filteredRecommendations.length);
-      console.log('Setting new displayedCount to:', newDisplayedCount);
-      setDisplayedCount(newDisplayedCount);
+      setDisplayedCount(prev => Math.min(prev + 20, filteredRecommendations.length));
     } 
     // If we've shown all cached data, load more from API
     else if (!isLoadingMore && userCities.length > 0) {
-      console.log('Need to load more data from API');
       await loadMoreFromAPI();
     }
   };
@@ -234,10 +225,8 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
     setIsLoadingMore(true);
     
     try {
-      // Load from next city
       const cityIndex = currentCityIndex % userCities.length;
       const city = userCities[cityIndex];
-      console.log('Loading more from city:', city);
       
       const newRecs = await fetchRecommendationsForCity(city);
       
@@ -251,14 +240,8 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
           return unique;
         });
         
-        // Cache the new data
         setCachedRecommendations(city, newRecs);
-        
-        // Move to next city for next load
         setCurrentCityIndex(prev => prev + 1);
-        
-        // Instantly show some of the new data
-        setDisplayedCount(prev => prev + 20);
       }
     } catch (error) {
       console.error('Error loading more recommendations:', error);
@@ -268,8 +251,7 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
   };
 
 
-  const loadInitialRecommendations = async (cities: string[]) => {
-    // First, load any cached data instantly
+  const loadCachedDataInstantly = (cities: string[]) => {
     const cachedData: RecommendationData[] = [];
     cities.forEach(city => {
       const cached = getCachedRecommendations(city);
@@ -277,16 +259,16 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
     });
     
     if (cachedData.length > 0) {
-      // Show cached data instantly
       const shuffled = cachedData.sort(() => Math.random() - 0.5);
       setAllLoadedRecommendations(shuffled);
     }
-    
-    // Load fresh data from multiple cities in parallel
-    const initialBatches = cities.slice(0, 3); // Load from first 3 cities
-    const promises = initialBatches.map(city => fetchRecommendationsForCity(city));
+  };
+
+  const loadFreshDataInBackground = async (cities: string[]) => {
+    const initialBatches = cities.slice(0, 2); // Load from first 2 cities only
     
     try {
+      const promises = initialBatches.map(city => fetchRecommendationsForCity(city));
       const results = await Promise.all(promises);
       const allNewRecs = results.flat();
       
@@ -300,7 +282,7 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
           return unique;
         });
         
-        // Cache all the new data
+        // Cache the new data
         results.forEach((cityResults, index) => {
           if (cityResults.length > 0) {
             setCachedRecommendations(initialBatches[index], cityResults);
@@ -308,9 +290,9 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
         });
       }
       
-      setCurrentCityIndex(3); // Start next loads from city 3
+      setCurrentCityIndex(2);
     } catch (error) {
-      console.error('Error loading initial recommendations:', error);
+      console.error('Error loading background recommendations:', error);
     }
   };
 
@@ -520,24 +502,14 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
           ))}
         </div>
         
-        {/* Infinite scroll target */}
-        <div ref={observerTarget} className="flex justify-center py-8">
-          {displayedCount < filteredRecommendations.length ? (
-            <div className="flex items-center gap-2">
-              <Loader2 className="h-5 w-5 animate-spin text-primary" />
-              <span className="text-sm text-muted-foreground">Loading more recommendations...</span>
-            </div>
-          ) : isLoadingMore ? (
-            <div className="flex items-center gap-2">
-              <Loader2 className="h-5 w-5 animate-spin text-primary" />
-              <span className="text-sm text-muted-foreground">Finding new restaurants...</span>
-            </div>
-          ) : filteredRecommendations.length > 20 ? (
-            <div className="text-sm text-muted-foreground">
-              You've seen all {filteredRecommendations.length} recommendations
-            </div>
-          ) : null}
-        </div>
+        {/* Infinite scroll */}
+        <InfiniteScrollLoader
+          hasMore={displayedCount < filteredRecommendations.length || (!isLoadingMore && userCities.length > 0)}
+          isLoading={isLoadingMore}
+          onLoadMore={handleInfiniteScroll}
+          loadMoreText="Load More Recommendations"
+          className="mt-6"
+        />
 
         {recommendations.length === 0 && !isLoadingMore && (
           <div className="flex flex-col items-center justify-center h-64 text-center px-4">
