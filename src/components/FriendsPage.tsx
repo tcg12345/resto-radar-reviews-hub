@@ -215,9 +215,9 @@ export function FriendsPage({
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="relative w-screen -ml-[50vw] left-1/2 px-2">
-          <TabsList className="w-full h-auto p-1 flex overflow-x-auto gap-1 mb-8 bg-muted rounded-md">
-            <TabsTrigger value="friends" className="flex items-center gap-1 text-xs whitespace-nowrap px-3 py-2 flex-shrink-0">
+        <div className="w-full -mx-4 lg:-mx-6 -mx-2 px-0 mb-8">
+          <TabsList className="w-full h-auto p-2 flex overflow-x-auto gap-1 bg-muted rounded-none border-0">
+            <TabsTrigger value="friends" className="flex items-center gap-1 text-xs whitespace-nowrap px-3 py-2 flex-shrink-0 ml-2">
               <Users className="h-3 w-3" />
               <span>Friends ({friends.length})</span>
             </TabsTrigger>
@@ -229,7 +229,7 @@ export function FriendsPage({
               <Plus className="h-3 w-3" />
               <span>Find Friends</span>
             </TabsTrigger>
-            <TabsTrigger value="requests" className="flex items-center gap-1 text-xs whitespace-nowrap px-3 py-2 flex-shrink-0">
+            <TabsTrigger value="requests" className="flex items-center gap-1 text-xs whitespace-nowrap px-3 py-2 flex-shrink-0 mr-2">
               <Filter className="h-3 w-3" />
               <span>Requests ({pendingRequests.length + sentRequests.length})</span>
             </TabsTrigger>
