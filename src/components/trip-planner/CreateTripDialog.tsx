@@ -156,9 +156,6 @@ export function CreateTripDialog({ isOpen, onClose }: CreateTripDialogProps) {
             </div>
             <div>
               <h1 className="text-xl font-semibold">Create New Adventure</h1>
-              <p className="text-sm text-muted-foreground">
-                Start documenting your journey and collect memories from amazing places
-              </p>
             </div>
           </div>
         </div>
