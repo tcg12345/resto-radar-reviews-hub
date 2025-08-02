@@ -162,7 +162,7 @@ export function CreateTripDialog({ isOpen, onClose }: CreateTripDialogProps) {
       </div>
 
       {/* Content */}
-      <div className="px-4 py-6 max-w-2xl mx-auto">
+      <div className="px-4 pt-8 pb-6 max-w-2xl mx-auto lg:pt-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Essential Info */}
           <Card className="border-2 border-primary/10">
