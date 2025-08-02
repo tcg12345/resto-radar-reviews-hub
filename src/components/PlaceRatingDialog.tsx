@@ -560,7 +560,7 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, tripTitle, editPlac
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto rounded-xl border-0 shadow-xl bg-gradient-to-br from-background to-background/95 backdrop-blur-sm">
+      <DialogContent className="w-full max-w-full sm:max-w-[600px] max-h-[85vh] h-full sm:h-auto overflow-y-auto rounded-none sm:rounded-xl border-0 shadow-xl bg-gradient-to-br from-background to-background/95 backdrop-blur-sm p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MapPin className="w-5 h-5" />
@@ -574,18 +574,18 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, tripTitle, editPlac
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="search">Search Places</TabsTrigger>
-              <TabsTrigger value="restaurants">My Restaurants</TabsTrigger>
-              <TabsTrigger value="itinerary">Import Itinerary</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 h-auto gap-1 p-1">
+              <TabsTrigger value="search" className="text-xs sm:text-sm px-2 py-2">Search</TabsTrigger>
+              <TabsTrigger value="restaurants" className="text-xs sm:text-sm px-2 py-2">My Places</TabsTrigger>
+              <TabsTrigger value="itinerary" className="text-xs sm:text-sm px-2 py-2">Import</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="search" className="space-y-6">
+            <TabsContent value="search" className="space-y-3 sm:space-y-6 mt-3">
               {/* Place Search */}
               <div className="space-y-2">
-                <Label htmlFor="search">Search for a place</Label>
+                <Label htmlFor="search" className="text-sm font-medium">Search for a place</Label>
             <div className="relative">
               <div className="flex gap-2">
                 <div className="relative flex-1">
@@ -654,7 +654,7 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, tripTitle, editPlac
           </div>
             </TabsContent>
 
-            <TabsContent value="restaurants" className="space-y-4">
+            <TabsContent value="restaurants" className="space-y-2 sm:space-y-4 mt-3">
               <div className="space-y-2">
                 <Label>Select from your rated restaurants</Label>
                 <div className="max-h-64 overflow-y-auto space-y-2">
@@ -710,7 +710,7 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, tripTitle, editPlac
               </div>
             </TabsContent>
 
-            <TabsContent value="itinerary" className="space-y-4">
+            <TabsContent value="itinerary" className="space-y-2 sm:space-y-4 mt-3">
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
                   <BookOpen className="w-4 h-4" />
@@ -912,22 +912,22 @@ export function PlaceRatingDialog({ isOpen, onClose, tripId, tripTitle, editPlac
                 
                 {/* Photo Upload Area */}
                 <div
-                  className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                  className={`relative border-2 border-dashed rounded-lg p-3 sm:p-6 text-center transition-colors ${
                     isDragOver ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'
                   }`}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
                 >
-                  <div className="flex flex-col items-center gap-3">
+                  <div className="flex flex-col items-center gap-2 sm:gap-3">
                     <div className="flex items-center gap-2">
-                      <Upload className="h-8 w-8 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">
+                      <Upload className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
+                      <span className="text-xs sm:text-sm text-muted-foreground">
                         Drag & drop photos here, or click to select
                       </span>
                     </div>
                     
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-1 sm:gap-2 justify-center">
                       <Button
                         type="button"
                         variant="outline"
