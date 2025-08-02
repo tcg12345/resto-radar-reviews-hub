@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { format } from 'date-fns';
 import { MapPin, Clock, Edit2, Trash2, Eye, Share2, Phone, Globe, Star } from 'lucide-react';
@@ -48,9 +49,9 @@ function LocationDisplay({ restaurant }: { restaurant: Restaurant }) {
 
 export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantCardListProps) {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const { loadRestaurantPhotos } = useRestaurants();
 
@@ -79,6 +80,15 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
       window.open(`tel:${restaurant.phone_number}`, '_blank');
     }
   };
+  
+  const handleCardClick = () => {
+    navigate(`/restaurant/${restaurant.id}`);
+  };
+
+  const handleButtonClick = (e: React.MouseEvent, action: () => void) => {
+    e.stopPropagation();
+    action();
+  };
 
   return (
     <>
@@ -92,7 +102,7 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
         isMobile={isMobile}
       />
       
-      <Card className="overflow-hidden bg-card shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer" onClick={() => setIsDetailsOpen(true)}>
+      <Card className="overflow-hidden bg-card shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer" onClick={handleCardClick}>
         <div className={isMobile ? "block" : "flex"}>
           {/* Photo section - only show on desktop */}
           {!isMobile && restaurant.photos.length > 0 && (
@@ -160,82 +170,11 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
                 {/* Action buttons - improved mobile layout */}
                 {!isMobile && (
                   <div className="flex gap-1 ml-2">
-                    <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-                      <DialogTrigger asChild>
-                        <Button size="sm" variant="outline" className="h-7 px-2 text-xs">
-                          <Eye className="h-3 w-3" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                        <DialogHeader>
-                          <DialogTitle>{restaurant.name}</DialogTitle>
-                          <DialogDescription>Restaurant details and information</DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <h4 className="font-semibold mb-2">Location</h4>
-                              <p className="text-sm text-muted-foreground flex items-center">
-                                <MapPin className="mr-1 h-3.5 w-3.5" />
-                                <LocationDisplay restaurant={restaurant} />
-                              </p>
-                            </div>
-                            <div>
-                              <h4 className="font-semibold mb-2">Cuisine</h4>
-                              <p className="text-sm text-muted-foreground">{restaurant.cuisine}</p>
-                            </div>
-                          </div>
-                          
-                          {restaurant.website && (
-                            <div>
-                              <h4 className="font-semibold mb-2">Website</h4>
-                              <Button variant="outline" onClick={handleOpenWebsite} className="w-full h-auto p-3 justify-start">
-                                <Globe className="h-4 w-4 mr-3" />
-                                <span className="text-sm">Visit Website</span>
-                              </Button>
-                            </div>
-                          )}
-                          
-                          {restaurant.phone_number && (
-                            <div>
-                              <h4 className="font-semibold mb-2">Phone</h4>
-                              <Button variant="outline" onClick={handleCallPhone} className="w-full h-auto p-3 justify-start">
-                                <Phone className="h-4 w-4 mr-3" />
-                                <span className="text-sm">{restaurant.phone_number}</span>
-                              </Button>
-                            </div>
-                          )}
-                          
-                          {restaurant.openingHours && (
-                            <div>
-                              <OpeningHoursDisplay hours={restaurant.openingHours.split('\n')} />
-                            </div>
-                          )}
-                          
-                          {restaurant.notes && (
-                            <div>
-                              <h4 className="font-semibold mb-2">Notes</h4>
-                              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{restaurant.notes}</p>
-                            </div>
-                          )}
-                          
-                          <div className="flex gap-2 pt-4 border-t">
-                            {onEdit && (
-                              <Button size="sm" variant="outline" className="flex-1" onClick={() => onEdit(restaurant.id)}>
-                                <Edit2 className="mr-1 h-3 w-3" />
-                                Edit
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                    
                     <Button 
                       size="sm" 
                       variant="outline" 
                       className="h-7 px-2 text-xs" 
-                      onClick={() => setIsShareDialogOpen(true)}
+                      onClick={(e) => handleButtonClick(e, () => setIsShareDialogOpen(true))}
                     >
                       <Share2 className="h-3 w-3" />
                     </Button>
@@ -245,7 +184,7 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
                         size="sm" 
                         variant="outline" 
                         className="h-7 px-2 text-xs text-destructive hover:bg-destructive/10" 
-                        onClick={() => onDelete(restaurant.id)}
+                        onClick={(e) => handleButtonClick(e, () => onDelete(restaurant.id))}
                       >
                         <Trash2 className="h-3 w-3" />
                       </Button>
@@ -291,82 +230,11 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
             {isMobile && (
               <CardContent className="pt-0 px-3 pb-2">
                 <div className="flex gap-2">
-                  <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-                    <DialogTrigger asChild>
-                      <Button size="sm" variant="outline" className="h-7 px-2">
-                        <Eye className="h-3 w-3" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle>{restaurant.name}</DialogTitle>
-                        <DialogDescription>Restaurant details and information</DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <h4 className="font-semibold mb-2">Location</h4>
-                            <p className="text-sm text-muted-foreground flex items-center">
-                              <MapPin className="mr-1 h-3.5 w-3.5" />
-                              <LocationDisplay restaurant={restaurant} />
-                            </p>
-                          </div>
-                          <div>
-                            <h4 className="font-semibold mb-2">Cuisine</h4>
-                            <p className="text-sm text-muted-foreground">{restaurant.cuisine}</p>
-                          </div>
-                        </div>
-                        
-                        {restaurant.website && (
-                          <div>
-                            <h4 className="font-semibold mb-2">Website</h4>
-                            <Button variant="outline" onClick={handleOpenWebsite} className="w-full h-auto p-3 justify-start">
-                              <Globe className="h-4 w-4 mr-3" />
-                              <span className="text-sm">Visit Website</span>
-                            </Button>
-                          </div>
-                        )}
-                        
-                        {restaurant.phone_number && (
-                          <div>
-                            <h4 className="font-semibold mb-2">Phone</h4>
-                            <Button variant="outline" onClick={handleCallPhone} className="w-full h-auto p-3 justify-start">
-                              <Phone className="h-4 w-4 mr-3" />
-                              <span className="text-sm">{restaurant.phone_number}</span>
-                            </Button>
-                          </div>
-                        )}
-                        
-                        {restaurant.openingHours && (
-                          <div>
-                            <OpeningHoursDisplay hours={restaurant.openingHours.split('\n')} />
-                          </div>
-                        )}
-                        
-                        {restaurant.notes && (
-                          <div>
-                            <h4 className="font-semibold mb-2">Notes</h4>
-                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{restaurant.notes}</p>
-                          </div>
-                        )}
-                        
-                        <div className="flex gap-2 pt-4 border-t">
-                          {onEdit && (
-                            <Button size="sm" variant="outline" className="flex-1" onClick={() => onEdit(restaurant.id)}>
-                              <Edit2 className="mr-1 h-3 w-3" />
-                              Edit
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                  
                   <Button 
                     size="sm" 
                     variant="outline" 
                     className="h-7 px-2" 
-                    onClick={() => setIsShareDialogOpen(true)}
+                    onClick={(e) => handleButtonClick(e, () => setIsShareDialogOpen(true))}
                   >
                     <Share2 className="h-3 w-3" />
                   </Button>
@@ -376,7 +244,7 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
                       size="sm" 
                       variant="outline" 
                       className="h-7 px-2 text-destructive hover:bg-destructive/10" 
-                      onClick={() => onDelete(restaurant.id)}
+                      onClick={(e) => handleButtonClick(e, () => onDelete(restaurant.id))}
                     >
                       <Trash2 className="h-3 w-3" />
                     </Button>
