@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Clock, Plus, Heart } from 'lucide-react';
+import { MapPin, Clock, Plus, Heart, Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 
@@ -70,7 +70,10 @@ export function RecommendationCard({ restaurant, onAdd, onAddToWishlist }: Recom
         <h3 className="font-semibold text-lg text-foreground leading-tight">{restaurant.name}</h3>
         {restaurant.rating && (
           <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center">
-            <span className="text-sm font-bold text-primary">{restaurant.rating.toFixed(1)}</span>
+            <div className="text-center">
+              <div className="text-sm font-bold text-primary">{restaurant.rating.toFixed(1)}</div>
+              <Star className="h-3 w-3 text-primary mx-auto" fill="currentColor" />
+            </div>
           </div>
         )}
       </div>
