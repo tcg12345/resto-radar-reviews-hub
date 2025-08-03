@@ -155,13 +155,13 @@ export function FriendsFiltersDialog({
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/60 z-[100]"
+        className="fixed inset-0 bg-black/60 z-[9999]"
         onClick={() => onOpenChange(false)}
       />
       
       {/* Bottom Sheet */}
       <div 
-        className="fixed bottom-0 left-0 right-0 z-[101] bg-background border-t rounded-t-xl animate-in slide-in-from-bottom duration-300 h-[80vh] transition-transform"
+        className="fixed bottom-0 left-0 right-0 z-[10000] bg-background border-t rounded-t-xl animate-in slide-in-from-bottom duration-300 h-[80vh] transition-transform"
         style={{
           transform: `translateY(${dragOffset}px)`,
           transition: isDragging ? 'none' : 'transform 0.3s ease-out'
