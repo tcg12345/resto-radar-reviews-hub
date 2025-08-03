@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, MapPin, Star, Heart, Phone, Globe, Navigation, Clock, Plus, Truck, ShoppingBag, X, Sparkles } from 'lucide-react';
+import { Search, MapPin, Star, Heart, Phone, Globe, Navigation, Clock, Plus, Truck, ShoppingBag, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,7 +16,6 @@ import { RestaurantProfileModal } from '@/components/RestaurantProfileModal';
 import { DiscoverPage } from '@/pages/DiscoverPage';
 import { SearchResultSkeleton } from '@/components/skeletons/SearchResultSkeleton';
 import { InfiniteScrollLoader } from '@/components/InfiniteScrollLoader';
-
 interface GooglePlaceResult {
   place_id: string;
   name: string;
@@ -54,7 +53,6 @@ interface GooglePlaceResult {
   };
   fallbackCuisine?: string;
 }
-
 interface PlaceDetails extends GooglePlaceResult {
   formatted_phone_number?: string;
   website?: string;
@@ -69,13 +67,13 @@ interface PlaceDetails extends GooglePlaceResult {
     time: number;
   }>;
 }
-
 export type SearchType = 'name' | 'cuisine' | 'description';
-
 export default function UnifiedSearchPage() {
   console.log('UnifiedSearchPage component starting...');
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [locationQuery, setLocationQuery] = useState('');
   const [locationSuggestions, setLocationSuggestions] = useState<any[]>([]);
@@ -120,24 +118,23 @@ export default function UnifiedSearchPage() {
   // Load recent restaurants and user's restaurants for recommendations
   const loadInitialData = async () => {
     if (!user) return;
-    
+
     // Load recent clicked restaurants from localStorage
     const savedRestaurants = localStorage.getItem('recentClickedRestaurants');
     if (savedRestaurants) {
       setRecentClickedRestaurants(JSON.parse(savedRestaurants).slice(0, 5));
     }
-    
+
     // Load user's restaurants to generate location-based recommendations
     try {
-      const { data: restaurants, error } = await supabase
-        .from('restaurants')
-        .select('city, country, latitude, longitude')
-        .eq('user_id', user.id)
-        .not('rating', 'is', null); // Only rated restaurants
-      
+      const {
+        data: restaurants,
+        error
+      } = await supabase.from('restaurants').select('city, country, latitude, longitude').eq('user_id', user.id).not('rating', 'is', null); // Only rated restaurants
+
       if (error) throw error;
       setUserRestaurants(restaurants || []);
-      
+
       // Generate recommendations based on user's rated restaurant locations
       if (restaurants && restaurants.length > 0) {
         generateLocationBasedRecommendations(restaurants);
@@ -150,43 +147,37 @@ export default function UnifiedSearchPage() {
   // Generate recommendations based on locations where user has rated restaurants
   const generateLocationBasedRecommendations = useCallback(async (userRestaurants: any[], isLoadMore = false) => {
     if (!userRestaurants.length) return;
-    
     if (isLoadMore) {
       setIsLoadingMoreRecommendations(true);
     } else {
       setIsLoadingRecommendations(true);
     }
-    
     try {
       // Get unique cities from user's restaurants
       const cities = [...new Set(userRestaurants.map(r => r.city).filter(Boolean))];
-      
+
       // Pick a random city from user's history
       const randomCity = cities[Math.floor(Math.random() * cities.length)];
-      
       if (randomCity) {
         const params: any = {
           query: `restaurants in ${randomCity}`,
           type: 'search',
           radius: 25000
         };
-
         if (isLoadMore && nextPageToken) {
           params.pagetoken = nextPageToken;
         }
-
-        const { data, error } = await supabase.functions.invoke('google-places-search', {
+        const {
+          data,
+          error
+        } = await supabase.functions.invoke('google-places-search', {
           body: params
         });
-        
         if (!error && data?.status === 'OK' && data.results?.length > 0) {
           const recommendations = data.results.map((result: any) => ({
             ...result,
-            fallbackCuisine: result.types.find((type: string) => 
-              !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type)
-            )?.replace(/_/g, ' ') || 'Restaurant'
+            fallbackCuisine: result.types.find((type: string) => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 'Restaurant'
           }));
-          
           if (isLoadMore) {
             // Filter out duplicates based on place_id
             const existingPlaceIds = new Set(recommendedPlaces.map(place => place.place_id));
@@ -195,7 +186,7 @@ export default function UnifiedSearchPage() {
           } else {
             setRecommendedPlaces(recommendations);
           }
-          
+
           // Update pagination state
           setNextPageToken(data.next_page_token || null);
           setHasMoreRecommendations(!!data.next_page_token && data.results.length > 0);
@@ -214,7 +205,6 @@ export default function UnifiedSearchPage() {
       }
     }
   }, [nextPageToken, recommendedPlaces]);
-
   const loadMoreRecommendations = useCallback(() => {
     if (!isLoadingMoreRecommendations && hasMoreRecommendations && nextPageToken && userRestaurants.length > 0) {
       generateLocationBasedRecommendations(userRestaurants, true);
@@ -225,14 +215,13 @@ export default function UnifiedSearchPage() {
   const saveToRecentRestaurants = (place: GooglePlaceResult) => {
     const savedRestaurants = localStorage.getItem('recentClickedRestaurants');
     let restaurants = savedRestaurants ? JSON.parse(savedRestaurants) : [];
-    
+
     // Remove if already exists and add to beginning
     restaurants = restaurants.filter((r: GooglePlaceResult) => r.place_id !== place.place_id);
     restaurants.unshift(place);
-    
+
     // Keep only 10 most recent
     restaurants = restaurants.slice(0, 10);
-    
     localStorage.setItem('recentClickedRestaurants', JSON.stringify(restaurants));
     setRecentClickedRestaurants(restaurants.slice(0, 5));
   };
@@ -243,7 +232,6 @@ export default function UnifiedSearchPage() {
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
-    
     debounceTimerRef.current = setTimeout(() => {
       if (searchQuery.length > 2) {
         performLiveSearch();
@@ -251,20 +239,18 @@ export default function UnifiedSearchPage() {
         setSearchResults([]);
       }
     }, 150); // Faster debounce for more responsive search
-    
+
     return () => {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
     };
   }, [searchQuery, locationQuery]);
-
   const performLiveSearch = async () => {
     if (!searchQuery.trim() || searchQuery.length < 3) {
       setSearchResults([]);
       return;
     }
-    
     setIsLoading(true);
     try {
       // Simplified search - just use query and location text for speed
@@ -279,26 +265,23 @@ export default function UnifiedSearchPage() {
         searchParams.location = `${userLocation.lat},${userLocation.lng}`;
         searchParams.radius = 50000;
       }
-      
-      const { data, error } = await supabase.functions.invoke('google-places-search', {
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('google-places-search', {
         body: searchParams
       });
-      
       if (error) {
         setSearchResults([]);
         setIsLoading(false);
         return;
       }
-      
       if (data && data.status === 'OK' && data.results && data.results.length > 0) {
         // Add immediate fallback cuisine to all results for instant display
         const resultsWithFallback = data.results.map(result => ({
           ...result,
-          fallbackCuisine: result.types.find(type => 
-            !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type)
-          )?.replace(/_/g, ' ') || 'Restaurant'
+          fallbackCuisine: result.types.find(type => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 'Restaurant'
         }));
-        
         setSearchResults(resultsWithFallback);
       } else {
         setSearchResults([]);
@@ -309,7 +292,6 @@ export default function UnifiedSearchPage() {
       setIsLoading(false);
     }
   };
-
   const handleQuickAdd = async (place: GooglePlaceResult) => {
     if (!user) {
       toast.error('Please log in to add restaurants');
@@ -317,7 +299,10 @@ export default function UnifiedSearchPage() {
     }
     try {
       // Get place details first
-      const { data, error } = await supabase.functions.invoke('google-places-search', {
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('google-places-search', {
         body: {
           placeId: place.place_id,
           type: 'details'
@@ -327,7 +312,9 @@ export default function UnifiedSearchPage() {
       const placeDetails = data.result;
 
       // Create a restaurant entry in wishlist mode first
-      const { error: insertError } = await supabase.from('restaurants').insert({
+      const {
+        error: insertError
+      } = await supabase.from('restaurants').insert({
         name: place.name,
         address: place.formatted_address,
         city: place.formatted_address.split(',')[1]?.trim() || '',
@@ -363,7 +350,10 @@ export default function UnifiedSearchPage() {
       return;
     }
     try {
-      const { data, error } = await supabase.functions.invoke('location-suggestions', {
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('location-suggestions', {
         body: {
           input,
           limit: 5
@@ -376,31 +366,29 @@ export default function UnifiedSearchPage() {
       setLocationSuggestions([]);
     }
   };
-
   const handleLocationSuggestionClick = (suggestion: any) => {
     setLocationQuery(suggestion.description);
     setShowLocationSuggestions(false);
   };
-
   const clearSearch = () => {
     setSearchQuery('');
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
   };
-
   const handlePlaceClick = async (place: GooglePlaceResult) => {
     // Save clicked restaurant to recent restaurants
     saveToRecentRestaurants(place);
-    
+
     // On mobile, navigate to full page. On desktop, show modal
-    if (window.innerWidth < 768) { // md breakpoint
+    if (window.innerWidth < 768) {
+      // md breakpoint
       // Navigate to mobile restaurant details page
       const placeData = encodeURIComponent(JSON.stringify(place));
       navigate(`/mobile/search/restaurant?data=${placeData}`);
       return;
     }
-    
+
     // Desktop behavior - show modal
     setSelectedPlace({
       ...place,
@@ -415,7 +403,10 @@ export default function UnifiedSearchPage() {
 
     // Load detailed data in background
     try {
-      const { data, error } = await supabase.functions.invoke('google-places-search', {
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('google-places-search', {
         body: {
           placeId: place.place_id,
           type: 'details'
@@ -430,18 +421,14 @@ export default function UnifiedSearchPage() {
       console.error('Failed to get place details:', error);
     }
   };
-
   const getPriceDisplay = (priceLevel?: number) => {
     if (!priceLevel) return 'Price not available';
     return '$'.repeat(priceLevel);
   };
-
   const getPhotoUrl = (photoReference: string) => {
     return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photoReference}&key=${import.meta.env.VITE_GOOGLE_PLACES_API_KEY}`;
   };
-
-  return (
-    <div className="w-full">
+  return <div className="w-full">
       {/* Modern Search Section */}
       <div className="relative rounded-2xl bg-gradient-to-br from-background via-background to-primary/10 border border-primary/20 shadow-2xl">
         {/* Background Pattern */}
@@ -462,20 +449,10 @@ export default function UnifiedSearchPage() {
                   <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary-glow/20 rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="relative bg-background/80 backdrop-blur-sm rounded-lg border border-border group-hover:border-primary/50 transition-all duration-300">
                     <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 group-hover:text-primary transition-colors duration-300" />
-                    <Input 
-                      placeholder="🔍 What are you craving? Search by name, cuisine, atmosphere, or special dishes..." 
-                      value={searchQuery} 
-                      onChange={e => setSearchQuery(e.target.value)}
-                      className="pl-12 pr-10 h-12 sm:h-14 bg-transparent border-none text-base sm:text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none" 
-                    />
-                    {searchQuery && (
-                      <button 
-                        onClick={clearSearch} 
-                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-muted/50"
-                      >
+                    <Input placeholder="🔍 What are you craving? Search by name, cuisine, atmosphere, or special dishes..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-12 pr-10 h-12 sm:h-14 bg-transparent border-none text-base sm:text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none" />
+                    {searchQuery && <button onClick={clearSearch} className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-muted/50">
                         <X className="h-4 w-4" />
-                      </button>
-                    )}
+                      </button>}
                   </div>
                 </div>
               </div>
@@ -486,81 +463,71 @@ export default function UnifiedSearchPage() {
                   <div className="absolute inset-0 bg-gradient-to-r from-primary-glow/20 to-primary/20 rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="relative bg-background/80 backdrop-blur-sm rounded-lg border border-border group-hover:border-primary/50 transition-all duration-300">
                     <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
-                    <Input 
-                      placeholder="📍 Location (optional)" 
-                      value={locationQuery} 
-                      onChange={e => {
-                        setLocationQuery(e.target.value);
-                        generateLocationSuggestions(e.target.value);
-                        setShowLocationSuggestions(e.target.value.length > 1);
-                      }} 
-                      onKeyDown={e => {
-                        if (e.key === 'Escape') {
-                          setShowLocationSuggestions(false);
-                        }
-                      }} 
-                      onFocus={() => locationQuery.length > 1 && setShowLocationSuggestions(true)} 
-                      onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 150)} 
-                      className="pl-12 pr-4 h-12 sm:h-14 bg-transparent border-none text-base sm:text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none" 
-                    />
+                    <Input placeholder="📍 Location (optional)" value={locationQuery} onChange={e => {
+                    setLocationQuery(e.target.value);
+                    generateLocationSuggestions(e.target.value);
+                    setShowLocationSuggestions(e.target.value.length > 1);
+                  }} onKeyDown={e => {
+                    if (e.key === 'Escape') {
+                      setShowLocationSuggestions(false);
+                    }
+                  }} onFocus={() => locationQuery.length > 1 && setShowLocationSuggestions(true)} onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 150)} className="pl-12 pr-4 h-12 sm:h-14 bg-transparent border-none text-base sm:text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none" />
                     
                     {/* Modern Location Suggestions */}
-                    {showLocationSuggestions && locationSuggestions.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-card/95 backdrop-blur-lg border border-border rounded-xl shadow-2xl overflow-hidden animate-fade-in">
+                    {showLocationSuggestions && locationSuggestions.length > 0 && <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-card/95 backdrop-blur-lg border border-border rounded-xl shadow-2xl overflow-hidden animate-fade-in">
                         <div className="max-h-48 overflow-y-auto">
-                          {locationSuggestions.map((suggestion, index) => (
-                            <div 
-                              key={index} 
-                              className="px-4 py-3 hover:bg-primary/10 cursor-pointer transition-colors duration-200 border-b border-border/50 last:border-b-0 group" 
-                              onClick={() => handleLocationSuggestionClick(suggestion)}
-                            >
+                          {locationSuggestions.map((suggestion, index) => <div key={index} className="px-4 py-3 hover:bg-primary/10 cursor-pointer transition-colors duration-200 border-b border-border/50 last:border-b-0 group" onClick={() => handleLocationSuggestionClick(suggestion)}>
                               <div className="font-medium text-sm group-hover:text-primary transition-colors">{suggestion.mainText}</div>
                               {suggestion.secondaryText && <div className="text-xs text-muted-foreground mt-1">{suggestion.secondaryText}</div>}
-                            </div>
-                          ))}
+                            </div>)}
                         </div>
-                      </div>
-                    )}
+                      </div>}
                   </div>
                 </div>
               </div>
             </div>
             
             {/* Location-based search info */}
-            {(locationQuery || userLocation) && (
-              <div className="text-center">
+            {(locationQuery || userLocation) && <div className="text-center">
                 <p className="text-sm text-muted-foreground">
                   {locationQuery ? `Searching near "${locationQuery}"` : 'Searching near your location'}
                   {!locationQuery && userLocation && ' - specify a location above for more targeted results'}
                 </p>
-              </div>
-            )}
+              </div>}
           </div>
         </div>
       </div>
       
       {/* Mobile Instant Suggestions Section */}
-      {!searchQuery && user && (searchResults.length === 0 || !isLoading) && (
-        <div className="lg:hidden mt-6 space-y-6">
+      {!searchQuery && user && (searchResults.length === 0 || !isLoading) && <div className="lg:hidden mt-6 space-y-6">
+          {/* Filter Pills */}
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            <Button variant="default" size="sm" className="flex-shrink-0 rounded-full bg-primary text-primary-foreground">
+              Reserve now
+            </Button>
+            <Button variant="outline" size="sm" className="flex-shrink-0 rounded-full">
+              ❤️ Recs
+            </Button>
+            <Button variant="outline" size="sm" className="flex-shrink-0 rounded-full">
+              📈 Trending
+            </Button>
+            <Button variant="outline" size="sm" className="flex-shrink-0 rounded-full">
+              🔥 Popular
+            </Button>
+          </div>
 
           {/* Recent Restaurants Section */}
-          {recentClickedRestaurants.length > 0 && (
-            <div className="space-y-3">
+          {recentClickedRestaurants.length > 0 && <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">Recent searches</h3>
                 <Badge variant="secondary" className="text-xs">Quick access</Badge>
               </div>
               
               <div className="space-y-2">
-                {recentClickedRestaurants.map((place) => (
-                  <div 
-                    key={place.place_id}
-                    className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                    onClick={() => handlePlaceClick(place)}
-                  >
+                {recentClickedRestaurants.map(place => <div key={place.place_id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => handlePlaceClick(place)}>
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <Clock className="w-4 h-4 text-primary" />
+                        <Navigation className="w-4 h-4 text-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm line-clamp-1">{place.name}</p>
@@ -568,47 +535,30 @@ export default function UnifiedSearchPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      {place.rating && (
-                        <div className="flex items-center gap-1">
+                      {place.rating && <div className="flex items-center gap-1">
                           <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                           <span className="text-xs font-medium">{place.rating}</span>
-                        </div>
-                      )}
-                      <Button size="sm" variant="outline" className="h-7 px-2 text-xs">
-                        View
-                      </Button>
+                        </div>}
+                      
                     </div>
-                  </div>
-                ))}
+                  </div>)}
               </div>
-            </div>
-          )}
+            </div>}
 
           {/* Recommendations Section */}
-          {recommendedPlaces.length > 0 && (
-            <div className="space-y-3">
+          {recommendedPlaces.length > 0 && <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">Recommended for you</h3>
                 <Badge variant="secondary" className="text-xs">AI-powered</Badge>
               </div>
               
-              {isLoadingRecommendations ? (
-                <div className="grid gap-3">
-                  {[...Array(3)].map((_, i) => (
-                    <div key={i} className="h-16 bg-muted/50 rounded-lg animate-pulse" />
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {recommendedPlaces.map((place, index) => (
-                    <div 
-                      key={place.place_id}
-                      className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                      onClick={() => handlePlaceClick(place)}
-                    >
+              {isLoadingRecommendations ? <div className="grid gap-3">
+                  {[...Array(3)].map((_, i) => <div key={i} className="h-16 bg-muted/50 rounded-lg animate-pulse" />)}
+                </div> : <div className="space-y-2">
+                  {recommendedPlaces.map((place, index) => <div key={place.place_id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => handlePlaceClick(place)}>
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <Sparkles className="w-4 h-4 text-primary" />
+                          <Navigation className="w-4 h-4 text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm line-clamp-1">{place.name}</p>
@@ -616,60 +566,41 @@ export default function UnifiedSearchPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        {place.rating && (
-                          <div className="flex items-center gap-1">
+                        {place.rating && <div className="flex items-center gap-1">
                             <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                             <span className="text-xs font-medium">{place.rating}</span>
-                          </div>
-                        )}
+                          </div>}
                         <Button size="sm" variant="outline" className="h-7 px-2 text-xs">
                           View
                         </Button>
                       </div>
-                    </div>
-                  ))}
+                    </div>)}
                   
-                  {hasMoreRecommendations && (
-                    <InfiniteScrollLoader 
-                      onLoadMore={loadMoreRecommendations}
-                      isLoading={isLoadingMoreRecommendations}
-                      hasMore={hasMoreRecommendations}
-                    />
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+                  {hasMoreRecommendations && <InfiniteScrollLoader onLoadMore={loadMoreRecommendations} isLoading={isLoadingMoreRecommendations} hasMore={hasMoreRecommendations} />}
+                </div>}
+            </div>}
 
           {/* Fallback for no data */}
-          {recentClickedRestaurants.length === 0 && recommendedPlaces.length === 0 && !isLoadingRecommendations && (
-            <div className="text-center py-8">
+          {recentClickedRestaurants.length === 0 && recommendedPlaces.length === 0 && !isLoadingRecommendations && <div className="text-center py-8">
               <h3 className="text-lg font-semibold mb-2">Start exploring</h3>
               <p className="text-muted-foreground text-sm">
                 Search for restaurants to start building your personal recommendations
               </p>
-            </div>
-          )}
-        </div>
-      )}
+            </div>}
+        </div>}
       
       {/* Results Section */}
-      {(isLoading || searchResults.length > 0) && (
-        <Tabs defaultValue="list" className="space-y-4">
+      {(isLoading || searchResults.length > 0) && <Tabs defaultValue="list" className="space-y-4">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="list">List View</TabsTrigger>
             <TabsTrigger value="map">Map View</TabsTrigger>
           </TabsList>
 
           <TabsContent value="list" className="space-y-4">
-            {isLoading ? (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {isLoading ? <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {[...Array(6)].map((_, i) => <SearchResultSkeleton key={i} />)}
-              </div>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {searchResults.map(place => (
-                  <Card key={place.place_id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handlePlaceClick(place)}>
+              </div> : <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {searchResults.map(place => <Card key={place.place_id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handlePlaceClick(place)}>
                     <CardContent className="p-2 lg:p-4">
                       {/* Mobile Layout */}
                       <div className="lg:hidden">
@@ -679,41 +610,37 @@ export default function UnifiedSearchPage() {
                               <h3 className="font-semibold text-sm truncate">{place.name}</h3>
                             </div>
                             <div className="flex items-center gap-2">
-                              {place.rating && (
-                                <div className="flex items-center gap-1">
+                              {place.rating && <div className="flex items-center gap-1">
                                   <span className="text-yellow-500 text-sm">★</span>
                                   <span className="text-xs font-medium">{place.rating}</span>
-                                </div>
-                              )}
-                              {place.price_level && (
-                                <span className="text-xs text-green-600 font-medium">
+                                </div>}
+                              {place.price_level && <span className="text-xs text-green-600 font-medium">
                                   {getPriceDisplay(place.price_level)}
-                                </span>
-                              )}
+                                </span>}
                               <span className="text-xs text-muted-foreground truncate">
                                 {(() => {
-                                  const parts = place.formatted_address?.split(', ') || [];
-                                  if (parts.length >= 2) {
-                                    if (parts[parts.length - 1] === 'United States') {
-                                      const city = parts[parts.length - 3] || '';
-                                      const stateWithZip = parts[parts.length - 2] || '';
-                                      const state = stateWithZip.replace(/\s+\d{5}(-\d{4})?$/, '');
-                                      return parts.length >= 3 ? `${city}, ${state}` : state;
-                                    }
-                                    const city = parts[parts.length - 2] || '';
-                                    const country = parts[parts.length - 1] || '';
-                                    const cleanCity = city.replace(/\s+[A-Z0-9]{2,10}$/, '');
-                                    return `${cleanCity}, ${country}`;
-                                  }
-                                  return parts[0] || '';
-                                })()}
+                          const parts = place.formatted_address?.split(', ') || [];
+                          if (parts.length >= 2) {
+                            if (parts[parts.length - 1] === 'United States') {
+                              const city = parts[parts.length - 3] || '';
+                              const stateWithZip = parts[parts.length - 2] || '';
+                              const state = stateWithZip.replace(/\s+\d{5}(-\d{4})?$/, '');
+                              return parts.length >= 3 ? `${city}, ${state}` : state;
+                            }
+                            const city = parts[parts.length - 2] || '';
+                            const country = parts[parts.length - 1] || '';
+                            const cleanCity = city.replace(/\s+[A-Z0-9]{2,10}$/, '');
+                            return `${cleanCity}, ${country}`;
+                          }
+                          return parts[0] || '';
+                        })()}
                               </span>
                             </div>
                           </div>
                           <Button size="sm" variant="outline" onClick={e => {
-                            e.stopPropagation();
-                            handleQuickAdd(place);
-                          }} className="h-7 px-2 text-xs ml-2 flex-shrink-0">
+                    e.stopPropagation();
+                    handleQuickAdd(place);
+                  }} className="h-7 px-2 text-xs ml-2 flex-shrink-0">
                             <Plus className="h-3 w-3 mr-1" />
                             Add
                           </Button>
@@ -727,9 +654,9 @@ export default function UnifiedSearchPage() {
                             {place.name}
                           </h3>
                           <Button variant="ghost" size="sm" onClick={e => {
-                            e.stopPropagation();
-                            handleQuickAdd(place);
-                          }} className="shrink-0 ml-2">
+                    e.stopPropagation();
+                    handleQuickAdd(place);
+                  }} className="shrink-0 ml-2">
                             <Heart className="h-4 w-4" />
                           </Button>
                         </div>
@@ -741,17 +668,13 @@ export default function UnifiedSearchPage() {
                           </span>
                         </div>
 
-                        {place.rating && (
-                          <div className="flex items-center gap-2 mb-2" onClick={() => handlePlaceClick(place)}>
+                        {place.rating && <div className="flex items-center gap-2 mb-2" onClick={() => handlePlaceClick(place)}>
                             <Star className="h-4 w-4 text-yellow-500 fill-current" />
                             <span className="font-medium">{place.rating}</span>
-                            {place.user_ratings_total && (
-                              <span className="text-sm text-muted-foreground">
+                            {place.user_ratings_total && <span className="text-sm text-muted-foreground">
                                 ({place.user_ratings_total.toLocaleString()})
-                              </span>
-                            )}
-                          </div>
-                        )}
+                              </span>}
+                          </div>}
 
                         <div className="flex items-center justify-between mb-2" onClick={() => handlePlaceClick(place)}>
                           <div className="flex">
@@ -760,39 +683,31 @@ export default function UnifiedSearchPage() {
                             </span>
                           </div>
                           
-                          {place.opening_hours?.open_now !== undefined && (
-                            <Badge variant={place.opening_hours.open_now ? "default" : "destructive"}>
+                          {place.opening_hours?.open_now !== undefined && <Badge variant={place.opening_hours.open_now ? "default" : "destructive"}>
                               {place.opening_hours.open_now ? "Open" : "Closed"}
-                            </Badge>
-                          )}
+                            </Badge>}
                         </div>
 
                         {/* Yelp Badge and Services */}
                         <div className="flex flex-wrap gap-1 mb-2">
-                          {place.yelpData && (
-                            <Badge variant="secondary" className="text-xs bg-red-100 text-red-800 border-red-200">
+                          {place.yelpData && <Badge variant="secondary" className="text-xs bg-red-100 text-red-800 border-red-200">
                               Yelp ✓
-                            </Badge>
-                          )}
-                          {place.yelpData?.transactions?.includes('delivery') && (
-                            <Badge variant="outline" className="text-xs flex items-center gap-1">
+                            </Badge>}
+                          {place.yelpData?.transactions?.includes('delivery') && <Badge variant="outline" className="text-xs flex items-center gap-1">
                               <Truck className="h-3 w-3" />
                               Delivery
-                            </Badge>
-                          )}
-                          {place.yelpData?.transactions?.includes('pickup') && (
-                            <Badge variant="outline" className="text-xs flex items-center gap-1">
+                            </Badge>}
+                          {place.yelpData?.transactions?.includes('pickup') && <Badge variant="outline" className="text-xs flex items-center gap-1">
                               <ShoppingBag className="h-3 w-3" />
                               Pickup
-                            </Badge>
-                          )}
+                            </Badge>}
                         </div>
 
                         <div className="flex flex-wrap gap-1 mb-3" onClick={() => handlePlaceClick(place)}>
                           {(() => {
-                            const cuisine = place.aiAnalysis?.cuisine || place.fallbackCuisine || place.types.find(type => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 'Restaurant';
-                            return <Badge variant="outline" className="text-xs">{cuisine}</Badge>;
-                          })()}
+                    const cuisine = place.aiAnalysis?.cuisine || place.fallbackCuisine || place.types.find(type => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 'Restaurant';
+                    return <Badge variant="outline" className="text-xs">{cuisine}</Badge>;
+                  })()}
                         </div>
 
                         <div className="flex gap-2">
@@ -800,42 +715,30 @@ export default function UnifiedSearchPage() {
                             View Details
                           </Button>
                           
-                          {place.yelpData && (
-                            <Button variant="outline" size="sm" onClick={e => {
-                              e.stopPropagation();
-                              window.open(place.yelpData.url, '_blank');
-                            }}>
+                          {place.yelpData && <Button variant="outline" size="sm" onClick={e => {
+                    e.stopPropagation();
+                    window.open(place.yelpData.url, '_blank');
+                  }}>
                               <Star className="h-4 w-4" />
-                            </Button>
-                          )}
+                            </Button>}
                         </div>
                       </div>
                     </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
+                  </Card>)}
+              </div>}
           </TabsContent>
 
           <TabsContent value="map">
             <div className="h-[600px] rounded-lg overflow-hidden">
-              <GlobalSearchMap 
-                restaurants={searchResults} 
-                onRestaurantClick={handlePlaceClick} 
-                center={userLocation || { lat: 40.7128, lng: -74.0060 }} 
-              />
+              <GlobalSearchMap restaurants={searchResults} onRestaurantClick={handlePlaceClick} center={userLocation || {
+            lat: 40.7128,
+            lng: -74.0060
+          }} />
             </div>
           </TabsContent>
-        </Tabs>
-      )}
+        </Tabs>}
 
       {/* Restaurant Profile Modal - Desktop Only */}
-      {selectedPlace && window.innerWidth >= 768 && (
-        <RestaurantProfileModal 
-          place={selectedPlace} 
-          onClose={() => setSelectedPlace(null)} 
-        />
-      )}
-    </div>
-  );
+      {selectedPlace && window.innerWidth >= 768 && <RestaurantProfileModal place={selectedPlace} onClose={() => setSelectedPlace(null)} />}
+    </div>;
 }
