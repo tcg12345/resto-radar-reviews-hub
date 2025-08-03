@@ -27,6 +27,7 @@ import SavedPlacesPageWrapper from "./pages/SavedPlacesPageWrapper";
 import MapPageWrapper from "./pages/MapPageWrapper";
 import UnifiedSearchPage from "./pages/UnifiedSearchPage";
 import SettingsPageWrapper from "./pages/SettingsPageWrapper";
+import PrivacyPolicyPageWrapper from "./pages/PrivacyPolicyPageWrapper";
 import SearchTabsPage from "./pages/SearchTabsPage";
 import MobileFriendProfilePage from "./pages/mobile/MobileFriendProfilePage";
 import MobileRestaurantDetailsPage from "./pages/mobile/MobileRestaurantDetailsPage";
@@ -73,6 +74,7 @@ const App = () => (
                 <Route path="/search/:tab" element={<RequireAuth><Layout activeTab="search"><SearchTabsPage /></Layout></RequireAuth>} />
                 
                 <Route path="/settings" element={<RequireAuth><Layout activeTab="settings" showNavbar={false} showChatbot={false}><SettingsPageWrapper /></Layout></RequireAuth>} />
+                <Route path="/privacy-policy" element={<RequireAuth><Layout activeTab="settings" showNavbar={false} showChatbot={false}><PrivacyPolicyPageWrapper /></Layout></RequireAuth>} />
                 <Route path="/friends" element={<RequireAuth><Layout activeTab="friends"><FriendsPage /></Layout></RequireAuth>} />
                 <Route path="/friends/:friendId" element={<RequireAuth><Layout activeTab="friends"><FriendProfilePage /></Layout></RequireAuth>} />
                 

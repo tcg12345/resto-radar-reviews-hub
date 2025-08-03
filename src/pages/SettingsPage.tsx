@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Save, Eye, EyeOff, User, Mail, Phone, MapPin, Settings as SettingsIcon, Shield, Key, Moon, Sun, Map, Satellite, Trash2, Palette, Plus, X } from 'lucide-react';
+import { ArrowLeft, Save, Eye, EyeOff, User, Mail, Phone, MapPin, Settings as SettingsIcon, Shield, Key, Moon, Sun, Map, Satellite, Trash2, Palette, Plus, X, FileText, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ import { useColorTheme, colorThemes } from '@/hooks/useColorTheme';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 interface SettingsPageProps {
   onBack: () => void;
@@ -24,6 +25,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
   const { theme, toggleTheme } = useTheme();
   const { currentTheme, themes, customThemes, tempCustomColors, applyTheme, saveCustomTheme, deleteCustomTheme, updateTempCustomColors, getAllThemes, getCurrentTheme } = useColorTheme();
   const [defaultMapStyle, setDefaultMapStyle] = useLocalStorage<'streets' | 'satellite' | 'hybrid'>('defaultMapStyle', 'satellite');
+  const navigate = useNavigate();
   
   // Custom theme creation state
   const [customThemeName, setCustomThemeName] = useState('');
@@ -811,6 +813,29 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                     className="bg-muted"
                   />
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Legal & Privacy
+                </CardTitle>
+                <CardDescription>
+                  View our privacy policy and legal information
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  onClick={() => navigate('/privacy-policy')}
+                  variant="outline"
+                  className="w-full md:w-auto flex items-center gap-2"
+                >
+                  <Shield className="h-4 w-4" />
+                  Privacy Policy
+                  <ExternalLink className="h-4 w-4" />
+                </Button>
               </CardContent>
             </Card>
 
