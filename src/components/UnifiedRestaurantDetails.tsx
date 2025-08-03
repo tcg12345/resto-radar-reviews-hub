@@ -360,7 +360,7 @@ export function UnifiedRestaurantDetails({
       <div className="lg:hidden h-[35px] bg-background flex-shrink-0"></div>
       <div className="min-h-screen bg-background">
       {/* Header */}
-      {showBackButton && <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+      {showBackButton && <div className="sticky top-0 z-50 bg-background backdrop-blur border-b">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="sm" onClick={handleBack} className="h-8 w-8 p-0">
