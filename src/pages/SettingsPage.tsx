@@ -828,7 +828,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
               </CardHeader>
               <CardContent>
                 <Button
-                  onClick={() => navigate('/privacy-policy')}
+                  onClick={() => window.open('/privacy-policy', '_blank', 'noopener,noreferrer')}
                   variant="outline"
                   className="w-full md:w-auto flex items-center gap-2"
                 >
