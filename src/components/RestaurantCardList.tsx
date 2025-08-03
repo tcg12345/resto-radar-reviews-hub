@@ -55,15 +55,8 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const { loadRestaurantPhotos } = useRestaurants();
 
-  // Load photos if needed
-  useEffect(() => {
-    const loadPhotos = async () => {
-      if (restaurant.photos.length === 0) {
-        await loadRestaurantPhotos(restaurant.id);
-      }
-    };
-    loadPhotos();
-  }, [restaurant.id, restaurant.photos.length, loadRestaurantPhotos]);
+  // Don't load photos immediately - let them be loaded lazily when needed
+  // This prevents every card from making a separate database request on page load
 
   const openGallery = () => {
     setIsGalleryOpen(true);

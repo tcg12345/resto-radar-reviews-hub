@@ -42,6 +42,7 @@ interface RestaurantContextType {
   deleteRestaurant: (id: string) => void;
   getRestaurant: (id: string) => Restaurant | undefined;
   loadRestaurantPhotos: (id: string) => Promise<void>;
+  loadAllRestaurantPhotos: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -482,6 +483,56 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
     }
   }, []);
 
+  const loadAllRestaurantPhotos = useCallback(async (): Promise<void> => {
+    try {
+      // Get current user
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+
+      // Load photos for all restaurants where photos are empty
+      const restaurantIds = restaurants
+        .filter(r => r.photos.length === 0)
+        .map(r => r.id);
+
+      if (restaurantIds.length === 0) return;
+
+      // Use batching to avoid loading too many at once
+      const batchSize = 10;
+      const batches = [];
+      for (let i = 0; i < restaurantIds.length; i += batchSize) {
+        batches.push(restaurantIds.slice(i, i + batchSize));
+      }
+
+      // Process batches sequentially to avoid overwhelming the database
+      for (const batch of batches) {
+        const { data, error } = await supabase
+          .from('restaurants')
+          .select('id, photos, photo_dish_names, photo_notes')
+          .in('id', batch);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          setRestaurants(prev => 
+            prev.map(restaurant => {
+              const photoData = data.find(d => d.id === restaurant.id);
+              return photoData 
+                ? { 
+                    ...restaurant, 
+                    photos: photoData.photos || [],
+                    photoDishNames: photoData.photo_dish_names || [],
+                    photoNotes: photoData.photo_notes || []
+                  }
+                : restaurant;
+            })
+          );
+        }
+      }
+    } catch (error) {
+      console.error('Error loading all restaurant photos:', error);
+    }
+  }, [restaurants]);
+
   const value = useMemo(
     () => ({
       restaurants,
@@ -490,9 +541,10 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       deleteRestaurant,
       getRestaurant,
       loadRestaurantPhotos,
+      loadAllRestaurantPhotos,
       isLoading,
     }),
-    [restaurants, addRestaurant, updateRestaurant, deleteRestaurant, getRestaurant, loadRestaurantPhotos, isLoading]
+    [restaurants, addRestaurant, updateRestaurant, deleteRestaurant, getRestaurant, loadRestaurantPhotos, loadAllRestaurantPhotos, isLoading]
   );
 
   return <RestaurantContext.Provider value={value}>{children}</RestaurantContext.Provider>;

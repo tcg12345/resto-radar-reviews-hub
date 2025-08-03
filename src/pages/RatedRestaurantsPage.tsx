@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Plus, Check, ChevronDown, X, Sliders, MapPin, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { RatedRestaurantsFilterDialog } from '@/components/RatedRestaurantsFilterDialog';
+import { useRestaurants } from '@/contexts/RestaurantContext';
 
 
 interface RatedRestaurantsPageProps {
@@ -52,6 +53,8 @@ export function RatedRestaurantsPage({
   const [tempRatingRange, setTempRatingRange] = useState<[number, number]>([0, 10]);
   const { view, setView } = useViewToggle('rated-restaurants-view', 'grid');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const { loadAllRestaurantPhotos } = useRestaurants();
+  const photosLoadedRef = useRef(false);
 
   const ratedRestaurants = restaurants.filter((r) => !r.isWishlist);
 
@@ -62,6 +65,17 @@ export function RatedRestaurantsPage({
       onAddDialogClose?.();
     }
   }, [shouldOpenAddDialog, onAddDialogClose]);
+
+  // Load all photos for rated restaurants when page loads to prevent individual requests
+  useEffect(() => {
+    if (ratedRestaurants.length > 0 && !photosLoadedRef.current) {
+      photosLoadedRef.current = true;
+      // Add a small delay to let the page render first
+      setTimeout(() => {
+        loadAllRestaurantPhotos();
+      }, 100);
+    }
+  }, [ratedRestaurants.length, loadAllRestaurantPhotos]);
 
   // Get unique cuisines
   const cuisines = Array.from(new Set(ratedRestaurants.map(r => r.cuisine)));

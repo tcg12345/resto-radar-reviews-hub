@@ -90,16 +90,12 @@ export function RestaurantCard({
   } = useRestaurants();
   const hasMultiplePhotos = restaurant.photos.length > 1;
 
-  // Preload all card data when component mounts
+  // Optimized preload - no individual photo loading requests
   useEffect(() => {
     const preloadData = async () => {
-      // Load photos if needed
-      if (restaurant.photos.length === 0) {
-        setIsLoadingPhotos(true);
-        await loadRestaurantPhotos(restaurant.id);
-        setIsLoadingPhotos(false);
-      }
-
+      // Don't load photos individually - they're loaded in bulk by the parent page
+      // This prevents multiple individual requests that slow down page loading
+      
       // Preload first image if available
       if (restaurant.photos.length > 0) {
         const img = new Image();
@@ -111,11 +107,11 @@ export function RestaurantCard({
       }
 
       // Small delay to ensure all data processing is complete
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 50)); // Reduced delay
       setIsDataReady(true);
     };
     preloadData();
-  }, [restaurant.id, restaurant.photos.length, loadRestaurantPhotos]);
+  }, [restaurant.id, restaurant.photos.length]);
   const nextPhoto = () => {
     setImageLoading(true);
     setCurrentPhotoIndex(prev => (prev + 1) % restaurant.photos.length);
