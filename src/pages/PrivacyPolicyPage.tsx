@@ -40,178 +40,281 @@ export default function PrivacyPolicyPage({ onBack }: PrivacyPolicyPageProps) {
           {/* Introduction */}
           <Card>
             <CardHeader>
-              <CardTitle>Introduction</CardTitle>
-              <CardDescription>Last updated: {new Date().toLocaleDateString()}</CardDescription>
+              <CardTitle>Privacy Policy</CardTitle>
+              <CardDescription>Last updated: August 03, 2025</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm leading-relaxed">
-                Welcome to Grubby. We respect your privacy and are committed to protecting your personal data. 
-                This privacy policy explains how we collect, use, and safeguard your information when you use our restaurant discovery and travel planning platform.
+                This Privacy Policy describes Our policies and procedures on the collection, use and disclosure of Your information when You use the Service and tells You about Your privacy rights and how the law protects You.
+              </p>
+              <p className="text-sm leading-relaxed">
+                We use Your Personal data to provide and improve the Service. By using the Service, You agree to the collection and use of information in accordance with this Privacy Policy. This Privacy Policy has been created with the help of the <a href="https://www.privacypolicies.com/privacy-policy-generator/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Privacy Policy Generator</a>.
               </p>
             </CardContent>
           </Card>
 
-          {/* Information We Collect */}
+          {/* Interpretation and Definitions */}
           <Card>
             <CardHeader>
-              <CardTitle>Information We Collect</CardTitle>
+              <CardTitle>Interpretation and Definitions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div>
-                  <h4 className="font-medium text-sm mb-2">Personal Information</h4>
-                  <ul className="text-sm space-y-1 ml-4 list-disc">
-                    <li>Name, username, and email address</li>
-                    <li>Phone number and address (optional)</li>
-                    <li>Profile photos and preferences</li>
-                  </ul>
-                </div>
+              <div>
+                <h4 className="font-medium text-sm mb-2">Interpretation</h4>
+                <p className="text-sm leading-relaxed">
+                  The words of which the initial letter is capitalized have meanings defined under the following conditions. The following definitions shall have the same meaning regardless of whether they appear in singular or in plural.
+                </p>
+              </div>
+              
+              <Separator />
+              
+              <div>
+                <h4 className="font-medium text-sm mb-2">Definitions</h4>
+                <p className="text-sm leading-relaxed mb-3">For the purposes of this Privacy Policy:</p>
+                <ul className="text-sm space-y-2 ml-4 list-disc">
+                  <li><strong>Account</strong> means a unique account created for You to access our Service or parts of our Service.</li>
+                  <li><strong>Affiliate</strong> means an entity that controls, is controlled by or is under common control with a party, where "control" means ownership of 50% or more of the shares, equity interest or other securities entitled to vote for election of directors or other managing authority.</li>
+                  <li><strong>Application</strong> refers to Grubby, the software program provided by the Company.</li>
+                  <li><strong>Company</strong> (referred to as either "the Company", "We", "Us" or "Our" in this Agreement) refers to Grubby.</li>
+                  <li><strong>Cookies</strong> are small files that are placed on Your computer, mobile device or any other device by a website, containing the details of Your browsing history on that website among its many uses.</li>
+                  <li><strong>Country</strong> refers to: Connecticut, United States</li>
+                  <li><strong>Device</strong> means any device that can access the Service such as a computer, a cellphone or a digital tablet.</li>
+                  <li><strong>Personal Data</strong> is any information that relates to an identified or identifiable individual.</li>
+                  <li><strong>Service</strong> refers to the Application or the Website or both.</li>
+                  <li><strong>Service Provider</strong> means any natural or legal person who processes the data on behalf of the Company. It refers to third-party companies or individuals employed by the Company to facilitate the Service, to provide the Service on behalf of the Company, to perform services related to the Service or to assist the Company in analyzing how the Service is used.</li>
+                  <li><strong>Usage Data</strong> refers to data collected automatically, either generated by the use of the Service or from the Service infrastructure itself (for example, the duration of a page visit).</li>
+                  <li><strong>Website</strong> refers to Grubby, accessible from <a href="https://grubbyrater.com" target="_blank" rel="external nofollow noopener noreferrer" className="text-primary hover:underline">grubbyrater.com</a></li>
+                  <li><strong>You</strong> means the individual accessing or using the Service, or the company, or other legal entity on behalf of which such individual is accessing or using the Service, as applicable.</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Collecting and Using Personal Data */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Collecting and Using Your Personal Data</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <h4 className="font-medium text-sm mb-2">Types of Data Collected</h4>
                 
-                <Separator />
-                
-                <div>
-                  <h4 className="font-medium text-sm mb-2">Usage Information</h4>
-                  <ul className="text-sm space-y-1 ml-4 list-disc">
-                    <li>Restaurant ratings, reviews, and saved places</li>
-                    <li>Travel itineraries and trip planning data</li>
-                    <li>Search history and preferences</li>
-                    <li>Location data (when permitted)</li>
-                  </ul>
-                </div>
-                
-                <Separator />
-                
-                <div>
-                  <h4 className="font-medium text-sm mb-2">Technical Information</h4>
-                  <ul className="text-sm space-y-1 ml-4 list-disc">
-                    <li>Device information and browser type</li>
-                    <li>IP address and approximate location</li>
-                    <li>App usage analytics and performance data</li>
-                  </ul>
+                <div className="space-y-3">
+                  <div>
+                    <h5 className="font-medium text-sm mb-2">Personal Data</h5>
+                    <p className="text-sm leading-relaxed mb-2">
+                      While using Our Service, We may ask You to provide Us with certain personally identifiable information that can be used to contact or identify You. Personally identifiable information may include, but is not limited to:
+                    </p>
+                    <ul className="text-sm space-y-1 ml-4 list-disc">
+                      <li>Email address</li>
+                      <li>First name and last name</li>
+                      <li>Phone number</li>
+                      <li>Address, State, Province, ZIP/Postal code, City</li>
+                      <li>Usage Data</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h5 className="font-medium text-sm mb-2">Usage Data</h5>
+                    <p className="text-sm leading-relaxed mb-2">Usage Data is collected automatically when using the Service.</p>
+                    <p className="text-sm leading-relaxed mb-2">
+                      Usage Data may include information such as Your Device's Internet Protocol address (e.g. IP address), browser type, browser version, the pages of our Service that You visit, the time and date of Your visit, the time spent on those pages, unique device identifiers and other diagnostic data.
+                    </p>
+                    <p className="text-sm leading-relaxed mb-2">
+                      When You access the Service by or through a mobile device, We may collect certain information automatically, including, but not limited to, the type of mobile device You use, Your mobile device unique ID, the IP address of Your mobile device, Your mobile operating system, the type of mobile Internet browser You use, unique device identifiers and other diagnostic data.
+                    </p>
+                    <p className="text-sm leading-relaxed">
+                      We may also collect information that Your browser sends whenever You visit our Service or when You access the Service by or through a mobile device.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h5 className="font-medium text-sm mb-2">Information Collected while Using the Application</h5>
+                    <p className="text-sm leading-relaxed mb-2">
+                      While using Our Application, in order to provide features of Our Application, We may collect, with Your prior permission:
+                    </p>
+                    <ul className="text-sm space-y-1 ml-4 list-disc">
+                      <li>Information regarding your location</li>
+                      <li>Pictures and other information from your Device's camera and photo library</li>
+                    </ul>
+                    <p className="text-sm leading-relaxed mb-2">
+                      We use this information to provide features of Our Service, to improve and customize Our Service. The information may be uploaded to the Company's servers and/or a Service Provider's server or it may be simply stored on Your device.
+                    </p>
+                    <p className="text-sm leading-relaxed">
+                      You can enable or disable access to this information at any time, through Your Device settings.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h5 className="font-medium text-sm mb-2">Tracking Technologies and Cookies</h5>
+                    <p className="text-sm leading-relaxed mb-2">
+                      We use Cookies and similar tracking technologies to track the activity on Our Service and store certain information. Tracking technologies used are beacons, tags, and scripts to collect and track information and to improve and analyze Our Service. The technologies We use may include:
+                    </p>
+                    <ul className="text-sm space-y-2 ml-4 list-disc">
+                      <li><strong>Cookies or Browser Cookies.</strong> A cookie is a small file placed on Your Device. You can instruct Your browser to refuse all Cookies or to indicate when a Cookie is being sent. However, if You do not accept Cookies, You may not be able to use some parts of our Service. Unless you have adjusted Your browser setting so that it will refuse Cookies, our Service may use Cookies.</li>
+                      <li><strong>Web Beacons.</strong> Certain sections of our Service and our emails may contain small electronic files known as web beacons (also referred to as clear gifs, pixel tags, and single-pixel gifs) that permit the Company, for example, to count users who have visited those pages or opened an email and for other related website statistics (for example, recording the popularity of a certain section and verifying system and server integrity).</li>
+                    </ul>
+                    <p className="text-sm leading-relaxed mb-2">
+                      Cookies can be "Persistent" or "Session" Cookies. Persistent Cookies remain on Your personal computer or mobile device when You go offline, while Session Cookies are deleted as soon as You close Your web browser. Learn more about cookies on the <a href="https://www.privacypolicies.com/blog/privacy-policy-template/#Use_Of_Cookies_Log_Files_And_Tracking" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Privacy Policies website</a> article.
+                    </p>
+                    <p className="text-sm leading-relaxed mb-2">We use both Session and Persistent Cookies for the purposes set out below:</p>
+                    <ul className="text-sm space-y-2 ml-4 list-disc">
+                      <li>
+                        <strong>Necessary / Essential Cookies</strong><br />
+                        Type: Session Cookies<br />
+                        Administered by: Us<br />
+                        Purpose: These Cookies are essential to provide You with services available through the Website and to enable You to use some of its features. They help to authenticate users and prevent fraudulent use of user accounts. Without these Cookies, the services that You have asked for cannot be provided, and We only use these Cookies to provide You with those services.
+                      </li>
+                      <li>
+                        <strong>Cookies Policy / Notice Acceptance Cookies</strong><br />
+                        Type: Persistent Cookies<br />
+                        Administered by: Us<br />
+                        Purpose: These Cookies identify if users have accepted the use of cookies on the Website.
+                      </li>
+                      <li>
+                        <strong>Functionality Cookies</strong><br />
+                        Type: Persistent Cookies<br />
+                        Administered by: Us<br />
+                        Purpose: These Cookies allow us to remember choices You make when You use the Website, such as remembering your login details or language preference. The purpose of these Cookies is to provide You with a more personal experience and to avoid You having to re-enter your preferences every time You use the Website.
+                      </li>
+                    </ul>
+                    <p className="text-sm leading-relaxed">
+                      For more information about the cookies we use and your choices regarding cookies, please visit our Cookies Policy or the Cookies section of our Privacy Policy.
+                    </p>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* How We Use Your Information */}
+          {/* Use of Personal Data */}
           <Card>
             <CardHeader>
-              <CardTitle>How We Use Your Information</CardTitle>
+              <CardTitle>Use of Your Personal Data</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div>
-                  <h4 className="font-medium text-sm mb-2">Service Provision</h4>
-                  <ul className="text-sm space-y-1 ml-4 list-disc">
-                    <li>Provide personalized restaurant recommendations</li>
-                    <li>Enable trip planning and itinerary creation</li>
-                    <li>Connect you with friends and their recommendations</li>
-                    <li>Facilitate photo sharing and reviews</li>
-                  </ul>
-                </div>
-                
-                <Separator />
-                
-                <div>
-                  <h4 className="font-medium text-sm mb-2">Improvement and Analytics</h4>
-                  <ul className="text-sm space-y-1 ml-4 list-disc">
-                    <li>Analyze usage patterns to improve our services</li>
-                    <li>Personalize content and recommendations</li>
-                    <li>Troubleshoot technical issues</li>
-                    <li>Develop new features and functionality</li>
-                  </ul>
-                </div>
-                
-                <Separator />
-                
-                <div>
-                  <h4 className="font-medium text-sm mb-2">Communication</h4>
-                  <ul className="text-sm space-y-1 ml-4 list-disc">
-                    <li>Send important service updates and notifications</li>
-                    <li>Respond to your inquiries and support requests</li>
-                    <li>Share relevant features and improvements (with your consent)</li>
-                  </ul>
-                </div>
+              <p className="text-sm leading-relaxed">The Company may use Personal Data for the following purposes:</p>
+              <ul className="text-sm space-y-2 ml-4 list-disc">
+                <li><strong>To provide and maintain our Service</strong>, including to monitor the usage of our Service.</li>
+                <li><strong>To manage Your Account:</strong> to manage Your registration as a user of the Service. The Personal Data You provide can give You access to different functionalities of the Service that are available to You as a registered user.</li>
+                <li><strong>For the performance of a contract:</strong> the development, compliance and undertaking of the purchase contract for the products, items or services You have purchased or of any other contract with Us through the Service.</li>
+                <li><strong>To contact You:</strong> To contact You by email, telephone calls, SMS, or other equivalent forms of electronic communication, such as a mobile application's push notifications regarding updates or informative communications related to the functionalities, products or contracted services, including the security updates, when necessary or reasonable for their implementation.</li>
+                <li><strong>To provide You</strong> with news, special offers and general information about other goods, services and events which we offer that are similar to those that you have already purchased or enquired about unless You have opted not to receive such information.</li>
+                <li><strong>To manage Your requests:</strong> To attend and manage Your requests to Us.</li>
+                <li><strong>For business transfers:</strong> We may use Your information to evaluate or conduct a merger, divestiture, restructuring, reorganization, dissolution, or other sale or transfer of some or all of Our assets, whether as a going concern or as part of bankruptcy, liquidation, or similar proceeding, in which Personal Data held by Us about our Service users is among the assets transferred.</li>
+                <li><strong>For other purposes</strong>: We may use Your information for other purposes, such as data analysis, identifying usage trends, determining the effectiveness of our promotional campaigns and to evaluate and improve our Service, products, services, marketing and your experience.</li>
+              </ul>
+              
+              <p className="text-sm leading-relaxed mt-4">We may share Your personal information in the following situations:</p>
+              <ul className="text-sm space-y-1 ml-4 list-disc">
+                <li><strong>With Service Providers:</strong> We may share Your personal information with Service Providers to monitor and analyze the use of our Service, to contact You.</li>
+                <li><strong>For business transfers:</strong> We may share or transfer Your personal information in connection with, or during negotiations of, any merger, sale of Company assets, financing, or acquisition of all or a portion of Our business to another company.</li>
+                <li><strong>With Affiliates:</strong> We may share Your information with Our affiliates, in which case we will require those affiliates to honor this Privacy Policy. Affiliates include Our parent company and any other subsidiaries, joint venture partners or other companies that We control or that are under common control with Us.</li>
+                <li><strong>With business partners:</strong> We may share Your information with Our business partners to offer You certain products, services or promotions.</li>
+                <li><strong>With other users:</strong> when You share personal information or otherwise interact in the public areas with other users, such information may be viewed by all users and may be publicly distributed outside.</li>
+                <li><strong>With Your consent</strong>: We may disclose Your personal information for any other purpose with Your consent.</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          {/* Retention of Personal Data */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Retention of Your Personal Data</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm leading-relaxed">
+                The Company will retain Your Personal Data only for as long as is necessary for the purposes set out in this Privacy Policy. We will retain and use Your Personal Data to the extent necessary to comply with our legal obligations (for example, if we are required to retain your data to comply with applicable laws), resolve disputes, and enforce our legal agreements and policies.
+              </p>
+              <p className="text-sm leading-relaxed">
+                The Company will also retain Usage Data for internal analysis purposes. Usage Data is generally retained for a shorter period of time, except when this data is used to strengthen the security or to improve the functionality of Our Service, or We are legally obligated to retain this data for longer time periods.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Transfer of Personal Data */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Transfer of Your Personal Data</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm leading-relaxed">
+                Your information, including Personal Data, is processed at the Company's operating offices and in any other places where the parties involved in the processing are located. It means that this information may be transferred to — and maintained on — computers located outside of Your state, province, country or other governmental jurisdiction where the data protection laws may differ than those from Your jurisdiction.
+              </p>
+              <p className="text-sm leading-relaxed">
+                Your consent to this Privacy Policy followed by Your submission of such information represents Your agreement to that transfer.
+              </p>
+              <p className="text-sm leading-relaxed">
+                The Company will take all steps reasonably necessary to ensure that Your data is treated securely and in accordance with this Privacy Policy and no transfer of Your Personal Data will take place to an organization or a country unless there are adequate controls in place including the security of Your data and other personal information.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Delete Personal Data */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Delete Your Personal Data</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm leading-relaxed">
+                You have the right to delete or request that We assist in deleting the Personal Data that We have collected about You.
+              </p>
+              <p className="text-sm leading-relaxed">
+                Our Service may give You the ability to delete certain information about You from within the Service.
+              </p>
+              <p className="text-sm leading-relaxed">
+                You may update, amend, or delete Your information at any time by signing in to Your Account, if you have one, and visiting the account settings section that allows you to manage Your personal information. You may also contact Us to request access to, correct, or delete any personal information that You have provided to Us.
+              </p>
+              <p className="text-sm leading-relaxed">
+                Please note, however, that We may need to retain certain information when we have a legal obligation or lawful basis to do so.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Disclosure of Personal Data */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Disclosure of Your Personal Data</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <h4 className="font-medium text-sm mb-2">Business Transactions</h4>
+                <p className="text-sm leading-relaxed">
+                  If the Company is involved in a merger, acquisition or asset sale, Your Personal Data may be transferred. We will provide notice before Your Personal Data is transferred and becomes subject to a different Privacy Policy.
+                </p>
+              </div>
+              
+              <div>
+                <h4 className="font-medium text-sm mb-2">Law enforcement</h4>
+                <p className="text-sm leading-relaxed">
+                  Under certain circumstances, the Company may be required to disclose Your Personal Data if required to do so by law or in response to valid requests by public authorities (e.g. a court or a government agency).
+                </p>
+              </div>
+              
+              <div>
+                <h4 className="font-medium text-sm mb-2">Other legal requirements</h4>
+                <p className="text-sm leading-relaxed mb-2">
+                  The Company may disclose Your Personal Data in the good faith belief that such action is necessary to:
+                </p>
+                <ul className="text-sm space-y-1 ml-4 list-disc">
+                  <li>Comply with a legal obligation</li>
+                  <li>Protect and defend the rights or property of the Company</li>
+                  <li>Prevent or investigate possible wrongdoing in connection with the Service</li>
+                  <li>Protect the personal safety of Users of the Service or the public</li>
+                  <li>Protect against legal liability</li>
+                </ul>
               </div>
             </CardContent>
           </Card>
 
-          {/* Information Sharing */}
+          {/* Security of Personal Data */}
           <Card>
             <CardHeader>
-              <CardTitle>Information Sharing</CardTitle>
+              <CardTitle>Security of Your Personal Data</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm leading-relaxed">
-                We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following circumstances:
-              </p>
-              <ul className="text-sm space-y-1 ml-4 list-disc">
-                <li><strong>With your consent:</strong> When you explicitly agree to share information</li>
-                <li><strong>Friends and community:</strong> Information you choose to make public or share with friends</li>
-                <li><strong>Service providers:</strong> Trusted partners who help us operate our service (under strict confidentiality agreements)</li>
-                <li><strong>Legal requirements:</strong> When required by law or to protect our rights and users' safety</li>
-                <li><strong>Business transfers:</strong> In the event of a merger, acquisition, or sale of assets</li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          {/* Data Security */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Data Security</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm leading-relaxed">
-                We implement appropriate technical and organizational measures to protect your personal data:
-              </p>
-              <ul className="text-sm space-y-1 ml-4 list-disc">
-                <li>Encryption of data in transit and at rest</li>
-                <li>Regular security assessments and updates</li>
-                <li>Access controls and authentication systems</li>
-                <li>Secure hosting infrastructure with industry-standard protection</li>
-                <li>Employee training on data protection and privacy</li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          {/* Your Rights */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Your Rights and Choices</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm leading-relaxed">You have the following rights regarding your personal data:</p>
-              <ul className="text-sm space-y-1 ml-4 list-disc">
-                <li><strong>Access:</strong> Request a copy of your personal data</li>
-                <li><strong>Correction:</strong> Update or correct inaccurate information</li>
-                <li><strong>Deletion:</strong> Request deletion of your account and associated data</li>
-                <li><strong>Data portability:</strong> Request your data in a machine-readable format</li>
-                <li><strong>Opt-out:</strong> Unsubscribe from marketing communications</li>
-                <li><strong>Privacy settings:</strong> Control what information is public or private</li>
-              </ul>
-              <p className="text-sm leading-relaxed mt-4">
-                You can exercise these rights through your account settings or by contacting us directly.
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Cookies and Tracking */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Cookies and Tracking</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm leading-relaxed">
-                We use cookies and similar technologies to enhance your experience:
-              </p>
-              <ul className="text-sm space-y-1 ml-4 list-disc">
-                <li><strong>Essential cookies:</strong> Required for basic app functionality</li>
-                <li><strong>Preference cookies:</strong> Remember your settings and preferences</li>
-                <li><strong>Analytics cookies:</strong> Help us understand how you use our service</li>
-                <li><strong>Location services:</strong> Provide location-based recommendations (with your permission)</li>
-              </ul>
-              <p className="text-sm leading-relaxed mt-4">
-                You can manage cookie preferences through your browser settings.
+                The security of Your Personal Data is important to Us, but remember that no method of transmission over the Internet, or method of electronic storage is 100% secure. While We strive to use commercially acceptable means to protect Your Personal Data, We cannot guarantee its absolute security.
               </p>
             </CardContent>
           </Card>
@@ -223,8 +326,25 @@ export default function PrivacyPolicyPage({ onBack }: PrivacyPolicyPageProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm leading-relaxed">
-                Our service is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. 
-                If you believe we have collected information from a child under 13, please contact us immediately so we can remove such information.
+                Our Service does not address anyone under the age of 13. We do not knowingly collect personally identifiable information from anyone under the age of 13. If You are a parent or guardian and You are aware that Your child has provided Us with Personal Data, please contact Us. If We become aware that We have collected Personal Data from anyone under the age of 13 without verification of parental consent, We take steps to remove that information from Our servers.
+              </p>
+              <p className="text-sm leading-relaxed">
+                If We need to rely on consent as a legal basis for processing Your information and Your country requires consent from a parent, We may require Your parent's consent before We collect and use that information.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Links to Other Websites */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Links to Other Websites</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm leading-relaxed">
+                Our Service may contain links to other websites that are not operated by Us. If You click on a third party link, You will be directed to that third party's site. We strongly advise You to review the Privacy Policy of every site You visit.
+              </p>
+              <p className="text-sm leading-relaxed">
+                We have no control over and assume no responsibility for the content, privacy policies or practices of any third party sites or services.
               </p>
             </CardContent>
           </Card>
@@ -232,13 +352,17 @@ export default function PrivacyPolicyPage({ onBack }: PrivacyPolicyPageProps) {
           {/* Changes to Privacy Policy */}
           <Card>
             <CardHeader>
-              <CardTitle>Changes to This Privacy Policy</CardTitle>
+              <CardTitle>Changes to this Privacy Policy</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm leading-relaxed">
-                We may update this privacy policy from time to time to reflect changes in our practices or legal requirements. 
-                We will notify you of any material changes by posting the updated policy on our website and updating the "Last updated" date. 
-                Your continued use of our service after such changes constitutes acceptance of the updated policy.
+                We may update Our Privacy Policy from time to time. We will notify You of any changes by posting the new Privacy Policy on this page.
+              </p>
+              <p className="text-sm leading-relaxed">
+                We will let You know via email and/or a prominent notice on Our Service, prior to the change becoming effective and update the "Last updated" date at the top of this Privacy Policy.
+              </p>
+              <p className="text-sm leading-relaxed">
+                You are advised to review this Privacy Policy periodically for any changes. Changes to this Privacy Policy are effective when they are posted on this page.
               </p>
             </CardContent>
           </Card>
@@ -250,15 +374,11 @@ export default function PrivacyPolicyPage({ onBack }: PrivacyPolicyPageProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm leading-relaxed">
-                If you have any questions about this privacy policy or our data practices, please contact us:
+                If you have any questions about this Privacy Policy, You can contact us:
               </p>
-              <div className="space-y-2 text-sm">
-                <p><strong>Email:</strong> privacy@grubby.app</p>
-                <p><strong>Subject:</strong> Privacy Policy Inquiry</p>
-              </div>
-              <p className="text-sm leading-relaxed mt-4">
-                We are committed to addressing your privacy concerns and will respond to your inquiry within 30 days.
-              </p>
+              <ul className="text-sm space-y-1 ml-4 list-disc">
+                <li>By email: grubbyhelp123@gmail.com</li>
+              </ul>
             </CardContent>
           </Card>
         </div>
