@@ -79,10 +79,7 @@ export default function UnifiedSearchPage() {
   const [locationSuggestions, setLocationSuggestions] = useState<any[]>([]);
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
   const [searchResults, setSearchResults] = useState<GooglePlaceResult[]>([]);
-  const [liveSearchResults, setLiveSearchResults] = useState<GooglePlaceResult[]>([]);
-  const [showLiveResults, setShowLiveResults] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isLiveSearching, setIsLiveSearching] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<PlaceDetails | null>(null);
   const [activeTab, setActiveTab] = useState<'global' | 'smart' | 'recommendations'>('global');
   const [userLocation, setUserLocation] = useState<{
@@ -238,11 +235,11 @@ export default function UnifiedSearchPage() {
     setRecentClickedRestaurants(restaurants.slice(0, 5));
   };
 
-  // Click outside handler to hide dropdown
+  // Click outside handler to hide dropdown - not needed anymore
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setShowLiveResults(false);
+        // No longer needed for live results
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -259,8 +256,7 @@ export default function UnifiedSearchPage() {
       if (searchQuery.length > 2) {
         performLiveSearch();
       } else {
-        setLiveSearchResults([]);
-        setShowLiveResults(false);
+        setSearchResults([]);
       }
     }, 150); // Faster debounce for more responsive search
     return () => {
@@ -270,8 +266,12 @@ export default function UnifiedSearchPage() {
     };
   }, [searchQuery, locationQuery]);
   const performLiveSearch = async () => {
-    if (!searchQuery.trim() || searchQuery.length < 3) return;
-    setIsLiveSearching(true);
+    if (!searchQuery.trim() || searchQuery.length < 3) {
+      setSearchResults([]);
+      return;
+    }
+    
+    setIsLoading(true);
     try {
       // Simplified search - just use query and location text for speed
       const searchParams: any = {
@@ -285,30 +285,34 @@ export default function UnifiedSearchPage() {
         searchParams.location = `${userLocation.lat},${userLocation.lng}`;
         searchParams.radius = 50000;
       }
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('google-places-search', {
+      
+      const { data, error } = await supabase.functions.invoke('google-places-search', {
         body: searchParams
       });
+      
       if (error) {
-        setLiveSearchResults([]);
-        setShowLiveResults(false);
-        setIsLiveSearching(false);
+        setSearchResults([]);
+        setIsLoading(false);
         return;
       }
+      
       if (data && data.status === 'OK' && data.results && data.results.length > 0) {
-        setLiveSearchResults(data.results.slice(0, 6));
-        setShowLiveResults(true);
+        // Add immediate fallback cuisine to all results for instant display
+        const resultsWithFallback = data.results.map(result => ({
+          ...result,
+          fallbackCuisine: result.types.find(type => 
+            !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type)
+          )?.replace(/_/g, ' ') || 'Restaurant'
+        }));
+        
+        setSearchResults(resultsWithFallback);
       } else {
-        setLiveSearchResults([]);
-        setShowLiveResults(false);
+        setSearchResults([]);
       }
     } catch (error) {
-      setLiveSearchResults([]);
-      setShowLiveResults(false);
+      setSearchResults([]);
     } finally {
-      setIsLiveSearching(false);
+      setIsLoading(false);
     }
   };
   const handleQuickAdd = async (place: GooglePlaceResult) => {
@@ -354,7 +358,6 @@ export default function UnifiedSearchPage() {
       });
       if (insertError) throw insertError;
       toast.success('Restaurant added! Please rate your experience.');
-      setShowLiveResults(false);
       setSearchQuery('');
 
       // Navigate to ratings page or open rating modal
@@ -395,64 +398,11 @@ export default function UnifiedSearchPage() {
   };
   const clearSearch = () => {
     setSearchQuery('');
-    setShowLiveResults(false);
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
   };
-  const handleSearch = async () => {
-    // Clear any pending live search timers
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-    // Hide live results when official search is triggered
-    setShowLiveResults(false);
-    if (!searchQuery.trim()) return;
-    
-    setIsLoading(true);
-    try {
-      // Simplified search for speed - use text-based search
-      const searchQuery_final = locationQuery.trim() ? `${searchQuery} in ${locationQuery}` : searchQuery;
-      const searchParams: any = {
-        query: searchQuery_final,
-        type: 'search',
-        radius: 25000
-      };
-
-      // Only add user location if no location query specified
-      if (userLocation && !locationQuery.trim()) {
-        searchParams.location = `${userLocation.lat},${userLocation.lng}`;
-        searchParams.radius = 50000;
-      }
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('google-places-search', {
-        body: searchParams
-      });
-      if (error) throw error;
-      if (data.status === 'OK') {
-        const results = data.results || [];
-
-        // Add immediate fallback cuisine to all results for instant display
-        const resultsWithFallback = results.map(result => ({
-          ...result,
-          fallbackCuisine: result.types.find(type => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 'Restaurant'
-        }));
-
-        // Show results immediately for instant search
-        setSearchResults(resultsWithFallback);
-      } else {
-        toast.error('No results found');
-        setSearchResults([]);
-      }
-    } catch (error) {
-      console.error('Search error:', error);
-      toast.error('Failed to search restaurants');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Remove old handleSearch function since we now use live search
   const handlePlaceClick = async (place: GooglePlaceResult) => {
     // Save clicked restaurant to recent restaurants
     saveToRecentRestaurants(place);
@@ -575,82 +525,10 @@ export default function UnifiedSearchPage() {
                     <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 group-hover:text-primary transition-colors duration-300" />
                     <Input placeholder="🔍 What are you craving? Search by name, cuisine, atmosphere, or special dishes..." value={searchQuery} onChange={e => {
                     setSearchQuery(e.target.value);
-                    if (e.target.value.length > 2) {
-                      setShowLiveResults(true);
-                    } else {
-                      setShowLiveResults(false);
-                    }
-                  }} onKeyDown={e => {
-                    if (e.key === 'Enter') {
-                      handleSearch();
-                    }
                   }} className="pl-12 pr-10 h-12 sm:h-14 bg-transparent border-none text-base sm:text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none" />
                     {searchQuery && <button onClick={clearSearch} className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-muted/50">
                         <X className="h-4 w-4" />
                       </button>}
-                    
-                     {/* Live Search Results Dropdown - Hide on mobile, will show in results area */}
-                     {showLiveResults && (liveSearchResults.length > 0 || isLiveSearching) && <div className="hidden lg:block absolute top-full left-0 right-0 bg-card border border-border rounded-xl shadow-2xl animate-fade-in" style={{
-                    position: 'absolute',
-                    zIndex: 99999,
-                    marginTop: '8px'
-                  }}>
-                        <div className="max-h-96 overflow-y-auto bg-card">
-                          {isLiveSearching && <div className="px-4 py-4 text-center text-muted-foreground bg-card">
-                              <div className="flex items-center justify-center gap-2">
-                                <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                                <span className="text-sm">Searching restaurants...</span>
-                              </div>
-                            </div>}
-                          
-                          {!isLiveSearching && liveSearchResults.map((place, index) => <div key={place.place_id} className="px-4 py-4 hover:bg-primary/10 cursor-pointer transition-colors duration-200 border-b border-border/30 last:border-b-0 bg-card">
-                              <div className="flex items-center justify-between gap-2">
-                                <div className="flex-1 min-w-0" onClick={() => {
-                            handlePlaceClick(place);
-                            setShowLiveResults(false);
-                          }}>
-                                  <div className="flex items-start gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 flex-shrink-0" />
-                                    <div className="min-w-0 flex-1">
-                                      <div className="font-medium text-sm hover:text-primary transition-colors line-clamp-1">
-                                        {place.name}
-                                      </div>
-                                      <div className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
-                                        {place.formatted_address}
-                                      </div>
-                                      <div className="flex items-center gap-3 mt-1">
-                                        {place.rating && <div className="flex items-center gap-1">
-                                            <Star className="h-2.5 w-2.5 fill-yellow-400 text-yellow-400" />
-                                            <span className="text-xs font-medium">{place.rating}</span>
-                                          </div>}
-                                        {place.price_level && <div className="text-xs text-muted-foreground">
-                                            {getPriceDisplay(place.price_level)}
-                                          </div>}
-                                        {place.opening_hours?.open_now !== undefined && <div className={`text-xs px-1.5 py-0.5 rounded-full text-xs ${place.opening_hours.open_now ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                            {place.opening_hours.open_now ? 'Open' : 'Closed'}
-                                          </div>}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                                
-                                <div className="flex items-center gap-1 flex-shrink-0">
-                                  <Button size="sm" variant="outline" onClick={e => {
-                              e.stopPropagation();
-                              handleQuickAdd(place);
-                            }} className="h-6 px-2 text-xs bg-background hover:bg-primary hover:text-primary-foreground transition-all duration-200">
-                                    <Plus className="h-2.5 w-2.5 mr-1" />
-                                    Add
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>)}
-                          
-                          {!isLiveSearching && liveSearchResults.length === 0 && searchQuery.length > 2 && <div className="px-3 py-2 text-center text-muted-foreground text-xs">
-                              No restaurants found. Try a different search term.
-                            </div>}
-                        </div>
-                      </div>}
                   </div>
                 </div>
               </div>
@@ -666,10 +544,7 @@ export default function UnifiedSearchPage() {
                     generateLocationSuggestions(e.target.value);
                     setShowLocationSuggestions(e.target.value.length > 1);
                   }} onKeyDown={e => {
-                    if (e.key === 'Enter') {
-                      handleSearch();
-                      setShowLocationSuggestions(false);
-                    } else if (e.key === 'Escape') {
+                    if (e.key === 'Escape') {
                       setShowLocationSuggestions(false);
                     }
                   }} onFocus={() => locationQuery.length > 1 && setShowLocationSuggestions(true)} onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 150)} className="pl-12 pr-4 h-12 sm:h-14 bg-transparent border-none text-base sm:text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none" />
@@ -687,21 +562,7 @@ export default function UnifiedSearchPage() {
                 </div>
               </div>
               
-              {/* Search Button - Hidden on mobile */}
-              <div className="hidden lg:block space-y-2">
-                <div className="h-12 sm:h-14 flex items-end">
-                  <Button onClick={handleSearch} disabled={isLoading} className="w-full h-12 sm:h-14 text-base sm:text-lg font-semibold bg-gradient-to-r from-primary to-primary-glow hover:from-primary-glow hover:to-primary shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:transform-none disabled:scale-100">
-                    {isLoading ? <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                        <span className="hidden sm:inline">Searching...</span>
-                      </div> : <div className="flex items-center gap-2">
-                        <Search className="h-5 w-5" />
-                        <span className="hidden sm:inline">Find Restaurants</span>
-                        <span className="sm:hidden">Find</span>
-                      </div>}
-                  </Button>
-                </div>
-              </div>
+              {/* Remove Search Button since we now use live search */}
             </div>
             
             {/* Location-based search info */}
@@ -716,7 +577,7 @@ export default function UnifiedSearchPage() {
       </div>
       
       {/* Mobile Instant Suggestions Section - Show when no search query and user is logged in */}
-      {!searchQuery && !showLiveResults && user && (searchResults.length === 0 || !isLoading) && (
+      {!searchQuery && user && (searchResults.length === 0 || !isLoading) && (
         <div className="lg:hidden mt-6 space-y-6">
           {/* Filter Pills */}
           <div className="flex gap-2 overflow-x-auto pb-2">
@@ -891,178 +752,6 @@ export default function UnifiedSearchPage() {
         </div>
       )}
       
-      {/* Live Search Results - Show below search form */}
-      {showLiveResults && (liveSearchResults.length > 0 || isLiveSearching) && <div className="mt-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-muted-foreground">Live Results</h3>
-            <Badge variant="secondary" className="text-xs">Live</Badge>
-          </div>
-          
-          {isLiveSearching ? <div className="text-center py-8">
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                <span className="text-sm text-muted-foreground">Searching restaurants...</span>
-              </div>
-            </div> : <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {liveSearchResults.map(place => <Card key={place.place_id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => {
-          handlePlaceClick(place);
-          setShowLiveResults(false);
-        }}>
-                  <CardContent className="p-2 lg:p-4">
-                    {/* Mobile Layout - Same as main results */}
-                    <div className="lg:hidden">
-                      <div className="flex justify-between items-center">
-                         <div className="flex-1 min-w-0">
-                           <div className="mb-1">
-                             <h3 className="font-semibold text-sm truncate">{place.name}</h3>
-                           </div>
-                           <div className="flex items-center gap-2">
-                             {place.rating && <div className="flex items-center gap-1">
-                                 <span className="text-yellow-500 text-sm">★</span>
-                                 <span className="text-xs font-medium">{place.rating}</span>
-                               </div>}
-                             {place.price_level && <span className="text-xs text-green-600 font-medium">
-                                 {getPriceDisplay(place.price_level)}
-                               </span>}
-                             <span className="text-xs text-muted-foreground truncate">
-                               {(() => {
-                       const parts = place.formatted_address?.split(', ') || [];
-                       if (parts.length >= 2) {
-                         // For US addresses, show "City, State" without zip code
-                         if (parts[parts.length - 1] === 'United States') {
-                           const city = parts[parts.length - 3] || '';
-                           const stateWithZip = parts[parts.length - 2] || '';
-                           // Remove zip code from state (any digits and spaces at the end)
-                           const state = stateWithZip.replace(/\s+\d{5}(-\d{4})?$/, '');
-                           return parts.length >= 3 ? `${city}, ${state}` : state;
-                         }
-                         // For international, show "City, Country" without postal codes
-                         const city = parts[parts.length - 2] || '';
-                         const country = parts[parts.length - 1] || '';
-                         // Remove postal codes from city (various international formats)
-                         const cleanCity = city.replace(/\s+[A-Z0-9]{2,10}$/, '');
-                         return `${cleanCity}, ${country}`;
-                       }
-                       return parts[0] || '';
-                     })()}
-                             </span>
-                           </div>
-                         </div>
-                        <Button size="sm" variant="outline" onClick={e => {
-                 e.stopPropagation();
-                 handleQuickAdd(place);
-               }} className="h-7 px-2 text-xs ml-2 flex-shrink-0">
-                          <Plus className="h-3 w-3 mr-1" />
-                          Add
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Desktop Layout - Same as main results */}
-                     <div className="hidden lg:block">
-                       <div className="flex items-start justify-between mb-2">
-                         <h3 className="font-semibold text-lg leading-tight line-clamp-2" onClick={() => {
-                           handlePlaceClick(place);
-                           setShowLiveResults(false);
-                         }}>
-                           {place.name}
-                         </h3>
-                         <Button variant="ghost" size="sm" onClick={e => {
-                 e.stopPropagation();
-                 handleQuickAdd(place);
-               }} className="shrink-0 ml-2">
-                           <Heart className="h-4 w-4" />
-                         </Button>
-                       </div>
-                     
-                       <div className="flex items-center gap-2 mb-2" onClick={() => {
-                         handlePlaceClick(place);
-                         setShowLiveResults(false);
-                       }}>
-                         <MapPin className="h-4 w-4 text-muted-foreground" />
-                         <span className="text-sm text-muted-foreground line-clamp-1">
-                           {place.formatted_address}
-                         </span>
-                       </div>
-
-                       {place.rating && <div className="flex items-center gap-2 mb-2" onClick={() => {
-                         handlePlaceClick(place);
-                         setShowLiveResults(false);
-                       }}>
-                           <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                           <span className="font-medium">{place.rating}</span>
-                           {place.user_ratings_total && <span className="text-sm text-muted-foreground">
-                               ({place.user_ratings_total.toLocaleString()})
-                             </span>}
-                         </div>}
-
-                       <div className="flex items-center justify-between mb-2" onClick={() => {
-                         handlePlaceClick(place);
-                         setShowLiveResults(false);
-                       }}>
-                         <div className="flex">
-                           <span className="text-lg font-bold text-green-600">
-                             {place.yelpData?.price || getPriceDisplay(place.price_level)}
-                           </span>
-                         </div>
-                         
-                         {place.opening_hours?.open_now !== undefined && <Badge variant={place.opening_hours.open_now ? "default" : "destructive"}>
-                             {place.opening_hours.open_now ? "Open" : "Closed"}
-                           </Badge>}
-                       </div>
-
-                       {/* Yelp Badge and Services */}
-                       <div className="flex flex-wrap gap-1 mb-2">
-                         {place.yelpData && <Badge variant="secondary" className="text-xs bg-red-100 text-red-800 border-red-200">
-                             Yelp ✓
-                           </Badge>}
-                         {place.yelpData?.transactions?.includes('delivery') && <Badge variant="outline" className="text-xs flex items-center gap-1">
-                             <Truck className="h-3 w-3" />
-                             Delivery
-                           </Badge>}
-                         {place.yelpData?.transactions?.includes('pickup') && <Badge variant="outline" className="text-xs flex items-center gap-1">
-                             <ShoppingBag className="h-3 w-3" />
-                             Pickup
-                           </Badge>}
-                       </div>
-
-                       <div className="flex flex-wrap gap-1 mb-3" onClick={() => {
-                         handlePlaceClick(place);
-                         setShowLiveResults(false);
-                       }}>
-                         {(() => {
-                 const cuisine = place.aiAnalysis?.cuisine || place.fallbackCuisine || place.types.find(type => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 'Restaurant';
-                 return <Badge variant="outline" className="text-xs">{cuisine}</Badge>;
-               })()}
-                       </div>
-
-                       <div className="flex gap-2">
-                         <Button variant="outline" size="sm" onClick={() => {
-                           handlePlaceClick(place);
-                           setShowLiveResults(false);
-                         }} className="flex-1">
-                           View Details
-                         </Button>
-                         
-                         {place.yelpData && <Button variant="outline" size="sm" onClick={e => {
-                 e.stopPropagation();
-                 window.open(place.yelpData.url, '_blank');
-               }} className="text-xs">
-                             Yelp
-                           </Button>}
-                       </div>
-                     </div>
-                  </CardContent>
-                </Card>)}
-              
-              {!isLiveSearching && liveSearchResults.length === 0 && searchQuery.length > 2 && <div className="text-center py-8">
-                  <p className="text-muted-foreground text-sm">
-                    No restaurants found. Try a different search term.
-                  </p>
-                </div>}
-            </div>}
-        </div>}
-
       {/* Results Section */}
       {(isLoading || searchResults.length > 0) && <Tabs defaultValue="list" className="space-y-4">
           <TabsList className="grid w-full grid-cols-2">
@@ -1218,5 +907,5 @@ export default function UnifiedSearchPage() {
 
       {/* Restaurant Profile Modal - Desktop Only */}
       {selectedPlace && window.innerWidth >= 768 && <RestaurantProfileModal place={selectedPlace} onClose={() => setSelectedPlace(null)} />}
-    </div>;
+    </div>
 }
