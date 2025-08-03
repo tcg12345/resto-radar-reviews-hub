@@ -681,7 +681,6 @@ export function FriendsActivityPage() {
           Discover what your friends have been eating and their wishlist items all in one place
         </p>
       </div>
-
       {/* Stats */}
       <Card className="md:hidden">
         <CardContent className="p-4">
