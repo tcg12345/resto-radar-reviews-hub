@@ -119,10 +119,10 @@ export function RatedRestaurantsFilterDialog({
   const hasActiveFilters = filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0 || ratingRange[0] > 0 || ratingRange[1] < 10;
   return <>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/60 z-[9998]" onClick={() => onOpenChange(false)} />
+      <div className="fixed inset-0 bg-black/60 z-[9999]" onClick={() => onOpenChange(false)} />
       
       {/* Bottom Sheet */}
-      <div className="fixed bottom-0 left-0 right-0 z-[9999] bg-background border-t rounded-t-xl animate-in slide-in-from-bottom duration-300 h-[85vh] overflow-hidden" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+      <div className="fixed bottom-0 left-0 right-0 z-[10000] bg-background border-t rounded-t-xl animate-in slide-in-from-bottom duration-300 h-[85vh] overflow-hidden" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
         <div className="flex flex-col h-full">
           {/* Drag Handle */}
           <div className="flex justify-center py-2 cursor-pointer">
