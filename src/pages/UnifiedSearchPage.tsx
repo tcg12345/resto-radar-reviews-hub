@@ -549,7 +549,6 @@ export default function UnifiedSearchPage() {
           {recommendedPlaces.length > 0 && <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">Recommended for you</h3>
-                <Badge variant="secondary" className="text-xs">AI-powered</Badge>
               </div>
               
               {isLoadingRecommendations ? <div className="grid gap-3">
