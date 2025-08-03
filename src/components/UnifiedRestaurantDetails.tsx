@@ -357,7 +357,7 @@ export function UnifiedRestaurantDetails({
   }
   return <>
       {/* Mobile status bar spacer */}
-      <div className="lg:hidden h-[35px] bg-black flex-shrink-0"></div>
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-[35px] bg-black z-50"></div>
       <div className="min-h-screen bg-background">
       {/* Header */}
       {showBackButton && <div className="sticky top-[35px] lg:top-0 z-50 bg-background backdrop-blur border-b">
