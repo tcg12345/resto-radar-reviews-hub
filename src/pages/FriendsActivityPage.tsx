@@ -668,7 +668,7 @@ export function FriendsActivityPage() {
       </div>;
   }
   return <div className="w-full">
-      <div className="p-6">
+      <div className="p-2">
       {/* Header */}
       <div className="hidden md:block space-y-4">
         <div className="flex items-center gap-3">
