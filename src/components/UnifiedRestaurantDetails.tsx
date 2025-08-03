@@ -363,7 +363,7 @@ export function UnifiedRestaurantDetails({
       {showBackButton && <div className="sticky top-[35px] lg:top-0 z-50 bg-background backdrop-blur border-b">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={handleBack} className="h-8 w-8 p-0">
+              <Button variant="ghost" size="sm" onClick={handleBack} className="h-10 w-10 p-0 touch-manipulation" aria-label="Go back">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <h1 className="text-lg font-semibold truncate">{restaurantData.name}</h1>
