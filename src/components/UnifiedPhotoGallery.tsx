@@ -352,6 +352,19 @@ export function UnifiedPhotoGallery({
               </div>
             )}
 
+            {/* Show Less Button */}
+            {showAll && filteredCommunityPhotos.length > 12 && (
+              <div className="text-center mt-6">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowAll(false)}
+                  className="w-full sm:w-auto"
+                >
+                  Show Less
+                </Button>
+              </div>
+            )}
+
             {/* No Results */}
             {filteredCommunityPhotos.length === 0 && searchQuery && (
               <div className="text-center text-muted-foreground py-6">
