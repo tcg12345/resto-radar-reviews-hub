@@ -780,7 +780,7 @@ export function FriendsActivityPage() {
 
       {/* Quick Filter Buttons */}
       <div className="flex items-center justify-center">
-        <div className="flex items-center bg-muted/50 p-1 rounded-lg">
+        <div className="flex items-center bg-muted/50 p-1 rounded-lg my-4">
           <Button variant={filterBy === 'all' ? 'default' : 'ghost'} size="sm" onClick={() => setFilterBy('all')} className="flex items-center gap-2 px-4">
             <List className="h-4 w-4" />
             All ({filterCounts.total})
