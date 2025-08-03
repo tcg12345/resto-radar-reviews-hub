@@ -167,18 +167,18 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
                     variant="ghost"
                     size="icon"
                     onClick={() => onTabChange(tab.id)}
-                    className={`relative h-11 w-11 mobile-tap-target transition-all duration-300 ${
+                    className={`relative h-12 w-12 mobile-tap-target transition-all duration-300 ${
                       isActive 
                         ? 'text-primary bg-transparent hover:bg-transparent' 
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/40 hover:scale-105'
                     }`}
                   >
                     <Icon className={`transition-all duration-300 ${
-                      isActive ? 'text-primary h-7 w-7' : 'h-6 w-6'
+                      isActive ? 'text-primary h-8 w-8' : 'h-7 w-7'
                     }`} />
                   </Button>
                   <span className={`transition-all duration-300 -mt-2 pb-1 ${
-                    isActive ? 'text-primary text-[11px] font-bold' : 'text-muted-foreground text-[10px] font-medium'
+                    isActive ? 'text-primary text-[12px] font-bold' : 'text-muted-foreground text-[11px] font-medium'
                   }`}>
                     {tab.shortLabel}
                   </span>
