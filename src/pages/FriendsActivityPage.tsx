@@ -300,21 +300,19 @@ export function FriendsActivityPage() {
       if (observerRef.current) {
         observerRef.current.disconnect();
       }
-      
+
       // Force scroll to top immediately
       const scrollToTop = () => {
         document.documentElement.scrollTop = 0;
         document.body.scrollTop = 0;
         window.scrollTo(0, 0);
       };
-      
       scrollToTop();
-      
+
       // Multiple attempts to ensure scroll stays at top
       const timeout1 = setTimeout(scrollToTop, 50);
       const timeout2 = setTimeout(scrollToTop, 150);
       const timeout3 = setTimeout(scrollToTop, 300);
-
       return () => {
         clearTimeout(timeout1);
         clearTimeout(timeout2);
@@ -668,7 +666,7 @@ export function FriendsActivityPage() {
       </div>;
   }
   return <div className="w-full">
-      <div className="p-2">
+      <div className="p-6 space-y-6">
       {/* Header */}
       <div className="hidden md:block space-y-4">
         <div className="flex items-center gap-3">
@@ -681,6 +679,7 @@ export function FriendsActivityPage() {
           Discover what your friends have been eating and their wishlist items all in one place
         </p>
       </div>
+
       {/* Stats */}
       <Card className="md:hidden">
         <CardContent className="p-4">
@@ -779,7 +778,7 @@ export function FriendsActivityPage() {
       </div>
 
       {/* Quick Filter Buttons */}
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center py-0 my-[13px]">
         <div className="flex items-center bg-muted/50 p-1 rounded-lg">
           <Button variant={filterBy === 'all' ? 'default' : 'ghost'} size="sm" onClick={() => setFilterBy('all')} className="flex items-center gap-2 px-4">
             <List className="h-4 w-4" />
