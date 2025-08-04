@@ -20,13 +20,14 @@ interface TripCalendarProps {
   events: ItineraryEvent[];
   locations: TripLocation[];
   isMultiCity: boolean;
+  useLengthOfStay?: boolean;
   onAddEvent: (date: string) => void;
   onEditEvent: (event: ItineraryEvent) => void;
   onDeleteEvent: (eventId: string) => void;
 }
 
 
-export function TripCalendar({ startDate, endDate, events, locations, isMultiCity, onAddEvent, onEditEvent, onDeleteEvent }: TripCalendarProps) {
+export function TripCalendar({ startDate, endDate, events, locations, isMultiCity, useLengthOfStay, onAddEvent, onEditEvent, onDeleteEvent }: TripCalendarProps) {
   const days = eachDayOfInterval({ start: startDate, end: endDate });
 
   const getCityForDate = (date: Date) => {
@@ -108,7 +109,10 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="text-lg">
-                      Day {index + 1} - {format(day, 'EEEE, MMMM do')}
+                      {useLengthOfStay 
+                        ? `Day ${index + 1}`
+                        : `Day ${index + 1} - ${format(day, 'EEEE, MMMM do')}`
+                      }
                     </CardTitle>
                     <CardDescription className="space-y-1">
                       {isMultiCity && getCityForDate(day) && (

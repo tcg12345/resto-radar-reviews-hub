@@ -883,6 +883,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
             events={events}
             locations={currentItinerary?.locations || []}
             isMultiCity={currentItinerary?.isMultiCity || false}
+            useLengthOfStay={useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])}
             onAddEvent={handleAddEvent}
             onEditEvent={handleEditEvent}
             onDeleteEvent={handleDeleteEvent}
