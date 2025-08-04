@@ -1080,45 +1080,11 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                       <div className="mt-3 space-y-4">
                         {currentItinerary.locations.map((location, index) => (
                           locationLengthOfStay[location.id] && (
-                            <div 
-                              key={location.id} 
-                              className={`p-4 bg-accent/50 rounded-lg cursor-move transition-all duration-200 ${
-                                draggedCityId === location.id ? 'opacity-50 scale-95' : 'hover:bg-accent/70'
-                              }`}
-                              draggable={true}
-                              onDragStart={(e) => {
-                                setDraggedCityId(location.id);
-                                e.dataTransfer.effectAllowed = 'move';
-                                e.dataTransfer.setData('text/plain', location.id);
-                              }}
-                              onDragEnd={() => {
-                                setDraggedCityId(null);
-                              }}
-                              onDragOver={(e) => {
-                                e.preventDefault();
-                                e.dataTransfer.dropEffect = 'move';
-                              }}
-                              onDrop={(e) => {
-                                e.preventDefault();
-                                const draggedId = e.dataTransfer.getData('text/plain');
-                                if (draggedId && draggedId !== location.id) {
-                                  reorderCities(draggedId, location.id);
-                                }
-                                setDraggedCityId(null);
-                              }}
-                            >
+                            <div key={location.id} className="p-4 bg-accent/50 rounded-lg">
                               <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-2">
-                                  <GripVertical className="w-4 h-4 text-muted-foreground cursor-move" />
                                   <MapPin className="w-4 h-4 text-muted-foreground" />
                                   <span className="font-medium">{location.name}</span>
-                                  <span className="text-xs text-muted-foreground bg-background/50 px-2 py-1 rounded-full">
-                                    Day {index === 0 ? '1' : currentItinerary.locations.slice(0, index).reduce((acc, loc) => 
-                                      acc + (locationNights[loc.id] || 1), 1
-                                    )}-{currentItinerary.locations.slice(0, index + 1).reduce((acc, loc) => 
-                                      acc + (locationNights[loc.id] || 1), 0
-                                    )}
-                                  </span>
                                 </div>
                                 <span className="text-sm text-muted-foreground">
                                   {locationNights[location.id] || 1} {(locationNights[location.id] || 1) === 1 ? "night" : "nights"}
