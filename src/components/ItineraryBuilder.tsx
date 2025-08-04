@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
+import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DateRangePicker } from '@/components/DateRangePicker';
 import { TripCalendar } from '@/components/TripCalendar';
@@ -172,6 +173,8 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
   const [isMultiCity, setIsMultiCity] = useState(persistedState?.isMultiCity || false);
   const [currentLocationSearch, setCurrentLocationSearch] = useState('');
   const [hasCreatedItinerary, setHasCreatedItinerary] = useState(persistedState?.hasCreatedItinerary || false);
+  const [useLengthOfStay, setUseLengthOfStay] = useState(false);
+  const [numberOfNights, setNumberOfNights] = useState<number>(1);
 
   // Persist state to localStorage whenever key state changes
   useEffect(() => {
@@ -262,7 +265,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
 
   const canCreateItinerary = isMultiCity 
     ? locations.length > 0 && locations.every(loc => loc.startDate && loc.endDate)
-    : dateRange.start && dateRange.end && locations.length > 0;
+    : useLengthOfStay ? locations.length > 0 && numberOfNights > 0 : dateRange.start && dateRange.end && locations.length > 0;
 
   const handleAddEvent = (date: string) => {
     setSelectedDate(date);
@@ -542,12 +545,47 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                 {!isMultiCity && locations.length > 0 && (
                   <div className="space-y-4">
                     <h3 className="font-medium text-center">Select travel dates</h3>
-                    <div className="max-w-md mx-auto">
-                      <DateRangePicker
-                        startDate={dateRange.start}
-                        endDate={dateRange.end}
-                        onDateRangeChange={handleDateRangeChange}
+                    
+                    {/* Toggle between specific dates and length of stay */}
+                    <div className="flex items-center justify-center space-x-2">
+                      <Switch
+                        id="length-of-stay"
+                        checked={useLengthOfStay}
+                        onCheckedChange={setUseLengthOfStay}
                       />
+                      <Label htmlFor="length-of-stay">Use length of stay instead</Label>
+                    </div>
+
+                    <div className="max-w-md mx-auto">
+                      {useLengthOfStay ? (
+                        <div className="space-y-4">
+                          <div className="text-center">
+                            <Label className="text-sm font-medium">Number of nights</Label>
+                            <div className="mt-2 space-y-3">
+                              <Slider
+                                value={[numberOfNights]}
+                                onValueChange={(value) => setNumberOfNights(value[0])}
+                                max={30}
+                                min={1}
+                                step={1}
+                                className="w-full"
+                              />
+                              <div className="text-center">
+                                <span className="text-lg font-semibold">{numberOfNights}</span>
+                                <span className="text-sm text-muted-foreground ml-1">
+                                  {numberOfNights === 1 ? 'night' : 'nights'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <DateRangePicker
+                          startDate={dateRange.start}
+                          endDate={dateRange.end}
+                          onDateRangeChange={handleDateRangeChange}
+                        />
+                      )}
                     </div>
                   </div>
                 )}
@@ -560,7 +598,29 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                         createMultiCityItinerary();
                         setHasCreatedItinerary(true);
                       } : () => {
-                        if (dateRange.start && dateRange.end && locations.length > 0) {
+                        if (useLengthOfStay) {
+                          // Create dates based on number of nights - use today as start date
+                          const startDate = startOfDay(new Date());
+                          const endDate = addDays(startDate, numberOfNights);
+                          
+                          const locationNames = locations.map(loc => loc.name).join(' → ');
+                          const title = `${locationNames} - ${numberOfNights} ${numberOfNights === 1 ? 'Night' : 'Nights'}`;
+                          
+                          const newItinerary: Itinerary = {
+                            title,
+                            startDate,
+                            endDate,
+                            locations,
+                            isMultiCity,
+                            events: [],
+                            hotels: [],
+                            flights: [],
+                            userId: user?.id,
+                          };
+                          setCurrentItinerary(newItinerary);
+                          setDateRange({ start: startDate, end: endDate });
+                          setHasCreatedItinerary(true);
+                        } else if (dateRange.start && dateRange.end && locations.length > 0) {
                           const locationNames = locations.map(loc => loc.name).join(' → ');
                           const title = `${locationNames} Trip`;
                           
