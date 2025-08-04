@@ -948,10 +948,12 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                                 [currentLocation.id]: numberOfNights
                               }));
                               
-                              // Update the location with proper dates
+                              // Update the location with proper sequential dates (starting from today)
                               const startDate = startOfDay(new Date());
                               const endDate = addDays(startDate, numberOfNights);
                               updateLocationDates(currentLocation.id, startDate, endDate);
+                              
+                              console.log('Converting to multi-city:', { city: currentLocation.name, nights: numberOfNights, start: startDate.toDateString(), end: endDate.toDateString() });
                               
                               // Update the itinerary to multi-city
                               setCurrentItinerary(prev => prev ? { 
@@ -1001,23 +1003,41 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                                     [location.id]: nights
                                   }));
                                   
-                                  // Update location dates
-                                  const startDate = startOfDay(new Date());
-                                  const endDate = addDays(startDate, nights);
-                                  updateLocationDates(location.id, startDate, endDate);
+                                  console.log('Multi-city nights update:', { locationId: location.id, nights, allNights: {...locationNights, [location.id]: nights} });
                                   
-                                  // Recalculate overall trip dates for multi-city trips
-                                  if (currentItinerary) {
-                                    const updatedLocations = currentItinerary.locations.map(loc =>
-                                      loc.id === location.id ? { ...loc, startDate, endDate } : loc
-                                    );
+                                  // Calculate sequential dates for multi-city trips
+                                  if (currentItinerary?.locations) {
+                                    const updatedNights = {...locationNights, [location.id]: nights};
+                                    let currentDate = startOfDay(new Date());
                                     
+                                    // Calculate sequential dates for all locations
+                                    const updatedLocations = currentItinerary.locations.map(loc => {
+                                      if (locationLengthOfStay[loc.id] && updatedNights[loc.id]) {
+                                        const startDate = new Date(currentDate);
+                                        const endDate = addDays(startDate, updatedNights[loc.id]);
+                                        
+                                        console.log(`Location ${loc.name}: ${updatedNights[loc.id]} nights, ${startDate.toDateString()} to ${endDate.toDateString()}`);
+                                        
+                                        // Update location dates
+                                        updateLocationDates(loc.id, startDate, endDate);
+                                        
+                                        // Move to next city's start date
+                                        currentDate = new Date(endDate);
+                                        
+                                        return { ...loc, startDate, endDate };
+                                      }
+                                      return loc;
+                                    });
+                                    
+                                    // Calculate overall trip dates
                                     const allStartDates = updatedLocations.map(loc => loc.startDate!).filter(Boolean);
                                     const allEndDates = updatedLocations.map(loc => loc.endDate!).filter(Boolean);
                                     
                                     if (allStartDates.length > 0 && allEndDates.length > 0) {
                                       const overallStart = new Date(Math.min(...allStartDates.map(d => d.getTime())));
                                       const overallEnd = new Date(Math.max(...allEndDates.map(d => d.getTime())));
+                                      
+                                      console.log('Overall trip dates:', { start: overallStart.toDateString(), end: overallEnd.toDateString() });
                                       
                                       setCurrentItinerary(prev => prev ? {
                                         ...prev,
@@ -1069,24 +1089,39 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                               [locationToAdd.id]: 2
                             }));
                             
-                            // Update location dates
-                            const startDate = startOfDay(new Date());
-                            const endDate = addDays(startDate, 2);
-                            updateLocationDates(locationToAdd.id, startDate, endDate);
-                            
-                            // Update current itinerary with new location and recalculate overall dates
+                            // Calculate sequential dates for all cities
                             if (currentItinerary) {
-                              const updatedLocations = [...currentItinerary.locations, { 
-                                ...locationToAdd, 
-                                startDate, 
-                                endDate 
-                              }];
+                              const allLocations = [...currentItinerary.locations, locationToAdd];
+                              const updatedNights = {...locationNights, [locationToAdd.id]: 2};
+                              let currentDate = startOfDay(new Date());
+                              
+                              // Calculate sequential dates for all locations
+                              const updatedLocations = allLocations.map(loc => {
+                                if (locationLengthOfStay[loc.id] || loc.id === locationToAdd.id) {
+                                  const nights = updatedNights[loc.id] || 1;
+                                  const startDate = new Date(currentDate);
+                                  const endDate = addDays(startDate, nights);
+                                  
+                                  console.log(`New city calculation - ${loc.name}: ${nights} nights, ${startDate.toDateString()} to ${endDate.toDateString()}`);
+                                  
+                                  // Update location dates
+                                  updateLocationDates(loc.id, startDate, endDate);
+                                  
+                                  // Move to next city's start date
+                                  currentDate = new Date(endDate);
+                                  
+                                  return { ...loc, startDate, endDate };
+                                }
+                                return loc;
+                              });
                               
                               // Recalculate overall trip dates
                               const allStartDates = updatedLocations.map(loc => loc.startDate!).filter(Boolean);
                               const allEndDates = updatedLocations.map(loc => loc.endDate!).filter(Boolean);
                               const overallStart = new Date(Math.min(...allStartDates.map(d => d.getTime())));
                               const overallEnd = new Date(Math.max(...allEndDates.map(d => d.getTime())));
+                              
+                              console.log('New overall trip dates after adding city:', { start: overallStart.toDateString(), end: overallEnd.toDateString() });
                               
                               setCurrentItinerary(prev => prev ? { 
                                 ...prev, 
