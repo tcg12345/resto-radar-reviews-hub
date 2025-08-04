@@ -168,7 +168,8 @@ export function EventDialog({
       const { data, error } = await supabase.functions.invoke('google-places-search', {
         body: {
           query: query,
-          type: 'geocode'
+          location: '',
+          type: 'search'
         }
       });
 
