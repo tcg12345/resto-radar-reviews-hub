@@ -1211,14 +1211,13 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                                 if (currentItinerary) {
                                   const updatedLocations = [...currentItinerary.locations, locationToAdd];
                                   
-                                  // Preserve existing dates if they exist
+                                  // Keep as date-based system - preserve existing dates if they exist
                                   if (dateRange.start && dateRange.end) {
                                     const totalDays = differenceInDays(dateRange.end, dateRange.start);
                                     const currentLocation = currentItinerary.locations[0];
                                     
                                     // Split the existing trip duration between cities
                                     const firstCityNights = Math.max(1, Math.floor(totalDays / 2));
-                                    const secondCityNights = totalDays - firstCityNights;
                                     
                                     // Use existing start date and calculate split
                                     const firstCityStart = dateRange.start;
@@ -1226,18 +1225,8 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                                     const secondCityStart = firstCityEnd;
                                     const secondCityEnd = dateRange.end; // Preserve original end date
                                     
-                                    setLocationLengthOfStay(prev => ({
-                                      ...prev,
-                                      [currentLocation.id]: true,
-                                      [locationToAdd.id]: true
-                                    }));
-                                    
-                                    setLocationNights(prev => ({
-                                      ...prev,
-                                      [currentLocation.id]: firstCityNights,
-                                      [locationToAdd.id]: secondCityNights
-                                    }));
-                                    
+                                    // DON'T set length of stay - keep it date-based
+                                    // Just update the location dates
                                     updateLocationDates(currentLocation.id, firstCityStart, firstCityEnd);
                                     updateLocationDates(locationToAdd.id, secondCityStart, secondCityEnd);
                                     
@@ -1256,7 +1245,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                                       title: `Multi-City: ${locationsWithDates.map(loc => loc.name).join(' → ')}`
                                     } : null);
                                     
-                                    setWasCreatedWithLengthOfStay(true);
+                                    // DON'T set wasCreatedWithLengthOfStay - keep it date-based
                                   } else {
                                     // If no dates exist, just update to multi-city without dates
                                     setCurrentItinerary(prev => prev ? { 
