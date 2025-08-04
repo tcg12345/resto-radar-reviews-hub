@@ -196,6 +196,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
   const [hasPendingChanges, setHasPendingChanges] = useState(false);
   const [isExtensionOpen, setIsExtensionOpen] = useState(false);
   const [pendingEndDate, setPendingEndDate] = useState<Date | null>(dateRange.end);
+  const [pendingStartDate, setPendingStartDate] = useState<Date | null>(dateRange.start);
 
   // Persist state to localStorage whenever key state changes
   useEffect(() => {
@@ -223,16 +224,24 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
     setPendingNights(numberOfNights);
     setPendingLocationNights(locationNights);
     setPendingEndDate(dateRange.end);
+    setPendingStartDate(dateRange.start);
     setHasPendingChanges(false);
-  }, [numberOfNights, locationNights, dateRange.end]);
+  }, [numberOfNights, locationNights, dateRange.end, dateRange.start]);
 
   const applyPendingChanges = () => {
     // Apply date-based trip extension
-    if (!useLengthOfStay && !currentItinerary?.isMultiCity && pendingEndDate && dateRange.start) {
-      setDateRange(prev => ({ ...prev, end: pendingEndDate }));
+    if (!useLengthOfStay && !currentItinerary?.isMultiCity && (pendingEndDate || pendingStartDate) && dateRange.start && dateRange.end) {
+      const newStartDate = pendingStartDate || dateRange.start;
+      const newEndDate = pendingEndDate || dateRange.end;
+      
+      setDateRange({ start: newStartDate, end: newEndDate });
       
       if (currentItinerary) {
-        setCurrentItinerary(prev => prev ? { ...prev, endDate: pendingEndDate } : null);
+        setCurrentItinerary(prev => prev ? { 
+          ...prev, 
+          startDate: newStartDate, 
+          endDate: newEndDate 
+        } : null);
       }
     }
 
@@ -1099,40 +1108,123 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                     {!useLengthOfStay && !currentItinerary?.isMultiCity && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) && (
                       <div className="space-y-4">
                         <div>
-                          <Label className="text-sm font-medium">Extend your trip</Label>
+                          <Label className="text-sm font-medium">Modify your trip dates</Label>
                           <p className="text-xs text-muted-foreground mt-1">
-                            Change your departure date to extend your stay
+                            Change your start or end date to adjust your trip
                           </p>
-                          <div className="mt-3">
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  className={cn(
-                                    "w-full justify-start text-left font-normal",
-                                    !pendingEndDate && "text-muted-foreground"
-                                  )}
-                                >
-                                  <CalendarIcon className="mr-2 h-4 w-4" />
-                                  {pendingEndDate ? format(pendingEndDate, 'PPP') : 'Select end date'}
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
-                                <CalendarComponent
-                                  mode="single"
-                                  selected={pendingEndDate}
-                                  onSelect={(date) => {
-                                    if (date && dateRange.start && date > dateRange.start) {
-                                      setPendingEndDate(date);
-                                      setHasPendingChanges(true);
-                                    }
-                                  }}
-                                  disabled={(date) => !dateRange.start || date <= dateRange.start}
-                                  initialFocus
-                                  className={cn("p-3 pointer-events-auto")}
-                                />
-                              </PopoverContent>
-                            </Popover>
+                          <div className="mt-3 grid grid-cols-1 gap-3">
+                            {/* Start Date Picker */}
+                            <div>
+                              <Label className="text-xs text-muted-foreground">Start Date</Label>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    className={cn(
+                                      "w-full justify-start text-left font-normal",
+                                      !pendingStartDate && "text-muted-foreground"
+                                    )}
+                                  >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {pendingStartDate ? format(pendingStartDate, 'PPP') : 'Select start date'}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                  <CalendarComponent
+                                    mode="single"
+                                    selected={pendingStartDate}
+                                    onSelect={(date) => {
+                                      if (date && (!pendingEndDate || date < pendingEndDate)) {
+                                        setPendingStartDate(date);
+                                        setHasPendingChanges(true);
+                                      }
+                                    }}
+                                    disabled={(date) => pendingEndDate && date >= pendingEndDate}
+                                    initialFocus
+                                    className={cn("p-3 pointer-events-auto")}
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                            </div>
+                            
+                            {/* End Date Picker */}
+                            <div>
+                              <Label className="text-xs text-muted-foreground">End Date</Label>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    className={cn(
+                                      "w-full justify-start text-left font-normal",
+                                      !pendingEndDate && "text-muted-foreground"
+                                    )}
+                                  >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {pendingEndDate ? format(pendingEndDate, 'PPP') : 'Select end date'}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                  <CalendarComponent
+                                    mode="single"
+                                    selected={pendingEndDate}
+                                    onSelect={(date) => {
+                                      if (date && (!pendingStartDate || date > pendingStartDate)) {
+                                        setPendingEndDate(date);
+                                        setHasPendingChanges(true);
+                                      }
+                                    }}
+                                    disabled={(date) => !pendingStartDate || date <= pendingStartDate}
+                                    initialFocus
+                                    className={cn("p-3 pointer-events-auto")}
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Option to add cities to any itinerary */}
+                        <div className="pt-4 border-t">
+                          <div className="space-y-3">
+                            <Label className="text-sm font-medium">Add another city</Label>
+                            <p className="text-xs text-muted-foreground">
+                              Convert to a multi-city trip by adding destinations
+                            </p>
+                            <AmadeusCitySearch
+                              value={currentLocationSearch}
+                              onChange={setCurrentLocationSearch}
+                              onCitySelect={(newLocation) => {
+                                const locationToAdd: TripLocation = {
+                                  id: newLocation.id,
+                                  name: newLocation.mainText,
+                                  country: newLocation.secondaryText.split(",").pop()?.trim() || "",
+                                  state: newLocation.secondaryText.split(",")[0]?.trim(),
+                                };
+                                
+                                // Add to locations
+                                setLocations(prev => [...prev, locationToAdd]);
+                                
+                                // Convert to multi-city
+                                setIsMultiCity(true);
+                                
+                                // If current itinerary exists, update it to multi-city
+                                if (currentItinerary) {
+                                  const updatedLocations = [...currentItinerary.locations, locationToAdd];
+                                  
+                                  setCurrentItinerary(prev => prev ? { 
+                                    ...prev, 
+                                    locations: updatedLocations,
+                                    isMultiCity: true,
+                                    title: `Multi-City: ${updatedLocations.map(loc => loc.name).join(' → ')}`
+                                  } : null);
+                                }
+                                
+                                setCurrentLocationSearch("");
+                                toast.success(`Added ${locationToAdd.name} to your trip`);
+                              }}
+                              placeholder="Add another city..."
+                              className="w-full"
+                            />
                           </div>
                         </div>
                       </div>
@@ -1262,6 +1354,9 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                     <div className="pt-4 border-t">
                       <div className="space-y-3">
                         <Label className="text-sm font-medium">Add another city</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Add more destinations to your multi-city trip
+                        </p>
                         <AmadeusCitySearch
                           value={currentLocationSearch}
                           onChange={setCurrentLocationSearch}
