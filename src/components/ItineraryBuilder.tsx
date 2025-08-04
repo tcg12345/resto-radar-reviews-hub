@@ -149,6 +149,8 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
           locationLengthOfStay: parsed.locationLengthOfStay || {},
           locationNights: parsed.locationNights || {},
           numberOfNights: parsed.numberOfNights || 1,
+          // Add permanent flag to remember if trip was created with length of stay
+          wasCreatedWithLengthOfStay: parsed.wasCreatedWithLengthOfStay || false,
         };
       }
     } catch (error) {
@@ -158,6 +160,8 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
   };
 
   const persistedState = loadPersistedState();
+  
+  console.log('Loading persisted state:', persistedState);
   
   const [dateRange, setDateRange] = useState<{ start: Date | null; end: Date | null }>(
     persistedState?.dateRange || { start: null, end: null }
@@ -182,6 +186,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
   const [numberOfNights, setNumberOfNights] = useState<number>(persistedState?.numberOfNights || 1);
   const [locationLengthOfStay, setLocationLengthOfStay] = useState<Record<string, boolean>>(persistedState?.locationLengthOfStay || {});
   const [locationNights, setLocationNights] = useState<Record<string, number>>(persistedState?.locationNights || {});
+  const [wasCreatedWithLengthOfStay, setWasCreatedWithLengthOfStay] = useState(persistedState?.wasCreatedWithLengthOfStay || false);
 
   // Persist state to localStorage whenever key state changes
   useEffect(() => {
@@ -199,9 +204,10 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
       numberOfNights,
       locationLengthOfStay,
       locationNights,
+      wasCreatedWithLengthOfStay,
     };
     localStorage.setItem('currentItineraryBuilder', JSON.stringify(stateToSave));
-  }, [dateRange, currentItinerary, events, hotels, flights, locations, isMultiCity, hasCreatedItinerary, useLengthOfStay, numberOfNights, locationLengthOfStay, locationNights]);
+  }, [dateRange, currentItinerary, events, hotels, flights, locations, isMultiCity, hasCreatedItinerary, useLengthOfStay, numberOfNights, locationLengthOfStay, locationNights, wasCreatedWithLengthOfStay]);
 
   const tripDays = dateRange.start && dateRange.end
     ? differenceInDays(dateRange.end, dateRange.start) + 1 
@@ -251,6 +257,13 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
     };
     setCurrentItinerary(newItinerary);
     setDateRange({ start: overallStart, end: overallEnd });
+    
+    // Check if any location was created with length of stay
+    const hasLengthOfStayLocations = Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]);
+    if (hasLengthOfStayLocations) {
+      setWasCreatedWithLengthOfStay(true);
+      console.log('Created multi-city with length of stay:', { locationLengthOfStay, wasCreatedWithLengthOfStay: true });
+    }
   };
 
   const handleLocationSelect = (location: LocationSuggestion) => {
@@ -700,6 +713,9 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                           setCurrentItinerary(newItinerary);
                           setDateRange({ start: startDate, end: endDate });
                           setHasCreatedItinerary(true);
+                          // Mark this itinerary as created with length of stay
+                          setWasCreatedWithLengthOfStay(true);
+                          console.log('Created single city with length of stay:', { numberOfNights, wasCreatedWithLengthOfStay: true });
                         } else if (dateRange.start && dateRange.end && locations.length > 0) {
                           const locationNames = locations.map(loc => loc.name).join(' → ');
                           const title = `${locationNames} Trip`;
@@ -784,7 +800,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                   <div className="text-sm text-muted-foreground flex-1">
                     {dateRange.start && dateRange.end ? (
                       <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-                        {useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) ? (
+                        {wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) ? (
                           <span>{tripDays} {tripDays === 1 ? 'night' : 'nights'}</span>
                         ) : (
                           <>
@@ -797,7 +813,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                       'Dates not set'
                     )}
                   </div>
-                  {!(useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && (
+                  {!(wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && (
                     <div className="sm:ml-auto">
                       <DateRangePicker
                         startDate={dateRange.start}
@@ -877,6 +893,8 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                     setNumberOfNights(1);
                     setLocationLengthOfStay({});
                     setLocationNights({});
+                    setWasCreatedWithLengthOfStay(false);
+                    console.log('Reset all state for new itinerary');
                   }}
                   className="flex items-center gap-2"
                 >
@@ -888,7 +906,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
           </Card>
 
           {/* Trip Extension Section - Only show for length of stay trips */}
-          {(useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && (
+          {(wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -1181,7 +1199,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
             events={events}
             locations={currentItinerary?.locations || []}
             isMultiCity={currentItinerary?.isMultiCity || false}
-            useLengthOfStay={useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])}
+            useLengthOfStay={wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])}
             onAddEvent={handleAddEvent}
             onEditEvent={handleEditEvent}
             onDeleteEvent={handleDeleteEvent}
