@@ -1211,12 +1211,52 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                                 if (currentItinerary) {
                                   const updatedLocations = [...currentItinerary.locations, locationToAdd];
                                   
+                                  // Set up length of stay for both cities when converting
+                                  const currentLocation = currentItinerary.locations[0];
+                                  const currentTripDays = dateRange.start && dateRange.end ? 
+                                    differenceInDays(dateRange.end, dateRange.start) : 3;
+                                  
+                                  setLocationLengthOfStay(prev => ({
+                                    ...prev,
+                                    [currentLocation.id]: true,
+                                    [locationToAdd.id]: true
+                                  }));
+                                  
+                                  setLocationNights(prev => ({
+                                    ...prev,
+                                    [currentLocation.id]: Math.max(1, Math.floor(currentTripDays / 2)),
+                                    [locationToAdd.id]: Math.max(1, Math.ceil(currentTripDays / 2))
+                                  }));
+                                  
+                                  // Calculate sequential dates
+                                  const startDate = dateRange.start || startOfDay(new Date());
+                                  const firstCityNights = Math.max(1, Math.floor(currentTripDays / 2));
+                                  const secondCityNights = Math.max(1, Math.ceil(currentTripDays / 2));
+                                  
+                                  const firstCityStart = startDate;
+                                  const firstCityEnd = addDays(firstCityStart, firstCityNights);
+                                  const secondCityStart = firstCityEnd;
+                                  const secondCityEnd = addDays(secondCityStart, secondCityNights);
+                                  
+                                  updateLocationDates(currentLocation.id, firstCityStart, firstCityEnd);
+                                  updateLocationDates(locationToAdd.id, secondCityStart, secondCityEnd);
+                                  
+                                  const locationsWithDates = [
+                                    { ...currentLocation, startDate: firstCityStart, endDate: firstCityEnd },
+                                    { ...locationToAdd, startDate: secondCityStart, endDate: secondCityEnd }
+                                  ];
+                                  
                                   setCurrentItinerary(prev => prev ? { 
                                     ...prev, 
-                                    locations: updatedLocations,
+                                    locations: locationsWithDates,
                                     isMultiCity: true,
-                                    title: `Multi-City: ${updatedLocations.map(loc => loc.name).join(' → ')}`
+                                    startDate: firstCityStart,
+                                    endDate: secondCityEnd,
+                                    title: `Multi-City: ${locationsWithDates.map(loc => loc.name).join(' → ')}`
                                   } : null);
+                                  
+                                  setDateRange({ start: firstCityStart, end: secondCityEnd });
+                                  setWasCreatedWithLengthOfStay(true);
                                 }
                                 
                                 setCurrentLocationSearch("");
@@ -1311,8 +1351,8 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                       </div>
                     )}
 
-                    {/* For multi-city trips */}
-                {currentItinerary?.isMultiCity && Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) && (
+                    {/* For multi-city trips - show if it's multi-city OR has length of stay locations */}
+                    {currentItinerary?.isMultiCity && (
                   <div className="space-y-4">
                     <div>
                       <Label className="text-sm font-medium">Modify stay duration per city</Label>
