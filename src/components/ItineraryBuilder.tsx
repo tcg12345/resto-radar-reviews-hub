@@ -872,6 +872,193 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
             </CardContent>
           </Card>
 
+          {/* Trip Extension Section - Only show for length of stay trips */}
+          {(useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Plus className="w-5 h-5" />
+                  Extend Your Trip
+                </CardTitle>
+                <CardDescription>
+                  Add more days or cities to your itinerary
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* For single city trips using length of stay */}
+                {useLengthOfStay && !currentItinerary?.isMultiCity && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-sm font-medium">Extend your stay</Label>
+                      <div className="mt-2 space-y-3">
+                        <Slider
+                          value={[numberOfNights]}
+                          onValueChange={(value) => {
+                            const newNights = value[0];
+                            setNumberOfNights(newNights);
+                            
+                            // Update dates
+                            if (dateRange.start) {
+                              const newEndDate = addDays(dateRange.start, newNights);
+                              setDateRange(prev => ({ ...prev, end: newEndDate }));
+                              
+                              // Update current itinerary
+                              if (currentItinerary) {
+                                setCurrentItinerary(prev => prev ? { ...prev, endDate: newEndDate } : null);
+                              }
+                            }
+                          }}
+                          max={90}
+                          min={1}
+                          step={1}
+                          className="w-full"
+                        />
+                        <div className="text-center">
+                          <span className="text-lg font-semibold">{numberOfNights}</span>
+                          <span className="text-sm text-muted-foreground ml-1">
+                            {numberOfNights === 1 ? "night" : "nights"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Option to convert to multi-city */}
+                    <div className="pt-4 border-t">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label className="text-sm font-medium">Add another city</Label>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Convert to a multi-city trip
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setIsMultiCity(true);
+                            // Convert current single city to multi-city format
+                            if (currentItinerary && currentItinerary.locations.length > 0) {
+                              const currentLocation = currentItinerary.locations[0];
+                              setLocationLengthOfStay(prev => ({
+                                ...prev,
+                                [currentLocation.id]: true
+                              }));
+                              setLocationNights(prev => ({
+                                ...prev,
+                                [currentLocation.id]: numberOfNights
+                              }));
+                              // Update the itinerary
+                              setCurrentItinerary(prev => prev ? { ...prev, isMultiCity: true } : null);
+                            }
+                            setUseLengthOfStay(false); // Switch to multi-city mode
+                          }}
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add City
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* For multi-city trips */}
+                {currentItinerary?.isMultiCity && Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-sm font-medium">Modify stay duration per city</Label>
+                      <div className="mt-3 space-y-4">
+                        {currentItinerary.locations.map((location) => (
+                          locationLengthOfStay[location.id] && (
+                            <div key={location.id} className="p-4 bg-accent/50 rounded-lg">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                  <MapPin className="w-4 h-4 text-muted-foreground" />
+                                  <span className="font-medium">{location.name}</span>
+                                </div>
+                                <span className="text-sm text-muted-foreground">
+                                  {locationNights[location.id] || 1} {(locationNights[location.id] || 1) === 1 ? "night" : "nights"}
+                                </span>
+                              </div>
+                              <Slider
+                                value={[locationNights[location.id] || 1]}
+                                onValueChange={(value) => {
+                                  const nights = value[0];
+                                  setLocationNights(prev => ({
+                                    ...prev,
+                                    [location.id]: nights
+                                  }));
+                                  
+                                  // Update location dates
+                                  const startDate = startOfDay(new Date());
+                                  const endDate = addDays(startDate, nights);
+                                  updateLocationDates(location.id, startDate, endDate);
+                                }}
+                                max={30}
+                                min={1}
+                                step={1}
+                                className="w-full"
+                              />
+                            </div>
+                          )
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Add another city to multi-city trip */}
+                    <div className="pt-4 border-t">
+                      <div className="space-y-3">
+                        <Label className="text-sm font-medium">Add another city</Label>
+                        <AmadeusCitySearch
+                          value={currentLocationSearch}
+                          onChange={setCurrentLocationSearch}
+                          onCitySelect={(newLocation) => {
+                            const locationToAdd: TripLocation = {
+                              id: newLocation.id,
+                              name: newLocation.mainText,
+                              country: newLocation.secondaryText.split(",").pop()?.trim() || "",
+                              state: newLocation.secondaryText.split(",")[0]?.trim(),
+                            };
+                            
+                            // Add to locations
+                            setLocations(prev => [...prev, locationToAdd]);
+                            
+                            // Set default to use length of stay with 2 nights
+                            setLocationLengthOfStay(prev => ({
+                              ...prev,
+                              [locationToAdd.id]: true
+                            }));
+                            setLocationNights(prev => ({
+                              ...prev,
+                              [locationToAdd.id]: 2
+                            }));
+                            
+                            // Update location dates
+                            const startDate = startOfDay(new Date());
+                            const endDate = addDays(startDate, 2);
+                            updateLocationDates(locationToAdd.id, startDate, endDate);
+                            
+                            // Update current itinerary with new location
+                            if (currentItinerary) {
+                              const updatedLocations = [...currentItinerary.locations, locationToAdd];
+                              setCurrentItinerary(prev => prev ? { 
+                                ...prev, 
+                                locations: updatedLocations 
+                              } : null);
+                            }
+                            
+                            setCurrentLocationSearch("");
+                          }}
+                          placeholder="Add another city..."
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Hotels and Flights Section - Moved to top */}
           <HotelFlightSection
             locations={currentItinerary?.locations || []}
