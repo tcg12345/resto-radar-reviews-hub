@@ -49,7 +49,24 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
     const dateStr = format(date, 'yyyy-MM-dd');
     return events
       .filter(event => event.date === dateStr)
-      .sort((a, b) => a.time.localeCompare(b.time));
+      .sort((a, b) => {
+        // Convert time strings to comparable format
+        const timeA = convertTo24Hour(a.time);
+        const timeB = convertTo24Hour(b.time);
+        return timeA.localeCompare(timeB);
+      });
+  };
+
+  const convertTo24Hour = (time12h: string) => {
+    const [time, modifier] = time12h.split(' ');
+    let [hours, minutes] = time.split(':');
+    if (hours === '12') {
+      hours = '00';
+    }
+    if (modifier === 'PM') {
+      hours = String(parseInt(hours, 10) + 12);
+    }
+    return `${hours.padStart(2, '0')}:${minutes}`;
   };
 
   const getEventIcon = (type: string) => {
