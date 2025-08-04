@@ -16,7 +16,8 @@ import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { BottomSheet, BottomSheetHeader, BottomSheetContent, BottomSheetFooter } from '@/components/ui/bottom-sheet';
 import { useNavigate } from 'react-router-dom';
-import { Filter, X, Star, DollarSign, MapPin, ChevronDown, GripVertical, ArrowLeft, Utensils } from 'lucide-react';
+import { Filter, X, Star, DollarSign, MapPin, ChevronDown, GripVertical, ArrowLeft, Utensils, Search, Satellite } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 interface MapPageProps {
   restaurants: Restaurant[];
@@ -203,37 +204,80 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
 
   return (
     <div className="relative h-[calc(100vh-64px)] w-full overflow-hidden">
-      {/* Mobile Back Button - back to top left */}
-      <Button
-        onClick={() => {
-          if (window.history.length > 1) {
-            navigate(-1);
-          } else {
-            navigate('/rated');
-          }
-        }}
-        className="absolute top-4 left-4 z-30 flex items-center gap-2"
-        variant="secondary"
-        size="sm"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        <span className="hidden sm:inline">Back</span>
-      </Button>
+      {/* Top bar with all controls spanning full width */}
+      <div className="absolute top-4 left-4 right-4 z-30 flex items-center gap-3">
+        {/* Back button */}
+        <Button
+          onClick={() => {
+            if (window.history.length > 1) {
+              navigate(-1);
+            } else {
+              navigate('/rated');
+            }
+          }}
+          variant="secondary"
+          size="sm"
+          className="flex-shrink-0"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
 
-      {/* Mobile Filter Button - back in top right */}
-      <Button
-        onClick={() => setShowFilters(true)}
-        variant={getActiveFilterCount() > 0 ? "default" : "outline"}
-        size="sm"
-        className="lg:hidden absolute top-4 right-4 z-30 flex items-center gap-2"
-      >
-        <Filter className="h-4 w-4" />
-        {getActiveFilterCount() > 0 && (
-          <Badge variant="secondary" className="ml-1 h-4 w-4 rounded-full p-0 text-xs">
-            {getActiveFilterCount()}
-          </Badge>
-        )}
-      </Button>
+        {/* Search bar */}
+        <div className="flex-1 min-w-0">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value=""
+              placeholder="Search restaurants..."
+              className="pl-10"
+              readOnly
+            />
+          </div>
+        </div>
+
+        {/* Map style dropdown */}
+        <div className="flex-shrink-0">
+          <Select value="satellite" onValueChange={() => {}}>
+            <SelectTrigger className="w-36 h-10 bg-card shadow-lg border">
+              <SelectValue>
+                <div className="flex items-center gap-2">
+                  <Satellite className="h-4 w-4" />
+                  <span className="text-sm">Satellite</span>
+                </div>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="streets">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  Streets
+                </div>
+              </SelectItem>
+              <SelectItem value="satellite">
+                <div className="flex items-center gap-2">
+                  <Satellite className="h-4 w-4" />
+                  Satellite
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Filter button */}
+        <Button
+          onClick={() => setShowFilters(true)}
+          variant={getActiveFilterCount() > 0 ? "default" : "outline"}
+          size="sm"
+          className="flex-shrink-0"
+        >
+          <Filter className="h-4 w-4" />
+          {getActiveFilterCount() > 0 && (
+            <Badge variant="secondary" className="ml-1 h-4 w-4 rounded-full p-0 text-xs">
+              {getActiveFilterCount()}
+            </Badge>
+          )}
+        </Button>
+      </div>
 
       {/* Desktop Filter Panel (unchanged for desktop) */}
       {showFilters && (

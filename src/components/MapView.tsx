@@ -291,68 +291,6 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
         </div>
       )}
       
-      {/* Search bar - moved right and made shorter to avoid back button */}
-      <div className="absolute left-16 top-4 z-10 w-48 max-w-[calc(100vw-20rem)]">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search restaurants..."
-            className="pl-10"
-          />
-        </div>
-      </div>
-
-      {/* Map style dropdown - moved up to same line */}
-      <div className="absolute left-68 top-4 z-10">
-        <Select value={mapStyle} onValueChange={(value: MapStyle) => handleStyleChange(value)}>
-          <SelectTrigger className="w-32 h-10 bg-card shadow-lg border">
-            <SelectValue>
-              {mapStyle === 'streets' && (
-                <div className="flex items-center gap-2">
-                  <Map className="h-4 w-4" />
-                  <span className="text-sm">Streets</span>
-                </div>
-              )}
-              {mapStyle === 'satellite' && (
-                <div className="flex items-center gap-2">
-                  <Satellite className="h-4 w-4" />
-                  <span className="text-sm">Satellite</span>
-                </div>
-              )}
-              {mapStyle === 'hybrid' && (
-                <div className="flex items-center gap-2">
-                  <Satellite className="h-4 w-4 mr-1" />
-                  <Map className="h-3 w-3" />
-                  <span className="text-sm">Hybrid</span>
-                </div>
-              )}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="streets">
-              <div className="flex items-center gap-2">
-                <Map className="h-4 w-4" />
-                Streets
-              </div>
-            </SelectItem>
-            <SelectItem value="satellite">
-              <div className="flex items-center gap-2">
-                <Satellite className="h-4 w-4" />
-                Satellite
-              </div>
-            </SelectItem>
-            <SelectItem value="hybrid">
-              <div className="flex items-center gap-2">
-                <Satellite className="h-4 w-4 mr-1" />
-                <Map className="h-3 w-3" />
-                Hybrid
-              </div>
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
 
       {selectedRestaurant && (
         <div className="absolute bottom-4 left-4 right-4 z-10 rounded-lg bg-card p-4 shadow-lg md:left-auto md:right-4 md:w-96">
