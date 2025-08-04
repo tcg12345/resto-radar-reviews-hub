@@ -1211,52 +1211,61 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                                 if (currentItinerary) {
                                   const updatedLocations = [...currentItinerary.locations, locationToAdd];
                                   
-                                  // Set up length of stay for both cities when converting
-                                  const currentLocation = currentItinerary.locations[0];
-                                  const currentTripDays = dateRange.start && dateRange.end ? 
-                                    differenceInDays(dateRange.end, dateRange.start) : 3;
-                                  
-                                  setLocationLengthOfStay(prev => ({
-                                    ...prev,
-                                    [currentLocation.id]: true,
-                                    [locationToAdd.id]: true
-                                  }));
-                                  
-                                  setLocationNights(prev => ({
-                                    ...prev,
-                                    [currentLocation.id]: Math.max(1, Math.floor(currentTripDays / 2)),
-                                    [locationToAdd.id]: Math.max(1, Math.ceil(currentTripDays / 2))
-                                  }));
-                                  
-                                  // Calculate sequential dates
-                                  const startDate = dateRange.start || startOfDay(new Date());
-                                  const firstCityNights = Math.max(1, Math.floor(currentTripDays / 2));
-                                  const secondCityNights = Math.max(1, Math.ceil(currentTripDays / 2));
-                                  
-                                  const firstCityStart = startDate;
-                                  const firstCityEnd = addDays(firstCityStart, firstCityNights);
-                                  const secondCityStart = firstCityEnd;
-                                  const secondCityEnd = addDays(secondCityStart, secondCityNights);
-                                  
-                                  updateLocationDates(currentLocation.id, firstCityStart, firstCityEnd);
-                                  updateLocationDates(locationToAdd.id, secondCityStart, secondCityEnd);
-                                  
-                                  const locationsWithDates = [
-                                    { ...currentLocation, startDate: firstCityStart, endDate: firstCityEnd },
-                                    { ...locationToAdd, startDate: secondCityStart, endDate: secondCityEnd }
-                                  ];
-                                  
-                                  setCurrentItinerary(prev => prev ? { 
-                                    ...prev, 
-                                    locations: locationsWithDates,
-                                    isMultiCity: true,
-                                    startDate: firstCityStart,
-                                    endDate: secondCityEnd,
-                                    title: `Multi-City: ${locationsWithDates.map(loc => loc.name).join(' → ')}`
-                                  } : null);
-                                  
-                                  setDateRange({ start: firstCityStart, end: secondCityEnd });
-                                  setWasCreatedWithLengthOfStay(true);
+                                  // Preserve existing dates if they exist
+                                  if (dateRange.start && dateRange.end) {
+                                    const totalDays = differenceInDays(dateRange.end, dateRange.start);
+                                    const currentLocation = currentItinerary.locations[0];
+                                    
+                                    // Split the existing trip duration between cities
+                                    const firstCityNights = Math.max(1, Math.floor(totalDays / 2));
+                                    const secondCityNights = totalDays - firstCityNights;
+                                    
+                                    // Use existing start date and calculate split
+                                    const firstCityStart = dateRange.start;
+                                    const firstCityEnd = addDays(firstCityStart, firstCityNights);
+                                    const secondCityStart = firstCityEnd;
+                                    const secondCityEnd = dateRange.end; // Preserve original end date
+                                    
+                                    setLocationLengthOfStay(prev => ({
+                                      ...prev,
+                                      [currentLocation.id]: true,
+                                      [locationToAdd.id]: true
+                                    }));
+                                    
+                                    setLocationNights(prev => ({
+                                      ...prev,
+                                      [currentLocation.id]: firstCityNights,
+                                      [locationToAdd.id]: secondCityNights
+                                    }));
+                                    
+                                    updateLocationDates(currentLocation.id, firstCityStart, firstCityEnd);
+                                    updateLocationDates(locationToAdd.id, secondCityStart, secondCityEnd);
+                                    
+                                    const locationsWithDates = [
+                                      { ...currentLocation, startDate: firstCityStart, endDate: firstCityEnd },
+                                      { ...locationToAdd, startDate: secondCityStart, endDate: secondCityEnd }
+                                    ];
+                                    
+                                    setCurrentItinerary(prev => prev ? { 
+                                      ...prev, 
+                                      locations: locationsWithDates,
+                                      isMultiCity: true,
+                                      // Keep the original date range
+                                      startDate: dateRange.start,
+                                      endDate: dateRange.end,
+                                      title: `Multi-City: ${locationsWithDates.map(loc => loc.name).join(' → ')}`
+                                    } : null);
+                                    
+                                    setWasCreatedWithLengthOfStay(true);
+                                  } else {
+                                    // If no dates exist, just update to multi-city without dates
+                                    setCurrentItinerary(prev => prev ? { 
+                                      ...prev, 
+                                      locations: updatedLocations,
+                                      isMultiCity: true,
+                                      title: `Multi-City: ${updatedLocations.map(loc => loc.name).join(' → ')}`
+                                    } : null);
+                                  }
                                 }
                                 
                                 setCurrentLocationSearch("");
