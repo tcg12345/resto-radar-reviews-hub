@@ -1067,7 +1067,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
           {/* Trip Extension Section - Only show for length of stay trips */}
           {(wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && (
             <Collapsible open={isExtensionOpen} onOpenChange={setIsExtensionOpen}>
-              <Card>
+              <Card className="mb-6">
                 <CollapsibleTrigger asChild>
                   <CardHeader className="cursor-pointer hover:bg-accent/50 transition-colors">
                     <CardTitle className="flex items-center justify-between">
