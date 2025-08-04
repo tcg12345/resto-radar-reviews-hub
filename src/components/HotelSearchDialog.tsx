@@ -145,6 +145,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
     return 'bg-gray-100 text-gray-800 border-gray-300';
   };
   const handleCheckInSelect = (date: Date | undefined) => {
+    console.log('handleCheckInSelect called with:', date);
     setCheckInDate(date);
     if (date) {
       setIsCheckInOpen(false);
@@ -234,7 +235,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
                     {checkInDate ? format(checkInDate, "MMM dd") : "Select date"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0 z-50" align="start">
                   <CalendarComponent
                     mode="single"
                     selected={checkInDate}
@@ -264,7 +265,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
                     {checkOutDate ? format(checkOutDate, "MMM dd") : "Select date"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0 z-50" align="start">
                   <CalendarComponent
                     mode="single"
                     selected={checkOutDate}
