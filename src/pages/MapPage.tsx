@@ -37,6 +37,7 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
   const [ratingRange, setRatingRange] = useState<[number, number]>([0, 10]);
   const [tempRatingRange, setTempRatingRange] = useState<[number, number]>([0, 10]);
   const [filterType, setFilterType] = useState<'all' | 'rated' | 'wishlist'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Drag functionality for filter box - calculate position dynamically when opened
   const getInitialPosition = () => {
@@ -227,10 +228,10 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              value=""
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search restaurants..."
               className="pl-10"
-              readOnly
             />
           </div>
         </div>
