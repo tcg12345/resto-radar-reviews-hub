@@ -198,12 +198,32 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
   const [pendingEndDate, setPendingEndDate] = useState<Date | null>(dateRange.end);
   const [pendingStartDate, setPendingStartDate] = useState<Date | null>(dateRange.start);
 
-  // Persist state to localStorage whenever key state changes
+  // Persist state to localStorage whenever key state changes (excluding large data objects to prevent quota exceeded)
   useEffect(() => {
     const stateToSave = {
       dateRange,
       currentItinerary,
-      events,
+      // Store only essential event data, excluding large nested objects
+      events: events.map(event => ({
+        ...event,
+        // Keep only essential restaurant data
+        restaurantData: event.restaurantData ? {
+          name: event.restaurantData.name,
+          address: event.restaurantData.address,
+          phone: event.restaurantData.phone,
+          website: event.restaurantData.website,
+        } : undefined,
+        // Keep only essential attraction data
+        attractionData: event.attractionData ? {
+          name: event.attractionData.name,
+          address: event.attractionData.address,
+          phone: event.attractionData.phone,
+          website: event.attractionData.website,
+          category: event.attractionData.category,
+          latitude: event.attractionData.latitude,
+          longitude: event.attractionData.longitude,
+        } : undefined,
+      })),
       hotels,
       flights,
       locations,
@@ -216,7 +236,35 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
       locationNights,
       wasCreatedWithLengthOfStay,
     };
-    localStorage.setItem('currentItineraryBuilder', JSON.stringify(stateToSave));
+    
+    try {
+      localStorage.setItem('currentItineraryBuilder', JSON.stringify(stateToSave));
+    } catch (error) {
+      if (error instanceof Error && error.name === 'QuotaExceededError') {
+        console.warn('LocalStorage quota exceeded, clearing old data and retrying with minimal data');
+        // Clear old data and try with even more minimal data
+        localStorage.removeItem('currentItineraryBuilder');
+        const minimalState = {
+          dateRange,
+          currentItinerary: currentItinerary ? {
+            title: currentItinerary.title,
+            startDate: currentItinerary.startDate,
+            endDate: currentItinerary.endDate,
+            locations: currentItinerary.locations,
+            isMultiCity: currentItinerary.isMultiCity,
+          } : null,
+          hasCreatedItinerary,
+          useLengthOfStay,
+        };
+        try {
+          localStorage.setItem('currentItineraryBuilder', JSON.stringify(minimalState));
+        } catch (secondError) {
+          console.error('Unable to save to localStorage even with minimal data:', secondError);
+        }
+      } else {
+        console.error('Error saving to localStorage:', error);
+      }
+    }
   }, [dateRange, currentItinerary, events, hotels, flights, locations, isMultiCity, hasCreatedItinerary, useLengthOfStay, numberOfNights, locationLengthOfStay, locationNights, wasCreatedWithLengthOfStay]);
 
   // Sync pending changes with actual state initially
