@@ -305,7 +305,7 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
       </div>
 
       {/* Map style dropdown - moved up to same line */}
-      <div className="absolute left-72 top-4 z-10">
+      <div className="absolute left-80 top-4 z-10">
         <Select value={mapStyle} onValueChange={(value: MapStyle) => handleStyleChange(value)}>
           <SelectTrigger className="w-32 h-10 bg-card shadow-lg border">
             <SelectValue>
