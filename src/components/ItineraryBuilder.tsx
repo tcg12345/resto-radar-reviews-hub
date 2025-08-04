@@ -188,6 +188,11 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
   const [locationNights, setLocationNights] = useState<Record<string, number>>(persistedState?.locationNights || {});
   const [wasCreatedWithLengthOfStay, setWasCreatedWithLengthOfStay] = useState(persistedState?.wasCreatedWithLengthOfStay || false);
   const [draggedCityId, setDraggedCityId] = useState<string | null>(null);
+  
+  // Pending changes state for trip extension
+  const [pendingNights, setPendingNights] = useState<number>(numberOfNights);
+  const [pendingLocationNights, setPendingLocationNights] = useState<Record<string, number>>(locationNights);
+  const [hasPendingChanges, setHasPendingChanges] = useState(false);
 
   // Persist state to localStorage whenever key state changes
   useEffect(() => {
@@ -209,6 +214,80 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
     };
     localStorage.setItem('currentItineraryBuilder', JSON.stringify(stateToSave));
   }, [dateRange, currentItinerary, events, hotels, flights, locations, isMultiCity, hasCreatedItinerary, useLengthOfStay, numberOfNights, locationLengthOfStay, locationNights, wasCreatedWithLengthOfStay]);
+
+  // Sync pending changes with actual state initially
+  useEffect(() => {
+    setPendingNights(numberOfNights);
+    setPendingLocationNights(locationNights);
+    setHasPendingChanges(false);
+  }, [numberOfNights, locationNights]);
+
+  const applyPendingChanges = () => {
+    // Apply single city changes
+    if (useLengthOfStay && !currentItinerary?.isMultiCity) {
+      setNumberOfNights(pendingNights);
+      
+      // Update dates
+      if (dateRange.start) {
+        const newEndDate = addDays(dateRange.start, pendingNights);
+        setDateRange(prev => ({ ...prev, end: newEndDate }));
+        
+        // Update current itinerary
+        if (currentItinerary) {
+          setCurrentItinerary(prev => prev ? { ...prev, endDate: newEndDate } : null);
+        }
+      }
+    }
+
+    // Apply multi-city changes
+    if (currentItinerary?.isMultiCity) {
+      setLocationNights(pendingLocationNights);
+      
+      // Calculate sequential dates for multi-city trips
+      if (currentItinerary?.locations) {
+        let currentDate = startOfDay(new Date());
+        
+        // Calculate sequential dates for all locations
+        const updatedLocations = currentItinerary.locations.map(loc => {
+          if (locationLengthOfStay[loc.id] && pendingLocationNights[loc.id]) {
+            const nights = pendingLocationNights[loc.id];
+            const startDate = new Date(currentDate);
+            const endDate = addDays(startDate, nights);
+            
+            // Update location dates
+            updateLocationDates(loc.id, startDate, endDate);
+            
+            // Move to next city's start date
+            currentDate = new Date(endDate);
+            
+            return { ...loc, startDate, endDate };
+          }
+          return loc;
+        });
+        
+        // Calculate overall trip dates
+        const allStartDates = updatedLocations.map(loc => loc.startDate!).filter(Boolean);
+        const allEndDates = updatedLocations.map(loc => loc.endDate!).filter(Boolean);
+        
+        if (allStartDates.length > 0 && allEndDates.length > 0) {
+          const overallStart = new Date(Math.min(...allStartDates.map(d => d.getTime())));
+          const overallEnd = new Date(Math.max(...allEndDates.map(d => d.getTime())));
+          
+          setCurrentItinerary(prev => prev ? {
+            ...prev,
+            locations: updatedLocations,
+            startDate: overallStart,
+            endDate: overallEnd
+          } : null);
+          
+          setDateRange({ start: overallStart, end: overallEnd });
+        }
+      }
+    }
+
+    setHasPendingChanges(false);
+    toast.success('Changes applied successfully');
+  };
 
   const tripDays = dateRange.start && dateRange.end
     ? differenceInDays(dateRange.end, dateRange.start) + 1 
@@ -1003,21 +1082,11 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                       <Label className="text-sm font-medium">Extend your stay</Label>
                       <div className="mt-2 space-y-3">
                         <Slider
-                          value={[numberOfNights]}
+                          value={[pendingNights]}
                           onValueChange={(value) => {
                             const newNights = value[0];
-                            setNumberOfNights(newNights);
-                            
-                            // Update dates
-                            if (dateRange.start) {
-                              const newEndDate = addDays(dateRange.start, newNights);
-                              setDateRange(prev => ({ ...prev, end: newEndDate }));
-                              
-                              // Update current itinerary
-                              if (currentItinerary) {
-                                setCurrentItinerary(prev => prev ? { ...prev, endDate: newEndDate } : null);
-                              }
-                            }
+                            setPendingNights(newNights);
+                            setHasPendingChanges(true);
                           }}
                           max={90}
                           min={1}
@@ -1025,9 +1094,9 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                           className="w-full"
                         />
                         <div className="text-center">
-                          <span className="text-lg font-semibold">{numberOfNights}</span>
+                          <span className="text-lg font-semibold">{pendingNights}</span>
                           <span className="text-sm text-muted-foreground ml-1">
-                            {numberOfNights === 1 ? "night" : "nights"}
+                            {pendingNights === 1 ? "night" : "nights"}
                           </span>
                         </div>
                       </div>
@@ -1102,64 +1171,18 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                                   <span className="font-medium">{location.name}</span>
                                 </div>
                                 <span className="text-sm text-muted-foreground">
-                                  {locationNights[location.id] || 1} {(locationNights[location.id] || 1) === 1 ? "night" : "nights"}
+                                  {pendingLocationNights[location.id] || locationNights[location.id] || 1} {(pendingLocationNights[location.id] || locationNights[location.id] || 1) === 1 ? "night" : "nights"}
                                 </span>
                               </div>
                               <Slider
-                                value={[locationNights[location.id] || 1]}
+                                value={[pendingLocationNights[location.id] || locationNights[location.id] || 1]}
                                 onValueChange={(value) => {
                                   const nights = value[0];
-                                  setLocationNights(prev => ({
+                                  setPendingLocationNights(prev => ({
                                     ...prev,
                                     [location.id]: nights
                                   }));
-                                  
-                                  console.log('Multi-city nights update:', { locationId: location.id, nights, allNights: {...locationNights, [location.id]: nights} });
-                                  
-                                  // Calculate sequential dates for multi-city trips
-                                  if (currentItinerary?.locations) {
-                                    const updatedNights = {...locationNights, [location.id]: nights};
-                                    let currentDate = startOfDay(new Date());
-                                    
-                                    // Calculate sequential dates for all locations
-                                    const updatedLocations = currentItinerary.locations.map(loc => {
-                                      if (locationLengthOfStay[loc.id] && updatedNights[loc.id]) {
-                                        const startDate = new Date(currentDate);
-                                        const endDate = addDays(startDate, updatedNights[loc.id]);
-                                        
-                                        console.log(`Location ${loc.name}: ${updatedNights[loc.id]} nights, ${startDate.toDateString()} to ${endDate.toDateString()}`);
-                                        
-                                        // Update location dates
-                                        updateLocationDates(loc.id, startDate, endDate);
-                                        
-                                        // Move to next city's start date
-                                        currentDate = new Date(endDate);
-                                        
-                                        return { ...loc, startDate, endDate };
-                                      }
-                                      return loc;
-                                    });
-                                    
-                                    // Calculate overall trip dates
-                                    const allStartDates = updatedLocations.map(loc => loc.startDate!).filter(Boolean);
-                                    const allEndDates = updatedLocations.map(loc => loc.endDate!).filter(Boolean);
-                                    
-                                    if (allStartDates.length > 0 && allEndDates.length > 0) {
-                                      const overallStart = new Date(Math.min(...allStartDates.map(d => d.getTime())));
-                                      const overallEnd = new Date(Math.max(...allEndDates.map(d => d.getTime())));
-                                      
-                                      console.log('Overall trip dates:', { start: overallStart.toDateString(), end: overallEnd.toDateString() });
-                                      
-                                      setCurrentItinerary(prev => prev ? {
-                                        ...prev,
-                                        locations: updatedLocations,
-                                        startDate: overallStart,
-                                        endDate: overallEnd
-                                      } : null);
-                                      
-                                      setDateRange({ start: overallStart, end: overallEnd });
-                                    }
-                                  }
+                                  setHasPendingChanges(true);
                                 }}
                                 max={30}
                                 min={1}
@@ -1252,6 +1275,18 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                         />
                       </div>
                     </div>
+                  </div>
+                )}
+                
+                {/* Apply Changes Button */}
+                {hasPendingChanges && (
+                  <div className="flex justify-center pt-4 border-t">
+                    <Button 
+                      onClick={applyPendingChanges}
+                      className="flex items-center gap-2"
+                    >
+                      Apply Changes
+                    </Button>
                   </div>
                 )}
               </CardContent>
