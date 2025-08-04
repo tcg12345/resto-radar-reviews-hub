@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
 
 interface BottomSheetProps {
@@ -30,22 +31,24 @@ export function BottomSheet({ open, onOpenChange, children, className }: BottomS
 
   if (!open) return null;
 
-  return (
+  const modalContent = (
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/60 z-[100]"
+        className="fixed inset-0 bg-black/60"
+        style={{ zIndex: 999999 }}
         onClick={() => onOpenChange(false)}
       />
       
       {/* Bottom Sheet */}
       <div 
         className={cn(
-          "fixed bottom-0 left-0 right-0 bg-background border-t rounded-t-xl z-[101]",
+          "fixed bottom-0 left-0 right-0 bg-background border-t rounded-t-xl",
           "animate-in slide-in-from-bottom duration-300",
           "max-h-[90vh] flex flex-col",
           className
         )}
+        style={{ zIndex: 1000000 }}
       >
         {/* Drag Handle */}
         <div 
@@ -59,6 +62,9 @@ export function BottomSheet({ open, onOpenChange, children, className }: BottomS
       </div>
     </>
   );
+
+  // Render modal at document root to escape any stacking contexts
+  return createPortal(modalContent, document.body);
 }
 
 interface BottomSheetHeaderProps {
