@@ -235,7 +235,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
                     {checkInDate ? format(checkInDate, "MMM dd") : "Select date"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 z-50" align="start">
+                <PopoverContent className="w-auto p-0 z-[9999]" align="start">
                   <CalendarComponent
                     mode="single"
                     selected={checkInDate}
@@ -265,7 +265,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
                     {checkOutDate ? format(checkOutDate, "MMM dd") : "Select date"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 z-50" align="start">
+                <PopoverContent className="w-auto p-0 z-[9999]" align="start">
                   <CalendarComponent
                     mode="single"
                     selected={checkOutDate}
