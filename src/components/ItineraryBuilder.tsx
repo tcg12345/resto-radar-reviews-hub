@@ -195,6 +195,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
   const [pendingLocationNights, setPendingLocationNights] = useState<Record<string, number>>(locationNights);
   const [hasPendingChanges, setHasPendingChanges] = useState(false);
   const [isExtensionOpen, setIsExtensionOpen] = useState(false);
+  const [pendingEndDate, setPendingEndDate] = useState<Date | null>(dateRange.end);
 
   // Persist state to localStorage whenever key state changes
   useEffect(() => {
@@ -221,10 +222,20 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
   useEffect(() => {
     setPendingNights(numberOfNights);
     setPendingLocationNights(locationNights);
+    setPendingEndDate(dateRange.end);
     setHasPendingChanges(false);
-  }, [numberOfNights, locationNights]);
+  }, [numberOfNights, locationNights, dateRange.end]);
 
   const applyPendingChanges = () => {
+    // Apply date-based trip extension
+    if (!useLengthOfStay && !currentItinerary?.isMultiCity && pendingEndDate && dateRange.start) {
+      setDateRange(prev => ({ ...prev, end: pendingEndDate }));
+      
+      if (currentItinerary) {
+        setCurrentItinerary(prev => prev ? { ...prev, endDate: pendingEndDate } : null);
+      }
+    }
+
     // Apply single city changes
     if (useLengthOfStay && !currentItinerary?.isMultiCity) {
       setNumberOfNights(pendingNights);
@@ -1064,8 +1075,8 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
             </CardContent>
           </Card>
 
-          {/* Trip Extension Section - Only show for length of stay trips */}
-          {(wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && (
+          {/* Trip Extension Section - Show for all trips */}
+          {currentItinerary && (
             <Collapsible open={isExtensionOpen} onOpenChange={setIsExtensionOpen}>
               <Card className="mb-6">
                 <CollapsibleTrigger asChild>
@@ -1084,7 +1095,50 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <CardContent className="space-y-6 pt-0">
-                {/* For single city trips using length of stay */}
+                    {/* For date-based single city trips */}
+                    {!useLengthOfStay && !currentItinerary?.isMultiCity && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) && (
+                      <div className="space-y-4">
+                        <div>
+                          <Label className="text-sm font-medium">Extend your trip</Label>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Change your departure date to extend your stay
+                          </p>
+                          <div className="mt-3">
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    "w-full justify-start text-left font-normal",
+                                    !pendingEndDate && "text-muted-foreground"
+                                  )}
+                                >
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {pendingEndDate ? format(pendingEndDate, 'PPP') : 'Select end date'}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <CalendarComponent
+                                  mode="single"
+                                  selected={pendingEndDate}
+                                  onSelect={(date) => {
+                                    if (date && dateRange.start && date > dateRange.start) {
+                                      setPendingEndDate(date);
+                                      setHasPendingChanges(true);
+                                    }
+                                  }}
+                                  disabled={(date) => !dateRange.start || date <= dateRange.start}
+                                  initialFocus
+                                  className={cn("p-3 pointer-events-auto")}
+                                />
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* For single city trips using length of stay */}
                 {useLengthOfStay && !currentItinerary?.isMultiCity && (
                   <div className="space-y-4">
                     <div>
@@ -1111,61 +1165,61 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                       </div>
                     </div>
 
-                    {/* Option to convert to multi-city */}
-                    <div className="pt-4 border-t">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <Label className="text-sm font-medium">Add another city</Label>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Convert to a multi-city trip
-                          </p>
+                        {/* Option to convert to multi-city */}
+                        <div className="pt-4 border-t">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <Label className="text-sm font-medium">Add another city</Label>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Convert to a multi-city trip
+                              </p>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setIsMultiCity(true);
+                                // Convert current single city to multi-city format
+                                if (currentItinerary && currentItinerary.locations.length > 0) {
+                                  const currentLocation = currentItinerary.locations[0];
+                                  setLocationLengthOfStay(prev => ({
+                                    ...prev,
+                                    [currentLocation.id]: true
+                                  }));
+                                  setLocationNights(prev => ({
+                                    ...prev,
+                                    [currentLocation.id]: numberOfNights
+                                  }));
+                                  
+                                  // Update the location with proper sequential dates (starting from today)
+                                  const startDate = startOfDay(new Date());
+                                  const endDate = addDays(startDate, numberOfNights);
+                                  updateLocationDates(currentLocation.id, startDate, endDate);
+                                  
+                                  console.log('Converting to multi-city:', { city: currentLocation.name, nights: numberOfNights, start: startDate.toDateString(), end: endDate.toDateString() });
+                                  
+                                  // Update the itinerary to multi-city
+                                  setCurrentItinerary(prev => prev ? { 
+                                    ...prev, 
+                                    isMultiCity: true,
+                                    locations: prev.locations.map(loc => 
+                                      loc.id === currentLocation.id ? 
+                                      { ...loc, startDate, endDate } : loc
+                                    )
+                                  } : null);
+                                }
+                                // Keep useLengthOfStay true but also set multi-city mode
+                              }}
+                            >
+                              <Plus className="w-4 h-4 mr-2" />
+                              Add City
+                            </Button>
+                          </div>
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setIsMultiCity(true);
-                            // Convert current single city to multi-city format
-                            if (currentItinerary && currentItinerary.locations.length > 0) {
-                              const currentLocation = currentItinerary.locations[0];
-                              setLocationLengthOfStay(prev => ({
-                                ...prev,
-                                [currentLocation.id]: true
-                              }));
-                              setLocationNights(prev => ({
-                                ...prev,
-                                [currentLocation.id]: numberOfNights
-                              }));
-                              
-                              // Update the location with proper sequential dates (starting from today)
-                              const startDate = startOfDay(new Date());
-                              const endDate = addDays(startDate, numberOfNights);
-                              updateLocationDates(currentLocation.id, startDate, endDate);
-                              
-                              console.log('Converting to multi-city:', { city: currentLocation.name, nights: numberOfNights, start: startDate.toDateString(), end: endDate.toDateString() });
-                              
-                              // Update the itinerary to multi-city
-                              setCurrentItinerary(prev => prev ? { 
-                                ...prev, 
-                                isMultiCity: true,
-                                locations: prev.locations.map(loc => 
-                                  loc.id === currentLocation.id ? 
-                                  { ...loc, startDate, endDate } : loc
-                                )
-                              } : null);
-                            }
-                            // Keep useLengthOfStay true but also set multi-city mode
-                          }}
-                        >
-                          <Plus className="w-4 h-4 mr-2" />
-                          Add City
-                        </Button>
                       </div>
-                    </div>
-                  </div>
-                )}
+                    )}
 
-                {/* For multi-city trips */}
+                    {/* For multi-city trips */}
                 {currentItinerary?.isMultiCity && Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) && (
                   <div className="space-y-4">
                     <div>
