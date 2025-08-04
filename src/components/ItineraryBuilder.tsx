@@ -787,13 +787,15 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                       'Dates not set'
                     )}
                   </div>
-                  <div className="sm:ml-auto">
-                    <DateRangePicker
-                      startDate={dateRange.start}
-                      endDate={dateRange.end}
-                      onDateRangeChange={handleDateRangeChange}
-                    />
-                  </div>
+                  {!(useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && (
+                    <div className="sm:ml-auto">
+                      <DateRangePicker
+                        startDate={dateRange.start}
+                        endDate={dateRange.end}
+                        onDateRangeChange={handleDateRangeChange}
+                      />
+                    </div>
+                  )}
                 </div>
                 
                 {/* Locations - Vertical layout on mobile for better readability */}
