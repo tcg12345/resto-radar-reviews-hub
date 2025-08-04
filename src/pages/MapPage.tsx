@@ -203,48 +203,7 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
 
   return (
     <div className="relative h-[calc(100vh-64px)] w-full overflow-hidden">
-      {/* Mobile-specific header with back button and filter button */}
-      <div className="lg:hidden absolute top-0 left-0 right-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border/50 p-4">
-        <div className="flex items-center justify-between">
-          <Button
-            onClick={() => {
-              if (window.history.length > 1) {
-                navigate(-1);
-              } else {
-                navigate('/rated');
-              }
-            }}
-            variant="ghost"
-            size="sm"
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
-          
-          <div className="flex items-center gap-3">
-            <div className="text-sm text-muted-foreground">
-              {restaurantsWithCoords.length} locations
-            </div>
-            <Button
-              onClick={() => setShowFilters(true)}
-              variant={getActiveFilterCount() > 0 ? "default" : "outline"}
-              size="sm"
-              className="flex items-center gap-2"
-            >
-              <Filter className="h-4 w-4" />
-              Filters
-              {getActiveFilterCount() > 0 && (
-                <Badge variant="secondary" className="ml-1 h-4 w-4 rounded-full p-0 text-xs">
-                  {getActiveFilterCount()}
-                </Badge>
-              )}
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Desktop back button (unchanged) */}
+      {/* Mobile Back Button - top left, no header */}
       <Button
         onClick={() => {
           if (window.history.length > 1) {
@@ -253,12 +212,28 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
             navigate('/rated');
           }
         }}
-        className="hidden lg:flex absolute top-4 left-4 z-30 items-center gap-2"
+        className="absolute top-4 left-4 z-30 flex items-center gap-2"
         variant="secondary"
         size="sm"
       >
         <ArrowLeft className="h-4 w-4" />
         <span className="hidden sm:inline">Back</span>
+      </Button>
+
+      {/* Mobile Filter Button - top right */}
+      <Button
+        onClick={() => setShowFilters(true)}
+        variant={getActiveFilterCount() > 0 ? "default" : "outline"}
+        size="sm"
+        className="lg:hidden absolute top-4 right-4 z-30 flex items-center gap-2"
+      >
+        <Filter className="h-4 w-4" />
+        <span className="hidden sm:inline">Filters</span>
+        {getActiveFilterCount() > 0 && (
+          <Badge variant="secondary" className="ml-1 h-4 w-4 rounded-full p-0 text-xs">
+            {getActiveFilterCount()}
+          </Badge>
+        )}
       </Button>
 
       {/* Desktop Filter Panel (unchanged for desktop) */}
@@ -588,32 +563,28 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
         )}
       </Button>
 
-      {/* Map with adjusted top margin for mobile header */}
-      <div className="h-full lg:h-full" style={{ marginTop: window.innerWidth < 1024 ? '80px' : '0' }}>
-        <MapView 
-          restaurants={restaurantsWithCoords} 
-          onRestaurantSelect={handleRestaurantSelect} 
-        />
-      </div>
+      {/* Map - full height, no margin */}
+      <MapView 
+        restaurants={restaurantsWithCoords} 
+        onRestaurantSelect={handleRestaurantSelect} 
+      />
       
       {/* Mobile-optimized Map popup dialog */}
       <Dialog 
         open={!!mapSelectedRestaurant} 
         onOpenChange={(open) => !open && setSelectedRestaurantId(null)}
       >
-        <DialogContent className="lg:max-w-lg max-w-[95vw] max-h-[85vh] overflow-hidden">
-          <ScrollArea className="max-h-[calc(85vh-60px)]">
+        <DialogContent className="sm:max-w-lg max-w-[90vw] max-h-[80vh] p-0 gap-0">
+          <div className="p-6 max-h-[80vh] overflow-y-auto">
             {mapSelectedRestaurant && (
-              <div className="lg:p-0 -m-6 lg:m-0">
-                <RestaurantCard 
-                  restaurant={mapSelectedRestaurant}
-                  onEdit={handleOpenEditDialog}
-                  onDelete={handleOpenDeleteDialog}
-                  showAIReviewAssistant={true}
-                />
-              </div>
+              <RestaurantCard 
+                restaurant={mapSelectedRestaurant}
+                onEdit={handleOpenEditDialog}
+                onDelete={handleOpenDeleteDialog}
+                showAIReviewAssistant={true}
+              />
             )}
-          </ScrollArea>
+          </div>
         </DialogContent>
       </Dialog>
 
