@@ -175,6 +175,8 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
   const [hasCreatedItinerary, setHasCreatedItinerary] = useState(persistedState?.hasCreatedItinerary || false);
   const [useLengthOfStay, setUseLengthOfStay] = useState(false);
   const [numberOfNights, setNumberOfNights] = useState<number>(1);
+  const [locationLengthOfStay, setLocationLengthOfStay] = useState<Record<string, boolean>>({});
+  const [locationNights, setLocationNights] = useState<Record<string, number>>({});
 
   // Persist state to localStorage whenever key state changes
   useEffect(() => {
@@ -206,22 +208,31 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
   };
 
   const createMultiCityItinerary = () => {
-    if (!locations.every(loc => loc.startDate && loc.endDate)) return;
+    // Ensure all locations have dates (either explicit or calculated from nights)
+    const locationsWithDates = locations.map(loc => {
+      if (locationLengthOfStay[loc.id] && locationNights[loc.id]) {
+        // Use already calculated dates from the slider onChange
+        return loc;
+      }
+      return loc;
+    });
+    
+    if (!locationsWithDates.every(loc => loc.startDate && loc.endDate)) return;
     
     // Calculate overall trip dates from all locations
-    const allStartDates = locations.map(loc => loc.startDate!);
-    const allEndDates = locations.map(loc => loc.endDate!);
+    const allStartDates = locationsWithDates.map(loc => loc.startDate!);
+    const allEndDates = locationsWithDates.map(loc => loc.endDate!);
     const overallStart = new Date(Math.min(...allStartDates.map(d => d.getTime())));
     const overallEnd = new Date(Math.max(...allEndDates.map(d => d.getTime())));
     
-    const locationNames = locations.map(loc => loc.name).join(' → ');
+    const locationNames = locationsWithDates.map(loc => loc.name).join(' → ');
     const title = `Multi-City: ${locationNames}`;
     
     const newItinerary: Itinerary = {
       title,
       startDate: overallStart,
       endDate: overallEnd,
-      locations,
+      locations: locationsWithDates,
       isMultiCity: true,
       events: [],
       hotels: [],
@@ -264,7 +275,10 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
   // Removed auto-creation - now requires manual button click
 
   const canCreateItinerary = isMultiCity 
-    ? locations.length > 0 && locations.every(loc => loc.startDate && loc.endDate)
+    ? locations.length > 0 && locations.every(loc => 
+        // Either has specific dates OR has length of stay configured
+        (loc.startDate && loc.endDate) || (locationLengthOfStay[loc.id] && locationNights[loc.id] > 0)
+      )
     : useLengthOfStay ? locations.length > 0 && numberOfNights > 0 : dateRange.start && dateRange.end && locations.length > 0;
 
   const handleAddEvent = (date: string) => {
@@ -490,42 +504,98 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            {isMultiCity && (
-                              <div className="flex items-center gap-2">
-                                <Popover>
-                                  <PopoverTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className={cn(
-                                        "text-xs",
-                                        (!location.startDate || !location.endDate) && "text-muted-foreground"
-                                      )}
-                                    >
-                                      <CalendarIcon className="w-3 h-3 mr-1" />
-                                      {location.startDate && location.endDate 
-                                        ? `${format(location.startDate, 'MMM dd')} - ${format(location.endDate, 'MMM dd')}`
-                                        : 'Select dates'
-                                      }
-                                    </Button>
-                                  </PopoverTrigger>
-                                  <PopoverContent className="w-auto p-0" align="start">
-                                    <CalendarComponent
-                                      mode="range"
-                                      selected={{
-                                        from: location.startDate,
-                                        to: location.endDate
-                                      }}
-                                      onSelect={(range) => {
-                                        updateLocationDates(location.id, range?.from || null, range?.to || null);
-                                      }}
-                                      initialFocus
-                                      className={cn("p-3 pointer-events-auto")}
-                                    />
-                                  </PopoverContent>
-                                </Popover>
-                              </div>
-                            )}
+                             {isMultiCity && (
+                               <div className="flex flex-col items-center gap-2">
+                                 {/* Toggle for each location */}
+                                 <div className="flex items-center space-x-2">
+                                   <Switch
+                                     id={`length-of-stay-${location.id}`}
+                                     checked={locationLengthOfStay[location.id] || false}
+                                     onCheckedChange={(checked) => {
+                                       setLocationLengthOfStay(prev => ({
+                                         ...prev,
+                                         [location.id]: checked
+                                       }));
+                                       if (checked) {
+                                         // Initialize with 1 night if not set
+                                         setLocationNights(prev => ({
+                                           ...prev,
+                                           [location.id]: prev[location.id] || 1
+                                         }));
+                                       }
+                                     }}
+                                   />
+                                   <Label htmlFor={`length-of-stay-${location.id}`} className="text-xs">
+                                     Use nights
+                                   </Label>
+                                 </div>
+                                 
+                                 {locationLengthOfStay[location.id] ? (
+                                   /* Number of nights selector */
+                                   <div className="w-32 space-y-2">
+                                     <Slider
+                                       value={[locationNights[location.id] || 1]}
+                                       onValueChange={(value) => {
+                                         const nights = value[0];
+                                         setLocationNights(prev => ({
+                                           ...prev,
+                                           [location.id]: nights
+                                         }));
+                                         
+                                         // Calculate dates based on nights - use today as start
+                                         const startDate = startOfDay(new Date());
+                                         const endDate = addDays(startDate, nights);
+                                         updateLocationDates(location.id, startDate, endDate);
+                                       }}
+                                       max={30}
+                                       min={1}
+                                       step={1}
+                                       className="w-full"
+                                     />
+                                     <div className="text-center text-xs">
+                                       <span className="font-semibold">{locationNights[location.id] || 1}</span>
+                                       <span className="text-muted-foreground ml-1">
+                                         {(locationNights[location.id] || 1) === 1 ? 'night' : 'nights'}
+                                       </span>
+                                     </div>
+                                   </div>
+                                 ) : (
+                                   /* Date picker */
+                                   <Popover>
+                                     <PopoverTrigger asChild>
+                                       <Button
+                                         variant="outline"
+                                         size="sm"
+                                         className={cn(
+                                           "text-xs",
+                                           (!location.startDate || !location.endDate) && "text-muted-foreground"
+                                         )}
+                                       >
+                                         <CalendarIcon className="w-3 h-3 mr-1" />
+                                         {location.startDate && location.endDate 
+                                           ? `${format(location.startDate, 'MMM dd')} - ${format(location.endDate, 'MMM dd')}`
+                                           : 'Select dates'
+                                         }
+                                       </Button>
+                                     </PopoverTrigger>
+                                     <PopoverContent className="w-auto p-0" align="start">
+                                       <CalendarComponent
+                                         mode="range"
+                                         selected={{
+                                           from: location.startDate,
+                                           to: location.endDate
+                                         }}
+                                         onSelect={(range) => {
+                                           updateLocationDates(location.id, range?.from || null, range?.to || null);
+                                         }}
+                                         initialFocus
+                                         className={cn("p-3 pointer-events-auto")}
+                                       />
+                                     </PopoverContent>
+                                   </Popover>
+                                 )}
+                               </div>
+                             )}
                             <Button
                               variant="ghost"
                               size="sm"
