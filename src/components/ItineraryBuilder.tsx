@@ -144,6 +144,11 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
           })),
           isMultiCity: parsed.isMultiCity || false,
           hasCreatedItinerary: parsed.hasCreatedItinerary || false,
+          // Add length of stay state persistence
+          useLengthOfStay: parsed.useLengthOfStay || false,
+          locationLengthOfStay: parsed.locationLengthOfStay || {},
+          locationNights: parsed.locationNights || {},
+          numberOfNights: parsed.numberOfNights || 1,
         };
       }
     } catch (error) {
@@ -173,10 +178,10 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
   const [isMultiCity, setIsMultiCity] = useState(persistedState?.isMultiCity || false);
   const [currentLocationSearch, setCurrentLocationSearch] = useState('');
   const [hasCreatedItinerary, setHasCreatedItinerary] = useState(persistedState?.hasCreatedItinerary || false);
-  const [useLengthOfStay, setUseLengthOfStay] = useState(false);
-  const [numberOfNights, setNumberOfNights] = useState<number>(1);
-  const [locationLengthOfStay, setLocationLengthOfStay] = useState<Record<string, boolean>>({});
-  const [locationNights, setLocationNights] = useState<Record<string, number>>({});
+  const [useLengthOfStay, setUseLengthOfStay] = useState(persistedState?.useLengthOfStay || false);
+  const [numberOfNights, setNumberOfNights] = useState<number>(persistedState?.numberOfNights || 1);
+  const [locationLengthOfStay, setLocationLengthOfStay] = useState<Record<string, boolean>>(persistedState?.locationLengthOfStay || {});
+  const [locationNights, setLocationNights] = useState<Record<string, number>>(persistedState?.locationNights || {});
 
   // Persist state to localStorage whenever key state changes
   useEffect(() => {
@@ -189,9 +194,14 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
       locations,
       isMultiCity,
       hasCreatedItinerary,
+      // Add length of stay state to persistence
+      useLengthOfStay,
+      numberOfNights,
+      locationLengthOfStay,
+      locationNights,
     };
     localStorage.setItem('currentItineraryBuilder', JSON.stringify(stateToSave));
-  }, [dateRange, currentItinerary, events, hotels, flights, locations, isMultiCity, hasCreatedItinerary]);
+  }, [dateRange, currentItinerary, events, hotels, flights, locations, isMultiCity, hasCreatedItinerary, useLengthOfStay, numberOfNights, locationLengthOfStay, locationNights]);
 
   const tripDays = dateRange.start && dateRange.end
     ? differenceInDays(dateRange.end, dateRange.start) + 1 
@@ -862,6 +872,11 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                     setIsMultiCity(false);
                     setHasCreatedItinerary(false);
                     setCurrentLocationSearch('');
+                    // Reset length of stay state
+                    setUseLengthOfStay(false);
+                    setNumberOfNights(1);
+                    setLocationLengthOfStay({});
+                    setLocationNights({});
                   }}
                   className="flex items-center gap-2"
                 >
