@@ -1104,6 +1104,58 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <CardContent className="space-y-6 pt-0">
+                    {/* Mode conversion toggle for length-of-stay trips */}
+                    {(useLengthOfStay || wasCreatedWithLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && (
+                      <div className="flex items-center justify-between p-3 bg-accent/30 rounded-lg">
+                        <div>
+                          <Label className="text-sm font-medium">Trip planning mode</Label>
+                          <p className="text-xs text-muted-foreground">
+                            Switch between nights-based and date-based planning
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            // Convert to date-based mode
+                            if (currentItinerary) {
+                              // Clear length-of-stay settings
+                              setUseLengthOfStay(false);
+                              setWasCreatedWithLengthOfStay(false);
+                              setLocationLengthOfStay({});
+                              setLocationNights({});
+                              
+                              // If dates don't exist, create them from current settings
+                              if (!dateRange.start || !dateRange.end) {
+                                const startDate = startOfDay(new Date());
+                                let endDate = startDate;
+                                
+                                if (currentItinerary.isMultiCity) {
+                                  // Calculate total trip duration from all cities
+                                  const totalNights = Object.values(locationNights).reduce((sum, nights) => sum + nights, 0) || 7;
+                                  endDate = addDays(startDate, totalNights);
+                                } else {
+                                  // Use numberOfNights for single city
+                                  endDate = addDays(startDate, numberOfNights);
+                                }
+                                
+                                setDateRange({ start: startDate, end: endDate });
+                                setCurrentItinerary(prev => prev ? {
+                                  ...prev,
+                                  startDate,
+                                  endDate
+                                } : null);
+                              }
+                              
+                              setHasPendingChanges(true);
+                              toast.success('Converted to date-based planning');
+                            }
+                          }}
+                        >
+                          Switch to Dates
+                        </Button>
+                      </div>
+                    )}
                     {/* For date-based single city trips */}
                     {!useLengthOfStay && !currentItinerary?.isMultiCity && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) && (
                       <div className="space-y-4">
