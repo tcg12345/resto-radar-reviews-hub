@@ -238,12 +238,9 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
         {/* Map style dropdown */}
         <div className="flex-shrink-0">
           <Select value="satellite" onValueChange={() => {}}>
-            <SelectTrigger className="w-36 h-10 bg-card shadow-lg border">
+            <SelectTrigger className="w-10 h-10 bg-card shadow-lg border">
               <SelectValue>
-                <div className="flex items-center gap-2">
-                  <Satellite className="h-4 w-4" />
-                  <span className="text-sm">Satellite</span>
-                </div>
+                <Satellite className="h-4 w-4" />
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
