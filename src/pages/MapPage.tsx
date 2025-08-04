@@ -203,7 +203,7 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
 
   return (
     <div className="relative h-[calc(100vh-64px)] w-full overflow-hidden">
-      {/* Mobile Back Button - top left, no header */}
+      {/* Mobile Back Button - moved below search bar to avoid overlap */}
       <Button
         onClick={() => {
           if (window.history.length > 1) {
@@ -212,7 +212,7 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
             navigate('/rated');
           }
         }}
-        className="absolute top-4 left-4 z-30 flex items-center gap-2"
+        className="absolute top-20 left-4 z-30 flex items-center gap-2"
         variant="secondary"
         size="sm"
       >
