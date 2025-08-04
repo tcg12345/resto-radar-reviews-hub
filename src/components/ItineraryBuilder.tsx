@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { addDays, format, startOfDay, differenceInDays, eachDayOfInterval } from 'date-fns';
-import { Calendar, Plus, Download, Share2, Save, CalendarDays, MapPin, X, CalendarIcon, BookOpen, GripVertical } from 'lucide-react';
+import { Calendar, Plus, Download, Share2, Save, CalendarDays, MapPin, X, CalendarIcon, BookOpen, GripVertical, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -10,6 +10,7 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DateRangePicker } from '@/components/DateRangePicker';
 import { TripCalendar } from '@/components/TripCalendar';
 import { EventDialog } from '@/components/EventDialog';
@@ -193,6 +194,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
   const [pendingNights, setPendingNights] = useState<number>(numberOfNights);
   const [pendingLocationNights, setPendingLocationNights] = useState<Record<string, number>>(locationNights);
   const [hasPendingChanges, setHasPendingChanges] = useState(false);
+  const [isExtensionOpen, setIsExtensionOpen] = useState(false);
 
   // Persist state to localStorage whenever key state changes
   useEffect(() => {
@@ -1064,17 +1066,24 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
 
           {/* Trip Extension Section - Only show for length of stay trips */}
           {(wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Plus className="w-5 h-5" />
-                  Extend Your Trip
-                </CardTitle>
-                <CardDescription>
-                  Add more days or cities to your itinerary
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
+            <Collapsible open={isExtensionOpen} onOpenChange={setIsExtensionOpen}>
+              <Card>
+                <CollapsibleTrigger asChild>
+                  <CardHeader className="cursor-pointer hover:bg-accent/50 transition-colors">
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Plus className="w-5 h-5" />
+                        Extend Your Trip
+                      </div>
+                      <ChevronDown className={`w-4 h-4 transition-transform ${isExtensionOpen ? 'rotate-180' : ''}`} />
+                    </CardTitle>
+                    <CardDescription>
+                      Add more days or cities to your itinerary
+                    </CardDescription>
+                  </CardHeader>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <CardContent className="space-y-6 pt-0">
                 {/* For single city trips using length of stay */}
                 {useLengthOfStay && !currentItinerary?.isMultiCity && (
                   <div className="space-y-4">
@@ -1289,8 +1298,10 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                     </Button>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
           )}
 
           {/* Hotels and Flights Section - Moved to top */}
