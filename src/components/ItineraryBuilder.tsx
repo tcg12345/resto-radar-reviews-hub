@@ -1156,6 +1156,57 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                         </Button>
                       </div>
                     )}
+                    
+                    {/* Mode conversion toggle for date-based trips */}
+                    {!useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) && dateRange.start && dateRange.end && (
+                      <div className="flex items-center justify-between p-3 bg-accent/30 rounded-lg">
+                        <div>
+                          <Label className="text-sm font-medium">Trip planning mode</Label>
+                          <p className="text-xs text-muted-foreground">
+                            Switch between date-based and nights-based planning
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            // Convert to length-of-stay mode
+                            if (currentItinerary && dateRange.start && dateRange.end) {
+                              const totalNights = differenceInDays(dateRange.end, dateRange.start);
+                              
+                              if (currentItinerary.isMultiCity) {
+                                // Set up length-of-stay for multi-city
+                                const nightsPerCity = Math.max(1, Math.floor(totalNights / currentItinerary.locations.length));
+                                const remainingNights = totalNights - (nightsPerCity * (currentItinerary.locations.length - 1));
+                                
+                                const newLocationLengthOfStay: Record<string, boolean> = {};
+                                const newLocationNights: Record<string, number> = {};
+                                
+                                currentItinerary.locations.forEach((location, index) => {
+                                  newLocationLengthOfStay[location.id] = true;
+                                  // Give remaining nights to the last city
+                                  newLocationNights[location.id] = index === currentItinerary.locations.length - 1 ? remainingNights : nightsPerCity;
+                                });
+                                
+                                setLocationLengthOfStay(newLocationLengthOfStay);
+                                setLocationNights(newLocationNights);
+                                setWasCreatedWithLengthOfStay(true);
+                              } else {
+                                // Set up length-of-stay for single city
+                                setUseLengthOfStay(true);
+                                setNumberOfNights(totalNights);
+                                setWasCreatedWithLengthOfStay(true);
+                              }
+                              
+                              setHasPendingChanges(true);
+                              toast.success('Converted to nights-based planning');
+                            }
+                          }}
+                        >
+                          Switch to Nights
+                        </Button>
+                      </div>
+                    )}
                     {/* For date-based single city trips */}
                     {!useLengthOfStay && !currentItinerary?.isMultiCity && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) && (
                       <div className="space-y-4">
