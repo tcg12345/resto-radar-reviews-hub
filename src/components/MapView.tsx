@@ -8,6 +8,7 @@ import { Search, MapPin, Settings, Satellite, Map } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { StarRating } from '@/components/StarRating';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMapboxToken } from '@/hooks/useMapboxToken';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 
@@ -303,38 +304,54 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
         </div>
       </div>
 
-      {/* Map style toggle */}
-      <div className="absolute left-4 top-16 z-10">
-        <div className="flex rounded-md bg-card shadow-lg border">
-          <Button
-            variant={mapStyle === 'streets' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => handleStyleChange('streets')}
-            className="rounded-r-none border-r"
-            title="Streets View"
-          >
-            <Map className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={mapStyle === 'satellite' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => handleStyleChange('satellite')}
-            className="rounded-none border-r"
-            title="Satellite View"
-          >
-            <Satellite className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={mapStyle === 'hybrid' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => handleStyleChange('hybrid')}
-            className="rounded-l-none"
-            title="Hybrid View"
-          >
-            <Satellite className="h-4 w-4 mr-1" />
-            <Map className="h-3 w-3" />
-          </Button>
-        </div>
+      {/* Map style dropdown - moved up to same line */}
+      <div className="absolute left-72 top-4 z-10">
+        <Select value={mapStyle} onValueChange={(value: MapStyle) => handleStyleChange(value)}>
+          <SelectTrigger className="w-32 h-10 bg-card shadow-lg border">
+            <SelectValue>
+              {mapStyle === 'streets' && (
+                <div className="flex items-center gap-2">
+                  <Map className="h-4 w-4" />
+                  <span className="text-sm">Streets</span>
+                </div>
+              )}
+              {mapStyle === 'satellite' && (
+                <div className="flex items-center gap-2">
+                  <Satellite className="h-4 w-4" />
+                  <span className="text-sm">Satellite</span>
+                </div>
+              )}
+              {mapStyle === 'hybrid' && (
+                <div className="flex items-center gap-2">
+                  <Satellite className="h-4 w-4 mr-1" />
+                  <Map className="h-3 w-3" />
+                  <span className="text-sm">Hybrid</span>
+                </div>
+              )}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="streets">
+              <div className="flex items-center gap-2">
+                <Map className="h-4 w-4" />
+                Streets
+              </div>
+            </SelectItem>
+            <SelectItem value="satellite">
+              <div className="flex items-center gap-2">
+                <Satellite className="h-4 w-4" />
+                Satellite
+              </div>
+            </SelectItem>
+            <SelectItem value="hybrid">
+              <div className="flex items-center gap-2">
+                <Satellite className="h-4 w-4 mr-1" />
+                <Map className="h-3 w-3" />
+                Hybrid
+              </div>
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {selectedRestaurant && (
