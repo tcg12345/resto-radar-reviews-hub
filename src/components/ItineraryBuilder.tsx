@@ -774,8 +774,14 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                   <div className="text-sm text-muted-foreground flex-1">
                     {dateRange.start && dateRange.end ? (
                       <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-                        <span>{format(dateRange.start, 'MMM do')} - {format(dateRange.end, 'MMM do')}</span>
-                        <span className="text-xs">({tripDays} {tripDays === 1 ? 'day' : 'days'})</span>
+                        {useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) ? (
+                          <span>{tripDays} {tripDays === 1 ? 'night' : 'nights'}</span>
+                        ) : (
+                          <>
+                            <span>{format(dateRange.start, 'MMM do')} - {format(dateRange.end, 'MMM do')}</span>
+                            <span className="text-xs">({tripDays} {tripDays === 1 ? 'day' : 'days'})</span>
+                          </>
+                        )}
                       </div>
                     ) : (
                       'Dates not set'
