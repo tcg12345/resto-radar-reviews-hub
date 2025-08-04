@@ -452,11 +452,34 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
   };
 
   const updateLocationDates = (locationId: string, startDate: Date | null, endDate: Date | null) => {
-    setLocations(prev => prev.map(loc => 
-      loc.id === locationId 
-        ? { ...loc, startDate: startDate || undefined, endDate: endDate || undefined }
-        : loc
-    ));
+    console.log('updateLocationDates called:', { locationId, startDate, endDate });
+    
+    setLocations(prev => {
+      const updated = prev.map(loc => 
+        loc.id === locationId 
+          ? { ...loc, startDate: startDate || undefined, endDate: endDate || undefined }
+          : loc
+      );
+      console.log('Updated locations:', updated);
+      return updated;
+    });
+
+    // Also update the currentItinerary locations if it exists
+    if (currentItinerary) {
+      setCurrentItinerary(prev => {
+        if (!prev) return null;
+        const updatedItinerary = {
+          ...prev,
+          locations: prev.locations.map(loc => 
+            loc.id === locationId 
+              ? { ...loc, startDate: startDate || undefined, endDate: endDate || undefined }
+              : loc
+          )
+        };
+        console.log('Updated currentItinerary:', updatedItinerary);
+        return updatedItinerary;
+      });
+    }
   };
 
   // Removed auto-creation - now requires manual button click
