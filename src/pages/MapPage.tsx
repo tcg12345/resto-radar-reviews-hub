@@ -14,8 +14,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
+import { BottomSheet, BottomSheetHeader, BottomSheetContent, BottomSheetFooter } from '@/components/ui/bottom-sheet';
 import { useNavigate } from 'react-router-dom';
-import { Filter, X, Star, DollarSign, MapPin, ChevronDown, GripVertical, ArrowLeft } from 'lucide-react';
+import { Filter, X, Star, DollarSign, MapPin, ChevronDown, GripVertical, ArrowLeft, Utensils } from 'lucide-react';
 
 interface MapPageProps {
   restaurants: Restaurant[];
@@ -202,27 +203,68 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
 
   return (
     <div className="relative h-[calc(100vh-64px)] w-full overflow-hidden">
-      {/* Back Arrow */}
+      {/* Mobile-specific header with back button and filter button */}
+      <div className="lg:hidden absolute top-0 left-0 right-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border/50 p-4">
+        <div className="flex items-center justify-between">
+          <Button
+            onClick={() => {
+              if (window.history.length > 1) {
+                navigate(-1);
+              } else {
+                navigate('/rated');
+              }
+            }}
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+          
+          <div className="flex items-center gap-3">
+            <div className="text-sm text-muted-foreground">
+              {restaurantsWithCoords.length} locations
+            </div>
+            <Button
+              onClick={() => setShowFilters(true)}
+              variant={getActiveFilterCount() > 0 ? "default" : "outline"}
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Filter className="h-4 w-4" />
+              Filters
+              {getActiveFilterCount() > 0 && (
+                <Badge variant="secondary" className="ml-1 h-4 w-4 rounded-full p-0 text-xs">
+                  {getActiveFilterCount()}
+                </Badge>
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop back button (unchanged) */}
       <Button
         onClick={() => {
-          // Try to go back in history, but fallback to rated restaurants if no history
           if (window.history.length > 1) {
             navigate(-1);
           } else {
             navigate('/rated');
           }
         }}
-        className="absolute top-4 left-4 z-30 flex items-center gap-2"
+        className="hidden lg:flex absolute top-4 left-4 z-30 items-center gap-2"
         variant="secondary"
         size="sm"
       >
         <ArrowLeft className="h-4 w-4" />
         <span className="hidden sm:inline">Back</span>
       </Button>
-      {/* Filter Panel - draggable positioned filter box */}
+
+      {/* Desktop Filter Panel (unchanged for desktop) */}
       {showFilters && (
         <Card 
-          className="absolute z-10 w-80 max-h-[calc(100vh-160px)] overflow-y-auto shadow-lg border-2 select-none"
+          className="hidden lg:block absolute z-10 w-80 max-h-[calc(100vh-160px)] overflow-y-auto shadow-lg border-2 select-none"
           style={{ 
             left: `${filterPosition.x}px`, 
             top: `${filterPosition.y}px`,
@@ -382,10 +424,159 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
         </Card>
       )}
 
-      {/* Filter Toggle Button - positioned to avoid mobile navigation */}
+      {/* Mobile Filter Bottom Sheet */}
+      <BottomSheet open={showFilters} onOpenChange={setShowFilters}>
+        <BottomSheetHeader className="lg:hidden">
+          <div className="flex items-center justify-center">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Filters
+            </h2>
+          </div>
+        </BottomSheetHeader>
+
+        <BottomSheetContent className="lg:hidden space-y-6">
+          {/* Type Filter */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Type</Label>
+            <div className="grid grid-cols-3 gap-2">
+              <Button
+                variant={filterType === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilterType('all')}
+                className="text-xs"
+              >
+                All
+              </Button>
+              <Button
+                variant={filterType === 'rated' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilterType('rated')}
+                className="text-xs"
+              >
+                Rated
+              </Button>
+              <Button
+                variant={filterType === 'wishlist' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilterType('wishlist')}
+                className="text-xs"
+              >
+                Wishlist
+              </Button>
+            </div>
+          </div>
+
+          {/* Cuisine Filter */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <Utensils className="h-4 w-4" />
+              Cuisine
+              {filterCuisines.length > 0 && (
+                <Badge variant="outline" className="h-5 px-2 text-xs">
+                  {filterCuisines.length}
+                </Badge>
+              )}
+            </Label>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {uniqueCuisines.map((cuisine) => (
+                <div key={cuisine} className="flex items-center justify-between py-2">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox
+                      id={`mobile-cuisine-${cuisine}`}
+                      checked={filterCuisines.includes(cuisine)}
+                      onCheckedChange={() => toggleCuisine(cuisine)}
+                    />
+                    <label htmlFor={`mobile-cuisine-${cuisine}`} className="text-sm cursor-pointer">
+                      {cuisine}
+                    </label>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Price Filter */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              Price Range
+              {filterPrices.length > 0 && (
+                <Badge variant="outline" className="h-5 px-2 text-xs">
+                  {filterPrices.length}
+                </Badge>
+              )}
+            </Label>
+            <div className="space-y-2">
+              {uniquePriceRanges.map((price) => (
+                <div key={price} className="flex items-center justify-between py-2">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox
+                      id={`mobile-price-${price}`}
+                      checked={filterPrices.includes(price.toString())}
+                      onCheckedChange={() => togglePrice(price.toString())}
+                    />
+                    <label htmlFor={`mobile-price-${price}`} className="text-sm cursor-pointer">
+                      {'$'.repeat(price)}
+                    </label>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Rating Range */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <Star className="h-4 w-4" />
+              Rating Range
+            </Label>
+            <div className="flex items-center space-x-3">
+              <span className="text-sm text-muted-foreground w-8">{tempRatingRange[0]}</span>
+              <Slider
+                value={tempRatingRange}
+                onValueChange={(value) => setTempRatingRange(value as [number, number])}
+                max={10}
+                min={0}
+                step={0.1}
+                className="flex-1"
+              />
+              <span className="text-sm text-muted-foreground w-8">{tempRatingRange[1]}</span>
+            </div>
+            <Button onClick={applyRatingFilter} size="sm" className="w-full">
+              Apply Rating
+            </Button>
+          </div>
+
+          <div className="text-sm text-muted-foreground text-center">
+            Showing {restaurantsWithCoords.length} of {restaurants.length} restaurants
+          </div>
+        </BottomSheetContent>
+
+        <BottomSheetFooter className="lg:hidden">
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={clearFilters}
+              className="flex-1"
+              disabled={getActiveFilterCount() === 0}
+            >
+              Clear All
+            </Button>
+            <Button
+              onClick={() => setShowFilters(false)}
+              className="flex-1"
+            >
+              Apply
+            </Button>
+          </div>
+        </BottomSheetFooter>
+      </BottomSheet>
+
+      {/* Desktop Filter Toggle (unchanged) */}
       <Button
         onClick={() => setShowFilters(!showFilters)}
-        className="absolute bottom-20 left-4 lg:bottom-4 z-20 flex items-center gap-2"
+        className="hidden lg:flex absolute bottom-4 left-4 z-20 items-center gap-2"
         variant={showFilters ? "default" : "secondary"}
       >
         <Filter className="h-4 w-4" />
@@ -397,25 +588,30 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
         )}
       </Button>
 
-      <MapView 
-        restaurants={restaurantsWithCoords} 
-        onRestaurantSelect={handleRestaurantSelect} 
-      />
+      {/* Map with adjusted top margin for mobile header */}
+      <div className="h-full lg:h-full" style={{ marginTop: window.innerWidth < 1024 ? '80px' : '0' }}>
+        <MapView 
+          restaurants={restaurantsWithCoords} 
+          onRestaurantSelect={handleRestaurantSelect} 
+        />
+      </div>
       
-      {/* Map popup dialog */}
+      {/* Mobile-optimized Map popup dialog */}
       <Dialog 
         open={!!mapSelectedRestaurant} 
         onOpenChange={(open) => !open && setSelectedRestaurantId(null)}
       >
-        <DialogContent className="max-w-lg">
-          <ScrollArea className="max-h-[80vh]">
+        <DialogContent className="lg:max-w-lg max-w-[95vw] max-h-[85vh] overflow-hidden">
+          <ScrollArea className="max-h-[calc(85vh-60px)]">
             {mapSelectedRestaurant && (
-              <RestaurantCard 
-                restaurant={mapSelectedRestaurant}
-                onEdit={handleOpenEditDialog}
-                onDelete={handleOpenDeleteDialog}
-                showAIReviewAssistant={true}
-              />
+              <div className="lg:p-0 -m-6 lg:m-0">
+                <RestaurantCard 
+                  restaurant={mapSelectedRestaurant}
+                  onEdit={handleOpenEditDialog}
+                  onDelete={handleOpenDeleteDialog}
+                  showAIReviewAssistant={true}
+                />
+              </div>
             )}
           </ScrollArea>
         </DialogContent>
@@ -441,7 +637,7 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
       />
       
       {restaurantsWithCoords.length === 0 && (
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-lg bg-background p-6 shadow-lg">
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-lg bg-background p-6 shadow-lg mx-4 text-center">
           <h3 className="mb-2 text-lg font-semibold">No locations to display</h3>
           <p className="text-muted-foreground">
             Add restaurants with addresses to see them on the map.
