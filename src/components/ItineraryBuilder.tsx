@@ -947,10 +947,23 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                                 ...prev,
                                 [currentLocation.id]: numberOfNights
                               }));
-                              // Update the itinerary
-                              setCurrentItinerary(prev => prev ? { ...prev, isMultiCity: true } : null);
+                              
+                              // Update the location with proper dates
+                              const startDate = startOfDay(new Date());
+                              const endDate = addDays(startDate, numberOfNights);
+                              updateLocationDates(currentLocation.id, startDate, endDate);
+                              
+                              // Update the itinerary to multi-city
+                              setCurrentItinerary(prev => prev ? { 
+                                ...prev, 
+                                isMultiCity: true,
+                                locations: prev.locations.map(loc => 
+                                  loc.id === currentLocation.id ? 
+                                  { ...loc, startDate, endDate } : loc
+                                )
+                              } : null);
                             }
-                            setUseLengthOfStay(false); // Switch to multi-city mode
+                            // Keep useLengthOfStay true but also set multi-city mode
                           }}
                         >
                           <Plus className="w-4 h-4 mr-2" />
@@ -992,6 +1005,30 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                                   const startDate = startOfDay(new Date());
                                   const endDate = addDays(startDate, nights);
                                   updateLocationDates(location.id, startDate, endDate);
+                                  
+                                  // Recalculate overall trip dates for multi-city trips
+                                  if (currentItinerary) {
+                                    const updatedLocations = currentItinerary.locations.map(loc =>
+                                      loc.id === location.id ? { ...loc, startDate, endDate } : loc
+                                    );
+                                    
+                                    const allStartDates = updatedLocations.map(loc => loc.startDate!).filter(Boolean);
+                                    const allEndDates = updatedLocations.map(loc => loc.endDate!).filter(Boolean);
+                                    
+                                    if (allStartDates.length > 0 && allEndDates.length > 0) {
+                                      const overallStart = new Date(Math.min(...allStartDates.map(d => d.getTime())));
+                                      const overallEnd = new Date(Math.max(...allEndDates.map(d => d.getTime())));
+                                      
+                                      setCurrentItinerary(prev => prev ? {
+                                        ...prev,
+                                        locations: updatedLocations,
+                                        startDate: overallStart,
+                                        endDate: overallEnd
+                                      } : null);
+                                      
+                                      setDateRange({ start: overallStart, end: overallEnd });
+                                    }
+                                  }
                                 }}
                                 max={30}
                                 min={1}
@@ -1037,13 +1074,29 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                             const endDate = addDays(startDate, 2);
                             updateLocationDates(locationToAdd.id, startDate, endDate);
                             
-                            // Update current itinerary with new location
+                            // Update current itinerary with new location and recalculate overall dates
                             if (currentItinerary) {
-                              const updatedLocations = [...currentItinerary.locations, locationToAdd];
+                              const updatedLocations = [...currentItinerary.locations, { 
+                                ...locationToAdd, 
+                                startDate, 
+                                endDate 
+                              }];
+                              
+                              // Recalculate overall trip dates
+                              const allStartDates = updatedLocations.map(loc => loc.startDate!).filter(Boolean);
+                              const allEndDates = updatedLocations.map(loc => loc.endDate!).filter(Boolean);
+                              const overallStart = new Date(Math.min(...allStartDates.map(d => d.getTime())));
+                              const overallEnd = new Date(Math.max(...allEndDates.map(d => d.getTime())));
+                              
                               setCurrentItinerary(prev => prev ? { 
                                 ...prev, 
-                                locations: updatedLocations 
+                                locations: updatedLocations,
+                                startDate: overallStart,
+                                endDate: overallEnd
                               } : null);
+                              
+                              // Update date range
+                              setDateRange({ start: overallStart, end: overallEnd });
                             }
                             
                             setCurrentLocationSearch("");
