@@ -523,6 +523,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
   };
 
   if (!hasCreatedItinerary) {
+    console.log('Rendering creation screen - hasCreatedItinerary:', hasCreatedItinerary);
     return (
       <div className="w-full px-4 lg:px-6 space-y-6">
         <Tabs defaultValue="create" className="w-full">
@@ -755,9 +756,12 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                         setHasCreatedItinerary(true);
                       } : () => {
                         if (useLengthOfStay) {
+                          console.log('Creating single city itinerary with length of stay:', { numberOfNights, locations, useLengthOfStay });
                           // Create dates based on number of nights - use today as start date
                           const startDate = startOfDay(new Date());
                           const endDate = addDays(startDate, numberOfNights);
+                          
+                          console.log('Calculated dates:', { startDate: startDate.toDateString(), endDate: endDate.toDateString() });
                           
                           const locationNames = locations.map(loc => loc.name).join(' → ');
                           const title = `${locationNames} - ${numberOfNights} ${numberOfNights === 1 ? 'Night' : 'Nights'}`;
@@ -778,7 +782,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                           setHasCreatedItinerary(true);
                           // Mark this itinerary as created with length of stay
                           setWasCreatedWithLengthOfStay(true);
-                          console.log('Created single city with length of stay:', { numberOfNights, wasCreatedWithLengthOfStay: true });
+                          console.log('Created single city with length of stay:', { numberOfNights, wasCreatedWithLengthOfStay: true, newItinerary });
                         } else if (dateRange.start && dateRange.end && locations.length > 0) {
                           const locationNames = locations.map(loc => loc.name).join(' → ');
                           const title = `${locationNames} Trip`;
@@ -827,6 +831,17 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
     );
   }
 
+  // Main itinerary builder view
+  console.log('Rendering main itinerary view:', { 
+    hasCreatedItinerary, 
+    currentItinerary: !!currentItinerary, 
+    dateRange, 
+    useLengthOfStay, 
+    wasCreatedWithLengthOfStay,
+    locationLengthOfStay: Object.keys(locationLengthOfStay),
+    events: events.length
+  });
+  
   return (
     <div className="w-full px-4 lg:px-6 space-y-6">
       <Tabs defaultValue="builder" className="w-full">
