@@ -1351,9 +1351,105 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
 
                     {/* For multi-city trips - show if it's multi-city OR has length of stay locations */}
                     {currentItinerary?.isMultiCity && (
-                  <div className="space-y-4">
-                    <div>
-                      <Label className="text-sm font-medium">Modify stay duration per city</Label>
+                      <div className="space-y-4">
+                        {/* Date-based multi-city management */}
+                        {!Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) ? (
+                          <div>
+                            <Label className="text-sm font-medium">Modify city dates</Label>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Adjust the dates for each city in your trip
+                            </p>
+                            <div className="mt-3 space-y-4">
+                              {currentItinerary.locations.map((location, index) => (
+                                <div key={location.id} className="p-4 bg-accent/50 rounded-lg">
+                                  <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center gap-2">
+                                      <MapPin className="w-4 h-4 text-muted-foreground" />
+                                      <span className="font-medium">{location.name}</span>
+                                    </div>
+                                    <span className="text-sm text-muted-foreground">
+                                      {location.startDate && location.endDate ? 
+                                        `${format(location.startDate, 'MMM dd')} - ${format(location.endDate, 'MMM dd')}` : 
+                                        'No dates set'
+                                      }
+                                    </span>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                      <Label className="text-xs text-muted-foreground">Start Date</Label>
+                                      <Popover>
+                                        <PopoverTrigger asChild>
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className={cn(
+                                              "w-full justify-start text-left font-normal text-xs",
+                                              !location.startDate && "text-muted-foreground"
+                                            )}
+                                          >
+                                            <CalendarIcon className="mr-1 h-3 w-3" />
+                                            {location.startDate ? format(location.startDate, 'MMM dd') : 'Start'}
+                                          </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                          <CalendarComponent
+                                            mode="single"
+                                            selected={location.startDate}
+                                            onSelect={(date) => {
+                                              if (date && (!location.endDate || date < location.endDate)) {
+                                                updateLocationDates(location.id, date, location.endDate);
+                                                setHasPendingChanges(true);
+                                              }
+                                            }}
+                                            disabled={(date) => location.endDate && date >= location.endDate}
+                                            initialFocus
+                                            className={cn("p-3 pointer-events-auto")}
+                                          />
+                                        </PopoverContent>
+                                      </Popover>
+                                    </div>
+                                    <div>
+                                      <Label className="text-xs text-muted-foreground">End Date</Label>
+                                      <Popover>
+                                        <PopoverTrigger asChild>
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className={cn(
+                                              "w-full justify-start text-left font-normal text-xs",
+                                              !location.endDate && "text-muted-foreground"
+                                            )}
+                                          >
+                                            <CalendarIcon className="mr-1 h-3 w-3" />
+                                            {location.endDate ? format(location.endDate, 'MMM dd') : 'End'}
+                                          </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                          <CalendarComponent
+                                            mode="single"
+                                            selected={location.endDate}
+                                            onSelect={(date) => {
+                                              if (date && (!location.startDate || date > location.startDate)) {
+                                                updateLocationDates(location.id, location.startDate, date);
+                                                setHasPendingChanges(true);
+                                              }
+                                            }}
+                                            disabled={(date) => !location.startDate || date <= location.startDate}
+                                            initialFocus
+                                            className={cn("p-3 pointer-events-auto")}
+                                          />
+                                        </PopoverContent>
+                                      </Popover>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          /* Length-of-stay based multi-city management */
+                          <div>
+                            <Label className="text-sm font-medium">Modify stay duration per city</Label>
                       <div className="mt-3 space-y-4">
                         {currentItinerary.locations.map((location, index) => (
                           locationLengthOfStay[location.id] && (
@@ -1387,6 +1483,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                         ))}
                       </div>
                     </div>
+                        )}
 
                     {/* Add another city to multi-city trip */}
                     <div className="pt-4 border-t">
