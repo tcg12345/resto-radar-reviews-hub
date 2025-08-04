@@ -1495,19 +1495,19 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                                           </Button>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0 z-50" align="start">
-                                          <CalendarComponent
-                                            mode="single"
-                                            selected={location.startDate}
-                                            onSelect={(date) => {
-                                              if (date && (!location.endDate || date < location.endDate)) {
-                                                updateLocationDates(location.id, date, location.endDate);
-                                                setHasPendingChanges(true);
-                                              }
-                                            }}
-                                            disabled={(date) => location.endDate && date >= location.endDate}
-                                            initialFocus
-                                            className="p-3"
-                                          />
+                                           <CalendarComponent
+                                             mode="single"
+                                             selected={location.startDate}
+                                             onSelect={(date) => {
+                                               if (date && (!location.endDate || date < location.endDate)) {
+                                                 updateLocationDates(location.id, date, location.endDate);
+                                                 setHasPendingChanges(true);
+                                               }
+                                             }}
+                                             disabled={(date) => location.endDate && date >= location.endDate}
+                                             initialFocus
+                                             className="p-3 pointer-events-auto"
+                                           />
                                         </PopoverContent>
                                       </Popover>
                                     </div>
@@ -1528,19 +1528,19 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                                           </Button>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0 z-50" align="start">
-                                          <CalendarComponent
-                                            mode="single"
-                                            selected={location.endDate}
-                                            onSelect={(date) => {
-                                              if (date && (!location.startDate || date > location.startDate)) {
-                                                updateLocationDates(location.id, location.startDate, date);
-                                                setHasPendingChanges(true);
-                                              }
-                                            }}
-                                            disabled={(date) => !location.startDate || date <= location.startDate}
-                                            initialFocus
-                                            className="p-3"
-                                          />
+                                           <CalendarComponent
+                                             mode="single"
+                                             selected={location.endDate}
+                                             onSelect={(date) => {
+                                               if (date && (!location.startDate || date > location.startDate)) {
+                                                 updateLocationDates(location.id, location.startDate, date);
+                                                 setHasPendingChanges(true);
+                                               }
+                                             }}
+                                             disabled={(date) => !location.startDate || date <= location.startDate}
+                                             initialFocus
+                                             className="p-3 pointer-events-auto"
+                                           />
                                         </PopoverContent>
                                       </Popover>
                                     </div>
