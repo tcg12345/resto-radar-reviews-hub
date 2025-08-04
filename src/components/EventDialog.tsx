@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Clock, MapPin, Search, Utensils, MapPinIcon, ExternalLink, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -64,6 +65,10 @@ export function EventDialog({
   const [type, setType] = useState<'restaurant' | 'hotel' | 'attraction' | 'museum' | 'park' | 'monument' | 'shopping' | 'entertainment' | 'other'>('other');
   const [restaurantData, setRestaurantData] = useState<RestaurantData | null>(null);
   const [attractionData, setAttractionData] = useState<AttractionData | null>(null);
+  const [location, setLocation] = useState<string>('');
+  const [locationSuggestions, setLocationSuggestions] = useState<any[]>([]);
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+  const [locationTimeout, setLocationTimeout] = useState<NodeJS.Timeout | null>(null);
   const [isRestaurantSearchOpen, setIsRestaurantSearchOpen] = useState(false);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [isMultiDayEvent, setIsMultiDayEvent] = useState(false);
@@ -149,6 +154,54 @@ export function EventDialog({
       // Use the AI-determined place type or default to attraction
       setType(attraction.placeType || 'attraction');
     }
+  };
+
+  // Location search function
+  const searchLocation = async (query: string) => {
+    if (!query.trim() || query.length < 3) {
+      setLocationSuggestions([]);
+      setShowLocationSuggestions(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('google-places-search', {
+        body: {
+          query: query,
+          type: 'geocode'
+        }
+      });
+
+      if (error) throw error;
+
+      setLocationSuggestions(data?.results || []);
+      setShowLocationSuggestions(true);
+    } catch (error) {
+      console.error('Error searching locations:', error);
+      setLocationSuggestions([]);
+      setShowLocationSuggestions(false);
+    }
+  };
+
+  // Handle location input change with debouncing
+  const handleLocationChange = (value: string) => {
+    setLocation(value);
+    
+    // Simple debouncing
+    if (locationTimeout) {
+      clearTimeout(locationTimeout);
+    }
+    const timeout = setTimeout(() => {
+      searchLocation(value);
+    }, 300);
+    setLocationTimeout(timeout);
+  };
+
+  // Handle location selection
+  const handleLocationSelect = (suggestion: any) => {
+    setLocation(suggestion.formatted_address || suggestion.name);
+    setShowLocationSuggestions(false);
+    setLocationSuggestions([]);
   };
   const formattedDate = selectedDate ? format(new Date(selectedDate), 'EEEE, MMMM do') : '';
   return <>
@@ -267,10 +320,56 @@ export function EventDialog({
                     </div>}
                 </TabsContent>
 
-                <TabsContent value="other">
+                <TabsContent value="other" className="space-y-4">
                   <p className="text-sm text-muted-foreground">
                     Add any other type of event or reminder.
                   </p>
+                  
+                  {/* Location Field with Autocomplete */}
+                  <div className="space-y-2">
+                    <Label htmlFor="event-location">Location (Optional)</Label>
+                    <div className="relative">
+                      <Input
+                        id="event-location"
+                        value={location}
+                        onChange={(e) => handleLocationChange(e.target.value)}
+                        placeholder="Enter address or location..."
+                        className="w-full"
+                      />
+                      {showLocationSuggestions && locationSuggestions.length > 0 && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-md shadow-lg z-[9999] max-h-60 overflow-y-auto">
+                          {locationSuggestions.map((suggestion, index) => (
+                            <button
+                              key={index}
+                              type="button"
+                              onClick={() => handleLocationSelect(suggestion)}
+                              className="w-full text-left px-3 py-2 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground first:rounded-t-md last:rounded-b-md"
+                            >
+                              <div className="flex items-center gap-2">
+                                <MapPin className="w-4 h-4 text-muted-foreground shrink-0" />
+                                <div className="min-w-0">
+                                  <div className="font-medium truncate">
+                                    {suggestion.name || suggestion.formatted_address}
+                                  </div>
+                                  {suggestion.name && suggestion.formatted_address && (
+                                    <div className="text-xs text-muted-foreground truncate">
+                                      {suggestion.formatted_address}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {location && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {location}
+                      </p>
+                    )}
+                  </div>
                 </TabsContent>
               </Tabs>
             </div>
