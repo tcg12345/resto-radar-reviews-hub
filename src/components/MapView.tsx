@@ -292,7 +292,7 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
       )}
       
       {/* Search bar - moved right and made shorter to avoid back button */}
-      <div className="absolute left-16 top-4 z-10 w-56 max-w-[calc(100vw-12rem)]">
+      <div className="absolute left-16 top-4 z-10 w-48 max-w-[calc(100vw-20rem)]">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -305,7 +305,7 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
       </div>
 
       {/* Map style dropdown - moved up to same line */}
-      <div className="absolute left-80 top-4 z-10">
+      <div className="absolute left-68 top-4 z-10">
         <Select value={mapStyle} onValueChange={(value: MapStyle) => handleStyleChange(value)}>
           <SelectTrigger className="w-32 h-10 bg-card shadow-lg border">
             <SelectValue>
