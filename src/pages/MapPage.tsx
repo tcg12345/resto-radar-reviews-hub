@@ -220,12 +220,12 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
         <span className="hidden sm:inline">Back</span>
       </Button>
 
-      {/* Mobile Filter Button - moved to bottom right to avoid map controls */}
+      {/* Mobile Filter Button - back in top right */}
       <Button
         onClick={() => setShowFilters(true)}
         variant={getActiveFilterCount() > 0 ? "default" : "outline"}
         size="sm"
-        className="lg:hidden absolute bottom-20 right-4 z-30 flex items-center gap-2"
+        className="lg:hidden absolute top-4 right-4 z-30 flex items-center gap-2"
       >
         <Filter className="h-4 w-4" />
         {getActiveFilterCount() > 0 && (

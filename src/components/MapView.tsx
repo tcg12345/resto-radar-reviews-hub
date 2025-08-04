@@ -129,7 +129,8 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
         zoom: 3,
       });
 
-      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+      // Remove the navigation controls to avoid white buttons overlapping with filter button
+      // map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
       map.current.on('load', () => {
         setMapLoaded(true);
