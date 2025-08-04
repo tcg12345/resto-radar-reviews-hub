@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { addDays, format, startOfDay, differenceInDays, eachDayOfInterval } from 'date-fns';
-import { Calendar, Plus, Download, Share2, Save, CalendarDays, MapPin, X, CalendarIcon, BookOpen } from 'lucide-react';
+import { Calendar, Plus, Download, Share2, Save, CalendarDays, MapPin, X, CalendarIcon, BookOpen, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -187,6 +187,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
   const [locationLengthOfStay, setLocationLengthOfStay] = useState<Record<string, boolean>>(persistedState?.locationLengthOfStay || {});
   const [locationNights, setLocationNights] = useState<Record<string, number>>(persistedState?.locationNights || {});
   const [wasCreatedWithLengthOfStay, setWasCreatedWithLengthOfStay] = useState(persistedState?.wasCreatedWithLengthOfStay || false);
+  const [draggedCityId, setDraggedCityId] = useState<string | null>(null);
 
   // Persist state to localStorage whenever key state changes
   useEffect(() => {
@@ -263,6 +264,68 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
     if (hasLengthOfStayLocations) {
       setWasCreatedWithLengthOfStay(true);
       console.log('Created multi-city with length of stay:', { locationLengthOfStay, wasCreatedWithLengthOfStay: true });
+    }
+  };
+
+  const reorderCities = (draggedId: string, droppedOnId: string) => {
+    if (draggedId === droppedOnId) return;
+    
+    console.log('Reordering cities:', { draggedId, droppedOnId });
+    
+    if (currentItinerary) {
+      const currentLocations = [...currentItinerary.locations];
+      const draggedIndex = currentLocations.findIndex(loc => loc.id === draggedId);
+      const droppedIndex = currentLocations.findIndex(loc => loc.id === droppedOnId);
+      
+      if (draggedIndex === -1 || droppedIndex === -1) return;
+      
+      // Remove dragged item and insert at new position
+      const [draggedItem] = currentLocations.splice(draggedIndex, 1);
+      currentLocations.splice(droppedIndex, 0, draggedItem);
+      
+      // Update locations state
+      setLocations(currentLocations);
+      
+      // Recalculate sequential dates for all cities
+      let currentDate = startOfDay(new Date());
+      const updatedLocations = currentLocations.map(loc => {
+        if (locationLengthOfStay[loc.id] && locationNights[loc.id]) {
+          const nights = locationNights[loc.id];
+          const startDate = new Date(currentDate);
+          const endDate = addDays(startDate, nights);
+          
+          console.log(`Reordered ${loc.name}: ${nights} nights, ${startDate.toDateString()} to ${endDate.toDateString()}`);
+          
+          // Update location dates
+          updateLocationDates(loc.id, startDate, endDate);
+          
+          // Move to next city's start date
+          currentDate = new Date(endDate);
+          
+          return { ...loc, startDate, endDate };
+        }
+        return loc;
+      });
+      
+      // Calculate overall trip dates
+      const allStartDates = updatedLocations.map(loc => loc.startDate!).filter(Boolean);
+      const allEndDates = updatedLocations.map(loc => loc.endDate!).filter(Boolean);
+      
+      if (allStartDates.length > 0 && allEndDates.length > 0) {
+        const overallStart = new Date(Math.min(...allStartDates.map(d => d.getTime())));
+        const overallEnd = new Date(Math.max(...allEndDates.map(d => d.getTime())));
+        
+        console.log('New overall trip dates after reorder:', { start: overallStart.toDateString(), end: overallEnd.toDateString() });
+        
+        setCurrentItinerary(prev => prev ? {
+          ...prev,
+          locations: updatedLocations,
+          startDate: overallStart,
+          endDate: overallEnd
+        } : null);
+        
+        setDateRange({ start: overallStart, end: overallEnd });
+      }
     }
   };
 
@@ -1015,13 +1078,47 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                     <div>
                       <Label className="text-sm font-medium">Modify stay duration per city</Label>
                       <div className="mt-3 space-y-4">
-                        {currentItinerary.locations.map((location) => (
+                        {currentItinerary.locations.map((location, index) => (
                           locationLengthOfStay[location.id] && (
-                            <div key={location.id} className="p-4 bg-accent/50 rounded-lg">
+                            <div 
+                              key={location.id} 
+                              className={`p-4 bg-accent/50 rounded-lg cursor-move transition-all duration-200 ${
+                                draggedCityId === location.id ? 'opacity-50 scale-95' : 'hover:bg-accent/70'
+                              }`}
+                              draggable={true}
+                              onDragStart={(e) => {
+                                setDraggedCityId(location.id);
+                                e.dataTransfer.effectAllowed = 'move';
+                                e.dataTransfer.setData('text/plain', location.id);
+                              }}
+                              onDragEnd={() => {
+                                setDraggedCityId(null);
+                              }}
+                              onDragOver={(e) => {
+                                e.preventDefault();
+                                e.dataTransfer.dropEffect = 'move';
+                              }}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                const draggedId = e.dataTransfer.getData('text/plain');
+                                if (draggedId && draggedId !== location.id) {
+                                  reorderCities(draggedId, location.id);
+                                }
+                                setDraggedCityId(null);
+                              }}
+                            >
                               <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-2">
+                                  <GripVertical className="w-4 h-4 text-muted-foreground cursor-move" />
                                   <MapPin className="w-4 h-4 text-muted-foreground" />
                                   <span className="font-medium">{location.name}</span>
+                                  <span className="text-xs text-muted-foreground bg-background/50 px-2 py-1 rounded-full">
+                                    Day {index === 0 ? '1' : currentItinerary.locations.slice(0, index).reduce((acc, loc) => 
+                                      acc + (locationNights[loc.id] || 1), 1
+                                    )}-{currentItinerary.locations.slice(0, index + 1).reduce((acc, loc) => 
+                                      acc + (locationNights[loc.id] || 1), 0
+                                    )}
+                                  </span>
                                 </div>
                                 <span className="text-sm text-muted-foreground">
                                   {locationNights[location.id] || 1} {(locationNights[location.id] || 1) === 1 ? "night" : "nights"}
