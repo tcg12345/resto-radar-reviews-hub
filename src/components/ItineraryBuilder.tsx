@@ -1391,7 +1391,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                                             {location.startDate ? format(location.startDate, 'MMM dd') : 'Start'}
                                           </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0" align="start">
+                                        <PopoverContent className="w-auto p-0 z-50" align="start">
                                           <CalendarComponent
                                             mode="single"
                                             selected={location.startDate}
@@ -1403,7 +1403,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                                             }}
                                             disabled={(date) => location.endDate && date >= location.endDate}
                                             initialFocus
-                                            className={cn("p-3 pointer-events-auto")}
+                                            className="p-3"
                                           />
                                         </PopoverContent>
                                       </Popover>
@@ -1424,7 +1424,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                                             {location.endDate ? format(location.endDate, 'MMM dd') : 'End'}
                                           </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0" align="start">
+                                        <PopoverContent className="w-auto p-0 z-50" align="start">
                                           <CalendarComponent
                                             mode="single"
                                             selected={location.endDate}
@@ -1436,7 +1436,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                                             }}
                                             disabled={(date) => !location.startDate || date <= location.startDate}
                                             initialFocus
-                                            className={cn("p-3 pointer-events-auto")}
+                                            className="p-3"
                                           />
                                         </PopoverContent>
                                       </Popover>
