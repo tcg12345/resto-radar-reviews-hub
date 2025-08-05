@@ -102,7 +102,7 @@ export function SharedItineraryPage() {
       
       <div className="min-h-screen bg-background">
         {/* Header */}
-        <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b">
+        <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center gap-4 mb-2">
               <Button
@@ -127,7 +127,7 @@ export function SharedItineraryPage() {
         </div>
 
         {/* Content */}
-        <div className="container mx-auto px-4 py-6 space-y-6">
+        <div className="container mx-auto px-4 py-6 pt-32 space-y-6">
           {/* Itinerary Overview */}
           <Card>
             <CardHeader>
