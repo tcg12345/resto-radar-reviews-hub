@@ -83,7 +83,7 @@ export function UnifiedPhotoGallery({
     return filtered;
   }, [allCommunityPhotos, searchQuery, sortBy]);
 
-  const displayCommunityPhotos = showAll ? filteredCommunityPhotos : filteredCommunityPhotos.slice(0, 12);
+  const displayCommunityPhotos = showAll ? filteredCommunityPhotos : filteredCommunityPhotos.slice(0, 8);
 
   const dishGroups = useMemo(() => {
     const groups: Record<string, typeof displayCommunityPhotos> = {};
@@ -353,7 +353,7 @@ export function UnifiedPhotoGallery({
             )}
 
             {/* Show Less Button */}
-            {showAll && filteredCommunityPhotos.length > 12 && (
+            {showAll && filteredCommunityPhotos.length > 8 && (
               <div className="text-center mt-6">
                 <Button
                   variant="outline"
