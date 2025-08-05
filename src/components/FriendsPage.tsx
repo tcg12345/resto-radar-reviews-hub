@@ -265,7 +265,11 @@ export function FriendsPage({
                 Your friends haven't shared any restaurant experiences recently
               </p>
             </div> : <div className="grid gap-4">
-              {friendsActivity.map(activity => <Card key={activity.restaurant_id} className="p-4 hover:shadow-md transition-shadow">
+              {friendsActivity.map(activity => <Card 
+                  key={activity.restaurant_id} 
+                  className="p-4 hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => navigate(`/restaurant/${activity.restaurant_id}`)}
+                >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
