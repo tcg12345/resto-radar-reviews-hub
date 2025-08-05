@@ -1038,7 +1038,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
         
         <TabsContent value="builder" className="mt-6 space-y-6">
           {/* Header with date range and actions */}
-          <Card className="lg:rounded-lg lg:border lg:shadow-sm rounded-lg border border-border/50 shadow-sm mx-2 lg:mx-0">
+          <Card className="lg:rounded-lg lg:border lg:shadow-sm rounded-none border-0 border-t border-b shadow-none relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen lg:left-auto lg:right-auto lg:ml-0 lg:mr-0 lg:w-auto">
             <CardHeader className="pb-3 px-4 pt-4 lg:pb-4 lg:px-6 lg:pt-6">
               {/* Mobile-optimized layout */}
               <div className="space-y-3 lg:space-y-4">
@@ -1103,62 +1103,69 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
               </div>
             </CardHeader>
             <CardContent className="pt-0 px-4 pb-4 lg:px-6 lg:pb-6">
-              {/* Action buttons - Simplified mobile grid */}
-              <div className="flex flex-wrap gap-2 lg:gap-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsSaveDialogOpen(true)}
-                  className="flex items-center justify-center gap-1.5 text-xs flex-1 lg:flex-initial min-w-0"
-                >
-                  <Save className="w-3.5 h-3.5" />
-                  <span>Save</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsShareDialogOpen(true)}
-                  className="flex items-center justify-center gap-1.5 text-xs flex-1 lg:flex-initial min-w-0"
-                >
-                  <Share2 className="w-3.5 h-3.5" />
-                  <span>Share</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsExportDialogOpen(true)}
-                  className="flex items-center justify-center gap-1.5 text-xs flex-1 lg:flex-initial min-w-0"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Export</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    // Clear persisted state and reset to initial setup
-                    localStorage.removeItem('currentItineraryBuilder');
-                    setDateRange({ start: null, end: null });
-                    setCurrentItinerary(null);
-                    setEvents([]);
-                    setLocations([]);
-                    setIsMultiCity(false);
-                    setHasCreatedItinerary(false);
-                    setCurrentLocationSearch('');
-                    // Reset length of stay state
-                    setUseLengthOfStay(false);
-                    setNumberOfNights(1);
-                    setLocationLengthOfStay({});
-                    setLocationNights({});
-                    setWasCreatedWithLengthOfStay(false);
-                    console.log('Reset all state for new itinerary');
-                  }}
-                  className="flex items-center gap-1.5 text-xs flex-1 lg:flex-initial min-w-0"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Start New</span>
-                  <span className="sm:hidden">New</span>
-                </Button>
+              {/* Action buttons - Combined for cleaner mobile layout */}
+              <div className="grid grid-cols-2 gap-3">
+                {/* Save & Share Group */}
+                <div className="flex gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsSaveDialogOpen(true)}
+                    className="flex items-center justify-center gap-1.5 text-xs flex-1"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    <span>Save</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsShareDialogOpen(true)}
+                    className="flex items-center justify-center gap-1.5 text-xs flex-1"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    <span>Share</span>
+                  </Button>
+                </div>
+                
+                {/* Export & New Group */}
+                <div className="flex gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsExportDialogOpen(true)}
+                    className="flex items-center justify-center gap-1.5 text-xs flex-1"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Export</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      // Clear persisted state and reset to initial setup
+                      localStorage.removeItem('currentItineraryBuilder');
+                      setDateRange({ start: null, end: null });
+                      setCurrentItinerary(null);
+                      setEvents([]);
+                      setLocations([]);
+                      setIsMultiCity(false);
+                      setHasCreatedItinerary(false);
+                      setCurrentLocationSearch('');
+                      // Reset length of stay state
+                      setUseLengthOfStay(false);
+                      setNumberOfNights(1);
+                      setLocationLengthOfStay({});
+                      setLocationNights({});
+                      setWasCreatedWithLengthOfStay(false);
+                      console.log('Reset all state for new itinerary');
+                    }}
+                    className="flex items-center gap-1.5 text-xs flex-1"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">New</span>
+                    <span className="sm:hidden">+</span>
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
