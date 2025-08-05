@@ -1162,8 +1162,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                     className="flex items-center gap-1.5 text-xs flex-1"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">New</span>
-                    <span className="sm:hidden">+</span>
+                    <span>New</span>
                   </Button>
                 </div>
               </div>
