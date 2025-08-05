@@ -832,6 +832,14 @@ export type Database = {
         Args: { request_id: string }
         Returns: undefined
       }
+      aggressive_restaurant_linking: {
+        Args: { place_id_param: string; restaurant_name_param?: string }
+        Returns: number
+      }
+      auto_link_all_restaurants: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       build_friend_profile_cache: {
         Args: { target_user_id: string }
         Returns: Json
@@ -984,7 +992,14 @@ export type Database = {
         Returns: string
       }
       get_restaurant_community_stats: {
-        Args: { place_id_param: string }
+        Args:
+          | { place_id_param: string }
+          | { place_id_param: string; requesting_user_id?: string }
+          | {
+              place_id_param: string
+              restaurant_name_param?: string
+              requesting_user_id?: string
+            }
         Returns: {
           average_rating: number
           total_reviews: number
@@ -1048,6 +1063,28 @@ export type Database = {
         Args: { "": unknown }
         Returns: unknown
       }
+      link_all_restaurants_systematically: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          restaurant_id: string
+          restaurant_name: string
+          updated_place_id: string
+          method: string
+        }[]
+      }
+      link_restaurant_by_place_id: {
+        Args: { place_id_param: string; restaurant_name_param: string }
+        Returns: number
+      }
+      link_restaurants_to_google_places: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          restaurant_id: string
+          restaurant_name: string
+          updated_place_id: string
+          method: string
+        }[]
+      }
       rebuild_friend_activity_cache: {
         Args: { target_user_id: string }
         Returns: undefined
@@ -1063,6 +1100,10 @@ export type Database = {
       show_trgm: {
         Args: { "": string }
         Returns: string[]
+      }
+      simple_emergency_link: {
+        Args: Record<PropertyKey, never>
+        Returns: number
       }
       update_restaurant_google_place_id: {
         Args: {
