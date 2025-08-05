@@ -10,7 +10,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { SharedItineraryDetailsModal } from '@/components/SharedItineraryDetailsModal';
 
 interface Notification {
   id: string;
@@ -252,9 +251,8 @@ export function NotificationsPanel() {
     if (!notification?.data?.itinerary) return;
     
     try {
-      const itineraryData = JSON.parse(notification.data.itinerary);
-      setSelectedItinerary(itineraryData);
-      setSharedItineraryModalOpen(true);
+      const itineraryData = encodeURIComponent(notification.data.itinerary);
+      navigate(`/shared-itinerary?data=${itineraryData}`);
       setOpen(false);
     } catch (error) {
       console.error('Error parsing itinerary data:', error);
@@ -655,17 +653,6 @@ export function NotificationsPanel() {
         </DialogContent>
       </Dialog>
 
-      {/* Shared Itinerary Modal */}
-      {selectedItinerary && (
-        <SharedItineraryDetailsModal 
-          itinerary={selectedItinerary}
-          isOpen={sharedItineraryModalOpen}
-          onClose={() => {
-            setSharedItineraryModalOpen(false);
-            setSelectedItinerary(null);
-          }}
-        />
-      )}
     </Popover>
   );
 }

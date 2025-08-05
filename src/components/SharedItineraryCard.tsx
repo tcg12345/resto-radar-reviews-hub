@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, MapPin, Clock, Eye } from 'lucide-react';
 import { format } from 'date-fns';
-import { SharedItineraryDetailsModal } from './SharedItineraryDetailsModal';
 
 interface SharedItinerary {
   id: string;
@@ -28,7 +28,12 @@ interface SharedItineraryCardProps {
 }
 
 export function SharedItineraryCard({ itineraryData, isOwnMessage }: SharedItineraryCardProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleViewItinerary = () => {
+    const data = encodeURIComponent(itineraryData);
+    navigate(`/shared-itinerary?data=${data}`);
+  };
   
   let itinerary: SharedItinerary;
   try {
@@ -73,7 +78,7 @@ export function SharedItineraryCard({ itineraryData, isOwnMessage }: SharedItine
         className={`cursor-pointer hover:shadow-md transition-all duration-200 max-w-sm ${
           isOwnMessage ? 'bg-primary/10 border-primary/20' : ''
         }`}
-        onClick={() => setIsModalOpen(true)}
+        onClick={handleViewItinerary}
       >
         <CardContent className="p-4">
           <div className="space-y-3">
@@ -125,7 +130,7 @@ export function SharedItineraryCard({ itineraryData, isOwnMessage }: SharedItine
                 className="h-6 px-2 text-xs"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setIsModalOpen(true);
+                  handleViewItinerary();
                 }}
               >
                 <Eye className="h-3 w-3 mr-1" />
@@ -135,12 +140,6 @@ export function SharedItineraryCard({ itineraryData, isOwnMessage }: SharedItine
           </div>
         </CardContent>
       </Card>
-      
-      <SharedItineraryDetailsModal 
-        itinerary={itinerary}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
     </>
   );
 }

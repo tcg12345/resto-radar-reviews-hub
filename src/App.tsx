@@ -35,6 +35,7 @@ import MobileSearchRestaurantDetailsPage from "./pages/mobile/MobileSearchRestau
 import TravelPage from "./pages/TravelPage";
 import TripDetailPage from "./pages/TripDetailPage";
 import { SharedTripPage } from "./pages/SharedTripPage";
+import { SharedItineraryPage } from "./pages/SharedItineraryPage";
 import RestaurantPhotosPage from "./pages/RestaurantPhotosPage";
 import CommunityPhotoGalleryPage from "./pages/CommunityPhotoGalleryPage";
 
@@ -68,6 +69,7 @@ const App = () => (
                 <Route path="/travel" element={<RequireAuth><Layout activeTab="travel"><TravelPage /></Layout></RequireAuth>} />
                 <Route path="/trip/:tripId" element={<RequireAuth><TripDetailPage /></RequireAuth>} />
                 <Route path="/shared-trip/:tripId" element={<SharedTripPage />} />
+                <Route path="/shared-itinerary" element={<SharedItineraryPage />} />
                 
                 {/* Search section with sub-tabs */}
                 <Route path="/search" element={<RequireAuth><Layout activeTab="search"><SearchTabsPage /></Layout></RequireAuth>} />
