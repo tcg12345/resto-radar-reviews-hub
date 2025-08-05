@@ -227,7 +227,12 @@ export function ShareItineraryDialog({ isOpen, onClose, itinerary }: ShareItiner
         title: 'Itinerary Shared',
         message: `${user.user_metadata?.name || user.email} shared an itinerary with you: ${itinerary.title}`,
         type: 'itinerary_share',
-        data: { itinerary: itineraryData, sender_id: user.id }
+        data: { 
+          itinerary: itineraryData, 
+          sender_id: user.id,
+          sender_name: user.user_metadata?.name || user.email?.split('@')[0] || 'Someone',
+          itinerary_title: itinerary.title
+        }
       }));
 
       const { error } = await supabase

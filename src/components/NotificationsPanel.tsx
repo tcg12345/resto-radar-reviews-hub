@@ -507,15 +507,15 @@ export function NotificationsPanel() {
                                 Travel plan shared with you
                               </p>
                             </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-6 md:h-8 text-xs px-2 md:px-3 pointer-events-none shrink-0"
-                            >
-                              <Calendar className="h-2.5 w-2.5 md:h-3 md:w-3 mr-1" />
-                              <span className="hidden md:inline">View</span>
-                              <span className="md:hidden">Tap</span>
-                            </Button>
+                             <Button
+                               variant="outline"
+                               size="sm"
+                               className="h-6 md:h-8 text-xs px-2 md:px-3 shrink-0 bg-primary/5 border-primary/30 text-primary hover:bg-primary/10"
+                             >
+                               <Calendar className="h-2.5 w-2.5 md:h-3 md:w-3 mr-1" />
+                               <span className="hidden md:inline">View Trip</span>
+                               <span className="md:hidden">View</span>
+                             </Button>
                           </div>
                         </div>
                       )}
