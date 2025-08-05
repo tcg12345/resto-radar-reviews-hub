@@ -158,34 +158,40 @@ export function SavedItinerariesSection({ onLoadItinerary }: SavedItinerariesSec
       doc.text(`Other Events: ${otherCount}`, margin + 120, yPosition);
       yPosition += 20;
 
-      // Detailed itinerary section
-      if (itinerary.events.length > 0) {
-        checkNewPage(25);
-        doc.setFontSize(16);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Detailed Itinerary', margin, yPosition);
-        yPosition += 15;
+        // Detailed itinerary section
+        if (itinerary.events.length > 0) {
+          checkNewPage(25);
+          doc.setFontSize(16);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Detailed Itinerary', margin, yPosition);
+          yPosition += 15;
 
-        const eventsByDate = itinerary.events.reduce((acc, event) => {
-          if (!acc[event.date]) acc[event.date] = [];
-          acc[event.date].push(event);
-          return acc;
-        }, {} as Record<string, typeof itinerary.events>);
+          const eventsByDate = itinerary.events.reduce((acc, event) => {
+            if (!acc[event.date]) acc[event.date] = [];
+            acc[event.date].push(event);
+            return acc;
+          }, {} as Record<string, typeof itinerary.events>);
 
-        Object.entries(eventsByDate)
-          .sort(([a], [b]) => a.localeCompare(b))
-          .forEach(([date, events], dayIndex) => {
-            checkNewPage(30);
+          Object.entries(eventsByDate)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .forEach(([date, events], dayIndex) => {
+              checkNewPage(30);
 
-            // Date header with background
-            doc.setFillColor(239, 246, 255); // Light blue background
-            doc.rect(margin, yPosition - 8, pageWidth - 2 * margin, 20, 'F');
-            
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            const formattedDate = format(new Date(date), 'EEEE, MMMM do');
-            doc.text(`Day ${dayIndex + 1} - ${formattedDate}`, margin + 5, yPosition);
-            yPosition += 20;
+              // Date header with background
+              doc.setFillColor(239, 246, 255); // Light blue background
+              doc.rect(margin, yPosition - 8, pageWidth - 2 * margin, 20, 'F');
+              
+              doc.setFontSize(14);
+              doc.setFont('helvetica', 'bold');
+              
+              // Show dates only if not created with length of stay mode
+              if (itinerary.wasCreatedWithLengthOfStay) {
+                doc.text(`Day ${dayIndex + 1}`, margin + 5, yPosition);
+              } else {
+                const formattedDate = format(new Date(date), 'EEEE, MMMM do');
+                doc.text(`Day ${dayIndex + 1} - ${formattedDate}`, margin + 5, yPosition);
+              }
+              yPosition += 20;
 
             // Events for this date
             events

@@ -109,6 +109,7 @@ export interface Itinerary {
   userId?: string;
   createdAt?: string;
   updatedAt?: string;
+  wasCreatedWithLengthOfStay?: boolean;
 }
 
 export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itinerary: Itinerary) => void }) {
@@ -610,6 +611,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
         userId: user.id,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        wasCreatedWithLengthOfStay,
       };
       
       const existingIndex = savedItineraries.findIndex((it: any) => it.id === itineraryToSave.id);

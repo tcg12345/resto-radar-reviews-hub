@@ -230,8 +230,14 @@ export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItin
           
           doc.setFontSize(14);
           doc.setFont('helvetica', 'bold');
-          const formattedDate = format(new Date(date), 'EEEE, MMMM do');
-          doc.text(`Day ${dayIndex + 1} - ${formattedDate}`, margin + 5, yPosition);
+          
+          // Show dates only if not created with length of stay mode
+          if (itinerary.wasCreatedWithLengthOfStay) {
+            doc.text(`Day ${dayIndex + 1}`, margin + 5, yPosition);
+          } else {
+            const formattedDate = format(new Date(date), 'EEEE, MMMM do');
+            doc.text(`Day ${dayIndex + 1} - ${formattedDate}`, margin + 5, yPosition);
+          }
           yPosition += 20;
 
           // Events for this date
