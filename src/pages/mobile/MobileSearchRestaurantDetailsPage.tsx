@@ -498,21 +498,18 @@ export default function MobileSearchRestaurantDetailsPage() {
             </Card>}
 
           {/* Hours */}
-          {restaurant.opening_hours?.weekday_text && <Card>
-              <CardContent className="p-4 space-y-3">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <h3 className="font-semibold">Hours</h3>
-                </div>
+          {restaurant.opening_hours?.weekday_text && <Card className="bg-card border border-border rounded-xl">
+              <CardContent className="p-6">
+                <h3 className="font-semibold text-xl text-foreground mb-6">Hours</h3>
                 <div className="space-y-0">
                   {restaurant.opening_hours.weekday_text.map((hours, index) => {
                   const [day, time] = hours.split(': ');
                   return <div key={index}>
-                        <div className="flex justify-between items-center py-3">
-                          <span className="font-medium">{day}</span>
-                          <span className="text-muted-foreground">{time}</span>
+                        <div className="flex justify-between items-center py-4">
+                          <span className="font-medium text-lg text-foreground">{day}</span>
+                          <span className="text-lg text-muted-foreground">{time}</span>
                         </div>
-                        {index < restaurant.opening_hours.weekday_text.length - 1 && <div className="border-b border-border"></div>}
+                        {index < restaurant.opening_hours.weekday_text.length - 1 && <div className="border-b border-border/50"></div>}
                       </div>;
                 })}
                 </div>
