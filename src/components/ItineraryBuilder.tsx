@@ -1172,34 +1172,34 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
           {/* Trip Extension Section - Show for all trips */}
           {currentItinerary && (
             <Collapsible open={isExtensionOpen} onOpenChange={setIsExtensionOpen}>
-              <Card className="mb-6">
+              <Card className="lg:rounded-lg lg:border lg:shadow-sm lg:mb-6 rounded-none border-0 border-t border-b shadow-none mb-4 relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen lg:left-auto lg:right-auto lg:ml-0 lg:mr-0 lg:w-auto">
                 <CollapsibleTrigger asChild>
-                  <CardHeader className="cursor-pointer hover:bg-accent/50 transition-colors">
-                    <CardTitle className="flex items-center justify-between">
+                  <CardHeader className="cursor-pointer hover:bg-accent/50 transition-colors px-4 py-3 lg:px-6 lg:py-4">
+                    <CardTitle className="flex items-center justify-between text-base lg:text-lg">
                       <div className="flex items-center gap-2">
-                        <Plus className="w-5 h-5" />
-                        Extend Your Trip
+                        <Plus className="w-4 h-4 lg:w-5 lg:h-5 text-primary" />
+                        <span>Extend Your Trip</span>
                       </div>
-                      <ChevronDown className={`w-4 h-4 transition-transform ${isExtensionOpen ? 'rotate-180' : ''}`} />
+                      <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isExtensionOpen ? 'rotate-180' : ''}`} />
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-sm text-muted-foreground mt-1">
                       Add more days or cities to your itinerary
                     </CardDescription>
                   </CardHeader>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <CardContent className="space-y-6 pt-0">
+                  <CardContent className="space-y-4 lg:space-y-6 pt-0 px-4 pb-4 lg:px-6 lg:pb-6">
                     {/* Mode conversion toggle for length-of-stay trips */}
                     {(useLengthOfStay || wasCreatedWithLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && (
                       <div className="flex items-center justify-between p-3 bg-accent/30 rounded-lg">
-                        <div>
-                          <Label className="text-sm font-medium">Trip planning mode</Label>
-                          <p className="text-xs text-muted-foreground">
+                        <div className="flex-1">
+                          <Label className="text-sm font-medium text-foreground">Trip planning mode</Label>
+                          <p className="text-xs text-muted-foreground mt-0.5">
                             Switch between nights-based and date-based planning
                           </p>
                         </div>
                         <Button
-                          variant="outline"
+                          variant="default"
                           size="sm"
                           onClick={() => {
                             // Convert to date-based mode
@@ -1236,6 +1236,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                               toast.success('Converted to date-based planning');
                             }
                           }}
+                          className="w-full sm:w-auto text-xs"
                         >
                           Switch to Dates
                         </Button>
@@ -1245,14 +1246,14 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                     {/* Mode conversion toggle for date-based trips */}
                     {!useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) && dateRange.start && dateRange.end && (
                       <div className="flex items-center justify-between p-3 bg-accent/30 rounded-lg">
-                        <div>
-                          <Label className="text-sm font-medium">Trip planning mode</Label>
-                          <p className="text-xs text-muted-foreground">
+                        <div className="flex-1">
+                          <Label className="text-sm font-medium text-foreground">Trip planning mode</Label>
+                          <p className="text-xs text-muted-foreground mt-0.5">
                             Switch between date-based and nights-based planning
                           </p>
                         </div>
                         <Button
-                          variant="outline"
+                          variant="default"
                           size="sm"
                           onClick={() => {
                             // Convert to length-of-stay mode
@@ -1287,6 +1288,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                               toast.success('Converted to nights-based planning');
                             }
                           }}
+                          className="w-full sm:w-auto text-xs"
                         >
                           Switch to Nights
                         </Button>
