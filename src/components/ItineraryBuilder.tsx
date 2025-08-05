@@ -1245,11 +1245,11 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                     
                     {/* Mode conversion toggle for date-based trips */}
                     {!useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) && dateRange.start && dateRange.end && (
-                      <div className="flex items-center justify-between p-3 bg-accent/30 rounded-lg">
-                        <div className="flex-1">
-                          <Label className="text-sm font-medium text-foreground">Trip planning mode</Label>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            Switch between date-based and nights-based planning
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-muted/40 rounded-lg border border-border/30">
+                        <div className="flex-1 min-w-0">
+                          <Label className="text-sm font-medium text-foreground">Planning Mode</Label>
+                          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                            Switch to nights-based planning
                           </p>
                         </div>
                         <Button
