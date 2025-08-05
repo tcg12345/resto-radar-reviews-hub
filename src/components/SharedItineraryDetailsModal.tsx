@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Calendar, MapPin, Clock, Star, Utensils, Camera, ExternalLink, Phone, Eye } from 'lucide-react';
 import { format } from 'date-fns';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface SharedItinerary {
   id: string;
@@ -32,6 +33,7 @@ interface SharedItineraryDetailsModalProps {
 
 export function SharedItineraryDetailsModal({ itinerary, isOpen, onClose }: SharedItineraryDetailsModalProps) {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const groupEventsByDate = (events: any[]) => {
     return events.reduce((groups, event) => {
@@ -48,7 +50,38 @@ export function SharedItineraryDetailsModal({ itinerary, isOpen, onClose }: Shar
     // Close the modal first
     onClose();
     
-    // Navigate to restaurant search page with the restaurant name
+    // For mobile devices, navigate to mobile search restaurant details page
+    if (isMobile) {
+      // Convert restaurant data to the format expected by MobileSearchRestaurantDetailsPage
+      const googlePlaceData = {
+        place_id: restaurantData.placeId || restaurantData.google_place_id || `generated_${Date.now()}`,
+        name: restaurantData.name,
+        formatted_address: restaurantData.address,
+        rating: restaurantData.googleRating || restaurantData.rating,
+        price_level: restaurantData.priceRange,
+        geometry: {
+          location: {
+            lat: restaurantData.latitude || 0,
+            lng: restaurantData.longitude || 0
+          }
+        },
+        types: ['restaurant'],
+        formatted_phone_number: restaurantData.phone_number || restaurantData.phone,
+        website: restaurantData.website
+      };
+      
+      const placeData = encodeURIComponent(JSON.stringify(googlePlaceData));
+      navigate(`/mobile/search/restaurant?data=${placeData}`);
+      return;
+    }
+    
+    // For desktop, try to navigate to restaurant details if we have an ID
+    if (restaurantData.id) {
+      navigate(`/restaurant/${restaurantData.id}`);
+      return;
+    }
+    
+    // Fallback: navigate to search page
     const searchQuery = encodeURIComponent(restaurantData.name);
     navigate(`/search?q=${searchQuery}`);
   };
