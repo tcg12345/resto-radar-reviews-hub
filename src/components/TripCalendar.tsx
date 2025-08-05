@@ -164,9 +164,9 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
                     {dayEvents.map((event, eventIndex) => (
                       <div key={event.id}>
                         <div className={`p-4 rounded-lg border transition-all duration-200 hover:shadow-sm ${getEventColor(event.type)}`}>
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-start gap-3 flex-1">
-                              <div className="mt-0.5">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-start gap-3 flex-1 min-w-0">
+                              <div className="mt-0.5 shrink-0">
                                 {getEventIcon(event.type)}
                               </div>
                               <div className="flex-1 min-w-0">
@@ -187,10 +187,10 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
                                 {event.restaurantData && (
                                   <div className="space-y-2">
                                     <div className="flex items-center gap-1 text-sm opacity-90">
-                                      <MapPin className="w-3 h-3" />
+                                      <MapPin className="w-3 h-3 shrink-0" />
                                       <span className="break-words">{event.restaurantData.address}</span>
                                     </div>
-                                    <div className="flex items-center gap-2 mt-2">
+                                    <div className="flex items-center gap-2 mt-2 flex-wrap">
                                       <Button
                                         variant="outline"
                                         size="sm"
@@ -231,7 +231,7 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
                                {event.attractionData && (
                                  <div className="space-y-2">
                                    <div className="flex items-center gap-1 text-sm opacity-90">
-                                     <MapPin className="w-3 h-3" />
+                                     <MapPin className="w-3 h-3 shrink-0" />
                                      <span className="break-words">{event.attractionData.address}</span>
                                    </div>
                                    {event.attractionData.category && (
@@ -293,7 +293,7 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
                                   <MoreVertical className="w-4 h-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
+                              <DropdownMenuContent align="end" className="bg-background border shadow-md z-50">
                                 <DropdownMenuItem
                                   onClick={() => onEditEvent(event)}
                                   className="flex items-center gap-2"
