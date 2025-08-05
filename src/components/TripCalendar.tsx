@@ -147,33 +147,41 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
                             : `Day ${index + 1} - ${format(day, 'EEEE, MMMM do')}`
                           }
                         </CardTitle>
-                        <CardDescription className="space-y-1">
-                          {isMultiCity && getCityForDate(day) && (
-                            <div className="flex items-center gap-1 text-primary font-medium">
-                              <MapPin className="w-3 h-3" />
-                              {getCityForDate(day)}
+                        {!isCollapsed && (
+                          <CardDescription className="space-y-1">
+                            {isMultiCity && getCityForDate(day) && (
+                              <div className="flex items-center gap-1 text-primary font-medium">
+                                <MapPin className="w-3 h-3" />
+                                {getCityForDate(day)}
+                              </div>
+                            )}
+                            <div>
+                              {dayEvents.length > 0 
+                                ? `${dayEvents.length} ${dayEvents.length === 1 ? 'event' : 'events'} planned`
+                                : 'No events planned'
+                              }
                             </div>
-                          )}
-                          <div>
-                            {dayEvents.length > 0 
-                              ? `${dayEvents.length} ${dayEvents.length === 1 ? 'event' : 'events'} planned`
-                              : 'No events planned'
-                            }
+                          </CardDescription>
+                        )}
+                        {isCollapsed && isMultiCity && getCityForDate(day) && (
+                          <div className="flex items-center gap-1 text-primary font-medium text-sm">
+                            <MapPin className="w-3 h-3" />
+                            {getCityForDate(day)}
                           </div>
-                        </CardDescription>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         <Button
                           variant="outline"
-                          size="sm"
+                          size={isCollapsed ? "icon" : "sm"}
                           onClick={(e) => {
                             e.stopPropagation();
                             onAddEvent(dateStr);
                           }}
-                          className="flex items-center gap-2 shrink-0"
+                          className={`flex items-center gap-2 shrink-0 ${isCollapsed ? 'w-8 h-8' : ''}`}
                         >
                           <Plus className="w-4 h-4" />
-                          Add Event
+                          {!isCollapsed && "Add Event"}
                         </Button>
                         {dayEvents.length > 0 && (
                           <ChevronDown 
