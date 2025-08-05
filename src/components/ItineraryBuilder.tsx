@@ -1038,136 +1038,256 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
         
         <TabsContent value="builder" className="mt-6 space-y-6">
           {/* Header with date range and actions */}
-          <Card className="lg:rounded-lg lg:border lg:shadow-sm rounded-none border-0 border-t border-b shadow-none relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen lg:left-auto lg:right-auto lg:ml-0 lg:mr-0 lg:w-auto">
-            <CardHeader className="pb-3 px-4 pt-4 lg:pb-4 lg:px-6 lg:pt-6">
-              {/* Mobile-optimized layout */}
-              <div className="space-y-3 lg:space-y-4">
-                {/* Title and Multi-city Badge Row */}
-                <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="flex items-center gap-2 text-base lg:text-xl font-semibold">
-                    <Calendar className="w-4 h-4 lg:w-5 lg:h-5 shrink-0 text-primary" />
-                    <span className="truncate">{currentItinerary?.title}</span>
-                  </CardTitle>
-                  {currentItinerary?.isMultiCity && (
-                    <Badge variant="secondary" className="shrink-0 text-xs">Multi-city</Badge>
-                  )}
-                </div>
-                
-                {/* Date Range - Full width on mobile */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                  <div className="text-sm text-muted-foreground flex-1">
-                    {dateRange.start && dateRange.end ? (
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-                        {wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) ? (
-                          <span>{tripDays} {tripDays === 1 ? 'night' : 'nights'}</span>
-                        ) : (
-                          <>
-                            <span>{format(dateRange.start, 'MMM do')} - {format(dateRange.end, 'MMM do')}</span>
-                            <span className="text-xs">({tripDays} {tripDays === 1 ? 'day' : 'days'})</span>
-                          </>
-                        )}
-                      </div>
-                    ) : (
-                      'Dates not set'
+          <div className="lg:rounded-lg lg:border lg:shadow-sm rounded-none border-0 border-t border-b shadow-none relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen lg:left-auto lg:right-auto lg:ml-0 lg:mr-0 lg:w-auto">
+            {/* Mobile: Collapsible Dropdown */}
+            <div className="lg:hidden">
+              <Collapsible>
+                <CollapsibleTrigger className="w-full px-4 py-3 flex items-center justify-between bg-card hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-primary" />
+                    <span className="font-medium text-sm truncate">{currentItinerary?.title}</span>
+                    {currentItinerary?.isMultiCity && (
+                      <Badge variant="secondary" className="text-xs">Multi-city</Badge>
                     )}
                   </div>
-                  {!(wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && (
-                    <div className="sm:ml-auto">
-                      <DateRangePicker
-                        startDate={dateRange.start}
-                        endDate={dateRange.end}
-                        onDateRangeChange={handleDateRangeChange}
-                      />
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="border-t">
+                  <div className="px-4 py-3 space-y-3">
+                    {/* Date Range */}
+                    <div className="text-sm text-muted-foreground">
+                      {dateRange.start && dateRange.end ? (
+                        <div className="flex flex-col gap-1">
+                          {wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) ? (
+                            <span>{tripDays} {tripDays === 1 ? 'night' : 'nights'}</span>
+                          ) : (
+                            <>
+                              <span>{format(dateRange.start, 'MMM do')} - {format(dateRange.end, 'MMM do')}</span>
+                              <span className="text-xs">({tripDays} {tripDays === 1 ? 'day' : 'days'})</span>
+                            </>
+                          )}
+                        </div>
+                      ) : (
+                        'Dates not set'
+                      )}
+                    </div>
+                    
+                    {/* Date Picker */}
+                    {!(wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && (
+                      <div>
+                        <DateRangePicker
+                          startDate={dateRange.start}
+                          endDate={dateRange.end}
+                          onDateRangeChange={handleDateRangeChange}
+                        />
+                      </div>
+                    )}
+                    
+                    {/* Destinations */}
+                    {currentItinerary?.locations && currentItinerary.locations.length > 0 && (
+                      <div className="space-y-2 bg-muted/20 p-3 rounded-md">
+                        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+                          <MapPin className="w-3 h-3" />
+                          Destinations
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {currentItinerary.locations.map((location, index) => (
+                            <Badge key={location.id} variant="outline" className="flex items-center gap-1 text-xs px-2 py-1">
+                              <span className="w-2 h-2 bg-primary rounded-full"></span>
+                              {location.name}
+                              {location.iataCode && ` (${location.iataCode})`}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Action buttons */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsSaveDialogOpen(true)}
+                        className="flex items-center justify-center gap-1.5 text-xs"
+                      >
+                        <Save className="w-3.5 h-3.5" />
+                        Save
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsShareDialogOpen(true)}
+                        className="flex items-center justify-center gap-1.5 text-xs"
+                      >
+                        <Share2 className="w-3.5 h-3.5" />
+                        Share
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsExportDialogOpen(true)}
+                        className="flex items-center justify-center gap-1.5 text-xs"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        Export
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          localStorage.removeItem('currentItineraryBuilder');
+                          setDateRange({ start: null, end: null });
+                          setCurrentItinerary(null);
+                          setEvents([]);
+                          setLocations([]);
+                          setIsMultiCity(false);
+                          setHasCreatedItinerary(false);
+                          setCurrentLocationSearch('');
+                          setUseLengthOfStay(false);
+                          setNumberOfNights(1);
+                          setLocationLengthOfStay({});
+                          setLocationNights({});
+                          setWasCreatedWithLengthOfStay(false);
+                        }}
+                        className="flex items-center gap-1.5 text-xs"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        New
+                      </Button>
+                    </div>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
+
+            {/* Desktop: Regular Card */}
+            <Card className="hidden lg:block">
+              <CardHeader className="pb-4 px-6 pt-6">
+                <div className="space-y-4">
+                  {/* Title and Multi-city Badge Row */}
+                  <div className="flex items-start justify-between gap-2">
+                    <CardTitle className="flex items-center gap-2 text-xl font-semibold">
+                      <Calendar className="w-5 h-5 shrink-0 text-primary" />
+                      <span className="truncate">{currentItinerary?.title}</span>
+                    </CardTitle>
+                    {currentItinerary?.isMultiCity && (
+                      <Badge variant="secondary" className="shrink-0 text-xs">Multi-city</Badge>
+                    )}
+                  </div>
+                  
+                  {/* Date Range */}
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm text-muted-foreground flex-1">
+                      {dateRange.start && dateRange.end ? (
+                        <div className="flex items-center gap-1">
+                          {wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) ? (
+                            <span>{tripDays} {tripDays === 1 ? 'night' : 'nights'}</span>
+                          ) : (
+                            <>
+                              <span>{format(dateRange.start, 'MMM do')} - {format(dateRange.end, 'MMM do')}</span>
+                              <span className="text-xs">({tripDays} {tripDays === 1 ? 'day' : 'days'})</span>
+                            </>
+                          )}
+                        </div>
+                      ) : (
+                        'Dates not set'
+                      )}
+                    </div>
+                    {!(wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && (
+                      <div className="ml-auto">
+                        <DateRangePicker
+                          startDate={dateRange.start}
+                          endDate={dateRange.end}
+                          onDateRangeChange={handleDateRangeChange}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Destinations */}
+                  {currentItinerary?.locations && currentItinerary.locations.length > 0 && (
+                    <div className="space-y-2 bg-muted/20 p-3 rounded-md">
+                      <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        Destinations
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {currentItinerary.locations.map((location, index) => (
+                          <Badge key={location.id} variant="outline" className="flex items-center gap-1 text-xs px-2 py-1">
+                            <span className="w-2 h-2 bg-primary rounded-full"></span>
+                            {location.name}
+                            {location.iataCode && ` (${location.iataCode})`}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
-                
-                {/* Destinations - Cleaner mobile layout */}
-                {currentItinerary?.locations && currentItinerary.locations.length > 0 && (
-                  <div className="space-y-2 bg-muted/20 p-3 rounded-md">
-                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1">
-                      <MapPin className="w-3 h-3" />
-                      Destinations
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {currentItinerary.locations.map((location, index) => (
-                        <Badge key={location.id} variant="outline" className="flex items-center gap-1 text-xs px-2 py-1">
-                          <span className="w-2 h-2 bg-primary rounded-full"></span>
-                          {location.name}
-                          {location.iataCode && ` (${location.iataCode})`}
-                        </Badge>
-                      ))}
-                    </div>
+              </CardHeader>
+              <CardContent className="pt-0 px-6 pb-6">
+                {/* Action buttons */}
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Save & Share Group */}
+                  <div className="flex gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsSaveDialogOpen(true)}
+                      className="flex items-center justify-center gap-1.5 text-xs flex-1"
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                      <span>Save</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsShareDialogOpen(true)}
+                      className="flex items-center justify-center gap-1.5 text-xs flex-1"
+                    >
+                      <Share2 className="w-3.5 h-3.5" />
+                      <span>Share</span>
+                    </Button>
                   </div>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="pt-0 px-4 pb-4 lg:px-6 lg:pb-6">
-              {/* Action buttons - Combined for cleaner mobile layout */}
-              <div className="grid grid-cols-2 gap-3">
-                {/* Save & Share Group */}
-                <div className="flex gap-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsSaveDialogOpen(true)}
-                    className="flex items-center justify-center gap-1.5 text-xs flex-1"
-                  >
-                    <Save className="w-3.5 h-3.5" />
-                    <span>Save</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsShareDialogOpen(true)}
-                    className="flex items-center justify-center gap-1.5 text-xs flex-1"
-                  >
-                    <Share2 className="w-3.5 h-3.5" />
-                    <span>Share</span>
-                  </Button>
+                  
+                  {/* Export & New Group */}
+                  <div className="flex gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsExportDialogOpen(true)}
+                      className="flex items-center justify-center gap-1.5 text-xs flex-1"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Export</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        localStorage.removeItem('currentItineraryBuilder');
+                        setDateRange({ start: null, end: null });
+                        setCurrentItinerary(null);
+                        setEvents([]);
+                        setLocations([]);
+                        setIsMultiCity(false);
+                        setHasCreatedItinerary(false);
+                        setCurrentLocationSearch('');
+                        setUseLengthOfStay(false);
+                        setNumberOfNights(1);
+                        setLocationLengthOfStay({});
+                        setLocationNights({});
+                        setWasCreatedWithLengthOfStay(false);
+                      }}
+                      className="flex items-center gap-1.5 text-xs flex-1"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>New</span>
+                    </Button>
+                  </div>
                 </div>
-                
-                {/* Export & New Group */}
-                <div className="flex gap-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsExportDialogOpen(true)}
-                    className="flex items-center justify-center gap-1.5 text-xs flex-1"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>Export</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      // Clear persisted state and reset to initial setup
-                      localStorage.removeItem('currentItineraryBuilder');
-                      setDateRange({ start: null, end: null });
-                      setCurrentItinerary(null);
-                      setEvents([]);
-                      setLocations([]);
-                      setIsMultiCity(false);
-                      setHasCreatedItinerary(false);
-                      setCurrentLocationSearch('');
-                      // Reset length of stay state
-                      setUseLengthOfStay(false);
-                      setNumberOfNights(1);
-                      setLocationLengthOfStay({});
-                      setLocationNights({});
-                      setWasCreatedWithLengthOfStay(false);
-                      console.log('Reset all state for new itinerary');
-                    }}
-                    className="flex items-center gap-1.5 text-xs flex-1"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>New</span>
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Trip Extension Section - Show for all trips */}
           {currentItinerary && (
