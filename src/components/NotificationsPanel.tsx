@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Eye, Heart, Check, X, Clock, Trash2, MessageSquare, Reply } from 'lucide-react';
+import { Bell, Eye, Heart, Check, X, Clock, Trash2, MessageSquare, Reply, Calendar } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { SharedItineraryDetailsModal } from '@/components/SharedItineraryDetailsModal';
 
 interface Notification {
   id: string;
@@ -35,6 +36,8 @@ export function NotificationsPanel() {
   const [replyMessage, setReplyMessage] = useState<string>('');
   const [isReplying, setIsReplying] = useState(false);
   const [showReplyForm, setShowReplyForm] = useState(false);
+  const [sharedItineraryModalOpen, setSharedItineraryModalOpen] = useState(false);
+  const [selectedItinerary, setSelectedItinerary] = useState<any>(null);
   
   useEffect(() => {
     if (!user) return;
@@ -240,6 +243,25 @@ export function NotificationsPanel() {
     navigate(`/restaurant/${restaurantId}?friendId=${senderId}`);
   };
 
+  const handleViewItinerary = async (notificationId: string) => {
+    // Mark as read
+    await markAsRead(notificationId);
+    
+    // Get the notification to find the itinerary data
+    const notification = notifications.find(n => n.id === notificationId);
+    if (!notification?.data?.itinerary) return;
+    
+    try {
+      const itineraryData = JSON.parse(notification.data.itinerary);
+      setSelectedItinerary(itineraryData);
+      setSharedItineraryModalOpen(true);
+      setOpen(false);
+    } catch (error) {
+      console.error('Error parsing itinerary data:', error);
+      toast.error('Failed to load itinerary');
+    }
+  };
+
   const deleteNotification = async (notificationId: string) => {
     try {
       // First check if the deleted notification was unread
@@ -407,11 +429,17 @@ export function NotificationsPanel() {
                   className={`relative p-3 md:p-4 border-l-2 md:border-l-4 ${!notification.read_at 
                     ? 'border-l-primary bg-primary/5' 
                     : 'border-l-muted bg-background'
-                  } ${notification.type === 'restaurant_share' 
+                  } ${(notification.type === 'restaurant_share' || notification.type === 'itinerary_share')
                     ? 'cursor-pointer hover:bg-muted/30 transition-all duration-200 active:bg-muted/40' 
                     : ''
                   }`}
-                  onClick={() => notification.type === 'restaurant_share' && handleViewRestaurant(notification.id, notification.data?.restaurant_id)}
+                  onClick={() => {
+                    if (notification.type === 'restaurant_share') {
+                      handleViewRestaurant(notification.id, notification.data?.restaurant_id);
+                    } else if (notification.type === 'itinerary_share') {
+                      handleViewItinerary(notification.id);
+                    }
+                  }}
                 >
                   {/* Unread indicator */}
                   {!notification.read_at && (
@@ -451,6 +479,38 @@ export function NotificationsPanel() {
                               className="h-6 md:h-8 text-xs px-2 md:px-3 pointer-events-none shrink-0"
                             >
                               <Eye className="h-2.5 w-2.5 md:h-3 md:w-3 mr-1" />
+                              <span className="hidden md:inline">View</span>
+                              <span className="md:hidden">Tap</span>
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Itinerary card - More compact on mobile */}
+                      {notification.type === 'itinerary_share' && (
+                        <div className="bg-background rounded-md md:rounded-lg border p-2 md:p-3 shadow-sm w-full">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-foreground text-xs md:text-sm truncate">
+                                {(() => {
+                                  try {
+                                    const itinerary = JSON.parse(notification.data?.itinerary || '{}');
+                                    return itinerary.title || 'Travel Itinerary';
+                                  } catch {
+                                    return 'Travel Itinerary';
+                                  }
+                                })()}
+                              </h4>
+                              <p className="text-xs text-muted-foreground truncate mt-0.5">
+                                Travel plan shared with you
+                              </p>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-6 md:h-8 text-xs px-2 md:px-3 pointer-events-none shrink-0"
+                            >
+                              <Calendar className="h-2.5 w-2.5 md:h-3 md:w-3 mr-1" />
                               <span className="hidden md:inline">View</span>
                               <span className="md:hidden">Tap</span>
                             </Button>
@@ -592,6 +652,18 @@ export function NotificationsPanel() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Shared Itinerary Modal */}
+      {selectedItinerary && (
+        <SharedItineraryDetailsModal 
+          itinerary={selectedItinerary}
+          isOpen={sharedItineraryModalOpen}
+          onClose={() => {
+            setSharedItineraryModalOpen(false);
+            setSelectedItinerary(null);
+          }}
+        />
+      )}
     </Popover>
   );
 }
