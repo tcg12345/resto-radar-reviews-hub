@@ -187,86 +187,106 @@ export function SharedItineraryPage() {
                               
                               {/* Restaurant Data */}
                               {event.restaurantData && (
-                                <div 
-                                  className="space-y-2 cursor-pointer hover:bg-muted/30 p-3 rounded-md transition-colors"
+                                <Card 
+                                  className="group cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border-l-4 border-l-primary/30 hover:border-l-primary bg-gradient-to-r from-background to-muted/20"
                                   onClick={() => handleRestaurantClick(event.restaurantData)}
                                 >
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                      <MapPin className="w-4 h-4" />
-                                      <span>{event.restaurantData.address}</span>
+                                  <CardContent className="p-4 space-y-3">
+                                    {/* Header with restaurant name and action */}
+                                    <div className="flex items-start justify-between gap-3">
+                                      <div className="flex-1 min-w-0">
+                                        <h5 className="font-semibold text-foreground group-hover:text-primary transition-colors duration-200 truncate">
+                                          {event.restaurantData.name}
+                                        </h5>
+                                        <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+                                          <MapPin className="w-3 h-3 flex-shrink-0" />
+                                          <span className="truncate">{event.restaurantData.address}</span>
+                                        </div>
+                                      </div>
+                                      
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-8 w-8 p-0 opacity-60 group-hover:opacity-100 group-hover:bg-primary/10 group-hover:text-primary transition-all duration-200"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleRestaurantClick(event.restaurantData);
+                                        }}
+                                      >
+                                        <Eye className="w-4 h-4" />
+                                      </Button>
                                     </div>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-8 px-3 text-xs opacity-60"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleRestaurantClick(event.restaurantData);
-                                      }}
-                                    >
-                                      <Eye className="w-3 h-3 mr-1" />
-                                      View Details
-                                    </Button>
-                                  </div>
-                                  <div className="flex items-center gap-2 flex-wrap">
-                                    <Badge variant="secondary" className="text-xs">
-                                      <Utensils className="w-3 h-3 mr-1" />
-                                      {event.restaurantData.cuisine}
-                                    </Badge>
-                                    {event.restaurantData.rating && (
-                                      <Badge variant="outline" className="text-xs">
-                                        <Star className="w-3 h-3 mr-1" />
-                                        {event.restaurantData.rating}/10
-                                      </Badge>
+
+                                    {/* Restaurant details */}
+                                    <div className="flex flex-wrap gap-2">
+                                      {event.restaurantData.cuisine && (
+                                        <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20">
+                                          <Utensils className="w-3 h-3 mr-1" />
+                                          {event.restaurantData.cuisine}
+                                        </Badge>
+                                      )}
+                                      {event.restaurantData.rating && (
+                                        <Badge variant="outline" className="text-xs border-yellow-200 bg-yellow-50 text-yellow-700">
+                                          <Star className="w-3 h-3 mr-1 fill-yellow-400 text-yellow-400" />
+                                          {event.restaurantData.rating}/10
+                                        </Badge>
+                                      )}
+                                      {event.restaurantData.priceRange && (
+                                        <Badge variant="outline" className="text-xs border-green-200 bg-green-50 text-green-700">
+                                          {'$'.repeat(event.restaurantData.priceRange)}
+                                        </Badge>
+                                      )}
+                                      {event.restaurantData.michelinStars && (
+                                        <Badge variant="outline" className="text-xs border-purple-200 bg-purple-50 text-purple-700">
+                                          {'⭐'.repeat(event.restaurantData.michelinStars)} Michelin
+                                        </Badge>
+                                      )}
+                                    </div>
+
+                                    {/* Notes */}
+                                    {event.restaurantData.notes && (
+                                      <div className="bg-muted/50 rounded-lg p-3 border border-border/50">
+                                        <p className="text-xs text-muted-foreground italic leading-relaxed">
+                                          "{event.restaurantData.notes}"
+                                        </p>
+                                      </div>
                                     )}
-                                    {event.restaurantData.priceRange && (
-                                      <Badge variant="outline" className="text-xs">
-                                        {'$'.repeat(event.restaurantData.priceRange)}
-                                      </Badge>
+
+                                    {/* Action buttons */}
+                                    {(event.restaurantData.website || event.restaurantData.phone_number) && (
+                                      <div className="flex gap-2 pt-2 border-t border-border/50">
+                                        {event.restaurantData.website && (
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              window.open(event.restaurantData.website, '_blank');
+                                            }}
+                                            className="h-7 px-3 text-xs hover:bg-primary hover:text-primary-foreground transition-colors"
+                                          >
+                                            <ExternalLink className="w-3 h-3 mr-1" />
+                                            Website
+                                          </Button>
+                                        )}
+                                        {event.restaurantData.phone_number && (
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              window.open(`tel:${event.restaurantData.phone_number}`, '_blank');
+                                            }}
+                                            className="h-7 px-3 text-xs hover:bg-primary hover:text-primary-foreground transition-colors"
+                                          >
+                                            <Phone className="w-3 h-3 mr-1" />
+                                            Call
+                                          </Button>
+                                        )}
+                                      </div>
                                     )}
-                                    {event.restaurantData.michelinStars && (
-                                      <Badge variant="outline" className="text-xs">
-                                        {'⭐'.repeat(event.restaurantData.michelinStars)}
-                                      </Badge>
-                                    )}
-                                  </div>
-                                  {event.restaurantData.notes && (
-                                    <p className="text-sm text-muted-foreground italic">
-                                      {event.restaurantData.notes}
-                                    </p>
-                                  )}
-                                  <div className="flex gap-2">
-                                    {event.restaurantData.website && (
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          window.open(event.restaurantData.website, '_blank');
-                                        }}
-                                        className="h-8 px-3 text-xs"
-                                      >
-                                        <ExternalLink className="w-3 h-3 mr-1" />
-                                        Website
-                                      </Button>
-                                    )}
-                                    {event.restaurantData.phone_number && (
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          window.open(`tel:${event.restaurantData.phone_number}`, '_blank');
-                                        }}
-                                        className="h-8 px-3 text-xs"
-                                      >
-                                        <Phone className="w-3 h-3 mr-1" />
-                                        Call
-                                      </Button>
-                                    )}
-                                  </div>
-                                </div>
+                                  </CardContent>
+                                </Card>
                               )}
 
                               {/* Attraction Data */}
