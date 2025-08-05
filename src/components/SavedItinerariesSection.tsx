@@ -135,11 +135,11 @@ export function SavedItinerariesSection({ onLoadItinerary }: SavedItinerariesSec
           if (event.type === 'restaurant' && event.restaurantData) {
             pdf.setFontSize(9);
             if (event.restaurantData.address) {
-              pdf.text(`📍 ${event.restaurantData.address}`, margin + 10, currentY);
+              pdf.text(`Address: ${event.restaurantData.address}`, margin + 10, currentY);
               currentY += lineHeight;
             }
             if (event.restaurantData.phone) {
-              pdf.text(`📞 ${event.restaurantData.phone}`, margin + 10, currentY);
+              pdf.text(`Phone: ${event.restaurantData.phone}`, margin + 10, currentY);
               currentY += lineHeight;
             }
           }
@@ -147,11 +147,11 @@ export function SavedItinerariesSection({ onLoadItinerary }: SavedItinerariesSec
           if (event.attractionData) {
             pdf.setFontSize(9);
             if (event.attractionData.address) {
-              pdf.text(`📍 ${event.attractionData.address}`, margin + 10, currentY);
+              pdf.text(`Address: ${event.attractionData.address}`, margin + 10, currentY);
               currentY += lineHeight;
             }
             if (event.attractionData.phone) {
-              pdf.text(`📞 ${event.attractionData.phone}`, margin + 10, currentY);
+              pdf.text(`Phone: ${event.attractionData.phone}`, margin + 10, currentY);
               currentY += lineHeight;
             }
           }
