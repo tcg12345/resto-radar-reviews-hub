@@ -33,7 +33,7 @@ export function SaveItineraryDialog({
     onClose();
   };
   return <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[400px]">
+      <DialogContent className="sm:max-w-[400px] rounded-xl mx-4">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Save className="w-5 h-5" />
