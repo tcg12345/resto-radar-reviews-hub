@@ -422,15 +422,54 @@ export default function MobileSearchRestaurantDetailsPage() {
           </div>
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-3">
-            <Button onClick={handleAddToWishlist} disabled={isAddingToWishlist} className="flex items-center gap-2" variant="outline">
-              <Heart className="h-4 w-4" />
-              {isAddingToWishlist ? 'Adding...' : 'Add to Wishlist'}
-            </Button>
-            <Button onClick={handleAddRating} className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Rate Restaurant
-            </Button>
+          <div className="space-y-3">
+            {/* Top row - Blue buttons */}
+            <div className="grid grid-cols-3 gap-3">
+              {restaurant.formatted_phone_number && (
+                <Button 
+                  onClick={() => window.open(`tel:${restaurant.formatted_phone_number}`, '_self')}
+                  className="flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white"
+                >
+                  <Phone className="h-4 w-4" />
+                  Call
+                </Button>
+              )}
+              <Button 
+                onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${restaurant.geometry.location.lat},${restaurant.geometry.location.lng}`, '_blank')}
+                className="flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                <MapPin className="h-4 w-4" />
+                Directions
+              </Button>
+              {restaurant.website && (
+                <Button 
+                  onClick={() => window.open(restaurant.website, '_blank')}
+                  className="flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white"
+                >
+                  <Globe className="h-4 w-4" />
+                  Website
+                </Button>
+              )}
+            </div>
+            
+            {/* Bottom row - Dark buttons */}
+            <div className="grid grid-cols-2 gap-3">
+              <Button 
+                onClick={handleAddRating} 
+                className="flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 text-white"
+              >
+                <Plus className="h-4 w-4" />
+                Add to List
+              </Button>
+              <Button 
+                onClick={handleAddToWishlist} 
+                disabled={isAddingToWishlist}
+                className="flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 text-white"
+              >
+                <Heart className="h-4 w-4" />
+                {isAddingToWishlist ? 'Adding...' : 'Wishlist'}
+              </Button>
+            </div>
           </div>
 
           {/* Community Rating */}
