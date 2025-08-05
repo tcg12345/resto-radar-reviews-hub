@@ -268,7 +268,7 @@ export function FriendsPage({
               {friendsActivity.map(activity => <Card 
                   key={activity.restaurant_id} 
                   className="p-4 hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => navigate(`/restaurant/${activity.restaurant_id}`)}
+                  onClick={() => navigate(`/restaurant/${activity.restaurant_id}?friendId=${activity.friend_id}&fromFriendsActivity=true&returnUrl=${encodeURIComponent('/friends')}`)}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
