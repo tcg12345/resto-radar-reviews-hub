@@ -139,7 +139,7 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
               <Card className="transition-all duration-200 hover:shadow-md lg:rounded-lg lg:border lg:shadow-sm rounded-none border-0 border-t border-b shadow-none relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen lg:left-auto lg:right-auto lg:ml-0 lg:mr-0 lg:w-auto">
                 <CollapsibleTrigger asChild>
                   <CardHeader className="pb-3 cursor-pointer hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center justify-between">
+                    <div className={`flex items-center justify-between ${isCollapsed ? 'py-2' : ''}`}>
                       <div className="flex-1">
                         <CardTitle className="text-lg">
                           {useLengthOfStay 
