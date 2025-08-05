@@ -176,19 +176,19 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
                                     {event.type}
                                   </Badge>
                                 </div>
-                                <h4 className="font-semibold text-base mb-1 break-words">
+                                <h4 className="font-semibold text-base mb-1 break-words text-left">
                                   {event.title}
                                 </h4>
                                 {event.description && (
-                                  <p className="text-sm opacity-90 mb-2 break-words">
+                                  <p className="text-sm opacity-90 mb-2 break-words text-left">
                                     {event.description}
                                   </p>
                                 )}
                                 {event.restaurantData && (
                                   <div className="space-y-2">
-                                    <div className="flex items-center gap-1 text-sm opacity-90">
-                                      <MapPin className="w-3 h-3 shrink-0" />
-                                      <span className="break-words">{event.restaurantData.address}</span>
+                                    <div className="flex items-start gap-1 text-sm opacity-90">
+                                      <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
+                                      <span className="break-words text-left">{event.restaurantData.address}</span>
                                     </div>
                                     <div className="flex items-center gap-2 mt-2">
                                       <Button
