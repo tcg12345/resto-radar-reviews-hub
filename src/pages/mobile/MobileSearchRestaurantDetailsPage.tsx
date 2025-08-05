@@ -353,7 +353,7 @@ export default function MobileSearchRestaurantDetailsPage() {
           </div>
         </div>
 
-        <div className="pb-safe">
+        <div className="pb-safe pt-[35px] lg:pt-0">
         {/* Hero Image */}
         {(restaurant.photos?.length > 0 || restaurant.yelpData?.photos?.length > 0) && <div className="aspect-video relative cursor-pointer group" onClick={() => navigate(`/restaurant/${restaurant.place_id}/community-photos?name=${encodeURIComponent(restaurant.name)}`)}>
             <img src={restaurant.yelpData?.photos?.[0] || (restaurant.photos?.[0] ? getPhotoUrl(restaurant.photos[0].photo_reference) : '')} alt={restaurant.name} className="w-full h-full object-cover transition-transform group-hover:scale-105" onError={e => {
