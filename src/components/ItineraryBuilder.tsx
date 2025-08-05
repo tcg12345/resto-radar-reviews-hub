@@ -1038,18 +1038,18 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
         
         <TabsContent value="builder" className="mt-6 space-y-6">
           {/* Header with date range and actions */}
-          <Card className="lg:rounded-lg lg:border lg:shadow-sm rounded-none border-0 border-t border-b shadow-none relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen lg:left-auto lg:right-auto lg:ml-0 lg:mr-0 lg:w-auto">
-            <CardHeader className="pb-4">
+          <Card className="lg:rounded-lg lg:border lg:shadow-sm rounded-lg border border-border/50 shadow-sm mx-2 lg:mx-0">
+            <CardHeader className="pb-3 px-4 pt-4 lg:pb-4 lg:px-6 lg:pt-6">
               {/* Mobile-optimized layout */}
-              <div className="space-y-4">
+              <div className="space-y-3 lg:space-y-4">
                 {/* Title and Multi-city Badge Row */}
                 <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
-                    <Calendar className="w-5 h-5 shrink-0" />
+                  <CardTitle className="flex items-center gap-2 text-base lg:text-xl font-semibold">
+                    <Calendar className="w-4 h-4 lg:w-5 lg:h-5 shrink-0 text-primary" />
                     <span className="truncate">{currentItinerary?.title}</span>
                   </CardTitle>
                   {currentItinerary?.isMultiCity && (
-                    <Badge variant="outline" className="shrink-0">Multi-city</Badge>
+                    <Badge variant="secondary" className="shrink-0 text-xs">Multi-city</Badge>
                   )}
                 </div>
                 
@@ -1082,16 +1082,17 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                   )}
                 </div>
                 
-                {/* Locations - Vertical layout on mobile for better readability */}
+                {/* Destinations - Cleaner mobile layout */}
                 {currentItinerary?.locations && currentItinerary.locations.length > 0 && (
-                  <div className="space-y-2">
-                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  <div className="space-y-2 bg-muted/20 p-3 rounded-md">
+                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />
                       Destinations
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5">
                       {currentItinerary.locations.map((location, index) => (
-                        <Badge key={location.id} variant="secondary" className="flex items-center gap-1 text-xs">
-                          <MapPin className="w-3 h-3" />
+                        <Badge key={location.id} variant="outline" className="flex items-center gap-1 text-xs px-2 py-1">
+                          <span className="w-2 h-2 bg-primary rounded-full"></span>
                           {location.name}
                           {location.iataCode && ` (${location.iataCode})`}
                         </Badge>
@@ -1101,37 +1102,35 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                 )}
               </div>
             </CardHeader>
-            <CardContent className="pt-0">
-              {/* Action buttons - Better mobile layout */}
-              <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+            <CardContent className="pt-0 px-4 pb-4 lg:px-6 lg:pb-6">
+              {/* Action buttons - Simplified mobile grid */}
+              <div className="flex flex-wrap gap-2 lg:gap-3">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setIsSaveDialogOpen(true)}
-                  className="flex items-center justify-center gap-2 text-xs"
+                  className="flex items-center justify-center gap-1.5 text-xs flex-1 lg:flex-initial min-w-0"
                 >
-                  <Save className="w-4 h-4" />
-                  <span className="hidden sm:inline">Save Itinerary</span>
-                  <span className="sm:hidden">Save</span>
+                  <Save className="w-3.5 h-3.5" />
+                  <span>Save</span>
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setIsShareDialogOpen(true)}
-                  className="flex items-center justify-center gap-2 text-xs"
+                  className="flex items-center justify-center gap-1.5 text-xs flex-1 lg:flex-initial min-w-0"
                 >
-                  <Share2 className="w-4 h-4" />
+                  <Share2 className="w-3.5 h-3.5" />
                   <span>Share</span>
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setIsExportDialogOpen(true)}
-                  className="flex items-center justify-center gap-2 text-xs col-span-2 sm:col-span-1"
+                  className="flex items-center justify-center gap-1.5 text-xs flex-1 lg:flex-initial min-w-0"
                 >
-                  <Download className="w-4 h-4" />
-                  <span className="hidden sm:inline">Export PDF</span>
-                  <span className="sm:hidden">Export</span>
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Export</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -1154,10 +1153,11 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                     setWasCreatedWithLengthOfStay(false);
                     console.log('Reset all state for new itinerary');
                   }}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-1.5 text-xs flex-1 lg:flex-initial min-w-0"
                 >
-                  <Plus className="w-4 h-4" />
-                  Start New Itinerary
+                  <Plus className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Start New</span>
+                  <span className="sm:hidden">New</span>
                 </Button>
               </div>
             </CardContent>
