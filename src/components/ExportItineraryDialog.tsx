@@ -110,6 +110,11 @@ export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItin
   };
 
   const generatePDF = () => {
+    console.log('ExportItineraryDialog - generatePDF called with itinerary:', {
+      title: itinerary.title,
+      wasCreatedWithLengthOfStay: itinerary.wasCreatedWithLengthOfStay,
+      eventsCount: itinerary.events.length
+    });
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
@@ -232,9 +237,17 @@ export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItin
           doc.setFont('helvetica', 'bold');
           
           // Show dates only if not created with length of stay mode
+          console.log('ExportItineraryDialog - PDF generation - checking date display:', { 
+            wasCreatedWithLengthOfStay: itinerary.wasCreatedWithLengthOfStay, 
+            dayIndex: dayIndex + 1,
+            date 
+          });
+          
           if (itinerary.wasCreatedWithLengthOfStay) {
+            console.log('ExportItineraryDialog - Using length of stay mode - showing only day number');
             doc.text(`Day ${dayIndex + 1}`, margin + 5, yPosition);
           } else {
+            console.log('ExportItineraryDialog - Using dates mode - showing day number and date');
             const formattedDate = format(new Date(date), 'EEEE, MMMM do');
             doc.text(`Day ${dayIndex + 1} - ${formattedDate}`, margin + 5, yPosition);
           }
