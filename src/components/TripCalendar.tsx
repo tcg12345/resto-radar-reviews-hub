@@ -139,57 +139,86 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
               <Card className="transition-all duration-200 hover:shadow-md lg:rounded-lg lg:border lg:shadow-sm rounded-none border-0 border-t border-b shadow-none relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen lg:left-auto lg:right-auto lg:ml-0 lg:mr-0 lg:w-auto">
                 <CollapsibleTrigger asChild>
                   <CardHeader className="pb-3 cursor-pointer hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <CardTitle className="text-lg">
-                          {useLengthOfStay 
-                            ? `Day ${index + 1}`
-                            : `Day ${index + 1} - ${format(day, 'EEEE, MMMM do')}`
-                          }
-                        </CardTitle>
-                        {!isCollapsed && (
-                          <CardDescription className="space-y-1">
-                            {isMultiCity && getCityForDate(day) && (
-                              <div className="flex items-center gap-1 text-primary font-medium">
-                                <MapPin className="w-3 h-3" />
-                                {getCityForDate(day)}
-                              </div>
-                            )}
-                            <div>
-                              {dayEvents.length > 0 
-                                ? `${dayEvents.length} ${dayEvents.length === 1 ? 'event' : 'events'} planned`
-                                : 'No events planned'
-                              }
+                    {isCollapsed ? (
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <CardTitle className="text-lg">
+                            {useLengthOfStay 
+                              ? `Day ${index + 1}`
+                              : `Day ${index + 1} - ${format(day, 'EEEE, MMMM do')}`
+                            }
+                          </CardTitle>
+                          {isMultiCity && getCityForDate(day) && (
+                            <div className="flex items-center gap-1 text-primary font-medium text-sm">
+                              <MapPin className="w-3 h-3" />
+                              {getCityForDate(day)}
                             </div>
-                          </CardDescription>
-                        )}
-                        {isCollapsed && isMultiCity && getCityForDate(day) && (
-                          <div className="flex items-center gap-1 text-primary font-medium text-sm">
-                            <MapPin className="w-3 h-3" />
-                            {getCityForDate(day)}
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onAddEvent(dateStr);
+                            }}
+                            className="w-8 h-8 shrink-0"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                          {dayEvents.length > 0 && (
+                            <ChevronDown 
+                              className="w-4 h-4 transition-transform rotate-180" 
+                            />
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <CardTitle className="text-lg flex-1">
+                            {useLengthOfStay 
+                              ? `Day ${index + 1}`
+                              : `Day ${index + 1} - ${format(day, 'EEEE, MMMM do')}`
+                            }
+                          </CardTitle>
+                          {dayEvents.length > 0 && (
+                            <ChevronDown className="w-4 h-4 transition-transform" />
+                          )}
+                        </div>
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <CardDescription className="space-y-1">
+                              {isMultiCity && getCityForDate(day) && (
+                                <div className="flex items-center gap-1 text-primary font-medium">
+                                  <MapPin className="w-3 h-3" />
+                                  {getCityForDate(day)}
+                                </div>
+                              )}
+                              <div>
+                                {dayEvents.length > 0 
+                                  ? `${dayEvents.length} ${dayEvents.length === 1 ? 'event' : 'events'} planned`
+                                  : 'No events planned'
+                                }
+                              </div>
+                            </CardDescription>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onAddEvent(dateStr);
+                              }}
+                              className="flex items-center gap-2 mt-2"
+                            >
+                              <Plus className="w-4 h-4" />
+                              Add Event
+                            </Button>
                           </div>
-                        )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size={isCollapsed ? "icon" : "sm"}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onAddEvent(dateStr);
-                          }}
-                          className={`flex items-center gap-2 shrink-0 ${isCollapsed ? 'w-8 h-8' : ''}`}
-                        >
-                          <Plus className="w-4 h-4" />
-                          {!isCollapsed && "Add Event"}
-                        </Button>
-                        {dayEvents.length > 0 && (
-                          <ChevronDown 
-                            className={`w-4 h-4 transition-transform ${isCollapsed ? 'rotate-180' : ''}`} 
-                          />
-                        )}
-                      </div>
-                    </div>
+                    )}
                   </CardHeader>
                 </CollapsibleTrigger>
                 
