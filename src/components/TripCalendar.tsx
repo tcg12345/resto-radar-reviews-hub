@@ -94,7 +94,7 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
   return (
     <div className="grid gap-4">
       {/* Main Add Event Button */}
-      <Card className="bg-primary/5 border-primary/20">
+      <Card className="bg-primary/5 border-0">
         <CardContent className="pt-6">
           <div className="text-center space-y-3">
             <div className="hidden md:flex items-center justify-center gap-2">
@@ -106,7 +106,7 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
             </p>
             <Button
               onClick={() => onAddEvent('')} // Empty string indicates main add event
-              className="w-full max-w-xs"
+              className="w-full"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Event
