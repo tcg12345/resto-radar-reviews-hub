@@ -414,7 +414,8 @@ export default function MobileSearchRestaurantDetailsPage() {
                     </Badge>;
                 })()}
                 
-                {restaurant.yelpData?.categories?.slice(0, 2).map((category, index) => <Badge key={index} variant="outline">{category}</Badge>)}
+                {/* Only show Yelp categories if no cuisine was found above */}
+                {!isEnhancingWithAI && !restaurant.aiAnalysis?.cuisine && !restaurant.fallbackCuisine && restaurant.yelpData?.categories?.slice(0, 1).map((category, index) => <Badge key={index} variant="outline">{category}</Badge>)}
               </div>
             </div>
 
