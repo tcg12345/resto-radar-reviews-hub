@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { Download, FileText, FileJson, FileSpreadsheet, Printer, ExternalLink } from 'lucide-react';
+import { Download, FileText, FileJson, FileSpreadsheet, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { Itinerary } from '@/components/ItineraryBuilder';
@@ -18,12 +17,11 @@ interface ExportItineraryDialogProps {
   itinerary: Itinerary | null;
 }
 
-type ExportFormat = 'pdf' | 'txt' | 'json' | 'csv' | 'google-doc';
+type ExportFormat = 'pdf' | 'txt' | 'json' | 'csv';
 
 export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItineraryDialogProps) {
   const [isExporting, setIsExporting] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState<ExportFormat>('pdf');
-  const [webhookUrl, setWebhookUrl] = useState('');
 
   if (!itinerary) return null;
 
@@ -34,13 +32,6 @@ export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItin
       description: 'Professional PDF with formatted layout',
       icon: Printer,
       popular: true
-    },
-    {
-      value: 'google-doc' as const,
-      label: 'Google Docs',
-      description: 'Create a Google Doc via Zapier webhook',
-      icon: ExternalLink,
-      popular: false
     },
     {
       value: 'txt' as const,
@@ -443,49 +434,6 @@ export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItin
     return csv;
   };
 
-  const exportToGoogleDoc = async () => {
-    if (!webhookUrl) {
-      toast.error('Please enter your Zapier webhook URL');
-      return;
-    }
-
-    const itineraryData = {
-      title: itinerary.title,
-      startDate: format(itinerary.startDate, 'MMMM do, yyyy'),
-      endDate: format(itinerary.endDate, 'MMMM do, yyyy'),
-      duration: Math.ceil((itinerary.endDate.getTime() - itinerary.startDate.getTime()) / (1000 * 60 * 60 * 24)),
-      destinations: itinerary.locations.map(loc => loc.name).join(' → '),
-      content: generateTextContent(),
-      events: itinerary.events.map(event => ({
-        date: event.date,
-        time: event.time,
-        title: event.title,
-        type: event.type,
-        description: event.description,
-        restaurantData: event.restaurantData,
-        attractionData: event.attractionData
-      })),
-      exportedAt: new Date().toISOString(),
-      triggered_from: window.location.origin
-    };
-
-    try {
-      await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        mode: 'no-cors',
-        body: JSON.stringify(itineraryData),
-      });
-
-      toast.success('Request sent to Zapier! Check your Zap history to confirm the Google Doc was created.');
-    } catch (error) {
-      console.error('Error triggering webhook:', error);
-      toast.error('Failed to trigger the Zapier webhook. Please check the URL and try again.');
-    }
-  };
-
   const handleExport = async () => {
     setIsExporting(true);
     
@@ -535,10 +483,6 @@ export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItin
           csvLink.click();
           document.body.removeChild(csvLink);
           URL.revokeObjectURL(csvUrl);
-          break;
-          
-        case 'google-doc':
-          await exportToGoogleDoc();
           break;
           
         default:
@@ -662,51 +606,22 @@ export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItin
                 })}
               </div>
             </RadioGroup>
-            
-            {/* Webhook URL input for Google Docs */}
-            {selectedFormat === 'google-doc' && (
-              <div className="space-y-2 p-4 bg-muted/30 rounded-lg border">
-                <Label htmlFor="webhook-url" className="text-sm font-medium">
-                  Zapier Webhook URL
-                </Label>
-                <Input
-                  id="webhook-url"
-                  type="url"
-                  placeholder="https://hooks.zapier.com/hooks/catch/..."
-                  value={webhookUrl}
-                  onChange={(e) => setWebhookUrl(e.target.value)}
-                  className="w-full"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Create a Zapier webhook that connects to Google Docs. The itinerary data will be sent to this URL to automatically create your Google Doc.
-                  <br />
-                  <a 
-                    href="https://zapier.com/help/create/basics/create-a-trigger" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="text-primary hover:underline"
-                  >
-                    Learn how to create a Zapier webhook →
-                  </a>
-                </p>
-              </div>
-            )}
           </div>
-        </div>
 
-        {/* Export Button */}
-        <div className="flex justify-end gap-3">
-          <Button variant="outline" onClick={onClose} disabled={isExporting}>
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleExport}
-            disabled={isExporting || (selectedFormat === 'google-doc' && !webhookUrl)}
-            className="flex items-center gap-2"
-          >
-            <Download className="w-4 h-4" />
-            {isExporting ? 'Exporting...' : `Export as ${selectedFormat.toUpperCase()}`}
-          </Button>
+          {/* Export Button */}
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={onClose} disabled={isExporting}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleExport}
+              disabled={isExporting}
+              className="flex items-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              {isExporting ? 'Exporting...' : `Export as ${selectedFormat.toUpperCase()}`}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
