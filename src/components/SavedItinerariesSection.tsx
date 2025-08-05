@@ -63,116 +63,240 @@ export function SavedItinerariesSection({ onLoadItinerary }: SavedItinerariesSec
 
   const exportItinerary = (itinerary: Itinerary) => {
     try {
-      const pdf = new jsPDF();
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
       const margin = 20;
-      const lineHeight = 7;
-      let currentY = margin;
+      let yPosition = margin;
 
-      // Title
-      pdf.setFontSize(20);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text(itinerary.title, margin, currentY);
-      currentY += lineHeight * 2;
+      // Helper function to check if we need a new page
+      const checkNewPage = (requiredSpace: number = 15) => {
+        if (yPosition + requiredSpace > pageHeight - margin) {
+          doc.addPage();
+          yPosition = margin;
+          return true;
+        }
+        return false;
+      };
 
-      // Date range
-      pdf.setFontSize(12);
-      pdf.setFont('helvetica', 'normal');
-      const dateRange = `${format(itinerary.startDate, 'MMMM do, yyyy')} - ${format(itinerary.endDate, 'MMMM do, yyyy')}`;
-      pdf.text(dateRange, margin, currentY);
-      currentY += lineHeight * 1.5;
+      // Helper function to add a line
+      const addLine = (startX: number, startY: number, endX: number, endY: number, color: string = '#E5E7EB') => {
+        doc.setDrawColor(color);
+        doc.setLineWidth(0.5);
+        doc.line(startX, startY, endX, endY);
+      };
 
-      // Locations
-      if (itinerary.locations.length > 0) {
-        pdf.setFont('helvetica', 'bold');
-        pdf.text('Locations:', margin, currentY);
-        currentY += lineHeight;
-        
-        pdf.setFont('helvetica', 'normal');
-        const locations = itinerary.locations.map(loc => loc.name).join(' → ');
-        const locationLines = pdf.splitTextToSize(locations, pageWidth - margin * 2);
-        pdf.text(locationLines, margin, currentY);
-        currentY += lineHeight * locationLines.length + lineHeight;
-      }
+      // Header section with better styling
+      doc.setFillColor(59, 130, 246); // Blue background
+      doc.rect(0, 0, pageWidth, 40, 'F');
+      
+      doc.setTextColor(255, 255, 255); // White text
+      doc.setFontSize(24);
+      doc.setFont('helvetica', 'bold');
+      doc.text(itinerary.title, margin, 25);
+      
+      // Reset text color
+      doc.setTextColor(0, 0, 0);
+      yPosition = 55;
 
-      // Events
+      // Trip overview section
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Trip Overview', margin, yPosition);
+      yPosition += 12;
+
+      // Trip details box
+      doc.setFillColor(249, 250, 251); // Light gray background
+      doc.rect(margin, yPosition - 5, pageWidth - 2 * margin, 45, 'F');
+      
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      
+      const startDate = format(itinerary.startDate, 'EEEE, MMMM do, yyyy');
+      const endDate = format(itinerary.endDate, 'EEEE, MMMM do, yyyy');
+      const duration = Math.ceil((itinerary.endDate.getTime() - itinerary.startDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      doc.setFont('helvetica', 'bold');
+      doc.text('Dates:', margin + 5, yPosition + 5);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${startDate} - ${endDate}`, margin + 35, yPosition + 5);
+      
+      doc.setFont('helvetica', 'bold');
+      doc.text('Duration:', margin + 5, yPosition + 15);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${duration} ${duration === 1 ? 'day' : 'days'}`, margin + 35, yPosition + 15);
+      
+      doc.setFont('helvetica', 'bold');
+      doc.text('Destinations:', margin + 5, yPosition + 25);
+      doc.setFont('helvetica', 'normal');
+      const destinationsText = itinerary.locations.map(loc => loc.name).join(' → ');
+      const splitDestinations = doc.splitTextToSize(destinationsText, pageWidth - margin * 2 - 40);
+      doc.text(splitDestinations, margin + 35, yPosition + 25);
+      
+      doc.setFont('helvetica', 'bold');
+      doc.text('Total Events:', margin + 5, yPosition + 35);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${itinerary.events.length} events planned`, margin + 35, yPosition + 35);
+      
+      yPosition += 55;
+
+      // Statistics section
+      checkNewPage(25);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Trip Statistics', margin, yPosition);
+      yPosition += 10;
+
+      const restaurantCount = itinerary.events.filter(e => e.type === 'restaurant').length;
+      const attractionCount = itinerary.events.filter(e => e.type === 'attraction').length;
+      const otherCount = itinerary.events.filter(e => e.type === 'other').length;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Restaurants: ${restaurantCount}`, margin + 5, yPosition);
+      doc.text(`Attractions: ${attractionCount}`, margin + 60, yPosition);
+      doc.text(`Other Events: ${otherCount}`, margin + 120, yPosition);
+      yPosition += 20;
+
+      // Detailed itinerary section
       if (itinerary.events.length > 0) {
-        pdf.setFont('helvetica', 'bold');
-        pdf.text('Events:', margin, currentY);
-        currentY += lineHeight * 1.5;
+        checkNewPage(25);
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Detailed Itinerary', margin, yPosition);
+        yPosition += 15;
 
-        itinerary.events.forEach((event, index) => {
-          // Check if we need a new page
-          if (currentY > pageHeight - margin * 3) {
-            pdf.addPage();
-            currentY = margin;
-          }
+        const eventsByDate = itinerary.events.reduce((acc, event) => {
+          if (!acc[event.date]) acc[event.date] = [];
+          acc[event.date].push(event);
+          return acc;
+        }, {} as Record<string, typeof itinerary.events>);
 
-          // Event header
-          pdf.setFont('helvetica', 'bold');
-          pdf.setFontSize(11);
-          const eventHeader = `${event.date} ${event.time} - ${event.title}`;
-          const headerLines = pdf.splitTextToSize(eventHeader, pageWidth - margin * 2);
-          pdf.text(headerLines, margin, currentY);
-          currentY += lineHeight * headerLines.length;
+        Object.entries(eventsByDate)
+          .sort(([a], [b]) => a.localeCompare(b))
+          .forEach(([date, events], dayIndex) => {
+            checkNewPage(30);
 
-          // Event type badge
-          pdf.setFont('helvetica', 'normal');
-          pdf.setFontSize(9);
-          pdf.text(`Type: ${event.type}`, margin + 10, currentY);
-          currentY += lineHeight;
+            // Date header with background
+            doc.setFillColor(239, 246, 255); // Light blue background
+            doc.rect(margin, yPosition - 8, pageWidth - 2 * margin, 20, 'F');
+            
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            const formattedDate = format(new Date(date), 'EEEE, MMMM do');
+            doc.text(`Day ${dayIndex + 1} - ${formattedDate}`, margin + 5, yPosition);
+            yPosition += 20;
 
-          // Event description
-          if (event.description) {
-            pdf.setFontSize(10);
-            const descLines = pdf.splitTextToSize(event.description, pageWidth - margin * 2 - 10);
-            pdf.text(descLines, margin + 10, currentY);
-            currentY += lineHeight * descLines.length;
-          }
+            // Events for this date
+            events
+              .sort((a, b) => a.time.localeCompare(b.time))
+              .forEach((event, eventIndex) => {
+                checkNewPage(25);
 
-          // Restaurant/attraction details
-          if (event.type === 'restaurant' && event.restaurantData) {
-            pdf.setFontSize(9);
-            if (event.restaurantData.address) {
-              pdf.text(`Address: ${event.restaurantData.address}`, margin + 10, currentY);
-              currentY += lineHeight;
-            }
-            if (event.restaurantData.phone) {
-              pdf.text(`Phone: ${event.restaurantData.phone}`, margin + 10, currentY);
-              currentY += lineHeight;
-            }
-          }
+                // Event time with icon based on type
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                const eventIcon = event.type === 'restaurant' ? '[Restaurant]' : 
+                                 event.type === 'attraction' ? '[Attraction]' : '[Event]';
+                doc.text(`${event.time}  ${eventIcon}  ${event.title}`, margin + 10, yPosition);
+                yPosition += 8;
 
-          if (event.attractionData) {
-            pdf.setFontSize(9);
-            if (event.attractionData.address) {
-              pdf.text(`Address: ${event.attractionData.address}`, margin + 10, currentY);
-              currentY += lineHeight;
-            }
-            if (event.attractionData.phone) {
-              pdf.text(`Phone: ${event.attractionData.phone}`, margin + 10, currentY);
-              currentY += lineHeight;
-            }
-          }
+                // Event description
+                if (event.description) {
+                  doc.setFontSize(10);
+                  doc.setFont('helvetica', 'normal');
+                  doc.setTextColor(75, 85, 99); // Gray text
+                  const splitDescription = doc.splitTextToSize(event.description, pageWidth - margin * 2 - 20);
+                  doc.text(splitDescription, margin + 15, yPosition);
+                  yPosition += splitDescription.length * 4 + 3;
+                }
 
-          currentY += lineHeight * 0.5; // Space between events
-        });
+                // Location details for restaurants
+                if (event.restaurantData) {
+                  doc.setFontSize(9);
+                  doc.setFont('helvetica', 'normal');
+                  doc.setTextColor(107, 114, 128); // Lighter gray
+                  
+                  // Address
+                  if (event.restaurantData.address) {
+                    doc.text(`Address: ${event.restaurantData.address}`, margin + 15, yPosition);
+                    yPosition += 4;
+                  }
+                  
+                  // Phone
+                  if (event.restaurantData.phone) {
+                    doc.text(`Phone: ${event.restaurantData.phone}`, margin + 15, yPosition);
+                    yPosition += 4;
+                  }
+                  
+                  // Website
+                  if (event.restaurantData.website) {
+                    const websiteText = event.restaurantData.website.length > 50 
+                      ? event.restaurantData.website.substring(0, 47) + '...'
+                      : event.restaurantData.website;
+                    doc.text(`Website: ${websiteText}`, margin + 15, yPosition);
+                    yPosition += 4;
+                  }
+                }
+
+                // Attraction details
+                if (event.attractionData) {
+                  doc.setFontSize(9);
+                  doc.setFont('helvetica', 'normal');
+                  doc.setTextColor(107, 114, 128);
+                  
+                  if (event.attractionData.address) {
+                    doc.text(`Address: ${event.attractionData.address}`, margin + 15, yPosition);
+                    yPosition += 4;
+                  }
+                  
+                  if (event.attractionData.category) {
+                    doc.text(`Category: ${event.attractionData.category}`, margin + 15, yPosition);
+                    yPosition += 4;
+                  }
+                  
+                  if (event.attractionData.rating) {
+                    doc.text(`Rating: ${event.attractionData.rating}/10`, margin + 15, yPosition);
+                    yPosition += 4;
+                  }
+                  
+                  if (event.attractionData.website) {
+                    const websiteText = event.attractionData.website.length > 50 
+                      ? event.attractionData.website.substring(0, 47) + '...'
+                      : event.attractionData.website;
+                    doc.text(`Website: ${websiteText}`, margin + 15, yPosition);
+                    yPosition += 4;
+                  }
+                }
+
+                // Reset text color and add spacing
+                doc.setTextColor(0, 0, 0);
+                yPosition += 8;
+
+                // Add a subtle line between events (except for the last one)
+                if (eventIndex < events.length - 1) {
+                  addLine(margin + 10, yPosition - 4, pageWidth - margin - 10, yPosition - 4, '#E5E7EB');
+                }
+              });
+            
+            yPosition += 10;
+          });
       }
 
       // Footer
-      const totalPages = pdf.getNumberOfPages();
-      for (let i = 1; i <= totalPages; i++) {
-        pdf.setPage(i);
-        pdf.setFontSize(8);
-        pdf.setFont('helvetica', 'normal');
-        pdf.text(`Page ${i} of ${totalPages}`, pageWidth - margin - 20, pageHeight - 10);
-        pdf.text(`Generated on ${format(new Date(), 'MMMM do, yyyy')}`, margin, pageHeight - 10);
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(156, 163, 175); // Gray text
+        doc.text(`Generated on ${format(new Date(), 'MMMM do, yyyy')}`, margin, pageHeight - 10);
+        doc.text(`Page ${i} of ${pageCount}`, pageWidth - margin - 20, pageHeight - 10);
       }
 
       // Save the PDF
       const fileName = `${itinerary.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
-      pdf.save(fileName);
+      doc.save(fileName);
       
       toast.success('Itinerary exported as PDF successfully');
     } catch (error) {
