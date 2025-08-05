@@ -190,7 +190,7 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
                                       <MapPin className="w-3 h-3 shrink-0" />
                                       <span className="break-words">{event.restaurantData.address}</span>
                                     </div>
-                                    <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                    <div className="flex items-center gap-2 mt-2">
                                       <Button
                                         variant="outline"
                                         size="sm"
