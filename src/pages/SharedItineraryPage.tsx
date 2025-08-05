@@ -175,31 +175,29 @@ export function SharedItineraryPage() {
                       {(events as any[])
                         .sort((a, b) => a.time.localeCompare(b.time))
                         .map((event) => (
-                          <div key={event.id} className="flex gap-4 p-4 border rounded-lg bg-background">
-                            <div className="flex-shrink-0">
-                              <Badge variant="outline" className="text-xs">
-                                {event.time}
-                              </Badge>
-                            </div>
-                            
-                            <div className="flex-1 space-y-3">
-                              <h4 className="font-medium">{event.title}</h4>
-                              
-                              {/* Restaurant Data */}
-                              {event.restaurantData && (
-                                <Card 
-                                  className="group cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border-l-4 border-l-primary/30 hover:border-l-primary bg-gradient-to-r from-background to-muted/20"
-                                  onClick={() => handleRestaurantClick(event.restaurantData)}
-                                >
-                                  <CardContent className="p-4 space-y-3">
-                                    {/* Header with restaurant name and action */}
+                          <div key={event.id} className="space-y-3">
+                            {/* Event with Restaurant Data */}
+                            {event.restaurantData ? (
+                              <div 
+                                className="group cursor-pointer hover:bg-muted/30 p-4 rounded-xl border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-md bg-gradient-to-r from-background to-muted/10"
+                                onClick={() => handleRestaurantClick(event.restaurantData)}
+                              >
+                                <div className="flex items-start gap-4">
+                                  {/* Time badge */}
+                                  <Badge variant="outline" className="flex-shrink-0 px-3 py-1 font-medium">
+                                    {event.time}
+                                  </Badge>
+                                  
+                                  {/* Restaurant content */}
+                                  <div className="flex-1 min-w-0 space-y-3">
+                                    {/* Restaurant header */}
                                     <div className="flex items-start justify-between gap-3">
                                       <div className="flex-1 min-w-0">
-                                        <h5 className="font-semibold text-foreground group-hover:text-primary transition-colors duration-200 truncate">
+                                        <h4 className="font-semibold text-lg text-foreground group-hover:text-primary transition-colors truncate">
                                           {event.restaurantData.name}
-                                        </h5>
-                                        <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-                                          <MapPin className="w-3 h-3 flex-shrink-0" />
+                                        </h4>
+                                        <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground">
+                                          <MapPin className="w-4 h-4 flex-shrink-0" />
                                           <span className="truncate">{event.restaurantData.address}</span>
                                         </div>
                                       </div>
@@ -207,7 +205,7 @@ export function SharedItineraryPage() {
                                       <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="h-8 w-8 p-0 opacity-60 group-hover:opacity-100 group-hover:bg-primary/10 group-hover:text-primary transition-all duration-200"
+                                        className="h-8 w-8 p-0 opacity-60 group-hover:opacity-100 transition-opacity"
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           handleRestaurantClick(event.restaurantData);
@@ -217,44 +215,36 @@ export function SharedItineraryPage() {
                                       </Button>
                                     </div>
 
-                                    {/* Restaurant details */}
-                                    <div className="flex flex-wrap gap-2">
-                                      {event.restaurantData.cuisine && (
-                                        <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20">
-                                          <Utensils className="w-3 h-3 mr-1" />
-                                          {event.restaurantData.cuisine}
-                                        </Badge>
-                                      )}
-                                      {event.restaurantData.rating && (
-                                        <Badge variant="outline" className="text-xs border-yellow-200 bg-yellow-50 text-yellow-700">
-                                          <Star className="w-3 h-3 mr-1 fill-yellow-400 text-yellow-400" />
-                                          {event.restaurantData.rating}/10
-                                        </Badge>
-                                      )}
-                                      {event.restaurantData.priceRange && (
-                                        <Badge variant="outline" className="text-xs border-green-200 bg-green-50 text-green-700">
-                                          {'$'.repeat(event.restaurantData.priceRange)}
-                                        </Badge>
-                                      )}
-                                      {event.restaurantData.michelinStars && (
-                                        <Badge variant="outline" className="text-xs border-purple-200 bg-purple-50 text-purple-700">
-                                          {'⭐'.repeat(event.restaurantData.michelinStars)} Michelin
-                                        </Badge>
-                                      )}
-                                    </div>
-
-                                    {/* Notes */}
-                                    {event.restaurantData.notes && (
-                                      <div className="bg-muted/50 rounded-lg p-3 border border-border/50">
-                                        <p className="text-xs text-muted-foreground italic leading-relaxed">
-                                          "{event.restaurantData.notes}"
-                                        </p>
+                                    {/* Restaurant details and actions */}
+                                    <div className="flex items-center justify-between gap-4">
+                                      {/* Badges */}
+                                      <div className="flex flex-wrap gap-2">
+                                        {event.restaurantData.cuisine && (
+                                          <Badge variant="secondary" className="text-xs">
+                                            <Utensils className="w-3 h-3 mr-1" />
+                                            {event.restaurantData.cuisine}
+                                          </Badge>
+                                        )}
+                                        {event.restaurantData.rating && (
+                                          <Badge variant="outline" className="text-xs border-yellow-200 bg-yellow-50 text-yellow-700">
+                                            <Star className="w-3 h-3 mr-1 fill-yellow-400 text-yellow-400" />
+                                            {event.restaurantData.rating}/10
+                                          </Badge>
+                                        )}
+                                        {event.restaurantData.priceRange && (
+                                          <Badge variant="outline" className="text-xs">
+                                            {'$'.repeat(event.restaurantData.priceRange)}
+                                          </Badge>
+                                        )}
+                                        {event.restaurantData.michelinStars && (
+                                          <Badge variant="outline" className="text-xs border-purple-200 bg-purple-50 text-purple-700">
+                                            {'⭐'.repeat(event.restaurantData.michelinStars)}
+                                          </Badge>
+                                        )}
                                       </div>
-                                    )}
 
-                                    {/* Action buttons */}
-                                    {(event.restaurantData.website || event.restaurantData.phone_number) && (
-                                      <div className="flex gap-2 pt-2 border-t border-border/50">
+                                      {/* Action buttons */}
+                                      <div className="flex gap-2 flex-shrink-0">
                                         {event.restaurantData.website && (
                                           <Button
                                             variant="outline"
@@ -263,7 +253,7 @@ export function SharedItineraryPage() {
                                               e.stopPropagation();
                                               window.open(event.restaurantData.website, '_blank');
                                             }}
-                                            className="h-7 px-3 text-xs hover:bg-primary hover:text-primary-foreground transition-colors"
+                                            className="h-8 px-3 text-xs"
                                           >
                                             <ExternalLink className="w-3 h-3 mr-1" />
                                             Website
@@ -277,46 +267,65 @@ export function SharedItineraryPage() {
                                               e.stopPropagation();
                                               window.open(`tel:${event.restaurantData.phone_number}`, '_blank');
                                             }}
-                                            className="h-7 px-3 text-xs hover:bg-primary hover:text-primary-foreground transition-colors"
+                                            className="h-8 px-3 text-xs"
                                           >
                                             <Phone className="w-3 h-3 mr-1" />
                                             Call
                                           </Button>
                                         )}
                                       </div>
-                                    )}
-                                  </CardContent>
-                                </Card>
-                              )}
+                                    </div>
 
-                              {/* Attraction Data */}
-                              {event.attractionData && (
-                                <div className="space-y-2">
-                                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                    <MapPin className="w-4 h-4" />
-                                    <span>{event.attractionData.address}</span>
-                                  </div>
-                                  {event.attractionData.category && (
-                                    <Badge variant="secondary" className="text-xs">
-                                      {event.attractionData.category}
-                                    </Badge>
-                                  )}
-                                  <div className="flex gap-2">
-                                    {event.attractionData.website && (
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => window.open(event.attractionData.website, '_blank')}
-                                        className="h-8 px-3 text-xs"
-                                      >
-                                        <ExternalLink className="w-3 h-3 mr-1" />
-                                        Website
-                                      </Button>
+                                    {/* Notes */}
+                                    {event.restaurantData.notes && (
+                                      <div className="bg-muted/50 rounded-lg p-3 border-l-2 border-l-primary/30">
+                                        <p className="text-sm text-muted-foreground italic">
+                                          "{event.restaurantData.notes}"
+                                        </p>
+                                      </div>
                                     )}
                                   </div>
                                 </div>
-                              )}
-                            </div>
+                              </div>
+                            ) : (
+                              /* Regular Event without Restaurant Data */
+                              <div className="flex items-center gap-4 p-4 rounded-xl border border-border/50 bg-background">
+                                <Badge variant="outline" className="flex-shrink-0 px-3 py-1 font-medium">
+                                  {event.time}
+                                </Badge>
+                                <div className="flex-1">
+                                  <h4 className="font-medium">{event.title}</h4>
+                                  
+                                  {/* Attraction Data */}
+                                  {event.attractionData && (
+                                    <div className="mt-2 space-y-2">
+                                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <MapPin className="w-4 h-4" />
+                                        <span>{event.attractionData.address}</span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        {event.attractionData.category && (
+                                          <Badge variant="secondary" className="text-xs">
+                                            {event.attractionData.category}
+                                          </Badge>
+                                        )}
+                                        {event.attractionData.website && (
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => window.open(event.attractionData.website, '_blank')}
+                                            className="h-7 px-3 text-xs"
+                                          >
+                                            <ExternalLink className="w-3 h-3 mr-1" />
+                                            Website
+                                          </Button>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         ))}
                     </CardContent>
