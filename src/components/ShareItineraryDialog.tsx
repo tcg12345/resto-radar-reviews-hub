@@ -256,20 +256,23 @@ export function ShareItineraryDialog({ isOpen, onClose, itinerary }: ShareItiner
 
     setIsSharing(true);
     try {
-      const itineraryData = JSON.stringify({
+      const itineraryData = {
         id: itinerary.id,
         title: itinerary.title,
         startDate: itinerary.startDate,
         endDate: itinerary.endDate,
         events: itinerary.events,
-        message: personalMessage
-      });
+        message: personalMessage,
+        sender_id: user.id,
+        sender_name: user.user_metadata?.name || user.email?.split('@')[0] || 'Someone',
+        itinerary_title: itinerary.title
+      };
 
       // Send message to each selected chat
       const messages = selectedChats.map(chatId => ({
         room_id: chatId,
         sender_id: user.id,
-        content: itineraryData,
+        content: JSON.stringify(itineraryData),
         message_type: 'itinerary'
       }));
 
