@@ -165,122 +165,117 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
                       <div key={event.id}>
                         <div className={`p-4 rounded-lg border transition-all duration-200 hover:shadow-sm ${getEventColor(event.type)}`}>
                           <div className="flex items-start justify-between gap-3">
-                            <div className="flex items-start gap-3 flex-1 min-w-0">
-                              <div className="mt-0.5 shrink-0">
-                                {getEventIcon(event.type)}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="font-medium text-sm">{event.time}</span>
+                                <Badge variant="secondary" className="text-xs">
+                                  {event.type}
+                                </Badge>
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="font-medium text-sm">{event.time}</span>
-                                  <Badge variant="secondary" className="text-xs">
-                                    {event.type}
-                                  </Badge>
-                                </div>
-                                <h4 className="font-semibold text-base mb-1 break-words text-left">
-                                  {event.title}
-                                </h4>
-                                {event.description && (
-                                  <p className="text-sm opacity-90 mb-2 break-words text-left">
-                                    {event.description}
-                                  </p>
-                                )}
-                                {event.restaurantData && (
-                                  <div className="space-y-2">
-                                    <div className="flex items-start gap-1 text-sm opacity-90">
-                                      <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
-                                      <span className="break-words text-left">{event.restaurantData.address}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 mt-2">
+                              <h4 className="font-semibold text-base mb-1 break-words">
+                                {event.title}
+                              </h4>
+                              {event.description && (
+                                <p className="text-sm opacity-90 mb-2 break-words">
+                                  {event.description}
+                                </p>
+                              )}
+                              {event.restaurantData && (
+                                <div className="space-y-2">
+                                  <div className="flex items-start gap-1 text-sm opacity-90">
+                                    <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
+                                    <span className="break-words">{event.restaurantData.address}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        const query = encodeURIComponent(event.restaurantData?.address || event.title);
+                                        window.open(`https://www.google.com/maps/dir/?api=1&destination=${query}`, '_blank');
+                                      }}
+                                      className="flex items-center gap-1 h-8 px-3 text-xs"
+                                    >
+                                      <Compass className="w-3 h-3" />
+                                      Directions
+                                    </Button>
+                                    {event.restaurantData.website && (
                                       <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => {
-                                          const query = encodeURIComponent(event.restaurantData?.address || event.title);
-                                          window.open(`https://www.google.com/maps/dir/?api=1&destination=${query}`, '_blank');
-                                        }}
+                                        onClick={() => window.open(event.restaurantData.website, '_blank')}
                                         className="flex items-center gap-1 h-8 px-3 text-xs"
                                       >
-                                        <Compass className="w-3 h-3" />
-                                        Directions
+                                        <ExternalLink className="w-3 h-3" />
+                                        Website
                                       </Button>
-                                      {event.restaurantData.website && (
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          onClick={() => window.open(event.restaurantData.website, '_blank')}
-                                          className="flex items-center gap-1 h-8 px-3 text-xs"
-                                        >
-                                          <ExternalLink className="w-3 h-3" />
-                                          Website
-                                        </Button>
-                                      )}
-                                      {event.restaurantData.phone && (
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          onClick={() => window.open(`tel:${event.restaurantData.phone}`, '_self')}
-                                          className="flex items-center gap-1 h-8 px-3 text-xs"
-                                        >
-                                          <Phone className="w-3 h-3" />
-                                          Call
-                                        </Button>
-                                      )}
-                                    </div>
+                                    )}
+                                    {event.restaurantData.phone && (
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => window.open(`tel:${event.restaurantData.phone}`, '_self')}
+                                        className="flex items-center gap-1 h-8 px-3 text-xs"
+                                      >
+                                        <Phone className="w-3 h-3" />
+                                        Call
+                                      </Button>
+                                    )}
                                   </div>
-                                )}
-                               {event.attractionData && (
-                                 <div className="space-y-2">
-                                   <div className="flex items-center gap-1 text-sm opacity-90">
-                                     <MapPin className="w-3 h-3 shrink-0" />
-                                     <span className="break-words">{event.attractionData.address}</span>
-                                   </div>
-                                   {event.attractionData.category && (
-                                     <Badge variant="outline" className="text-xs">
-                                       {event.attractionData.category}
-                                     </Badge>
-                                   )}
-                                   <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                </div>
+                              )}
+                             {event.attractionData && (
+                               <div className="space-y-2">
+                                 <div className="flex items-center gap-1 text-sm opacity-90">
+                                   <MapPin className="w-3 h-3 shrink-0" />
+                                   <span className="break-words">{event.attractionData.address}</span>
+                                 </div>
+                                 {event.attractionData.category && (
+                                   <Badge variant="outline" className="text-xs">
+                                     {event.attractionData.category}
+                                   </Badge>
+                                 )}
+                                 <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                   <Button
+                                     variant="outline"
+                                     size="sm"
+                                     onClick={() => {
+                                       const { latitude, longitude, address } = event.attractionData;
+                                       const query = latitude && longitude 
+                                         ? `${latitude},${longitude}` 
+                                         : encodeURIComponent(address || event.attractionData.name);
+                                       window.open(`https://www.google.com/maps/dir/?api=1&destination=${query}`, '_blank');
+                                     }}
+                                     className="flex items-center gap-1 h-8 px-3 text-xs"
+                                   >
+                                     <Compass className="w-3 h-3" />
+                                     Directions
+                                   </Button>
+                                   {event.attractionData.website && (
                                      <Button
                                        variant="outline"
                                        size="sm"
-                                       onClick={() => {
-                                         const { latitude, longitude, address } = event.attractionData;
-                                         const query = latitude && longitude 
-                                           ? `${latitude},${longitude}` 
-                                           : encodeURIComponent(address || event.attractionData.name);
-                                         window.open(`https://www.google.com/maps/dir/?api=1&destination=${query}`, '_blank');
-                                       }}
+                                       onClick={() => window.open(event.attractionData.website, '_blank')}
                                        className="flex items-center gap-1 h-8 px-3 text-xs"
                                      >
-                                       <Compass className="w-3 h-3" />
-                                       Directions
+                                       <ExternalLink className="w-3 h-3" />
+                                       Website
                                      </Button>
-                                     {event.attractionData.website && (
-                                       <Button
-                                         variant="outline"
-                                         size="sm"
-                                         onClick={() => window.open(event.attractionData.website, '_blank')}
-                                         className="flex items-center gap-1 h-8 px-3 text-xs"
-                                       >
-                                         <ExternalLink className="w-3 h-3" />
-                                         Website
-                                       </Button>
-                                     )}
-                                     {event.attractionData.phone && (
-                                       <Button
-                                         variant="outline"
-                                         size="sm"
-                                         onClick={() => window.open(`tel:${event.attractionData.phone}`, '_self')}
-                                         className="flex items-center gap-1 h-8 px-3 text-xs"
-                                       >
-                                         <Phone className="w-3 h-3" />
-                                         Call
-                                       </Button>
-                                     )}
-                                   </div>
+                                   )}
+                                   {event.attractionData.phone && (
+                                     <Button
+                                       variant="outline"
+                                       size="sm"
+                                       onClick={() => window.open(`tel:${event.attractionData.phone}`, '_self')}
+                                       className="flex items-center gap-1 h-8 px-3 text-xs"
+                                     >
+                                       <Phone className="w-3 h-3" />
+                                       Call
+                                     </Button>
+                                   )}
                                  </div>
-                               )}
-                              </div>
+                               </div>
+                             )}
                             </div>
                             
                             <DropdownMenu>
