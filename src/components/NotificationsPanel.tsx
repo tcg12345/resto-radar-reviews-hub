@@ -461,7 +461,9 @@ export function NotificationsPanel() {
                         <span className="text-xs md:text-sm font-semibold text-foreground truncate">
                           {notification.data?.sender_name || 'Someone'}
                         </span>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">shared</span>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">
+                          {notification.type === 'itinerary_share' ? 'shared a trip' : 'shared'}
+                        </span>
                       </div>
                       
                       {/* Restaurant card - More compact on mobile */}
