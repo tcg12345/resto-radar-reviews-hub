@@ -614,6 +614,12 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
         wasCreatedWithLengthOfStay,
       };
       
+      console.log('Saving itinerary with wasCreatedWithLengthOfStay:', { 
+        title, 
+        wasCreatedWithLengthOfStay, 
+        id: itineraryToSave.id 
+      });
+      
       const existingIndex = savedItineraries.findIndex((it: any) => it.id === itineraryToSave.id);
       if (existingIndex >= 0) {
         savedItineraries[existingIndex] = itineraryToSave;
