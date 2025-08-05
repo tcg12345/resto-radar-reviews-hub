@@ -1,10 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Calendar, MapPin, Clock, Star, Utensils, Camera, ExternalLink, Phone } from 'lucide-react';
+import { Calendar, MapPin, Clock, Star, Utensils, Camera, ExternalLink, Phone, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface SharedItinerary {
@@ -30,6 +31,8 @@ interface SharedItineraryDetailsModalProps {
 }
 
 export function SharedItineraryDetailsModal({ itinerary, isOpen, onClose }: SharedItineraryDetailsModalProps) {
+  const navigate = useNavigate();
+
   const groupEventsByDate = (events: any[]) => {
     return events.reduce((groups, event) => {
       const date = event.date;
@@ -39,6 +42,15 @@ export function SharedItineraryDetailsModal({ itinerary, isOpen, onClose }: Shar
       groups[date].push(event);
       return groups;
     }, {} as Record<string, any[]>);
+  };
+
+  const handleRestaurantClick = (restaurantData: any) => {
+    // Close the modal first
+    onClose();
+    
+    // Navigate to restaurant search page with the restaurant name
+    const searchQuery = encodeURIComponent(restaurantData.name);
+    navigate(`/search?q=${searchQuery}`);
   };
 
   const eventsByDate = groupEventsByDate(itinerary.events);
@@ -114,10 +126,27 @@ export function SharedItineraryDetailsModal({ itinerary, isOpen, onClose }: Shar
                                 
                                 {/* Restaurant Data */}
                                 {event.restaurantData && (
-                                  <div className="space-y-2">
-                                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                      <MapPin className="w-3 h-3" />
-                                      <span>{event.restaurantData.address}</span>
+                                  <div 
+                                    className="space-y-2 cursor-pointer hover:bg-muted/30 p-2 rounded-md transition-colors"
+                                    onClick={() => handleRestaurantClick(event.restaurantData)}
+                                  >
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                        <MapPin className="w-3 h-3" />
+                                        <span>{event.restaurantData.address}</span>
+                                      </div>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 px-2 text-xs opacity-60"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleRestaurantClick(event.restaurantData);
+                                        }}
+                                      >
+                                        <Eye className="w-3 h-3 mr-1" />
+                                        View
+                                      </Button>
                                     </div>
                                     <div className="flex items-center gap-2 flex-wrap">
                                       <Badge variant="secondary" className="text-xs">
@@ -151,7 +180,10 @@ export function SharedItineraryDetailsModal({ itinerary, isOpen, onClose }: Shar
                                         <Button
                                           variant="outline"
                                           size="sm"
-                                          onClick={() => window.open(event.restaurantData.website, '_blank')}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            window.open(event.restaurantData.website, '_blank');
+                                          }}
                                           className="h-7 px-2 text-xs"
                                         >
                                           <ExternalLink className="w-3 h-3 mr-1" />
@@ -162,7 +194,10 @@ export function SharedItineraryDetailsModal({ itinerary, isOpen, onClose }: Shar
                                         <Button
                                           variant="outline"
                                           size="sm"
-                                          onClick={() => window.open(`tel:${event.restaurantData.phone_number}`, '_blank')}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            window.open(`tel:${event.restaurantData.phone_number}`, '_blank');
+                                          }}
                                           className="h-7 px-2 text-xs"
                                         >
                                           <Phone className="w-3 h-3 mr-1" />
