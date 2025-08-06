@@ -325,17 +325,24 @@ export function ItineraryViewPage() {
                                         variant="outline"
                                         size="sm"
                                         onClick={() => {
-                                          if (isMobile) {
-                                            navigate('/mobile/search/restaurant', { 
-                                              state: { restaurant: event.restaurantData } 
-                                            });
-                                          } else {
-                                            // For desktop, we'll use the search restaurant details or create a restaurant record
-                                            // Since we don't have a restaurant ID, we'll pass the data via state
-                                            navigate('/mobile/search/restaurant', { 
-                                              state: { restaurant: event.restaurantData } 
-                                            });
-                                          }
+                                          // Convert restaurant data to Google Places format
+                                          const googlePlaceData = {
+                                            place_id: event.restaurantData.placeId || `temp_${event.id}`,
+                                            name: event.restaurantData.name,
+                                            formatted_address: event.restaurantData.address,
+                                            formatted_phone_number: event.restaurantData.phone,
+                                            website: event.restaurantData.website,
+                                            geometry: {
+                                              location: {
+                                                lat: 0,
+                                                lng: 0
+                                              }
+                                            },
+                                            types: ['restaurant']
+                                          };
+                                          
+                                          const encodedData = encodeURIComponent(JSON.stringify(googlePlaceData));
+                                          navigate(`/mobile/search/restaurant?data=${encodedData}`);
                                         }}
                                         className="text-xs"
                                       >
