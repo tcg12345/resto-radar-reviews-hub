@@ -42,7 +42,11 @@ export function TripCalendar({
     start: startDate,
     end: endDate
   });
-  const [collapsedDays, setCollapsedDays] = useState<Set<string>>(new Set());
+  const [collapsedDays, setCollapsedDays] = useState<Set<string>>(() => {
+    // Initialize with all days collapsed by default
+    const allDays = eachDayOfInterval({ start: startDate, end: endDate });
+    return new Set(allDays.map(day => format(day, 'yyyy-MM-dd')));
+  });
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const toggleDayCollapse = (dateStr: string) => {
