@@ -39,24 +39,13 @@ export function useCalendarAccess() {
     setIsLoading(true);
     
     try {
-      console.log('Calendar access requested');
-      console.log('Capacitor.isNativePlatform():', Capacitor.isNativePlatform());
-      console.log('Platform info:', Capacitor.getPlatform());
-      
-      if (!Capacitor.isNativePlatform()) {
-        console.log('Web platform detected, using Google Calendar API');
-        // For web, use Google Calendar API
-        return await requestGoogleCalendarAccess(startDate);
-      }
-
-      // For mobile, use native calendar access
-      console.log('Mobile platform detected, attempting native calendar access...');
+      // Always try native calendar first, regardless of platform detection
+      console.log('Attempting native calendar access...');
       
       try {
         const { CapacitorCalendar } = await import('@ebarooni/capacitor-calendar');
-        console.log('Capacitor Calendar plugin loaded successfully');
+        console.log('Capacitor Calendar plugin imported successfully');
         
-        console.log('Requesting calendar permissions...');
         const permission = await CapacitorCalendar.requestFullCalendarAccess();
         console.log('Permission result:', permission);
         
@@ -68,18 +57,13 @@ export function useCalendarAccess() {
         const searchEndDate = new Date(searchStartDate);
         searchEndDate.setDate(searchEndDate.getDate() + 30);
         
-        console.log('Fetching calendar events from', searchStartDate, 'to', searchEndDate);
-        
+        console.log('Fetching calendar events...');
         const result = await CapacitorCalendar.listEventsInRange({
           from: searchStartDate.getTime(),
           to: searchEndDate.getTime()
         });
         
         console.log('Calendar events result:', result);
-        
-        if (!result.result || !Array.isArray(result.result)) {
-          throw new Error('Invalid calendar events result structure');
-        }
         
         const formattedEvents: CalendarEvent[] = result.result.map(event => ({
           id: event.id,
@@ -91,19 +75,20 @@ export function useCalendarAccess() {
           allDay: event.isAllDay
         }));
         
-        console.log(`Successfully formatted ${formattedEvents.length} calendar events`);
         setEvents(formattedEvents);
         toast.success(`Found ${formattedEvents.length} calendar events from device!`);
         return formattedEvents;
         
-      } catch (pluginError) {
-        console.error('Native calendar error details:', pluginError);
-        console.error('Error type:', typeof pluginError);
-        console.error('Error message:', pluginError.message);
-        console.error('Error stack:', pluginError.stack);
+      } catch (nativeError) {
+        console.log('Native calendar failed, trying web fallback:', nativeError);
         
-        // Re-throw the error instead of falling back to demo events
-        throw new Error(`Native calendar access failed: ${pluginError.message}`);
+        // Only fallback to web if we're actually on web
+        if (!Capacitor.isNativePlatform()) {
+          return await requestGoogleCalendarAccess(startDate);
+        } else {
+          // On native platform, show the error instead of demo events
+          throw new Error(`Native calendar access failed: ${nativeError.message}. Make sure you've run 'npx cap sync' to sync the calendar plugin.`);
+        }
       }
     } catch (error) {
       console.error('Calendar access error:', error);
