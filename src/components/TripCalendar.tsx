@@ -111,7 +111,7 @@ export function TripCalendar({
         return 'bg-gray-100 border-gray-200 text-gray-800 dark:bg-gray-900/20 border-gray-800 dark:text-gray-300';
     }
   };
-  return <div className="w-full space-y-4 flex flex-col items-center">
+  return <div className="w-full space-y-4 flex flex-col items-center lg:items-stretch lg:px-8 xl:px-16">
       {/* Main Add Event Button */}
       <Card className="bg-primary/5 border-0">
         <CardContent className="pt-6">
@@ -138,7 +138,7 @@ export function TripCalendar({
       const isCollapsed = collapsedDays.has(dateStr);
       return <div key={day.toISOString()} className="lg:contents">
             <Collapsible open={!isCollapsed} onOpenChange={() => toggleDayCollapse(dateStr)}>
-              <Card className="w-[calc(100vw-1rem)] max-w-full lg:w-[90%] lg:max-w-4xl lg:mx-auto lg:mb-6 transition-all duration-200 hover:shadow-md rounded-xl shadow-sm bg-card border lg:rounded-lg lg:border-border/50 lg:shadow-lg lg:hover:shadow-xl lg:hover:border-primary/20 lg:bg-gradient-to-br lg:from-card lg:to-muted/30">
+              <Card className="w-[calc(100vw-1rem)] max-w-full lg:w-full lg:max-w-none lg:mb-6 transition-all duration-200 hover:shadow-md rounded-xl shadow-sm bg-card border lg:rounded-lg lg:border-border/50 lg:shadow-lg lg:hover:shadow-xl lg:hover:border-primary/20 lg:bg-gradient-to-br lg:from-card lg:to-muted/30">
                 <CollapsibleTrigger asChild>
                   <CardHeader className="p-4 cursor-pointer hover:bg-muted/30 transition-all duration-200 rounded-t-xl lg:rounded-t-lg active:scale-[0.98]">
                     {isCollapsed ? <div className="flex items-center justify-between w-full min-h-[3rem]">
