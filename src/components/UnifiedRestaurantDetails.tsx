@@ -375,11 +375,36 @@ export function UnifiedRestaurantDetails({
         </div>}
 
       <div className={`${isMobile ? "pb-safe" : ""} ${showBackButton ? "pt-[35px] lg:pt-0" : ""}`}>
-        {/* Photos */}
-        {photos.length > 0 && <div className={`${isMobile ? 'aspect-video' : 'aspect-video md:h-64'} bg-muted relative overflow-hidden cursor-pointer group`} onClick={() => navigate(`/restaurant/${restaurantData.place_id}/community-photos?name=${encodeURIComponent(restaurantData.name)}`)}>
-            <img src={photos[0]} alt={restaurantData.name} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-            <div className="absolute top-3 right-3 bg-black/70 text-white px-2 py-1 rounded-md text-sm">View more photos</div>
-          </div>}
+        {/* Photos - Show either restaurant photos or community photos */}
+        {(photos.length > 0 || (communityStats?.recentPhotos && communityStats.recentPhotos.length > 0)) && (
+          <div 
+            className={`${isMobile ? 'aspect-video' : 'aspect-video md:h-64'} bg-muted relative overflow-hidden cursor-pointer group`} 
+            onClick={() => navigate(`/restaurant/${restaurantData.place_id || restaurantData.id}/community-photos?name=${encodeURIComponent(restaurantData.name)}`)}
+          >
+            <img 
+              src={
+                photos.length > 0 
+                  ? photos[0] 
+                  : communityStats?.recentPhotos?.[0]?.photos?.[0]
+              } 
+              alt={restaurantData.name} 
+              className="w-full h-full object-cover transition-transform group-hover:scale-105" 
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+              }}
+            />
+            <div className="absolute top-3 right-3 bg-black/70 text-white px-2 py-1 rounded-md text-sm">
+              View more photos
+            </div>
+            {communityStats?.recentPhotos && communityStats.recentPhotos.length > 0 && photos.length === 0 && (
+              <div className="absolute bottom-3 left-3 bg-black/70 text-white px-2 py-1 rounded-md text-sm flex items-center gap-2">
+                <User className="h-3 w-3" />
+                Shared by {communityStats.recentPhotos[0].username}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Main Content */}
         <div className="p-4 space-y-6">
