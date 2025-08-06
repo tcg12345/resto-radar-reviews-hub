@@ -228,14 +228,9 @@ export function ItineraryViewPage() {
                           {itinerary.wasCreatedWithLengthOfStay ? (
                             `Day ${dayIndex + 1}`
                           ) : (
-                            `Day ${dayIndex + 1}`
+                            `Day ${dayIndex + 1} - ${format(new Date(date), 'EEEE, MMMM do')}`
                           )}
                         </h4>
-                        {!itinerary.wasCreatedWithLengthOfStay && (
-                          <p className="text-sm text-muted-foreground">
-                            {format(new Date(date), 'EEEE, MMMM do')}
-                          </p>
-                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
