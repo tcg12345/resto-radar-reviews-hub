@@ -1027,7 +1027,6 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
       <Tabs defaultValue="builder" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="builder" className="flex items-center gap-2">
-            <Calendar className="w-4 h-4" />
             Itinerary Builder
           </TabsTrigger>
           <TabsTrigger value="saved" className="flex items-center gap-2">
