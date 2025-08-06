@@ -194,52 +194,96 @@ export function TripCalendar({
                     {dayEvents.length > 0 ? <div className="space-y-3">
                         {dayEvents.map((event, eventIndex) => <div key={event.id}>
                             <div className={`p-3 lg:p-4 rounded-lg border transition-all duration-200 hover:shadow-sm ${getEventColor(event.type)} w-full`}>
-                              <div className="flex items-start justify-between gap-2 w-full">
-                                <div className="flex-1 min-w-0 overflow-hidden">
-                                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                    <span className="font-medium text-sm shrink-0">{event.time}</span>
-                                    <Badge variant="secondary" className="text-xs shrink-0">
-                                      {event.type}
-                                    </Badge>
+                              <div className="space-y-3">
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                      <span className="font-medium text-sm shrink-0">{event.time}</span>
+                                      <Badge variant="secondary" className="text-xs shrink-0">
+                                        {event.type}
+                                      </Badge>
+                                    </div>
+                                    <h4 className="font-semibold text-sm lg:text-base mb-2">
+                                      {event.title}
+                                    </h4>
+                                    {event.description && <p className="text-xs lg:text-sm opacity-90 mb-2">
+                                        {event.description}
+                                      </p>}
                                   </div>
-                                  <h4 className="font-semibold text-sm lg:text-base mb-1 truncate">
-                                    {event.title}
-                                  </h4>
-                                  {event.description && <p className="text-xs lg:text-sm opacity-90 mb-2 line-clamp-2">
-                                      {event.description}
-                                    </p>}
-                                  {event.restaurantData && <div className="space-y-2">
-                                      <div className="flex items-start gap-1 text-sm opacity-90">
-                                        <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
-                                        <span className="break-words">{event.restaurantData.address}</span>
-                                      </div>
-                                      <div className="flex items-center gap-2 mt-2">
-                                        <Button variant="outline" size="sm" onClick={() => {
+                                  
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 shrink-0">
+                                        <MoreVertical className="w-4 h-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="bg-background border shadow-md z-50">
+                                      {event.type === 'restaurant' && event.restaurantData && <DropdownMenuItem onClick={() => {
+                              if (isMobile) {
+                                // For mobile, navigate to mobile search restaurant details page
+                                const googlePlaceData = {
+                                  place_id: event.restaurantData?.placeId || `generated_${Date.now()}`,
+                                  name: event.restaurantData?.name || event.title,
+                                  formatted_address: event.restaurantData?.address,
+                                  formatted_phone_number: event.restaurantData?.phone,
+                                  website: event.restaurantData?.website
+                                };
+                                const placeData = encodeURIComponent(JSON.stringify(googlePlaceData));
+                                navigate(`/mobile/search/restaurant?data=${placeData}`);
+                              } else {
+                                // For desktop, navigate to unified search page with restaurant data
+                                const searchQuery = encodeURIComponent(event.restaurantData?.name || event.title);
+                                navigate(`/search?q=${searchQuery}`);
+                              }
+                            }} className="flex items-center gap-2">
+                                        <ExternalLink className="w-4 h-4" />
+                                        View Details
+                                      </DropdownMenuItem>}
+                                      <DropdownMenuItem onClick={() => onEditEvent(event)} className="flex items-center gap-2">
+                                        <Edit className="w-4 h-4" />
+                                        Edit Event
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => onDeleteEvent(event.id)} className="flex items-center gap-2 text-destructive">
+                                        <Trash2 className="w-4 h-4" />
+                                        Delete Event
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
+
+                                {event.restaurantData && <div className="space-y-3">
+                                    <div className="flex items-start gap-2 text-sm opacity-90">
+                                      <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
+                                      <span className="break-words text-xs lg:text-sm">{event.restaurantData.address}</span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                      <Button variant="outline" size="sm" onClick={() => {
                                 const query = encodeURIComponent(event.restaurantData?.address || event.title);
                                 window.open(`https://www.google.com/maps/dir/?api=1&destination=${query}`, '_blank');
                               }} className="flex items-center gap-1 h-8 px-3 text-xs">
-                                          <Compass className="w-3 h-3" />
-                                          Directions
-                                        </Button>
-                                        {event.restaurantData.website && <Button variant="outline" size="sm" onClick={() => window.open(event.restaurantData.website, '_blank')} className="flex items-center gap-1 h-8 px-3 text-xs">
-                                            <ExternalLink className="w-3 h-3" />
-                                            Website
-                                          </Button>}
-                                        {event.restaurantData.phone && <Button variant="outline" size="sm" onClick={() => window.open(`tel:${event.restaurantData.phone}`, '_self')} className="flex items-center gap-1 h-8 px-3 text-xs">
-                                            <Phone className="w-3 h-3" />
-                                            Call
-                                          </Button>}
-                                      </div>
-                                    </div>}
-                                 {event.attractionData && <div className="space-y-2">
-                                     <div className="flex items-center gap-1 text-sm opacity-90">
-                                       <MapPin className="w-3 h-3 shrink-0" />
-                                       <span className="break-words">{event.attractionData.address}</span>
+                                        <Compass className="w-3 h-3" />
+                                        Directions
+                                      </Button>
+                                      {event.restaurantData.website && <Button variant="outline" size="sm" onClick={() => window.open(event.restaurantData.website, '_blank')} className="flex items-center gap-1 h-8 px-3 text-xs">
+                                          <ExternalLink className="w-3 h-3" />
+                                          Website
+                                        </Button>}
+                                      {event.restaurantData.phone && <Button variant="outline" size="sm" onClick={() => window.open(`tel:${event.restaurantData.phone}`, '_self')} className="flex items-center gap-1 h-8 px-3 text-xs">
+                                          <Phone className="w-3 h-3" />
+                                          Call
+                                        </Button>}
+                                    </div>
+                                  </div>}
+                                 
+                                 {event.attractionData && <div className="space-y-3">
+                                     <div className="flex items-start gap-2 text-sm opacity-90">
+                                       <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
+                                       <span className="break-words text-xs lg:text-sm">{event.attractionData.address}</span>
                                      </div>
                                      {event.attractionData.category && <Badge variant="outline" className="text-xs">
                                          {event.attractionData.category}
                                        </Badge>}
-                                     <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                     <div className="flex flex-wrap gap-2">
                                        <Button variant="outline" size="sm" onClick={() => {
                                 const {
                                   latitude,
@@ -262,58 +306,18 @@ export function TripCalendar({
                                          </Button>}
                                      </div>
                                    </div>}
-                                </div>
-                                
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 shrink-0">
-                                      <MoreVertical className="w-4 h-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end" className="bg-background border shadow-md z-50">
-                                    {event.type === 'restaurant' && event.restaurantData && <DropdownMenuItem onClick={() => {
-                              if (isMobile) {
-                                // For mobile, navigate to mobile search restaurant details page
-                                const googlePlaceData = {
-                                  place_id: event.restaurantData?.placeId || `generated_${Date.now()}`,
-                                  name: event.restaurantData?.name || event.title,
-                                  formatted_address: event.restaurantData?.address,
-                                  formatted_phone_number: event.restaurantData?.phone,
-                                  website: event.restaurantData?.website
-                                };
-                                const placeData = encodeURIComponent(JSON.stringify(googlePlaceData));
-                                navigate(`/mobile/search/restaurant?data=${placeData}`);
-                              } else {
-                                // For desktop, navigate to unified search page with restaurant data
-                                const searchQuery = encodeURIComponent(event.restaurantData?.name || event.title);
-                                navigate(`/search?q=${searchQuery}`);
-                              }
-                            }} className="flex items-center gap-2">
-                                        <ExternalLink className="w-4 h-4" />
-                                        View Details
-                                      </DropdownMenuItem>}
-                                    <DropdownMenuItem onClick={() => onEditEvent(event)} className="flex items-center gap-2">
-                                      <Edit className="w-4 h-4" />
-                                      Edit Event
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => onDeleteEvent(event.id)} className="flex items-center gap-2 text-destructive">
-                                      <Trash2 className="w-4 h-4" />
-                                      Delete Event
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </div>
-                            </div>
-                            {eventIndex < dayEvents.length - 1 && <Separator className="my-3" />}
-                          </div>)}
-                      </div> : <div className="text-center py-4 text-muted-foreground">
-                        <p className="text-sm">No events scheduled</p>
-                      </div>}
-                  </CardContent>
-                </CollapsibleContent>
-              </Card>
-            </Collapsible>
-          </div>;
-    })}
-    </div>;
-}
+                               </div>
+                             </div>
+                             {eventIndex < dayEvents.length - 1 && <Separator className="my-3" />}
+                           </div>)}
+                       </div> : <div className="text-center py-4 text-muted-foreground">
+                         <p className="text-sm">No events scheduled</p>
+                       </div>}
+                   </CardContent>
+                 </CollapsibleContent>
+               </Card>
+             </Collapsible>
+           </div>;
+     })}
+     </div>;
+ }
