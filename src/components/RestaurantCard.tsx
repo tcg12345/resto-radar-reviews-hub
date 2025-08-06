@@ -191,9 +191,22 @@ export function RestaurantCard({
             </div>}
         </div> : null}
       
-      <CardHeader className="pb-0 lg:pb-0 p-2 lg:p-4">
+      <CardHeader className="pb-0 lg:pb-0 p-2 lg:p-4 relative">
+        {onEdit && (
+          <Button
+            size="icon"
+            variant="ghost"
+            className="absolute top-2 right-2 h-6 w-6 hover:bg-accent/50"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(restaurant.id);
+            }}
+          >
+            <Edit2 className="h-3 w-3" />
+          </Button>
+        )}
         <div className="mobile-space-compact lg:space-y-1">
-          <CardTitle className="lg:text-lg mobile-truncate-2 text-lg font-extrabold">{restaurant.name}</CardTitle>
+          <CardTitle className="lg:text-lg mobile-truncate-2 text-lg font-extrabold pr-8">{restaurant.name}</CardTitle>
            <div className="mobile-space-compact lg:space-y-1">
              {restaurant.rating !== undefined && <div className="mobile-rating-container flex items-center">
                        {restaurant.googleMapsUrl ? <a href={`https://www.google.com/search?q=${encodeURIComponent(`${restaurant.name} ${restaurant.address}`)}`} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity mobile-flex-shrink" onClick={e => e.stopPropagation()}>
