@@ -138,7 +138,7 @@ export function TripCalendar({
       const isCollapsed = collapsedDays.has(dateStr);
       return <div key={day.toISOString()} className="lg:contents">
             <Collapsible open={!isCollapsed} onOpenChange={() => toggleDayCollapse(dateStr)}>
-              <Card className="w-[calc(100vw-1rem)] max-w-full lg:w-full transition-all duration-200 hover:shadow-md rounded-xl shadow-sm bg-card border lg:rounded-lg">
+              <Card className="w-[calc(100vw-1rem)] max-w-full lg:w-full lg:max-w-none transition-all duration-200 hover:shadow-md rounded-xl shadow-sm bg-card border lg:rounded-lg lg:border-border/50 lg:shadow-lg lg:hover:shadow-xl lg:hover:border-primary/20 lg:bg-gradient-to-br lg:from-card lg:to-muted/30">
                 <CollapsibleTrigger asChild>
                   <CardHeader className="p-4 cursor-pointer hover:bg-muted/30 transition-all duration-200 rounded-t-xl lg:rounded-t-lg active:scale-[0.98]">
                     {isCollapsed ? <div className="flex items-center justify-between w-full min-h-[3rem]">
