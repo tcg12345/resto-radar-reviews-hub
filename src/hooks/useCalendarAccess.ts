@@ -44,11 +44,15 @@ export function useCalendarAccess() {
       }
 
       try {
+        console.log('🔍 Attempting to import @ebarooni/capacitor-calendar...');
         // Import the correct calendar plugin
         const { CapacitorCalendar } = await import('@ebarooni/capacitor-calendar');
+        console.log('✅ Successfully imported CapacitorCalendar:', CapacitorCalendar);
         
         // Request full calendar access
+        console.log('📅 Requesting calendar permission...');
         const permission = await CapacitorCalendar.requestFullCalendarAccess();
+        console.log('🔐 Permission result:', permission);
         
         if (permission.result === 'granted') {
           // Get calendar events for the next 30 days
