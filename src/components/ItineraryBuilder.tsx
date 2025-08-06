@@ -592,10 +592,55 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
     toast.success('Event deleted successfully');
   };
 
+  const checkLocalStorageUsage = () => {
+    let totalSize = 0;
+    const usage: Record<string, number> = {};
+    
+    for (let key in localStorage) {
+      if (localStorage.hasOwnProperty(key)) {
+        const itemSize = localStorage.getItem(key)?.length || 0;
+        usage[key] = itemSize;
+        totalSize += itemSize;
+      }
+    }
+    
+    console.log('localStorage usage:', {
+      totalBytes: totalSize,
+      totalMB: (totalSize / 1024 / 1024).toFixed(2),
+      items: Object.entries(usage).sort(([,a], [,b]) => b - a).slice(0, 10)
+    });
+    
+    return { totalSize, usage };
+  };
+
+  const clearLargestItems = () => {
+    const { usage } = checkLocalStorageUsage();
+    const sortedItems = Object.entries(usage).sort(([,a], [,b]) => b - a);
+    
+    // Clear largest non-essential items first
+    const nonEssentialKeys = sortedItems.filter(([key]) => 
+      !['savedItineraries', 'supabase.auth.token', 'auth-token'].includes(key)
+    );
+    
+    let clearedCount = 0;
+    for (const [key, size] of nonEssentialKeys) {
+      if (clearedCount < 5) { // Clear up to 5 largest items
+        console.log(`Clearing localStorage item: ${key} (${size} bytes)`);
+        localStorage.removeItem(key);
+        clearedCount++;
+      }
+    }
+    
+    return clearedCount;
+  };
+
   const handleSaveItinerary = async (title: string) => {
     if (!user || !currentItinerary) return;
 
     try {
+      // Check localStorage usage before attempting save
+      checkLocalStorageUsage();
+      
       // Store in local storage as fallback
       const savedItineraries = JSON.parse(localStorage.getItem('savedItineraries') || '[]');
       const itineraryToSave = {
@@ -629,30 +674,83 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
         localStorage.setItem('savedItineraries', JSON.stringify(savedItineraries));
         setCurrentItinerary(itineraryToSave);
         toast.success('Itinerary saved successfully');
+        return;
       } catch (quotaError) {
         if (quotaError instanceof DOMException && quotaError.name === 'QuotaExceededError') {
-          // Storage quota exceeded, try to free up space
-          console.warn('localStorage quota exceeded, attempting cleanup...');
+          console.warn('localStorage quota exceeded, attempting comprehensive cleanup...');
           
-          // Remove oldest itineraries (keep only the 20 most recent)
-          const sortedItineraries = savedItineraries
+          // First attempt: Clear non-essential items
+          const clearedCount = clearLargestItems();
+          
+          if (clearedCount > 0) {
+            try {
+              localStorage.setItem('savedItineraries', JSON.stringify(savedItineraries));
+              setCurrentItinerary(itineraryToSave);
+              toast.success('Itinerary saved (cleaned up browser storage)');
+              return;
+            } catch (secondError) {
+              console.warn('Still failing after clearing large items...');
+            }
+          }
+          
+          // Second attempt: Reduce itineraries to 10 most recent
+          console.warn('Reducing saved itineraries to 10 most recent...');
+          const recentItineraries = savedItineraries
             .sort((a: any, b: any) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime())
-            .slice(0, 20);
+            .slice(0, 10);
           
           try {
-            localStorage.setItem('savedItineraries', JSON.stringify(sortedItineraries));
+            localStorage.setItem('savedItineraries', JSON.stringify(recentItineraries));
             setCurrentItinerary(itineraryToSave);
-            toast.success('Itinerary saved successfully (cleaned up old data)');
-          } catch (secondError) {
-            // If still failing, try with even fewer itineraries
-            const minimumItineraries = sortedItineraries.slice(0, 10);
+            toast.success('Itinerary saved (reduced to 10 most recent)');
+            return;
+          } catch (thirdError) {
+            // Third attempt: Reduce to 5 itineraries
+            console.warn('Still failing, reducing to 5 itineraries...');
+            const minimalItineraries = recentItineraries.slice(0, 5);
+            
             try {
-              localStorage.setItem('savedItineraries', JSON.stringify(minimumItineraries));
+              localStorage.setItem('savedItineraries', JSON.stringify(minimalItineraries));
               setCurrentItinerary(itineraryToSave);
-              toast.success('Itinerary saved (storage optimized)');
-            } catch (finalError) {
-              console.error('Unable to save even with cleanup:', finalError);
-              toast.error('Storage full - please clear some browser data or older itineraries');
+              toast.success('Itinerary saved (storage optimized to 5 items)');
+              return;
+            } catch (fourthError) {
+              // Final attempt: Create a minimal version of the itinerary
+              console.warn('Attempting minimal itinerary save...');
+              const minimalItinerary = {
+                id: itineraryToSave.id,
+                title: itineraryToSave.title,
+                startDate: itineraryToSave.startDate,
+                endDate: itineraryToSave.endDate,
+                locations: itineraryToSave.locations.map((loc: any) => ({
+                  id: loc.id,
+                  name: loc.name,
+                  country: loc.country
+                })),
+                events: itineraryToSave.events.map((event: any) => ({
+                  id: event.id,
+                  title: event.title,
+                  time: event.time,
+                  date: event.date,
+                  type: event.type
+                })),
+                userId: itineraryToSave.userId,
+                createdAt: itineraryToSave.createdAt,
+                updatedAt: itineraryToSave.updatedAt,
+                wasCreatedWithLengthOfStay: itineraryToSave.wasCreatedWithLengthOfStay
+              };
+              
+              try {
+                localStorage.setItem('savedItineraries', JSON.stringify([minimalItinerary]));
+                setCurrentItinerary(itineraryToSave);
+                toast.success('Itinerary saved (minimal version due to storage limits)');
+                return;
+              } catch (finalError) {
+                console.error('Complete storage failure:', finalError);
+                toast.error('Storage full - please clear browser data. Your itinerary is temporarily saved in memory.');
+                setCurrentItinerary(itineraryToSave);
+                return;
+              }
             }
           }
         } else {
