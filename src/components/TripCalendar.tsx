@@ -136,10 +136,10 @@ export function TripCalendar({
             <Collapsible open={!isCollapsed} onOpenChange={() => toggleDayCollapse(dateStr)}>
               <Card className="w-[calc(100vw-1rem)] max-w-full lg:w-full transition-all duration-200 hover:shadow-md rounded-xl shadow-sm bg-card border lg:rounded-lg">
                 <CollapsibleTrigger asChild>
-                  <CardHeader className="pb-3 cursor-pointer hover:bg-muted/30 transition-all duration-200 rounded-t-xl lg:rounded-t-lg active:scale-[0.98] flex items-center">
-                    {isCollapsed ? <div className="flex items-center justify-center gap-3 w-full">
-                        <div className="flex-1 min-w-0 flex items-center">
-                          <div className="w-full">
+                  <CardHeader className="p-4 cursor-pointer hover:bg-muted/30 transition-all duration-200 rounded-t-xl lg:rounded-t-lg active:scale-[0.98]">
+                    {isCollapsed ? <div className="flex items-center justify-between w-full min-h-[3rem]">
+                        <div className="flex-1 flex items-center">
+                          <div>
                             <CardTitle className="text-base lg:text-lg font-semibold truncate">
                               {useLengthOfStay ? `Day ${index + 1}` : `Day ${index + 1} - ${format(day, 'EEE, MMM do')}`}
                             </CardTitle>
@@ -147,16 +147,13 @@ export function TripCalendar({
                                 <MapPin className="w-3 h-3 shrink-0" />
                                 <span className="truncate">{getCityForDate(day)}</span>
                               </div>}
-                            <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                              
-                            </div>
                           </div>
                         </div>
-                        <div className="flex items-center justify-center gap-2 shrink-0">
+                        <div className="flex items-center gap-2 shrink-0">
                           <Button variant="ghost" size="icon" onClick={e => {
                       e.stopPropagation();
                       onAddEvent(dateStr);
-                    }} className="w-8 h-8 rounded-full bg-primary/10 hover:bg-primary/20 text-primary border-0 flex items-center justify-center">
+                    }} className="w-8 h-8 rounded-full bg-primary/10 hover:bg-primary/20 text-primary border-0">
                             <Plus className="w-4 h-4" />
                           </Button>
                           <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform rotate-180" />
