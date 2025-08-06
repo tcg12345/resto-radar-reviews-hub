@@ -1,5 +1,7 @@
 import { format, eachDayOfInterval, isSameDay } from 'date-fns';
 import { Plus, MapPin, Clock, Utensils, MapPinIcon, MoreVertical, Trash2, Edit, Compass, ExternalLink, Phone, ChevronDown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -32,6 +34,8 @@ interface TripCalendarProps {
 export function TripCalendar({ startDate, endDate, events, locations, isMultiCity, useLengthOfStay, onAddEvent, onEditEvent, onDeleteEvent }: TripCalendarProps) {
   const days = eachDayOfInterval({ start: startDate, end: endDate });
   const [collapsedDays, setCollapsedDays] = useState<Set<string>>(new Set());
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const toggleDayCollapse = (dateStr: string) => {
     const newCollapsed = new Set(collapsedDays);
@@ -357,8 +361,22 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
                                     {event.type === 'restaurant' && event.restaurantData && (
                                       <DropdownMenuItem
                                         onClick={() => {
-                                          const query = encodeURIComponent(event.restaurantData?.name || event.title);
-                                          window.open(`/restaurant-search?q=${query}`, '_blank');
+                                          if (isMobile) {
+                                            // For mobile, navigate to mobile search restaurant details page
+                                            const googlePlaceData = {
+                                              place_id: event.restaurantData?.placeId || `generated_${Date.now()}`,
+                                              name: event.restaurantData?.name || event.title,
+                                              formatted_address: event.restaurantData?.address,
+                                              formatted_phone_number: event.restaurantData?.phone,
+                                              website: event.restaurantData?.website
+                                            };
+                                            const placeData = encodeURIComponent(JSON.stringify(googlePlaceData));
+                                            navigate(`/mobile/search/restaurant?data=${placeData}`);
+                                          } else {
+                                            // For desktop, navigate to unified search page with restaurant data
+                                            const searchQuery = encodeURIComponent(event.restaurantData?.name || event.title);
+                                            navigate(`/search?q=${searchQuery}`);
+                                          }
                                         }}
                                         className="flex items-center gap-2"
                                       >
