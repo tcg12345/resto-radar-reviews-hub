@@ -56,6 +56,8 @@ interface GooglePlaceResult {
   aiAnalysis?: {
     cuisine: string;
     categories: string[];
+    priceRange?: string;
+    michelinStars?: number;
   };
   michelinStars?: number;
   fallbackCuisine?: string;
@@ -424,25 +426,89 @@ export default function MobileSearchRestaurantDetailsPage() {
                   </Badge>}
               </div>
 
-              {/* Cuisine and Categories */}
+              {/* AI-Enhanced Cuisine, Price Range, and Michelin Stars */}
               <div className="flex flex-wrap gap-2">
-                {!isEnhancingWithAI && (() => {
-                  const cuisine = restaurant.aiAnalysis?.cuisine || restaurant.fallbackCuisine || restaurant.types?.find(type => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 'Restaurant';
-                  return <Badge variant="outline">
-                      {cuisine}
-                    </Badge>;
-                })()}
-                
-                {/* Michelin Stars */}
-                {!isEnhancingWithAI && restaurant.michelinStars && restaurant.michelinStars > 0 && (() => {
-                  console.log('Displaying Michelin stars:', restaurant.michelinStars, 'for restaurant:', restaurant.name);
-                  return <Badge variant="outline">
-                      <MichelinStars stars={restaurant.michelinStars} readonly={true} size="sm" />
-                    </Badge>;
-                })()}
-                
-                {/* Only show Yelp categories if no cuisine was found above */}
-                {!isEnhancingWithAI && !restaurant.aiAnalysis?.cuisine && !restaurant.fallbackCuisine && restaurant.yelpData?.categories?.slice(0, 1).map((category, index) => <Badge key={index} variant="outline">{category}</Badge>)}
+                {isEnhancingWithAI ? (
+                  <div className="flex gap-2">
+                    <Badge variant="outline" className="animate-pulse">
+                      <div className="w-16 h-4 bg-muted rounded"></div>
+                    </Badge>
+                    <Badge variant="outline" className="animate-pulse">
+                      <div className="w-12 h-4 bg-muted rounded"></div>
+                    </Badge>
+                    <Badge variant="outline" className="animate-pulse">
+                      <div className="w-20 h-4 bg-muted rounded"></div>
+                    </Badge>
+                  </div>
+                ) : (
+                  <>
+                    {/* AI-Detected Cuisine */}
+                    {(() => {
+                      const aiCuisine = restaurant.aiAnalysis?.cuisine;
+                      const fallbackCuisine = restaurant.fallbackCuisine || 
+                        restaurant.types?.find(type => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 
+                        (restaurant.yelpData?.categories?.[0]) ||
+                        'Restaurant';
+                      const displayCuisine = aiCuisine || fallbackCuisine;
+                      
+                      return (
+                        <Badge variant="outline" className={aiCuisine ? "border-primary/50 bg-primary/5" : ""}>
+                          {aiCuisine && <span className="text-xs mr-1">🤖</span>}
+                          {displayCuisine}
+                        </Badge>
+                      );
+                    })()}
+
+                    {/* AI-Detected Price Range */}
+                    {(() => {
+                      const aiPriceRange = restaurant.aiAnalysis?.priceRange;
+                      const googlePriceLevel = restaurant.price_level;
+                      const yelpPrice = restaurant.yelpData?.price;
+                      
+                      const displayPrice = aiPriceRange || 
+                        (googlePriceLevel ? '$'.repeat(googlePriceLevel) : '') ||
+                        yelpPrice;
+                      
+                      if (displayPrice) {
+                        return (
+                          <Badge variant="outline" className={aiPriceRange ? "border-green-500/50 bg-green-50 text-green-700" : "text-green-600"}>
+                            {aiPriceRange && <span className="text-xs mr-1">🤖</span>}
+                            {displayPrice}
+                          </Badge>
+                        );
+                      }
+                      return null;
+                    })()}
+                    
+                    {/* AI-Detected Michelin Stars */}
+                    {(() => {
+                      const aiMichelinStars = restaurant.aiAnalysis?.michelinStars;
+                      const existingStars = restaurant.michelinStars;
+                      const displayStars = aiMichelinStars ?? existingStars;
+                      
+                      if (displayStars && displayStars > 0) {
+                        console.log('Displaying Michelin stars:', displayStars, 'for restaurant:', restaurant.name);
+                        return (
+                          <Badge variant="outline" className={aiMichelinStars ? "border-yellow-500/50 bg-yellow-50" : ""}>
+                            {aiMichelinStars && <span className="text-xs mr-1">🤖</span>}
+                            <MichelinStars stars={displayStars} readonly={true} size="sm" />
+                          </Badge>
+                        );
+                      }
+                      return null;
+                    })()}
+
+                    {/* Additional Restaurant Categories */}
+                    {restaurant.types?.filter(type => 
+                      !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type) &&
+                      type !== (restaurant.aiAnalysis?.cuisine || restaurant.fallbackCuisine || '').toLowerCase().replace(/\s+/g, '_')
+                    ).slice(0, 2).map(type => (
+                      <Badge key={type} variant="secondary" className="text-xs">
+                        {type.replace(/_/g, ' ')}
+                      </Badge>
+                    ))}
+                  </>
+                )}
               </div>
             </div>
 
