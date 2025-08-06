@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 declare global {
   interface Window {
     gapi: any;
+    google: any;
   }
 }
 
@@ -141,9 +142,14 @@ export function useCalendarAccess() {
 
       console.log('Loading Google APIs...');
 
-      // Load Google APIs with better error handling
-      if (typeof window.gapi === 'undefined') {
-        await new Promise<void>((resolve, reject) => {
+      // Load both Google APIs and Google Identity Services
+      await Promise.all([
+        // Load Google API
+        new Promise<void>((resolve, reject) => {
+          if (typeof window.gapi !== 'undefined') {
+            resolve();
+            return;
+          }
           const script = document.createElement('script');
           script.src = 'https://apis.google.com/js/api.js';
           script.onload = () => {
@@ -155,21 +161,39 @@ export function useCalendarAccess() {
             reject(new Error('Failed to load Google APIs script'));
           };
           document.head.appendChild(script);
-        });
-      }
+        }),
+        // Load Google Identity Services
+        new Promise<void>((resolve, reject) => {
+          if (typeof window.google !== 'undefined') {
+            resolve();
+            return;
+          }
+          const script = document.createElement('script');
+          script.src = 'https://accounts.google.com/gsi/client';
+          script.onload = () => {
+            console.log('Google Identity Services script loaded');
+            resolve();
+          };
+          script.onerror = (err) => {
+            console.error('Failed to load Google Identity Services script:', err);
+            reject(new Error('Failed to load Google Identity Services script'));
+          };
+          document.head.appendChild(script);
+        })
+      ]);
 
       console.log('Initializing Google API client...');
       
-      // Initialize with a timeout and better error handling
+      // Initialize GAPI client
       await new Promise<void>((resolve, reject) => {
         const timeout = setTimeout(() => {
           reject(new Error('Google API initialization timeout'));
         }, 15000);
 
-        window.gapi.load('client:auth2', {
+        window.gapi.load('client', {
           callback: () => {
             clearTimeout(timeout);
-            console.log('Google API modules loaded');
+            console.log('Google API client loaded');
             resolve();
           },
           onerror: (err: any) => {
@@ -182,26 +206,37 @@ export function useCalendarAccess() {
 
       console.log('Initializing client with credentials...');
       
-      // Initialize the client
+      // Initialize the GAPI client
       await window.gapi.client.init({
         apiKey: secrets.apiKey,
-        clientId: secrets.clientId,
-        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
-        scope: 'https://www.googleapis.com/auth/calendar.readonly'
+        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest']
       });
 
-      console.log('Client initialized, checking auth...');
+      console.log('Client initialized, requesting access token...');
 
-      // Check authentication
-      const authInstance = window.gapi.auth2.getAuthInstance();
-      if (!authInstance.isSignedIn.get()) {
-        console.log('User not signed in, prompting for sign-in...');
-        const user = await authInstance.signIn();
-        if (!user.isSignedIn()) {
-          throw new Error('Google Calendar sign-in was cancelled by user');
-        }
-        console.log('User signed in successfully');
-      }
+      // Use Google Identity Services for OAuth2
+      const tokenResponse = await new Promise<any>((resolve, reject) => {
+        const client = window.google.accounts.oauth2.initTokenClient({
+          client_id: secrets.clientId,
+          scope: 'https://www.googleapis.com/auth/calendar.readonly',
+          callback: (response: any) => {
+            if (response.error) {
+              reject(new Error(`OAuth error: ${response.error}`));
+            } else {
+              resolve(response);
+            }
+          },
+        });
+        
+        client.requestAccessToken();
+      });
+
+      console.log('Access token received, setting authorization...');
+      
+      // Set the access token for API calls
+      window.gapi.client.setToken({
+        access_token: tokenResponse.access_token
+      });
 
       // Calculate date range
       const searchStartDate = startDate || new Date();
