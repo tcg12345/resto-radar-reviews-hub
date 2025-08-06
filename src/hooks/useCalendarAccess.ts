@@ -39,13 +39,9 @@ export function useCalendarAccess() {
     
     try {
       if (!Capacitor.isNativePlatform()) {
-        // For web, try Google Calendar API or show demo events
-        try {
-          return await requestGoogleCalendarAccess(startDate);
-        } catch (error) {
-          // If Google Calendar fails, show demo events for testing
-          return await showDemoEvents(startDate);
-        }
+        // For web, show demo events (Google Calendar API has domain authorization issues)
+        toast.info('Loading demo calendar events - real calendar access requires mobile app');
+        return await showDemoEvents(startDate);
       }
 
       // For mobile, try native calendar access
