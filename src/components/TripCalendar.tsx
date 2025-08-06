@@ -150,11 +150,11 @@ export function TripCalendar({
                             
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex items-center justify-center gap-2 shrink-0">
                           <Button variant="ghost" size="icon" onClick={e => {
                       e.stopPropagation();
                       onAddEvent(dateStr);
-                    }} className="w-8 h-8 rounded-full bg-primary/10 hover:bg-primary/20 text-primary border-0">
+                    }} className="w-8 h-8 rounded-full bg-primary/10 hover:bg-primary/20 text-primary border-0 flex items-center justify-center">
                             <Plus className="w-4 h-4" />
                           </Button>
                           <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform rotate-180" />
