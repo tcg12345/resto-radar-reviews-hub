@@ -140,80 +140,83 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
         return (
           <div key={day.toISOString()} className="lg:contents">
             <Collapsible open={!isCollapsed} onOpenChange={() => toggleDayCollapse(dateStr)}>
-              <Card className="transition-all duration-200 hover:shadow-md lg:rounded-lg lg:border lg:shadow-sm rounded-none border-0 border-t border-b shadow-none relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen lg:left-auto lg:right-auto lg:ml-0 lg:mr-0 lg:w-auto">
+              <Card className="transition-all duration-200 hover:shadow-md lg:rounded-lg lg:border lg:shadow-sm rounded-xl border-0 mx-4 mb-4 shadow-sm bg-card lg:mx-0 lg:mb-0 lg:relative lg:left-auto lg:right-auto lg:ml-0 lg:mr-0 lg:w-auto">
                 <CollapsibleTrigger asChild>
-                  <CardHeader className="pb-3 cursor-pointer hover:bg-muted/50 transition-colors">
+                  <CardHeader className="pb-3 cursor-pointer hover:bg-muted/30 transition-all duration-200 rounded-t-xl lg:rounded-t-lg active:scale-[0.98]">
                     {isCollapsed ? (
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <CardTitle className="text-lg">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-base lg:text-lg font-semibold truncate">
                             {useLengthOfStay 
                               ? `Day ${index + 1}`
-                              : `Day ${index + 1} - ${format(day, 'EEEE, MMMM do')}`
+                              : `Day ${index + 1} - ${format(day, 'EEE, MMM do')}`
                             }
                           </CardTitle>
                           {isMultiCity && getCityForDate(day) && (
-                            <div className="flex items-center gap-1 text-primary font-medium text-sm">
-                              <MapPin className="w-3 h-3" />
-                              {getCityForDate(day)}
+                            <div className="flex items-center gap-1 text-primary font-medium text-xs mt-1">
+                              <MapPin className="w-3 h-3 shrink-0" />
+                              <span className="truncate">{getCityForDate(day)}</span>
                             </div>
                           )}
+                          <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                            <span>{dayEvents.length} {dayEvents.length === 1 ? 'event' : 'events'}</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 shrink-0">
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="icon"
                             onClick={(e) => {
                               e.stopPropagation();
                               onAddEvent(dateStr);
                             }}
-                            className="w-8 h-8 shrink-0"
+                            className="w-8 h-8 rounded-full bg-primary/10 hover:bg-primary/20 text-primary border-0"
                           >
                             <Plus className="w-4 h-4" />
                           </Button>
                           <ChevronDown 
-                            className="w-4 h-4 transition-transform rotate-180" 
+                            className="w-4 h-4 text-muted-foreground transition-transform rotate-180" 
                           />
                         </div>
                       </div>
                     ) : (
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <CardTitle className="text-lg flex-1">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-base lg:text-lg font-semibold flex-1">
                             {useLengthOfStay 
                               ? `Day ${index + 1}`
-                              : `Day ${index + 1} - ${format(day, 'EEEE, MMMM do')}`
+                              : `Day ${index + 1} - ${format(day, 'EEE, MMM do')}`
                             }
                           </CardTitle>
-                          <ChevronDown className="w-4 h-4 transition-transform" />
+                          <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform" />
                         </div>
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <CardDescription className="space-y-1">
-                              {isMultiCity && getCityForDate(day) && (
-                                <div className="flex items-center gap-1 text-primary font-medium">
-                                  <MapPin className="w-3 h-3" />
-                                  {getCityForDate(day)}
-                                </div>
-                              )}
-                              <div>
-                                {dayEvents.length > 0 
-                                  ? `${dayEvents.length} ${dayEvents.length === 1 ? 'event' : 'events'} planned`
-                                  : 'No events planned'
-                                }
-                              </div>
-                            </CardDescription>
+                        
+                        <div className="space-y-2">
+                          {isMultiCity && getCityForDate(day) && (
+                            <div className="flex items-center gap-1 text-primary font-medium text-sm">
+                              <MapPin className="w-3 h-3 shrink-0" />
+                              <span className="truncate">{getCityForDate(day)}</span>
+                            </div>
+                          )}
+                          
+                          <div className="flex items-center justify-between">
+                            <div className="text-sm text-muted-foreground">
+                              {dayEvents.length > 0 
+                                ? `${dayEvents.length} ${dayEvents.length === 1 ? 'event' : 'events'} planned`
+                                : 'No events planned'
+                              }
+                            </div>
                             <Button
-                              variant="outline"
+                              variant="ghost"
                               size="sm"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 onAddEvent(dateStr);
                               }}
-                              className="flex items-center gap-2 mt-2"
+                              className="flex items-center gap-2 bg-primary/10 hover:bg-primary/20 text-primary border-0 rounded-full px-3"
                             >
-                              <Plus className="w-4 h-4" />
-                              Add Event
+                              <Plus className="w-3 h-3" />
+                              <span className="text-xs">Add Event</span>
                             </Button>
                           </div>
                         </div>
