@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { format, isAfter, isBefore, startOfToday } from 'date-fns';
-import { Calendar, MapPin, Clock, Edit, Trash2, Download, Filter } from 'lucide-react';
+import { Calendar, MapPin, Clock, Edit, Trash2, Download, Filter, Eye } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +21,7 @@ type ItineraryFilter = 'all' | 'current' | 'past' | 'future';
 export function SavedItinerariesSection({ onLoadItinerary }: SavedItinerariesSectionProps) {
   const [savedItineraries, setSavedItineraries] = useState<Itinerary[]>([]);
   const [filter, setFilter] = useState<ItineraryFilter>('all');
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadSavedItineraries();
@@ -477,11 +479,20 @@ export function SavedItinerariesSection({ onLoadItinerary }: SavedItinerariesSec
                           <Button
                             variant="outline"
                             size="sm"
+                            onClick={() => navigate(`/itinerary/${itinerary.id}`)}
+                            className="flex items-center gap-2"
+                          >
+                            <Eye className="w-4 h-4" />
+                            View
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() => onLoadItinerary(itinerary)}
                             className="flex items-center gap-2"
                           >
                             <Edit className="w-4 h-4" />
-                            Load & Edit
+                            Edit
                           </Button>
                           <Button
                             variant="outline"
@@ -562,22 +573,31 @@ export function SavedItinerariesSection({ onLoadItinerary }: SavedItinerariesSec
                             <Button
                               variant="outline"
                               size="sm"
+                              onClick={() => navigate(`/itinerary/${itinerary.id}`)}
+                              className="flex-1 h-8 text-xs"
+                            >
+                              <Eye className="w-3 h-3 mr-1" />
+                              View
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
                               onClick={() => onLoadItinerary(itinerary)}
                               className="flex-1 h-8 text-xs"
                             >
                               <Edit className="w-3 h-3 mr-1" />
                               Edit
                             </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => exportItinerary(itinerary)}
-                              className="flex-1 h-8 text-xs"
-                            >
-                              <Download className="w-3 h-3 mr-1" />
-                              Export
-                            </Button>
                           </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => exportItinerary(itinerary)}
+                            className="w-full h-8 text-xs"
+                          >
+                            <Download className="w-3 h-3 mr-1" />
+                            Export
+                          </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button

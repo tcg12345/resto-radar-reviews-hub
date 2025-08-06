@@ -36,6 +36,7 @@ import TravelPage from "./pages/TravelPage";
 import TripDetailPage from "./pages/TripDetailPage";
 import { SharedTripPage } from "./pages/SharedTripPage";
 import { SharedItineraryPage } from "./pages/SharedItineraryPage";
+import { ItineraryViewPage } from "./pages/ItineraryViewPage";
 import RestaurantPhotosPage from "./pages/RestaurantPhotosPage";
 import CommunityPhotoGalleryPage from "./pages/CommunityPhotoGalleryPage";
 
@@ -68,6 +69,7 @@ const App = () => (
                 <Route path="/map" element={<RequireAuth><Layout activeTab="search" showChatbot={false}><MapPageWrapper /></Layout></RequireAuth>} />
                 <Route path="/travel" element={<RequireAuth><Layout activeTab="travel"><TravelPage /></Layout></RequireAuth>} />
                 <Route path="/trip/:tripId" element={<RequireAuth><TripDetailPage /></RequireAuth>} />
+                <Route path="/itinerary/:itineraryId" element={<RequireAuth><ItineraryViewPage /></RequireAuth>} />
                 <Route path="/shared-trip/:tripId" element={<SharedTripPage />} />
                 <Route path="/shared-itinerary" element={<SharedItineraryPage />} />
                 
