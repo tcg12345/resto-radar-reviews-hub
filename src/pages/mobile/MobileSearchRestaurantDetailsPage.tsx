@@ -445,10 +445,26 @@ export default function MobileSearchRestaurantDetailsPage() {
                     {/* AI-Detected Cuisine */}
                     {(() => {
                       const aiCuisine = restaurant.aiAnalysis?.cuisine;
-                      const fallbackCuisine = restaurant.fallbackCuisine || 
-                        restaurant.types?.find(type => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 
-                        (restaurant.yelpData?.categories?.[0]) ||
-                        'Restaurant';
+                      
+                      // Better fallback cuisine detection
+                      let fallbackCuisine = restaurant.fallbackCuisine;
+                      
+                      if (!fallbackCuisine || fallbackCuisine.toLowerCase().includes('restaurant')) {
+                        // Try to extract from restaurant types
+                        const meaningfulType = restaurant.types?.find(type => 
+                          !['restaurant', 'food', 'establishment', 'point_of_interest', 'meal_takeaway', 'meal_delivery'].includes(type)
+                        );
+                        
+                        if (meaningfulType) {
+                          fallbackCuisine = meaningfulType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                        } else if (restaurant.yelpData?.categories?.[0]) {
+                          fallbackCuisine = restaurant.yelpData.categories[0];
+                        } else {
+                          // Default based on common restaurant patterns
+                          fallbackCuisine = 'International';
+                        }
+                      }
+                      
                       const displayCuisine = aiCuisine || fallbackCuisine;
                       
                       return (
