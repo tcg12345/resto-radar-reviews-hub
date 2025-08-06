@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format, differenceInDays } from 'date-fns';
-import { ArrowLeft, Calendar, MapPin, Clock, Users, Globe, Star, Phone, ExternalLink, Utensils, Camera, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Clock, Users, Globe, Star, Phone, ExternalLink, Utensils, Camera, ChevronDown, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -316,9 +316,32 @@ export function ItineraryViewPage() {
                                 {/* Restaurant Details */}
                                 {event.restaurantData && (
                                   <div className="p-4 bg-success/5">
-                                    <div className="flex items-center gap-2 mb-3">
-                                      <Utensils className="w-4 h-4 text-success" />
-                                      <span className="text-sm font-medium text-success">Restaurant Info</span>
+                                    <div className="flex items-center justify-between mb-3">
+                                      <div className="flex items-center gap-2">
+                                        <Utensils className="w-4 h-4 text-success" />
+                                        <span className="text-sm font-medium text-success">Restaurant Info</span>
+                                      </div>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                          if (isMobile) {
+                                            navigate('/mobile/search/restaurant', { 
+                                              state: { restaurant: event.restaurantData } 
+                                            });
+                                          } else {
+                                            // For desktop, we'll use the search restaurant details or create a restaurant record
+                                            // Since we don't have a restaurant ID, we'll pass the data via state
+                                            navigate('/mobile/search/restaurant', { 
+                                              state: { restaurant: event.restaurantData } 
+                                            });
+                                          }
+                                        }}
+                                        className="text-xs"
+                                      >
+                                        <Eye className="w-3 h-3 mr-1" />
+                                        View Details
+                                      </Button>
                                     </div>
                                     
                                     <div className="space-y-3">
