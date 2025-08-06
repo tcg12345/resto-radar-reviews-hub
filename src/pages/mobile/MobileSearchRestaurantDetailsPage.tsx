@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { RestaurantLocationMap } from '@/components/RestaurantLocationMap';
 import { MichelinStars } from '@/components/MichelinStars';
 import { CommunityRating } from '@/components/CommunityRating';
+import { CommunityPhotoGallery } from '@/components/CommunityPhotoGallery';
 import { FriendPhotoGallery } from '@/components/FriendPhotoGallery';
 import { useRestaurantReviews } from '@/hooks/useRestaurantReviews';
 interface GooglePlaceResult {
@@ -479,6 +480,13 @@ export default function MobileSearchRestaurantDetailsPage() {
 
           {/* Community Rating */}
           <CommunityRating stats={communityStats} isLoading={isLoadingReviews} />
+
+          {/* Community Photos */}
+          <CommunityPhotoGallery 
+            stats={communityStats}
+            isLoading={isLoadingReviews}
+            onPhotoClick={() => navigate(`/restaurant/${restaurant.place_id}/community-photos?name=${encodeURIComponent(restaurant.name)}`)}
+          />
 
           {/* Contact Info */}
           {(restaurant.formatted_phone_number || restaurant.website) && <Card>
