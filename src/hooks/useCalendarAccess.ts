@@ -44,7 +44,7 @@ export function useCalendarAccess() {
         return await requestGoogleCalendarAccess(startDate);
       }
 
-      // For mobile, try native calendar access first, then fallback to Google Calendar
+      // For mobile, try native calendar access first
       try {
         const { CapacitorCalendar } = await import('@ebarooni/capacitor-calendar');
         
@@ -71,17 +71,16 @@ export function useCalendarAccess() {
           }));
           
           setEvents(formattedEvents);
-          toast.success(`Found ${formattedEvents.length} calendar events!`);
+          toast.success(`Found ${formattedEvents.length} calendar events from device!`);
           return formattedEvents;
         } else {
-          // If native calendar permission denied, try Google Calendar as fallback
-          toast.info('Native calendar access denied. Trying Google Calendar...');
-          return await requestGoogleCalendarAccess(startDate);
+          throw new Error('Calendar permission denied');
         }
       } catch (pluginError) {
-        // If native calendar plugin fails, try Google Calendar as fallback
-        toast.info('Native calendar not available. Trying Google Calendar...');
-        return await requestGoogleCalendarAccess(startDate);
+        console.error('Native calendar error:', pluginError);
+        // Show demo events for mobile when native calendar fails
+        toast.info('Native calendar not available. Showing demo events.');
+        return await showDemoEvents(startDate);
       }
     } catch (error) {
       console.error('Calendar access error:', error);
