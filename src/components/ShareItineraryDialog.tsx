@@ -129,9 +129,11 @@ export function ShareItineraryDialog({ isOpen, onClose, itinerary }: ShareItiner
   const generateShareText = () => {
     const startDate = format(itinerary.startDate, 'MMMM do, yyyy');
     const endDate = format(itinerary.endDate, 'MMMM do, yyyy');
+    const itineraryUrl = `${window.location.origin}/itinerary/${itinerary.id}`;
     
     let shareText = `🗓️ ${itinerary.title}\n`;
     shareText += `📅 ${startDate} - ${endDate}\n\n`;
+    shareText += `🔗 View itinerary: ${itineraryUrl}\n\n`;
     
     if (itinerary.events.length > 0) {
       const eventsByDate = itinerary.events.reduce((acc, event) => {
@@ -164,8 +166,9 @@ export function ShareItineraryDialog({ isOpen, onClose, itinerary }: ShareItiner
 
   const handleCopyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(generateShareText());
-      toast.success('Itinerary copied to clipboard!');
+      const itineraryUrl = `${window.location.origin}/itinerary/${itinerary.id}`;
+      await navigator.clipboard.writeText(`${itinerary.title}\n\nView full itinerary: ${itineraryUrl}`);
+      toast.success('Itinerary link copied to clipboard!');
     } catch (error) {
       console.error('Failed to copy:', error);
       toast.error('Failed to copy to clipboard');
@@ -174,8 +177,11 @@ export function ShareItineraryDialog({ isOpen, onClose, itinerary }: ShareItiner
 
   const handleEmailShare = () => {
     const subject = encodeURIComponent(`Trip Itinerary: ${itinerary.title}`);
+    const itineraryUrl = `${window.location.origin}/itinerary/${itinerary.id}`;
     const body = encodeURIComponent(
-      (message ? message + '\n\n' : '') + generateShareText()
+      (message ? message + '\n\n' : '') + 
+      `${itinerary.title}\n\nView full itinerary: ${itineraryUrl}\n\n` +
+      generateShareText()
     );
     const mailto = `mailto:${email}?subject=${subject}&body=${body}`;
     
@@ -184,8 +190,10 @@ export function ShareItineraryDialog({ isOpen, onClose, itinerary }: ShareItiner
   };
 
   const handleSMSShare = () => {
+    const itineraryUrl = `${window.location.origin}/itinerary/${itinerary.id}`;
     const text = encodeURIComponent(
-      (message ? message + '\n\n' : '') + generateShareText()
+      (message ? message + '\n\n' : '') + 
+      `${itinerary.title}\n\nView: ${itineraryUrl}`
     );
     const sms = `sms:?body=${text}`;
     
@@ -194,10 +202,12 @@ export function ShareItineraryDialog({ isOpen, onClose, itinerary }: ShareItiner
   };
 
   const handleSocialShare = () => {
+    const itineraryUrl = `${window.location.origin}/itinerary/${itinerary.id}`;
     if (navigator.share) {
       navigator.share({
         title: itinerary.title,
-        text: generateShareText(),
+        text: `Check out my trip itinerary: ${itinerary.title}`,
+        url: itineraryUrl,
       }).catch(error => {
         console.error('Error sharing:', error);
         handleCopyToClipboard();
@@ -212,15 +222,8 @@ export function ShareItineraryDialog({ isOpen, onClose, itinerary }: ShareItiner
 
     setIsSharing(true);
     try {
-      const itineraryData = JSON.stringify({
-        id: itinerary.id,
-        title: itinerary.title,
-        startDate: itinerary.startDate,
-        endDate: itinerary.endDate,
-        events: itinerary.events,
-        message: personalMessage
-      });
-
+      const itineraryUrl = `${window.location.origin}/itinerary/${itinerary.id}`;
+      
       // Create notifications for each selected friend
       const notifications = selectedFriends.map(friendId => ({
         user_id: friendId,
@@ -228,10 +231,12 @@ export function ShareItineraryDialog({ isOpen, onClose, itinerary }: ShareItiner
         message: `${user.user_metadata?.name || user.email} shared an itinerary with you: ${itinerary.title}`,
         type: 'itinerary_share',
         data: { 
-          itinerary: itineraryData, 
+          itinerary_url: itineraryUrl,
+          itinerary_id: itinerary.id,
           sender_id: user.id,
           sender_name: user.user_metadata?.name || user.email?.split('@')[0] || 'Someone',
-          itinerary_title: itinerary.title
+          itinerary_title: itinerary.title,
+          personal_message: personalMessage
         }
       }));
 
@@ -256,13 +261,14 @@ export function ShareItineraryDialog({ isOpen, onClose, itinerary }: ShareItiner
 
     setIsSharing(true);
     try {
+      const itineraryUrl = `${window.location.origin}/itinerary/${itinerary.id}`;
       const itineraryData = {
-        id: itinerary.id,
+        itinerary_url: itineraryUrl,
+        itinerary_id: itinerary.id,
         title: itinerary.title,
         startDate: itinerary.startDate,
         endDate: itinerary.endDate,
-        events: itinerary.events,
-        message: personalMessage,
+        personal_message: personalMessage,
         sender_id: user.id,
         sender_name: user.user_metadata?.name || user.email?.split('@')[0] || 'Someone',
         itinerary_title: itinerary.title
