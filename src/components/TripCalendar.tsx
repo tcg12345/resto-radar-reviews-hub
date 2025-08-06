@@ -138,7 +138,7 @@ export function TripCalendar({
                 <CollapsibleTrigger asChild>
                   <CardHeader className="pb-3 cursor-pointer hover:bg-muted/30 transition-all duration-200 rounded-t-xl lg:rounded-t-lg active:scale-[0.98] py-4">
                     {isCollapsed ? <div className="flex items-center justify-center gap-3">
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 flex flex-col justify-center">
                           <CardTitle className="text-base lg:text-lg font-semibold truncate">
                             {useLengthOfStay ? `Day ${index + 1}` : `Day ${index + 1} - ${format(day, 'EEE, MMM do')}`}
                           </CardTitle>
