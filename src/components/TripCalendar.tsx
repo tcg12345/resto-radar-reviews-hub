@@ -109,7 +109,7 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
   };
 
   return (
-    <div className="grid gap-4">
+    <div className="w-full max-w-none space-y-4 px-2 lg:px-0">
       {/* Main Add Event Button */}
       <Card className="bg-primary/5 border-0">
         <CardContent className="pt-6">
@@ -140,7 +140,7 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
         return (
           <div key={day.toISOString()} className="lg:contents">
             <Collapsible open={!isCollapsed} onOpenChange={() => toggleDayCollapse(dateStr)}>
-              <Card className="transition-all duration-200 hover:shadow-md lg:rounded-lg lg:border lg:shadow-sm mx-2 mb-4 rounded-xl shadow-sm bg-card border lg:mx-0 lg:mb-0">
+              <Card className="w-full max-w-none transition-all duration-200 hover:shadow-md rounded-xl shadow-sm bg-card border lg:rounded-lg">
                 <CollapsibleTrigger asChild>
                   <CardHeader className="pb-3 cursor-pointer hover:bg-muted/30 transition-all duration-200 rounded-t-xl lg:rounded-t-lg active:scale-[0.98]">
                     {isCollapsed ? (
@@ -231,20 +231,20 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
                       <div className="space-y-3">
                         {dayEvents.map((event, eventIndex) => (
                           <div key={event.id}>
-                            <div className={`p-4 rounded-lg border transition-all duration-200 hover:shadow-sm ${getEventColor(event.type)}`}>
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="font-medium text-sm">{event.time}</span>
-                                    <Badge variant="secondary" className="text-xs">
+                            <div className={`p-3 lg:p-4 rounded-lg border transition-all duration-200 hover:shadow-sm ${getEventColor(event.type)} w-full`}>
+                              <div className="flex items-start justify-between gap-2 w-full">
+                                <div className="flex-1 min-w-0 overflow-hidden">
+                                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                    <span className="font-medium text-sm shrink-0">{event.time}</span>
+                                    <Badge variant="secondary" className="text-xs shrink-0">
                                       {event.type}
                                     </Badge>
                                   </div>
-                                  <h4 className="font-semibold text-base mb-1 break-words">
+                                  <h4 className="font-semibold text-sm lg:text-base mb-1 truncate">
                                     {event.title}
                                   </h4>
                                   {event.description && (
-                                    <p className="text-sm opacity-90 mb-2 break-words">
+                                    <p className="text-xs lg:text-sm opacity-90 mb-2 line-clamp-2">
                                       {event.description}
                                     </p>
                                   )}
