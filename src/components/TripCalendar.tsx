@@ -354,6 +354,18 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end" className="bg-background border shadow-md z-50">
+                                    {event.type === 'restaurant' && event.restaurantData && (
+                                      <DropdownMenuItem
+                                        onClick={() => {
+                                          const query = encodeURIComponent(event.restaurantData?.name || event.title);
+                                          window.open(`/restaurant-search?q=${query}`, '_blank');
+                                        }}
+                                        className="flex items-center gap-2"
+                                      >
+                                        <ExternalLink className="w-4 h-4" />
+                                        View Details
+                                      </DropdownMenuItem>
+                                    )}
                                     <DropdownMenuItem
                                       onClick={() => onEditEvent(event)}
                                       className="flex items-center gap-2"
