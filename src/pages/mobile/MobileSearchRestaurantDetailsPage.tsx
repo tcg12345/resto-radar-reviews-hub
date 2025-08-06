@@ -529,15 +529,24 @@ export default function MobileSearchRestaurantDetailsPage() {
                 <h3 className="font-semibold">Location</h3>
               </div>
               <div className="h-64 w-full rounded-lg overflow-hidden border">
-                {restaurant.geometry?.location?.lat && restaurant.geometry?.location?.lng ? (
+                {restaurant.geometry?.location?.lat && restaurant.geometry?.location?.lng && 
+                 restaurant.geometry.location.lat !== 0 && restaurant.geometry.location.lng !== 0 ? (
                   <RestaurantLocationMap 
                     latitude={restaurant.geometry.location.lat} 
                     longitude={restaurant.geometry.location.lng} 
                     name={restaurant.name} 
                     address={restaurant.formatted_address} 
                   />
+                ) : restaurant.formatted_address ? (
+                  <div className="h-32 flex items-center justify-center bg-muted text-muted-foreground">
+                    <div className="text-center">
+                      <MapPin className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">Map view not available</p>
+                      <p className="text-xs">{restaurant.formatted_address}</p>
+                    </div>
+                  </div>
                 ) : (
-                  <div className="h-full flex items-center justify-center bg-muted text-muted-foreground">
+                  <div className="h-32 flex items-center justify-center bg-muted text-muted-foreground">
                     <p>Location not available</p>
                   </div>
                 )}
