@@ -1088,108 +1088,133 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                   </div>
                   <ChevronDown className="w-4 h-4 text-muted-foreground" />
                 </CollapsibleTrigger>
-                <CollapsibleContent className="border-t">
-                  <div className="px-4 py-3 space-y-3">
-                    {/* Date Range */}
-                    <div className="text-sm text-muted-foreground">
-                      {dateRange.start && dateRange.end ? (
-                        <div className="flex flex-col gap-1">
-                          {wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) ? (
-                            <span>{tripDays} {tripDays === 1 ? 'night' : 'nights'}</span>
+                <CollapsibleContent className="border-t border-border/50">
+                  <div className="p-5 bg-gradient-to-b from-background to-muted/20">
+                    {/* Date Section */}
+                    <div className="mb-6">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Calendar className="w-4 h-4 text-primary" />
+                        <span className="text-sm font-medium text-foreground">Travel Dates</span>
+                      </div>
+                      <div className="bg-card/80 backdrop-blur-sm rounded-lg p-4 border border-border/30">
+                        <div className="text-sm text-foreground mb-3">
+                          {dateRange.start && dateRange.end ? (
+                            <div className="flex items-center gap-2">
+                              {wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) ? (
+                                <span className="font-medium">{tripDays} {tripDays === 1 ? 'night' : 'nights'}</span>
+                              ) : (
+                                <>
+                                  <span className="font-medium">{format(dateRange.start, 'MMM do')} - {format(dateRange.end, 'MMM do')}</span>
+                                  <Badge variant="secondary" className="text-xs">
+                                    {tripDays} {tripDays === 1 ? 'day' : 'days'}
+                                  </Badge>
+                                </>
+                              )}
+                            </div>
                           ) : (
-                            <>
-                              <span>{format(dateRange.start, 'MMM do')} - {format(dateRange.end, 'MMM do')}</span>
-                              <span className="text-xs">({tripDays} {tripDays === 1 ? 'day' : 'days'})</span>
-                            </>
+                            <span className="text-muted-foreground italic">Select your travel dates</span>
                           )}
                         </div>
-                      ) : (
-                        'Dates not set'
-                      )}
+                        
+                        {/* Date Picker */}
+                        {!(wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && (
+                          <DateRangePicker
+                            startDate={dateRange.start}
+                            endDate={dateRange.end}
+                            onDateRangeChange={handleDateRangeChange}
+                          />
+                        )}
+                      </div>
                     </div>
                     
-                    {/* Date Picker */}
-                    {!(wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && (
-                      <div>
-                        <DateRangePicker
-                          startDate={dateRange.start}
-                          endDate={dateRange.end}
-                          onDateRangeChange={handleDateRangeChange}
-                        />
-                      </div>
-                    )}
-                    
-                    {/* Destinations */}
+                    {/* Destinations Section */}
                     {currentItinerary?.locations && currentItinerary.locations.length > 0 && (
-                      <div className="space-y-2 bg-muted/20 p-3 rounded-md">
-                        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1">
-                          <MapPin className="w-3 h-3" />
-                          Destinations
+                      <div className="mb-6">
+                        <div className="flex items-center gap-2 mb-3">
+                          <MapPin className="w-4 h-4 text-primary" />
+                          <span className="text-sm font-medium text-foreground">Destinations</span>
                         </div>
-                        <div className="flex flex-wrap gap-1.5">
-                          {currentItinerary.locations.map((location, index) => (
-                            <Badge key={location.id} variant="outline" className="flex items-center gap-1 text-xs px-2 py-1">
-                              <span className="w-2 h-2 bg-primary rounded-full"></span>
-                              {location.name}
-                              {location.iataCode && ` (${location.iataCode})`}
-                            </Badge>
-                          ))}
+                        <div className="bg-card/80 backdrop-blur-sm rounded-lg p-4 border border-border/30">
+                          <div className="flex flex-wrap gap-2">
+                            {currentItinerary.locations.map((location, index) => (
+                              <Badge 
+                                key={location.id} 
+                                variant="outline" 
+                                className="flex items-center gap-2 px-3 py-1.5 text-xs bg-primary/5 border-primary/20 hover:bg-primary/10 transition-colors"
+                              >
+                                <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                                <span className="font-medium">
+                                  {location.name}
+                                  {location.iataCode && <span className="text-muted-foreground ml-1">({location.iataCode})</span>}
+                                </span>
+                              </Badge>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     )}
                     
-                    {/* Action buttons */}
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsSaveDialogOpen(true)}
-                        className="flex items-center justify-center gap-1.5 text-xs"
-                      >
-                        <Save className="w-3.5 h-3.5" />
-                        Save
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsShareDialogOpen(true)}
-                        className="flex items-center justify-center gap-1.5 text-xs"
-                      >
-                        <Share2 className="w-3.5 h-3.5" />
-                        Share
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsExportDialogOpen(true)}
-                        className="flex items-center justify-center gap-1.5 text-xs"
-                      >
-                        <Download className="w-3.5 h-3.5" />
-                        Export
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          localStorage.removeItem('currentItineraryBuilder');
-                          setDateRange({ start: null, end: null });
-                          setCurrentItinerary(null);
-                          setEvents([]);
-                          setLocations([]);
-                          setIsMultiCity(false);
-                          setHasCreatedItinerary(false);
-                          setCurrentLocationSearch('');
-                          setUseLengthOfStay(false);
-                          setNumberOfNights(1);
-                          setLocationLengthOfStay({});
-                          setLocationNights({});
-                          setWasCreatedWithLengthOfStay(false);
-                        }}
-                        className="flex items-center gap-1.5 text-xs"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        New
-                      </Button>
+                    {/* Action Buttons */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-4 h-4 flex items-center justify-center">
+                          <div className="w-2 h-2 bg-primary rounded-full"></div>
+                        </div>
+                        <span className="text-sm font-medium text-foreground">Quick Actions</span>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsSaveDialogOpen(true)}
+                          className="flex items-center justify-center gap-2 h-10 bg-card/50 hover:bg-card border-border/50 hover:border-primary/30 transition-all duration-200"
+                        >
+                          <Save className="w-4 h-4" />
+                          <span className="font-medium">Save</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsShareDialogOpen(true)}
+                          className="flex items-center justify-center gap-2 h-10 bg-card/50 hover:bg-card border-border/50 hover:border-primary/30 transition-all duration-200"
+                        >
+                          <Share2 className="w-4 h-4" />
+                          <span className="font-medium">Share</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsExportDialogOpen(true)}
+                          className="flex items-center justify-center gap-2 h-10 bg-card/50 hover:bg-card border-border/50 hover:border-primary/30 transition-all duration-200"
+                        >
+                          <Download className="w-4 h-4" />
+                          <span className="font-medium">Export</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            localStorage.removeItem('currentItineraryBuilder');
+                            setDateRange({ start: null, end: null });
+                            setCurrentItinerary(null);
+                            setEvents([]);
+                            setLocations([]);
+                            setIsMultiCity(false);
+                            setHasCreatedItinerary(false);
+                            setCurrentLocationSearch('');
+                            setUseLengthOfStay(false);
+                            setNumberOfNights(1);
+                            setLocationLengthOfStay({});
+                            setLocationNights({});
+                            setWasCreatedWithLengthOfStay(false);
+                          }}
+                          className="flex items-center justify-center gap-2 h-10 bg-card/50 hover:bg-card border-border/50 hover:border-primary/30 transition-all duration-200"
+                        >
+                          <Plus className="w-4 h-4" />
+                          <span className="font-medium">New</span>
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CollapsibleContent>
@@ -1198,103 +1223,124 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
 
             {/* Desktop: Regular Card */}
             <Card className="hidden lg:block">
-              <CardHeader className="pb-4 px-6 pt-6">
-                <div className="space-y-4">
+              <CardHeader className="pb-0 px-0 pt-0">
+                <div className="bg-gradient-to-br from-primary/5 via-background to-muted/10 p-6 rounded-t-lg border-b border-border/30">
                   {/* Title and Multi-city Badge Row */}
-                  <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="flex items-center gap-2 text-xl font-semibold">
-                      <Calendar className="w-5 h-5 shrink-0 text-primary" />
+                  <div className="flex items-start justify-between gap-3 mb-6">
+                    <CardTitle className="flex items-center gap-3 text-xl font-semibold">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <Calendar className="w-5 h-5 text-primary" />
+                      </div>
                       <span className="truncate">{currentItinerary?.title}</span>
                     </CardTitle>
                     {currentItinerary?.isMultiCity && (
-                      <Badge variant="secondary" className="shrink-0 text-xs">Multi-city</Badge>
+                      <Badge variant="secondary" className="shrink-0 text-xs px-2 py-1 bg-secondary/20 border-secondary/30">
+                        Multi-city
+                      </Badge>
                     )}
                   </div>
                   
-                  {/* Date Range */}
-                  <div className="flex items-center gap-2">
-                    <div className="text-sm text-muted-foreground flex-1">
-                      {dateRange.start && dateRange.end ? (
-                        <div className="flex items-center gap-1">
-                          {wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) ? (
-                            <span>{tripDays} {tripDays === 1 ? 'night' : 'nights'}</span>
+                  {/* Date Range Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1 h-4 bg-primary rounded-full"></div>
+                      <span className="text-sm font-medium text-foreground">Travel Dates</span>
+                    </div>
+                    <div className="bg-card/60 backdrop-blur-sm rounded-lg p-4 border border-border/20">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="text-sm text-foreground">
+                          {dateRange.start && dateRange.end ? (
+                            <div className="flex items-center gap-3">
+                              {wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) ? (
+                                <span className="font-medium text-base">{tripDays} {tripDays === 1 ? 'night' : 'nights'}</span>
+                              ) : (
+                                <>
+                                  <span className="font-medium text-base">{format(dateRange.start, 'MMM do')} - {format(dateRange.end, 'MMM do')}</span>
+                                  <Badge variant="secondary" className="text-xs">
+                                    {tripDays} {tripDays === 1 ? 'day' : 'days'}
+                                  </Badge>
+                                </>
+                              )}
+                            </div>
                           ) : (
-                            <>
-                              <span>{format(dateRange.start, 'MMM do')} - {format(dateRange.end, 'MMM do')}</span>
-                              <span className="text-xs">({tripDays} {tripDays === 1 ? 'day' : 'days'})</span>
-                            </>
+                            <span className="text-muted-foreground italic">Select your travel dates</span>
                           )}
                         </div>
-                      ) : (
-                        'Dates not set'
-                      )}
-                    </div>
-                    {!(wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && (
-                      <div className="ml-auto">
-                        <DateRangePicker
-                          startDate={dateRange.start}
-                          endDate={dateRange.end}
-                          onDateRangeChange={handleDateRangeChange}
-                        />
+                        {!(wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && (
+                          <DateRangePicker
+                            startDate={dateRange.start}
+                            endDate={dateRange.end}
+                            onDateRangeChange={handleDateRangeChange}
+                          />
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
                   
-                  {/* Destinations */}
+                  {/* Destinations Section */}
                   {currentItinerary?.locations && currentItinerary.locations.length > 0 && (
-                    <div className="space-y-2 bg-muted/20 p-3 rounded-md">
-                      <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        Destinations
+                    <div className="space-y-4 mt-6">
+                      <div className="flex items-center gap-2">
+                        <div className="w-1 h-4 bg-primary rounded-full"></div>
+                        <span className="text-sm font-medium text-foreground">Destinations</span>
                       </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {currentItinerary.locations.map((location, index) => (
-                          <Badge key={location.id} variant="outline" className="flex items-center gap-1 text-xs px-2 py-1">
-                            <span className="w-2 h-2 bg-primary rounded-full"></span>
-                            {location.name}
-                            {location.iataCode && ` (${location.iataCode})`}
-                          </Badge>
-                        ))}
+                      <div className="bg-card/60 backdrop-blur-sm rounded-lg p-4 border border-border/20">
+                        <div className="flex flex-wrap gap-2">
+                          {currentItinerary.locations.map((location, index) => (
+                            <Badge 
+                              key={location.id} 
+                              variant="outline" 
+                              className="flex items-center gap-2 px-3 py-2 text-sm bg-primary/5 border-primary/20 hover:bg-primary/10 transition-colors"
+                            >
+                              <div className="w-2 h-2 bg-primary rounded-full"></div>
+                              <span className="font-medium">
+                                {location.name}
+                                {location.iataCode && <span className="text-muted-foreground ml-1">({location.iataCode})</span>}
+                              </span>
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   )}
                 </div>
               </CardHeader>
-              <CardContent className="pt-0 px-6 pb-6">
-                {/* Action buttons */}
-                <div className="grid grid-cols-2 gap-3">
-                  {/* Save & Share Group */}
-                  <div className="flex gap-1">
+              
+              <CardContent className="p-6">
+                {/* Action Buttons Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1 h-4 bg-primary rounded-full"></div>
+                    <span className="text-sm font-medium text-foreground">Quick Actions</span>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setIsSaveDialogOpen(true)}
-                      className="flex items-center justify-center gap-1.5 text-xs flex-1"
+                      className="flex items-center justify-center gap-2 h-11 bg-card/30 hover:bg-card border-border/50 hover:border-primary/30 transition-all duration-200"
                     >
-                      <Save className="w-3.5 h-3.5" />
-                      <span>Save</span>
+                      <Save className="w-4 h-4" />
+                      <span className="font-medium">Save</span>
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setIsShareDialogOpen(true)}
-                      className="flex items-center justify-center gap-1.5 text-xs flex-1"
+                      className="flex items-center justify-center gap-2 h-11 bg-card/30 hover:bg-card border-border/50 hover:border-primary/30 transition-all duration-200"
                     >
-                      <Share2 className="w-3.5 h-3.5" />
-                      <span>Share</span>
+                      <Share2 className="w-4 h-4" />
+                      <span className="font-medium">Share</span>
                     </Button>
-                  </div>
-                  
-                  {/* Export & New Group */}
-                  <div className="flex gap-1">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setIsExportDialogOpen(true)}
-                      className="flex items-center justify-center gap-1.5 text-xs flex-1"
+                      className="flex items-center justify-center gap-2 h-11 bg-card/30 hover:bg-card border-border/50 hover:border-primary/30 transition-all duration-200"
                     >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>Export</span>
+                      <Download className="w-4 h-4" />
+                      <span className="font-medium">Export</span>
                     </Button>
                     <Button
                       variant="outline"
@@ -1314,10 +1360,10 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                         setLocationNights({});
                         setWasCreatedWithLengthOfStay(false);
                       }}
-                      className="flex items-center gap-1.5 text-xs flex-1"
+                      className="flex items-center justify-center gap-2 h-11 bg-card/30 hover:bg-card border-border/50 hover:border-primary/30 transition-all duration-200"
                     >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>New</span>
+                      <Plus className="w-4 h-4" />
+                      <span className="font-medium">New</span>
                     </Button>
                   </div>
                 </div>
