@@ -400,7 +400,7 @@ export default function MobileSearchRestaurantDetailsPage() {
               {/* Cuisine and Categories */}
               <div className="flex flex-wrap gap-2">
                 {!isEnhancingWithAI && (() => {
-                  const cuisine = restaurant.aiAnalysis?.cuisine || restaurant.fallbackCuisine || restaurant.types.find(type => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 'Restaurant';
+                  const cuisine = restaurant.aiAnalysis?.cuisine || restaurant.fallbackCuisine || restaurant.types?.find(type => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 'Restaurant';
                   return <Badge variant="outline">
                       {cuisine}
                     </Badge>;
