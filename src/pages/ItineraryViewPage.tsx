@@ -228,7 +228,7 @@ export function ItineraryViewPage() {
             .map(([date, events], dayIndex) => (
               <div key={date} className="relative">
                 {/* Timeline Day Header */}
-                <div className="sticky top-20 z-10 mb-4">
+                <div className="sticky top-20 z-10 mb-2">
                   <button
                     onClick={() => toggleDay(date)}
                     className="w-full bg-card/95 backdrop-blur-md rounded-xl border border-border/60 shadow-sm p-4 hover:bg-accent/5 transition-colors"
