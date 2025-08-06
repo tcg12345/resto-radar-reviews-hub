@@ -1,6 +1,14 @@
 import { useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+
+// Google Calendar API types
+declare global {
+  interface Window {
+    gapi: any;
+  }
+}
 
 export interface CalendarEvent {
   id: string;
@@ -12,6 +20,16 @@ export interface CalendarEvent {
   allDay?: boolean;
 }
 
+// Google Calendar API types
+interface GoogleCalendarEvent {
+  id: string;
+  summary: string;
+  start: { dateTime?: string; date?: string };
+  end: { dateTime?: string; date?: string };
+  location?: string;
+  description?: string;
+}
+
 export function useCalendarAccess() {
   const [isLoading, setIsLoading] = useState(false);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -21,37 +39,8 @@ export function useCalendarAccess() {
     
     try {
       if (!Capacitor.isNativePlatform()) {
-        // For web, show mock data for demonstration
-        const mockEvents: CalendarEvent[] = [
-          {
-            id: '1',
-            title: 'Flight to Paris',
-            startDate: new Date(2024, 11, 15, 10, 0),
-            endDate: new Date(2024, 11, 15, 15, 0),
-            location: 'Airport',
-            notes: 'Flight confirmation: AF123'
-          },
-          {
-            id: '2',
-            title: 'Hotel Check-in',
-            startDate: new Date(2024, 11, 15, 16, 0),
-            endDate: new Date(2024, 11, 15, 17, 0),
-            location: 'Hotel de Paris, 123 Rue de Rivoli',
-            notes: 'Booking reference: HTL456'
-          },
-          {
-            id: '3',
-            title: 'Dinner Reservation',
-            startDate: new Date(2024, 11, 15, 19, 30),
-            endDate: new Date(2024, 11, 15, 21, 30),
-            location: 'Le Comptoir du Relais',
-            notes: 'Table for 2, mention dietary restrictions'
-          }
-        ];
-        
-        setEvents(mockEvents);
-        toast.info('Demo calendar events loaded (mobile app will show real calendar data)');
-        return mockEvents;
+        // For web, use Google Calendar API
+        return await requestGoogleCalendarAccess(startDate);
       }
 
       try {
@@ -103,7 +92,97 @@ export function useCalendarAccess() {
     }
   };
 
-  const isCalendarAvailable = Capacitor.isNativePlatform();
+  const requestGoogleCalendarAccess = async (startDate?: Date): Promise<CalendarEvent[]> => {
+    try {
+      // Get API credentials from Supabase secrets
+      const { data: secrets, error } = await supabase.functions.invoke('get-google-calendar-credentials');
+      
+      if (error || !secrets?.apiKey || !secrets?.clientId) {
+        toast.error('Google Calendar API credentials not configured');
+        return [];
+      }
+
+      // Load Google APIs
+      await new Promise((resolve, reject) => {
+        if (typeof window.gapi !== 'undefined') {
+          resolve(window.gapi);
+          return;
+        }
+
+        const script = document.createElement('script');
+        script.src = 'https://apis.google.com/js/api.js';
+        script.onload = () => resolve(window.gapi);
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+
+      // Initialize Google API
+      await new Promise<void>((resolve) => {
+        window.gapi.load('client:auth2', resolve);
+      });
+
+      await window.gapi.client.init({
+        apiKey: secrets.apiKey,
+        clientId: secrets.clientId,
+        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
+        scope: 'https://www.googleapis.com/auth/calendar.readonly'
+      });
+
+      // Check if user is already signed in
+      const authInstance = window.gapi.auth2.getAuthInstance();
+      if (!authInstance.isSignedIn.get()) {
+        const user = await authInstance.signIn();
+        if (!user.isSignedIn()) {
+          toast.error('Google Calendar sign-in cancelled');
+          return [];
+        }
+      }
+
+      // Calculate date range
+      const searchStartDate = startDate || new Date();
+      const searchEndDate = new Date(searchStartDate);
+      searchEndDate.setDate(searchEndDate.getDate() + 30);
+
+      // Fetch calendar events
+      const response = await window.gapi.client.calendar.events.list({
+        calendarId: 'primary',
+        timeMin: searchStartDate.toISOString(),
+        timeMax: searchEndDate.toISOString(),
+        showDeleted: false,
+        singleEvents: true,
+        orderBy: 'startTime'
+      });
+
+      const googleEvents: GoogleCalendarEvent[] = response.result.items || [];
+      
+      const formattedEvents: CalendarEvent[] = googleEvents.map(event => {
+        const startDateTime = event.start.dateTime || event.start.date;
+        const endDateTime = event.end.dateTime || event.end.date;
+        const isAllDay = !event.start.dateTime;
+
+        return {
+          id: event.id,
+          title: event.summary || 'Untitled Event',
+          startDate: new Date(startDateTime!),
+          endDate: new Date(endDateTime!),
+          location: event.location,
+          notes: event.description,
+          allDay: isAllDay
+        };
+      });
+
+      setEvents(formattedEvents);
+      toast.success(`Imported ${formattedEvents.length} events from Google Calendar!`);
+      return formattedEvents;
+
+    } catch (error) {
+      console.error('Google Calendar API error:', error);
+      toast.error('Failed to access Google Calendar. Please try again.');
+      return [];
+    }
+  };
+
+  const isCalendarAvailable = true; // Both native and web support
 
   return {
     requestCalendarAccess,
