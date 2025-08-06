@@ -171,11 +171,9 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
                           >
                             <Plus className="w-4 h-4" />
                           </Button>
-                          {dayEvents.length > 0 && (
-                            <ChevronDown 
-                              className="w-4 h-4 transition-transform rotate-180" 
-                            />
-                          )}
+                          <ChevronDown 
+                            className="w-4 h-4 transition-transform rotate-180" 
+                          />
                         </div>
                       </div>
                     ) : (
@@ -187,9 +185,7 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
                               : `Day ${index + 1} - ${format(day, 'EEEE, MMMM do')}`
                             }
                           </CardTitle>
-                          {dayEvents.length > 0 && (
-                            <ChevronDown className="w-4 h-4 transition-transform" />
-                          )}
+                          <ChevronDown className="w-4 h-4 transition-transform" />
                         </div>
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
