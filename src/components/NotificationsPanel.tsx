@@ -248,51 +248,71 @@ export function NotificationsPanel() {
     
     // Get the notification to find the itinerary data
     const notification = notifications.find(n => n.id === notificationId);
-    if (!notification?.data?.itinerary) return;
+    if (!notification?.data) return;
     
     try {
-      // Parse the shared itinerary data
-      const sharedItinerary = typeof notification.data.itinerary === 'string' 
-        ? JSON.parse(notification.data.itinerary)
-        : notification.data.itinerary;
-      
-      // Convert dates to Date objects
-      const itineraryForStorage = {
-        ...sharedItinerary,
-        id: `shared_${notificationId}`, // Create a unique ID for the shared itinerary
-        startDate: new Date(sharedItinerary.startDate),
-        endDate: new Date(sharedItinerary.endDate),
-        locations: sharedItinerary.locations?.map((loc: any) => ({
-          ...loc,
-          startDate: loc.startDate ? new Date(loc.startDate) : undefined,
-          endDate: loc.endDate ? new Date(loc.endDate) : undefined,
-        })) || [],
-        isShared: true // Mark it as shared
-      };
-      
-      // Get existing saved itineraries
-      const existing = localStorage.getItem('savedItineraries');
-      const existingItineraries = existing ? JSON.parse(existing) : [];
-      
-      // Check if this shared itinerary already exists
-      const existingIndex = existingItineraries.findIndex((it: any) => it.id === itineraryForStorage.id);
-      
-      if (existingIndex >= 0) {
-        // Update existing
-        existingItineraries[existingIndex] = itineraryForStorage;
-      } else {
-        // Add new shared itinerary
-        existingItineraries.push(itineraryForStorage);
+      // Check if we have the new format with itinerary_url (direct link)
+      if (notification.data.itinerary_url) {
+        // Extract the itinerary ID from the URL and navigate directly
+        const url = new URL(notification.data.itinerary_url);
+        const pathParts = url.pathname.split('/');
+        const itineraryId = pathParts[pathParts.length - 1];
+        
+        if (itineraryId) {
+          navigate(`/itinerary/${itineraryId}`);
+          setOpen(false);
+          return;
+        }
       }
       
-      // Save back to localStorage
-      localStorage.setItem('savedItineraries', JSON.stringify(existingItineraries));
+      // Fallback for old format with full itinerary object
+      if (notification.data.itinerary) {
+        // Parse the shared itinerary data
+        const sharedItinerary = typeof notification.data.itinerary === 'string' 
+          ? JSON.parse(notification.data.itinerary)
+          : notification.data.itinerary;
+        
+        // Convert dates to Date objects
+        const itineraryForStorage = {
+          ...sharedItinerary,
+          id: `shared_${notificationId}`, // Create a unique ID for the shared itinerary
+          startDate: new Date(sharedItinerary.startDate),
+          endDate: new Date(sharedItinerary.endDate),
+          locations: sharedItinerary.locations?.map((loc: any) => ({
+            ...loc,
+            startDate: loc.startDate ? new Date(loc.startDate) : undefined,
+            endDate: loc.endDate ? new Date(loc.endDate) : undefined,
+          })) || [],
+          isShared: true // Mark it as shared
+        };
+        
+        // Get existing saved itineraries
+        const existing = localStorage.getItem('savedItineraries');
+        const existingItineraries = existing ? JSON.parse(existing) : [];
+        
+        // Check if this shared itinerary already exists
+        const existingIndex = existingItineraries.findIndex((it: any) => it.id === itineraryForStorage.id);
+        
+        if (existingIndex >= 0) {
+          // Update existing
+          existingItineraries[existingIndex] = itineraryForStorage;
+        } else {
+          // Add new shared itinerary
+          existingItineraries.push(itineraryForStorage);
+        }
+        
+        // Save back to localStorage
+        localStorage.setItem('savedItineraries', JSON.stringify(existingItineraries));
+        
+        // Navigate to the unified itinerary view
+        navigate(`/itinerary/${itineraryForStorage.id}`);
+        setOpen(false);
+        return;
+      }
       
-      // Navigate to the unified itinerary view
-      navigate(`/itinerary/${itineraryForStorage.id}`);
-      setOpen(false);
+      toast.error('Could not load itinerary');
     } catch (error) {
-      console.error('Error parsing itinerary data:', error);
+      console.error('Error loading itinerary:', error);
       toast.error('Failed to load itinerary');
     }
   };
@@ -528,16 +548,16 @@ export function NotificationsPanel() {
                         <div className="bg-background rounded-md md:rounded-lg border p-2 md:p-3 shadow-sm w-full">
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-foreground text-xs md:text-sm truncate">
-                                {(() => {
-                                  try {
-                                    const itinerary = JSON.parse(notification.data?.itinerary || '{}');
-                                    return itinerary.title || 'Travel Itinerary';
-                                  } catch {
-                                    return 'Travel Itinerary';
-                                  }
-                                })()}
-                              </h4>
+                               <h4 className="font-semibold text-foreground text-xs md:text-sm truncate">
+                                 {notification.data?.itinerary_title || (() => {
+                                   try {
+                                     const itinerary = JSON.parse(notification.data?.itinerary || '{}');
+                                     return itinerary.title || 'Travel Itinerary';
+                                   } catch {
+                                     return 'Travel Itinerary';
+                                   }
+                                 })()}
+                               </h4>
                               <p className="text-xs text-muted-foreground truncate mt-0.5">
                                 Travel plan shared with you
                               </p>
