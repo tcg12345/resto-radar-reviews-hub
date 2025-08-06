@@ -379,16 +379,6 @@ export default function MobileSearchRestaurantDetailsPage() {
             <div className="absolute top-3 right-3 bg-black/70 text-white px-2 py-1 rounded-md text-sm">
               View more photos
             </div>
-            {/* Show "Shared by" attribution for community photos */}
-            {!restaurant.photos?.length && !restaurant.yelpData?.photos?.length && 
-             communityStats?.recentPhotos && communityStats.recentPhotos.length > 0 && (
-              <div className="absolute bottom-3 left-3 bg-black/70 text-white px-2 py-1 rounded-md text-sm flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-primary flex items-center justify-center">
-                  <span className="text-xs text-primary-foreground">👤</span>
-                </div>
-                Shared by {communityStats.recentPhotos[0].username}
-              </div>
-            )}
           </div>
         )}
 
