@@ -39,7 +39,12 @@ export function useCalendarAccess() {
     setIsLoading(true);
     
     try {
+      console.log('Calendar access requested');
+      console.log('Capacitor.isNativePlatform():', Capacitor.isNativePlatform());
+      console.log('Platform info:', Capacitor.getPlatform());
+      
       if (!Capacitor.isNativePlatform()) {
+        console.log('Web platform detected, using Google Calendar API');
         // For web, use Google Calendar API
         return await requestGoogleCalendarAccess(startDate);
       }
