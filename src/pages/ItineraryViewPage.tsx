@@ -218,165 +218,216 @@ export function ItineraryViewPage() {
           {Object.entries(groupedEvents)
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([date, events], dayIndex) => (
-              <Card key={date} className="overflow-hidden border-border shadow-md bg-card">
+              <div className="bg-gradient-to-r from-muted/30 to-muted/10 rounded-2xl border border-border/50 shadow-lg backdrop-blur-sm">
                 {/* Day Header */}
-                <div className="bg-muted/50 border-b border-border px-6 py-4">
+                <div className="p-6 border-b border-border/30">
                   <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-semibold text-lg text-foreground">
+                    <div className="space-y-1">
+                      <h4 className="text-xl font-bold text-foreground">
                         {itinerary.wasCreatedWithLengthOfStay ? (
                           `Day ${dayIndex + 1}`
                         ) : (
                           `Day ${dayIndex + 1} - ${format(new Date(date), 'EEEE, MMMM do')}`
                         )}
                       </h4>
-                      <p className="text-sm text-muted-foreground mt-1">
+                      <p className="text-muted-foreground">
                         {events.length} {events.length === 1 ? 'event' : 'events'} planned
                       </p>
                     </div>
-                    <Badge variant="outline" className="text-xs">
+                    <div className="bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium border border-primary/20">
                       {events.length} events
-                    </Badge>
+                    </div>
                   </div>
                 </div>
 
-                <CardContent className="p-0">
-                  <div className="divide-y divide-border">
-                    {events
-                      .sort((a, b) => a.time.localeCompare(b.time))
-                      .map((event, index) => {
-                        const EventIcon = getEventIcon(event.type);
-                        return (
-                          <div key={event.id} className="p-6 hover:bg-muted/30 transition-colors">
-                            <div className="flex gap-4">
-                              {/* Time Badge */}
+                {/* Events List */}
+                <div className="p-6 space-y-6">
+                  {events
+                    .sort((a, b) => a.time.localeCompare(b.time))
+                    .map((event, index) => {
+                      const EventIcon = getEventIcon(event.type);
+                      return (
+                        <div key={event.id} className="group">
+                          {/* Event Card */}
+                          <div className="bg-card rounded-xl border border-border/50 p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:border-primary/30">
+                            <div className="flex gap-5">
+                              {/* Time Display */}
                               <div className="flex-shrink-0">
-                                <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary-glow rounded-2xl flex flex-col items-center justify-center text-primary-foreground shadow-md">
-                                  <div className="text-xs font-medium">{event.time.split(':')[0]}</div>
+                                <div className="w-20 h-20 bg-gradient-to-br from-primary via-primary-glow to-accent rounded-2xl flex flex-col items-center justify-center text-primary-foreground shadow-lg">
+                                  <div className="text-sm font-bold">{event.time.split(':')[0]}</div>
                                   <div className="text-xs opacity-90">{event.time.split(':')[1]}</div>
                                 </div>
                               </div>
                               
-                              <div className="flex-1 min-w-0 space-y-3">
+                              <div className="flex-1 space-y-4">
                                 {/* Event Header */}
-                                <div className="flex items-start justify-between gap-4">
-                                  <div className="space-y-2">
-                                    <div className="flex items-center gap-3">
-                                      <h5 className="font-semibold text-foreground text-lg">{event.title}</h5>
-                                      <Badge className={`text-xs ${getEventTypeColor(event.type)}`}>
-                                        <EventIcon className="w-3 h-3 mr-1" />
-                                        {event.type}
-                                      </Badge>
+                                <div className="space-y-3">
+                                  <div className="flex items-start justify-between gap-4">
+                                    <h5 className="text-xl font-semibold text-foreground group-hover:text-primary transition-colors">
+                                      {event.title}
+                                    </h5>
+                                    <div className={`px-3 py-1.5 rounded-full text-xs font-medium border ${getEventTypeColor(event.type)}`}>
+                                      <EventIcon className="w-3 h-3 mr-1.5 inline" />
+                                      {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
                                     </div>
-                                    {event.description && (
-                                      <p className="text-muted-foreground leading-relaxed">{event.description}</p>
-                                    )}
                                   </div>
+                                  
+                                  {event.description && (
+                                    <div className="bg-muted/30 rounded-lg p-4 border border-border/30">
+                                      <p className="text-muted-foreground leading-relaxed">{event.description}</p>
+                                    </div>
+                                  )}
                                 </div>
 
                                 {/* Restaurant Details */}
                                 {event.restaurantData && (
-                                  <Card className="bg-success/5 border-success/20">
-                                    <CardContent className="p-4 space-y-3">
-                                      <div className="flex items-center gap-2 mb-3">
+                                  <div className="bg-gradient-to-r from-success/5 to-success/10 rounded-xl border border-success/20 p-5 space-y-4">
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-8 h-8 bg-success/20 rounded-lg flex items-center justify-center">
                                         <Utensils className="w-4 h-4 text-success" />
-                                        <h6 className="font-medium text-success">Restaurant Details</h6>
                                       </div>
-                                      
-                                      <div className="grid gap-3">
-                                        {event.restaurantData.address && (
-                                          <div className="flex items-start gap-3">
-                                            <MapPin className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
-                                            <span className="text-sm text-foreground">{event.restaurantData.address}</span>
+                                      <h6 className="font-semibold text-success text-lg">Restaurant Information</h6>
+                                    </div>
+                                    
+                                    <div className="grid gap-4">
+                                      {event.restaurantData.address && (
+                                        <div className="flex items-start gap-4 p-3 bg-card/50 rounded-lg border border-success/10">
+                                          <div className="w-6 h-6 bg-success/20 rounded-md flex items-center justify-center mt-0.5">
+                                            <MapPin className="w-3.5 h-3.5 text-success" />
                                           </div>
-                                        )}
-                                        
+                                          <div>
+                                            <div className="text-xs font-medium text-success mb-1">Address</div>
+                                            <div className="text-sm text-foreground">{event.restaurantData.address}</div>
+                                          </div>
+                                        </div>
+                                      )}
+                                      
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {event.restaurantData.phone && (
-                                          <div className="flex items-center gap-3">
-                                            <Phone className="w-4 h-4 text-success" />
-                                            <a 
-                                              href={`tel:${event.restaurantData.phone}`}
-                                              className="text-sm text-primary hover:text-primary/80 transition-colors"
-                                            >
-                                              {event.restaurantData.phone}
-                                            </a>
+                                          <div className="flex items-center gap-4 p-3 bg-card/50 rounded-lg border border-success/10">
+                                            <div className="w-6 h-6 bg-success/20 rounded-md flex items-center justify-center">
+                                              <Phone className="w-3.5 h-3.5 text-success" />
+                                            </div>
+                                            <div>
+                                              <div className="text-xs font-medium text-success mb-1">Phone</div>
+                                              <a 
+                                                href={`tel:${event.restaurantData.phone}`}
+                                                className="text-sm text-primary hover:text-primary/80 transition-colors font-medium"
+                                              >
+                                                {event.restaurantData.phone}
+                                              </a>
+                                            </div>
                                           </div>
                                         )}
                                         
                                         {event.restaurantData.website && (
-                                          <div className="flex items-center gap-3">
-                                            <ExternalLink className="w-4 h-4 text-success" />
-                                            <a 
-                                              href={event.restaurantData.website}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="text-sm text-primary hover:text-primary/80 transition-colors hover:underline"
-                                            >
-                                              Visit Website
-                                            </a>
+                                          <div className="flex items-center gap-4 p-3 bg-card/50 rounded-lg border border-success/10">
+                                            <div className="w-6 h-6 bg-success/20 rounded-md flex items-center justify-center">
+                                              <ExternalLink className="w-3.5 h-3.5 text-success" />
+                                            </div>
+                                            <div>
+                                              <div className="text-xs font-medium text-success mb-1">Website</div>
+                                              <a 
+                                                href={event.restaurantData.website}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-sm text-primary hover:text-primary/80 transition-colors font-medium hover:underline"
+                                              >
+                                                Visit Website
+                                              </a>
+                                            </div>
                                           </div>
                                         )}
                                       </div>
-                                    </CardContent>
-                                  </Card>
+                                    </div>
+                                  </div>
                                 )}
 
                                 {/* Attraction Details */}
                                 {event.attractionData && (
-                                  <Card className="bg-primary/5 border-primary/20">
-                                    <CardContent className="p-4 space-y-3">
-                                      <div className="flex items-center gap-2 mb-3">
+                                  <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl border border-primary/20 p-5 space-y-4">
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center">
                                         <Camera className="w-4 h-4 text-primary" />
-                                        <h6 className="font-medium text-primary">Attraction Details</h6>
                                       </div>
-                                      
-                                      <div className="grid gap-3">
-                                        {event.attractionData.address && (
-                                          <div className="flex items-start gap-3">
-                                            <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                                            <span className="text-sm text-foreground">{event.attractionData.address}</span>
+                                      <h6 className="font-semibold text-primary text-lg">Attraction Information</h6>
+                                    </div>
+                                    
+                                    <div className="grid gap-4">
+                                      {event.attractionData.address && (
+                                        <div className="flex items-start gap-4 p-3 bg-card/50 rounded-lg border border-primary/10">
+                                          <div className="w-6 h-6 bg-primary/20 rounded-md flex items-center justify-center mt-0.5">
+                                            <MapPin className="w-3.5 h-3.5 text-primary" />
                                           </div>
-                                        )}
-                                        
+                                          <div>
+                                            <div className="text-xs font-medium text-primary mb-1">Address</div>
+                                            <div className="text-sm text-foreground">{event.attractionData.address}</div>
+                                          </div>
+                                        </div>
+                                      )}
+                                      
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {event.attractionData.category && (
-                                          <div className="flex items-center gap-3">
-                                            <Users className="w-4 h-4 text-primary" />
-                                            <span className="text-sm text-foreground">{event.attractionData.category}</span>
+                                          <div className="flex items-center gap-4 p-3 bg-card/50 rounded-lg border border-primary/10">
+                                            <div className="w-6 h-6 bg-primary/20 rounded-md flex items-center justify-center">
+                                              <Users className="w-3.5 h-3.5 text-primary" />
+                                            </div>
+                                            <div>
+                                              <div className="text-xs font-medium text-primary mb-1">Category</div>
+                                              <div className="text-sm text-foreground">{event.attractionData.category}</div>
+                                            </div>
                                           </div>
                                         )}
                                         
                                         {event.attractionData.rating && (
-                                          <div className="flex items-center gap-3">
-                                            <Star className="w-4 h-4 text-warning fill-current" />
-                                            <span className="text-sm text-foreground">{event.attractionData.rating}/10</span>
+                                          <div className="flex items-center gap-4 p-3 bg-card/50 rounded-lg border border-primary/10">
+                                            <div className="w-6 h-6 bg-warning/20 rounded-md flex items-center justify-center">
+                                              <Star className="w-3.5 h-3.5 text-warning fill-current" />
+                                            </div>
+                                            <div>
+                                              <div className="text-xs font-medium text-primary mb-1">Rating</div>
+                                              <div className="text-sm text-foreground font-medium">{event.attractionData.rating}/10</div>
+                                            </div>
                                           </div>
                                         )}
                                         
                                         {event.attractionData.website && (
-                                          <div className="flex items-center gap-3">
-                                            <ExternalLink className="w-4 h-4 text-primary" />
-                                            <a 
-                                              href={event.attractionData.website}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="text-sm text-primary hover:text-primary/80 transition-colors hover:underline"
-                                            >
-                                              Visit Website
-                                            </a>
+                                          <div className="flex items-center gap-4 p-3 bg-card/50 rounded-lg border border-primary/10 md:col-span-2">
+                                            <div className="w-6 h-6 bg-primary/20 rounded-md flex items-center justify-center">
+                                              <ExternalLink className="w-3.5 h-3.5 text-primary" />
+                                            </div>
+                                            <div>
+                                              <div className="text-xs font-medium text-primary mb-1">Website</div>
+                                              <a 
+                                                href={event.attractionData.website}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-sm text-primary hover:text-primary/80 transition-colors font-medium hover:underline"
+                                              >
+                                                Visit Website
+                                              </a>
+                                            </div>
                                           </div>
                                         )}
                                       </div>
-                                    </CardContent>
-                                  </Card>
+                                    </div>
+                                  </div>
                                 )}
                               </div>
                             </div>
                           </div>
-                        );
-                      })}
-                  </div>
-                </CardContent>
-              </Card>
+                          
+                          {/* Event Connector Line */}
+                          {index < events.length - 1 && (
+                            <div className="flex justify-center my-4">
+                              <div className="w-px h-6 bg-gradient-to-b from-border to-transparent"></div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
             ))}
         </div>
       </div>
