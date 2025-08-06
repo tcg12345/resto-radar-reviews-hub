@@ -251,8 +251,45 @@ export function NotificationsPanel() {
     if (!notification?.data?.itinerary) return;
     
     try {
-      const itineraryData = encodeURIComponent(notification.data.itinerary);
-      navigate(`/shared-itinerary?data=${itineraryData}`);
+      // Parse the shared itinerary data
+      const sharedItinerary = typeof notification.data.itinerary === 'string' 
+        ? JSON.parse(notification.data.itinerary)
+        : notification.data.itinerary;
+      
+      // Convert dates to Date objects
+      const itineraryForStorage = {
+        ...sharedItinerary,
+        id: `shared_${notificationId}`, // Create a unique ID for the shared itinerary
+        startDate: new Date(sharedItinerary.startDate),
+        endDate: new Date(sharedItinerary.endDate),
+        locations: sharedItinerary.locations?.map((loc: any) => ({
+          ...loc,
+          startDate: loc.startDate ? new Date(loc.startDate) : undefined,
+          endDate: loc.endDate ? new Date(loc.endDate) : undefined,
+        })) || [],
+        isShared: true // Mark it as shared
+      };
+      
+      // Get existing saved itineraries
+      const existing = localStorage.getItem('savedItineraries');
+      const existingItineraries = existing ? JSON.parse(existing) : [];
+      
+      // Check if this shared itinerary already exists
+      const existingIndex = existingItineraries.findIndex((it: any) => it.id === itineraryForStorage.id);
+      
+      if (existingIndex >= 0) {
+        // Update existing
+        existingItineraries[existingIndex] = itineraryForStorage;
+      } else {
+        // Add new shared itinerary
+        existingItineraries.push(itineraryForStorage);
+      }
+      
+      // Save back to localStorage
+      localStorage.setItem('savedItineraries', JSON.stringify(existingItineraries));
+      
+      // Navigate to the unified itinerary view
+      navigate(`/itinerary/${itineraryForStorage.id}`);
       setOpen(false);
     } catch (error) {
       console.error('Error parsing itinerary data:', error);
