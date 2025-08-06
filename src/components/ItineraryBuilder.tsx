@@ -1463,8 +1463,7 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                   </CardHeader>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <CardContent className="p-8 bg-gradient-to-br from-background via-muted/10 to-secondary/5">
-                    <div className="space-y-8">
+                  <CardContent className="space-y-4 lg:space-y-6 pt-0 px-4 pb-4 lg:px-6 lg:pb-6">
                     {/* Mode conversion toggle for length-of-stay trips */}
                     {(useLengthOfStay || wasCreatedWithLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && (
                       <div className="flex items-center justify-between p-3 bg-accent/30 rounded-lg">
@@ -2118,8 +2117,6 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
         onClose={() => setIsExportDialogOpen(false)}
         itinerary={currentItinerary}
       />
-                    </div>
-                  </CardContent>
 
       {/* Save Dialog */}
       <SaveItineraryDialog
