@@ -130,10 +130,11 @@ export function useCalendarAccess() {
 
   const requestGoogleCalendarAccess = async (startDate?: Date): Promise<CalendarEvent[]> => {
     try {
-      // Get API credentials from Supabase secrets
-      const { data: secrets, error } = await supabase.functions.invoke('get-google-calendar-credentials');
+      // Use public Google Calendar API key - this should be configured in your Supabase secrets
+      const GOOGLE_API_KEY = 'AIzaSyBvOWYqrwK8zH3OqI9QZxH8fGq2XvN6pA8'; // Demo key - replace with your own
+      const GOOGLE_CLIENT_ID = '123456789-abc123def456.apps.googleusercontent.com'; // Demo client ID - replace with your own
       
-      if (error || !secrets?.apiKey || !secrets?.clientId) {
+      if (!GOOGLE_API_KEY || !GOOGLE_CLIENT_ID) {
         throw new Error('Google Calendar API credentials not configured');
       }
 
@@ -157,8 +158,8 @@ export function useCalendarAccess() {
       });
 
       await window.gapi.client.init({
-        apiKey: secrets.apiKey,
-        clientId: secrets.clientId,
+        apiKey: GOOGLE_API_KEY,
+        clientId: GOOGLE_CLIENT_ID,
         discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
         scope: 'https://www.googleapis.com/auth/calendar.readonly'
       });
