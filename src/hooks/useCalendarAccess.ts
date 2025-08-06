@@ -37,33 +37,42 @@ export function useCalendarAccess() {
 
   const requestCalendarAccess = async (startDate?: Date): Promise<CalendarEvent[]> => {
     setIsLoading(true);
+    console.log('🗓️ Calendar access requested');
     
     try {
       // Always try native calendar first, regardless of platform detection
-      console.log('Attempting native calendar access...');
+      console.log('🔍 Attempting native calendar access...');
       
       try {
+        console.log('📱 Importing Capacitor Calendar plugin...');
         const { CapacitorCalendar } = await import('@ebarooni/capacitor-calendar');
-        console.log('Capacitor Calendar plugin imported successfully');
+        console.log('✅ Capacitor Calendar plugin imported successfully');
         
+        console.log('🔐 Requesting calendar permissions...');
         const permission = await CapacitorCalendar.requestFullCalendarAccess();
-        console.log('Permission result:', permission);
+        console.log('📋 Permission result:', permission);
         
         if (permission.result !== 'granted') {
-          throw new Error(`Calendar permission denied: ${permission.result}`);
+          const errorMsg = `Calendar permission denied: ${permission.result}`;
+          console.error('❌', errorMsg);
+          throw new Error(errorMsg);
         }
         
         const searchStartDate = startDate || new Date();
         const searchEndDate = new Date(searchStartDate);
         searchEndDate.setDate(searchEndDate.getDate() + 30);
         
-        console.log('Fetching calendar events...');
+        console.log('📅 Fetching calendar events from', searchStartDate.toLocaleDateString(), 'to', searchEndDate.toLocaleDateString());
         const result = await CapacitorCalendar.listEventsInRange({
           from: searchStartDate.getTime(),
           to: searchEndDate.getTime()
         });
         
-        console.log('Calendar events result:', result);
+        console.log('📊 Calendar events result:', result);
+        
+        if (!result || !result.result) {
+          throw new Error('Invalid calendar response structure');
+        }
         
         const formattedEvents: CalendarEvent[] = result.result.map(event => ({
           id: event.id,
@@ -75,24 +84,39 @@ export function useCalendarAccess() {
           allDay: event.isAllDay
         }));
         
+        console.log(`✅ Successfully formatted ${formattedEvents.length} calendar events`);
         setEvents(formattedEvents);
         toast.success(`Found ${formattedEvents.length} calendar events from device!`);
         return formattedEvents;
         
-      } catch (nativeError) {
-        console.log('Native calendar failed, trying web fallback:', nativeError);
+      } catch (nativeError: any) {
+        console.error('❌ Native calendar failed:', nativeError);
+        console.error('Error details:', {
+          message: nativeError.message,
+          stack: nativeError.stack,
+          name: nativeError.name
+        });
         
         // Only fallback to web if we're actually on web
         if (!Capacitor.isNativePlatform()) {
+          console.log('🌐 Falling back to Google Calendar...');
           return await requestGoogleCalendarAccess(startDate);
         } else {
           // On native platform, show the error instead of demo events
-          throw new Error(`Native calendar access failed: ${nativeError.message}. Make sure you've run 'npx cap sync' to sync the calendar plugin.`);
+          const errorMsg = `Native calendar failed: ${nativeError.message}. 
+
+Common fixes:
+1. Run 'npx cap sync' in terminal
+2. In Xcode, check that NSCalendarsUsageDescription is in Info.plist  
+3. Make sure the calendar plugin is properly installed`;
+          
+          toast.error(errorMsg);
+          throw new Error(errorMsg);
         }
       }
-    } catch (error) {
-      console.error('Calendar access error:', error);
-      toast.error('Unable to access calendar: ' + error);
+    } catch (error: any) {
+      console.error('💥 Calendar access error:', error);
+      toast.error('Unable to access calendar: ' + error.message);
       return [];
     } finally {
       setIsLoading(false);
