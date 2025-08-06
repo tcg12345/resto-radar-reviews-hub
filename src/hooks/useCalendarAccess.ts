@@ -39,12 +39,11 @@ export function useCalendarAccess() {
     
     try {
       if (!Capacitor.isNativePlatform()) {
-        // For web, show demo events (Google Calendar API has domain authorization issues)
-        toast.info('Loading demo calendar events - real calendar access requires mobile app');
-        return await showDemoEvents(startDate);
+        // For web, use Google Calendar API
+        return await requestGoogleCalendarAccess(startDate);
       }
 
-      // For mobile, try native calendar access
+      // For mobile, try native calendar access first, then fallback to Google Calendar
       try {
         const { CapacitorCalendar } = await import('@ebarooni/capacitor-calendar');
         
@@ -74,16 +73,19 @@ export function useCalendarAccess() {
           toast.success(`Found ${formattedEvents.length} calendar events!`);
           return formattedEvents;
         } else {
-          toast.info('Calendar permission denied. Showing demo events.');
-          return await showDemoEvents(startDate);
+          // If native calendar permission denied, try Google Calendar as fallback
+          toast.info('Native calendar access denied. Trying Google Calendar...');
+          return await requestGoogleCalendarAccess(startDate);
         }
       } catch (pluginError) {
-        toast.info('Native calendar not available. Showing demo events.');
-        return await showDemoEvents(startDate);
+        // If native calendar plugin fails, try Google Calendar as fallback
+        toast.info('Native calendar not available. Trying Google Calendar...');
+        return await requestGoogleCalendarAccess(startDate);
       }
     } catch (error) {
-      toast.error('Unable to access calendar. Showing demo events.');
-      return await showDemoEvents(startDate);
+      console.error('Calendar access error:', error);
+      toast.error('Unable to access calendar: ' + error);
+      return [];
     } finally {
       setIsLoading(false);
     }
@@ -130,8 +132,7 @@ export function useCalendarAccess() {
       const { data: secrets, error } = await supabase.functions.invoke('get-google-calendar-credentials');
       
       if (error || !secrets?.apiKey || !secrets?.clientId) {
-        toast.error('Google Calendar API credentials not configured');
-        return await showDemoEvents(startDate);
+        throw new Error('Google Calendar API credentials not configured in Supabase secrets');
       }
 
       // Load Google APIs with better error handling
@@ -171,8 +172,7 @@ export function useCalendarAccess() {
         if (!authInstance.isSignedIn.get()) {
           const user = await authInstance.signIn();
           if (!user.isSignedIn()) {
-            toast.info('Google Calendar sign-in cancelled. Showing demo events.');
-            return await showDemoEvents(startDate);
+            throw new Error('Google Calendar sign-in was cancelled by user');
           }
         }
 
@@ -215,14 +215,12 @@ export function useCalendarAccess() {
 
       } catch (apiError) {
         console.error('Google Calendar API error:', apiError);
-        toast.error('Unable to connect to Google Calendar. Check your API credentials and domain authorization.');
-        return await showDemoEvents(startDate);
+        throw new Error(`Google Calendar API failed: ${apiError}. Make sure your domain is authorized in Google Cloud Console.`);
       }
 
     } catch (error) {
       console.error('Calendar access error:', error);
-      toast.error('Calendar access failed. Showing demo events.');
-      return await showDemoEvents(startDate);
+      throw new Error(`Calendar access failed: ${error}`);
     }
   };
 
