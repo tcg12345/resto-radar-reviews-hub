@@ -138,16 +138,18 @@ export function TripCalendar({
                 <CollapsibleTrigger asChild>
                   <CardHeader className="pb-3 cursor-pointer hover:bg-muted/30 transition-all duration-200 rounded-t-xl lg:rounded-t-lg active:scale-[0.98] flex items-center">
                     {isCollapsed ? <div className="flex items-center justify-center gap-3 w-full">
-                        <div className="flex-1 min-w-0">
-                          <CardTitle className="text-base lg:text-lg font-semibold truncate">
-                            {useLengthOfStay ? `Day ${index + 1}` : `Day ${index + 1} - ${format(day, 'EEE, MMM do')}`}
-                          </CardTitle>
-                          {isMultiCity && getCityForDate(day) && <div className="flex items-center gap-1 text-primary font-medium text-xs mt-1">
-                              <MapPin className="w-3 h-3 shrink-0" />
-                              <span className="truncate">{getCityForDate(day)}</span>
-                            </div>}
-                          <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                            
+                        <div className="flex-1 min-w-0 flex items-center">
+                          <div className="w-full">
+                            <CardTitle className="text-base lg:text-lg font-semibold truncate">
+                              {useLengthOfStay ? `Day ${index + 1}` : `Day ${index + 1} - ${format(day, 'EEE, MMM do')}`}
+                            </CardTitle>
+                            {isMultiCity && getCityForDate(day) && <div className="flex items-center gap-1 text-primary font-medium text-xs mt-1">
+                                <MapPin className="w-3 h-3 shrink-0" />
+                                <span className="truncate">{getCityForDate(day)}</span>
+                              </div>}
+                            <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                              
+                            </div>
                           </div>
                         </div>
                         <div className="flex items-center justify-center gap-2 shrink-0">
