@@ -128,7 +128,7 @@ export function ItineraryViewPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="sticky top-0 z-50 bg-card/95 backdrop-blur-lg border-b border-border shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-4 pt-8 md:pt-4">
+        <div className="max-w-4xl mx-auto px-4 py-4 pt-12 md:pt-4">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
