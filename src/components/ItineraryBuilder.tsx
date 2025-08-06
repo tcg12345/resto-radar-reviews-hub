@@ -20,7 +20,7 @@ import { SaveItineraryDialog } from '@/components/SaveItineraryDialog';
 import { SavedItinerariesSection } from '@/components/SavedItinerariesSection';
 import { AmadeusCitySearch } from '@/components/AmadeusCitySearch';
 import { HotelFlightSection } from '@/components/HotelFlightSection';
-import { CalendarImport } from '@/components/CalendarImport';
+
 import { Hotel as HotelType } from '@/hooks/useGooglePlacesHotelSearch';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -595,23 +595,6 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
     toast.success('Event deleted successfully');
   };
 
-  const handleCalendarEventsImport = (calendarEvents: any[]) => {
-    const newEvents: ItineraryEvent[] = calendarEvents.map(calEvent => ({
-      id: crypto.randomUUID(),
-      title: calEvent.title,
-      description: calEvent.notes || '',
-      time: calEvent.allDay ? '12:00' : format(calEvent.startDate, 'HH:mm'),
-      date: format(calEvent.startDate, 'yyyy-MM-dd'),
-      type: 'other' as const,
-      // Store original location if provided
-      ...(calEvent.location && {
-        description: `${calEvent.notes || ''}\n📍 ${calEvent.location}`.trim()
-      })
-    }));
-
-    setEvents(prev => [...prev, ...newEvents]);
-    toast.success(`Imported ${newEvents.length} events from calendar!`);
-  };
 
   const checkLocalStorageUsage = () => {
     let totalSize = 0;
@@ -1079,13 +1062,9 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
   return (
     <div className="w-full px-4 lg:px-6 space-y-6">
       <Tabs defaultValue="builder" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="builder" className="flex items-center gap-2">
             Itinerary Builder
-          </TabsTrigger>
-          <TabsTrigger value="calendar" className="flex items-center gap-2">
-            <CalendarIcon className="w-4 h-4" />
-            Import Calendar
           </TabsTrigger>
           <TabsTrigger value="saved" className="flex items-center gap-2">
             <BookOpen className="w-4 h-4" />
@@ -1981,12 +1960,6 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
           />
         </TabsContent>
         
-        <TabsContent value="calendar" className="mt-6">
-          <CalendarImport 
-            onEventsImported={handleCalendarEventsImport}
-            selectedDate={dateRange.start || undefined}
-          />
-        </TabsContent>
         
         <TabsContent value="saved" className="mt-6">
           <SavedItinerariesSection onLoadItinerary={handleLoadItinerary} />
