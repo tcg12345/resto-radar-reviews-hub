@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format, differenceInDays } from 'date-fns';
-import { ArrowLeft, Calendar, MapPin, Clock, Users, Globe, Star, Phone, ExternalLink, Utensils, Camera } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Clock, Users, Globe, Star, Phone, ExternalLink, Utensils, Camera, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +16,7 @@ export function ItineraryViewPage() {
   const isMobile = useIsMobile();
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [collapsedDays, setCollapsedDays] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     loadItinerary();
@@ -85,6 +86,13 @@ export function ItineraryViewPage() {
       default:
         return 'bg-muted text-muted-foreground border-border';
     }
+  };
+
+  const toggleDay = (date: string) => {
+    setCollapsedDays(prev => ({
+      ...prev,
+      [date]: !prev[date]
+    }));
   };
 
   if (loading) {
@@ -221,10 +229,13 @@ export function ItineraryViewPage() {
               <div key={date} className="relative">
                 {/* Timeline Day Header */}
                 <div className="sticky top-20 z-10 mb-4">
-                  <div className="bg-card/95 backdrop-blur-md rounded-xl border border-border/60 shadow-sm p-4">
+                  <button
+                    onClick={() => toggleDay(date)}
+                    className="w-full bg-card/95 backdrop-blur-md rounded-xl border border-border/60 shadow-sm p-4 hover:bg-accent/5 transition-colors"
+                  >
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="text-lg font-bold text-foreground">
+                        <h4 className="text-lg font-bold text-foreground text-left">
                           {itinerary.wasCreatedWithLengthOfStay ? (
                             `Day ${dayIndex + 1}`
                           ) : (
@@ -236,90 +247,150 @@ export function ItineraryViewPage() {
                         <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
                           {events.length}
                         </div>
+                        <ChevronDown 
+                          className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${
+                            collapsedDays[date] ? 'rotate-180' : ''
+                          }`} 
+                        />
                       </div>
                     </div>
-                  </div>
+                  </button>
                 </div>
 
-                {/* Timeline Events */}
-                <div className="relative pl-6 pb-8">
-                  {/* Timeline Line */}
-                  <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary via-primary/50 to-transparent"></div>
-                  
-                  <div className="space-y-6">
-                    {events
-                      .sort((a, b) => a.time.localeCompare(b.time))
-                      .map((event, index) => {
-                        const EventIcon = getEventIcon(event.type);
-                        return (
-                          <div key={event.id} className="relative">
-                            {/* Timeline Dot */}
-                            <div className="absolute -left-6 top-3 w-6 h-6 bg-primary rounded-full border-4 border-background shadow-md flex items-center justify-center">
-                              <div className="w-2 h-2 bg-primary-foreground rounded-full"></div>
-                            </div>
-                            
-                            {/* Event Content */}
-                            <div className="bg-card rounded-lg border border-border/40 shadow-sm overflow-hidden">
-                              {/* Event Header */}
-                              <div className="p-4 border-b border-border/30">
-                                <div className="flex items-start gap-3">
-                                  <div className="flex-shrink-0 mt-1">
-                                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                                      <EventIcon className="w-5 h-5 text-primary" />
-                                    </div>
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-start justify-between gap-3 mb-2">
-                                      <h5 className="font-semibold text-foreground text-base leading-tight">
-                                        {event.title}
-                                      </h5>
-                                      <div className="flex-shrink-0 bg-accent/10 text-accent px-2 py-1 rounded text-xs font-medium">
-                                        {event.time}
+                {/* Timeline Events - Collapsible */}
+                <div 
+                  className={`overflow-hidden transition-all duration-300 ease-out ${
+                    collapsedDays[date] 
+                      ? 'max-h-0 opacity-0' 
+                      : 'max-h-[9999px] opacity-100'
+                  }`}
+                >
+                  <div className="relative pl-6 pb-8">
+                    {/* Timeline Line */}
+                    <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary via-primary/50 to-transparent"></div>
+                    
+                    <div className="space-y-6">
+                      {events
+                        .sort((a, b) => a.time.localeCompare(b.time))
+                        .map((event, index) => {
+                          const EventIcon = getEventIcon(event.type);
+                          return (
+                            <div key={event.id} className="relative">
+                              {/* Timeline Dot */}
+                              <div className="absolute -left-6 top-3 w-6 h-6 bg-primary rounded-full border-4 border-background shadow-md flex items-center justify-center">
+                                <div className="w-2 h-2 bg-primary-foreground rounded-full"></div>
+                              </div>
+                              
+                              {/* Event Content */}
+                              <div className="bg-card rounded-lg border border-border/40 shadow-sm overflow-hidden">
+                                {/* Event Header */}
+                                <div className="p-4 border-b border-border/30">
+                                  <div className="flex items-start gap-3">
+                                    <div className="flex-shrink-0 mt-1">
+                                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                                        <EventIcon className="w-5 h-5 text-primary" />
                                       </div>
                                     </div>
-                                    <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getEventTypeColor(event.type)}`}>
-                                      {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-start justify-between gap-3 mb-2">
+                                        <h5 className="font-semibold text-foreground text-base leading-tight">
+                                          {event.title}
+                                        </h5>
+                                        <div className="flex-shrink-0 bg-accent/10 text-accent px-2 py-1 rounded text-xs font-medium">
+                                          {event.time}
+                                        </div>
+                                      </div>
+                                      <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getEventTypeColor(event.type)}`}>
+                                        {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
+                                      </div>
                                     </div>
-                                  </div>
-                                </div>
-                                
-                                {event.description && (
-                                  <div className="mt-3 text-sm text-muted-foreground leading-relaxed">
-                                    {event.description}
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Restaurant Details */}
-                              {event.restaurantData && (
-                                <div className="p-4 bg-success/5">
-                                  <div className="flex items-center gap-2 mb-3">
-                                    <Utensils className="w-4 h-4 text-success" />
-                                    <span className="text-sm font-medium text-success">Restaurant Info</span>
                                   </div>
                                   
-                                  <div className="space-y-3">
-                                    {event.restaurantData.address && (
-                                      <div className="flex items-start gap-3">
-                                        <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                                        <span className="text-sm text-foreground">{event.restaurantData.address}</span>
-                                      </div>
-                                    )}
+                                  {event.description && (
+                                    <div className="mt-3 text-sm text-muted-foreground leading-relaxed">
+                                      {event.description}
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Restaurant Details */}
+                                {event.restaurantData && (
+                                  <div className="p-4 bg-success/5">
+                                    <div className="flex items-center gap-2 mb-3">
+                                      <Utensils className="w-4 h-4 text-success" />
+                                      <span className="text-sm font-medium text-success">Restaurant Info</span>
+                                    </div>
                                     
-                                    <div className="flex flex-col sm:flex-row gap-3">
-                                      {event.restaurantData.phone && (
-                                        <a 
-                                          href={`tel:${event.restaurantData.phone}`}
-                                          className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
-                                        >
-                                          <Phone className="w-4 h-4" />
-                                          {event.restaurantData.phone}
-                                        </a>
+                                    <div className="space-y-3">
+                                      {event.restaurantData.address && (
+                                        <div className="flex items-start gap-3">
+                                          <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                          <span className="text-sm text-foreground">{event.restaurantData.address}</span>
+                                        </div>
                                       )}
                                       
-                                      {event.restaurantData.website && (
+                                      <div className="flex flex-col sm:flex-row gap-3">
+                                        {event.restaurantData.phone && (
+                                          <a 
+                                            href={`tel:${event.restaurantData.phone}`}
+                                            className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+                                          >
+                                            <Phone className="w-4 h-4" />
+                                            {event.restaurantData.phone}
+                                          </a>
+                                        )}
+                                        
+                                        {event.restaurantData.website && (
+                                          <a 
+                                            href={event.restaurantData.website}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+                                          >
+                                            <ExternalLink className="w-4 h-4" />
+                                            Website
+                                          </a>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Attraction Details */}
+                                {event.attractionData && (
+                                  <div className="p-4 bg-primary/5">
+                                    <div className="flex items-center gap-2 mb-3">
+                                      <Camera className="w-4 h-4 text-primary" />
+                                      <span className="text-sm font-medium text-primary">Attraction Info</span>
+                                    </div>
+                                    
+                                    <div className="space-y-3">
+                                      {event.attractionData.address && (
+                                        <div className="flex items-start gap-3">
+                                          <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                          <span className="text-sm text-foreground">{event.attractionData.address}</span>
+                                        </div>
+                                      )}
+                                      
+                                      <div className="flex flex-col sm:flex-row gap-3">
+                                        {event.attractionData.category && (
+                                          <div className="flex items-center gap-2 text-sm text-foreground">
+                                            <Users className="w-4 h-4 text-muted-foreground" />
+                                            {event.attractionData.category}
+                                          </div>
+                                        )}
+                                        
+                                        {event.attractionData.rating && (
+                                          <div className="flex items-center gap-2 text-sm text-foreground">
+                                            <Star className="w-4 h-4 text-warning fill-current" />
+                                            {event.attractionData.rating}/10
+                                          </div>
+                                        )}
+                                      </div>
+                                      
+                                      {event.attractionData.website && (
                                         <a 
-                                          href={event.restaurantData.website}
+                                          href={event.attractionData.website}
                                           target="_blank"
                                           rel="noopener noreferrer"
                                           className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
@@ -330,59 +401,12 @@ export function ItineraryViewPage() {
                                       )}
                                     </div>
                                   </div>
-                                </div>
-                              )}
-
-                              {/* Attraction Details */}
-                              {event.attractionData && (
-                                <div className="p-4 bg-primary/5">
-                                  <div className="flex items-center gap-2 mb-3">
-                                    <Camera className="w-4 h-4 text-primary" />
-                                    <span className="text-sm font-medium text-primary">Attraction Info</span>
-                                  </div>
-                                  
-                                  <div className="space-y-3">
-                                    {event.attractionData.address && (
-                                      <div className="flex items-start gap-3">
-                                        <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                                        <span className="text-sm text-foreground">{event.attractionData.address}</span>
-                                      </div>
-                                    )}
-                                    
-                                    <div className="flex flex-col sm:flex-row gap-3">
-                                      {event.attractionData.category && (
-                                        <div className="flex items-center gap-2 text-sm text-foreground">
-                                          <Users className="w-4 h-4 text-muted-foreground" />
-                                          {event.attractionData.category}
-                                        </div>
-                                      )}
-                                      
-                                      {event.attractionData.rating && (
-                                        <div className="flex items-center gap-2 text-sm text-foreground">
-                                          <Star className="w-4 h-4 text-warning fill-current" />
-                                          {event.attractionData.rating}/10
-                                        </div>
-                                      )}
-                                    </div>
-                                    
-                                    {event.attractionData.website && (
-                                      <a 
-                                        href={event.attractionData.website}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
-                                      >
-                                        <ExternalLink className="w-4 h-4" />
-                                        Website
-                                      </a>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                    </div>
                   </div>
                 </div>
               </div>
