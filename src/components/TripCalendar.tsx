@@ -140,7 +140,7 @@ export function TripCalendar({ startDate, endDate, events, locations, isMultiCit
         return (
           <div key={day.toISOString()} className="lg:contents">
             <Collapsible open={!isCollapsed} onOpenChange={() => toggleDayCollapse(dateStr)}>
-              <Card className="transition-all duration-200 hover:shadow-md lg:rounded-lg lg:border lg:shadow-sm rounded-xl border-0 mx-4 mb-4 shadow-sm bg-card lg:mx-0 lg:mb-0 lg:relative lg:left-auto lg:right-auto lg:ml-0 lg:mr-0 lg:w-auto">
+              <Card className="transition-all duration-200 hover:shadow-md lg:rounded-lg lg:border lg:shadow-sm mx-2 mb-4 rounded-xl shadow-sm bg-card border lg:mx-0 lg:mb-0">
                 <CollapsibleTrigger asChild>
                   <CardHeader className="pb-3 cursor-pointer hover:bg-muted/30 transition-all duration-200 rounded-t-xl lg:rounded-t-lg active:scale-[0.98]">
                     {isCollapsed ? (
