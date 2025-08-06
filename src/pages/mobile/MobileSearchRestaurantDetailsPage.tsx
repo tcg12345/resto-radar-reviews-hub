@@ -259,8 +259,8 @@ export default function MobileSearchRestaurantDetailsPage() {
         address: restaurant.formatted_address,
         city: restaurant.formatted_address.split(',')[1]?.trim() || '',
         cuisine: restaurant.aiAnalysis?.cuisine || restaurant.fallbackCuisine || 'Various',
-        latitude: restaurant.geometry.location.lat,
-        longitude: restaurant.geometry.location.lng,
+        latitude: restaurant.geometry?.location?.lat || null,
+        longitude: restaurant.geometry?.location?.lng || null,
         google_place_id: restaurant.place_id,
         // Include place_id for community linking
         rating: null,
@@ -293,8 +293,8 @@ export default function MobileSearchRestaurantDetailsPage() {
         address: restaurant.formatted_address,
         city: restaurant.formatted_address.split(',')[1]?.trim() || '',
         cuisine: restaurant.aiAnalysis?.cuisine || restaurant.fallbackCuisine || 'Various',
-        latitude: restaurant.geometry.location.lat,
-        longitude: restaurant.geometry.location.lng,
+        latitude: restaurant.geometry?.location?.lat || null,
+        longitude: restaurant.geometry?.location?.lng || null,
         google_place_id: restaurant.place_id,
         // Include place_id for community linking
         rating: null,
@@ -435,7 +435,12 @@ export default function MobileSearchRestaurantDetailsPage() {
                 </Button>
               )}
               <Button 
-                onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${restaurant.geometry.location.lat},${restaurant.geometry.location.lng}`, '_blank')}
+                onClick={() => {
+                  const lat = restaurant.geometry?.location?.lat;
+                  const lng = restaurant.geometry?.location?.lng;
+                  const query = lat && lng ? `${lat},${lng}` : encodeURIComponent(restaurant.formatted_address);
+                  window.open(`https://www.google.com/maps/dir/?api=1&destination=${query}`, '_blank');
+                }}
                 className="flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white"
               >
                 <MapPin className="h-4 w-4" />
@@ -524,7 +529,18 @@ export default function MobileSearchRestaurantDetailsPage() {
                 <h3 className="font-semibold">Location</h3>
               </div>
               <div className="h-64 w-full rounded-lg overflow-hidden border">
-                <RestaurantLocationMap latitude={restaurant.geometry.location.lat} longitude={restaurant.geometry.location.lng} name={restaurant.name} address={restaurant.formatted_address} />
+                {restaurant.geometry?.location?.lat && restaurant.geometry?.location?.lng ? (
+                  <RestaurantLocationMap 
+                    latitude={restaurant.geometry.location.lat} 
+                    longitude={restaurant.geometry.location.lng} 
+                    name={restaurant.name} 
+                    address={restaurant.formatted_address} 
+                  />
+                ) : (
+                  <div className="h-full flex items-center justify-center bg-muted text-muted-foreground">
+                    <p>Location not available</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
