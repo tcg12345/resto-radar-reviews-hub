@@ -1088,44 +1088,57 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                   </div>
                   <ChevronDown className="w-4 h-4 text-muted-foreground" />
                 </CollapsibleTrigger>
-                <CollapsibleContent className="border-t border-border/50">
-                  <div className="p-5 bg-gradient-to-b from-background to-muted/20">
-                    {/* Date Section */}
-                    <div className="mb-6">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Calendar className="w-4 h-4 text-primary" />
-                        <span className="text-sm font-medium text-foreground">Travel Dates</span>
-                      </div>
-                      <div className="bg-card/80 backdrop-blur-sm rounded-lg p-4 border border-border/30">
-                        <div className="text-sm text-foreground mb-3">
-                          {dateRange.start && dateRange.end ? (
-                            <div className="flex items-center gap-2">
-                              {wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) ? (
-                                <span className="font-medium">{tripDays} {tripDays === 1 ? 'night' : 'nights'}</span>
-                              ) : (
-                                <>
-                                  <span className="font-medium">{format(dateRange.start, 'MMM do')} - {format(dateRange.end, 'MMM do')}</span>
-                                  <Badge variant="secondary" className="text-xs">
-                                    {tripDays} {tripDays === 1 ? 'day' : 'days'}
-                                  </Badge>
-                                </>
-                              )}
+                <CollapsibleContent className="bg-gradient-to-br from-primary/5 to-secondary/5 backdrop-blur-sm">
+                  <div className="p-6 space-y-6">
+                    
+                    {/* Travel Info Cards */}
+                    <div className="grid gap-4">
+                      
+                      {/* Date Card */}
+                      <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-primary/80 p-5 text-primary-foreground shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
+                        <div className="absolute inset-0 bg-gradient-to-r from-background/10 to-transparent"></div>
+                        <div className="relative z-10">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+                                <Calendar className="w-5 h-5" />
+                              </div>
+                              <h3 className="font-semibold text-lg">Travel Period</h3>
                             </div>
-                          ) : (
-                            <span className="text-muted-foreground italic">Select your travel dates</span>
-                          )}
+                            {!(wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && (
+                              <div className="shrink-0">
+                                <DateRangePicker
+                                  startDate={dateRange.start}
+                                  endDate={dateRange.end}
+                                  onDateRangeChange={handleDateRangeChange}
+                                />
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="space-y-2">
+                            {dateRange.start && dateRange.end ? (
+                              <>
+                                {wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) ? (
+                                  <div className="text-2xl font-bold">{tripDays} {tripDays === 1 ? 'Night' : 'Nights'}</div>
+                                ) : (
+                                  <>
+                                    <div className="text-xl font-bold">
+                                      {format(dateRange.start, 'MMM do')} - {format(dateRange.end, 'MMM do')}
+                                    </div>
+                                    <div className="inline-flex items-center px-3 py-1 bg-white/20 rounded-full text-sm font-medium backdrop-blur-sm">
+                                      {tripDays} {tripDays === 1 ? 'day' : 'days'} total
+                                    </div>
+                                  </>
+                                )}
+                              </>
+                            ) : (
+                              <div className="text-white/80 italic">Tap to select your travel dates</div>
+                            )}
+                          </div>
                         </div>
-                        
-                        {/* Date Picker */}
-                        {!(wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && (
-                          <DateRangePicker
-                            startDate={dateRange.start}
-                            endDate={dateRange.end}
-                            onDateRangeChange={handleDateRangeChange}
-                          />
-                        )}
+                        </div>
                       </div>
-                    </div>
                     
                     {/* Destinations Section */}
                     {currentItinerary?.locations && currentItinerary.locations.length > 0 && (
@@ -1221,154 +1234,214 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
               </Collapsible>
             </div>
 
-            {/* Desktop: Regular Card */}
-            <Card className="hidden lg:block">
-              <CardHeader className="pb-0 px-0 pt-0">
-                <div className="bg-gradient-to-br from-primary/5 via-background to-muted/10 p-6 rounded-t-lg border-b border-border/30">
-                  {/* Title and Multi-city Badge Row */}
-                  <div className="flex items-start justify-between gap-3 mb-6">
-                    <CardTitle className="flex items-center gap-3 text-xl font-semibold">
-                      <div className="p-2 bg-primary/10 rounded-lg">
-                        <Calendar className="w-5 h-5 text-primary" />
+            {/* Desktop: Completely New Modern Design */}
+            <div className="hidden lg:block">
+              <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-background via-muted/30 to-secondary/20 backdrop-blur-xl border border-border/30 shadow-2xl">
+                {/* Background Pattern */}
+                <div className="absolute inset-0 opacity-5">
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-transparent to-secondary/20"></div>
+                  <div className="absolute top-0 left-1/4 w-32 h-32 bg-primary/10 rounded-full blur-3xl"></div>
+                  <div className="absolute bottom-0 right-1/4 w-24 h-24 bg-secondary/10 rounded-full blur-3xl"></div>
+                </div>
+                
+                {/* Header Section */}
+                <div className="relative z-10 p-8 border-b border-border/20">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <div className="p-3 bg-gradient-to-br from-primary to-primary/80 rounded-2xl shadow-lg">
+                          <Calendar className="w-6 h-6 text-primary-foreground" />
+                        </div>
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-secondary to-accent rounded-full"></div>
                       </div>
-                      <span className="truncate">{currentItinerary?.title}</span>
-                    </CardTitle>
+                      <div>
+                        <h2 className="text-2xl font-bold text-foreground tracking-tight">{currentItinerary?.title}</h2>
+                        <p className="text-muted-foreground text-sm">Plan your perfect getaway</p>
+                      </div>
+                    </div>
                     {currentItinerary?.isMultiCity && (
-                      <Badge variant="secondary" className="shrink-0 text-xs px-2 py-1 bg-secondary/20 border-secondary/30">
-                        Multi-city
+                      <Badge variant="secondary" className="px-3 py-1 bg-gradient-to-r from-secondary/20 to-accent/20 border-secondary/30 text-secondary-foreground font-medium">
+                        Multi-city Adventure
                       </Badge>
                     )}
                   </div>
+                </div>
+                
+                {/* Content Grid */}
+                <div className="relative z-10 p-8 grid grid-cols-1 xl:grid-cols-2 gap-8">
                   
-                  {/* Date Range Section */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-1 h-4 bg-primary rounded-full"></div>
-                      <span className="text-sm font-medium text-foreground">Travel Dates</span>
-                    </div>
-                    <div className="bg-card/60 backdrop-blur-sm rounded-lg p-4 border border-border/20">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="text-sm text-foreground">
-                          {dateRange.start && dateRange.end ? (
-                            <div className="flex items-center gap-3">
-                              {wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) ? (
-                                <span className="font-medium text-base">{tripDays} {tripDays === 1 ? 'night' : 'nights'}</span>
+                  {/* Left Column - Travel Info */}
+                  <div className="space-y-6">
+                    
+                    {/* Dates Section */}
+                    <div className="group">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-8 h-8 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl flex items-center justify-center">
+                          <div className="w-2 h-2 bg-primary rounded-full"></div>
+                        </div>
+                        <h3 className="text-lg font-semibold text-foreground">Travel Timeline</h3>
+                      </div>
+                      
+                      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-card to-card/50 backdrop-blur-sm border border-border/40 p-6 group-hover:shadow-lg transition-all duration-300">
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div className="relative z-10">
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="text-foreground">
+                              {dateRange.start && dateRange.end ? (
+                                <div className="space-y-2">
+                                  {wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) ? (
+                                    <div className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                                      {tripDays} {tripDays === 1 ? 'Night' : 'Nights'}
+                                    </div>
+                                  ) : (
+                                    <>
+                                      <div className="text-xl font-bold text-foreground">
+                                        {format(dateRange.start, 'MMM do')} - {format(dateRange.end, 'MMM do')}
+                                      </div>
+                                      <Badge variant="outline" className="bg-primary/10 border-primary/20 text-primary">
+                                        {tripDays} {tripDays === 1 ? 'day' : 'days'} adventure
+                                      </Badge>
+                                    </>
+                                  )}
+                                </div>
                               ) : (
-                                <>
-                                  <span className="font-medium text-base">{format(dateRange.start, 'MMM do')} - {format(dateRange.end, 'MMM do')}</span>
-                                  <Badge variant="secondary" className="text-xs">
-                                    {tripDays} {tripDays === 1 ? 'day' : 'days'}
-                                  </Badge>
-                                </>
+                                <div className="text-muted-foreground italic text-lg">Choose your travel dates</div>
                               )}
                             </div>
-                          ) : (
-                            <span className="text-muted-foreground italic">Select your travel dates</span>
-                          )}
-                        </div>
-                        {!(wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && (
-                          <DateRangePicker
-                            startDate={dateRange.start}
-                            endDate={dateRange.end}
-                            onDateRangeChange={handleDateRangeChange}
-                          />
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Destinations Section */}
-                  {currentItinerary?.locations && currentItinerary.locations.length > 0 && (
-                    <div className="space-y-4 mt-6">
-                      <div className="flex items-center gap-2">
-                        <div className="w-1 h-4 bg-primary rounded-full"></div>
-                        <span className="text-sm font-medium text-foreground">Destinations</span>
-                      </div>
-                      <div className="bg-card/60 backdrop-blur-sm rounded-lg p-4 border border-border/20">
-                        <div className="flex flex-wrap gap-2">
-                          {currentItinerary.locations.map((location, index) => (
-                            <Badge 
-                              key={location.id} 
-                              variant="outline" 
-                              className="flex items-center gap-2 px-3 py-2 text-sm bg-primary/5 border-primary/20 hover:bg-primary/10 transition-colors"
-                            >
-                              <div className="w-2 h-2 bg-primary rounded-full"></div>
-                              <span className="font-medium">
-                                {location.name}
-                                {location.iataCode && <span className="text-muted-foreground ml-1">({location.iataCode})</span>}
-                              </span>
-                            </Badge>
-                          ))}
+                            {!(wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && (
+                              <div className="shrink-0">
+                                <DateRangePicker
+                                  startDate={dateRange.start}
+                                  endDate={dateRange.end}
+                                  onDateRangeChange={handleDateRangeChange}
+                                />
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  )}
-                </div>
-              </CardHeader>
-              
-              <CardContent className="p-6">
-                {/* Action Buttons Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-1 h-4 bg-primary rounded-full"></div>
-                    <span className="text-sm font-medium text-foreground">Quick Actions</span>
+                    
+                    {/* Destinations Section */}
+                    {currentItinerary?.locations && currentItinerary.locations.length > 0 && (
+                      <div className="group">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-8 h-8 bg-gradient-to-br from-secondary/20 to-secondary/10 rounded-xl flex items-center justify-center">
+                            <MapPin className="w-4 h-4 text-secondary" />
+                          </div>
+                          <h3 className="text-lg font-semibold text-foreground">Destinations</h3>
+                          <Badge variant="outline" className="ml-auto">
+                            {currentItinerary.locations.length} {currentItinerary.locations.length === 1 ? 'stop' : 'stops'}
+                          </Badge>
+                        </div>
+                        
+                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-card to-card/50 backdrop-blur-sm border border-border/40 p-6 group-hover:shadow-lg transition-all duration-300">
+                          <div className="absolute inset-0 bg-gradient-to-r from-secondary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                          <div className="relative z-10 space-y-3">
+                            {currentItinerary.locations.map((location, index) => (
+                              <div 
+                                key={location.id} 
+                                className="flex items-center gap-4 p-4 bg-background/60 backdrop-blur-sm rounded-xl border border-border/30 hover:bg-background/80 transition-all duration-200 hover:scale-[1.02]"
+                              >
+                                <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl">
+                                  <span className="text-sm font-bold text-primary">{index + 1}</span>
+                                </div>
+                                <div className="flex-1">
+                                  <div className="font-semibold text-foreground text-lg">{location.name}</div>
+                                  {location.iataCode && (
+                                    <div className="text-sm text-muted-foreground">{location.iataCode}</div>
+                                  )}
+                                </div>
+                                <div className="w-2 h-2 bg-primary rounded-full opacity-60"></div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsSaveDialogOpen(true)}
-                      className="flex items-center justify-center gap-2 h-11 bg-card/30 hover:bg-card border-border/50 hover:border-primary/30 transition-all duration-200"
-                    >
-                      <Save className="w-4 h-4" />
-                      <span className="font-medium">Save</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsShareDialogOpen(true)}
-                      className="flex items-center justify-center gap-2 h-11 bg-card/30 hover:bg-card border-border/50 hover:border-primary/30 transition-all duration-200"
-                    >
-                      <Share2 className="w-4 h-4" />
-                      <span className="font-medium">Share</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsExportDialogOpen(true)}
-                      className="flex items-center justify-center gap-2 h-11 bg-card/30 hover:bg-card border-border/50 hover:border-primary/30 transition-all duration-200"
-                    >
-                      <Download className="w-4 h-4" />
-                      <span className="font-medium">Export</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        localStorage.removeItem('currentItineraryBuilder');
-                        setDateRange({ start: null, end: null });
-                        setCurrentItinerary(null);
-                        setEvents([]);
-                        setLocations([]);
-                        setIsMultiCity(false);
-                        setHasCreatedItinerary(false);
-                        setCurrentLocationSearch('');
-                        setUseLengthOfStay(false);
-                        setNumberOfNights(1);
-                        setLocationLengthOfStay({});
-                        setLocationNights({});
-                        setWasCreatedWithLengthOfStay(false);
-                      }}
-                      className="flex items-center justify-center gap-2 h-11 bg-card/30 hover:bg-card border-border/50 hover:border-primary/30 transition-all duration-200"
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span className="font-medium">New</span>
-                    </Button>
+                  {/* Right Column - Actions */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 bg-gradient-to-br from-accent/20 to-accent/10 rounded-xl flex items-center justify-center">
+                        <div className="w-2 h-2 bg-accent rounded-full"></div>
+                      </div>
+                      <h3 className="text-lg font-semibold text-foreground">Quick Actions</h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        onClick={() => setIsSaveDialogOpen(true)}
+                        className="group relative overflow-hidden h-16 bg-gradient-to-br from-background to-muted/30 border-border/50 hover:border-primary/40 transition-all duration-300 rounded-2xl"
+                      >
+                        <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div className="relative flex flex-col items-center gap-1">
+                          <Save className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
+                          <span className="font-semibold text-sm">Save Trip</span>
+                        </div>
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        onClick={() => setIsShareDialogOpen(true)}
+                        className="group relative overflow-hidden h-16 bg-gradient-to-br from-background to-muted/30 border-border/50 hover:border-primary/40 transition-all duration-300 rounded-2xl"
+                      >
+                        <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div className="relative flex flex-col items-center gap-1">
+                          <Share2 className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
+                          <span className="font-semibold text-sm">Share</span>
+                        </div>
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        onClick={() => setIsExportDialogOpen(true)}
+                        className="group relative overflow-hidden h-16 bg-gradient-to-br from-background to-muted/30 border-border/50 hover:border-primary/40 transition-all duration-300 rounded-2xl"
+                      >
+                        <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div className="relative flex flex-col items-center gap-1">
+                          <Download className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
+                          <span className="font-semibold text-sm">Export</span>
+                        </div>
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        onClick={() => {
+                          localStorage.removeItem('currentItineraryBuilder');
+                          setDateRange({ start: null, end: null });
+                          setCurrentItinerary(null);
+                          setEvents([]);
+                          setLocations([]);
+                          setIsMultiCity(false);
+                          setHasCreatedItinerary(false);
+                          setCurrentLocationSearch('');
+                          setUseLengthOfStay(false);
+                          setNumberOfNights(1);
+                          setLocationLengthOfStay({});
+                          setLocationNights({});
+                          setWasCreatedWithLengthOfStay(false);
+                        }}
+                        className="group relative overflow-hidden h-16 bg-gradient-to-br from-background to-muted/30 border-destructive/30 hover:border-destructive/50 transition-all duration-300 rounded-2xl"
+                      >
+                        <div className="absolute inset-0 bg-destructive/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div className="relative flex flex-col items-center gap-1">
+                          <Plus className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
+                          <span className="font-semibold text-sm">New Trip</span>
+                        </div>
+                      </Button>
+                    </div>
                   </div>
+                  
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
 
           {/* Trip Extension Section - Show for all trips */}
