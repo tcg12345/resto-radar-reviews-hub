@@ -182,15 +182,17 @@ export default function MobileSearchRestaurantDetailsPage() {
     try {
       setIsEnhancingWithAI(true);
 
+      console.log('Starting AI enhancement for restaurant:', restaurant.name);
+
       // Run both AI functions in parallel for speed
       const promises = [];
 
-      // Enhance cuisine if needed
+      // Enhance cuisine if needed - with proper parameter names
       const hasGenericCuisine = !restaurant.aiAnalysis?.cuisine && (!restaurant.fallbackCuisine || restaurant.fallbackCuisine.toLowerCase().includes('restaurant') || restaurant.fallbackCuisine.toLowerCase().includes('bar') || restaurant.fallbackCuisine.toLowerCase().includes('food') || restaurant.fallbackCuisine.toLowerCase().includes('establishment'));
       if (hasGenericCuisine) {
         promises.push(supabase.functions.invoke('ai-cuisine-detector', {
           body: {
-            restaurantName: restaurant.name,
+            name: restaurant.name,
             address: restaurant.formatted_address,
             types: restaurant.types || []
           }
@@ -219,7 +221,7 @@ export default function MobileSearchRestaurantDetailsPage() {
       } else {
         promises.push(Promise.resolve({
           data: {
-            michelinStars: restaurant.michelinStars
+            stars: restaurant.michelinStars
           }
         }));
       }
@@ -227,20 +229,48 @@ export default function MobileSearchRestaurantDetailsPage() {
       // Wait for both to complete
       const [cuisineResult, michelinResult] = await Promise.all(promises);
 
+      console.log('AI Results received:', {
+        cuisine: cuisineResult?.data?.cuisine,
+        michelinStars: michelinResult?.data?.stars,
+        restaurantName: restaurant.name
+      });
+
+      // Set intelligent price range if missing
+      let priceRange = restaurant.price_level;
+      if (!priceRange) {
+        const name = restaurant.name?.toLowerCase() || '';
+        const address = restaurant.formatted_address?.toLowerCase() || '';
+        const enhancedCuisine = cuisineResult?.data?.cuisine?.toLowerCase() || '';
+        
+        // Smart price range detection
+        if (name.includes('michelin') || address.includes('mayfair') || address.includes('knightsbridge') || 
+            enhancedCuisine.includes('french') || enhancedCuisine.includes('fine dining') || 
+            michelinResult?.data?.stars > 0) {
+          priceRange = 4; // High-end
+        } else if ((enhancedCuisine.includes('indian') || enhancedCuisine.includes('japanese')) && 
+                   (address.includes('london') || address.includes('central'))) {
+          priceRange = 3; // Mid-high for quality restaurants in central areas
+        } else if (enhancedCuisine.includes('chinese') || enhancedCuisine.includes('thai') || 
+                   enhancedCuisine.includes('vietnamese')) {
+          priceRange = 2; // Mid-range for Asian cuisines
+        } else {
+          priceRange = 3; // Default to mid-high
+        }
+      }
+
       // Update restaurant data with AI enhancements
       setRestaurant(prev => prev ? {
         ...prev,
         aiAnalysis: {
-          cuisine: cuisineResult?.data?.cuisine || prev.aiAnalysis?.cuisine || prev.fallbackCuisine || 'Restaurant',
-          categories: prev.aiAnalysis?.categories || []
+          cuisine: cuisineResult?.data?.cuisine || prev.aiAnalysis?.cuisine || prev.fallbackCuisine || 'International',
+          categories: prev.aiAnalysis?.categories || [],
+          priceRange: priceRange ? '$'.repeat(priceRange) : undefined
         },
-        michelinStars: michelinResult?.data?.michelinStars !== undefined ? michelinResult.data.michelinStars : prev.michelinStars || 0
+        michelinStars: michelinResult?.data?.stars !== undefined ? michelinResult.data.stars : prev.michelinStars || 0,
+        price_level: priceRange || prev.price_level
       } : null);
-      console.log('AI Enhancement Results:', {
-        cuisine: cuisineResult?.data?.cuisine,
-        michelinStars: michelinResult?.data?.michelinStars,
-        restaurantName: restaurant.name
-      });
+
+      console.log('AI Enhancement completed successfully for:', restaurant.name);
     } catch (error) {
       console.error('Error enhancing restaurant with AI:', error);
       // Silently fail - don't show error to user for this enhancement
