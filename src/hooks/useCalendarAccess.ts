@@ -55,29 +55,40 @@ export function useCalendarAccess() {
       }
 
       try {
-        // Show mock events for mobile until the calendar plugin is properly installed
-        const mockEvents: CalendarEvent[] = [
-          {
-            id: 'mobile-1',
-            title: 'Flight to Paris',
-            startDate: new Date(2024, 11, 15, 10, 0),
-            endDate: new Date(2024, 11, 15, 15, 0),
-            location: 'Airport',
-            notes: 'Flight confirmation: AF123'
-          },
-          {
-            id: 'mobile-2', 
-            title: 'Hotel Check-in',
-            startDate: new Date(2024, 11, 15, 16, 0),
-            endDate: new Date(2024, 11, 15, 17, 0),
-            location: 'Hotel de Paris, 123 Rue de Rivoli',
-            notes: 'Booking reference: HTL456'
-          }
-        ];
+        // Import the correct calendar plugin
+        const { CapacitorCalendar } = await import('@ebarooni/capacitor-calendar');
         
-        setEvents(mockEvents);
-        toast.info('Demo calendar events loaded for mobile (install @capacitor-community/calendar for real calendar access)');
-        return mockEvents;
+        // Request full calendar access
+        const permission = await CapacitorCalendar.requestFullCalendarAccess();
+        
+        if (permission.result === 'granted') {
+          // Get calendar events for the next 30 days
+          const searchStartDate = startDate || new Date();
+          const searchEndDate = new Date(searchStartDate);
+          searchEndDate.setDate(searchEndDate.getDate() + 30);
+          
+          const result = await CapacitorCalendar.listEventsInRange({
+            from: searchStartDate.getTime(),
+            to: searchEndDate.getTime()
+          });
+          
+          const formattedEvents: CalendarEvent[] = result.result.map(event => ({
+            id: event.id,
+            title: event.title || 'Untitled Event',
+            startDate: new Date(event.startDate),
+            endDate: new Date(event.endDate),
+            location: event.location || undefined,
+            notes: event.description || undefined,
+            allDay: event.isAllDay
+          }));
+          
+          setEvents(formattedEvents);
+          toast.success(`Found ${formattedEvents.length} calendar events!`);
+          return formattedEvents;
+        } else {
+          toast.error('Calendar permission denied');
+          return [];
+        }
       } catch (pluginError) {
         console.error('Calendar plugin error:', pluginError);
         toast.error('Calendar plugin not available. Install @capacitor-community/calendar for full functionality.');

@@ -11,6 +11,9 @@ const config: CapacitorConfig = {
   plugins: {
     Camera: {
       permissions: ['camera', 'photos']
+    },
+    CapacitorCalendar: {
+      permissions: ['calendar']
     }
   }
 };
