@@ -218,7 +218,7 @@ export function ItineraryViewPage() {
           {Object.entries(groupedEvents)
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([date, events], dayIndex) => (
-              <div className="bg-gradient-to-r from-muted/30 to-muted/10 rounded-2xl border border-border/50 shadow-lg backdrop-blur-sm">
+              <div key={date} className="bg-gradient-to-r from-muted/30 to-muted/10 rounded-2xl border border-border/50 shadow-lg backdrop-blur-sm">
                 {/* Day Header */}
                 <div className="p-6 border-b border-border/30">
                   <div className="flex items-center justify-between">
