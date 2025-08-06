@@ -24,6 +24,7 @@ import { CalendarImport } from '@/components/CalendarImport';
 import { Hotel as HotelType } from '@/hooks/useGooglePlacesHotelSearch';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useItineraries } from '@/hooks/useItineraries';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 interface LocationSuggestion {
@@ -115,6 +116,7 @@ export interface Itinerary {
 
 export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itinerary: Itinerary) => void }) {
   const { user } = useAuth();
+  const { saveItinerary } = useItineraries();
   
   // Load state from localStorage on mount
   const loadPersistedState = () => {
@@ -657,11 +659,6 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
     if (!user || !currentItinerary) return;
 
     try {
-      // Check localStorage usage before attempting save
-      checkLocalStorageUsage();
-      
-      // Store in local storage as fallback
-      const savedItineraries = JSON.parse(localStorage.getItem('savedItineraries') || '[]');
       const itineraryToSave = {
         ...currentItinerary,
         title,
@@ -681,100 +678,10 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
         id: itineraryToSave.id 
       });
       
-      const existingIndex = savedItineraries.findIndex((it: any) => it.id === itineraryToSave.id);
-      if (existingIndex >= 0) {
-        savedItineraries[existingIndex] = itineraryToSave;
-      } else {
-        savedItineraries.push(itineraryToSave);
-      }
-      
-      // Try to save, handle quota exceeded error
-      try {
-        localStorage.setItem('savedItineraries', JSON.stringify(savedItineraries));
-        setCurrentItinerary(itineraryToSave);
-        toast.success('Itinerary saved successfully');
-        return;
-      } catch (quotaError) {
-        if (quotaError instanceof DOMException && quotaError.name === 'QuotaExceededError') {
-          console.warn('localStorage quota exceeded, attempting comprehensive cleanup...');
-          
-          // First attempt: Clear non-essential items
-          const clearedCount = clearLargestItems();
-          
-          if (clearedCount > 0) {
-            try {
-              localStorage.setItem('savedItineraries', JSON.stringify(savedItineraries));
-              setCurrentItinerary(itineraryToSave);
-              toast.success('Itinerary saved (cleaned up browser storage)');
-              return;
-            } catch (secondError) {
-              console.warn('Still failing after clearing large items...');
-            }
-          }
-          
-          // Second attempt: Reduce itineraries to 10 most recent
-          console.warn('Reducing saved itineraries to 10 most recent...');
-          const recentItineraries = savedItineraries
-            .sort((a: any, b: any) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime())
-            .slice(0, 10);
-          
-          try {
-            localStorage.setItem('savedItineraries', JSON.stringify(recentItineraries));
-            setCurrentItinerary(itineraryToSave);
-            toast.success('Itinerary saved (reduced to 10 most recent)');
-            return;
-          } catch (thirdError) {
-            // Third attempt: Reduce to 5 itineraries
-            console.warn('Still failing, reducing to 5 itineraries...');
-            const minimalItineraries = recentItineraries.slice(0, 5);
-            
-            try {
-              localStorage.setItem('savedItineraries', JSON.stringify(minimalItineraries));
-              setCurrentItinerary(itineraryToSave);
-              toast.success('Itinerary saved (storage optimized to 5 items)');
-              return;
-            } catch (fourthError) {
-              // Final attempt: Create a minimal version of the itinerary
-              console.warn('Attempting minimal itinerary save...');
-              const minimalItinerary = {
-                id: itineraryToSave.id,
-                title: itineraryToSave.title,
-                startDate: itineraryToSave.startDate,
-                endDate: itineraryToSave.endDate,
-                locations: itineraryToSave.locations.map((loc: any) => ({
-                  id: loc.id,
-                  name: loc.name,
-                  country: loc.country
-                })),
-                events: itineraryToSave.events.map((event: any) => ({
-                  id: event.id,
-                  title: event.title,
-                  time: event.time,
-                  date: event.date,
-                  type: event.type
-                })),
-                userId: itineraryToSave.userId,
-                createdAt: itineraryToSave.createdAt,
-                updatedAt: itineraryToSave.updatedAt,
-                wasCreatedWithLengthOfStay: itineraryToSave.wasCreatedWithLengthOfStay
-              };
-              
-              try {
-                localStorage.setItem('savedItineraries', JSON.stringify([minimalItinerary]));
-                setCurrentItinerary(itineraryToSave);
-                toast.success('Itinerary saved (minimal version due to storage limits)');
-                return;
-              } catch (finalError) {
-                console.error('Complete storage failure:', finalError);
-                toast.error('Storage full - please clear browser data. Your itinerary is temporarily saved in memory.');
-                setCurrentItinerary(itineraryToSave);
-                return;
-              }
-            }
-          }
-        } else {
-          throw quotaError;
-        }
+      // Save to database
+      const saved = await saveItinerary(itineraryToSave);
+      if (saved) {
+        setCurrentItinerary(saved);
       }
       
     } catch (error) {

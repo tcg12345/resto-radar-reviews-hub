@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { Itinerary } from '@/components/ItineraryBuilder';
+import { useItineraries } from '@/hooks/useItineraries';
 import jsPDF from 'jspdf';
 
 interface SavedItinerariesSectionProps {
@@ -19,48 +20,12 @@ interface SavedItinerariesSectionProps {
 type ItineraryFilter = 'all' | 'current' | 'past' | 'future';
 
 export function SavedItinerariesSection({ onLoadItinerary }: SavedItinerariesSectionProps) {
-  const [savedItineraries, setSavedItineraries] = useState<Itinerary[]>([]);
   const [filter, setFilter] = useState<ItineraryFilter>('all');
   const navigate = useNavigate();
-
-  useEffect(() => {
-    loadSavedItineraries();
-  }, []);
-
-  const loadSavedItineraries = () => {
-    try {
-      const saved = localStorage.getItem('savedItineraries');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // Convert date strings back to Date objects
-        const itineraries = parsed.map((itinerary: any) => ({
-          ...itinerary,
-          startDate: new Date(itinerary.startDate),
-          endDate: new Date(itinerary.endDate),
-          locations: itinerary.locations.map((loc: any) => ({
-            ...loc,
-            startDate: loc.startDate ? new Date(loc.startDate) : undefined,
-            endDate: loc.endDate ? new Date(loc.endDate) : undefined,
-          })),
-        }));
-        setSavedItineraries(itineraries);
-      }
-    } catch (error) {
-      console.error('Error loading saved itineraries:', error);
-      toast.error('Failed to load saved itineraries');
-    }
-  };
+  const { itineraries: savedItineraries, loading, deleteItinerary: removeItinerary, refetch } = useItineraries();
 
   const deleteItinerary = (itineraryId: string) => {
-    try {
-      const updated = savedItineraries.filter(it => it.id !== itineraryId);
-      setSavedItineraries(updated);
-      localStorage.setItem('savedItineraries', JSON.stringify(updated));
-      toast.success('Itinerary deleted successfully');
-    } catch (error) {
-      console.error('Error deleting itinerary:', error);
-      toast.error('Failed to delete itinerary');
-    }
+    removeItinerary(itineraryId);
   };
 
   const exportItinerary = (itinerary: Itinerary) => {
@@ -380,7 +345,7 @@ export function SavedItinerariesSection({ onLoadItinerary }: SavedItinerariesSec
             {savedItineraries.length} {savedItineraries.length === 1 ? 'itinerary' : 'itineraries'} saved
           </p>
         </div>
-        <Button variant="outline" onClick={loadSavedItineraries}>
+        <Button variant="outline" onClick={refetch} disabled={loading}>
           <Clock className="w-4 h-4 mr-2" />
           Refresh
         </Button>
@@ -394,7 +359,7 @@ export function SavedItinerariesSection({ onLoadItinerary }: SavedItinerariesSec
             {savedItineraries.length} saved
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={loadSavedItineraries}>
+        <Button variant="outline" size="sm" onClick={refetch} disabled={loading}>
           <Clock className="w-4 h-4" />
         </Button>
       </div>
