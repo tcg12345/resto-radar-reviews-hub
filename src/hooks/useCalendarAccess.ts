@@ -44,43 +44,61 @@ export function useCalendarAccess() {
         return await requestGoogleCalendarAccess(startDate);
       }
 
-      // For mobile, try native calendar access first
+      // For mobile, use native calendar access
+      console.log('Mobile platform detected, attempting native calendar access...');
+      
       try {
         const { CapacitorCalendar } = await import('@ebarooni/capacitor-calendar');
+        console.log('Capacitor Calendar plugin loaded successfully');
         
+        console.log('Requesting calendar permissions...');
         const permission = await CapacitorCalendar.requestFullCalendarAccess();
+        console.log('Permission result:', permission);
         
-        if (permission.result === 'granted') {
-          const searchStartDate = startDate || new Date();
-          const searchEndDate = new Date(searchStartDate);
-          searchEndDate.setDate(searchEndDate.getDate() + 30);
-          
-          const result = await CapacitorCalendar.listEventsInRange({
-            from: searchStartDate.getTime(),
-            to: searchEndDate.getTime()
-          });
-          
-          const formattedEvents: CalendarEvent[] = result.result.map(event => ({
-            id: event.id,
-            title: event.title || 'Untitled Event',
-            startDate: new Date(event.startDate),
-            endDate: new Date(event.endDate),
-            location: event.location || undefined,
-            notes: event.description || undefined,
-            allDay: event.isAllDay
-          }));
-          
-          setEvents(formattedEvents);
-          toast.success(`Found ${formattedEvents.length} calendar events from device!`);
-          return formattedEvents;
-        } else {
-          throw new Error('Calendar permission denied');
+        if (permission.result !== 'granted') {
+          throw new Error(`Calendar permission denied: ${permission.result}`);
         }
+        
+        const searchStartDate = startDate || new Date();
+        const searchEndDate = new Date(searchStartDate);
+        searchEndDate.setDate(searchEndDate.getDate() + 30);
+        
+        console.log('Fetching calendar events from', searchStartDate, 'to', searchEndDate);
+        
+        const result = await CapacitorCalendar.listEventsInRange({
+          from: searchStartDate.getTime(),
+          to: searchEndDate.getTime()
+        });
+        
+        console.log('Calendar events result:', result);
+        
+        if (!result.result || !Array.isArray(result.result)) {
+          throw new Error('Invalid calendar events result structure');
+        }
+        
+        const formattedEvents: CalendarEvent[] = result.result.map(event => ({
+          id: event.id,
+          title: event.title || 'Untitled Event',
+          startDate: new Date(event.startDate),
+          endDate: new Date(event.endDate),
+          location: event.location || undefined,
+          notes: event.description || undefined,
+          allDay: event.isAllDay
+        }));
+        
+        console.log(`Successfully formatted ${formattedEvents.length} calendar events`);
+        setEvents(formattedEvents);
+        toast.success(`Found ${formattedEvents.length} calendar events from device!`);
+        return formattedEvents;
+        
       } catch (pluginError) {
-        console.error('Native calendar error:', pluginError);
-        // Show demo events for mobile when native calendar fails
-        toast.info('Native calendar not available. Showing demo events.');
-        return await showDemoEvents(startDate);
+        console.error('Native calendar error details:', pluginError);
+        console.error('Error type:', typeof pluginError);
+        console.error('Error message:', pluginError.message);
+        console.error('Error stack:', pluginError.stack);
+        
+        // Re-throw the error instead of falling back to demo events
+        throw new Error(`Native calendar access failed: ${pluginError.message}`);
       }
     } catch (error) {
       console.error('Calendar access error:', error);
