@@ -134,84 +134,99 @@ export function useCalendarAccess() {
       const { data: secrets, error } = await supabase.functions.invoke('get-google-calendar-credentials');
       
       if (error || !secrets?.apiKey || !secrets?.clientId) {
-        throw new Error('Google Calendar API credentials not configured');
+        toast.error('Google Calendar API credentials not configured');
+        return await showDemoEvents(startDate);
       }
 
-      // Load Google APIs
-      await new Promise((resolve, reject) => {
-        if (typeof window.gapi !== 'undefined') {
-          resolve(window.gapi);
-          return;
+      // Load Google APIs with better error handling
+      try {
+        await new Promise((resolve, reject) => {
+          if (typeof window.gapi !== 'undefined') {
+            resolve(window.gapi);
+            return;
+          }
+
+          const script = document.createElement('script');
+          script.src = 'https://apis.google.com/js/api.js';
+          script.onload = () => resolve(window.gapi);
+          script.onerror = () => reject(new Error('Failed to load Google APIs'));
+          document.head.appendChild(script);
+        });
+
+        // Initialize Google API with timeout
+        await Promise.race([
+          new Promise<void>((resolve) => {
+            window.gapi.load('client:auth2', resolve);
+          }),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Google API load timeout')), 10000)
+          )
+        ]);
+
+        await window.gapi.client.init({
+          apiKey: secrets.apiKey,
+          clientId: secrets.clientId,
+          discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
+          scope: 'https://www.googleapis.com/auth/calendar.readonly'
+        });
+
+        // Check if user is already signed in
+        const authInstance = window.gapi.auth2.getAuthInstance();
+        if (!authInstance.isSignedIn.get()) {
+          const user = await authInstance.signIn();
+          if (!user.isSignedIn()) {
+            toast.info('Google Calendar sign-in cancelled. Showing demo events.');
+            return await showDemoEvents(startDate);
+          }
         }
 
-        const script = document.createElement('script');
-        script.src = 'https://apis.google.com/js/api.js';
-        script.onload = () => resolve(window.gapi);
-        script.onerror = reject;
-        document.head.appendChild(script);
-      });
+        // Calculate date range
+        const searchStartDate = startDate || new Date();
+        const searchEndDate = new Date(searchStartDate);
+        searchEndDate.setDate(searchEndDate.getDate() + 30);
 
-      // Initialize Google API
-      await new Promise<void>((resolve) => {
-        window.gapi.load('client:auth2', resolve);
-      });
+        // Fetch calendar events
+        const response = await window.gapi.client.calendar.events.list({
+          calendarId: 'primary',
+          timeMin: searchStartDate.toISOString(),
+          timeMax: searchEndDate.toISOString(),
+          showDeleted: false,
+          singleEvents: true,
+          orderBy: 'startTime'
+        });
 
-      await window.gapi.client.init({
-        apiKey: secrets.apiKey,
-        clientId: secrets.clientId,
-        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
-        scope: 'https://www.googleapis.com/auth/calendar.readonly'
-      });
+        const googleEvents: GoogleCalendarEvent[] = response.result.items || [];
+        
+        const formattedEvents: CalendarEvent[] = googleEvents.map(event => {
+          const startDateTime = event.start.dateTime || event.start.date;
+          const endDateTime = event.end.dateTime || event.end.date;
+          const isAllDay = !event.start.dateTime;
 
-      // Check if user is already signed in
-      const authInstance = window.gapi.auth2.getAuthInstance();
-      if (!authInstance.isSignedIn.get()) {
-        const user = await authInstance.signIn();
-        if (!user.isSignedIn()) {
-          toast.error('Google Calendar sign-in cancelled');
-          return [];
-        }
+          return {
+            id: event.id,
+            title: event.summary || 'Untitled Event',
+            startDate: new Date(startDateTime!),
+            endDate: new Date(endDateTime!),
+            location: event.location,
+            notes: event.description,
+            allDay: isAllDay
+          };
+        });
+
+        setEvents(formattedEvents);
+        toast.success(`Imported ${formattedEvents.length} events from Google Calendar!`);
+        return formattedEvents;
+
+      } catch (apiError) {
+        console.error('Google Calendar API error:', apiError);
+        toast.error('Unable to connect to Google Calendar. Check your API credentials and domain authorization.');
+        return await showDemoEvents(startDate);
       }
-
-      // Calculate date range
-      const searchStartDate = startDate || new Date();
-      const searchEndDate = new Date(searchStartDate);
-      searchEndDate.setDate(searchEndDate.getDate() + 30);
-
-      // Fetch calendar events
-      const response = await window.gapi.client.calendar.events.list({
-        calendarId: 'primary',
-        timeMin: searchStartDate.toISOString(),
-        timeMax: searchEndDate.toISOString(),
-        showDeleted: false,
-        singleEvents: true,
-        orderBy: 'startTime'
-      });
-
-      const googleEvents: GoogleCalendarEvent[] = response.result.items || [];
-      
-      const formattedEvents: CalendarEvent[] = googleEvents.map(event => {
-        const startDateTime = event.start.dateTime || event.start.date;
-        const endDateTime = event.end.dateTime || event.end.date;
-        const isAllDay = !event.start.dateTime;
-
-        return {
-          id: event.id,
-          title: event.summary || 'Untitled Event',
-          startDate: new Date(startDateTime!),
-          endDate: new Date(endDateTime!),
-          location: event.location,
-          notes: event.description,
-          allDay: isAllDay
-        };
-      });
-
-      setEvents(formattedEvents);
-      toast.success(`Imported ${formattedEvents.length} events from Google Calendar!`);
-      return formattedEvents;
 
     } catch (error) {
-      throw new Error(`Google Calendar API error: ${error}`);
+      console.error('Calendar access error:', error);
+      toast.error('Calendar access failed. Showing demo events.');
+      return await showDemoEvents(startDate);
     }
   };
 
