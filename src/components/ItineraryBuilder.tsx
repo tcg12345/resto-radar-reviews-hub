@@ -1183,9 +1183,10 @@ export function ItineraryBuilder({
                     {currentItinerary?.isMultiCity && <Badge variant="secondary" className="px-3 py-1 bg-gradient-to-r from-secondary/20 to-accent/20 border-secondary/30 text-secondary-foreground font-medium">
                         Multi-city Adventure
                       </Badge>}
-                    <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform group-hover:text-foreground ${isDesktopSectionOpen ? 'rotate-180' : ''}`} />
-                  </div>
-                </CollapsibleTrigger>
+                     <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform group-hover:text-foreground ${isDesktopSectionOpen ? 'rotate-180' : ''}`} />
+                   </div>
+                   </div>
+                 </CollapsibleTrigger>
                 
                 <CollapsibleContent>
                 {/* Content Grid */}
