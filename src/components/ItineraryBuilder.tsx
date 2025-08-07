@@ -1463,132 +1463,138 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                   </CardHeader>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <CardContent className="p-0 bg-gradient-to-br from-background to-muted/20">
+                  <CardContent className="p-4 lg:p-6">
                     
-                    {/* Modern Trip Mode Selector */}
+                    {/* Mobile-Optimized Trip Mode Selector */}
                     {((useLengthOfStay || wasCreatedWithLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) || 
                       (!useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) && dateRange.start && dateRange.end)) && (
-                      <div className="p-6 border-b border-border/20">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="p-2 bg-primary/10 rounded-xl">
-                            <CalendarIcon className="w-5 h-5 text-primary" />
+                      <div className="space-y-4">
+                        
+                        {/* Header */}
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                            <CalendarIcon className="w-4 h-4 text-primary" />
                           </div>
                           <div>
-                            <h3 className="font-semibold text-lg text-foreground">Planning Mode</h3>
-                            <p className="text-sm text-muted-foreground">Choose how you want to plan your trip</p>
+                            <h3 className="font-semibold text-base text-foreground">Trip Planning</h3>
+                            <p className="text-xs text-muted-foreground">Choose your planning style</p>
                           </div>
                         </div>
                         
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {/* Dates Mode Card */}
-                          <div className={cn(
-                            "relative p-4 rounded-2xl border-2 transition-all duration-200 cursor-pointer group",
-                            (!useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) 
-                              ? "border-primary bg-primary/5 shadow-lg shadow-primary/10" 
-                              : "border-border/40 bg-card hover:border-primary/30 hover:bg-primary/5"
-                          )}
-                          onClick={() => {
-                            if (useLengthOfStay || wasCreatedWithLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) {
-                              // Convert to date-based mode
-                              if (currentItinerary) {
-                                setUseLengthOfStay(false);
-                                setWasCreatedWithLengthOfStay(false);
-                                setLocationLengthOfStay({});
-                                setLocationNights({});
-                                
-                                if (!dateRange.start || !dateRange.end) {
-                                  const startDate = startOfDay(new Date());
-                                  let endDate = startDate;
-                                  
-                                  if (currentItinerary.isMultiCity) {
-                                    const totalNights = Object.values(locationNights).reduce((sum, nights) => sum + nights, 0) || 7;
-                                    endDate = addDays(startDate, totalNights);
-                                  } else {
-                                    endDate = addDays(startDate, numberOfNights);
+                        {/* Mobile Toggle Switch Design */}
+                        <div className="bg-muted/30 p-1 rounded-xl border border-border/20">
+                          <div className="grid grid-cols-2 gap-1">
+                            
+                            {/* Dates Option */}
+                            <button
+                              onClick={() => {
+                                if (useLengthOfStay || wasCreatedWithLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) {
+                                  // Convert to date-based mode
+                                  if (currentItinerary) {
+                                    setUseLengthOfStay(false);
+                                    setWasCreatedWithLengthOfStay(false);
+                                    setLocationLengthOfStay({});
+                                    setLocationNights({});
+                                    
+                                    if (!dateRange.start || !dateRange.end) {
+                                      const startDate = startOfDay(new Date());
+                                      let endDate = startDate;
+                                      
+                                      if (currentItinerary.isMultiCity) {
+                                        const totalNights = Object.values(locationNights).reduce((sum, nights) => sum + nights, 0) || 7;
+                                        endDate = addDays(startDate, totalNights);
+                                      } else {
+                                        endDate = addDays(startDate, numberOfNights);
+                                      }
+                                      
+                                      setDateRange({ start: startDate, end: endDate });
+                                      setCurrentItinerary(prev => prev ? {
+                                        ...prev,
+                                        startDate,
+                                        endDate
+                                      } : null);
+                                    }
+                                    
+                                    setHasPendingChanges(true);
+                                    toast.success('Switched to date planning');
                                   }
-                                  
-                                  setDateRange({ start: startDate, end: endDate });
-                                  setCurrentItinerary(prev => prev ? {
-                                    ...prev,
-                                    startDate,
-                                    endDate
-                                  } : null);
                                 }
-                                
-                                setHasPendingChanges(true);
-                                toast.success('Switched to date-based planning');
-                              }
-                            }
-                          }}
-                          >
-                            <div className="flex items-center gap-3 mb-2">
-                              <div className={cn(
-                                "w-3 h-3 rounded-full transition-colors",
+                              }}
+                              className={cn(
+                                "relative p-3 rounded-lg text-sm font-medium transition-all duration-200",
                                 (!useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) 
-                                  ? "bg-primary" 
-                                  : "bg-muted-foreground/30 group-hover:bg-primary/50"
-                              )}></div>
-                              <h4 className="font-semibold text-foreground">Specific Dates</h4>
-                            </div>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              Plan with exact start and end dates
-                            </p>
-                          </div>
-                          
-                          {/* Nights Mode Card */}
-                          <div className={cn(
-                            "relative p-4 rounded-2xl border-2 transition-all duration-200 cursor-pointer group",
-                            (useLengthOfStay || wasCreatedWithLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) 
-                              ? "border-primary bg-primary/5 shadow-lg shadow-primary/10" 
-                              : "border-border/40 bg-card hover:border-primary/30 hover:bg-primary/5"
-                          )}
-                          onClick={() => {
-                            if (!useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) {
-                              // Convert to length-of-stay mode
-                              if (currentItinerary && dateRange.start && dateRange.end) {
-                                const totalNights = differenceInDays(dateRange.end, dateRange.start);
-                                
-                                if (currentItinerary.isMultiCity) {
-                                  const nightsPerCity = Math.max(1, Math.floor(totalNights / currentItinerary.locations.length));
-                                  const remainingNights = totalNights - (nightsPerCity * (currentItinerary.locations.length - 1));
-                                  
-                                  const newLocationLengthOfStay: Record<string, boolean> = {};
-                                  const newLocationNights: Record<string, number> = {};
-                                  
-                                  currentItinerary.locations.forEach((location, index) => {
-                                    newLocationLengthOfStay[location.id] = true;
-                                    newLocationNights[location.id] = index === currentItinerary.locations.length - 1 ? remainingNights : nightsPerCity;
-                                  });
-                                  
-                                  setLocationLengthOfStay(newLocationLengthOfStay);
-                                  setLocationNights(newLocationNights);
-                                  setWasCreatedWithLengthOfStay(true);
-                                } else {
-                                  setUseLengthOfStay(true);
-                                  setNumberOfNights(totalNights);
-                                  setWasCreatedWithLengthOfStay(true);
+                                  ? "bg-background text-foreground shadow-sm border border-border/40" 
+                                  : "text-muted-foreground hover:text-foreground"
+                              )}
+                            >
+                              <div className="flex flex-col items-center gap-1">
+                                <CalendarIcon className="w-4 h-4" />
+                                <span className="text-xs">Specific Dates</span>
+                              </div>
+                            </button>
+                            
+                            {/* Nights Option */}
+                            <button
+                              onClick={() => {
+                                if (!useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) {
+                                  // Convert to length-of-stay mode
+                                  if (currentItinerary && dateRange.start && dateRange.end) {
+                                    const totalNights = differenceInDays(dateRange.end, dateRange.start);
+                                    
+                                    if (currentItinerary.isMultiCity) {
+                                      const nightsPerCity = Math.max(1, Math.floor(totalNights / currentItinerary.locations.length));
+                                      const remainingNights = totalNights - (nightsPerCity * (currentItinerary.locations.length - 1));
+                                      
+                                      const newLocationLengthOfStay: Record<string, boolean> = {};
+                                      const newLocationNights: Record<string, number> = {};
+                                      
+                                      currentItinerary.locations.forEach((location, index) => {
+                                        newLocationLengthOfStay[location.id] = true;
+                                        newLocationNights[location.id] = index === currentItinerary.locations.length - 1 ? remainingNights : nightsPerCity;
+                                      });
+                                      
+                                      setLocationLengthOfStay(newLocationLengthOfStay);
+                                      setLocationNights(newLocationNights);
+                                      setWasCreatedWithLengthOfStay(true);
+                                    } else {
+                                      setUseLengthOfStay(true);
+                                      setNumberOfNights(totalNights);
+                                      setWasCreatedWithLengthOfStay(true);
+                                    }
+                                    
+                                    setHasPendingChanges(true);
+                                    toast.success('Switched to nights planning');
+                                  }
                                 }
-                                
-                                setHasPendingChanges(true);
-                                toast.success('Switched to nights-based planning');
-                              }
-                            }
-                          }}
-                          >
-                            <div className="flex items-center gap-3 mb-2">
-                              <div className={cn(
-                                "w-3 h-3 rounded-full transition-colors",
+                              }}
+                              className={cn(
+                                "relative p-3 rounded-lg text-sm font-medium transition-all duration-200",
                                 (useLengthOfStay || wasCreatedWithLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) 
-                                  ? "bg-primary" 
-                                  : "bg-muted-foreground/30 group-hover:bg-primary/50"
-                              )}></div>
-                              <h4 className="font-semibold text-foreground">Number of Nights</h4>
-                            </div>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              Plan based on how many nights you'll stay
-                            </p>
+                                  ? "bg-background text-foreground shadow-sm border border-border/40" 
+                                  : "text-muted-foreground hover:text-foreground"
+                              )}
+                            >
+                              <div className="flex flex-col items-center gap-1">
+                                <div className="w-4 h-4 flex items-center justify-center">
+                                  <span className="text-xs font-bold">#</span>
+                                </div>
+                                <span className="text-xs">Number of Nights</span>
+                              </div>
+                            </button>
+                            
                           </div>
                         </div>
+                        
+                        {/* Current Mode Description */}
+                        <div className="p-3 bg-muted/20 rounded-lg border border-border/20">
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            {(!useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) 
+                              ? "✨ Plan your trip with specific start and end dates"
+                              : "🏨 Plan based on how many nights you'll stay in each location"
+                            }
+                          </p>
+                        </div>
+                        
                       </div>
                     )}
                     {/* For date-based single city trips */}
