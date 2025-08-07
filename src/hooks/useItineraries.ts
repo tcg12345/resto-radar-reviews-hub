@@ -4,6 +4,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Itinerary, ItineraryEvent } from '@/components/ItineraryBuilder';
 
+// Helper function to format dates for database storage without timezone issues
+const formatDateForDatabase = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export function useItineraries() {
   const { user } = useAuth();
   const [itineraries, setItineraries] = useState<Itinerary[]>([]);
@@ -54,8 +62,8 @@ export function useItineraries() {
         .insert({
           user_id: user.id,
           title: itinerary.title,
-          start_date: itinerary.startDate.toISOString().split('T')[0],
-          end_date: itinerary.endDate.toISOString().split('T')[0],
+          start_date: formatDateForDatabase(itinerary.startDate),
+          end_date: formatDateForDatabase(itinerary.endDate),
           events: itinerary.events as any
         })
         .select()
@@ -93,8 +101,8 @@ export function useItineraries() {
     try {
       const updateData: any = {};
       if (updates.title) updateData.title = updates.title;
-      if (updates.startDate) updateData.start_date = updates.startDate.toISOString().split('T')[0];
-      if (updates.endDate) updateData.end_date = updates.endDate.toISOString().split('T')[0];
+      if (updates.startDate) updateData.start_date = formatDateForDatabase(updates.startDate);
+      if (updates.endDate) updateData.end_date = formatDateForDatabase(updates.endDate);
       if (updates.events) updateData.events = updates.events as any;
 
       const { data, error } = await supabase
