@@ -4,13 +4,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Itinerary, ItineraryEvent } from '@/components/ItineraryBuilder';
 
-// Helper function to format dates for database storage without timezone issues
-const formatDateForDatabase = (date: Date): string => {
-  // Create a new date in local timezone to avoid UTC conversion issues
-  const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
-  return localDate.toISOString().split('T')[0];
-};
-
 export function useItineraries() {
   const { user } = useAuth();
   const [itineraries, setItineraries] = useState<Itinerary[]>([]);
@@ -55,14 +48,21 @@ export function useItineraries() {
   const saveItinerary = async (itinerary: Itinerary) => {
     if (!user) return null;
 
+    console.log('Saving itinerary with dates:', {
+      originalStartDate: itinerary.startDate,
+      originalEndDate: itinerary.endDate,
+      startDateString: itinerary.startDate.toISOString().split('T')[0],
+      endDateString: itinerary.endDate.toISOString().split('T')[0]
+    });
+
     try {
       const { data, error } = await supabase
         .from('itineraries')
         .insert({
           user_id: user.id,
           title: itinerary.title,
-          start_date: formatDateForDatabase(itinerary.startDate),
-          end_date: formatDateForDatabase(itinerary.endDate),
+          start_date: itinerary.startDate.toISOString().split('T')[0],
+          end_date: itinerary.endDate.toISOString().split('T')[0],
           events: itinerary.events as any
         })
         .select()
@@ -70,6 +70,13 @@ export function useItineraries() {
 
       if (error) throw error;
       
+      console.log('Received data from database:', {
+        savedStartDate: data.start_date,
+        savedEndDate: data.end_date,
+        convertedStartDate: new Date(data.start_date),
+        convertedEndDate: new Date(data.end_date)
+      });
+
       // Convert back to Itinerary format and add to state
       const converted: Itinerary = {
         id: data.id,
@@ -100,8 +107,8 @@ export function useItineraries() {
     try {
       const updateData: any = {};
       if (updates.title) updateData.title = updates.title;
-      if (updates.startDate) updateData.start_date = formatDateForDatabase(updates.startDate);
-      if (updates.endDate) updateData.end_date = formatDateForDatabase(updates.endDate);
+      if (updates.startDate) updateData.start_date = updates.startDate.toISOString().split('T')[0];
+      if (updates.endDate) updateData.end_date = updates.endDate.toISOString().split('T')[0];
       if (updates.events) updateData.events = updates.events as any;
 
       const { data, error } = await supabase
