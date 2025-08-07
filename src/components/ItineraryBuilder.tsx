@@ -1902,7 +1902,7 @@ export function ItineraryBuilder({
       <SaveItineraryDialog isOpen={isSaveDialogOpen} onClose={() => setIsSaveDialogOpen(false)} onSave={handleSaveItinerary} currentTitle={currentItinerary?.title || ''} />
 
       {/* Map View */}
-      <ItineraryMapView events={events} isOpen={isMapOpen} onClose={() => setIsMapOpen(false)} />
+      <ItineraryMapView events={events} hotels={hotels} isOpen={isMapOpen} onClose={() => setIsMapOpen(false)} />
 
       {/* Mobile Map Button */}
       <ItineraryMapButton events={events} onOpenMap={() => setIsMapOpen(true)} />

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { ItineraryEvent } from './ItineraryBuilder';
+import { Hotel as HotelType } from '@/hooks/useGooglePlacesHotelSearch';
 import { useMapboxToken } from '@/hooks/useMapboxToken';
 import { MapPin, Calendar, Clock, X, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,8 +11,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 
+interface HotelBooking {
+  id: string;
+  hotel: HotelType;
+  checkIn?: Date;
+  checkOut?: Date;
+  location?: string;
+}
+
 interface ItineraryMapViewProps {
   events: ItineraryEvent[];
+  hotels?: HotelBooking[];
   isOpen: boolean;
   onClose: () => void;
 }
@@ -44,13 +54,14 @@ const getEventTypeColor = (type: string) => {
   }
 };
 
-export function ItineraryMapView({ events, isOpen, onClose }: ItineraryMapViewProps) {
+export function ItineraryMapView({ events, hotels = [], isOpen, onClose }: ItineraryMapViewProps) {
   const navigate = useNavigate();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<mapboxgl.Marker[]>([]);
   const { token, isLoading } = useMapboxToken();
   const [selectedEvent, setSelectedEvent] = useState<ItineraryEvent | null>(null);
+  const [selectedHotel, setSelectedHotel] = useState<HotelBooking | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
 
   // Filter events that have location data
@@ -72,8 +83,22 @@ export function ItineraryMapView({ events, isOpen, onClose }: ItineraryMapViewPr
     return hasAttractionCoords || hasRestaurantCoords || hasRestaurantPlaceId;
   });
 
+  // Filter hotels that have location data
+  const hotelsWithLocation = hotels.filter(hotelBooking => {
+    const hasCoords = hotelBooking.hotel.latitude && hotelBooking.hotel.longitude;
+    console.log('Hotel filtering:', {
+      name: hotelBooking.hotel.name,
+      hasCoords,
+      latitude: hotelBooking.hotel.latitude,
+      longitude: hotelBooking.hotel.longitude
+    });
+    return hasCoords;
+  });
+
+  const totalLocations = eventsWithLocation.length + hotelsWithLocation.length;
+
   useEffect(() => {
-    if (!isOpen || !token || !mapContainer.current || eventsWithLocation.length === 0) {
+    if (!isOpen || !token || !mapContainer.current || totalLocations === 0) {
       setMapLoaded(false);
       return;
     }
@@ -103,20 +128,20 @@ export function ItineraryMapView({ events, isOpen, onClose }: ItineraryMapViewPr
       }
       setMapLoaded(false);
     };
-  }, [isOpen, token, eventsWithLocation.length]);
+  }, [isOpen, token, totalLocations]);
 
   useEffect(() => {
-    // Only add markers after map is loaded and we have events
-    if (!map.current || !mapLoaded || eventsWithLocation.length === 0) {
+    // Only add markers after map is loaded and we have locations
+    if (!map.current || !mapLoaded || totalLocations === 0) {
       console.log('Skipping marker creation:', { 
         hasMap: !!map.current, 
         mapLoaded, 
-        eventCount: eventsWithLocation.length 
+        totalLocations 
       });
       return;
     }
 
-    console.log('Creating markers for', eventsWithLocation.length, 'events');
+    console.log('Creating markers for', eventsWithLocation.length, 'events and', hotelsWithLocation.length, 'hotels');
 
     // Clear existing markers
     markers.current.forEach(marker => marker.remove());
@@ -181,6 +206,47 @@ export function ItineraryMapView({ events, isOpen, onClose }: ItineraryMapViewPr
       }
     });
 
+    // Add hotel markers
+    hotelsWithLocation.forEach((hotelBooking) => {
+      const { hotel } = hotelBooking;
+      
+      if (hotel.latitude && hotel.longitude) {
+        validBounds = true;
+        bounds.extend([hotel.longitude, hotel.latitude]);
+
+        // Create custom hotel marker element
+        const markerElement = document.createElement('div');
+        markerElement.className = 'itinerary-marker hotel-marker';
+        markerElement.innerHTML = `
+          <div class="flex items-center justify-center w-7 h-7 rounded-full shadow-lg cursor-pointer transition-all hover:scale-110" 
+               style="background-color: ${getEventTypeColor('hotel')}; border: 3px solid white;">
+            <span class="text-sm">${getEventTypeIcon('hotel')}</span>
+          </div>
+        `;
+
+        markerElement.addEventListener('click', () => {
+          setSelectedHotel(hotelBooking);
+          setSelectedEvent(null); // Clear event selection
+          if (map.current) {
+            map.current.flyTo({
+              center: [hotel.longitude!, hotel.latitude!],
+              zoom: 15,
+              essential: true
+            });
+          }
+        });
+
+        const marker = new mapboxgl.Marker(markerElement)
+          .setLngLat([hotel.longitude, hotel.latitude]);
+        
+        // Safety check before adding to map
+        if (map.current) {
+          marker.addTo(map.current);
+          markers.current.push(marker);
+        }
+      }
+    });
+
     // Fit map to show all markers
     if (validBounds && !bounds.isEmpty() && map.current) {
       map.current.fitBounds(bounds, {
@@ -188,7 +254,7 @@ export function ItineraryMapView({ events, isOpen, onClose }: ItineraryMapViewPr
         maxZoom: 15
       });
     }
-  }, [eventsWithLocation, mapLoaded]);
+  }, [eventsWithLocation, hotelsWithLocation, mapLoaded]);
 
   if (!isOpen) return null;
 
@@ -226,7 +292,7 @@ export function ItineraryMapView({ events, isOpen, onClose }: ItineraryMapViewPr
     );
   }
 
-  if (eventsWithLocation.length === 0) {
+  if (totalLocations === 0) {
     return (
       <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
         <Card className="w-full max-w-md mx-4">
@@ -238,7 +304,7 @@ export function ItineraryMapView({ events, isOpen, onClose }: ItineraryMapViewPr
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
-              Add some attractions or restaurants with location data to see them on the map.
+              Add some attractions, restaurants, or hotels with location data to see them on the map.
             </p>
             <Button onClick={onClose} className="w-full">
               Close
@@ -262,7 +328,7 @@ export function ItineraryMapView({ events, isOpen, onClose }: ItineraryMapViewPr
               <MapPin className="w-5 h-5" />
               Itinerary Map
               <Badge variant="secondary" className="ml-2">
-                {eventsWithLocation.length} location{eventsWithLocation.length !== 1 ? 's' : ''}
+                {totalLocations} location{totalLocations !== 1 ? 's' : ''}
               </Badge>
             </h2>
             <Button variant="outline" size="sm" onClick={onClose}>
@@ -335,6 +401,79 @@ export function ItineraryMapView({ events, isOpen, onClose }: ItineraryMapViewPr
           </div>
         )}
 
+        {/* Selected Hotel Details */}
+        {selectedHotel && (
+          <div className="absolute bottom-4 left-4 right-4 lg:left-auto lg:w-80">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <span className="text-lg">🏨</span>
+                  {selectedHotel.hotel.name}
+                </CardTitle>
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  {selectedHotel.checkIn && (
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      Check-in: {selectedHotel.checkIn instanceof Date ? selectedHotel.checkIn.toLocaleDateString() : selectedHotel.checkIn}
+                    </div>
+                  )}
+                  {selectedHotel.checkOut && (
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      Check-out: {selectedHotel.checkOut instanceof Date ? selectedHotel.checkOut.toLocaleDateString() : selectedHotel.checkOut}
+                    </div>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                {selectedHotel.hotel.description && (
+                  <p className="text-sm text-muted-foreground mb-2">
+                    {selectedHotel.hotel.description}
+                  </p>
+                )}
+                {selectedHotel.hotel.address && (
+                  <p className="text-xs text-muted-foreground mb-2">
+                    {selectedHotel.hotel.address}
+                  </p>
+                )}
+                {selectedHotel.hotel.rating && (
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Rating: {selectedHotel.hotel.rating}/5
+                  </p>
+                )}
+                {selectedHotel.hotel.priceRange && (
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Price: {selectedHotel.hotel.priceRange}
+                  </p>
+                )}
+                <div className="flex gap-2 mt-3">
+                  {selectedHotel.hotel.website && (
+                    <Button 
+                      variant="default" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => {
+                        window.open(selectedHotel.hotel.website, '_blank');
+                      }}
+                    >
+                      <Eye className="w-3 h-3 mr-1" />
+                      Visit Website
+                    </Button>
+                  )}
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className={selectedHotel.hotel.website ? "flex-1" : "w-full"}
+                    onClick={() => setSelectedHotel(null)}
+                  >
+                    Close
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {/* Legend */}
         <div className="absolute top-20 right-4 hidden lg:block">
           <Card className="w-48">
@@ -342,7 +481,10 @@ export function ItineraryMapView({ events, isOpen, onClose }: ItineraryMapViewPr
               <CardTitle className="text-sm">Legend</CardTitle>
             </CardHeader>
             <CardContent className="pt-0 space-y-1">
-              {Array.from(new Set(eventsWithLocation.map(e => e.type))).map(type => (
+              {Array.from(new Set([
+                ...eventsWithLocation.map(e => e.type),
+                ...(hotelsWithLocation.length > 0 ? ['hotel'] : [])
+              ])).map(type => (
                 <div key={type} className="flex items-center gap-2 text-xs">
                    <div 
                      className="w-3 h-3 rounded-full flex items-center justify-center text-xs"
