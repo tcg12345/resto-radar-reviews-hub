@@ -142,13 +142,27 @@ export function useItineraries() {
 
       if (error) throw error;
       
+      // Convert back to Itinerary format
+      const converted: Itinerary = {
+        id: data.id,
+        title: data.title,
+        startDate: new Date(data.start_date + 'T00:00:00'),
+        endDate: new Date(data.end_date + 'T00:00:00'),
+        locations: Array.isArray(data.locations) ? (data.locations as unknown as TripLocation[]) : [],
+        events: Array.isArray(data.events) ? (data.events as unknown) as ItineraryEvent[] : [],
+        hotels: Array.isArray(data.hotels) ? (data.hotels as unknown as HotelBooking[]) : [],
+        flights: Array.isArray(data.flights) ? (data.flights as unknown as FlightBooking[]) : [],
+        wasCreatedWithLengthOfStay: data.was_created_with_length_of_stay || false,
+        isMultiCity: data.is_multi_city || false
+      };
+      
       // Update local state
       setItineraries(prev => prev.map(item => 
-        item.id === id ? { ...item, ...updates } : item
+        item.id === id ? converted : item
       ));
       
       toast.success('Itinerary updated successfully');
-      return data;
+      return converted;
     } catch (error) {
       console.error('Error updating itinerary:', error);
       toast.error('Failed to update itinerary');

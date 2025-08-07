@@ -9,12 +9,14 @@ interface SaveItineraryDialogProps {
   onClose: () => void;
   onSave: (title: string) => void;
   currentTitle: string;
+  isUpdate?: boolean;
 }
 export function SaveItineraryDialog({
   isOpen,
   onClose,
   onSave,
-  currentTitle
+  currentTitle,
+  isUpdate = false
 }: SaveItineraryDialogProps) {
   const [title, setTitle] = useState('');
   useEffect(() => {
@@ -37,10 +39,10 @@ export function SaveItineraryDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Save className="w-5 h-5" />
-            Save Itinerary
+            {isUpdate ? 'Update Itinerary' : 'Save Itinerary'}
           </DialogTitle>
           <DialogDescription>
-            Give your itinerary a memorable name
+            {isUpdate ? 'Update your itinerary name' : 'Give your itinerary a memorable name'}
           </DialogDescription>
         </DialogHeader>
 
@@ -57,7 +59,7 @@ export function SaveItineraryDialog({
           </Button>
           <Button onClick={handleSave} disabled={!title.trim()} className="flex items-center gap-2">
             <Save className="w-4 h-4" />
-            Save Itinerary
+            {isUpdate ? 'Update Itinerary' : 'Save Itinerary'}
           </Button>
         </DialogFooter>
       </DialogContent>

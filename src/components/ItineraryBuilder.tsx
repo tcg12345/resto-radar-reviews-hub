@@ -120,7 +120,8 @@ export function ItineraryBuilder({
     user
   } = useAuth();
   const {
-    saveItinerary
+    saveItinerary,
+    updateItinerary
   } = useItineraries();
 
   // Load state from localStorage on mount
@@ -695,11 +696,24 @@ export function ItineraryBuilder({
         locations: itineraryToSave.locations,
         hotels: itineraryToSave.hotels,
         flights: itineraryToSave.flights,
-        isMultiCity: itineraryToSave.isMultiCity
+        isMultiCity: itineraryToSave.isMultiCity,
+        isExisting: !!currentItinerary.id
       });
 
-      // Save to database
-      const saved = await saveItinerary(itineraryToSave);
+      // Check if this is an existing itinerary (has an ID)
+      const isExistingItinerary = !!currentItinerary.id;
+      let saved;
+      
+      if (isExistingItinerary) {
+        // Update existing itinerary
+        console.log('Updating existing itinerary with ID:', currentItinerary.id);
+        saved = await updateItinerary(currentItinerary.id, itineraryToSave);
+      } else {
+        // Create new itinerary
+        console.log('Creating new itinerary');
+        saved = await saveItinerary(itineraryToSave);
+      }
+      
       if (saved) {
         setCurrentItinerary(saved);
       }
@@ -1136,7 +1150,7 @@ export function ItineraryBuilder({
                       <div className="grid grid-cols-2 gap-3">
                         <Button variant="outline" size="sm" onClick={() => setIsSaveDialogOpen(true)} className="flex items-center justify-center gap-2 h-10 bg-card/50 hover:bg-card border-border/50 hover:border-primary/30 transition-all duration-200">
                           <Save className="w-4 h-4" />
-                          <span className="font-medium">Save</span>
+                          <span className="font-medium">{currentItinerary?.id ? 'Update' : 'Save'}</span>
                         </Button>
                         <Button variant="outline" size="sm" onClick={() => setIsShareDialogOpen(true)} className="flex items-center justify-center gap-2 h-10 bg-card/50 hover:bg-card border-border/50 hover:border-primary/30 transition-all duration-200">
                           <Share2 className="w-4 h-4" />
@@ -1295,7 +1309,7 @@ export function ItineraryBuilder({
                         <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         <div className="relative flex flex-col items-center gap-1">
                           <Save className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
-                          <span className="font-semibold text-sm">Save Trip</span>
+                          <span className="font-semibold text-sm">{currentItinerary?.id ? 'Update Trip' : 'Save Trip'}</span>
                         </div>
                       </Button>
                       
@@ -1921,7 +1935,7 @@ export function ItineraryBuilder({
       <ExportItineraryDialog isOpen={isExportDialogOpen} onClose={() => setIsExportDialogOpen(false)} itinerary={currentItinerary} />
 
       {/* Save Dialog */}
-      <SaveItineraryDialog isOpen={isSaveDialogOpen} onClose={() => setIsSaveDialogOpen(false)} onSave={handleSaveItinerary} currentTitle={currentItinerary?.title || ''} />
+      <SaveItineraryDialog isOpen={isSaveDialogOpen} onClose={() => setIsSaveDialogOpen(false)} onSave={handleSaveItinerary} currentTitle={currentItinerary?.title || ''} isUpdate={!!currentItinerary?.id} />
 
       {/* Map View */}
       <ItineraryMapView events={events} hotels={hotels} isOpen={isMapOpen} onClose={() => setIsMapOpen(false)} />
