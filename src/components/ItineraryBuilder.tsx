@@ -691,7 +691,11 @@ export function ItineraryBuilder({
         startDateType: typeof currentItinerary.startDate,
         endDateType: typeof currentItinerary.endDate,
         wasCreatedWithLengthOfStay,
-        id: itineraryToSave.id
+        id: itineraryToSave.id,
+        locations: itineraryToSave.locations,
+        hotels: itineraryToSave.hotels,
+        flights: itineraryToSave.flights,
+        isMultiCity: itineraryToSave.isMultiCity
       });
 
       // Save to database
@@ -740,6 +744,16 @@ export function ItineraryBuilder({
     setFlights(prev => prev.filter(flight => flight.id !== flightId));
   };
   const handleLoadItinerary = (itinerary: Itinerary) => {
+    console.log('Loading itinerary:', {
+      title: itinerary.title,
+      locations: itinerary.locations,
+      hotels: itinerary.hotels,
+      flights: itinerary.flights,
+      isMultiCity: itinerary.isMultiCity,
+      startDate: itinerary.startDate,
+      endDate: itinerary.endDate
+    });
+    
     // Load the selected itinerary into the builder
     setCurrentItinerary(itinerary);
     setDateRange({
@@ -747,10 +761,17 @@ export function ItineraryBuilder({
       end: itinerary.endDate
     });
     setEvents(itinerary.events);
-    setHotels(itinerary.hotels);
-    setFlights(itinerary.flights);
-    setLocations(itinerary.locations);
-    setIsMultiCity(itinerary.isMultiCity);
+    setHotels(itinerary.hotels || []);
+    setFlights(itinerary.flights || []);
+    setLocations(itinerary.locations || []);
+    setIsMultiCity(itinerary.isMultiCity || false);
+    
+    // Set length of stay settings if this was created with that mode
+    if (itinerary.wasCreatedWithLengthOfStay) {
+      setWasCreatedWithLengthOfStay(true);
+      setUseLengthOfStay(true);
+    }
+    
     setHasCreatedItinerary(true);
 
     // Update localStorage
@@ -761,11 +782,12 @@ export function ItineraryBuilder({
       },
       currentItinerary: itinerary,
       events: itinerary.events,
-      hotels: itinerary.hotels,
-      flights: itinerary.flights,
-      locations: itinerary.locations,
-      isMultiCity: itinerary.isMultiCity,
-      hasCreatedItinerary: true
+      hotels: itinerary.hotels || [],
+      flights: itinerary.flights || [],
+      locations: itinerary.locations || [],
+      isMultiCity: itinerary.isMultiCity || false,
+      hasCreatedItinerary: true,
+      wasCreatedWithLengthOfStay: itinerary.wasCreatedWithLengthOfStay || false
     };
     localStorage.setItem('currentItineraryBuilder', JSON.stringify(stateToSave));
     toast.success('Itinerary loaded successfully');
