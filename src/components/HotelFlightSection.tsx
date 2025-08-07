@@ -93,8 +93,8 @@ export function HotelFlightSection({
   const [checkInDate, setCheckInDate] = useState<string>('');
   const [checkOutDate, setCheckOutDate] = useState<string>('');
   const [guests, setGuests] = useState(2);
-  const [isHotelsExpanded, setIsHotelsExpanded] = useState(true);
-  const [isFlightsExpanded, setIsFlightsExpanded] = useState(true);
+  const [isHotelsExpanded, setIsHotelsExpanded] = useState(false);
+  const [isFlightsExpanded, setIsFlightsExpanded] = useState(false);
   const handleHotelSelect = (hotel: HotelType, location?: string, checkIn?: Date, checkOut?: Date) => {
     onAddHotel(hotel, location, checkIn, checkOut);
   };
