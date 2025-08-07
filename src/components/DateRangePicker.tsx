@@ -18,20 +18,21 @@ export function DateRangePicker({ startDate, endDate, onDateRangeChange }: DateR
   const handleSelect = (selectedDate: Date | undefined) => {
     if (!selectedDate) return;
 
-    // Add 2 days to compensate for timezone shift
-    const correctedDate = new Date(selectedDate);
-    correctedDate.setDate(correctedDate.getDate() + 2);
+    // Create a new date in local timezone to avoid timezone shifts
+    const localDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
 
     if (!startDate || (startDate && endDate)) {
       // First date selection or reset
-      onDateRangeChange(correctedDate, null);
+      onDateRangeChange(localDate, null);
     } else if (startDate && !endDate) {
       // Second date selection
-      if (correctedDate < startDate) {
+      const localStartDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+      
+      if (localDate < localStartDate) {
         // If second date is before first, swap them
-        onDateRangeChange(correctedDate, startDate);
+        onDateRangeChange(localDate, localStartDate);
       } else {
-        onDateRangeChange(startDate, correctedDate);
+        onDateRangeChange(localStartDate, localDate);
       }
       setIsOpen(false);
     }
