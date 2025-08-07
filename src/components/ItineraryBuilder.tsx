@@ -380,10 +380,33 @@ export function ItineraryBuilder({
   };
   const tripDays = dateRange.start && dateRange.end ? differenceInDays(dateRange.end, dateRange.start) + 1 : 0;
   const handleDateRangeChange = (start: Date | null, end: Date | null) => {
+    console.log('ItineraryBuilder - handleDateRangeChange called:', {
+      inputStart: start,
+      inputEnd: end,
+      inputStartType: typeof start,
+      inputEndType: typeof end
+    });
+    
     setDateRange({
       start,
       end
     });
+    
+    // Update current itinerary dates if it exists
+    if (currentItinerary && start && end) {
+      console.log('ItineraryBuilder - Updating current itinerary dates:', {
+        originalStartDate: start,
+        originalEndDate: end,
+        currentItineraryId: currentItinerary.id
+      });
+      
+      setCurrentItinerary(prev => prev ? {
+        ...prev,
+        startDate: start,
+        endDate: end
+      } : null);
+    }
+    
     if (start && end && currentItinerary && !isMultiCity) {
       // Clear events that are outside the new date range for single city
       const startStr = format(start, 'yyyy-MM-dd');
