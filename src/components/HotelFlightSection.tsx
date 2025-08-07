@@ -128,8 +128,10 @@ export function HotelFlightSection({
     }
   };
   const handleHotelCardClick = (booking: HotelBooking) => {
+    console.log('handleHotelCardClick called with:', booking.hotel.name, 'Current modal state:', isHotelDetailsOpen);
     setSelectedHotel(booking);
     setIsHotelDetailsOpen(true);
+    console.log('Hotel details modal should now be open');
     loadTripAdvisorData(booking.hotel.name, booking.hotel.address);
   };
   const handleFlightCardClick = (flight: FlightBooking) => {
@@ -248,7 +250,15 @@ export function HotelFlightSection({
                                     <Star className="w-3 h-3 text-amber-500 mr-1" />
                                     <span className="text-xs font-medium text-amber-700 dark:text-amber-300">{booking.hotel.rating}</span>
                                   </div>}
-                                <Button onClick={() => handleHotelCardClick(booking)} size="sm" variant="ghost" className="h-6 px-2 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50">
+                                <Button 
+                                  onClick={() => {
+                                    console.log('Details button clicked for hotel:', booking.hotel.name);
+                                    handleHotelCardClick(booking);
+                                  }} 
+                                  size="sm" 
+                                  variant="ghost" 
+                                  className="h-6 px-2 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50"
+                                >
                                   <Eye className="w-3 h-3 mr-1" />
                                   Details
                                 </Button>
@@ -592,7 +602,13 @@ export function HotelFlightSection({
       <FlightSearchDialog isOpen={isFlightDialogOpen} onClose={() => setIsFlightDialogOpen(false)} onSelect={handleFlightSelect} locations={locations} />
 
       {/* Hotel Details Modal */}
-      <Dialog open={isHotelDetailsOpen} onOpenChange={setIsHotelDetailsOpen}>
+      <Dialog 
+        open={isHotelDetailsOpen} 
+        onOpenChange={(open) => {
+          console.log('Hotel Details Dialog onOpenChange called with:', open);
+          setIsHotelDetailsOpen(open);
+        }}
+      >
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
