@@ -18,8 +18,22 @@ export function ItineraryMapButton({ events, onOpenMap }: ItineraryMapButtonProp
            (event.restaurantData?.placeId);
   });
 
-  // Don't show if no locations
-  if (eventsWithLocation.length === 0) return null;
+  console.log('ItineraryMapButton:', { 
+    totalEvents: events.length, 
+    eventsWithLocation: eventsWithLocation.length,
+    isMobile,
+    events: events.map(e => ({ 
+      title: e.title, 
+      type: e.type, 
+      hasAttractionData: !!e.attractionData,
+      hasRestaurantData: !!e.restaurantData,
+      hasCoords: !!(e.attractionData?.latitude && e.attractionData?.longitude),
+      hasPlaceId: !!e.restaurantData?.placeId
+    }))
+  });
+
+  // Show button even if no locations for debugging
+  // if (eventsWithLocation.length === 0) return null;
 
   if (isMobile) {
     return (
@@ -29,7 +43,7 @@ export function ItineraryMapButton({ events, onOpenMap }: ItineraryMapButtonProp
           className="h-12 px-6 rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all hover:scale-105"
         >
           <MapPin className="w-5 h-5 mr-2" />
-          View Map ({eventsWithLocation.length})
+          View Map ({eventsWithLocation.length > 0 ? eventsWithLocation.length : 'No locations'})
         </Button>
       </div>
     );
@@ -43,7 +57,7 @@ export function ItineraryMapButton({ events, onOpenMap }: ItineraryMapButtonProp
       className="w-full h-12"
     >
       <MapPin className="w-5 h-5 mr-2" />
-      View Itinerary Map ({eventsWithLocation.length} location{eventsWithLocation.length !== 1 ? 's' : ''})
+      View Itinerary Map ({eventsWithLocation.length > 0 ? `${eventsWithLocation.length} location${eventsWithLocation.length !== 1 ? 's' : ''}` : 'No locations yet'})
     </Button>
   );
 }
