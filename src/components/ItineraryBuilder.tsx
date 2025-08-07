@@ -1844,44 +1844,58 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
 
                     {/* For multi-city trips - show if it's multi-city OR has length of stay locations */}
                     {currentItinerary?.isMultiCity && (
-                      <div className="space-y-4">
+                      <div className="space-y-6">
                         {/* Date-based multi-city management */}
                         {!Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) ? (
                           <div>
-                            <Label className="text-sm font-medium">Modify city dates</Label>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Adjust the dates for each city in your trip
-                            </p>
-                            <div className="mt-3 space-y-4">
+                            <div className="mb-4">
+                              <Label className="text-base font-semibold text-foreground">City Dates</Label>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Adjust the dates for each city in your trip
+                              </p>
+                            </div>
+                            <div className="space-y-3">
                               {currentItinerary.locations.map((location, index) => (
-                                <div key={location.id} className="p-4 bg-accent/50 rounded-lg">
-                                  <div className="flex items-center justify-between mb-3">
-                                    <div className="flex items-center gap-2">
-                                      <MapPin className="w-4 h-4 text-muted-foreground" />
-                                      <span className="font-medium">{location.name}</span>
+                                <div key={location.id} className="group relative border border-border/50 hover:border-border transition-colors rounded-xl p-4 bg-card/30 hover:bg-card/50">
+                                  <div className="flex items-start justify-between mb-4">
+                                    <div className="flex items-center gap-3">
+                                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                        <MapPin className="w-4 h-4 text-primary" />
+                                      </div>
+                                      <div>
+                                        <h4 className="font-medium text-foreground">{location.name}</h4>
+                                        <p className="text-sm text-muted-foreground">
+                                          {location.startDate && location.endDate ? 
+                                            `${format(location.startDate, 'MMM dd')} - ${format(location.endDate, 'MMM dd')}` : 
+                                            'No dates set'
+                                          }
+                                        </p>
+                                      </div>
                                     </div>
-                                    <span className="text-sm text-muted-foreground">
-                                      {location.startDate && location.endDate ? 
-                                        `${format(location.startDate, 'MMM dd')} - ${format(location.endDate, 'MMM dd')}` : 
-                                        'No dates set'
-                                      }
-                                    </span>
+                                    {location.startDate && location.endDate && (
+                                      <div className="text-right">
+                                        <div className="text-xs text-muted-foreground">Duration</div>
+                                        <div className="text-sm font-medium text-foreground">
+                                          {Math.ceil((location.endDate.getTime() - location.startDate.getTime()) / (1000 * 60 * 60 * 24))} days
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
-                                  <div className="grid grid-cols-2 gap-3">
-                                    <div>
-                                      <Label className="text-xs text-muted-foreground">Start Date</Label>
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                      <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Arrival</Label>
                                       <Popover>
                                         <PopoverTrigger asChild>
                                           <Button
                                             variant="outline"
                                             size="sm"
                                             className={cn(
-                                              "w-full justify-start text-left font-normal text-xs",
+                                              "w-full justify-start text-left font-normal h-9 bg-background/50 hover:bg-background",
                                               !location.startDate && "text-muted-foreground"
                                             )}
                                           >
-                                            <CalendarIcon className="mr-1 h-3 w-3" />
-                                            {location.startDate ? format(location.startDate, 'MMM dd') : 'Start'}
+                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                            {location.startDate ? format(location.startDate, 'MMM dd, yyyy') : 'Select date'}
                                           </Button>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0 z-50" align="start">
@@ -1901,20 +1915,20 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                                         </PopoverContent>
                                       </Popover>
                                     </div>
-                                    <div>
-                                      <Label className="text-xs text-muted-foreground">End Date</Label>
+                                    <div className="space-y-2">
+                                      <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Departure</Label>
                                       <Popover>
                                         <PopoverTrigger asChild>
                                           <Button
                                             variant="outline"
                                             size="sm"
                                             className={cn(
-                                              "w-full justify-start text-left font-normal text-xs",
+                                              "w-full justify-start text-left font-normal h-9 bg-background/50 hover:bg-background",
                                               !location.endDate && "text-muted-foreground"
                                             )}
                                           >
-                                            <CalendarIcon className="mr-1 h-3 w-3" />
-                                            {location.endDate ? format(location.endDate, 'MMM dd') : 'End'}
+                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                            {location.endDate ? format(location.endDate, 'MMM dd, yyyy') : 'Select date'}
                                           </Button>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0 z-50" align="start">
@@ -1942,41 +1956,66 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                         ) : (
                           /* Length-of-stay based multi-city management */
                           <div>
-                            <Label className="text-sm font-medium">Modify stay duration per city</Label>
-                      <div className="mt-3 space-y-4">
-                        {currentItinerary.locations.map((location, index) => (
-                          locationLengthOfStay[location.id] && (
-                            <div key={location.id} className="p-4 bg-accent/50 rounded-lg">
-                              <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-2">
-                                  <MapPin className="w-4 h-4 text-muted-foreground" />
-                                  <span className="font-medium">{location.name}</span>
-                                </div>
-                                <span className="text-sm text-muted-foreground">
-                                  {pendingLocationNights[location.id] || locationNights[location.id] || 1} {(pendingLocationNights[location.id] || locationNights[location.id] || 1) === 1 ? "night" : "nights"}
-                                </span>
-                              </div>
-                              <Slider
-                                value={[pendingLocationNights[location.id] || locationNights[location.id] || 1]}
-                                onValueChange={(value) => {
-                                  const nights = value[0];
-                                  setPendingLocationNights(prev => ({
-                                    ...prev,
-                                    [location.id]: nights
-                                  }));
-                                  setHasPendingChanges(true);
-                                }}
-                                max={30}
-                                min={1}
-                                step={1}
-                                className="w-full"
-                              />
+                            <div className="mb-4">
+                              <Label className="text-base font-semibold text-foreground">Stay Duration</Label>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Adjust how many nights you'll spend in each city
+                              </p>
                             </div>
-                          )
-                        ))}
-                      </div>
-                    </div>
+                            <div className="space-y-3">
+                              {currentItinerary.locations.map((location, index) => (
+                                locationLengthOfStay[location.id] && (
+                                  <div key={location.id} className="group relative border border-border/50 hover:border-border transition-colors rounded-xl p-4 bg-card/30 hover:bg-card/50">
+                                    <div className="flex items-center justify-between mb-4">
+                                      <div className="flex items-center gap-3">
+                                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                          <MapPin className="w-4 h-4 text-primary" />
+                                        </div>
+                                        <div>
+                                          <h4 className="font-medium text-foreground">{location.name}</h4>
+                                          <p className="text-sm text-muted-foreground">
+                                            {(pendingLocationNights[location.id] || locationNights[location.id] || 1)} {(pendingLocationNights[location.id] || locationNights[location.id] || 1) === 1 ? "night" : "nights"}
+                                          </p>
+                                        </div>
+                                      </div>
+                                      <div className="text-right">
+                                        <div className="text-lg font-semibold text-primary">
+                                          {pendingLocationNights[location.id] || locationNights[location.id] || 1}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">
+                                          {(pendingLocationNights[location.id] || locationNights[location.id] || 1) === 1 ? "night" : "nights"}
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Slider
+                                        value={[pendingLocationNights[location.id] || locationNights[location.id] || 1]}
+                                        onValueChange={(value) => {
+                                          const nights = value[0];
+                                          setPendingLocationNights(prev => ({
+                                            ...prev,
+                                            [location.id]: nights
+                                          }));
+                                          setHasPendingChanges(true);
+                                        }}
+                                        max={30}
+                                        min={1}
+                                        step={1}
+                                        className="w-full"
+                                      />
+                                      <div className="flex justify-between text-xs text-muted-foreground mt-2">
+                                        <span>1 night</span>
+                                        <span>30 nights</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )
+                              ))}
+                            </div>
+                          </div>
                         )}
+                      </div>
+                    )}
 
                     {/* Add another city to multi-city trip */}
                     <div className="pt-4 border-t">
@@ -2075,11 +2114,11 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                     </Button>
                   </div>
                 )}
-                  </CardContent>
-                </CollapsibleContent>
-              </Card>
-            </Collapsible>
-          )}
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+      )}
 
           {/* Hotels and Flights Section - Moved to top */}
           <HotelFlightSection
