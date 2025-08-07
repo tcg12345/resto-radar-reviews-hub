@@ -391,7 +391,8 @@ export function UnifiedRestaurantDetails({
               className="w-full h-full object-cover transition-transform group-hover:scale-105" 
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
+                target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZjNmNGY2Ii8+CjxwYXRoIGQ9Im0xNSA5LTYgNi02LTYiIHN0cm9rZT0iIzk3YTNiMCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+';
+                target.alt = 'Photo unavailable';
               }}
             />
             <div className="absolute top-3 right-3 bg-black/70 text-white px-2 py-1 rounded-md text-sm">
@@ -444,7 +445,7 @@ export function UnifiedRestaurantDetails({
                     </Badge> : null}
                 </div>
               </div>
-              {restaurantData.rating && <div className="flex-shrink-0 text-center">
+              {restaurantData.rating && restaurantData.isSharedRestaurant && restaurantData.sharedBy && <div className="flex-shrink-0 text-center">
                   <div className="w-16 h-16 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center mb-1">
                     <div className="text-center">
                       <div className="text-lg font-bold text-primary">{restaurantData.rating.toFixed(1)}</div>
@@ -452,7 +453,7 @@ export function UnifiedRestaurantDetails({
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground font-medium">
-                    {restaurantData.isSharedRestaurant && restaurantData.sharedBy ? `${restaurantData.sharedBy.name}'s Rating` : 'Your Rating'}
+                    {restaurantData.sharedBy.name}'s Rating
                   </p>
                 </div>}
             </div>
