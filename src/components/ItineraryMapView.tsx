@@ -49,6 +49,7 @@ export function ItineraryMapView({ events, isOpen, onClose }: ItineraryMapViewPr
   const markers = useRef<mapboxgl.Marker[]>([]);
   const { token, isLoading } = useMapboxToken();
   const [selectedEvent, setSelectedEvent] = useState<ItineraryEvent | null>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
 
   // Filter events that have location data
   const eventsWithLocation = events.filter(event => {
@@ -70,7 +71,10 @@ export function ItineraryMapView({ events, isOpen, onClose }: ItineraryMapViewPr
   });
 
   useEffect(() => {
-    if (!isOpen || !token || !mapContainer.current || eventsWithLocation.length === 0) return;
+    if (!isOpen || !token || !mapContainer.current || eventsWithLocation.length === 0) {
+      setMapLoaded(false);
+      return;
+    }
 
     // Initialize map
     mapboxgl.accessToken = token;
@@ -84,13 +88,33 @@ export function ItineraryMapView({ events, isOpen, onClose }: ItineraryMapViewPr
 
     map.current.addControl(new mapboxgl.NavigationControl());
 
+    // Wait for map to load before allowing markers
+    map.current.on('load', () => {
+      console.log('Map loaded successfully');
+      setMapLoaded(true);
+    });
+
     return () => {
-      map.current?.remove();
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
+      setMapLoaded(false);
     };
   }, [isOpen, token, eventsWithLocation.length]);
 
   useEffect(() => {
-    if (!map.current || eventsWithLocation.length === 0) return;
+    // Only add markers after map is loaded and we have events
+    if (!map.current || !mapLoaded || eventsWithLocation.length === 0) {
+      console.log('Skipping marker creation:', { 
+        hasMap: !!map.current, 
+        mapLoaded, 
+        eventCount: eventsWithLocation.length 
+      });
+      return;
+    }
+
+    console.log('Creating markers for', eventsWithLocation.length, 'events');
 
     // Clear existing markers
     markers.current.forEach(marker => marker.remove());
@@ -135,29 +159,34 @@ export function ItineraryMapView({ events, isOpen, onClose }: ItineraryMapViewPr
 
         markerElement.addEventListener('click', () => {
           setSelectedEvent(event);
-          map.current?.flyTo({
-            center: [lng, lat],
-            zoom: 15,
-            essential: true
-          });
+          if (map.current) {
+            map.current.flyTo({
+              center: [lng, lat],
+              zoom: 15,
+              essential: true
+            });
+          }
         });
 
         const marker = new mapboxgl.Marker(markerElement)
-          .setLngLat([lng, lat])
-          .addTo(map.current!);
-
-        markers.current.push(marker);
+          .setLngLat([lng, lat]);
+        
+        // Safety check before adding to map
+        if (map.current) {
+          marker.addTo(map.current);
+          markers.current.push(marker);
+        }
       }
     });
 
     // Fit map to show all markers
-    if (validBounds && !bounds.isEmpty()) {
+    if (validBounds && !bounds.isEmpty() && map.current) {
       map.current.fitBounds(bounds, {
         padding: 50,
         maxZoom: 15
       });
     }
-  }, [eventsWithLocation]);
+  }, [eventsWithLocation, mapLoaded]);
 
   if (!isOpen) return null;
 
