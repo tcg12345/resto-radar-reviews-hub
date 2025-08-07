@@ -449,12 +449,11 @@ export function UnifiedRestaurantDetails({
                 <div className="flex items-center gap-2 flex-wrap">
                   <Badge variant="outline" className="text-sm flex items-center gap-1">
                     {restaurantData.cuisine}
-                    {(restaurantData.priceRange || restaurantData.price_range) && (
-                      <>
-                        <span className="text-muted-foreground">•</span>
-                        <span>{getPriceDisplay(restaurantData.priceRange || restaurantData.price_range)}</span>
-                      </>
-                    )}
+                    {/* Debug: Always show price range section */}
+                    <span className="text-muted-foreground">•</span>
+                    <span>
+                      {getPriceDisplay(restaurantData.priceRange || restaurantData.price_range) || '$$'}
+                    </span>
                     {isEnhancingWithAI && <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />}
                   </Badge>
                   {restaurantData.michelinStars || restaurantData.michelin_stars || isEnhancingWithAI ? <Badge variant="outline" className="text-sm flex items-center gap-1">
