@@ -86,38 +86,91 @@ export function RestaurantDetailPage() {
     return restaurant;
   };
 
+  // Helper function to check if a string is a valid UUID
+  const isValidUUID = (str: string) => {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(str);
+  };
+
   useEffect(() => {
     const fetchRestaurantDetails = async () => {
       if (!restaurantId) return;
       
       setIsLoading(true);
       try {
-        // If there's a friendId, fetch friend's restaurant, otherwise fetch user's own restaurant
-        let restaurantQuery = supabase
-          .from('restaurants')
-          .select('*')
-          .eq('id', restaurantId);
+        // Check if restaurantId is a UUID (user's restaurant) or a Google Place ID
+        if (isValidUUID(restaurantId)) {
+          // Fetch from user's restaurants table
+          let restaurantQuery = supabase
+            .from('restaurants')
+            .select('*')
+            .eq('id', restaurantId);
 
-        if (friendId) {
-          restaurantQuery = restaurantQuery.eq('user_id', friendId);
+          if (friendId) {
+            restaurantQuery = restaurantQuery.eq('user_id', friendId);
+          } else {
+            restaurantQuery = restaurantQuery.eq('user_id', user?.id);
+          }
+
+          const { data: restaurantData, error: restaurantError } = await restaurantQuery.single();
+
+          if (restaurantError) {
+            console.error('Error fetching restaurant:', restaurantError);
+            toast('Failed to load restaurant details');
+            return;
+          }
+
+          // Try to enhance with Google Places data if missing website or phone
+          let enhancedRestaurant = restaurantData;
+          if (!restaurantData.website || !(restaurantData as any).phone_number) {
+            enhancedRestaurant = await fetchGooglePlacesDetails(restaurantData);
+          }
+          setRestaurant(enhancedRestaurant);
         } else {
-          restaurantQuery = restaurantQuery.eq('user_id', user?.id);
-        }
+          // It's a Google Place ID - fetch from Google Places API
+          console.log('Fetching restaurant by Place ID:', restaurantId);
+          
+          try {
+            const { data, error } = await supabase.functions.invoke('google-places-search', {
+              body: { placeId: restaurantId, type: 'details' }
+            });
 
-        const { data: restaurantData, error: restaurantError } = await restaurantQuery.single();
+            if (error) {
+              console.error('Error fetching place details:', error);
+              toast('Failed to load restaurant details');
+              return;
+            }
 
-        if (restaurantError) {
-          console.error('Error fetching restaurant:', restaurantError);
-          toast('Failed to load restaurant details');
-          return;
+            if (data?.result) {
+              // Convert Google Places data to our restaurant format
+              const googlePlaceData = {
+                id: restaurantId,
+                name: data.result.name,
+                address: data.result.formatted_address,
+                latitude: data.result.geometry?.location?.lat,
+                longitude: data.result.geometry?.location?.lng,
+                phone_number: data.result.formatted_phone_number,
+                website: data.result.website,
+                opening_hours: data.result.opening_hours?.weekday_text?.join('\n') || '',
+                rating: data.result.rating,
+                price_level: data.result.price_level,
+                photos: data.result.photos || [],
+                google_place_id: restaurantId,
+                user_id: null, // This is not a user's restaurant
+                is_wishlist: false,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              };
+              
+              setRestaurant(googlePlaceData);
+            } else {
+              toast('Restaurant not found');
+            }
+          } catch (apiError) {
+            console.error('Error calling Google Places API:', apiError);
+            toast('Failed to load restaurant details');
+          }
         }
-
-        // Try to enhance with Google Places data if missing website or phone
-        let enhancedRestaurant = restaurantData;
-        if (!restaurantData.website || !(restaurantData as any).phone_number) {
-          enhancedRestaurant = await fetchGooglePlacesDetails(restaurantData);
-        }
-        setRestaurant(enhancedRestaurant);
 
         // Fetch friend profile only if friendId exists
         if (friendId) {
