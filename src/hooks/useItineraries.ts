@@ -26,8 +26,8 @@ export function useItineraries() {
       const converted = data.map(item => ({
         id: item.id,
         title: item.title,
-        startDate: new Date(item.start_date),
-        endDate: new Date(item.end_date),
+        startDate: new Date(item.start_date + 'T12:00:00'),
+        endDate: new Date(item.end_date + 'T12:00:00'),
         locations: [],
         events: Array.isArray(item.events) ? (item.events as unknown) as ItineraryEvent[] : [],
         hotels: [],
@@ -81,8 +81,8 @@ export function useItineraries() {
       const converted: Itinerary = {
         id: data.id,
         title: data.title,
-        startDate: new Date(data.start_date),
-        endDate: new Date(data.end_date),
+        startDate: new Date(data.start_date + 'T12:00:00'),
+        endDate: new Date(data.end_date + 'T12:00:00'),
         locations: itinerary.locations,
         events: Array.isArray(data.events) ? (data.events as unknown) as ItineraryEvent[] : [],
         hotels: itinerary.hotels,
