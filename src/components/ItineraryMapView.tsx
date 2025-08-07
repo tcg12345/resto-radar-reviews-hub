@@ -36,6 +36,7 @@ const getEventTypeIcon = (type: string) => {
     case 'monument': return '🗿';
     case 'shopping': return '🛍️';
     case 'entertainment': return '🎭';
+    case 'other': return '📍';
     default: return '📍';
   }
 };
@@ -68,19 +69,20 @@ export function ItineraryMapView({ events, hotels = [], isOpen, onClose }: Itine
   const eventsWithLocation = events.filter(event => {
     const hasAttractionCoords = event.attractionData?.latitude && event.attractionData?.longitude;
     const hasRestaurantCoords = event.restaurantData?.latitude && event.restaurantData?.longitude;
-    const hasRestaurantPlaceId = event.restaurantData?.placeId;
+    const hasAddress = event.attractionData?.address || event.restaurantData?.address;
     
     console.log('Event filtering:', {
       title: event.title,
       type: event.type,
       hasAttractionCoords,
       hasRestaurantCoords,
-      hasRestaurantPlaceId,
+      hasAddress,
       attractionData: event.attractionData,
       restaurantData: event.restaurantData
     });
     
-    return hasAttractionCoords || hasRestaurantCoords || hasRestaurantPlaceId;
+    // Include events that have coordinates OR at least an address
+    return hasAttractionCoords || hasRestaurantCoords || hasAddress;
   });
 
   // Filter hotels that have location data
@@ -153,20 +155,27 @@ export function ItineraryMapView({ events, hotels = [], isOpen, onClose }: Itine
     eventsWithLocation.forEach((event) => {
       let lat: number | undefined;
       let lng: number | undefined;
+      let eventType = event.type;
 
-      // Check if we have direct coordinates from attraction data
+      // Determine coordinates and event type
       if (event.attractionData?.latitude && event.attractionData?.longitude) {
         lat = event.attractionData.latitude;
         lng = event.attractionData.longitude;
+        // Use the placeType from attractionData if available, otherwise use event.type
+        eventType = event.attractionData.placeType || event.type;
       } 
-      // Check if we have coordinates from restaurant data
       else if (event.restaurantData?.latitude && event.restaurantData?.longitude) {
         lat = event.restaurantData.latitude;
         lng = event.restaurantData.longitude;
+        eventType = 'restaurant';
       }
-      // If we have a restaurant with place ID but no coordinates, skip for now
-      else if (event.restaurantData?.placeId) {
-        console.log('Found restaurant with place ID but no coordinates:', event.restaurantData.placeId);
+      // Skip events without coordinates for now
+      else {
+        console.log('Skipping event without coordinates:', {
+          title: event.title,
+          type: event.type,
+          hasAddress: event.attractionData?.address || event.restaurantData?.address
+        });
         return;
       }
 
@@ -179,8 +188,8 @@ export function ItineraryMapView({ events, hotels = [], isOpen, onClose }: Itine
         markerElement.className = 'itinerary-marker';
         markerElement.innerHTML = `
           <div class="flex items-center justify-center w-7 h-7 rounded-full shadow-lg cursor-pointer transition-all hover:scale-110" 
-               style="background-color: ${getEventTypeColor(event.type)}; border: 3px solid white;">
-            <span class="text-sm">${getEventTypeIcon(event.type)}</span>
+               style="background-color: ${getEventTypeColor(eventType)}; border: 3px solid white;">
+            <span class="text-sm">${getEventTypeIcon(eventType)}</span>
           </div>
         `;
 
