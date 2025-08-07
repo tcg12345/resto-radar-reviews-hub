@@ -219,31 +219,46 @@ export type Database = {
           created_at: string
           end_date: string
           events: Json
+          flights: Json | null
+          hotels: Json | null
           id: string
+          is_multi_city: boolean | null
+          locations: Json | null
           start_date: string
           title: string
           updated_at: string
           user_id: string
+          was_created_with_length_of_stay: boolean | null
         }
         Insert: {
           created_at?: string
           end_date: string
           events?: Json
+          flights?: Json | null
+          hotels?: Json | null
           id?: string
+          is_multi_city?: boolean | null
+          locations?: Json | null
           start_date: string
           title: string
           updated_at?: string
           user_id: string
+          was_created_with_length_of_stay?: boolean | null
         }
         Update: {
           created_at?: string
           end_date?: string
           events?: Json
+          flights?: Json | null
+          hotels?: Json | null
           id?: string
+          is_multi_city?: boolean | null
+          locations?: Json | null
           start_date?: string
           title?: string
           updated_at?: string
           user_id?: string
+          was_created_with_length_of_stay?: boolean | null
         }
         Relationships: []
       }

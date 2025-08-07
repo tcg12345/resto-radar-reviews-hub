@@ -72,14 +72,14 @@ export interface TripLocation {
   startDate?: Date;
   endDate?: Date;
 }
-interface HotelBooking {
+export interface HotelBooking {
   id: string;
   hotel: HotelType;
   checkIn?: Date;
   checkOut?: Date;
   location?: string;
 }
-interface FlightBooking {
+export interface FlightBooking {
   id: string;
   flightNumber: string;
   airline: string;
