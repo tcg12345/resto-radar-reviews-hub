@@ -257,18 +257,13 @@ export function ItineraryMapView({ events, isOpen, onClose }: ItineraryMapViewPr
         
         {/* Header */}
         <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-background/90 to-transparent">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+          <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
               <MapPin className="w-5 h-5" />
               Itinerary Map
               <Badge variant="secondary" className="ml-2">
                 {eventsWithLocation.length} location{eventsWithLocation.length !== 1 ? 's' : ''}
               </Badge>
             </h2>
-            <Button variant="outline" size="sm" onClick={onClose}>
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
         </div>
 
         {/* Selected Event Details */}
