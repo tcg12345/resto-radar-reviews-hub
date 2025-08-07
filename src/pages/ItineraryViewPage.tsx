@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { Itinerary } from '@/components/ItineraryBuilder';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { supabase } from '@/integrations/supabase/client';
 
 export function ItineraryViewPage() {
   const { itineraryId } = useParams();
@@ -22,31 +23,66 @@ export function ItineraryViewPage() {
     loadItinerary();
   }, [itineraryId]);
 
-  const loadItinerary = () => {
+  const loadItinerary = async () => {
     try {
-      const saved = localStorage.getItem('savedItineraries');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        const itineraries = parsed.map((it: any) => ({
-          ...it,
-          startDate: new Date(it.startDate),
-          endDate: new Date(it.endDate),
-          locations: it.locations.map((loc: any) => ({
-            ...loc,
-            startDate: loc.startDate ? new Date(loc.startDate) : undefined,
-            endDate: loc.endDate ? new Date(loc.endDate) : undefined,
-          })),
-        }));
+      const { data, error } = await supabase
+        .from('itineraries')
+        .select('*')
+        .eq('id', itineraryId)
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        // Convert Supabase data to Itinerary format
+        const events = Array.isArray(data.events) ? data.events as any[] : [];
         
-        const foundItinerary = itineraries.find((it: Itinerary) => it.id === itineraryId);
-        if (foundItinerary) {
-          setItinerary(foundItinerary);
-        } else {
-          toast.error('Itinerary not found');
-          navigate('/travel');
-        }
+        const convertedItinerary: Itinerary = {
+          id: data.id,
+          title: data.title,
+          startDate: new Date(data.start_date),
+          endDate: new Date(data.end_date),
+          events: events,
+          locations: [], // Will be derived from events
+          isMultiCity: false,
+          wasCreatedWithLengthOfStay: false,
+          hotels: [],
+          flights: []
+        };
+
+        // Extract unique locations from events
+        const locationNames = new Set<string>();
+        events.forEach((event: any) => {
+          if (event.restaurantData?.address) {
+            // Extract city from address (simple extraction)
+            const addressParts = event.restaurantData.address.split(',');
+            if (addressParts.length > 1) {
+              locationNames.add(addressParts[addressParts.length - 2].trim());
+            }
+          }
+          if (event.attractionData?.address) {
+            const addressParts = event.attractionData.address.split(',');
+            if (addressParts.length > 1) {
+              locationNames.add(addressParts[addressParts.length - 2].trim());
+            }
+          }
+        });
+
+        convertedItinerary.locations = Array.from(locationNames).map((name, index) => ({
+          id: `location-${index}`,
+          name,
+          country: '', // Default empty string for now
+          startDate: convertedItinerary.startDate,
+          endDate: convertedItinerary.endDate
+        }));
+
+        convertedItinerary.isMultiCity = convertedItinerary.locations.length > 1;
+
+        setItinerary(convertedItinerary);
       } else {
-        toast.error('No saved itineraries found');
+        toast.error('Itinerary not found');
         navigate('/travel');
       }
     } catch (error) {
