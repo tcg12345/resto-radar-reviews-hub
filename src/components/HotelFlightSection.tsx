@@ -229,16 +229,16 @@ export function HotelFlightSection({
         {/* Hotels Section - Mobile */}
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 -mx-4 px-4">
           <div 
-            className="flex items-center justify-between py-4 cursor-pointer"
+            className="flex items-center justify-between py-4 px-4 cursor-pointer"
             onClick={() => setIsHotelsExpanded(!isHotelsExpanded)}
           >
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-white/20 backdrop-blur-sm">
-                <Hotel className="w-6 h-6 text-white" />
+              <div className="p-2.5 rounded-xl bg-white/30 backdrop-blur-sm border border-white/20">
+                <Hotel className="w-6 h-6 text-white/90" />
               </div>
               <div>
-                <h3 className="font-bold text-white text-lg">Hotels</h3>
-                <p className="text-white/90 text-sm">{hotels.length} accommodation{hotels.length !== 1 ? 's' : ''} added</p>
+                <h3 className="font-bold text-white/95 text-lg">Hotels</h3>
+                <p className="text-white/80 text-sm">{hotels.length} accommodation{hotels.length !== 1 ? 's' : ''} added</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -255,9 +255,9 @@ export function HotelFlightSection({
                 Add
               </Button>
               {isHotelsExpanded ? (
-                <ChevronUp className="w-6 h-6 text-white" />
+                <ChevronUp className="w-6 h-6 text-white/90" />
               ) : (
-                <ChevronDown className="w-6 h-6 text-white" />
+                <ChevronDown className="w-6 h-6 text-white/90" />
               )}
             </div>
           </div>
@@ -269,11 +269,11 @@ export function HotelFlightSection({
                   {hotels.map((booking) => (
                     <div 
                       key={booking.id} 
-                      className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-white/20"
+                      className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-white/30"
                     >
                       <div className="flex items-start gap-4">
-                        <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/50 shrink-0">
-                          <Hotel className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        <div className="p-3 rounded-xl bg-blue-100/70 dark:bg-blue-900/40 shrink-0">
+                          <Hotel className="w-5 h-5 text-blue-600/80 dark:text-blue-400/80" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between mb-2">
@@ -281,16 +281,16 @@ export function HotelFlightSection({
                               <h4 className="font-bold text-gray-900 dark:text-white text-lg leading-tight">{booking.hotel.name}</h4>
                               <div className="flex items-center gap-2 mt-1">
                                 {booking.hotel.rating && (
-                                  <div className="flex items-center bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded-lg">
-                                    <Star className="w-3 h-3 text-amber-500 mr-1" />
-                                    <span className="text-xs font-medium text-amber-700 dark:text-amber-300">{booking.hotel.rating}</span>
+                                  <div className="flex items-center bg-amber-100/70 dark:bg-amber-900/30 px-2 py-1 rounded-lg">
+                                    <Star className="w-3 h-3 text-amber-500/80 mr-1" />
+                                    <span className="text-xs font-medium text-amber-700/80 dark:text-amber-300/80">{booking.hotel.rating}</span>
                                   </div>
                                 )}
                                 <Button
                                   onClick={() => handleHotelCardClick(booking)}
                                   size="sm"
                                   variant="ghost"
-                                  className="h-6 px-2 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50"
+                                  className="h-6 px-2 text-xs text-blue-600/80 dark:text-blue-400/80 hover:bg-blue-50/70"
                                 >
                                   <Eye className="w-3 h-3 mr-1" />
                                   Details
@@ -301,20 +301,20 @@ export function HotelFlightSection({
                               onClick={() => onRemoveHotel(booking.id)}
                               size="sm"
                               variant="ghost"
-                              className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 p-1"
+                              className="text-red-500/80 hover:text-red-700 hover:bg-red-50/70 dark:hover:bg-red-900/20 p-1"
                             >
                               ×
                             </Button>
                           </div>
                           
-                          <div className="space-y-2">
-                            <div className="flex items-center text-gray-600 dark:text-gray-400">
+                            <div className="space-y-2">
+                            <div className="flex items-center text-gray-600/80 dark:text-gray-400/80">
                               <MapPin className="w-4 h-4 mr-2 shrink-0" />
                               <span className="text-sm">{booking.hotel.address}</span>
                             </div>
                             
                             {(booking.checkIn || booking.checkOut) && (
-                              <div className="flex items-center text-gray-600 dark:text-gray-400">
+                              <div className="flex items-center text-gray-600/80 dark:text-gray-400/80">
                                 <Calendar className="w-4 h-4 mr-2 shrink-0" />
                                 <span className="text-sm">
                                   {booking.checkIn && booking.checkOut ? (
@@ -340,7 +340,7 @@ export function HotelFlightSection({
                               size="sm"
                               variant="outline"
                               onClick={() => window.open(getDirectionsUrl(booking.hotel.address), '_blank')}
-                              className="flex-1 min-w-0 h-9 text-xs bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                              className="flex-1 min-w-0 h-9 text-xs bg-blue-50/70 border-blue-200/70 text-blue-700/80 hover:bg-blue-100/70"
                             >
                               <Navigation className="w-3 h-3 mr-1" />
                               Directions
@@ -350,7 +350,7 @@ export function HotelFlightSection({
                                 size="sm"
                                 variant="outline"
                                 onClick={() => window.open(booking.hotel.website, '_blank')}
-                                className="flex-1 min-w-0 h-9 text-xs bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                                className="flex-1 min-w-0 h-9 text-xs bg-blue-50/70 border-blue-200/70 text-blue-700/80 hover:bg-blue-100/70"
                               >
                                 <ExternalLink className="w-3 h-3 mr-1" />
                                 Website
@@ -361,7 +361,7 @@ export function HotelFlightSection({
                                 size="sm"
                                 variant="outline"
                                 onClick={() => window.open(`tel:${booking.hotel.phone}`, '_blank')}
-                                className="flex-1 min-w-0 h-9 text-xs bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                                className="flex-1 min-w-0 h-9 text-xs bg-green-50/70 border-green-200/70 text-green-700/80 hover:bg-green-100/70"
                               >
                                 <Phone className="w-3 h-3 mr-1" />
                                 Call
@@ -371,7 +371,7 @@ export function HotelFlightSection({
                               <Button
                                 size="sm"
                                 onClick={() => window.open(booking.hotel.bookingUrl, '_blank')}
-                                className="w-full h-9 text-xs bg-blue-600 hover:bg-blue-700 text-white mt-1"
+                                className="w-full h-9 text-xs bg-blue-500/80 hover:bg-blue-600/80 text-white mt-1"
                               >
                                 Book Hotel
                               </Button>
@@ -383,10 +383,10 @@ export function HotelFlightSection({
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-6 text-white/90">
-                  <Hotel className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <div className="text-center py-6 text-white/80">
+                  <Hotel className="w-12 h-12 mx-auto mb-3 opacity-40" />
                   <p className="text-sm font-medium">No hotels added yet</p>
-                  <p className="text-xs opacity-75 mt-1">Tap 'Add' to find accommodations</p>
+                  <p className="text-xs opacity-60 mt-1">Tap 'Add' to find accommodations</p>
                 </div>
               )}
             </div>
@@ -394,18 +394,18 @@ export function HotelFlightSection({
         </div>
 
         {/* Flights Section - Mobile */}
-        <div className="bg-gradient-to-r from-purple-500 to-purple-600 dark:from-purple-600 dark:to-purple-700 -mx-4 px-4">
+        <div className="bg-gradient-to-r from-purple-400/60 to-purple-500/50 dark:from-purple-600/40 dark:to-purple-700/30 rounded-2xl shadow-lg backdrop-blur-sm border border-white/20">
           <div 
-            className="flex items-center justify-between py-4 cursor-pointer"
+            className="flex items-center justify-between py-4 px-4 cursor-pointer"
             onClick={() => setIsFlightsExpanded(!isFlightsExpanded)}
           >
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-white/20 backdrop-blur-sm">
-                <Plane className="w-6 h-6 text-white" />
+              <div className="p-2.5 rounded-xl bg-white/30 backdrop-blur-sm border border-white/20">
+                <Plane className="w-6 h-6 text-white/90" />
               </div>
               <div>
-                <h3 className="font-bold text-white text-lg">Flights</h3>
-                <p className="text-white/90 text-sm">{flights.length} flight{flights.length !== 1 ? 's' : ''} added</p>
+                <h3 className="font-bold text-white/95 text-lg">Flights</h3>
+                <p className="text-white/80 text-sm">{flights.length} flight{flights.length !== 1 ? 's' : ''} added</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -415,32 +415,32 @@ export function HotelFlightSection({
                   setIsFlightDialogOpen(true);
                 }}
                 size="sm"
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
+                className="bg-white/30 hover:bg-white/40 text-white/95 border-white/40 backdrop-blur-sm"
                 variant="outline"
               >
                 <Plus className="w-4 h-4 mr-1" />
                 Add
               </Button>
               {isFlightsExpanded ? (
-                <ChevronUp className="w-6 h-6 text-white" />
+                <ChevronUp className="w-6 h-6 text-white/90" />
               ) : (
-                <ChevronDown className="w-6 h-6 text-white" />
+                <ChevronDown className="w-6 h-6 text-white/90" />
               )}
             </div>
           </div>
           
           {isFlightsExpanded && (
-            <div className="pb-4 animate-fade-in">
+            <div className="pb-4 px-4 animate-fade-in">
               {flights.length > 0 ? (
                 <div className="space-y-3">
                   {flights.map((flight) => (
                     <div 
                       key={flight.id} 
-                      className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-white/20"
+                      className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-white/30"
                     >
                       <div className="flex items-start gap-4">
-                        <div className="p-3 rounded-xl bg-purple-100 dark:bg-purple-900/50 shrink-0">
-                          <Plane className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                        <div className="p-3 rounded-xl bg-purple-100/70 dark:bg-purple-900/40 shrink-0">
+                          <Plane className="w-5 h-5 text-purple-600/80 dark:text-purple-400/80" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between mb-2">
@@ -450,15 +450,15 @@ export function HotelFlightSection({
                               </h4>
                               <div className="flex items-center gap-2 mt-1">
                                 {flight.price && (
-                                  <div className="flex items-center bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-lg">
-                                    <span className="text-xs font-medium text-green-700 dark:text-green-300">💰 {flight.price}</span>
+                                  <div className="flex items-center bg-green-100/70 dark:bg-green-900/30 px-2 py-1 rounded-lg">
+                                    <span className="text-xs font-medium text-green-700/80 dark:text-green-300/80">💰 {flight.price}</span>
                                   </div>
                                 )}
                                 <Button
                                   onClick={() => handleFlightCardClick(flight)}
                                   size="sm"
                                   variant="ghost"
-                                  className="h-6 px-2 text-xs text-purple-600 dark:text-purple-400 hover:bg-purple-50"
+                                  className="h-6 px-2 text-xs text-purple-600/80 dark:text-purple-400/80 hover:bg-purple-50/70"
                                 >
                                   <Eye className="w-3 h-3 mr-1" />
                                   Details
@@ -469,27 +469,27 @@ export function HotelFlightSection({
                               onClick={() => onRemoveFlight(flight.id)}
                               size="sm"
                               variant="ghost"
-                              className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 p-1"
+                              className="text-red-500/80 hover:text-red-700 hover:bg-red-50/70 dark:hover:bg-red-900/20 p-1"
                             >
                               ×
                             </Button>
                           </div>
                           
                           <div className="space-y-2">
-                            <div className="bg-purple-50 dark:bg-purple-900/30 rounded-lg p-3">
+                            <div className="bg-purple-50/70 dark:bg-purple-900/20 rounded-lg p-3">
                               <div className="flex items-center justify-between mb-2">
                                 <div className="text-center flex-1">
-                                  <div className="font-bold text-purple-900 dark:text-purple-100">{flight.departure.airport}</div>
-                                  <div className="text-xs text-purple-600 dark:text-purple-400 mt-1">{flight.departure.time}</div>
-                                  <div className="text-xs text-purple-500 dark:text-purple-400">{flight.departure.date}</div>
+                                  <div className="font-bold text-purple-900/90 dark:text-purple-100/90">{flight.departure.airport}</div>
+                                  <div className="text-xs text-purple-600/80 dark:text-purple-400/80 mt-1">{flight.departure.time}</div>
+                                  <div className="text-xs text-purple-500/80 dark:text-purple-400/80">{flight.departure.date}</div>
                                 </div>
                                 <div className="px-3">
-                                  <Plane className="w-5 h-5 text-purple-400 rotate-90" />
+                                  <Plane className="w-5 h-5 text-purple-400/70 rotate-90" />
                                 </div>
                                 <div className="text-center flex-1">
-                                  <div className="font-bold text-purple-900 dark:text-purple-100">{flight.arrival.airport}</div>
-                                  <div className="text-xs text-purple-600 dark:text-purple-400 mt-1">{flight.arrival.time}</div>
-                                  <div className="text-xs text-purple-500 dark:text-purple-400">{flight.arrival.date}</div>
+                                  <div className="font-bold text-purple-900/90 dark:text-purple-100/90">{flight.arrival.airport}</div>
+                                  <div className="text-xs text-purple-600/80 dark:text-purple-400/80 mt-1">{flight.arrival.time}</div>
+                                  <div className="text-xs text-purple-500/80 dark:text-purple-400/80">{flight.arrival.date}</div>
                                 </div>
                               </div>
                             </div>
@@ -500,7 +500,7 @@ export function HotelFlightSection({
                               size="sm"
                               variant="outline"
                               onClick={() => window.open(getAirportDirectionsUrl(flight.departure.airport), '_blank')}
-                              className="flex-1 min-w-0 h-9 text-xs bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
+                              className="flex-1 min-w-0 h-9 text-xs bg-purple-50/70 border-purple-200/70 text-purple-700/80 hover:bg-purple-100/70"
                             >
                               <Navigation className="w-3 h-3 mr-1" />
                               To Airport
@@ -509,7 +509,7 @@ export function HotelFlightSection({
                               size="sm"
                               variant="outline"
                               onClick={() => window.open(getFlightTrackingUrl(flight.airline, flight.flightNumber), '_blank')}
-                              className="flex-1 min-w-0 h-9 text-xs bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
+                              className="flex-1 min-w-0 h-9 text-xs bg-purple-50/70 border-purple-200/70 text-purple-700/80 hover:bg-purple-100/70"
                             >
                               <Radar className="w-3 h-3 mr-1" />
                               Track
@@ -518,7 +518,7 @@ export function HotelFlightSection({
                               <Button
                                 size="sm"
                                 onClick={() => window.open(flight.bookingUrl, '_blank')}
-                                className="w-full h-9 text-xs bg-purple-600 hover:bg-purple-700 text-white mt-1"
+                                className="w-full h-9 text-xs bg-purple-500/80 hover:bg-purple-600/80 text-white mt-1"
                               >
                                 View Booking
                               </Button>
@@ -530,10 +530,10 @@ export function HotelFlightSection({
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-6 text-white/90">
-                  <Plane className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <div className="text-center py-6 text-white/80">
+                  <Plane className="w-12 h-12 mx-auto mb-3 opacity-40" />
                   <p className="text-sm font-medium">No flights added yet</p>
-                  <p className="text-xs opacity-75 mt-1">Tap 'Add' to find flights</p>
+                  <p className="text-xs opacity-60 mt-1">Tap 'Add' to find flights</p>
                 </div>
               )}
             </div>
