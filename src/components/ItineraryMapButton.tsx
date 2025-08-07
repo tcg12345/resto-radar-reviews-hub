@@ -14,25 +14,26 @@ export function ItineraryMapButton({ events, onOpenMap }: ItineraryMapButtonProp
   
   // Filter events that have location data
   const eventsWithLocation = events.filter(event => {
-    return (event.attractionData?.latitude && event.attractionData?.longitude) ||
-           (event.restaurantData?.placeId);
+    const hasAttractionCoords = event.attractionData?.latitude && event.attractionData?.longitude;
+    const hasRestaurantPlaceId = event.restaurantData?.placeId;
+    return hasAttractionCoords || hasRestaurantPlaceId;
   });
 
-  console.log('ItineraryMapButton:', { 
+  console.log('ItineraryMapButton Debug:', { 
     totalEvents: events.length, 
     eventsWithLocation: eventsWithLocation.length,
     isMobile,
-    events: events.map(e => ({ 
+    eventDetails: events.map(e => ({ 
       title: e.title, 
       type: e.type, 
-      hasAttractionData: !!e.attractionData,
-      hasRestaurantData: !!e.restaurantData,
-      hasCoords: !!(e.attractionData?.latitude && e.attractionData?.longitude),
-      hasPlaceId: !!e.restaurantData?.placeId
+      attractionData: e.attractionData,
+      restaurantData: e.restaurantData,
+      hasAttractionCoords: !!(e.attractionData?.latitude && e.attractionData?.longitude),
+      hasRestaurantPlaceId: !!e.restaurantData?.placeId
     }))
   });
 
-  // Show button even if no locations for debugging
+  // Always show button for debugging - remove this later
   // if (eventsWithLocation.length === 0) return null;
 
   if (isMobile) {

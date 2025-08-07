@@ -52,8 +52,17 @@ export function ItineraryMapView({ events, isOpen, onClose }: ItineraryMapViewPr
 
   // Filter events that have location data
   const eventsWithLocation = events.filter(event => {
-    return (event.attractionData?.latitude && event.attractionData?.longitude) ||
-           (event.restaurantData?.placeId);
+    const hasAttractionCoords = event.attractionData?.latitude && event.attractionData?.longitude;
+    const hasRestaurantPlaceId = event.restaurantData?.placeId;
+    console.log('Event filtering:', {
+      title: event.title,
+      type: event.type,
+      hasAttractionCoords,
+      hasRestaurantPlaceId,
+      attractionData: event.attractionData,
+      restaurantData: event.restaurantData
+    });
+    return hasAttractionCoords || hasRestaurantPlaceId;
   });
 
   useEffect(() => {
@@ -86,13 +95,21 @@ export function ItineraryMapView({ events, isOpen, onClose }: ItineraryMapViewPr
     const bounds = new mapboxgl.LngLatBounds();
     let validBounds = false;
 
-    eventsWithLocation.forEach((event) => {
+    eventsWithLocation.forEach(async (event) => {
       let lat: number | undefined;
       let lng: number | undefined;
 
+      // Check if we have direct coordinates from attraction data
       if (event.attractionData?.latitude && event.attractionData?.longitude) {
         lat = event.attractionData.latitude;
         lng = event.attractionData.longitude;
+      } 
+      // If we have a restaurant with place ID but no coordinates, we need to geocode it
+      else if (event.restaurantData?.placeId) {
+        console.log('Found restaurant with place ID but no coordinates:', event.restaurantData.placeId);
+        // For now, let's skip restaurants with only place IDs
+        // We'll need to implement place ID to coordinates conversion
+        return;
       }
 
       if (lat && lng) {
