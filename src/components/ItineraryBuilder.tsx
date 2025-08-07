@@ -1155,12 +1155,6 @@ export function ItineraryBuilder({
             {/* Desktop: Completely New Modern Design */}
             <div className="hidden lg:block">
               <Collapsible open={isDesktopSectionOpen} onOpenChange={setIsDesktopSectionOpen}>
-                <CollapsibleTrigger asChild>
-                  <Button variant="outline" className="w-full mb-4 justify-between">
-                    <span>Trip Overview</span>
-                    <ChevronDown className={`w-4 h-4 transition-transform ${isDesktopSectionOpen ? 'rotate-180' : ''}`} />
-                  </Button>
-                </CollapsibleTrigger>
                 <CollapsibleContent>
                   <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-background via-muted/30 to-secondary/20 backdrop-blur-xl border border-border/30 shadow-2xl">
                 {/* Background Pattern */}
@@ -1171,7 +1165,8 @@ export function ItineraryBuilder({
                 </div>
                 
                 {/* Header Section */}
-                <div className="relative z-10 p-8 border-b border-border/20">
+                <CollapsibleTrigger asChild>
+                  <div className="relative z-10 p-8 border-b border-border/20 cursor-pointer hover:bg-background/5 transition-colors group">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-4">
                       <div className="relative">
@@ -1188,9 +1183,11 @@ export function ItineraryBuilder({
                     {currentItinerary?.isMultiCity && <Badge variant="secondary" className="px-3 py-1 bg-gradient-to-r from-secondary/20 to-accent/20 border-secondary/30 text-secondary-foreground font-medium">
                         Multi-city Adventure
                       </Badge>}
+                    <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform group-hover:text-foreground ${isDesktopSectionOpen ? 'rotate-180' : ''}`} />
                   </div>
-                </div>
+                </CollapsibleTrigger>
                 
+                <CollapsibleContent>
                 {/* Content Grid */}
                 <div className="relative z-10 p-8 grid grid-cols-1 xl:grid-cols-2 gap-8">
                   
@@ -1324,6 +1321,7 @@ export function ItineraryBuilder({
                   </div>
                   
                 </div>
+                </CollapsibleContent>
               </div>
                   </CollapsibleContent>
                 </Collapsible>
