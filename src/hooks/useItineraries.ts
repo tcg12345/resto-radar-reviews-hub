@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Itinerary, ItineraryEvent } from '@/components/ItineraryBuilder';
+import { format } from 'date-fns';
 
 export function useItineraries() {
   const { user } = useAuth();
@@ -61,8 +62,8 @@ export function useItineraries() {
         .insert({
           user_id: user.id,
           title: itinerary.title,
-          start_date: itinerary.startDate.getFullYear() + '-' + String(itinerary.startDate.getMonth() + 1).padStart(2, '0') + '-' + String(itinerary.startDate.getDate()).padStart(2, '0'),
-          end_date: itinerary.endDate.getFullYear() + '-' + String(itinerary.endDate.getMonth() + 1).padStart(2, '0') + '-' + String(itinerary.endDate.getDate()).padStart(2, '0'),
+          start_date: format(itinerary.startDate, 'yyyy-MM-dd'),
+          end_date: format(itinerary.endDate, 'yyyy-MM-dd'),
           events: itinerary.events as any
         })
         .select()
@@ -107,8 +108,8 @@ export function useItineraries() {
     try {
       const updateData: any = {};
       if (updates.title) updateData.title = updates.title;
-      if (updates.startDate) updateData.start_date = updates.startDate.getFullYear() + '-' + String(updates.startDate.getMonth() + 1).padStart(2, '0') + '-' + String(updates.startDate.getDate()).padStart(2, '0');
-      if (updates.endDate) updateData.end_date = updates.endDate.getFullYear() + '-' + String(updates.endDate.getMonth() + 1).padStart(2, '0') + '-' + String(updates.endDate.getDate()).padStart(2, '0');
+      if (updates.startDate) updateData.start_date = format(updates.startDate, 'yyyy-MM-dd');
+      if (updates.endDate) updateData.end_date = format(updates.endDate, 'yyyy-MM-dd');
       if (updates.events) updateData.events = updates.events as any;
 
       const { data, error } = await supabase
