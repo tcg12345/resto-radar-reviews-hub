@@ -20,6 +20,8 @@ import { SaveItineraryDialog } from '@/components/SaveItineraryDialog';
 import { SavedItinerariesSection } from '@/components/SavedItinerariesSection';
 import { AmadeusCitySearch } from '@/components/AmadeusCitySearch';
 import { HotelFlightSection } from '@/components/HotelFlightSection';
+import { ItineraryMapView } from '@/components/ItineraryMapView';
+import { ItineraryMapButton } from '@/components/ItineraryMapButton';
 import { Hotel as HotelType } from '@/hooks/useGooglePlacesHotelSearch';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -201,6 +203,7 @@ export function ItineraryBuilder({
   const [isExtensionOpen, setIsExtensionOpen] = useState(false);
   const [pendingEndDate, setPendingEndDate] = useState<Date | null>(dateRange.end);
   const [pendingStartDate, setPendingStartDate] = useState<Date | null>(dateRange.start);
+  const [isMapOpen, setIsMapOpen] = useState(false);
 
   // Persist state to localStorage whenever key state changes (excluding large data objects to prevent quota exceeded)
   useEffect(() => {
@@ -1822,6 +1825,11 @@ export function ItineraryBuilder({
           {/* Hotels and Flights Section - Moved to top */}
           <HotelFlightSection locations={currentItinerary?.locations || []} isMultiCity={currentItinerary?.isMultiCity || false} hotels={hotels} flights={flights} onAddHotel={handleAddHotel} onAddFlight={handleAddFlight} onRemoveHotel={handleRemoveHotel} onRemoveFlight={handleRemoveFlight} />
 
+          {/* Map Button - Desktop */}
+          <div className="hidden lg:block mb-6">
+            <ItineraryMapButton events={events} onOpenMap={() => setIsMapOpen(true)} />
+          </div>
+
           {/* Trip Calendar */}
           <TripCalendar startDate={dateRange.start!} endDate={dateRange.end!} events={events} locations={currentItinerary?.locations || []} isMultiCity={currentItinerary?.isMultiCity || false} useLengthOfStay={wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])} onAddEvent={handleAddEvent} onEditEvent={handleEditEvent} onDeleteEvent={handleDeleteEvent} />
         </TabsContent>
@@ -1850,5 +1858,11 @@ export function ItineraryBuilder({
 
       {/* Save Dialog */}
       <SaveItineraryDialog isOpen={isSaveDialogOpen} onClose={() => setIsSaveDialogOpen(false)} onSave={handleSaveItinerary} currentTitle={currentItinerary?.title || ''} />
+
+      {/* Map View */}
+      <ItineraryMapView events={events} isOpen={isMapOpen} onClose={() => setIsMapOpen(false)} />
+
+      {/* Mobile Map Button */}
+      <ItineraryMapButton events={events} onOpenMap={() => setIsMapOpen(true)} />
     </div>;
 }
