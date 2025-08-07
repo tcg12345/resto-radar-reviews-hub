@@ -23,6 +23,114 @@ export function ItineraryViewPage() {
     loadItinerary();
   }, [itineraryId]);
 
+  // Helper function to extract main city from address
+  const extractMainCity = (address: string): string => {
+    if (!address) return '';
+    
+    const addressParts = address.split(',').map(part => part.trim());
+    
+    // Common patterns for major cities
+    const cityPatterns = [
+      /^London$/i,
+      /^Paris$/i,
+      /^New York$/i,
+      /^NYC$/i,
+      /^Tokyo$/i,
+      /^Rome$/i,
+      /^Madrid$/i,
+      /^Barcelona$/i,
+      /^Amsterdam$/i,
+      /^Berlin$/i,
+      /^Vienna$/i,
+      /^Prague$/i,
+      /^Budapest$/i,
+      /^Warsaw$/i,
+      /^Stockholm$/i,
+      /^Copenhagen$/i,
+      /^Oslo$/i,
+      /^Helsinki$/i,
+      /^Dublin$/i,
+      /^Edinburgh$/i,
+      /^Manchester$/i,
+      /^Birmingham$/i,
+      /^Liverpool$/i,
+      /^Glasgow$/i,
+      /^Brussels$/i,
+      /^Zurich$/i,
+      /^Geneva$/i,
+      /^Milan$/i,
+      /^Florence$/i,
+      /^Venice$/i,
+      /^Naples$/i,
+      /^Lisbon$/i,
+      /^Porto$/i,
+      /^Athens$/i,
+      /^Istanbul$/i,
+      /^Moscow$/i,
+      /^St\.?\s*Petersburg$/i,
+      /^Sydney$/i,
+      /^Melbourne$/i,
+      /^Toronto$/i,
+      /^Vancouver$/i,
+      /^Montreal$/i,
+      /^Los Angeles$/i,
+      /^San Francisco$/i,
+      /^Chicago$/i,
+      /^Boston$/i,
+      /^Washington$/i,
+      /^Miami$/i,
+      /^Las Vegas$/i,
+      /^Seattle$/i,
+      /^Dubai$/i,
+      /^Singapore$/i,
+      /^Hong Kong$/i,
+      /^Bangkok$/i,
+      /^Seoul$/i,
+      /^Mumbai$/i,
+      /^Delhi$/i,
+      /^Bangalore$/i,
+      /^São Paulo$/i,
+      /^Rio de Janeiro$/i,
+      /^Buenos Aires$/i,
+      /^Mexico City$/i,
+      /^Cairo$/i,
+      /^Cape Town$/i,
+      /^Johannesburg$/i
+    ];
+    
+    // Check each part of the address against city patterns
+    for (const part of addressParts) {
+      for (const pattern of cityPatterns) {
+        if (pattern.test(part)) {
+          // Handle special cases
+          if (part.toLowerCase().includes('nyc')) return 'New York';
+          if (part.toLowerCase().includes('st. petersburg') || part.toLowerCase().includes('st petersburg')) return 'St. Petersburg';
+          return part;
+        }
+      }
+    }
+    
+    // Fallback: look for country and take the part before it
+    const lastPart = addressParts[addressParts.length - 1];
+    const countries = ['UK', 'United Kingdom', 'France', 'Germany', 'Italy', 'Spain', 'Netherlands', 'Belgium', 'Switzerland', 'Austria', 'Czech Republic', 'Hungary', 'Poland', 'Sweden', 'Denmark', 'Norway', 'Finland', 'Ireland', 'Portugal', 'Greece', 'Turkey', 'Russia', 'Australia', 'Canada', 'USA', 'United States', 'UAE', 'Singapore', 'Japan', 'South Korea', 'Thailand', 'India', 'Brazil', 'Argentina', 'Mexico', 'Egypt', 'South Africa'];
+    
+    if (countries.some(country => lastPart.toLowerCase().includes(country.toLowerCase()))) {
+      // If last part is a country, take the second-to-last part as the city
+      if (addressParts.length >= 2) {
+        const potentialCity = addressParts[addressParts.length - 2];
+        // Filter out postcodes and specific areas, return cleaner city names
+        if (!/^\d+$/.test(potentialCity) && !potentialCity.includes('London Borough')) {
+          // Handle UK specific areas
+          if (potentialCity.includes('London')) return 'London';
+          if (potentialCity.includes('Paris')) return 'Paris';
+          return potentialCity;
+        }
+      }
+    }
+    
+    return '';
+  };
+
   const loadItinerary = async () => {
     try {
       const { data, error } = await supabase
@@ -52,21 +160,19 @@ export function ItineraryViewPage() {
           flights: []
         };
 
-        // Extract unique locations from events
+        // Extract unique main cities from events
         const locationNames = new Set<string>();
         events.forEach((event: any) => {
+          let city = '';
+          
           if (event.restaurantData?.address) {
-            // Extract city from address (simple extraction)
-            const addressParts = event.restaurantData.address.split(',');
-            if (addressParts.length > 1) {
-              locationNames.add(addressParts[addressParts.length - 2].trim());
-            }
+            city = extractMainCity(event.restaurantData.address);
+          } else if (event.attractionData?.address) {
+            city = extractMainCity(event.attractionData.address);
           }
-          if (event.attractionData?.address) {
-            const addressParts = event.attractionData.address.split(',');
-            if (addressParts.length > 1) {
-              locationNames.add(addressParts[addressParts.length - 2].trim());
-            }
+          
+          if (city) {
+            locationNames.add(city);
           }
         });
 
