@@ -203,6 +203,7 @@ export function ItineraryBuilder({
   const [pendingLocationNights, setPendingLocationNights] = useState<Record<string, number>>(locationNights);
   const [hasPendingChanges, setHasPendingChanges] = useState(false);
   const [isExtensionOpen, setIsExtensionOpen] = useState(false);
+  const [isDesktopSectionOpen, setIsDesktopSectionOpen] = useState(true);
   const [pendingEndDate, setPendingEndDate] = useState<Date | null>(dateRange.end);
   const [pendingStartDate, setPendingStartDate] = useState<Date | null>(dateRange.start);
   const [isMapOpen, setIsMapOpen] = useState(false);
@@ -1153,7 +1154,15 @@ export function ItineraryBuilder({
 
             {/* Desktop: Completely New Modern Design */}
             <div className="hidden lg:block">
-              <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-background via-muted/30 to-secondary/20 backdrop-blur-xl border border-border/30 shadow-2xl">
+              <Collapsible open={isDesktopSectionOpen} onOpenChange={setIsDesktopSectionOpen}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="outline" className="w-full mb-4 justify-between">
+                    <span>Trip Overview</span>
+                    <ChevronDown className={`w-4 h-4 transition-transform ${isDesktopSectionOpen ? 'rotate-180' : ''}`} />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-background via-muted/30 to-secondary/20 backdrop-blur-xl border border-border/30 shadow-2xl">
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-5">
                   <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-transparent to-secondary/20"></div>
@@ -1316,8 +1325,10 @@ export function ItineraryBuilder({
                   
                 </div>
               </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
             </div>
-          </div>
 
           {/* Trip Extension Section - Show for all trips */}
           {currentItinerary && <Collapsible open={isExtensionOpen} onOpenChange={setIsExtensionOpen}>
