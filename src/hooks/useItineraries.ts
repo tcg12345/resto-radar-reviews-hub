@@ -26,8 +26,8 @@ export function useItineraries() {
       const converted = data.map(item => ({
         id: item.id,
         title: item.title,
-        startDate: new Date(item.start_date + 'T12:00:00'),
-        endDate: new Date(item.end_date + 'T12:00:00'),
+        startDate: new Date(item.start_date + 'T00:00:00'),
+        endDate: new Date(item.end_date + 'T00:00:00'),
         locations: [],
         events: Array.isArray(item.events) ? (item.events as unknown) as ItineraryEvent[] : [],
         hotels: [],
@@ -61,8 +61,8 @@ export function useItineraries() {
         .insert({
           user_id: user.id,
           title: itinerary.title,
-          start_date: itinerary.startDate.toISOString().split('T')[0],
-          end_date: itinerary.endDate.toISOString().split('T')[0],
+          start_date: itinerary.startDate.getFullYear() + '-' + String(itinerary.startDate.getMonth() + 1).padStart(2, '0') + '-' + String(itinerary.startDate.getDate()).padStart(2, '0'),
+          end_date: itinerary.endDate.getFullYear() + '-' + String(itinerary.endDate.getMonth() + 1).padStart(2, '0') + '-' + String(itinerary.endDate.getDate()).padStart(2, '0'),
           events: itinerary.events as any
         })
         .select()
@@ -81,8 +81,8 @@ export function useItineraries() {
       const converted: Itinerary = {
         id: data.id,
         title: data.title,
-        startDate: new Date(data.start_date + 'T12:00:00'),
-        endDate: new Date(data.end_date + 'T12:00:00'),
+        startDate: new Date(data.start_date + 'T00:00:00'),
+        endDate: new Date(data.end_date + 'T00:00:00'),
         locations: itinerary.locations,
         events: Array.isArray(data.events) ? (data.events as unknown) as ItineraryEvent[] : [],
         hotels: itinerary.hotels,
@@ -107,8 +107,8 @@ export function useItineraries() {
     try {
       const updateData: any = {};
       if (updates.title) updateData.title = updates.title;
-      if (updates.startDate) updateData.start_date = updates.startDate.toISOString().split('T')[0];
-      if (updates.endDate) updateData.end_date = updates.endDate.toISOString().split('T')[0];
+      if (updates.startDate) updateData.start_date = updates.startDate.getFullYear() + '-' + String(updates.startDate.getMonth() + 1).padStart(2, '0') + '-' + String(updates.startDate.getDate()).padStart(2, '0');
+      if (updates.endDate) updateData.end_date = updates.endDate.getFullYear() + '-' + String(updates.endDate.getMonth() + 1).padStart(2, '0') + '-' + String(updates.endDate.getDate()).padStart(2, '0');
       if (updates.events) updateData.events = updates.events as any;
 
       const { data, error } = await supabase
