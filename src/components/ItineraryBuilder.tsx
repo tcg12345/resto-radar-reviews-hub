@@ -1399,11 +1399,7 @@ export function ItineraryBuilder({
                         </div>
                         
                         {/* Current Mode Description */}
-                        <div className="p-3 bg-muted/20 rounded-lg border border-border/20">
-                          <p className="text-xs text-muted-foreground leading-relaxed">
-                            {!useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) ? "✨ Plan your trip with specific start and end dates" : "🏨 Plan based on how many nights you'll stay in each location"}
-                          </p>
-                        </div>
+                        
                         
                       </div>}
                     {/* For date-based single city trips */}
