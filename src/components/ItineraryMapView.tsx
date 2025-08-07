@@ -153,9 +153,9 @@ export function ItineraryMapView({ events, isOpen, onClose }: ItineraryMapViewPr
         const markerElement = document.createElement('div');
         markerElement.className = 'itinerary-marker';
         markerElement.innerHTML = `
-          <div class="flex items-center justify-center w-10 h-10 rounded-full shadow-lg cursor-pointer transition-all hover:scale-110" 
+          <div class="flex items-center justify-center w-7 h-7 rounded-full shadow-lg cursor-pointer transition-all hover:scale-110" 
                style="background-color: ${getEventTypeColor(event.type)}; border: 3px solid white;">
-            <span class="text-lg">${getEventTypeIcon(event.type)}</span>
+            <span class="text-sm">${getEventTypeIcon(event.type)}</span>
           </div>
         `;
 
@@ -344,11 +344,11 @@ export function ItineraryMapView({ events, isOpen, onClose }: ItineraryMapViewPr
             <CardContent className="pt-0 space-y-1">
               {Array.from(new Set(eventsWithLocation.map(e => e.type))).map(type => (
                 <div key={type} className="flex items-center gap-2 text-xs">
-                  <div 
-                    className="w-4 h-4 rounded-full flex items-center justify-center text-xs"
+                   <div 
+                     className="w-3 h-3 rounded-full flex items-center justify-center text-xs"
                     style={{ backgroundColor: getEventTypeColor(type) }}
                   >
-                    <span className="text-[10px]">{getEventTypeIcon(type)}</span>
+                    <span className="text-[8px]">{getEventTypeIcon(type)}</span>
                   </div>
                   <span className="capitalize">{type}</span>
                 </div>
