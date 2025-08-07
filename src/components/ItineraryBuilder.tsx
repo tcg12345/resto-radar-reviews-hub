@@ -1715,7 +1715,7 @@ export function ItineraryBuilder({
                             setHasPendingChanges(true);
                           }} max={30} min={1} step={1} className="w-full" />
                                       <div className="flex justify-between text-xs text-muted-foreground">
-                                        <span>1 night</span>
+                                        
                                         <span>30 nights</span>
                                       </div>
                                     </div>
