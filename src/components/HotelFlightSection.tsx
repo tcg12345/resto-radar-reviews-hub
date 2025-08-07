@@ -609,11 +609,11 @@ export function HotelFlightSection({
           setIsHotelDetailsOpen(open);
         }}
       >
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto fixed z-[100] bg-white dark:bg-gray-900 border shadow-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Hotel className="w-5 h-5 text-blue-600" />
-              {selectedHotel?.hotel.name}
+              {selectedHotel?.hotel.name || 'Hotel Details'}
             </DialogTitle>
             <DialogDescription>
               Hotel booking details and information
