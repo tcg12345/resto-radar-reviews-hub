@@ -14,7 +14,6 @@ import { HotelSearchDialog } from '@/components/HotelSearchDialog';
 import { FlightSearchDialog } from '@/components/FlightSearchDialog';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Hotel as HotelType } from '@/hooks/useGooglePlacesHotelSearch';
-
 interface TripLocation {
   id: string;
   name: string;
@@ -23,7 +22,6 @@ interface TripLocation {
   startDate?: Date;
   endDate?: Date;
 }
-
 interface HotelBooking {
   id: string;
   hotel: HotelType;
@@ -31,7 +29,6 @@ interface HotelBooking {
   checkOut?: Date | string;
   location?: string;
 }
-
 interface FlightBooking {
   id: string;
   flightNumber: string;
@@ -49,7 +46,6 @@ interface FlightBooking {
   price?: string;
   bookingUrl?: string;
 }
-
 interface HotelFlightSectionProps {
   locations: TripLocation[];
   isMultiCity: boolean;
@@ -60,16 +56,15 @@ interface HotelFlightSectionProps {
   onRemoveHotel: (hotelId: string) => void;
   onRemoveFlight: (flightId: string) => void;
 }
-
-export function HotelFlightSection({ 
-  locations, 
-  isMultiCity, 
-  hotels, 
-  flights, 
-  onAddHotel, 
-  onAddFlight, 
-  onRemoveHotel, 
-  onRemoveFlight 
+export function HotelFlightSection({
+  locations,
+  isMultiCity,
+  hotels,
+  flights,
+  onAddHotel,
+  onAddFlight,
+  onRemoveHotel,
+  onRemoveFlight
 }: HotelFlightSectionProps) {
   const isMobile = useIsMobile();
   const [isHotelDialogOpen, setIsHotelDialogOpen] = useState(false);
@@ -85,9 +80,13 @@ export function HotelFlightSection({
   const [isPhotoGalleryOpen, setIsPhotoGalleryOpen] = useState(false);
   const [photoGalleryIndex, setPhotoGalleryIndex] = useState(0);
   const [hotelWebsite, setHotelWebsite] = useState<string | null>(null);
-
-  const { searchLocations, getLocationPhotos, getLocationReviews, getLocationDetails, getBookingOffers } = useTripAdvisorApi();
-
+  const {
+    searchLocations,
+    getLocationPhotos,
+    getLocationReviews,
+    getLocationDetails,
+    getBookingOffers
+  } = useTripAdvisorApi();
   const [bookingOffers, setBookingOffers] = useState<any[]>([]);
   const [loadingBooking, setLoadingBooking] = useState(false);
   const [checkInDate, setCheckInDate] = useState<string>('');
@@ -95,11 +94,9 @@ export function HotelFlightSection({
   const [guests, setGuests] = useState(2);
   const [isHotelsExpanded, setIsHotelsExpanded] = useState(true);
   const [isFlightsExpanded, setIsFlightsExpanded] = useState(true);
-
   const handleHotelSelect = (hotel: HotelType, location?: string, checkIn?: Date, checkOut?: Date) => {
     onAddHotel(hotel, location, checkIn, checkOut);
   };
-
   const handleFlightSelect = (flight: any) => {
     onAddFlight(flight);
   };
@@ -109,7 +106,6 @@ export function HotelFlightSection({
     if (!date) return '';
     try {
       let dateObj: Date;
-      
       if (typeof date === 'string') {
         // Handle various string formats
         dateObj = new Date(date);
@@ -118,75 +114,65 @@ export function HotelFlightSection({
       } else {
         return '';
       }
-      
+
       // Check if the date is valid
       if (isNaN(dateObj.getTime())) {
         console.error('Invalid date:', date);
         return '';
       }
-      
       return dateObj.toLocaleDateString();
     } catch (error) {
       console.error('Error formatting date:', error, 'Original date:', date);
       return '';
     }
   };
-
   const handleHotelCardClick = (booking: HotelBooking) => {
     setSelectedHotel(booking);
     setIsHotelDetailsOpen(true);
     loadTripAdvisorData(booking.hotel.name, booking.hotel.address);
   };
-
   const handleFlightCardClick = (flight: FlightBooking) => {
     setSelectedFlight(flight);
     setIsFlightDetailsOpen(true);
   };
-
   const loadTripAdvisorData = async (hotelName: string, hotelAddress: string) => {
     setLoadingTripAdvisorData(true);
     setTripAdvisorPhotos([]);
     setTripAdvisorReviews([]);
     setTripAdvisorLocationId(null);
     setHotelWebsite(null);
-
     try {
       const searchQuery = `${hotelName} ${hotelAddress}`;
-      
+
       // Start search immediately
       const searchPromise = searchLocations(searchQuery);
-      
+
       // Wait for search result
       const locations = await searchPromise;
-      
       if (locations && locations.length > 0) {
         const location = locations[0];
         setTripAdvisorLocationId(location.location_id);
-        
+
         // Start loading details, photos and reviews in parallel
-        const [detailsPromise, photosPromise, reviewsPromise] = [
-          getLocationDetails(location.location_id),
-          getLocationPhotos(location.location_id, 20),
-          getLocationReviews(location.location_id, 10)
-        ];
-        
+        const [detailsPromise, photosPromise, reviewsPromise] = [getLocationDetails(location.location_id), getLocationPhotos(location.location_id, 20), getLocationReviews(location.location_id, 10)];
+
         // Handle details (for website) as soon as they're available
         detailsPromise.then(details => {
           if (details?.website) {
             setHotelWebsite(details.website);
           }
         }).catch(err => console.error('Error loading details:', err));
-        
+
         // Handle photos as soon as they're available
         photosPromise.then(photos => {
           if (photos) setTripAdvisorPhotos(photos);
         }).catch(err => console.error('Error loading photos:', err));
-        
+
         // Handle reviews as soon as they're available
         reviewsPromise.then(reviews => {
           if (reviews) setTripAdvisorReviews(reviews);
         }).catch(err => console.error('Error loading reviews:', err));
-        
+
         // Wait for all to complete before hiding loading
         await Promise.allSettled([detailsPromise, photosPromise, reviewsPromise]);
       }
@@ -196,251 +182,151 @@ export function HotelFlightSection({
       setLoadingTripAdvisorData(false);
     }
   };
-
   const getDirectionsUrl = (address: string) => {
     return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
   };
-
   const getAirportDirectionsUrl = (airportCode: string) => {
     return `https://www.google.com/maps/dir/?api=1&destination=${airportCode}+Airport`;
   };
-
   const getFlightTrackingUrl = (airline: string, flightNumber: string) => {
     return `https://www.flightradar24.com/data/flights/${airline}${flightNumber}`;
   };
-
   const handlePhotoClick = (index: number) => {
     setPhotoGalleryIndex(index);
     setIsPhotoGalleryOpen(true);
   };
-
   const getPhotoUrls = () => {
-    return tripAdvisorPhotos.map(photo => 
-      photo.images?.large?.url || 
-      photo.images?.medium?.url || 
-      photo.images?.small?.url || 
-      photo.images?.thumbnail?.url
-    ).filter(Boolean);
+    return tripAdvisorPhotos.map(photo => photo.images?.large?.url || photo.images?.medium?.url || photo.images?.small?.url || photo.images?.thumbnail?.url).filter(Boolean);
   };
-
   if (isMobile) {
-    return (
-      <div className="space-y-1">
+    return <div className="space-y-1">
         {/* Hotels Section - Mobile */}
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 -mx-4 px-4">
-          <div 
-            className="flex items-center justify-between py-4 px-4 cursor-pointer"
-            onClick={() => setIsHotelsExpanded(!isHotelsExpanded)}
-          >
+          <div className="flex items-center justify-between py-4 cursor-pointer" onClick={() => setIsHotelsExpanded(!isHotelsExpanded)}>
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-white/30 backdrop-blur-sm border border-white/20">
-                <Hotel className="w-6 h-6 text-white/90" />
+              <div className="p-2.5 rounded-xl bg-white/20 backdrop-blur-sm">
+                <Hotel className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="font-bold text-white/95 text-lg">Hotels</h3>
-                <p className="text-white/80 text-sm">{hotels.length} accommodation{hotels.length !== 1 ? 's' : ''} added</p>
+                <h3 className="font-bold text-white text-lg">Hotels</h3>
+                
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsHotelDialogOpen(true);
-                }}
-                size="sm"
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
-                variant="outline"
-              >
+              <Button onClick={e => {
+              e.stopPropagation();
+              setIsHotelDialogOpen(true);
+            }} size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm" variant="outline">
                 <Plus className="w-4 h-4 mr-1" />
                 Add
               </Button>
-              {isHotelsExpanded ? (
-                <ChevronUp className="w-6 h-6 text-white/90" />
-              ) : (
-                <ChevronDown className="w-6 h-6 text-white/90" />
-              )}
+              {isHotelsExpanded ? <ChevronUp className="w-6 h-6 text-white" /> : <ChevronDown className="w-6 h-6 text-white" />}
             </div>
           </div>
           
-          {isHotelsExpanded && (
-            <div className="pb-4 animate-fade-in">
-              {hotels.length > 0 ? (
-                <div className="space-y-3">
-                  {hotels.map((booking) => (
-                    <div 
-                      key={booking.id} 
-                      className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-white/30"
-                    >
+          {isHotelsExpanded && <div className="pb-4 animate-fade-in">
+              {hotels.length > 0 ? <div className="space-y-3">
+                  {hotels.map(booking => <div key={booking.id} className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-white/20">
                       <div className="flex items-start gap-4">
-                        <div className="p-3 rounded-xl bg-blue-100/70 dark:bg-blue-900/40 shrink-0">
-                          <Hotel className="w-5 h-5 text-blue-600/80 dark:text-blue-400/80" />
+                        <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/50 shrink-0">
+                          <Hotel className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex-1 min-w-0">
                               <h4 className="font-bold text-gray-900 dark:text-white text-lg leading-tight">{booking.hotel.name}</h4>
                               <div className="flex items-center gap-2 mt-1">
-                                {booking.hotel.rating && (
-                                  <div className="flex items-center bg-amber-100/70 dark:bg-amber-900/30 px-2 py-1 rounded-lg">
-                                    <Star className="w-3 h-3 text-amber-500/80 mr-1" />
-                                    <span className="text-xs font-medium text-amber-700/80 dark:text-amber-300/80">{booking.hotel.rating}</span>
-                                  </div>
-                                )}
-                                <Button
-                                  onClick={() => handleHotelCardClick(booking)}
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-6 px-2 text-xs text-blue-600/80 dark:text-blue-400/80 hover:bg-blue-50/70"
-                                >
+                                {booking.hotel.rating && <div className="flex items-center bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded-lg">
+                                    <Star className="w-3 h-3 text-amber-500 mr-1" />
+                                    <span className="text-xs font-medium text-amber-700 dark:text-amber-300">{booking.hotel.rating}</span>
+                                  </div>}
+                                <Button onClick={() => handleHotelCardClick(booking)} size="sm" variant="ghost" className="h-6 px-2 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50">
                                   <Eye className="w-3 h-3 mr-1" />
                                   Details
                                 </Button>
                               </div>
                             </div>
-                            <Button
-                              onClick={() => onRemoveHotel(booking.id)}
-                              size="sm"
-                              variant="ghost"
-                              className="text-red-500/80 hover:text-red-700 hover:bg-red-50/70 dark:hover:bg-red-900/20 p-1"
-                            >
+                            <Button onClick={() => onRemoveHotel(booking.id)} size="sm" variant="ghost" className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 p-1">
                               ×
                             </Button>
                           </div>
                           
-                            <div className="space-y-2">
-                            <div className="flex items-center text-gray-600/80 dark:text-gray-400/80">
+                          <div className="space-y-2">
+                            <div className="flex items-center text-gray-600 dark:text-gray-400">
                               <MapPin className="w-4 h-4 mr-2 shrink-0" />
                               <span className="text-sm">{booking.hotel.address}</span>
                             </div>
                             
-                            {(booking.checkIn || booking.checkOut) && (
-                              <div className="flex items-center text-gray-600/80 dark:text-gray-400/80">
+                            {(booking.checkIn || booking.checkOut) && <div className="flex items-center text-gray-600 dark:text-gray-400">
                                 <Calendar className="w-4 h-4 mr-2 shrink-0" />
                                 <span className="text-sm">
-                                  {booking.checkIn && booking.checkOut ? (
-                                    `${formatDate(booking.checkIn)} - ${formatDate(booking.checkOut)}`
-                                  ) : booking.checkIn ? (
-                                    `Check-in: ${formatDate(booking.checkIn)}`
-                                  ) : booking.checkOut ? (
-                                    `Check-out: ${formatDate(booking.checkOut)}`
-                                  ) : null}
+                                  {booking.checkIn && booking.checkOut ? `${formatDate(booking.checkIn)} - ${formatDate(booking.checkOut)}` : booking.checkIn ? `Check-in: ${formatDate(booking.checkIn)}` : booking.checkOut ? `Check-out: ${formatDate(booking.checkOut)}` : null}
                                 </span>
-                              </div>
-                            )}
+                              </div>}
                             
-                            {booking.location && (
-                              <Badge variant="outline" className="text-xs w-fit">
+                            {booking.location && <Badge variant="outline" className="text-xs w-fit">
                                 📍 {booking.location}
-                              </Badge>
-                            )}
+                              </Badge>}
                           </div>
                           
                           <div className="flex flex-wrap gap-2 mt-3">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => window.open(getDirectionsUrl(booking.hotel.address), '_blank')}
-                              className="flex-1 min-w-0 h-9 text-xs bg-blue-50/70 border-blue-200/70 text-blue-700/80 hover:bg-blue-100/70"
-                            >
+                            <Button size="sm" variant="outline" onClick={() => window.open(getDirectionsUrl(booking.hotel.address), '_blank')} className="flex-1 min-w-0 h-9 text-xs bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100">
                               <Navigation className="w-3 h-3 mr-1" />
                               Directions
                             </Button>
-                            {booking.hotel.website && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => window.open(booking.hotel.website, '_blank')}
-                                className="flex-1 min-w-0 h-9 text-xs bg-blue-50/70 border-blue-200/70 text-blue-700/80 hover:bg-blue-100/70"
-                              >
+                            {booking.hotel.website && <Button size="sm" variant="outline" onClick={() => window.open(booking.hotel.website, '_blank')} className="flex-1 min-w-0 h-9 text-xs bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100">
                                 <ExternalLink className="w-3 h-3 mr-1" />
                                 Website
-                              </Button>
-                            )}
-                            {booking.hotel.phone && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => window.open(`tel:${booking.hotel.phone}`, '_blank')}
-                                className="flex-1 min-w-0 h-9 text-xs bg-green-50/70 border-green-200/70 text-green-700/80 hover:bg-green-100/70"
-                              >
+                              </Button>}
+                            {booking.hotel.phone && <Button size="sm" variant="outline" onClick={() => window.open(`tel:${booking.hotel.phone}`, '_blank')} className="flex-1 min-w-0 h-9 text-xs bg-green-50 border-green-200 text-green-700 hover:bg-green-100">
                                 <Phone className="w-3 h-3 mr-1" />
                                 Call
-                              </Button>
-                            )}
-                            {booking.hotel.bookingUrl && (
-                              <Button
-                                size="sm"
-                                onClick={() => window.open(booking.hotel.bookingUrl, '_blank')}
-                                className="w-full h-9 text-xs bg-blue-500/80 hover:bg-blue-600/80 text-white mt-1"
-                              >
+                              </Button>}
+                            {booking.hotel.bookingUrl && <Button size="sm" onClick={() => window.open(booking.hotel.bookingUrl, '_blank')} className="w-full h-9 text-xs bg-blue-600 hover:bg-blue-700 text-white mt-1">
                                 Book Hotel
-                              </Button>
-                            )}
+                              </Button>}
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-6 text-white/80">
-                  <Hotel className="w-12 h-12 mx-auto mb-3 opacity-40" />
+                    </div>)}
+                </div> : <div className="text-center py-6 text-white/90">
+                  <Hotel className="w-12 h-12 mx-auto mb-3 opacity-50" />
                   <p className="text-sm font-medium">No hotels added yet</p>
-                  <p className="text-xs opacity-60 mt-1">Tap 'Add' to find accommodations</p>
-                </div>
-              )}
-            </div>
-          )}
+                  <p className="text-xs opacity-75 mt-1">Tap 'Add' to find accommodations</p>
+                </div>}
+            </div>}
         </div>
 
         {/* Flights Section - Mobile */}
-        <div className="bg-gradient-to-r from-purple-400/60 to-purple-500/50 dark:from-purple-600/40 dark:to-purple-700/30 rounded-2xl shadow-lg backdrop-blur-sm border border-white/20">
-          <div 
-            className="flex items-center justify-between py-4 px-4 cursor-pointer"
-            onClick={() => setIsFlightsExpanded(!isFlightsExpanded)}
-          >
+        <div className="bg-gradient-to-r from-purple-500 to-purple-600 dark:from-purple-600 dark:to-purple-700 -mx-4 px-4">
+          <div className="flex items-center justify-between py-4 cursor-pointer" onClick={() => setIsFlightsExpanded(!isFlightsExpanded)}>
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-white/30 backdrop-blur-sm border border-white/20">
-                <Plane className="w-6 h-6 text-white/90" />
+              <div className="p-2.5 rounded-xl bg-white/20 backdrop-blur-sm">
+                <Plane className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="font-bold text-white/95 text-lg">Flights</h3>
-                <p className="text-white/80 text-sm">{flights.length} flight{flights.length !== 1 ? 's' : ''} added</p>
+                <h3 className="font-bold text-white text-lg">Flights</h3>
+                <p className="text-white/90 text-sm">{flights.length} flight{flights.length !== 1 ? 's' : ''} added</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsFlightDialogOpen(true);
-                }}
-                size="sm"
-                className="bg-white/30 hover:bg-white/40 text-white/95 border-white/40 backdrop-blur-sm"
-                variant="outline"
-              >
+              <Button onClick={e => {
+              e.stopPropagation();
+              setIsFlightDialogOpen(true);
+            }} size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm" variant="outline">
                 <Plus className="w-4 h-4 mr-1" />
                 Add
               </Button>
-              {isFlightsExpanded ? (
-                <ChevronUp className="w-6 h-6 text-white/90" />
-              ) : (
-                <ChevronDown className="w-6 h-6 text-white/90" />
-              )}
+              {isFlightsExpanded ? <ChevronUp className="w-6 h-6 text-white" /> : <ChevronDown className="w-6 h-6 text-white" />}
             </div>
           </div>
           
-          {isFlightsExpanded && (
-            <div className="pb-4 px-4 animate-fade-in">
-              {flights.length > 0 ? (
-                <div className="space-y-3">
-                  {flights.map((flight) => (
-                    <div 
-                      key={flight.id} 
-                      className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-white/30"
-                    >
+          {isFlightsExpanded && <div className="pb-4 animate-fade-in">
+              {flights.length > 0 ? <div className="space-y-3">
+                  {flights.map(flight => <div key={flight.id} className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-white/20">
                       <div className="flex items-start gap-4">
-                        <div className="p-3 rounded-xl bg-purple-100/70 dark:bg-purple-900/40 shrink-0">
-                          <Plane className="w-5 h-5 text-purple-600/80 dark:text-purple-400/80" />
+                        <div className="p-3 rounded-xl bg-purple-100 dark:bg-purple-900/50 shrink-0">
+                          <Plane className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between mb-2">
@@ -449,102 +335,66 @@ export function HotelFlightSection({
                                 {flight.airline} {flight.flightNumber}
                               </h4>
                               <div className="flex items-center gap-2 mt-1">
-                                {flight.price && (
-                                  <div className="flex items-center bg-green-100/70 dark:bg-green-900/30 px-2 py-1 rounded-lg">
-                                    <span className="text-xs font-medium text-green-700/80 dark:text-green-300/80">💰 {flight.price}</span>
-                                  </div>
-                                )}
-                                <Button
-                                  onClick={() => handleFlightCardClick(flight)}
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-6 px-2 text-xs text-purple-600/80 dark:text-purple-400/80 hover:bg-purple-50/70"
-                                >
+                                {flight.price && <div className="flex items-center bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-lg">
+                                    <span className="text-xs font-medium text-green-700 dark:text-green-300">💰 {flight.price}</span>
+                                  </div>}
+                                <Button onClick={() => handleFlightCardClick(flight)} size="sm" variant="ghost" className="h-6 px-2 text-xs text-purple-600 dark:text-purple-400 hover:bg-purple-50">
                                   <Eye className="w-3 h-3 mr-1" />
                                   Details
                                 </Button>
                               </div>
                             </div>
-                            <Button
-                              onClick={() => onRemoveFlight(flight.id)}
-                              size="sm"
-                              variant="ghost"
-                              className="text-red-500/80 hover:text-red-700 hover:bg-red-50/70 dark:hover:bg-red-900/20 p-1"
-                            >
+                            <Button onClick={() => onRemoveFlight(flight.id)} size="sm" variant="ghost" className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 p-1">
                               ×
                             </Button>
                           </div>
                           
                           <div className="space-y-2">
-                            <div className="bg-purple-50/70 dark:bg-purple-900/20 rounded-lg p-3">
+                            <div className="bg-purple-50 dark:bg-purple-900/30 rounded-lg p-3">
                               <div className="flex items-center justify-between mb-2">
                                 <div className="text-center flex-1">
-                                  <div className="font-bold text-purple-900/90 dark:text-purple-100/90">{flight.departure.airport}</div>
-                                  <div className="text-xs text-purple-600/80 dark:text-purple-400/80 mt-1">{flight.departure.time}</div>
-                                  <div className="text-xs text-purple-500/80 dark:text-purple-400/80">{flight.departure.date}</div>
+                                  <div className="font-bold text-purple-900 dark:text-purple-100">{flight.departure.airport}</div>
+                                  <div className="text-xs text-purple-600 dark:text-purple-400 mt-1">{flight.departure.time}</div>
+                                  <div className="text-xs text-purple-500 dark:text-purple-400">{flight.departure.date}</div>
                                 </div>
                                 <div className="px-3">
-                                  <Plane className="w-5 h-5 text-purple-400/70 rotate-90" />
+                                  <Plane className="w-5 h-5 text-purple-400 rotate-90" />
                                 </div>
                                 <div className="text-center flex-1">
-                                  <div className="font-bold text-purple-900/90 dark:text-purple-100/90">{flight.arrival.airport}</div>
-                                  <div className="text-xs text-purple-600/80 dark:text-purple-400/80 mt-1">{flight.arrival.time}</div>
-                                  <div className="text-xs text-purple-500/80 dark:text-purple-400/80">{flight.arrival.date}</div>
+                                  <div className="font-bold text-purple-900 dark:text-purple-100">{flight.arrival.airport}</div>
+                                  <div className="text-xs text-purple-600 dark:text-purple-400 mt-1">{flight.arrival.time}</div>
+                                  <div className="text-xs text-purple-500 dark:text-purple-400">{flight.arrival.date}</div>
                                 </div>
                               </div>
                             </div>
                           </div>
                           
                           <div className="flex flex-wrap gap-2 mt-3">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => window.open(getAirportDirectionsUrl(flight.departure.airport), '_blank')}
-                              className="flex-1 min-w-0 h-9 text-xs bg-purple-50/70 border-purple-200/70 text-purple-700/80 hover:bg-purple-100/70"
-                            >
+                            <Button size="sm" variant="outline" onClick={() => window.open(getAirportDirectionsUrl(flight.departure.airport), '_blank')} className="flex-1 min-w-0 h-9 text-xs bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100">
                               <Navigation className="w-3 h-3 mr-1" />
                               To Airport
                             </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => window.open(getFlightTrackingUrl(flight.airline, flight.flightNumber), '_blank')}
-                              className="flex-1 min-w-0 h-9 text-xs bg-purple-50/70 border-purple-200/70 text-purple-700/80 hover:bg-purple-100/70"
-                            >
+                            <Button size="sm" variant="outline" onClick={() => window.open(getFlightTrackingUrl(flight.airline, flight.flightNumber), '_blank')} className="flex-1 min-w-0 h-9 text-xs bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100">
                               <Radar className="w-3 h-3 mr-1" />
                               Track
                             </Button>
-                            {flight.bookingUrl && (
-                              <Button
-                                size="sm"
-                                onClick={() => window.open(flight.bookingUrl, '_blank')}
-                                className="w-full h-9 text-xs bg-purple-500/80 hover:bg-purple-600/80 text-white mt-1"
-                              >
+                            {flight.bookingUrl && <Button size="sm" onClick={() => window.open(flight.bookingUrl, '_blank')} className="w-full h-9 text-xs bg-purple-600 hover:bg-purple-700 text-white mt-1">
                                 View Booking
-                              </Button>
-                            )}
+                              </Button>}
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-6 text-white/80">
-                  <Plane className="w-12 h-12 mx-auto mb-3 opacity-40" />
+                    </div>)}
+                </div> : <div className="text-center py-6 text-white/90">
+                  <Plane className="w-12 h-12 mx-auto mb-3 opacity-50" />
                   <p className="text-sm font-medium">No flights added yet</p>
-                  <p className="text-xs opacity-60 mt-1">Tap 'Add' to find flights</p>
-                </div>
-              )}
-            </div>
-          )}
+                  <p className="text-xs opacity-75 mt-1">Tap 'Add' to find flights</p>
+                </div>}
+            </div>}
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:contents">
+  return <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:contents">
       {/* Hotels Section - Desktop */}
       <div className="lg:contents">
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800/30 lg:rounded-lg lg:border lg:shadow-sm rounded-none border-0 border-t border-b shadow-none relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen lg:left-auto lg:right-auto lg:ml-0 lg:mr-0 lg:w-auto mb-6">
@@ -559,33 +409,20 @@ export function HotelFlightSection({
                   <p className="text-xs text-blue-700 dark:text-blue-300">Accommodations</p>
                 </div>
               </div>
-              <Button
-                onClick={() => setIsHotelDialogOpen(true)}
-                size="sm"
-                variant="outline"
-                className="h-8 text-xs border-blue-300 text-blue-700 hover:bg-blue-100 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-900/50"
-              >
+              <Button onClick={() => setIsHotelDialogOpen(true)} size="sm" variant="outline" className="h-8 text-xs border-blue-300 text-blue-700 hover:bg-blue-100 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-900/50">
                 <Plus className="w-3 h-3 mr-1" />
                 Add
               </Button>
             </div>
             
-            {hotels.length > 0 ? (
-              <div className="space-y-3 max-h-48 overflow-y-auto">
-                {hotels.map((booking) => (
-                  <div 
-                    key={booking.id} 
-                    className="flex items-start justify-between p-3 bg-white/60 dark:bg-blue-950/40 rounded-lg border border-blue-200 dark:border-blue-800/50 cursor-pointer hover:bg-white/80 dark:hover:bg-blue-950/60 transition-colors"
-                    onClick={() => handleHotelCardClick(booking)}
-                  >
+            {hotels.length > 0 ? <div className="space-y-3 max-h-48 overflow-y-auto">
+                {hotels.map(booking => <div key={booking.id} className="flex items-start justify-between p-3 bg-white/60 dark:bg-blue-950/40 rounded-lg border border-blue-200 dark:border-blue-800/50 cursor-pointer hover:bg-white/80 dark:hover:bg-blue-950/60 transition-colors" onClick={() => handleHotelCardClick(booking)}>
                     <div className="flex-1 min-w-0 space-y-2">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h4 className="font-semibold text-sm text-blue-900 dark:text-blue-100">{booking.hotel.name}</h4>
-                        {booking.hotel.rating && (
-                          <Badge variant="secondary" className="text-xs px-2 py-1">
+                        {booking.hotel.rating && <Badge variant="secondary" className="text-xs px-2 py-1">
                             ⭐ {booking.hotel.rating}
-                          </Badge>
-                        )}
+                          </Badge>}
                         <Badge variant="outline" className="text-xs">
                           <Eye className="w-3 h-3 mr-1" />
                           Click for details
@@ -596,88 +433,43 @@ export function HotelFlightSection({
                         {booking.hotel.address}
                       </p>
                       
-                      {(booking.checkIn || booking.checkOut) && (
-                        <div className="text-xs text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded">
-                          {booking.checkIn && booking.checkOut ? (
-                            `📅 ${formatDate(booking.checkIn)} - ${formatDate(booking.checkOut)}`
-                          ) : booking.checkIn ? (
-                            `📅 Check-in: ${formatDate(booking.checkIn)}`
-                          ) : booking.checkOut ? (
-                            `📅 Check-out: ${formatDate(booking.checkOut)}`
-                          ) : null}
-                        </div>
-                      )}
+                      {(booking.checkIn || booking.checkOut) && <div className="text-xs text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded">
+                          {booking.checkIn && booking.checkOut ? `📅 ${formatDate(booking.checkIn)} - ${formatDate(booking.checkOut)}` : booking.checkIn ? `📅 Check-in: ${formatDate(booking.checkIn)}` : booking.checkOut ? `📅 Check-out: ${formatDate(booking.checkOut)}` : null}
+                        </div>}
                       
-                      {booking.location && (
-                        <Badge variant="outline" className="text-xs">
+                      {booking.location && <Badge variant="outline" className="text-xs">
                           📍 {booking.location}
-                        </Badge>
-                      )}
+                        </Badge>}
 
                       {/* Quick Action Buttons */}
-                      <div className="flex items-center gap-1 pt-1" onClick={(e) => e.stopPropagation()}>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => window.open(getDirectionsUrl(booking.hotel.address), '_blank')}
-                          className="h-6 px-2 text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400"
-                        >
+                      <div className="flex items-center gap-1 pt-1" onClick={e => e.stopPropagation()}>
+                        <Button size="sm" variant="ghost" onClick={() => window.open(getDirectionsUrl(booking.hotel.address), '_blank')} className="h-6 px-2 text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400">
                           <Navigation className="w-3 h-3 mr-1" />
                           Directions
                         </Button>
-                        {booking.hotel.website && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => window.open(booking.hotel.website, '_blank')}
-                            className="h-6 px-2 text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400"
-                          >
+                        {booking.hotel.website && <Button size="sm" variant="ghost" onClick={() => window.open(booking.hotel.website, '_blank')} className="h-6 px-2 text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400">
                             <ExternalLink className="w-3 h-3 mr-1" />
                             Website
-                          </Button>
-                        )}
-                        {booking.hotel.phone && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => window.open(`tel:${booking.hotel.phone}`, '_blank')}
-                            className="h-6 px-2 text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400"
-                          >
+                          </Button>}
+                        {booking.hotel.phone && <Button size="sm" variant="ghost" onClick={() => window.open(`tel:${booking.hotel.phone}`, '_blank')} className="h-6 px-2 text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400">
                             <Phone className="w-3 h-3 mr-1" />
                             Call
-                          </Button>
-                        )}
+                          </Button>}
                       </div>
                     </div>
-                    <div className="flex flex-col items-end gap-2 ml-3" onClick={(e) => e.stopPropagation()}>
-                      {booking.hotel.bookingUrl && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => window.open(booking.hotel.bookingUrl, '_blank')}
-                          className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 border-blue-300 dark:border-blue-700"
-                        >
+                    <div className="flex flex-col items-end gap-2 ml-3" onClick={e => e.stopPropagation()}>
+                      {booking.hotel.bookingUrl && <Button size="sm" variant="outline" onClick={() => window.open(booking.hotel.bookingUrl, '_blank')} className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 border-blue-300 dark:border-blue-700">
                           Book Hotel
-                        </Button>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => onRemoveHotel(booking.id)}
-                        className="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-                      >
+                        </Button>}
+                      <Button size="sm" variant="ghost" onClick={() => onRemoveHotel(booking.id)} className="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
                         Remove
                       </Button>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-4 text-blue-600 dark:text-blue-400">
+                  </div>)}
+              </div> : <div className="text-center py-4 text-blue-600 dark:text-blue-400">
                 <Hotel className="w-6 h-6 mx-auto mb-1 opacity-50" />
                 <p className="text-xs">No hotels added</p>
-              </div>
-            )}
+              </div>}
           </CardContent>
         </Card>
       </div>
@@ -696,35 +488,22 @@ export function HotelFlightSection({
                   <p className="text-xs text-purple-700 dark:text-purple-300">Transportation</p>
                 </div>
               </div>
-              <Button
-                onClick={() => setIsFlightDialogOpen(true)}
-                size="sm"
-                variant="outline"
-                className="h-8 text-xs border-purple-300 text-purple-700 hover:bg-purple-100 dark:border-purple-700 dark:text-purple-300 dark:hover:bg-purple-900/50"
-              >
+              <Button onClick={() => setIsFlightDialogOpen(true)} size="sm" variant="outline" className="h-8 text-xs border-purple-300 text-purple-700 hover:bg-purple-100 dark:border-purple-700 dark:text-purple-300 dark:hover:bg-purple-900/50">
                 <Plus className="w-3 h-3 mr-1" />
                 Add
               </Button>
             </div>
             
-            {flights.length > 0 ? (
-              <div className="space-y-3 max-h-48 overflow-y-auto">
-                {flights.map((flight) => (
-                  <div 
-                    key={flight.id} 
-                    className="flex items-start justify-between p-3 bg-white/60 dark:bg-purple-950/40 rounded-lg border border-purple-200 dark:border-purple-800/50 cursor-pointer hover:bg-white/80 dark:hover:bg-purple-950/60 transition-colors"
-                    onClick={() => handleFlightCardClick(flight)}
-                  >
+            {flights.length > 0 ? <div className="space-y-3 max-h-48 overflow-y-auto">
+                {flights.map(flight => <div key={flight.id} className="flex items-start justify-between p-3 bg-white/60 dark:bg-purple-950/40 rounded-lg border border-purple-200 dark:border-purple-800/50 cursor-pointer hover:bg-white/80 dark:hover:bg-purple-950/60 transition-colors" onClick={() => handleFlightCardClick(flight)}>
                     <div className="flex-1 min-w-0 space-y-2">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h4 className="font-semibold text-sm text-purple-900 dark:text-purple-100">
                           {flight.airline} {flight.flightNumber}
                         </h4>
-                        {flight.price && (
-                          <Badge variant="secondary" className="text-xs px-2 py-1">
+                        {flight.price && <Badge variant="secondary" className="text-xs px-2 py-1">
                             💰 {flight.price}
-                          </Badge>
-                        )}
+                          </Badge>}
                         <Badge variant="outline" className="text-xs">
                           <Eye className="w-3 h-3 mr-1" />
                           Click for details
@@ -744,95 +523,49 @@ export function HotelFlightSection({
                         </div>
                       </div>
                       
-                      {flight.departure.date && (
-                        <div className="text-xs text-purple-600 dark:text-purple-400">
+                      {flight.departure.date && <div className="text-xs text-purple-600 dark:text-purple-400">
                           📅 {flight.departure.date}
-                          {flight.arrival.date && flight.arrival.date !== flight.departure.date && (
-                            ` → ${flight.arrival.date}`
-                          )}
-                        </div>
-                      )}
+                          {flight.arrival.date && flight.arrival.date !== flight.departure.date && ` → ${flight.arrival.date}`}
+                        </div>}
 
                       {/* Quick Action Buttons */}
-                      <div className="flex items-center gap-1 pt-1" onClick={(e) => e.stopPropagation()}>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => window.open(getAirportDirectionsUrl(flight.departure.airport), '_blank')}
-                          className="h-6 px-2 text-xs text-purple-600 hover:text-purple-800 dark:text-purple-400"
-                        >
+                      <div className="flex items-center gap-1 pt-1" onClick={e => e.stopPropagation()}>
+                        <Button size="sm" variant="ghost" onClick={() => window.open(getAirportDirectionsUrl(flight.departure.airport), '_blank')} className="h-6 px-2 text-xs text-purple-600 hover:text-purple-800 dark:text-purple-400">
                           <Navigation className="w-3 h-3 mr-1" />
                           To Airport
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => window.open(getFlightTrackingUrl(flight.airline, flight.flightNumber), '_blank')}
-                          className="h-6 px-2 text-xs text-purple-600 hover:text-purple-800 dark:text-purple-400"
-                        >
+                        <Button size="sm" variant="ghost" onClick={() => window.open(getFlightTrackingUrl(flight.airline, flight.flightNumber), '_blank')} className="h-6 px-2 text-xs text-purple-600 hover:text-purple-800 dark:text-purple-400">
                           <Radar className="w-3 h-3 mr-1" />
                           Track
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => window.open(`https://www.${flight.airline.toLowerCase().replace(' ', '')}.com`, '_blank')}
-                          className="h-6 px-2 text-xs text-purple-600 hover:text-purple-800 dark:text-purple-400"
-                        >
+                        <Button size="sm" variant="ghost" onClick={() => window.open(`https://www.${flight.airline.toLowerCase().replace(' ', '')}.com`, '_blank')} className="h-6 px-2 text-xs text-purple-600 hover:text-purple-800 dark:text-purple-400">
                           <ExternalLink className="w-3 h-3 mr-1" />
                           Airline
                         </Button>
                       </div>
                     </div>
-                    <div className="flex flex-col items-end gap-2 ml-3" onClick={(e) => e.stopPropagation()}>
-                      {flight.bookingUrl && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => window.open(flight.bookingUrl, '_blank')}
-                          className="text-xs text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-200 border-purple-300 dark:border-purple-700"
-                        >
+                    <div className="flex flex-col items-end gap-2 ml-3" onClick={e => e.stopPropagation()}>
+                      {flight.bookingUrl && <Button size="sm" variant="outline" onClick={() => window.open(flight.bookingUrl, '_blank')} className="text-xs text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-200 border-purple-300 dark:border-purple-700">
                           Book Flight
-                        </Button>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => onRemoveFlight(flight.id)}
-                        className="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-                      >
+                        </Button>}
+                      <Button size="sm" variant="ghost" onClick={() => onRemoveFlight(flight.id)} className="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
                         Remove
                       </Button>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-4 text-purple-600 dark:text-purple-400">
+                  </div>)}
+              </div> : <div className="text-center py-4 text-purple-600 dark:text-purple-400">
                 <Plane className="w-6 h-6 mx-auto mb-1 opacity-50" />
                 <p className="text-xs">No flights added</p>
-              </div>
-            )}
+              </div>}
           </CardContent>
         </Card>
       </div>
 
       {/* Hotel Search Dialog */}
-      <HotelSearchDialog
-        isOpen={isHotelDialogOpen}
-        onClose={() => setIsHotelDialogOpen(false)}
-        onSelect={handleHotelSelect}
-        locations={locations}
-        isMultiCity={isMultiCity}
-      />
+      <HotelSearchDialog isOpen={isHotelDialogOpen} onClose={() => setIsHotelDialogOpen(false)} onSelect={handleHotelSelect} locations={locations} isMultiCity={isMultiCity} />
 
       {/* Flight Search Dialog */}
-      <FlightSearchDialog
-        isOpen={isFlightDialogOpen}
-        onClose={() => setIsFlightDialogOpen(false)}
-        onSelect={handleFlightSelect}
-        locations={locations}
-      />
+      <FlightSearchDialog isOpen={isFlightDialogOpen} onClose={() => setIsFlightDialogOpen(false)} onSelect={handleFlightSelect} locations={locations} />
 
       {/* Hotel Details Modal */}
       <Dialog open={isHotelDetailsOpen} onOpenChange={setIsHotelDetailsOpen}>
@@ -847,8 +580,7 @@ export function HotelFlightSection({
             </DialogDescription>
           </DialogHeader>
           
-          {selectedHotel && (
-            <div className="space-y-6">
+          {selectedHotel && <div className="space-y-6">
               {/* Basic Info */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
@@ -856,118 +588,76 @@ export function HotelFlightSection({
                   <span className="text-sm">{selectedHotel.hotel.address}</span>
                 </div>
                 
-                {selectedHotel.hotel.rating && (
-                  <div className="flex items-center gap-2">
+                {selectedHotel.hotel.rating && <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">Rating:</span>
                     <Badge variant="secondary">⭐ {selectedHotel.hotel.rating}</Badge>
-                  </div>
-                )}
+                  </div>}
                 
-                {selectedHotel.hotel.priceRange && (
-                  <div className="flex items-center gap-2">
+                {selectedHotel.hotel.priceRange && <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">Price Range:</span>
                     <Badge variant="outline">{selectedHotel.hotel.priceRange}</Badge>
-                  </div>
-                )}
+                  </div>}
               </div>
 
               {/* Stay Dates */}
-              {(selectedHotel.checkIn || selectedHotel.checkOut) && (
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              {(selectedHotel.checkIn || selectedHotel.checkOut) && <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                   <h4 className="font-medium text-sm mb-2 text-blue-900 dark:text-blue-100">Stay Dates</h4>
                   <div className="space-y-1 text-sm">
-                    {selectedHotel.checkIn && (
-                      <div>Check-in: <span className="font-medium">{formatDate(selectedHotel.checkIn)}</span></div>
-                    )}
-                    {selectedHotel.checkOut && (
-                      <div>Check-out: <span className="font-medium">{formatDate(selectedHotel.checkOut)}</span></div>
-                    )}
-                    {selectedHotel.location && (
-                      <div>Location: <span className="font-medium">{selectedHotel.location}</span></div>
-                    )}
+                    {selectedHotel.checkIn && <div>Check-in: <span className="font-medium">{formatDate(selectedHotel.checkIn)}</span></div>}
+                    {selectedHotel.checkOut && <div>Check-out: <span className="font-medium">{formatDate(selectedHotel.checkOut)}</span></div>}
+                    {selectedHotel.location && <div>Location: <span className="font-medium">{selectedHotel.location}</span></div>}
                   </div>
-                </div>
-              )}
+                </div>}
 
               {/* Description */}
-              {selectedHotel.hotel.description && (
-                <div>
+              {selectedHotel.hotel.description && <div>
                   <h4 className="font-medium text-sm mb-2">Description</h4>
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     {selectedHotel.hotel.description}
                   </p>
-                </div>
-              )}
+                </div>}
 
               {/* Amenities */}
-              {selectedHotel.hotel.amenities && selectedHotel.hotel.amenities.length > 0 && (
-                <div>
+              {selectedHotel.hotel.amenities && selectedHotel.hotel.amenities.length > 0 && <div>
                   <h4 className="font-medium text-sm mb-2">Amenities</h4>
                   <div className="flex flex-wrap gap-2">
-                    {selectedHotel.hotel.amenities.map((amenity, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">
+                    {selectedHotel.hotel.amenities.map((amenity, index) => <Badge key={index} variant="outline" className="text-xs">
                         {amenity}
-                      </Badge>
-                    ))}
+                      </Badge>)}
                   </div>
-                </div>
-              )}
+                </div>}
 
               {/* TripAdvisor Photos */}
-              {tripAdvisorPhotos.length > 0 && (
-                <div className="space-y-3">
+              {tripAdvisorPhotos.length > 0 && <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <Camera className="w-4 h-4 text-blue-600" />
                     <h4 className="font-medium text-sm">Photos from TripAdvisor</h4>
                   </div>
                   <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">
-                    {tripAdvisorPhotos.slice(0, 12).map((photo, index) => (
-                      <div 
-                        key={photo.id || index} 
-                        className="relative aspect-video rounded-lg overflow-hidden bg-muted cursor-pointer group"
-                         onClick={() => handlePhotoClick(index)}
-                      >
-                        <img
-                          src={photo.images?.medium?.url || photo.images?.small?.url || photo.images?.thumbnail?.url}
-                          alt={photo.caption || 'Hotel photo'}
-                          className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                          loading="lazy"
-                        />
+                    {tripAdvisorPhotos.slice(0, 12).map((photo, index) => <div key={photo.id || index} className="relative aspect-video rounded-lg overflow-hidden bg-muted cursor-pointer group" onClick={() => handlePhotoClick(index)}>
+                        <img src={photo.images?.medium?.url || photo.images?.small?.url || photo.images?.thumbnail?.url} alt={photo.caption || 'Hotel photo'} className="w-full h-full object-cover transition-transform group-hover:scale-105" loading="lazy" />
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                           <Eye className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
-                        {photo.caption && (
-                          <div className="absolute inset-x-0 bottom-0 bg-black/60 text-white p-1">
+                        {photo.caption && <div className="absolute inset-x-0 bottom-0 bg-black/60 text-white p-1">
                             <p className="text-xs truncate">{photo.caption}</p>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                          </div>}
+                      </div>)}
                   </div>
-                </div>
-              )}
+                </div>}
 
               {/* TripAdvisor Reviews */}
-              {tripAdvisorReviews.length > 0 && (
-                <div className="space-y-3">
+              {tripAdvisorReviews.length > 0 && <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <Star className="w-4 h-4 text-yellow-500" />
                     <h4 className="font-medium text-sm">Reviews from TripAdvisor</h4>
                   </div>
                   <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {tripAdvisorReviews.slice(0, 6).map((review, index) => (
-                      <div key={review.id || index} className="p-2 bg-muted/50 rounded-lg">
+                    {tripAdvisorReviews.slice(0, 6).map((review, index) => <div key={review.id || index} className="p-2 bg-muted/50 rounded-lg">
                         <div className="flex items-center justify-between mb-1">
                           <div className="flex items-center gap-1">
                             <div className="flex items-center">
-                              {[...Array(5)].map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className={`w-3 h-3 ${
-                                    i < review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'
-                                  }`}
-                                />
-                              ))}
+                              {[...Array(5)].map((_, i) => <Star key={i} className={`w-3 h-3 ${i < review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'}`} />)}
                             </div>
                             <span className="text-xs font-medium">{review.user?.username}</span>
                           </div>
@@ -975,19 +665,14 @@ export function HotelFlightSection({
                             {new Date(review.published_date).toLocaleDateString()}
                           </span>
                         </div>
-                        {review.title && (
-                          <h5 className="font-medium text-xs mb-1">{review.title}</h5>
-                        )}
+                        {review.title && <h5 className="font-medium text-xs mb-1">{review.title}</h5>}
                         <p className="text-xs text-muted-foreground line-clamp-3">{review.text}</p>
-                      </div>
-                    ))}
+                      </div>)}
                   </div>
-                </div>
-                )}
+                </div>}
 
               {/* Hotel Booking from TripAdvisor */}
-              {tripAdvisorLocationId && (
-                <div className="space-y-3">
+              {tripAdvisorLocationId && <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-green-600" />
                     <h4 className="font-medium text-sm">Book This Hotel</h4>
@@ -998,203 +683,134 @@ export function HotelFlightSection({
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <Label htmlFor="checkin" className="text-xs">Check-in</Label>
-                        <Input
-                          id="checkin"
-                          type="date"
-                          value={checkInDate}
-                          onChange={(e) => setCheckInDate(e.target.value)}
-                          className="h-8 text-xs"
-                          min={new Date().toISOString().split('T')[0]}
-                        />
+                        <Input id="checkin" type="date" value={checkInDate} onChange={e => setCheckInDate(e.target.value)} className="h-8 text-xs" min={new Date().toISOString().split('T')[0]} />
                       </div>
                       <div>
                         <Label htmlFor="checkout" className="text-xs">Check-out</Label>
-                        <Input
-                          id="checkout"
-                          type="date"
-                          value={checkOutDate}
-                          onChange={(e) => setCheckOutDate(e.target.value)}
-                          className="h-8 text-xs"
-                          min={checkInDate || new Date().toISOString().split('T')[0]}
-                        />
+                        <Input id="checkout" type="date" value={checkOutDate} onChange={e => setCheckOutDate(e.target.value)} className="h-8 text-xs" min={checkInDate || new Date().toISOString().split('T')[0]} />
                       </div>
                     </div>
                     
                     <div className="flex items-center gap-3">
                       <div className="flex-1">
                         <Label htmlFor="guests" className="text-xs">Guests</Label>
-                        <Select value={guests.toString()} onValueChange={(value) => setGuests(parseInt(value))}>
+                        <Select value={guests.toString()} onValueChange={value => setGuests(parseInt(value))}>
                           <SelectTrigger className="h-8 text-xs">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {[1, 2, 3, 4, 5, 6].map(num => (
-                              <SelectItem key={num} value={num.toString()}>
+                            {[1, 2, 3, 4, 5, 6].map(num => <SelectItem key={num} value={num.toString()}>
                                 {num} Guest{num > 1 ? 's' : ''}
-                              </SelectItem>
-                            ))}
+                              </SelectItem>)}
                           </SelectContent>
                         </Select>
                       </div>
                       
-                      <Button
-                        size="sm"
-                        onClick={async () => {
-                          if (!checkInDate || !checkOutDate || !tripAdvisorLocationId) {
-                            alert('Please select check-in and check-out dates');
-                            return;
-                          }
-                          
-                          setLoadingBooking(true);
-                          try {
-                            const offers = await getBookingOffers(tripAdvisorLocationId, checkInDate, checkOutDate, guests);
-                            setBookingOffers(offers || []);
-                          } catch (error) {
-                            console.error('Error fetching booking offers:', error);
-                            alert('Unable to fetch booking offers at the moment');
-                          } finally {
-                            setLoadingBooking(false);
-                          }
-                        }}
-                        disabled={loadingBooking || !checkInDate || !checkOutDate}
-                        className="mt-4"
-                      >
-                        {loadingBooking ? (
-                          <>
+                      <Button size="sm" onClick={async () => {
+                  if (!checkInDate || !checkOutDate || !tripAdvisorLocationId) {
+                    alert('Please select check-in and check-out dates');
+                    return;
+                  }
+                  setLoadingBooking(true);
+                  try {
+                    const offers = await getBookingOffers(tripAdvisorLocationId, checkInDate, checkOutDate, guests);
+                    setBookingOffers(offers || []);
+                  } catch (error) {
+                    console.error('Error fetching booking offers:', error);
+                    alert('Unable to fetch booking offers at the moment');
+                  } finally {
+                    setLoadingBooking(false);
+                  }
+                }} disabled={loadingBooking || !checkInDate || !checkOutDate} className="mt-4">
+                        {loadingBooking ? <>
                             <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin mr-1" />
                             Searching...
-                          </>
-                        ) : (
-                          <>
+                          </> : <>
                             <Calendar className="w-3 h-3 mr-1" />
                             Search Deals
-                          </>
-                        )}
+                          </>}
                       </Button>
                     </div>
                   </div>
                   
                   {/* Booking Offers */}
-                  {bookingOffers.length > 0 && (
-                    <div className="space-y-2">
+                  {bookingOffers.length > 0 && <div className="space-y-2">
                       <h5 className="text-sm font-medium text-green-700 dark:text-green-300">Available Deals</h5>
                       <div className="space-y-2 max-h-48 overflow-y-auto">
-                        {bookingOffers.slice(0, 5).map((offer, index) => (
-                          <div key={index} className="p-3 bg-white dark:bg-green-950/40 rounded-lg border border-green-200 dark:border-green-800/50">
+                        {bookingOffers.slice(0, 5).map((offer, index) => <div key={index} className="p-3 bg-white dark:bg-green-950/40 rounded-lg border border-green-200 dark:border-green-800/50">
                             <div className="flex items-center justify-between">
                               <div>
                                 <div className="text-sm font-medium">{offer.partner_name || 'Booking Partner'}</div>
-                                {offer.price && (
-                                  <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                                {offer.price && <div className="text-lg font-bold text-green-600 dark:text-green-400">
                                     ${offer.price}
                                     <span className="text-xs text-muted-foreground ml-1">per night</span>
-                                  </div>
-                                )}
-                                {offer.total_price && (
-                                  <div className="text-sm text-muted-foreground">
+                                  </div>}
+                                {offer.total_price && <div className="text-sm text-muted-foreground">
                                     Total: ${offer.total_price}
-                                  </div>
-                                )}
+                                  </div>}
                               </div>
-                              <Button
-                                size="sm"
-                                onClick={() => window.open(offer.booking_url || `https://www.tripadvisor.com/Hotel_Review-d${tripAdvisorLocationId}`, '_blank')}
-                                className="bg-green-600 hover:bg-green-700"
-                              >
+                              <Button size="sm" onClick={() => window.open(offer.booking_url || `https://www.tripadvisor.com/Hotel_Review-d${tripAdvisorLocationId}`, '_blank')} className="bg-green-600 hover:bg-green-700">
                                 Book Now
                               </Button>
                             </div>
-                          </div>
-                        ))}
+                          </div>)}
                       </div>
-                    </div>
-                  )}
-                </div>
-              )}
+                    </div>}
+                </div>}
 
               {/* Loading state for TripAdvisor data */}
-              {loadingTripAdvisorData && (
-                <div className="flex items-center justify-center py-2">
+              {loadingTripAdvisorData && <div className="flex items-center justify-center py-2">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                     Loading TripAdvisor content...
                   </div>
-                </div>
-              )}
+                </div>}
 
               {/* Loading state for booking offers */}
-              {loadingBooking && (
-                <div className="flex items-center justify-center py-2">
+              {loadingBooking && <div className="flex items-center justify-center py-2">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
                     Searching for booking deals...
                   </div>
-                </div>
-              )}
+                </div>}
 
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.open(getDirectionsUrl(selectedHotel.hotel.address), '_blank')}
-                >
+                <Button variant="outline" size="sm" onClick={() => window.open(getDirectionsUrl(selectedHotel.hotel.address), '_blank')}>
                   <Navigation className="w-4 h-4 mr-2" />
                   Get Directions
                 </Button>
                  
                 {/* Hotel Website - prioritize TripAdvisor, then hotel data, or fallback to Google search */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const websiteUrl = hotelWebsite || selectedHotel.hotel.website;
-                    if (websiteUrl) {
-                      window.open(websiteUrl, '_blank');
-                    } else {
-                      // Fallback to Google search for hotel website
-                      const searchQuery = encodeURIComponent(`${selectedHotel.hotel.name} ${selectedHotel.hotel.address} official website`);
-                      window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-                    }
-                  }}
-                >
+                <Button variant="outline" size="sm" onClick={() => {
+              const websiteUrl = hotelWebsite || selectedHotel.hotel.website;
+              if (websiteUrl) {
+                window.open(websiteUrl, '_blank');
+              } else {
+                // Fallback to Google search for hotel website
+                const searchQuery = encodeURIComponent(`${selectedHotel.hotel.name} ${selectedHotel.hotel.address} official website`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+              }
+            }}>
                   <ExternalLink className="w-4 h-4 mr-2" />
                   {hotelWebsite || selectedHotel.hotel.website ? 'Hotel Website' : 'Find Website'}
                 </Button>
                 
-                {selectedHotel.hotel.phone && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.open(`tel:${selectedHotel.hotel.phone}`, '_blank')}
-                  >
+                {selectedHotel.hotel.phone && <Button variant="outline" size="sm" onClick={() => window.open(`tel:${selectedHotel.hotel.phone}`, '_blank')}>
                     <Phone className="w-4 h-4 mr-2" />
                     Call Hotel
-                  </Button>
-                )}
+                  </Button>}
                 
-                {selectedHotel.hotel.bookingUrl && (
-                  <Button
-                    size="sm"
-                    onClick={() => window.open(selectedHotel.hotel.bookingUrl, '_blank')}
-                  >
+                {selectedHotel.hotel.bookingUrl && <Button size="sm" onClick={() => window.open(selectedHotel.hotel.bookingUrl, '_blank')}>
                     Book Now
-                  </Button>
-                )}
+                  </Button>}
 
-                {tripAdvisorLocationId && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.open(`https://www.tripadvisor.com/Hotel_Review-d${tripAdvisorLocationId}`, '_blank')}
-                  >
+                {tripAdvisorLocationId && <Button variant="outline" size="sm" onClick={() => window.open(`https://www.tripadvisor.com/Hotel_Review-d${tripAdvisorLocationId}`, '_blank')}>
                     <ExternalLink className="w-4 h-4 mr-1" />
                     TripAdvisor
-                  </Button>
-                )}
+                  </Button>}
               </div>
-            </div>
-          )}
+            </div>}
         </DialogContent>
       </Dialog>
 
@@ -1211,8 +827,7 @@ export function HotelFlightSection({
             </DialogDescription>
           </DialogHeader>
           
-          {selectedFlight && (
-            <div className="space-y-6">
+          {selectedFlight && <div className="space-y-6">
               {/* Flight Route */}
               <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
                 <div className="flex items-center justify-between">
@@ -1243,66 +858,38 @@ export function HotelFlightSection({
                   <span className="text-sm font-medium">Flight Number:</span>
                   <span className="text-sm font-mono">{selectedFlight.flightNumber}</span>
                 </div>
-                {selectedFlight.price && (
-                  <div className="flex items-center gap-2">
+                {selectedFlight.price && <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">Price:</span>
                     <Badge variant="secondary">{selectedFlight.price}</Badge>
-                  </div>
-                )}
+                  </div>}
               </div>
 
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.open(getAirportDirectionsUrl(selectedFlight.departure.airport), '_blank')}
-                >
+                <Button variant="outline" size="sm" onClick={() => window.open(getAirportDirectionsUrl(selectedFlight.departure.airport), '_blank')}>
                   <Navigation className="w-4 h-4 mr-2" />
                   Directions to Airport
                 </Button>
                 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.open(getFlightTrackingUrl(selectedFlight.airline, selectedFlight.flightNumber), '_blank')}
-                >
+                <Button variant="outline" size="sm" onClick={() => window.open(getFlightTrackingUrl(selectedFlight.airline, selectedFlight.flightNumber), '_blank')}>
                   <Radar className="w-4 h-4 mr-2" />
                   Track Flight
                 </Button>
                 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.open(`https://www.${selectedFlight.airline.toLowerCase().replace(' ', '')}.com`, '_blank')}
-                >
+                <Button variant="outline" size="sm" onClick={() => window.open(`https://www.${selectedFlight.airline.toLowerCase().replace(' ', '')}.com`, '_blank')}>
                   <ExternalLink className="w-4 h-4 mr-2" />
                   Airline Website
                 </Button>
                 
-                {selectedFlight.bookingUrl && (
-                  <Button
-                    size="sm"
-                    onClick={() => window.open(selectedFlight.bookingUrl, '_blank')}
-                  >
+                {selectedFlight.bookingUrl && <Button size="sm" onClick={() => window.open(selectedFlight.bookingUrl, '_blank')}>
                     Book Now
-                  </Button>
-                )}
+                  </Button>}
               </div>
-            </div>
-          )}
+            </div>}
         </DialogContent>
       </Dialog>
 
       {/* Photo Gallery Modal */}
-      <PhotoGallery
-        photos={getPhotoUrls()}
-        initialIndex={photoGalleryIndex}
-        isOpen={isPhotoGalleryOpen}
-        onClose={() => setIsPhotoGalleryOpen(false)}
-        restaurantName={selectedHotel?.hotel.name}
-        isMobile={isMobile}
-      />
-    </div>
-  );
+      <PhotoGallery photos={getPhotoUrls()} initialIndex={photoGalleryIndex} isOpen={isPhotoGalleryOpen} onClose={() => setIsPhotoGalleryOpen(false)} restaurantName={selectedHotel?.hotel.name} isMobile={isMobile} />
+    </div>;
 }
