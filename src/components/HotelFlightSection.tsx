@@ -213,10 +213,16 @@ export function HotelFlightSection({
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Button onClick={e => {
-              e.stopPropagation();
-              setIsHotelDialogOpen(true);
-            }} size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm" variant="outline">
+              <Button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  console.log('Hotel Add button clicked, opening dialog:', !isHotelDialogOpen);
+                  setIsHotelDialogOpen(true);
+                }} 
+                size="sm" 
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm" 
+                variant="outline"
+              >
                 <Plus className="w-4 h-4 mr-1" />
                 Add
               </Button>
@@ -310,10 +316,16 @@ export function HotelFlightSection({
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Button onClick={e => {
-              e.stopPropagation();
-              setIsFlightDialogOpen(true);
-            }} size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm" variant="outline">
+              <Button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  console.log('Flight Add button clicked, opening dialog:', !isFlightDialogOpen);
+                  setIsFlightDialogOpen(true);
+                }} 
+                size="sm" 
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm" 
+                variant="outline"
+              >
                 <Plus className="w-4 h-4 mr-1" />
                 Add
               </Button>
@@ -562,7 +574,16 @@ export function HotelFlightSection({
       </div>
 
       {/* Hotel Search Dialog */}
-      <HotelSearchDialog isOpen={isHotelDialogOpen} onClose={() => setIsHotelDialogOpen(false)} onSelect={handleHotelSelect} locations={locations} isMultiCity={isMultiCity} />
+      <HotelSearchDialog 
+        isOpen={isHotelDialogOpen} 
+        onClose={() => {
+          console.log('Hotel dialog closing');
+          setIsHotelDialogOpen(false);
+        }} 
+        onSelect={handleHotelSelect} 
+        locations={locations} 
+        isMultiCity={isMultiCity} 
+      />
 
       {/* Flight Search Dialog */}
       <FlightSearchDialog isOpen={isFlightDialogOpen} onClose={() => setIsFlightDialogOpen(false)} onSelect={handleFlightSelect} locations={locations} />
