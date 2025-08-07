@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { ItineraryEvent } from './ItineraryBuilder';
 import { useMapboxToken } from '@/hooks/useMapboxToken';
-import { MapPin, Calendar, Clock, X } from 'lucide-react';
+import { MapPin, Calendar, Clock, X, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -44,6 +45,7 @@ const getEventTypeColor = (type: string) => {
 };
 
 export function ItineraryMapView({ events, isOpen, onClose }: ItineraryMapViewProps) {
+  const navigate = useNavigate();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<mapboxgl.Marker[]>([]);
@@ -304,15 +306,30 @@ export function ItineraryMapView({ events, isOpen, onClose }: ItineraryMapViewPr
                   <p className="text-xs text-muted-foreground">
                     {selectedEvent.restaurantData.address}
                   </p>
-                )}
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full mt-3"
-                  onClick={() => setSelectedEvent(null)}
-                >
-                  Close Details
-                </Button>
+                 )}
+                 <div className="flex gap-2 mt-3">
+                   {selectedEvent.type === 'restaurant' && selectedEvent.restaurantData?.placeId && (
+                     <Button 
+                       variant="default" 
+                       size="sm" 
+                       className="flex-1"
+                       onClick={() => {
+                         navigate(`/restaurant/${selectedEvent.restaurantData?.placeId}`);
+                       }}
+                     >
+                       <Eye className="w-3 h-3 mr-1" />
+                       View Details
+                     </Button>
+                   )}
+                   <Button 
+                     variant="outline" 
+                     size="sm" 
+                     className={selectedEvent.type === 'restaurant' && selectedEvent.restaurantData?.placeId ? "flex-1" : "w-full"}
+                     onClick={() => setSelectedEvent(null)}
+                   >
+                     Close
+                   </Button>
+                 </div>
               </CardContent>
             </Card>
           </div>
