@@ -216,8 +216,10 @@ export function HotelFlightSection({
               <Button 
                 onClick={(e) => {
                   e.stopPropagation();
-                  console.log('Hotel Add button clicked, opening dialog:', !isHotelDialogOpen);
-                  setIsHotelDialogOpen(true);
+                  console.log('Hotel Add button clicked, current state:', isHotelDialogOpen);
+                  // Force reset and then set to true
+                  setIsHotelDialogOpen(false);
+                  setTimeout(() => setIsHotelDialogOpen(true), 10);
                 }} 
                 size="sm" 
                 className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm" 
