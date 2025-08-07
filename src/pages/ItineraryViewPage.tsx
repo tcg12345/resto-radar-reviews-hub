@@ -29,10 +29,22 @@ export function ItineraryViewPage() {
     
     const addressParts = address.split(',').map(part => part.trim());
     
-    // Common patterns for major cities
+    // Common patterns for major cities - add more specific patterns
     const cityPatterns = [
       /^London$/i,
       /^Paris$/i,
+      /^Maidenhead$/i,
+      /^Bray$/i,
+      /^Windsor$/i,
+      /^Slough$/i,
+      /^Reading$/i,
+      /^Oxford$/i,
+      /^Cambridge$/i,
+      /^Brighton$/i,
+      /^Bath$/i,
+      /^York$/i,
+      /^Canterbury$/i,
+      /^Stratford-upon-Avon$/i,
       /^New York$/i,
       /^NYC$/i,
       /^Tokyo$/i,
@@ -115,15 +127,24 @@ export function ItineraryViewPage() {
     const countries = ['UK', 'United Kingdom', 'France', 'Germany', 'Italy', 'Spain', 'Netherlands', 'Belgium', 'Switzerland', 'Austria', 'Czech Republic', 'Hungary', 'Poland', 'Sweden', 'Denmark', 'Norway', 'Finland', 'Ireland', 'Portugal', 'Greece', 'Turkey', 'Russia', 'Australia', 'Canada', 'USA', 'United States', 'UAE', 'Singapore', 'Japan', 'South Korea', 'Thailand', 'India', 'Brazil', 'Argentina', 'Mexico', 'Egypt', 'South Africa'];
     
     if (countries.some(country => lastPart.toLowerCase().includes(country.toLowerCase()))) {
-      // If last part is a country, take the second-to-last part as the city
-      if (addressParts.length >= 2) {
-        const potentialCity = addressParts[addressParts.length - 2];
-        // Filter out postcodes and specific areas, return cleaner city names
-        if (!/^\d+$/.test(potentialCity) && !potentialCity.includes('London Borough')) {
-          // Handle UK specific areas
-          if (potentialCity.includes('London')) return 'London';
-          if (potentialCity.includes('Paris')) return 'Paris';
-          return potentialCity;
+      // If last part is a country, look for the city name
+      for (let i = addressParts.length - 2; i >= 0; i--) {
+        const part = addressParts[i];
+        // Skip postcodes (UK format like "SL6 2AQ" or just numbers)
+        if (/^[A-Z]{1,2}\d+\s*\d[A-Z]{2}$/i.test(part) || /^\d+$/.test(part)) {
+          continue;
+        }
+        // Skip specific area indicators
+        if (part.includes('Borough') || part.includes('District') || part.includes('Council')) {
+          continue;
+        }
+        // Return the first valid city name we find
+        if (part && part.length > 1) {
+          // Handle special cases
+          if (part.toLowerCase().includes('london')) return 'London';
+          if (part.toLowerCase().includes('paris')) return 'Paris';
+          if (part.toLowerCase().includes('maidenhead')) return 'Maidenhead';
+          return part;
         }
       }
     }
