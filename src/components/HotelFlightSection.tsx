@@ -201,7 +201,7 @@ export function HotelFlightSection({
   if (isMobile) {
     return <div className="space-y-1">
         {/* Hotels Section - Mobile */}
-        <div className="bg-gradient-to-r from-blue-400/60 to-blue-500/60 dark:from-blue-500/40 dark:to-blue-600/40 -mx-6 px-6 rounded-xl my-[12px]">
+        <div className="bg-gradient-to-r from-blue-400/60 to-blue-500/60 dark:from-blue-500/40 dark:to-blue-600/40 -mx-6 px-6 rounded-xl my-[19px]">
           <div className="flex items-center justify-between py-4 cursor-pointer" onClick={() => setIsHotelsExpanded(!isHotelsExpanded)}>
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-white/20 backdrop-blur-sm">
