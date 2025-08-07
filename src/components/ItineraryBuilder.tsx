@@ -659,8 +659,13 @@ export function ItineraryBuilder({
         updatedAt: new Date().toISOString(),
         wasCreatedWithLengthOfStay
       };
-      console.log('Saving itinerary with wasCreatedWithLengthOfStay:', {
+      
+      console.log('ItineraryBuilder - About to save itinerary:', {
         title,
+        startDate: currentItinerary.startDate,
+        endDate: currentItinerary.endDate,
+        startDateType: typeof currentItinerary.startDate,
+        endDateType: typeof currentItinerary.endDate,
         wasCreatedWithLengthOfStay,
         id: itineraryToSave.id
       });
