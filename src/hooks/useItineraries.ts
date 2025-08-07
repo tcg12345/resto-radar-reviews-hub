@@ -52,8 +52,18 @@ export function useItineraries() {
     console.log('Saving itinerary with dates:', {
       originalStartDate: itinerary.startDate,
       originalEndDate: itinerary.endDate,
-      startDateString: itinerary.startDate.toISOString().split('T')[0],
-      endDateString: itinerary.endDate.toISOString().split('T')[0]
+      startDateString: format(itinerary.startDate, 'yyyy-MM-dd'),
+      endDateString: format(itinerary.endDate, 'yyyy-MM-dd'),
+      startDateComponents: {
+        year: itinerary.startDate.getFullYear(),
+        month: itinerary.startDate.getMonth() + 1,
+        date: itinerary.startDate.getDate()
+      },
+      endDateComponents: {
+        year: itinerary.endDate.getFullYear(),
+        month: itinerary.endDate.getMonth() + 1,
+        date: itinerary.endDate.getDate()
+      }
     });
 
     try {
