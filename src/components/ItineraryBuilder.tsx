@@ -1165,7 +1165,7 @@ export function ItineraryBuilder({
                 
                 {/* Header Section */}
                 <CollapsibleTrigger asChild>
-                  <div className="relative z-10 p-8 border-b border-border/20 cursor-pointer hover:bg-background/5 transition-colors group">
+                  <div className="relative z-10 px-8 pt-8 pb-2 border-b border-border/20 cursor-pointer hover:bg-background/5 transition-colors group">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-4">
                       <div className="relative">
