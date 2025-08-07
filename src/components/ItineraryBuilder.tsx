@@ -1331,7 +1331,7 @@ export function ItineraryBuilder({
           {currentItinerary && <Collapsible open={isExtensionOpen} onOpenChange={setIsExtensionOpen}>
               <Card className="lg:rounded-lg lg:border lg:shadow-sm lg:mb-6 rounded-none border-0 border-t border-b shadow-none mb-4 relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen lg:left-auto lg:right-auto lg:ml-0 lg:mr-0 lg:w-auto">
                 <CollapsibleTrigger asChild>
-                  <CardHeader className="cursor-pointer hover:bg-accent/50 transition-colors px-4 py-3 lg:px-6 lg:py-4">
+                  <CardHeader className="cursor-pointer hover:bg-accent/50 active:scale-[0.98] transition-all duration-200 p-4 lg:px-6 lg:py-4 rounded-xl lg:rounded-lg border border-border/20 lg:border-0 bg-card/50 lg:bg-transparent shadow-sm lg:shadow-none">
                     <CardTitle className="flex items-center justify-between text-base lg:text-lg">
                       <div className="flex items-center gap-2">
                         <Plus className="w-4 h-4 lg:w-5 lg:h-5 text-primary" />
