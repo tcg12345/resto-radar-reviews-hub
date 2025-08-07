@@ -1463,110 +1463,132 @@ export function ItineraryBuilder({ onLoadItinerary }: { onLoadItinerary?: (itine
                   </CardHeader>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <CardContent className="space-y-4 lg:space-y-6 pt-0 px-4 pb-4 lg:px-6 lg:pb-6">
-                    {/* Mode conversion toggle for length-of-stay trips */}
-                    {(useLengthOfStay || wasCreatedWithLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && (
-                      <div className="flex items-center justify-between p-3 bg-accent/30 rounded-lg">
-                        <div className="flex-1">
-                          <Label className="text-sm font-medium text-foreground">Trip planning mode</Label>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            Switch between nights-based and date-based planning
-                          </p>
+                  <CardContent className="p-0 bg-gradient-to-br from-background to-muted/20">
+                    
+                    {/* Modern Trip Mode Selector */}
+                    {((useLengthOfStay || wasCreatedWithLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) || 
+                      (!useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) && dateRange.start && dateRange.end)) && (
+                      <div className="p-6 border-b border-border/20">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="p-2 bg-primary/10 rounded-xl">
+                            <CalendarIcon className="w-5 h-5 text-primary" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-lg text-foreground">Planning Mode</h3>
+                            <p className="text-sm text-muted-foreground">Choose how you want to plan your trip</p>
+                          </div>
                         </div>
-                        <Button
-                          variant="default"
-                          size="sm"
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {/* Dates Mode Card */}
+                          <div className={cn(
+                            "relative p-4 rounded-2xl border-2 transition-all duration-200 cursor-pointer group",
+                            (!useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) 
+                              ? "border-primary bg-primary/5 shadow-lg shadow-primary/10" 
+                              : "border-border/40 bg-card hover:border-primary/30 hover:bg-primary/5"
+                          )}
                           onClick={() => {
-                            // Convert to date-based mode
-                            if (currentItinerary) {
-                              // Clear length-of-stay settings
-                              setUseLengthOfStay(false);
-                              setWasCreatedWithLengthOfStay(false);
-                              setLocationLengthOfStay({});
-                              setLocationNights({});
-                              
-                              // If dates don't exist, create them from current settings
-                              if (!dateRange.start || !dateRange.end) {
-                                const startDate = startOfDay(new Date());
-                                let endDate = startDate;
+                            if (useLengthOfStay || wasCreatedWithLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) {
+                              // Convert to date-based mode
+                              if (currentItinerary) {
+                                setUseLengthOfStay(false);
+                                setWasCreatedWithLengthOfStay(false);
+                                setLocationLengthOfStay({});
+                                setLocationNights({});
                                 
-                                if (currentItinerary.isMultiCity) {
-                                  // Calculate total trip duration from all cities
-                                  const totalNights = Object.values(locationNights).reduce((sum, nights) => sum + nights, 0) || 7;
-                                  endDate = addDays(startDate, totalNights);
-                                } else {
-                                  // Use numberOfNights for single city
-                                  endDate = addDays(startDate, numberOfNights);
+                                if (!dateRange.start || !dateRange.end) {
+                                  const startDate = startOfDay(new Date());
+                                  let endDate = startDate;
+                                  
+                                  if (currentItinerary.isMultiCity) {
+                                    const totalNights = Object.values(locationNights).reduce((sum, nights) => sum + nights, 0) || 7;
+                                    endDate = addDays(startDate, totalNights);
+                                  } else {
+                                    endDate = addDays(startDate, numberOfNights);
+                                  }
+                                  
+                                  setDateRange({ start: startDate, end: endDate });
+                                  setCurrentItinerary(prev => prev ? {
+                                    ...prev,
+                                    startDate,
+                                    endDate
+                                  } : null);
                                 }
                                 
-                                setDateRange({ start: startDate, end: endDate });
-                                setCurrentItinerary(prev => prev ? {
-                                  ...prev,
-                                  startDate,
-                                  endDate
-                                } : null);
+                                setHasPendingChanges(true);
+                                toast.success('Switched to date-based planning');
                               }
-                              
-                              setHasPendingChanges(true);
-                              toast.success('Converted to date-based planning');
                             }
                           }}
-                          className="w-full sm:w-auto text-xs"
-                        >
-                          Switch to Dates
-                        </Button>
-                      </div>
-                    )}
-                    
-                    {/* Mode conversion toggle for date-based trips */}
-                    {!useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) && dateRange.start && dateRange.end && (
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-muted/40 rounded-lg border border-border/30">
-                        <div className="flex-1 min-w-0">
-                          <Label className="text-sm font-medium text-foreground">Planning Mode</Label>
-                          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                            Switch to nights-based planning
-                          </p>
-                        </div>
-                        <Button
-                          variant="default"
-                          size="sm"
+                          >
+                            <div className="flex items-center gap-3 mb-2">
+                              <div className={cn(
+                                "w-3 h-3 rounded-full transition-colors",
+                                (!useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) 
+                                  ? "bg-primary" 
+                                  : "bg-muted-foreground/30 group-hover:bg-primary/50"
+                              )}></div>
+                              <h4 className="font-semibold text-foreground">Specific Dates</h4>
+                            </div>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              Plan with exact start and end dates
+                            </p>
+                          </div>
+                          
+                          {/* Nights Mode Card */}
+                          <div className={cn(
+                            "relative p-4 rounded-2xl border-2 transition-all duration-200 cursor-pointer group",
+                            (useLengthOfStay || wasCreatedWithLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) 
+                              ? "border-primary bg-primary/5 shadow-lg shadow-primary/10" 
+                              : "border-border/40 bg-card hover:border-primary/30 hover:bg-primary/5"
+                          )}
                           onClick={() => {
-                            // Convert to length-of-stay mode
-                            if (currentItinerary && dateRange.start && dateRange.end) {
-                              const totalNights = differenceInDays(dateRange.end, dateRange.start);
-                              
-                              if (currentItinerary.isMultiCity) {
-                                // Set up length-of-stay for multi-city
-                                const nightsPerCity = Math.max(1, Math.floor(totalNights / currentItinerary.locations.length));
-                                const remainingNights = totalNights - (nightsPerCity * (currentItinerary.locations.length - 1));
+                            if (!useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) {
+                              // Convert to length-of-stay mode
+                              if (currentItinerary && dateRange.start && dateRange.end) {
+                                const totalNights = differenceInDays(dateRange.end, dateRange.start);
                                 
-                                const newLocationLengthOfStay: Record<string, boolean> = {};
-                                const newLocationNights: Record<string, number> = {};
+                                if (currentItinerary.isMultiCity) {
+                                  const nightsPerCity = Math.max(1, Math.floor(totalNights / currentItinerary.locations.length));
+                                  const remainingNights = totalNights - (nightsPerCity * (currentItinerary.locations.length - 1));
+                                  
+                                  const newLocationLengthOfStay: Record<string, boolean> = {};
+                                  const newLocationNights: Record<string, number> = {};
+                                  
+                                  currentItinerary.locations.forEach((location, index) => {
+                                    newLocationLengthOfStay[location.id] = true;
+                                    newLocationNights[location.id] = index === currentItinerary.locations.length - 1 ? remainingNights : nightsPerCity;
+                                  });
+                                  
+                                  setLocationLengthOfStay(newLocationLengthOfStay);
+                                  setLocationNights(newLocationNights);
+                                  setWasCreatedWithLengthOfStay(true);
+                                } else {
+                                  setUseLengthOfStay(true);
+                                  setNumberOfNights(totalNights);
+                                  setWasCreatedWithLengthOfStay(true);
+                                }
                                 
-                                currentItinerary.locations.forEach((location, index) => {
-                                  newLocationLengthOfStay[location.id] = true;
-                                  // Give remaining nights to the last city
-                                  newLocationNights[location.id] = index === currentItinerary.locations.length - 1 ? remainingNights : nightsPerCity;
-                                });
-                                
-                                setLocationLengthOfStay(newLocationLengthOfStay);
-                                setLocationNights(newLocationNights);
-                                setWasCreatedWithLengthOfStay(true);
-                              } else {
-                                // Set up length-of-stay for single city
-                                setUseLengthOfStay(true);
-                                setNumberOfNights(totalNights);
-                                setWasCreatedWithLengthOfStay(true);
+                                setHasPendingChanges(true);
+                                toast.success('Switched to nights-based planning');
                               }
-                              
-                              setHasPendingChanges(true);
-                              toast.success('Converted to nights-based planning');
                             }
                           }}
-                          className="w-full sm:w-auto text-xs"
-                        >
-                          Switch to Nights
-                        </Button>
+                          >
+                            <div className="flex items-center gap-3 mb-2">
+                              <div className={cn(
+                                "w-3 h-3 rounded-full transition-colors",
+                                (useLengthOfStay || wasCreatedWithLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) 
+                                  ? "bg-primary" 
+                                  : "bg-muted-foreground/30 group-hover:bg-primary/50"
+                              )}></div>
+                              <h4 className="font-semibold text-foreground">Number of Nights</h4>
+                            </div>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              Plan based on how many nights you'll stay
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     )}
                     {/* For date-based single city trips */}
