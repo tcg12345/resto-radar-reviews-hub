@@ -219,11 +219,15 @@ export function ItineraryBuilder({
         restaurantData: event.restaurantData ? {
           name: event.restaurantData.name,
           address: event.restaurantData.address,
+          placeId: event.restaurantData.placeId, // Keep placeId for map functionality
           phone: event.restaurantData.phone,
-          website: event.restaurantData.website
+          website: event.restaurantData.website,
+          latitude: event.restaurantData.latitude, // Keep coordinates for map
+          longitude: event.restaurantData.longitude
         } : undefined,
         // Keep only essential attraction data
         attractionData: event.attractionData ? {
+          id: event.attractionData.id,
           name: event.attractionData.name,
           address: event.attractionData.address,
           phone: event.attractionData.phone,
