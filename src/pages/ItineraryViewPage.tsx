@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format, differenceInDays } from 'date-fns';
-import { ArrowLeft, Calendar, MapPin, Clock, Users, Globe, Star, Phone, ExternalLink, Utensils, Camera, ChevronDown, Eye } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Clock, Users, Globe, Star, Phone, ExternalLink, Utensils, Camera, ChevronDown, Eye, Hotel, Plane, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -167,6 +167,9 @@ export function ItineraryViewPage() {
       if (data) {
         // Convert Supabase data to Itinerary format
         const events = Array.isArray(data.events) ? data.events as any[] : [];
+        const hotels = Array.isArray(data.hotels) ? data.hotels as any[] : [];
+        const flights = Array.isArray(data.flights) ? data.flights as any[] : [];
+        const locations = Array.isArray(data.locations) ? data.locations as any[] : [];
         
         const convertedItinerary: Itinerary = {
           id: data.id,
@@ -174,36 +177,38 @@ export function ItineraryViewPage() {
           startDate: new Date(data.start_date),
           endDate: new Date(data.end_date),
           events: events,
-          locations: [], // Will be derived from events
-          isMultiCity: false,
-          wasCreatedWithLengthOfStay: false,
-          hotels: [],
-          flights: []
+          locations: locations,
+          isMultiCity: data.is_multi_city || false,
+          wasCreatedWithLengthOfStay: data.was_created_with_length_of_stay || false,
+          hotels: hotels,
+          flights: flights
         };
 
-        // Extract unique main cities from events
-        const locationNames = new Set<string>();
-        events.forEach((event: any) => {
-          let city = '';
-          
-          if (event.restaurantData?.address) {
-            city = extractMainCity(event.restaurantData.address);
-          } else if (event.attractionData?.address) {
-            city = extractMainCity(event.attractionData.address);
-          }
-          
-          if (city) {
-            locationNames.add(city);
-          }
-        });
+        // If no locations in database, extract from events as fallback
+        if (convertedItinerary.locations.length === 0) {
+          const locationNames = new Set<string>();
+          events.forEach((event: any) => {
+            let city = '';
+            
+            if (event.restaurantData?.address) {
+              city = extractMainCity(event.restaurantData.address);
+            } else if (event.attractionData?.address) {
+              city = extractMainCity(event.attractionData.address);
+            }
+            
+            if (city) {
+              locationNames.add(city);
+            }
+          });
 
-        convertedItinerary.locations = Array.from(locationNames).map((name, index) => ({
-          id: `location-${index}`,
-          name,
-          country: '', // Default empty string for now
-          startDate: convertedItinerary.startDate,
-          endDate: convertedItinerary.endDate
-        }));
+          convertedItinerary.locations = Array.from(locationNames).map((name, index) => ({
+            id: `location-${index}`,
+            name,
+            country: '', // Default empty string for now
+            startDate: convertedItinerary.startDate,
+            endDate: convertedItinerary.endDate
+          }));
+        }
 
         convertedItinerary.isMultiCity = convertedItinerary.locations.length > 1;
 
@@ -377,6 +382,114 @@ export function ItineraryViewPage() {
               </div>
             </div>
           </CardContent>
+        
+        {/* Hotels & Flights Section */}
+        {(itinerary.hotels.length > 0 || itinerary.flights.length > 0) && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+            {/* Hotels */}
+            {itinerary.hotels.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 mb-3">
+                  <Hotel className="w-4 h-4 text-blue-600" />
+                  <span className="text-sm font-medium text-foreground">Hotels</span>
+                  <Badge variant="secondary" className="text-xs">{itinerary.hotels.length}</Badge>
+                </div>
+                <div className="space-y-2">
+                  {itinerary.hotels.map((hotel: any) => (
+                    <div key={hotel.id} className="bg-blue-50/50 dark:bg-blue-950/20 rounded-lg p-3 border border-blue-200/30">
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Hotel className="w-4 h-4 text-blue-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-sm text-foreground truncate">{hotel.hotel?.name || 'Hotel'}</h4>
+                          <p className="text-xs text-muted-foreground truncate">{hotel.hotel?.address}</p>
+                          {(hotel.checkIn || hotel.checkOut) && (
+                            <p className="text-xs text-blue-600 mt-1">
+                              {hotel.checkIn && hotel.checkOut 
+                                ? `${new Date(hotel.checkIn).toLocaleDateString()} - ${new Date(hotel.checkOut).toLocaleDateString()}`
+                                : hotel.checkIn 
+                                ? `Check-in: ${new Date(hotel.checkIn).toLocaleDateString()}`
+                                : `Check-out: ${new Date(hotel.checkOut).toLocaleDateString()}`
+                              }
+                            </p>
+                          )}
+                          {hotel.location && (
+                            <Badge variant="outline" className="text-xs mt-1 h-5">
+                              📍 {hotel.location}
+                            </Badge>
+                          )}
+                        </div>
+                        {hotel.hotel?.website && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0"
+                            onClick={() => window.open(hotel.hotel.website, '_blank')}
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Flights */}
+            {itinerary.flights.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 mb-3">
+                  <Plane className="w-4 h-4 text-purple-600" />
+                  <span className="text-sm font-medium text-foreground">Flights</span>
+                  <Badge variant="secondary" className="text-xs">{itinerary.flights.length}</Badge>
+                </div>
+                <div className="space-y-2">
+                  {itinerary.flights.map((flight: any) => (
+                    <div key={flight.id} className="bg-purple-50/50 dark:bg-purple-950/20 rounded-lg p-3 border border-purple-200/30">
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Plane className="w-4 h-4 text-purple-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-sm text-foreground">
+                            {flight.airline} {flight.flightNumber}
+                          </h4>
+                          <div className="text-xs text-muted-foreground space-y-1">
+                            <div className="flex items-center gap-1">
+                              <span>{flight.departure?.airport}</span>
+                              <span>→</span>
+                              <span>{flight.arrival?.airport}</span>
+                            </div>
+                            <div>
+                              {flight.departure?.date} at {flight.departure?.time}
+                            </div>
+                          </div>
+                          {flight.price && (
+                            <Badge variant="outline" className="text-xs mt-1 h-5 text-purple-600">
+                              {flight.price}
+                            </Badge>
+                          )}
+                        </div>
+                        {flight.bookingUrl && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0"
+                            onClick={() => window.open(flight.bookingUrl, '_blank')}
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
         </Card>
 
         {/* Daily Schedule */}
