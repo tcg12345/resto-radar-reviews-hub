@@ -1155,7 +1155,6 @@ export function ItineraryBuilder({
             {/* Desktop: Completely New Modern Design */}
             <div className="hidden lg:block">
               <Collapsible open={isDesktopSectionOpen} onOpenChange={setIsDesktopSectionOpen}>
-                <CollapsibleContent>
                   <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-background via-muted/30 to-secondary/20 backdrop-blur-xl border border-border/30 shadow-2xl">
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-5">
@@ -1183,7 +1182,7 @@ export function ItineraryBuilder({
                     {currentItinerary?.isMultiCity && <Badge variant="secondary" className="px-3 py-1 bg-gradient-to-r from-secondary/20 to-accent/20 border-secondary/30 text-secondary-foreground font-medium">
                         Multi-city Adventure
                       </Badge>}
-                     <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform group-hover:text-foreground ${isDesktopSectionOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform group-hover:text-foreground ${isDesktopSectionOpen ? 'rotate-180' : ''}`} />
                    </div>
                    </div>
                  </CollapsibleTrigger>
@@ -1323,8 +1322,7 @@ export function ItineraryBuilder({
                   
                 </div>
                 </CollapsibleContent>
-              </div>
-                  </CollapsibleContent>
+                </div>
                 </Collapsible>
               </div>
             </div>
