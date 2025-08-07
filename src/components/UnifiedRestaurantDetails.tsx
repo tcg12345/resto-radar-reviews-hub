@@ -381,20 +381,35 @@ export function UnifiedRestaurantDetails({
             className={`${isMobile ? 'aspect-video' : 'aspect-video md:h-64'} bg-muted relative overflow-hidden cursor-pointer group`} 
             onClick={() => navigate(`/restaurant/${restaurantData.place_id || restaurantData.id}/community-photos?name=${encodeURIComponent(restaurantData.name)}`)}
           >
-            <img 
-              src={
-                photos.length > 0 
-                  ? photos[0] 
-                  : communityStats?.recentPhotos?.[0]?.photos?.[0]
-              } 
-              alt={restaurantData.name} 
-              className="w-full h-full object-cover transition-transform group-hover:scale-105" 
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZjNmNGY2Ii8+CjxwYXRoIGQ9Im0xNSA5LTYgNi02LTYiIHN0cm9rZT0iIzk3YTNiMCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+';
-                target.alt = 'Photo unavailable';
-              }}
-            />
+            {/* Try to show community photos first, then restaurant photos, then fallback */}
+            {communityStats?.recentPhotos?.[0]?.photos?.[0] ? (
+              <img 
+                src={communityStats.recentPhotos[0].photos[0]} 
+                alt={restaurantData.name} 
+                className="w-full h-full object-cover transition-transform group-hover:scale-105" 
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  // Try the next photo source if community photo fails
+                  if (photos.length > 0) {
+                    target.src = photos[0];
+                  } else {
+                    target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZjNmNGY2Ii8+CjxwYXRoIGQ9Im0xNSA5LTYgNi02LTYiIHN0cm9rZT0iIzk3YTNiMCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+';
+                    target.alt = 'Photo unavailable';
+                  }
+                }}
+              />
+            ) : photos.length > 0 ? (
+              <img 
+                src={photos[0]} 
+                alt={restaurantData.name} 
+                className="w-full h-full object-cover transition-transform group-hover:scale-105" 
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZjNmNGY2Ii8+CjxwYXRoIGQ9Im0xNSA5LTYgNi02LTYiIHN0cm9rZT0iIzk3YTNiMCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+';
+                  target.alt = 'Photo unavailable';
+                }}
+              />
+            ) : null}
             <div className="absolute top-3 right-3 bg-black/70 text-white px-2 py-1 rounded-md text-sm">
               View more photos
             </div>
