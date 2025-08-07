@@ -47,6 +47,8 @@ export interface ItineraryEvent {
     placeId?: string;
     phone?: string;
     website?: string;
+    latitude?: number;
+    longitude?: number;
   };
   attractionData?: {
     id: string;

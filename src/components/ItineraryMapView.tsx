@@ -53,16 +53,20 @@ export function ItineraryMapView({ events, isOpen, onClose }: ItineraryMapViewPr
   // Filter events that have location data
   const eventsWithLocation = events.filter(event => {
     const hasAttractionCoords = event.attractionData?.latitude && event.attractionData?.longitude;
+    const hasRestaurantCoords = event.restaurantData?.latitude && event.restaurantData?.longitude;
     const hasRestaurantPlaceId = event.restaurantData?.placeId;
+    
     console.log('Event filtering:', {
       title: event.title,
       type: event.type,
       hasAttractionCoords,
+      hasRestaurantCoords,
       hasRestaurantPlaceId,
       attractionData: event.attractionData,
       restaurantData: event.restaurantData
     });
-    return hasAttractionCoords || hasRestaurantPlaceId;
+    
+    return hasAttractionCoords || hasRestaurantCoords || hasRestaurantPlaceId;
   });
 
   useEffect(() => {
@@ -95,7 +99,7 @@ export function ItineraryMapView({ events, isOpen, onClose }: ItineraryMapViewPr
     const bounds = new mapboxgl.LngLatBounds();
     let validBounds = false;
 
-    eventsWithLocation.forEach(async (event) => {
+    eventsWithLocation.forEach((event) => {
       let lat: number | undefined;
       let lng: number | undefined;
 
@@ -104,11 +108,14 @@ export function ItineraryMapView({ events, isOpen, onClose }: ItineraryMapViewPr
         lat = event.attractionData.latitude;
         lng = event.attractionData.longitude;
       } 
-      // If we have a restaurant with place ID but no coordinates, we need to geocode it
+      // Check if we have coordinates from restaurant data
+      else if (event.restaurantData?.latitude && event.restaurantData?.longitude) {
+        lat = event.restaurantData.latitude;
+        lng = event.restaurantData.longitude;
+      }
+      // If we have a restaurant with place ID but no coordinates, skip for now
       else if (event.restaurantData?.placeId) {
         console.log('Found restaurant with place ID but no coordinates:', event.restaurantData.placeId);
-        // For now, let's skip restaurants with only place IDs
-        // We'll need to implement place ID to coordinates conversion
         return;
       }
 

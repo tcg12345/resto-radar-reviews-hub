@@ -32,6 +32,8 @@ interface RestaurantData {
   placeId?: string;
   phone?: string;
   website?: string;
+  latitude?: number;
+  longitude?: number;
 }
 interface AttractionData {
   id: string;
@@ -135,12 +137,15 @@ export function EventDialog({
     onClose();
   };
   const handleRestaurantSelect = (restaurant: any) => {
+    console.log('Selected restaurant data:', restaurant); // Debug log
     setRestaurantData({
       name: restaurant.name,
       address: restaurant.formatted_address || restaurant.vicinity,
       placeId: restaurant.place_id,
       phone: restaurant.formatted_phone_number,
-      website: restaurant.website
+      website: restaurant.website,
+      latitude: restaurant.geometry?.location?.lat,
+      longitude: restaurant.geometry?.location?.lng
     });
     setTitle(restaurant.name);
     setType('restaurant');
