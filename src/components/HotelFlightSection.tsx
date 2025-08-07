@@ -68,6 +68,7 @@ export function HotelFlightSection({
 }: HotelFlightSectionProps) {
   const isMobile = useIsMobile();
   const [isHotelDialogOpen, setIsHotelDialogOpen] = useState(false);
+  const [dialogKey, setDialogKey] = useState(0);
   const [isFlightDialogOpen, setIsFlightDialogOpen] = useState(false);
   const [selectedHotel, setSelectedHotel] = useState<HotelBooking | null>(null);
   const [selectedFlight, setSelectedFlight] = useState<FlightBooking | null>(null);
@@ -216,10 +217,9 @@ export function HotelFlightSection({
               <Button 
                 onClick={(e) => {
                   e.stopPropagation();
-                  console.log('Hotel Add button clicked, current state:', isHotelDialogOpen);
-                  // Force reset and then set to true
-                  setIsHotelDialogOpen(false);
-                  setTimeout(() => setIsHotelDialogOpen(true), 10);
+                  console.log('Hotel Add button clicked, opening fresh dialog');
+                  setDialogKey(prev => prev + 1);
+                  setIsHotelDialogOpen(true);
                 }} 
                 size="sm" 
                 className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm" 
@@ -577,9 +577,10 @@ export function HotelFlightSection({
 
       {/* Hotel Search Dialog */}
       <HotelSearchDialog 
+        key={dialogKey}
         isOpen={isHotelDialogOpen} 
         onClose={() => {
-          console.log('Hotel dialog closing');
+          console.log('Hotel dialog onClose called');
           setIsHotelDialogOpen(false);
         }} 
         onSelect={handleHotelSelect} 
