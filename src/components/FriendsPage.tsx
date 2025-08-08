@@ -170,22 +170,31 @@ export function FriendsPage({
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full flex sm:grid sm:grid-cols-4 gap-2 p-1 mb-6 bg-muted rounded-md overflow-x-auto scrollbar-hide">
-          <TabsTrigger value="friends" className="inline-flex items-center justify-center h-10 px-3 text-xs sm:text-sm rounded-md min-w-[140px] sm:min-w-0 whitespace-nowrap data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-            <Users className="h-4 w-4 mr-1.5 shrink-0" />
-            <span>Friends ({friends.length})</span>
+        <TabsList className="w-full grid grid-cols-4 gap-1 p-1 mb-6 bg-muted rounded-md">
+          <TabsTrigger value="friends" className="flex flex-col items-center justify-center h-10 text-[11px] sm:text-sm rounded-md px-1 leading-none data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+            <Users className="h-3 w-3 mb-0.5 shrink-0" />
+            <span>
+              <span className="sm:hidden inline">Friends</span>
+              <span className="hidden sm:inline">Friends ({friends.length})</span>
+            </span>
           </TabsTrigger>
-          <TabsTrigger value="activity" className="inline-flex items-center justify-center h-10 px-3 text-xs sm:text-sm rounded-md min-w-[140px] sm:min-w-0 whitespace-nowrap data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-            <Activity className="h-4 w-4 mr-1.5 shrink-0" />
+          <TabsTrigger value="activity" className="flex flex-col items-center justify-center h-10 text-[11px] sm:text-sm rounded-md px-1 leading-none data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+            <Activity className="h-3 w-3 mb-0.5 shrink-0" />
             <span>Activity</span>
           </TabsTrigger>
-          <TabsTrigger value="search" className="inline-flex items-center justify-center h-10 px-3 text-xs sm:text-sm rounded-md min-w-[140px] sm:min-w-0 whitespace-nowrap data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-            <Plus className="h-4 w-4 mr-1.5 shrink-0" />
-            <span>Find Friends</span>
+          <TabsTrigger value="search" className="flex flex-col items-center justify-center h-10 text-[11px] sm:text-sm rounded-md px-1 leading-none data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+            <Plus className="h-3 w-3 mb-0.5 shrink-0" />
+            <span>
+              <span className="sm:hidden inline">Find</span>
+              <span className="hidden sm:inline">Find Friends</span>
+            </span>
           </TabsTrigger>
-          <TabsTrigger value="requests" className="inline-flex items-center justify-center h-10 px-3 text-xs sm:text-sm rounded-md min-w-[140px] sm:min-w-0 whitespace-nowrap data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-            <Filter className="h-4 w-4 mr-1.5 shrink-0" />
-            <span>Requests ({pendingRequests.length + sentRequests.length})</span>
+          <TabsTrigger value="requests" className="flex flex-col items-center justify-center h-10 text-[11px] sm:text-sm rounded-md px-1 leading-none data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+            <Filter className="h-3 w-3 mb-0.5 shrink-0" />
+            <span>
+              <span className="sm:hidden inline">Requests</span>
+              <span className="hidden sm:inline">Requests ({pendingRequests.length + sentRequests.length})</span>
+            </span>
           </TabsTrigger>
         </TabsList>
 
