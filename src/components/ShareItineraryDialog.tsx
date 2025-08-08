@@ -352,7 +352,7 @@ export function ShareItineraryDialog({ isOpen, onClose, itinerary }: ShareItiner
                 className="flex items-center gap-2"
               >
                 <Copy className="w-4 h-4" />
-                Copy to Clipboard
+                Copy Link
               </Button>
               <Button
                 variant="outline"
