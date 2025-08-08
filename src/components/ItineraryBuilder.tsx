@@ -1073,30 +1073,30 @@ export function ItineraryBuilder({
             {/* Mobile: Collapsible Dropdown */}
             <div className="lg:hidden">
               <Collapsible>
-                <CollapsibleTrigger className="w-full px-4 py-3 flex items-center justify-between bg-card hover:bg-muted/50 transition-colors">
+                <CollapsibleTrigger className="w-full px-3 py-2 flex items-center justify-between bg-card hover:bg-muted/50 transition-colors">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-primary" />
                     <span className="font-medium text-sm truncate">{currentItinerary?.title}</span>
-                    {currentItinerary?.isMultiCity && <Badge variant="secondary" className="text-xs">Multi-city</Badge>}
+                    {currentItinerary?.isMultiCity && <Badge variant="secondary" className="text-xs px-1.5 py-0.5">Multi-city</Badge>}
                   </div>
                   <ChevronDown className="w-4 h-4 text-muted-foreground" />
                 </CollapsibleTrigger>
                 <CollapsibleContent className="bg-gradient-to-br from-primary/5 to-secondary/5 backdrop-blur-sm">
-                  <div className="p-6 space-y-6">
+                  <div className="p-4 space-y-4">
                     
                     {/* Travel Info Cards */}
-                    <div className="grid gap-4">
+                    <div className="grid gap-3">
                       
                       {/* Date Card */}
-                      <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-primary/80 p-5 text-primary-foreground shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
+                      <div className="group relative overflow-hidden rounded-lg bg-gradient-to-r from-primary to-primary/80 p-3 text-primary-foreground shadow-md transition-all duration-300 hover:shadow-lg">
                         <div className="absolute inset-0 bg-gradient-to-r from-background/10 to-transparent"></div>
                         <div className="relative z-10">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                              <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
-                                <Calendar className="w-5 h-5" />
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
+                                <Calendar className="w-4 h-4" />
                               </div>
-                              <h3 className="font-semibold text-lg">Travel Period</h3>
+                              <h3 className="font-semibold text-base">Travel Period</h3>
                             </div>
                             {!(wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && <div className="shrink-0">
                                 <DateRangePicker startDate={dateRange.start} endDate={dateRange.end} onDateRangeChange={handleDateRangeChange} />
@@ -1188,58 +1188,57 @@ export function ItineraryBuilder({
               </Collapsible>
             </div>
 
-            {/* Desktop: Completely New Modern Design */}
+            {/* Desktop: Compact Row Design */}
             <div className="hidden lg:block">
               <Collapsible open={isDesktopSectionOpen} onOpenChange={setIsDesktopSectionOpen}>
-                  <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-background via-muted/30 to-secondary/20 backdrop-blur-xl border border-border/30 shadow-2xl">
+                  <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-background via-muted/20 to-secondary/10 backdrop-blur-sm border border-border/50 shadow-sm">
                 {/* Background Pattern */}
-                <div className="absolute inset-0 opacity-5">
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-transparent to-secondary/20"></div>
-                  <div className="absolute top-0 left-1/4 w-32 h-32 bg-primary/10 rounded-full blur-3xl"></div>
-                  <div className="absolute bottom-0 right-1/4 w-24 h-24 bg-secondary/10 rounded-full blur-3xl"></div>
+                <div className="absolute inset-0 opacity-3">
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-secondary/10"></div>
                 </div>
                 
                 {/* Header Section */}
                 <CollapsibleTrigger asChild>
-                  <div className="relative z-10 px-8 pt-8 pb-2 border-b border-border/20 cursor-pointer hover:bg-background/5 transition-colors group">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-4">
+                  <div className="relative z-10 px-4 py-3 border-b border-border/20 cursor-pointer hover:bg-background/5 transition-colors group">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
                       <div className="relative">
-                        <div className="p-3 bg-gradient-to-br from-primary to-primary/80 rounded-2xl shadow-lg">
-                          <Calendar className="w-6 h-6 text-primary-foreground" />
+                        <div className="p-2 bg-gradient-to-br from-primary to-primary/80 rounded-lg shadow-sm">
+                          <Calendar className="w-4 h-4 text-primary-foreground" />
                         </div>
-                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-secondary to-accent rounded-full"></div>
                       </div>
                       <div>
-                        <h2 className="text-2xl font-bold text-foreground tracking-tight">{currentItinerary?.title}</h2>
-                        <p className="text-muted-foreground text-sm">Plan your perfect getaway</p>
+                        <h2 className="text-lg font-bold text-foreground tracking-tight">{currentItinerary?.title}</h2>
+                        <p className="text-muted-foreground text-xs">Plan your perfect getaway</p>
                       </div>
                     </div>
-                    {currentItinerary?.isMultiCity && <Badge variant="secondary" className="px-3 py-1 bg-gradient-to-r from-secondary/20 to-accent/20 border-secondary/30 text-secondary-foreground font-medium">
-                        Multi-city Adventure
-                      </Badge>}
-                    <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform group-hover:text-foreground ${isDesktopSectionOpen ? 'rotate-180' : ''}`} />
+                    <div className="flex items-center gap-2">
+                      {currentItinerary?.isMultiCity && <Badge variant="secondary" className="px-2 py-0.5 text-xs">
+                          Multi-city
+                        </Badge>}
+                      <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform group-hover:text-foreground ${isDesktopSectionOpen ? 'rotate-180' : ''}`} />
+                    </div>
                    </div>
                    </div>
                  </CollapsibleTrigger>
                 
                 <CollapsibleContent>
                 {/* Content Grid */}
-                <div className="relative z-10 p-8 grid grid-cols-1 xl:grid-cols-2 gap-8">
+                <div className="relative z-10 p-4 flex flex-row gap-4 w-full">
                   
-                  {/* Left Column - Travel Info */}
-                  <div className="space-y-6">
+                  {/* Travel Info Row Layout */}
+                  <div className="flex flex-row gap-4 w-full">
                     
                     {/* Dates Section */}
-                    <div className="group">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-8 h-8 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl flex items-center justify-center">
-                          <div className="w-2 h-2 bg-primary rounded-full"></div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-6 h-6 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg flex items-center justify-center">
+                          <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
                         </div>
-                        <h3 className="text-lg font-semibold text-foreground">Travel Timeline</h3>
+                        <h3 className="text-sm font-semibold text-foreground">Travel Timeline</h3>
                       </div>
                       
-                      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-card to-card/50 backdrop-blur-sm border border-border/40 p-6 group-hover:shadow-lg transition-all duration-300">
+                      <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-card to-card/50 backdrop-blur-sm border border-border/40 p-3 hover:shadow-md transition-all duration-300">
                         <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         <div className="relative z-10">
                           <div className="flex items-center justify-between mb-4">
@@ -1266,93 +1265,88 @@ export function ItineraryBuilder({
                     </div>
                     
                     {/* Destinations Section */}
-                    {currentItinerary?.locations && currentItinerary.locations.length > 0 && <div className="group">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="w-8 h-8 bg-gradient-to-br from-secondary/20 to-secondary/10 rounded-xl flex items-center justify-center">
-                            <MapPin className="w-4 h-4 text-secondary" />
+                    {currentItinerary?.locations && currentItinerary.locations.length > 0 && <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-6 h-6 bg-gradient-to-br from-secondary/20 to-secondary/10 rounded-lg flex items-center justify-center">
+                            <MapPin className="w-3 h-3 text-secondary" />
                           </div>
-                          <h3 className="text-lg font-semibold text-foreground">Destinations</h3>
-                          <Badge variant="outline" className="ml-auto">
+                          <h3 className="text-sm font-semibold text-foreground">Destinations</h3>
+                          <Badge variant="outline" className="ml-auto text-xs px-1.5 py-0.5">
                             {currentItinerary.locations.length} {currentItinerary.locations.length === 1 ? 'stop' : 'stops'}
                           </Badge>
                         </div>
                         
-                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-card to-card/50 backdrop-blur-sm border border-border/40 p-6 group-hover:shadow-lg transition-all duration-300">
-                          <div className="absolute inset-0 bg-gradient-to-r from-secondary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                          <div className="relative z-10 space-y-3">
-                            {currentItinerary.locations.map((location, index) => <div key={location.id} className="flex items-center gap-4 p-4 bg-background/60 backdrop-blur-sm rounded-xl border border-border/30 hover:bg-background/80 transition-all duration-200 hover:scale-[1.02]">
-                                <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl">
-                                  <span className="text-sm font-bold text-primary">{index + 1}</span>
+                        <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-card to-card/50 backdrop-blur-sm border border-border/40 p-3 hover:shadow-md transition-all duration-300">
+                          <div className="relative z-10 space-y-2">
+                            {currentItinerary.locations.map((location, index) => <div key={location.id} className="flex items-center gap-2 p-2 bg-background/60 backdrop-blur-sm rounded-md border border-border/30 hover:bg-background/80 transition-all duration-200">
+                                <div className="flex items-center justify-center w-6 h-6 bg-gradient-to-br from-primary/20 to-primary/10 rounded-md">
+                                  <span className="text-xs font-bold text-primary">{index + 1}</span>
                                 </div>
-                                <div className="flex-1">
-                                  <div className="font-semibold text-foreground text-lg">{location.name}</div>
-                                  {location.iataCode && <div className="text-sm text-muted-foreground">{location.iataCode}</div>}
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-semibold text-foreground text-sm truncate">{location.name}</div>
+                                  {location.iataCode && <div className="text-xs text-muted-foreground">{location.iataCode}</div>}
                                 </div>
-                                <div className="w-2 h-2 bg-primary rounded-full opacity-60"></div>
+                                <div className="w-1.5 h-1.5 bg-primary rounded-full opacity-60"></div>
                               </div>)}
                           </div>
                         </div>
                       </div>}
-                  </div>
-                  
-                  {/* Right Column - Actions */}
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-8 h-8 bg-gradient-to-br from-accent/20 to-accent/10 rounded-xl flex items-center justify-center">
-                        <div className="w-2 h-2 bg-accent rounded-full"></div>
-                      </div>
-                      <h3 className="text-lg font-semibold text-foreground">Quick Actions</h3>
-                    </div>
                     
-                    <div className="grid grid-cols-2 gap-4">
-                      <Button variant="outline" size="lg" onClick={() => setIsSaveDialogOpen(true)} className="group relative overflow-hidden h-16 bg-gradient-to-br from-background to-muted/30 border-border/50 hover:border-primary/40 transition-all duration-300 rounded-2xl">
-                        <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        <div className="relative flex flex-col items-center gap-1">
-                          <Save className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
-                          <span className="font-semibold text-sm">{currentItinerary?.id ? 'Update Trip' : 'Save Trip'}</span>
+                    {/* Actions Section */}
+                    <div className="flex-shrink-0 min-w-fit">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-6 h-6 bg-gradient-to-br from-accent/20 to-accent/10 rounded-lg flex items-center justify-center">
+                          <div className="w-1.5 h-1.5 bg-accent rounded-full"></div>
                         </div>
-                      </Button>
+                        <h3 className="text-sm font-semibold text-foreground">Actions</h3>
+                      </div>
                       
-                      <Button variant="outline" size="lg" onClick={() => setIsShareDialogOpen(true)} className="group relative overflow-hidden h-16 bg-gradient-to-br from-background to-muted/30 border-border/50 hover:border-primary/40 transition-all duration-300 rounded-2xl">
-                        <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        <div className="relative flex flex-col items-center gap-1">
-                          <Share2 className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
-                          <span className="font-semibold text-sm">Share</span>
-                        </div>
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={() => setIsSaveDialogOpen(true)} className="group relative overflow-hidden h-8 px-3 bg-gradient-to-br from-background to-muted/30 border-border/50 hover:border-primary/40 transition-all duration-300 rounded-lg">
+                          <div className="relative flex items-center gap-1.5">
+                            <Save className="w-3.5 h-3.5" />
+                            <span className="font-medium text-xs">{currentItinerary?.id ? 'Update' : 'Save'}</span>
+                          </div>
+                        </Button>
                       
-                      <Button variant="outline" size="lg" onClick={() => setIsExportDialogOpen(true)} className="group relative overflow-hidden h-16 bg-gradient-to-br from-background to-muted/30 border-border/50 hover:border-primary/40 transition-all duration-300 rounded-2xl">
-                        <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        <div className="relative flex flex-col items-center gap-1">
-                          <Download className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
-                          <span className="font-semibold text-sm">Export</span>
-                        </div>
-                      </Button>
-                      
-                      <Button variant="outline" size="lg" onClick={() => {
-                      localStorage.removeItem('currentItineraryBuilder');
-                      setDateRange({
-                        start: null,
-                        end: null
-                      });
-                      setCurrentItinerary(null);
-                      setEvents([]);
-                      setLocations([]);
-                      setIsMultiCity(false);
-                      setHasCreatedItinerary(false);
-                      setCurrentLocationSearch('');
-                      setUseLengthOfStay(false);
-                      setNumberOfNights(1);
-                      setLocationLengthOfStay({});
-                      setLocationNights({});
-                      setWasCreatedWithLengthOfStay(false);
-                    }} className="group relative overflow-hidden h-16 bg-gradient-to-br from-background to-muted/30 border-destructive/30 hover:border-destructive/50 transition-all duration-300 rounded-2xl">
-                        <div className="absolute inset-0 bg-destructive/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        <div className="relative flex flex-col items-center gap-1">
-                          <Plus className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
-                          <span className="font-semibold text-sm">New Trip</span>
-                        </div>
-                      </Button>
+                        <Button variant="outline" size="sm" onClick={() => setIsShareDialogOpen(true)} className="group relative overflow-hidden h-8 px-3 bg-gradient-to-br from-background to-muted/30 border-border/50 hover:border-primary/40 transition-all duration-300 rounded-lg">
+                          <div className="relative flex items-center gap-1.5">
+                            <Share2 className="w-3.5 h-3.5" />
+                            <span className="font-medium text-xs">Share</span>
+                          </div>
+                        </Button>
+                        
+                        <Button variant="outline" size="sm" onClick={() => setIsExportDialogOpen(true)} className="group relative overflow-hidden h-8 px-3 bg-gradient-to-br from-background to-muted/30 border-border/50 hover:border-primary/40 transition-all duration-300 rounded-lg">
+                          <div className="relative flex items-center gap-1.5">
+                            <Download className="w-3.5 h-3.5" />
+                            <span className="font-medium text-xs">Export</span>
+                          </div>
+                        </Button>
+                        
+                        <Button variant="outline" size="sm" onClick={() => {
+                        localStorage.removeItem('currentItineraryBuilder');
+                        setDateRange({
+                          start: null,
+                          end: null
+                        });
+                        setCurrentItinerary(null);
+                        setEvents([]);
+                        setLocations([]);
+                        setIsMultiCity(false);
+                        setHasCreatedItinerary(false);
+                        setCurrentLocationSearch('');
+                        setUseLengthOfStay(false);
+                        setNumberOfNights(1);
+                        setLocationLengthOfStay({});
+                        setLocationNights({});
+                        setWasCreatedWithLengthOfStay(false);
+                      }} className="group relative overflow-hidden h-8 px-3 bg-gradient-to-br from-background to-muted/30 border-destructive/30 hover:border-destructive/50 transition-all duration-300 rounded-lg">
+                          <div className="relative flex items-center gap-1.5">
+                            <Plus className="w-3.5 h-3.5" />
+                            <span className="font-medium text-xs">New</span>
+                          </div>
+                        </Button>
+                      </div>
                     </div>
                   </div>
                   
