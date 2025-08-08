@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Camera, Edit2, Users, MapPin, Crown, Star, Heart, TrendingUp, Activity } from 'lucide-react';
+import { Camera, Edit2, Users, MapPin, Crown, Star, Heart, TrendingUp, Activity, ChevronRight, Bookmark, Route } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -218,6 +218,69 @@ export function MobileProfilePage() {
             </div>
           </div>
         </Button>
+
+        {/* Navigation Buttons */}
+        <div className="space-y-2">
+          {/* Rated Restaurants Button */}
+          <Button 
+            onClick={() => navigate('/rated')} 
+            className="w-full h-14 bg-background hover:bg-muted/50 border border-border"
+            variant="outline"
+          >
+            <div className="flex items-center gap-4 w-full">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <Star className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-base font-medium text-foreground">Rated Restaurants</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-bold text-foreground">{stats.rated_count}</span>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </div>
+            </div>
+          </Button>
+
+          {/* Wishlist Button */}
+          <Button 
+            onClick={() => navigate('/wishlist')} 
+            className="w-full h-14 bg-background hover:bg-muted/50 border border-border"
+            variant="outline"
+          >
+            <div className="flex items-center gap-4 w-full">
+              <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                <Bookmark className="h-5 w-5 text-orange-600" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-base font-medium text-foreground">Want to Try</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-bold text-foreground">{stats.wishlist_count}</span>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </div>
+            </div>
+          </Button>
+
+          {/* Itineraries Button */}
+          <Button 
+            onClick={() => navigate('/travel')} 
+            className="w-full h-14 bg-background hover:bg-muted/50 border border-border"
+            variant="outline"
+          >
+            <div className="flex items-center gap-4 w-full">
+              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                <Route className="h-5 w-5 text-green-600" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-base font-medium text-foreground">Itineraries</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-bold text-foreground">0</span>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </div>
+            </div>
+          </Button>
+        </div>
 
         {/* Activity Summary */}
         <Card>
