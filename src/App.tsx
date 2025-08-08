@@ -69,7 +69,7 @@ const App = () => (
                 <Route path="/map" element={<RequireAuth><Layout activeTab="search" showChatbot={false}><MapPageWrapper /></Layout></RequireAuth>} />
                 <Route path="/travel" element={<RequireAuth><Layout activeTab="travel"><TravelPage /></Layout></RequireAuth>} />
                 <Route path="/trip/:tripId" element={<RequireAuth><TripDetailPage /></RequireAuth>} />
-                <Route path="/itinerary/:itineraryId" element={<RequireAuth><ItineraryViewPage /></RequireAuth>} />
+                <Route path="/itinerary/:itineraryId" element={<ItineraryViewPage />} />
                 <Route path="/shared-trip/:tripId" element={<SharedTripPage />} />
                 <Route path="/shared-itinerary" element={<SharedItineraryPage />} />
                 
