@@ -325,12 +325,12 @@ export function ItineraryViewPage() {
         {/* Trip Overview Card */}
         <Card className="overflow-hidden border-0 shadow-lg bg-card">
           <CardContent className="p-0">
-            <div className="text-primary-foreground p-6">
-              <div className="flex flex-col gap-4">
+            <div className="text-primary-foreground p-4">
+              <div className="flex flex-col gap-2">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h2 className="text-2xl font-bold mb-3">{itinerary.title}</h2>
-                    <div className="flex flex-col sm:flex-row gap-4 text-primary-foreground/90">
+                    <h2 className="text-xl font-bold mb-2">{itinerary.title}</h2>
+                    <div className="flex flex-col sm:flex-row gap-3 text-primary-foreground/90">
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4" />
                         <span className="text-sm">
@@ -346,15 +346,15 @@ export function ItineraryViewPage() {
                 </div>
 
                 {/* Destinations */}
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {itinerary.locations.map((location) => (
-                    <Badge key={location.id} variant="secondary" className="bg-white/20 text-white border-white/30 hover:bg-white/30">
+                    <Badge key={location.id} variant="secondary" className="bg-white/20 text-white border-white/30 hover:bg-white/30 text-xs">
                       <MapPin className="w-3 h-3 mr-1" />
                       {location.name}
                     </Badge>
                   ))}
                   {itinerary.isMultiCity && (
-                    <Badge variant="outline" className="bg-white/20 text-white border-white/30">
+                    <Badge variant="outline" className="bg-white/20 text-white border-white/30 text-xs">
                       Multi-city
                     </Badge>
                   )}
@@ -363,23 +363,23 @@ export function ItineraryViewPage() {
             </div>
 
             {/* Stats Section */}
-            <div className="bg-card p-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div className="text-center space-y-1">
-                  <div className="text-2xl font-bold text-foreground">{itinerary.events.length}</div>
-                  <div className="text-sm text-muted-foreground">Total Events</div>
+            <div className="bg-card p-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center space-y-0.5">
+                  <div className="text-xl font-bold text-foreground">{itinerary.events.length}</div>
+                  <div className="text-xs text-muted-foreground">Total Events</div>
                 </div>
-                <div className="text-center space-y-1">
-                  <div className="text-2xl font-bold text-success">{restaurantCount}</div>
-                  <div className="text-sm text-muted-foreground">Restaurants</div>
+                <div className="text-center space-y-0.5">
+                  <div className="text-xl font-bold text-success">{restaurantCount}</div>
+                  <div className="text-xs text-muted-foreground">Restaurants</div>
                 </div>
-                <div className="text-center space-y-1">
-                  <div className="text-2xl font-bold text-primary">{attractionCount}</div>
-                  <div className="text-sm text-muted-foreground">Attractions</div>
+                <div className="text-center space-y-0.5">
+                  <div className="text-xl font-bold text-primary">{attractionCount}</div>
+                  <div className="text-xs text-muted-foreground">Attractions</div>
                 </div>
-                <div className="text-center space-y-1">
-                  <div className="text-2xl font-bold text-accent">{duration}</div>
-                  <div className="text-sm text-muted-foreground">Days</div>
+                <div className="text-center space-y-0.5">
+                  <div className="text-xl font-bold text-accent">{duration}</div>
+                  <div className="text-xs text-muted-foreground">Days</div>
                 </div>
               </div>
             </div>
