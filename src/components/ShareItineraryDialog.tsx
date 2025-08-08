@@ -167,7 +167,7 @@ export function ShareItineraryDialog({ isOpen, onClose, itinerary }: ShareItiner
   const handleCopyToClipboard = async () => {
     try {
       const itineraryUrl = `${window.location.origin}/itinerary/${itinerary.id}`;
-      await navigator.clipboard.writeText(`${itinerary.title}\n\nView full itinerary: ${itineraryUrl}`);
+      await navigator.clipboard.writeText(itineraryUrl);
       toast.success('Itinerary link copied to clipboard!');
     } catch (error) {
       console.error('Failed to copy:', error);
