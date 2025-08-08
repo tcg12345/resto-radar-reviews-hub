@@ -23,12 +23,12 @@ interface ProfileStats {
 
 interface RecentActivity {
   id: string;
-  place_name: string;
+  name: string;
   address: string;
-  overall_rating: number;
+  rating: number;
   date_visited: string;
   created_at: string;
-  place_id: string;
+  google_place_id: string;
   cuisine: string;
 }
 
@@ -86,9 +86,11 @@ export function MobileProfilePage() {
       setLoadingActivity(true);
       try {
         const { data, error } = await supabase
-          .from('place_ratings')
-          .select('id, place_name, address, overall_rating, date_visited, created_at, place_id, cuisine')
+          .from('restaurants')
+          .select('id, name, address, rating, date_visited, created_at, google_place_id, cuisine')
           .eq('user_id', user.id)
+          .eq('is_wishlist', false)
+          .not('rating', 'is', null)
           .order('created_at', { ascending: false })
           .limit(3);
 
@@ -358,13 +360,13 @@ export function MobileProfilePage() {
           ) : recentActivity.length > 0 ? (
             <div className="divide-y divide-border">
               {recentActivity.map((activity, index) => (
-                <div
-                  key={activity.id}
-                  className="px-4 py-4 bg-background hover:bg-muted/50 transition-colors cursor-pointer"
-                  onClick={() => navigate(`/restaurant/${activity.place_id}`)}
-                >
-                  <div className="flex items-start gap-3">
-                    {/* User Avatar */}
+                  <div
+                    key={activity.id}
+                    className="px-4 py-4 bg-background hover:bg-muted/50 transition-colors cursor-pointer"
+                    onClick={() => navigate(`/restaurant/${activity.google_place_id}`)}
+                  >
+                    <div className="flex items-start gap-3">
+                      {/* User Avatar */}
                     <Avatar className="w-12 h-12 border-2 border-background">
                       <AvatarImage src={profile?.avatar_url || ''} alt={profile?.username || 'User'} />
                       <AvatarFallback className="text-sm font-bold bg-primary/10 text-primary">
@@ -374,14 +376,14 @@ export function MobileProfilePage() {
 
                     {/* Activity Content */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-base font-semibold text-foreground">
-                          You ranked {activity.place_name}
-                        </p>
-                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary font-bold text-sm">
-                          {activity.overall_rating ? activity.overall_rating.toFixed(1) : '—'}
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-base font-semibold text-foreground">
+                            You ranked {activity.name}
+                          </p>
+                          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary font-bold text-sm">
+                            {activity.rating ? activity.rating.toFixed(1) : '—'}
+                          </div>
                         </div>
-                      </div>
                       
                       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                         <MapPinIcon className="h-4 w-4" />
