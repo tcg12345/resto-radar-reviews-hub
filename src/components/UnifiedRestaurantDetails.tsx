@@ -382,34 +382,98 @@ export function UnifiedRestaurantDetails({
             onClick={() => navigate(`/restaurant/${restaurantData.place_id || restaurantData.id}/community-photos?name=${encodeURIComponent(restaurantData.name)}`)}
           >
             {/* Try to show community photos first, then restaurant photos, then fallback */}
-            {communityStats?.recentPhotos?.[0]?.photos?.[0] ? (
-              <img 
-                src={communityStats.recentPhotos[0].photos[0]} 
-                alt={restaurantData.name} 
-                className="w-full h-full object-cover transition-transform group-hover:scale-105 md:object-contain md:h-auto md:w-auto md:max-h-[420px] md:mx-auto" 
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  // Try the next photo source if community photo fails
-                  if (photos.length > 0) {
-                    target.src = photos[0];
-                  } else {
+            {/* Mobile: single hero image */}
+            <div className="md:hidden w-full h-full">
+              {communityStats?.recentPhotos?.[0]?.photos?.[0] ? (
+                <img 
+                  src={communityStats.recentPhotos[0].photos[0]} 
+                  alt={restaurantData.name} 
+                  className="w-full h-full object-cover transition-transform group-hover:scale-105" 
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    if (photos.length > 0) {
+                      target.src = photos[0];
+                    } else {
+                      target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZjNmNGY2Ii8+CjxwYXRoIGQ9Im0xNSA5LTYgNi02LTYiIHN0cm9rZT0iIzk3YTNiMCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+';
+                      target.alt = 'Photo unavailable';
+                    }
+                  }}
+                />
+              ) : photos.length > 0 ? (
+                <img 
+                  src={photos[0]} 
+                  alt={restaurantData.name} 
+                  className="w-full h-full object-cover transition-transform group-hover:scale-105" 
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
                     target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZjNmNGY2Ii8+CjxwYXRoIGQ9Im0xNSA5LTYgNi02LTYiIHN0cm9rZT0iIzk3YTNiMCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+';
                     target.alt = 'Photo unavailable';
-                  }
-                }}
-              />
-            ) : photos.length > 0 ? (
-              <img 
-                src={photos[0]} 
-                alt={restaurantData.name} 
-                className="w-full h-full object-cover transition-transform group-hover:scale-105 md:object-contain md:h-auto md:w-auto md:max-h-[420px] md:mx-auto" 
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZjNmNGY2Ii8+CjxwYXRoIGQ9Im0xNSA5LTYgNi02LTYiIHN0cm9rZT0iIzk3YTNiMCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+';
-                  target.alt = 'Photo unavailable';
-                }}
-              />
-            ) : null}
+                  }}
+                />
+              ) : null}
+            </div>
+
+            {/* Desktop: grid collage when multiple photos available, otherwise single image (contain) */}
+            <div className="hidden md:block w-full h-full">
+              {(() => {
+                const header: string[] = (communityStats?.recentPhotos?.length
+                  ? communityStats.recentPhotos.flatMap((rp: any) => rp?.photos || [])
+                  : photos).slice(0, 6);
+                if (header.length > 1) {
+                  return (
+                    <div className="grid grid-cols-3 gap-2 auto-rows-[140px]">
+                      {header.map((src, i) => (
+                        <img
+                          key={i}
+                          src={src}
+                          alt={`${restaurantData.name} photo ${i + 1}`}
+                          className="w-full h-full object-cover rounded-md"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZjNmNGY2Ii8+CjxwYXRoIGQ9Im0xNSA5LTYgNi02LTYiIHN0cm9rZT0iIzk3YTNiMCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+';
+                            target.alt = 'Photo unavailable';
+                          }}
+                        />
+                      ))}
+                    </div>
+                  );
+                }
+                // Single image fallback on desktop
+                if (communityStats?.recentPhotos?.[0]?.photos?.[0]) {
+                  return (
+                    <img
+                      src={communityStats.recentPhotos[0].photos[0]}
+                      alt={restaurantData.name}
+                      className="w-full h-full object-cover transition-transform group-hover:scale-105 md:object-contain md:h-auto md:w-auto md:max-h-[420px] md:mx-auto"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        if (photos.length > 0) {
+                          target.src = photos[0];
+                        } else {
+                          target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZjNmNGY2Ii8+CjxwYXRoIGQ9Im0xNSA5LTYgNi02LTYiIHN0cm9rZT0iIzk3YTNiMCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+';
+                          target.alt = 'Photo unavailable';
+                        }
+                      }}
+                    />
+                  );
+                }
+                if (photos.length > 0) {
+                  return (
+                    <img
+                      src={photos[0]}
+                      alt={restaurantData.name}
+                      className="w-full h-full object-cover transition-transform group-hover:scale-105 md:object-contain md:h-auto md:w-auto md:max-h-[420px] md:mx-auto"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZjNmNGY2Ii8+CjxwYXRoIGQ9Im0xNSA5LTYgNi02LTYiIHN0cm9rZT0iIzk3YTNiMCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+';
+                        target.alt = 'Photo unavailable';
+                      }}
+                    />
+                  );
+                }
+                return null;
+              })()}
+            </div>
             <div className="absolute top-3 right-3 bg-black/70 text-white px-2 py-1 rounded-md text-sm">
               View more photos
             </div>
