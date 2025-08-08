@@ -1227,10 +1227,10 @@ export function ItineraryBuilder({
                 <div className="relative z-10 p-4 flex flex-row gap-4 w-full">
                   
                   {/* Travel Info Row Layout */}
-                  <div className="flex flex-row gap-4 w-full">
+                  <div className="flex flex-row gap-4 w-full h-24">
                     
                     {/* Dates Section */}
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 h-full">
                       <div className="flex items-center gap-2 mb-2">
                         <div className="w-6 h-6 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg flex items-center justify-center">
                           <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
@@ -1238,7 +1238,7 @@ export function ItineraryBuilder({
                         <h3 className="text-sm font-semibold text-foreground">Travel Timeline</h3>
                       </div>
                       
-                      <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-card to-card/50 backdrop-blur-sm border border-border/40 p-3 hover:shadow-md transition-all duration-300">
+                      <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-card to-card/50 backdrop-blur-sm border border-border/40 p-3 hover:shadow-md transition-all duration-300 h-full flex-1">
                         <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         <div className="relative z-10">
                           <div className="flex items-center justify-between mb-4">
@@ -1265,7 +1265,7 @@ export function ItineraryBuilder({
                     </div>
                     
                     {/* Destinations Section */}
-                    {currentItinerary?.locations && currentItinerary.locations.length > 0 && <div className="flex-1 min-w-0">
+                    {currentItinerary?.locations && currentItinerary.locations.length > 0 && <div className="flex-1 min-w-0 h-full">
                         <div className="flex items-center gap-2 mb-2">
                           <div className="w-6 h-6 bg-gradient-to-br from-secondary/20 to-secondary/10 rounded-lg flex items-center justify-center">
                             <MapPin className="w-3 h-3 text-secondary" />
@@ -1276,8 +1276,8 @@ export function ItineraryBuilder({
                           </Badge>
                         </div>
                         
-                        <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-card to-card/50 backdrop-blur-sm border border-border/40 p-3 hover:shadow-md transition-all duration-300">
-                          <div className="relative z-10 space-y-2">
+                        <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-card to-card/50 backdrop-blur-sm border border-border/40 p-3 hover:shadow-md transition-all duration-300 h-full flex-1">
+                          <div className="relative z-10 space-y-2 h-full overflow-y-auto">
                             {currentItinerary.locations.map((location, index) => <div key={location.id} className="flex items-center gap-2 p-2 bg-background/60 backdrop-blur-sm rounded-md border border-border/30 hover:bg-background/80 transition-all duration-200">
                                 <div className="flex items-center justify-center w-6 h-6 bg-gradient-to-br from-primary/20 to-primary/10 rounded-md">
                                   <span className="text-xs font-bold text-primary">{index + 1}</span>
@@ -1293,7 +1293,7 @@ export function ItineraryBuilder({
                       </div>}
                     
                     {/* Actions Section */}
-                    <div className="flex-shrink-0 min-w-fit">
+                    <div className="flex-shrink-0 min-w-fit h-full">
                       <div className="flex items-center gap-2 mb-2">
                         <div className="w-6 h-6 bg-gradient-to-br from-accent/20 to-accent/10 rounded-lg flex items-center justify-center">
                           <div className="w-1.5 h-1.5 bg-accent rounded-full"></div>
@@ -1301,7 +1301,7 @@ export function ItineraryBuilder({
                         <h3 className="text-sm font-semibold text-foreground">Actions</h3>
                       </div>
                       
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 h-full items-center">
                         <Button variant="outline" size="sm" onClick={() => setIsSaveDialogOpen(true)} className="group relative overflow-hidden h-8 px-3 bg-gradient-to-br from-background to-muted/30 border-border/50 hover:border-primary/40 transition-all duration-300 rounded-lg">
                           <div className="relative flex items-center gap-1.5">
                             <Save className="w-3.5 h-3.5" />
