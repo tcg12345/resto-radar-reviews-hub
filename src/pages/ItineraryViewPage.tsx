@@ -762,13 +762,16 @@ export function ItineraryViewPage() {
 
       {/* Floating Map Button */}
       {!isMapOpen && (
-        <div className="fixed bottom-28 left-1/2 transform -translate-x-1/2 z-50">
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
           <Button 
             onClick={() => setIsMapOpen(true)}
             className="h-8 px-3 rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all hover:scale-105 text-xs"
           >
             <MapPin className="w-3 h-3 mr-1" />
-            View Map ({itinerary.events.length} locations)
+            View Map ({itinerary.events.filter(event => 
+              (event.attractionData?.latitude && event.attractionData?.longitude) || 
+              event.restaurantData?.placeId
+            ).length} locations)
           </Button>
         </div>
       )}
