@@ -22,6 +22,7 @@ import { FriendsPage } from "./pages/FriendsPage";
 import FriendProfilePage from "./pages/FriendProfilePage";
 import { ChatListPage } from "./pages/ChatListPage";
 import { ChatPage } from "./pages/ChatPage";
+import { ProfilePageWrapper } from "@/components/ProfilePageWrapper";
 import HomePageWrapper from "./pages/HomePageWrapper";
 import SavedPlacesPageWrapper from "./pages/SavedPlacesPageWrapper";
 import MapPageWrapper from "./pages/MapPageWrapper";
@@ -79,7 +80,7 @@ const App = () => (
                 
                 <Route path="/settings" element={<RequireAuth><Layout activeTab="settings" showNavbar={false} showChatbot={false}><SettingsPageWrapper /></Layout></RequireAuth>} />
                 <Route path="/privacy-policy" element={<RequireAuth><Layout activeTab="settings" showNavbar={false} showChatbot={false}><PrivacyPolicyPageWrapper /></Layout></RequireAuth>} />
-                <Route path="/friends" element={<RequireAuth><Layout activeTab="profile"><FriendsPage /></Layout></RequireAuth>} />
+                <Route path="/friends" element={<RequireAuth><Layout activeTab="profile"><ProfilePageWrapper /></Layout></RequireAuth>} />
                 <Route path="/friends/:friendId" element={<RequireAuth><Layout activeTab="profile"><FriendProfilePage /></Layout></RequireAuth>} />
                 
                 {/* User profile routes */}
