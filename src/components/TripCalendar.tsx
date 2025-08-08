@@ -149,8 +149,8 @@ export function TripCalendar({
   return <div className="w-full space-y-4 flex flex-col items-center lg:items-stretch lg:px-8 xl:px-16">
       {/* Main Add Event Button */}
       <Card className="bg-primary/5 border-0">
-        <CardContent className="pt-6">
-          <div className="text-center space-y-3">
+        <CardContent className="px-4 py-4 md:px-6 md:py-6 animate-fade-in">
+          <div className="max-w-sm mx-auto text-center space-y-2 md:space-y-3">
             <div className="hidden md:flex items-center justify-center gap-2">
               <Plus className="w-5 h-5 text-primary" />
               <h3 className="font-semibold text-lg">Add Event to Your Trip</h3>
