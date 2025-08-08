@@ -317,15 +317,6 @@ export function ItineraryViewPage() {
                 {duration} {duration === 1 ? 'day' : 'days'} • {itinerary.events.length} events
               </p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsMapOpen(true)}
-              className="hover:bg-primary/10 border-primary/20"
-            >
-              <MapPin className="w-4 h-4 mr-2" />
-              View Map
-            </Button>
           </div>
         </div>
       </div>
@@ -768,6 +759,19 @@ export function ItineraryViewPage() {
             ))}
         </div>
       </div>
+
+      {/* Floating Map Button */}
+      {!isMapOpen && (
+        <div className="fixed bottom-28 left-1/2 transform -translate-x-1/2 z-50">
+          <Button 
+            onClick={() => setIsMapOpen(true)}
+            className="h-8 px-3 rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all hover:scale-105 text-xs"
+          >
+            <MapPin className="w-3 h-3 mr-1" />
+            View Map ({itinerary.events.length} locations)
+          </Button>
+        </div>
+      )}
 
       {/* Map View */}
       <ItineraryMapView 
