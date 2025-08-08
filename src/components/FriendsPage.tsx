@@ -170,22 +170,22 @@ export function FriendsPage({
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full grid grid-cols-2 sm:grid-cols-4 gap-1 p-1 mb-6 bg-muted rounded-md">
-          <TabsTrigger value="friends" className="min-w-0 w-full h-10 text-xs sm:text-sm justify-center rounded-md px-2 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+        <TabsList className="w-full flex sm:grid sm:grid-cols-4 gap-2 p-1 mb-6 bg-muted rounded-md overflow-x-auto scrollbar-hide">
+          <TabsTrigger value="friends" className="inline-flex items-center justify-center h-10 px-3 text-xs sm:text-sm rounded-md min-w-[140px] sm:min-w-0 whitespace-nowrap data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
             <Users className="h-4 w-4 mr-1.5 shrink-0" />
-            <span className="truncate">Friends ({friends.length})</span>
+            <span>Friends ({friends.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="activity" className="min-w-0 w-full h-10 text-xs sm:text-sm justify-center rounded-md px-2 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+          <TabsTrigger value="activity" className="inline-flex items-center justify-center h-10 px-3 text-xs sm:text-sm rounded-md min-w-[140px] sm:min-w-0 whitespace-nowrap data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
             <Activity className="h-4 w-4 mr-1.5 shrink-0" />
-            <span className="truncate">Activity</span>
+            <span>Activity</span>
           </TabsTrigger>
-          <TabsTrigger value="search" className="min-w-0 w-full h-10 text-xs sm:text-sm justify-center rounded-md px-2 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+          <TabsTrigger value="search" className="inline-flex items-center justify-center h-10 px-3 text-xs sm:text-sm rounded-md min-w-[140px] sm:min-w-0 whitespace-nowrap data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
             <Plus className="h-4 w-4 mr-1.5 shrink-0" />
-            <span className="truncate">Find Friends</span>
+            <span>Find Friends</span>
           </TabsTrigger>
-          <TabsTrigger value="requests" className="min-w-0 w-full h-10 text-xs sm:text-sm justify-center rounded-md px-2 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+          <TabsTrigger value="requests" className="inline-flex items-center justify-center h-10 px-3 text-xs sm:text-sm rounded-md min-w-[140px] sm:min-w-0 whitespace-nowrap data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
             <Filter className="h-4 w-4 mr-1.5 shrink-0" />
-            <span className="truncate">Requests ({pendingRequests.length + sentRequests.length})</span>
+            <span>Requests ({pendingRequests.length + sentRequests.length})</span>
           </TabsTrigger>
         </TabsList>
 
