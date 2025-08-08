@@ -768,10 +768,7 @@ export function ItineraryViewPage() {
             className="h-8 px-3 rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all hover:scale-105 text-xs"
           >
             <MapPin className="w-3 h-3 mr-1" />
-            View Map ({itinerary.events.filter(event => 
-              (event.attractionData?.latitude && event.attractionData?.longitude) || 
-              event.restaurantData?.placeId
-            ).length} locations)
+            View Map
           </Button>
         </div>
       )}
