@@ -14,7 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { RestaurantSearchDialog } from '@/components/RestaurantSearchDialog';
+import { InlineRestaurantSearch } from '@/components/InlineRestaurantSearch';
 import { AttractionsSearch } from '@/components/AttractionsSearch';
 import { ItineraryEvent } from '@/components/ItineraryBuilder';
 interface EventDialogProps {
@@ -71,7 +71,7 @@ export function EventDialog({
   const [locationSuggestions, setLocationSuggestions] = useState<any[]>([]);
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
   const [locationTimeout, setLocationTimeout] = useState<NodeJS.Timeout | null>(null);
-  const [isRestaurantSearchOpen, setIsRestaurantSearchOpen] = useState(false);
+  
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [isMultiDayEvent, setIsMultiDayEvent] = useState(false);
 
@@ -135,21 +135,6 @@ export function EventDialog({
     setRestaurantData(null);
     setAttractionData(null);
     onClose();
-  };
-  const handleRestaurantSelect = (restaurant: any) => {
-    console.log('Selected restaurant data:', restaurant); // Debug log
-    setRestaurantData({
-      name: restaurant.name,
-      address: restaurant.formatted_address || restaurant.vicinity,
-      placeId: restaurant.place_id,
-      phone: restaurant.formatted_phone_number,
-      website: restaurant.website,
-      latitude: restaurant.geometry?.location?.lat,
-      longitude: restaurant.geometry?.location?.lng
-    });
-    setTitle(restaurant.name);
-    setType('restaurant');
-    setIsRestaurantSearchOpen(false);
   };
   const handleAttractionSelect = (attraction: AttractionData | null) => {
     console.log('Selected attraction data:', attraction); // Debug log
@@ -243,7 +228,8 @@ export function EventDialog({
                 </TabsList>
 
                 <TabsContent value="restaurant" className="space-y-4">
-                  {restaurantData ? <Card>
+                  {restaurantData && restaurantData.name ? (
+                    <Card>
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <div>
@@ -257,14 +243,36 @@ export function EventDialog({
                         </div>
                       </CardHeader>
                       <CardContent className="pt-0">
-                        <Button variant="outline" size="sm" onClick={() => setIsRestaurantSearchOpen(true)}>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => {
+                            setRestaurantData(null);
+                            setTitle('');
+                          }}
+                        >
                           Change Restaurant
                         </Button>
                       </CardContent>
-                    </Card> : <Button variant="outline" className="w-full flex items-center gap-2" onClick={() => setIsRestaurantSearchOpen(true)}>
-                      <Search className="w-4 h-4" />
-                      Search for Restaurant
-                    </Button>}
+                    </Card>
+                  ) : (
+                    <div className="space-y-3">
+                      <p className="text-sm text-muted-foreground">
+                        Search for restaurants, cafes, and dining places.
+                      </p>
+                      <InlineRestaurantSearch 
+                        value={restaurantData}
+                        onRestaurantSelect={(restaurant) => {
+                          console.log('Selected restaurant data:', restaurant);
+                          setRestaurantData(restaurant);
+                          setTitle(restaurant.name);
+                          setType('restaurant');
+                        }}
+                        location={itineraryLocation}
+                        placeholder="Search for restaurants..."
+                      />
+                    </div>
+                  )}
                 </TabsContent>
 
                 <TabsContent value="attraction" className="space-y-4">
@@ -576,6 +584,5 @@ export function EventDialog({
         </DialogContent>
       </Dialog>
 
-      <RestaurantSearchDialog isOpen={isRestaurantSearchOpen} onClose={() => setIsRestaurantSearchOpen(false)} onSelect={handleRestaurantSelect} />
     </>;
 }
