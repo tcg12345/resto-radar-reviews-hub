@@ -344,23 +344,6 @@ export function ShareItineraryDialog({ isOpen, onClose, itinerary }: ShareItiner
 
           {/* External Sharing */}
           <TabsContent value="external" className="flex-1 overflow-y-auto space-y-4 pr-2">
-            {/* Preview */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Preview</CardTitle>
-                <CardDescription>
-                  This is how your itinerary will look when shared
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-muted p-4 rounded-lg">
-                  <pre className="text-sm whitespace-pre-wrap font-sans text-foreground">
-                    {generateShareText()}
-                  </pre>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Quick Share Buttons */}
             <div className="grid grid-cols-2 gap-3">
               <Button
