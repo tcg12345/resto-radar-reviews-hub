@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { Itinerary } from '@/components/ItineraryBuilder';
+import { ItineraryMapView } from '@/components/ItineraryMapView';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -18,6 +19,7 @@ export function ItineraryViewPage() {
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
   const [loading, setLoading] = useState(true);
   const [collapsedDays, setCollapsedDays] = useState<Record<string, boolean>>({});
+  const [isMapOpen, setIsMapOpen] = useState(false);
 
   useEffect(() => {
     loadItinerary();
@@ -315,6 +317,15 @@ export function ItineraryViewPage() {
                 {duration} {duration === 1 ? 'day' : 'days'} • {itinerary.events.length} events
               </p>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsMapOpen(true)}
+              className="hover:bg-primary/10 border-primary/20"
+            >
+              <MapPin className="w-4 h-4 mr-2" />
+              View Map
+            </Button>
           </div>
         </div>
       </div>
@@ -757,6 +768,14 @@ export function ItineraryViewPage() {
             ))}
         </div>
       </div>
+
+      {/* Map View */}
+      <ItineraryMapView 
+        events={itinerary.events} 
+        hotels={itinerary.hotels || []} 
+        isOpen={isMapOpen} 
+        onClose={() => setIsMapOpen(false)} 
+      />
     </div>
   );
 }
