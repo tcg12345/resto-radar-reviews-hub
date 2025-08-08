@@ -1,5 +1,5 @@
 import { format, eachDayOfInterval, isSameDay } from 'date-fns';
-import { Plus, MapPin, Clock, Utensils, MapPinIcon, MoreVertical, Trash2, Edit, Compass, ExternalLink, Phone, ChevronDown } from 'lucide-react';
+import { Plus, MapPin, Clock, Utensils, MapPinIcon, MoreVertical, Trash2, Edit, Compass, ExternalLink, Phone, ChevronDown, Hotel } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ItineraryEvent } from '@/components/ItineraryBuilder';
+import { ItineraryEvent, HotelBooking } from '@/components/ItineraryBuilder';
 import { useState } from 'react';
 interface TripLocation {
   id: string;
@@ -21,6 +21,7 @@ interface TripCalendarProps {
   endDate: Date;
   events: ItineraryEvent[];
   locations: TripLocation[];
+  hotels: HotelBooking[];
   isMultiCity: boolean;
   useLengthOfStay?: boolean;
   onAddEvent: (date: string) => void;
@@ -32,6 +33,7 @@ export function TripCalendar({
   endDate,
   events,
   locations,
+  hotels,
   isMultiCity,
   useLengthOfStay,
   onAddEvent,
@@ -71,6 +73,39 @@ export function TripCalendar({
     }
     return null;
   };
+
+  const getHotelForDate = (date: Date) => {
+    if (!hotels || hotels.length === 0) return null;
+    
+    // If only one hotel and no specific dates, show it for the whole trip
+    if (hotels.length === 1) {
+      const hotel = hotels[0];
+      if (!hotel.checkIn && !hotel.checkOut) {
+        return hotel;
+      }
+    }
+    
+    // Check hotels by date ranges
+    for (const hotel of hotels) {
+      if (hotel.checkIn && hotel.checkOut) {
+        const checkInDate = new Date(hotel.checkIn);
+        const checkOutDate = new Date(hotel.checkOut);
+        
+        // Check if the date falls within the hotel stay period
+        if (date >= checkInDate && date < checkOutDate) {
+          return hotel;
+        }
+      }
+    }
+    
+    // If no date-specific hotel found but only one hotel exists, use it
+    if (hotels.length === 1) {
+      return hotels[0];
+    }
+    
+    return null;
+  };
+  
   const getEventsForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     return events.filter(event => event.date === dateStr).sort((a, b) => {
@@ -134,6 +169,7 @@ export function TripCalendar({
 
       {days.map((day, index) => {
       const dayEvents = getEventsForDate(day);
+      const dayHotel = getHotelForDate(day);
       const dateStr = format(day, 'yyyy-MM-dd');
       const isCollapsed = collapsedDays.has(dateStr);
       return <div key={day.toISOString()} className="lg:contents">
@@ -143,14 +179,20 @@ export function TripCalendar({
                   <CardHeader className="p-4 cursor-pointer hover:bg-muted/30 transition-all duration-200 rounded-t-xl lg:rounded-t-lg active:scale-[0.98]">
                     {isCollapsed ? <div className="flex items-center justify-between w-full min-h-[3rem]">
                         <div className="flex-1 flex items-center">
-                          <div>
+                          <div className="flex-1">
                             <CardTitle className="text-base lg:text-lg font-semibold truncate">
                               {useLengthOfStay ? `Day ${index + 1}` : `Day ${index + 1} - ${format(day, 'EEE, MMM do')}`}
                             </CardTitle>
-                            {isMultiCity && getCityForDate(day) && <div className="flex items-center gap-1 text-primary font-medium text-xs mt-1">
-                                <MapPin className="w-3 h-3 shrink-0" />
-                                <span className="truncate">{getCityForDate(day)}</span>
-                              </div>}
+                            <div className="flex flex-wrap items-center gap-2 mt-1">
+                              {isMultiCity && getCityForDate(day) && <div className="flex items-center gap-1 text-primary font-medium text-xs">
+                                  <MapPin className="w-3 h-3 shrink-0" />
+                                  <span className="truncate">{getCityForDate(day)}</span>
+                                </div>}
+                              {dayHotel && <div className="flex items-center gap-1 text-blue-600 font-medium text-xs bg-blue-50 dark:bg-blue-950/30 px-2 py-1 rounded-md border border-blue-200/50">
+                                  <Hotel className="w-3 h-3 shrink-0" />
+                                  <span className="truncate">{dayHotel.hotel?.name || 'Hotel'}</span>
+                                </div>}
+                            </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
@@ -171,10 +213,16 @@ export function TripCalendar({
                         </div>
                         
                         <div className="space-y-2">
-                          {isMultiCity && getCityForDate(day) && <div className="flex items-center gap-1 text-primary font-medium text-sm">
-                              <MapPin className="w-3 h-3 shrink-0" />
-                              <span className="truncate">{getCityForDate(day)}</span>
-                            </div>}
+                          <div className="flex flex-wrap items-center gap-2">
+                            {isMultiCity && getCityForDate(day) && <div className="flex items-center gap-1 text-primary font-medium text-sm">
+                                <MapPin className="w-3 h-3 shrink-0" />
+                                <span className="truncate">{getCityForDate(day)}</span>
+                              </div>}
+                            {dayHotel && <div className="flex items-center gap-1 text-blue-600 font-medium text-sm bg-blue-50 dark:bg-blue-950/30 px-3 py-1.5 rounded-md border border-blue-200/50">
+                                <Hotel className="w-4 h-4 shrink-0" />
+                                <span className="truncate">{dayHotel.hotel?.name || 'Hotel'}</span>
+                              </div>}
+                          </div>
                           
                           <div className="flex items-center justify-between">
                             <div className="text-sm text-muted-foreground">
