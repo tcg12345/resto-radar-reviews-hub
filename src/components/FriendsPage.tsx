@@ -170,22 +170,22 @@ export function FriendsPage({
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full grid grid-cols-4 gap-1 p-1 mb-8 bg-muted rounded-md">
-          <TabsTrigger value="friends" className="w-full h-9 text-sm justify-center rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-            <Users className="h-4 w-4 mr-1.5" />
-            <span>Friends ({friends.length})</span>
+        <TabsList className="w-full grid grid-cols-2 sm:grid-cols-4 gap-1 p-1 mb-6 bg-muted rounded-md">
+          <TabsTrigger value="friends" className="min-w-0 w-full h-10 text-xs sm:text-sm justify-center rounded-md px-2 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+            <Users className="h-4 w-4 mr-1.5 shrink-0" />
+            <span className="truncate">Friends ({friends.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="activity" className="w-full h-9 text-sm justify-center rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-            <Activity className="h-4 w-4 mr-1.5" />
-            <span>Activity</span>
+          <TabsTrigger value="activity" className="min-w-0 w-full h-10 text-xs sm:text-sm justify-center rounded-md px-2 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+            <Activity className="h-4 w-4 mr-1.5 shrink-0" />
+            <span className="truncate">Activity</span>
           </TabsTrigger>
-          <TabsTrigger value="search" className="w-full h-9 text-sm justify-center rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-            <Plus className="h-4 w-4 mr-1.5" />
-            <span>Find Friends</span>
+          <TabsTrigger value="search" className="min-w-0 w-full h-10 text-xs sm:text-sm justify-center rounded-md px-2 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+            <Plus className="h-4 w-4 mr-1.5 shrink-0" />
+            <span className="truncate">Find Friends</span>
           </TabsTrigger>
-          <TabsTrigger value="requests" className="w-full h-9 text-sm justify-center rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-            <Filter className="h-4 w-4 mr-1.5" />
-            <span>Requests ({pendingRequests.length + sentRequests.length})</span>
+          <TabsTrigger value="requests" className="min-w-0 w-full h-10 text-xs sm:text-sm justify-center rounded-md px-2 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+            <Filter className="h-4 w-4 mr-1.5 shrink-0" />
+            <span className="truncate">Requests ({pendingRequests.length + sentRequests.length})</span>
           </TabsTrigger>
         </TabsList>
 
