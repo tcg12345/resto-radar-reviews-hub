@@ -72,8 +72,8 @@ export function MobileProfilePage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Profile Header */}
-      <div className="relative bg-gradient-to-br from-primary/5 via-primary/10 to-primary-glow/10 px-4 pt-6 pb-8">
-        <div className="flex flex-col items-center space-y-4">
+      <div className="relative bg-gradient-to-br from-primary/5 via-primary/10 to-primary-glow/10 pt-6 pb-8">
+        <div className="px-4 flex flex-col items-center space-y-4">
           {/* Profile Photo */}
           <div className="relative">
             <Avatar className="w-24 h-24 border-4 border-background shadow-xl">
