@@ -378,7 +378,7 @@ export function UnifiedRestaurantDetails({
         {/* Photos - Show either restaurant photos or community photos */}
         {(photos.length > 0 || (communityStats?.recentPhotos && communityStats.recentPhotos.length > 0)) && (
           <div 
-            className={`${isMobile ? 'aspect-video' : 'aspect-video md:h-64'} bg-muted relative overflow-hidden cursor-pointer group`} 
+            className={`${isMobile ? 'aspect-video' : 'aspect-video md:aspect-auto md:h-72'} w-full bg-muted relative overflow-hidden cursor-pointer group`} 
             onClick={() => navigate(`/restaurant/${restaurantData.place_id || restaurantData.id}/community-photos?name=${encodeURIComponent(restaurantData.name)}`)}
           >
             {/* Try to show community photos first, then restaurant photos, then fallback */}
