@@ -1069,8 +1069,11 @@ export function ItineraryBuilder({
     locationLengthOfStay: Object.keys(locationLengthOfStay),
     events: events.length
   });
+  
+  const [activeTab, setActiveTab] = useState("builder");
+  
   return <div className="w-full px-4 lg:px-6 space-y-6">
-      <Tabs defaultValue="builder" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="builder" className="flex items-center gap-2">
             Itinerary Builder
@@ -1947,7 +1950,9 @@ export function ItineraryBuilder({
       {/* Map View */}
       <ItineraryMapView events={events} hotels={hotels} isOpen={isMapOpen} onClose={() => setIsMapOpen(false)} />
 
-      {/* Mobile Map Button */}
-      <ItineraryMapButton events={events} onOpenMap={() => setIsMapOpen(true)} />
+      {/* Mobile Map Button - Only show on builder tab and when map is not open */}
+      {activeTab === "builder" && !isMapOpen && (
+        <ItineraryMapButton events={events} onOpenMap={() => setIsMapOpen(true)} />
+      )}
     </div>;
 }
