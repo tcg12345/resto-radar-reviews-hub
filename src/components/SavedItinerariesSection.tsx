@@ -381,18 +381,18 @@ export function SavedItinerariesSection({ onLoadItinerary }: SavedItinerariesSec
           </TabsTrigger>
         </TabsList>
 
-        {/* Mobile Tabs - Compact */}
-        <TabsList className="md:hidden grid w-full grid-cols-4 h-8">
-          <TabsTrigger value="all" className="text-xs px-1">
+        {/* Mobile Tabs - Compact and aligned */}
+        <TabsList className="md:hidden grid grid-cols-4 gap-1 h-10 rounded-md border border-border bg-muted/40 p-1">
+          <TabsTrigger value="all" className="w-full h-8 text-sm justify-center rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
             All
           </TabsTrigger>
-          <TabsTrigger value="current" className="text-xs px-1">
+          <TabsTrigger value="current" className="w-full h-8 text-sm justify-center rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
             Active
           </TabsTrigger>
-          <TabsTrigger value="past" className="text-xs px-1">
+          <TabsTrigger value="past" className="w-full h-8 text-sm justify-center rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
             Past
           </TabsTrigger>
-          <TabsTrigger value="future" className="text-xs px-1">
+          <TabsTrigger value="future" className="w-full h-8 text-sm justify-center rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
             Future
           </TabsTrigger>
         </TabsList>
