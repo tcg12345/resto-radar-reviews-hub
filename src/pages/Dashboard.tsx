@@ -60,14 +60,17 @@ export default function Dashboard() {
           <SettingsPage onBack={() => setActiveTab('home')} />
         </div>
         <div className={`${activeTab === 'profile' ? 'block' : 'hidden'}`}>
-          {isMobile ? (
-            <MobileProfilePage />
-          ) : (
-            <FriendsPage 
-              initialViewFriendId={viewFriendId} 
-              onInitialViewProcessed={() => setViewFriendId(null)}
-            />
-          )}
+          {(() => {
+            console.log('Dashboard render - isMobile:', isMobile, 'activeTab:', activeTab);
+            return isMobile ? (
+              <MobileProfilePage />
+            ) : (
+              <FriendsPage 
+                initialViewFriendId={viewFriendId} 
+                onInitialViewProcessed={() => setViewFriendId(null)}
+              />
+            );
+          })()}
         </div>
       </div>
     );

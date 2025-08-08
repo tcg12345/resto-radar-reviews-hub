@@ -8,9 +8,11 @@ export function useIsMobile() {
       const userAgent = window.navigator.userAgent;
       const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
       const isMobileDevice = mobileRegex.test(userAgent);
-      const isSmallScreen = window.innerWidth <= 768;
+      const isSmallScreen = window.innerWidth <= 1024; // Changed from 768 to 1024
       
-      setIsMobile(isMobileDevice || isSmallScreen);
+      const mobile = isMobileDevice || isSmallScreen;
+      console.log('Mobile detection:', { isMobileDevice, isSmallScreen, mobile, width: window.innerWidth });
+      setIsMobile(mobile);
     };
 
     checkIsMobile();
