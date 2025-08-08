@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { Itinerary } from '@/components/ItineraryBuilder';
 import { ItineraryMapView } from '@/components/ItineraryMapView';
+import { ShareItineraryDialog } from '@/components/ShareItineraryDialog';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -20,6 +21,7 @@ export function ItineraryViewPage() {
   const [loading, setLoading] = useState(true);
   const [collapsedDays, setCollapsedDays] = useState<Record<string, boolean>>({});
   const [isMapOpen, setIsMapOpen] = useState(false);
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
 
   useEffect(() => {
     loadItinerary();
@@ -320,18 +322,7 @@ export function ItineraryViewPage() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                if (navigator.share) {
-                  navigator.share({
-                    title: itinerary.title,
-                    text: `Check out my ${duration}-day itinerary: ${itinerary.title}`,
-                    url: window.location.href
-                  });
-                } else {
-                  navigator.clipboard.writeText(window.location.href);
-                  toast.success('Link copied to clipboard!');
-                }
-              }}
+              onClick={() => setIsShareDialogOpen(true)}
               className="hover:bg-accent/10"
             >
               <Share2 className="w-4 h-4 mr-2" />
@@ -814,6 +805,13 @@ export function ItineraryViewPage() {
         hotels={itinerary.hotels || []} 
         isOpen={isMapOpen} 
         onClose={() => setIsMapOpen(false)} 
+      />
+
+      {/* Share Dialog */}
+      <ShareItineraryDialog 
+        isOpen={isShareDialogOpen} 
+        onClose={() => setIsShareDialogOpen(false)} 
+        itinerary={itinerary} 
       />
     </div>
   );
