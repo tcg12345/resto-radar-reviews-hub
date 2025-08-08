@@ -353,7 +353,7 @@ export function ShareItineraryDialog({ isOpen, onClose, itinerary }: ShareItiner
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] max-w-[95vw] max-h-[80vh] overflow-hidden flex flex-col border-border/50 shadow-xl">
+      <DialogContent className="sm:max-w-[600px] max-w-[95vw] max-h-[80vh] overflow-hidden flex flex-col border-border/50 shadow-xl rounded-xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Share2 className="w-5 h-5" />
