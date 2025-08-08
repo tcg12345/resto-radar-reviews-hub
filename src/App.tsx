@@ -84,7 +84,7 @@ const App = () => (
                 <Route path="/settings" element={<RequireAuth><Layout activeTab="settings" showNavbar={false} showChatbot={false}><SettingsPageWrapper /></Layout></RequireAuth>} />
                 <Route path="/privacy-policy" element={<RequireAuth><Layout activeTab="settings" showNavbar={false} showChatbot={false}><PrivacyPolicyPageWrapper /></Layout></RequireAuth>} />
                 <Route path="/friends" element={<RequireAuth><Layout activeTab="profile"><ProfilePageWrapper /></Layout></RequireAuth>} />
-                <Route path="/friends/:friendId" element={<RequireAuth><Layout activeTab="profile"><FriendProfilePage /></Layout></RequireAuth>} />
+                <Route path="/friends/:friendId" element={<RequireAuth><FriendProfilePage /></RequireAuth>} />
                 <Route path="/profile/edit" element={<RequireAuth><MobileProfileEditPage /></RequireAuth>} />
                 <Route path="/profile/edit-photo" element={<RequireAuth><MobileProfilePhotoEditPage /></RequireAuth>} />
                 <Route path="/mobile/friends" element={<RequireAuth><MobileFriendsPage /></RequireAuth>} />
