@@ -24,6 +24,8 @@ import { ChatListPage } from "./pages/ChatListPage";
 import { ChatPage } from "./pages/ChatPage";
 import { ProfilePageWrapper } from "@/components/ProfilePageWrapper";
 import HomePageWrapper from "./pages/HomePageWrapper";
+import { MobileProfileEditPage } from "./pages/MobileProfileEditPage";
+import { MobileProfilePhotoEditPage } from "./pages/MobileProfilePhotoEditPage";
 import SavedPlacesPageWrapper from "./pages/SavedPlacesPageWrapper";
 import MapPageWrapper from "./pages/MapPageWrapper";
 import UnifiedSearchPage from "./pages/UnifiedSearchPage";
@@ -82,6 +84,8 @@ const App = () => (
                 <Route path="/privacy-policy" element={<RequireAuth><Layout activeTab="settings" showNavbar={false} showChatbot={false}><PrivacyPolicyPageWrapper /></Layout></RequireAuth>} />
                 <Route path="/friends" element={<RequireAuth><Layout activeTab="profile"><ProfilePageWrapper /></Layout></RequireAuth>} />
                 <Route path="/friends/:friendId" element={<RequireAuth><Layout activeTab="profile"><FriendProfilePage /></Layout></RequireAuth>} />
+                <Route path="/profile/edit" element={<RequireAuth><MobileProfileEditPage /></RequireAuth>} />
+                <Route path="/profile/edit-photo" element={<RequireAuth><MobileProfilePhotoEditPage /></RequireAuth>} />
                 
                 {/* User profile routes */}
                 <Route path="/user/:userId" element={<RequireAuth><MobileFriendProfilePage /></RequireAuth>} />

@@ -145,7 +145,7 @@ export function MobileProfilePage() {
             <Button
               size="sm"
               className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full shadow-lg"
-              onClick={() => setIsPhotoDialogOpen(true)}
+              onClick={() => navigate('/profile/edit-photo')}
             >
               <Camera className="h-4 w-4" />
             </Button>
@@ -159,7 +159,7 @@ export function MobileProfilePage() {
                 size="sm"
                 variant="ghost"
                 className="h-8 w-8 p-0"
-                onClick={() => setIsEditDialogOpen(true)}
+                onClick={() => navigate('/profile/edit')}
               >
                 <Edit2 className="h-4 w-4" />
               </Button>
@@ -353,18 +353,7 @@ export function MobileProfilePage() {
         </Tabs>
       </div>
 
-      {/* Dialogs */}
-      <ProfileEditDialog
-        isOpen={isEditDialogOpen}
-        onClose={() => setIsEditDialogOpen(false)}
-        currentProfile={profile}
-      />
-      
-      <PhotoUploadDialog
-        isOpen={isPhotoDialogOpen}
-        onClose={() => setIsPhotoDialogOpen(false)}
-        currentAvatarUrl={profile.avatar_url}
-      />
+      {/* Removed dialogs - now using full page navigation */}
     </div>
   );
 }
