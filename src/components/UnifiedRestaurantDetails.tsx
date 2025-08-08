@@ -378,7 +378,7 @@ export function UnifiedRestaurantDetails({
         {/* Photos - Show either restaurant photos or community photos */}
         {(photos.length > 0 || (communityStats?.recentPhotos && communityStats.recentPhotos.length > 0)) && (
           <div 
-            className={`${isMobile ? 'aspect-video' : 'aspect-video md:aspect-auto md:h-72'} w-full bg-muted relative overflow-hidden cursor-pointer group`} 
+            className={`${isMobile ? 'aspect-video' : 'aspect-video md:aspect-auto md:h-auto md:max-h-[420px] md:max-w-3xl md:mx-auto'} w-full bg-muted relative overflow-hidden cursor-pointer group`} 
             onClick={() => navigate(`/restaurant/${restaurantData.place_id || restaurantData.id}/community-photos?name=${encodeURIComponent(restaurantData.name)}`)}
           >
             {/* Try to show community photos first, then restaurant photos, then fallback */}
@@ -386,7 +386,7 @@ export function UnifiedRestaurantDetails({
               <img 
                 src={communityStats.recentPhotos[0].photos[0]} 
                 alt={restaurantData.name} 
-                className="w-full h-full object-cover transition-transform group-hover:scale-105" 
+                className="w-full h-full object-cover transition-transform group-hover:scale-105 md:object-contain md:h-auto md:w-auto md:max-h-[420px] md:mx-auto" 
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   // Try the next photo source if community photo fails
@@ -402,7 +402,7 @@ export function UnifiedRestaurantDetails({
               <img 
                 src={photos[0]} 
                 alt={restaurantData.name} 
-                className="w-full h-full object-cover transition-transform group-hover:scale-105" 
+                className="w-full h-full object-cover transition-transform group-hover:scale-105 md:object-contain md:h-auto md:w-auto md:max-h-[420px] md:mx-auto" 
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZjNmNGY2Ii8+CjxwYXRoIGQ9Im0xNSA5LTYgNi02LTYiIHN0cm9rZT0iIzk3YTNiMCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+';
