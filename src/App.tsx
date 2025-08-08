@@ -79,8 +79,8 @@ const App = () => (
                 
                 <Route path="/settings" element={<RequireAuth><Layout activeTab="settings" showNavbar={false} showChatbot={false}><SettingsPageWrapper /></Layout></RequireAuth>} />
                 <Route path="/privacy-policy" element={<RequireAuth><Layout activeTab="settings" showNavbar={false} showChatbot={false}><PrivacyPolicyPageWrapper /></Layout></RequireAuth>} />
-                <Route path="/friends" element={<RequireAuth><Layout activeTab="friends"><FriendsPage /></Layout></RequireAuth>} />
-                <Route path="/friends/:friendId" element={<RequireAuth><Layout activeTab="friends"><FriendProfilePage /></Layout></RequireAuth>} />
+                <Route path="/friends" element={<RequireAuth><Layout activeTab="profile"><FriendsPage /></Layout></RequireAuth>} />
+                <Route path="/friends/:friendId" element={<RequireAuth><Layout activeTab="profile"><FriendProfilePage /></Layout></RequireAuth>} />
                 
                 {/* User profile routes */}
                 <Route path="/user/:userId" element={<RequireAuth><MobileFriendProfilePage /></RequireAuth>} />

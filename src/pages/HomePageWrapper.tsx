@@ -6,7 +6,7 @@ export default function HomePageWrapper() {
   const navigate = useNavigate();
   const [shouldOpenAddDialog, setShouldOpenAddDialog] = useState(false);
 
-  const handleNavigate = (tab: 'places' | 'search' | 'friends') => {
+  const handleNavigate = (tab: 'places' | 'search' | 'profile') => {
     switch (tab) {
       case 'places':
         navigate('/places');
@@ -14,7 +14,7 @@ export default function HomePageWrapper() {
       case 'search':
         navigate('/search');
         break;
-      case 'friends':
+      case 'profile':
         navigate('/friends');
         break;
     }

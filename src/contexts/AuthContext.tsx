@@ -12,6 +12,8 @@ interface Profile {
   avatar_url: string | null;
   is_public: boolean | null;
   allow_friend_requests: boolean | null;
+  bio: string | null;
+  home_city: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -7,16 +7,19 @@ import HomePage from '@/pages/HomePage';
 import UnifiedSearchPage from '@/pages/UnifiedSearchPage';
 import SettingsPage from '@/pages/SettingsPage';
 import { FriendsPage } from '@/pages/FriendsPage';
+import { MobileProfilePage } from '@/components/mobile/MobileProfilePage';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { AIChatbot } from '@/components/AIChatbot';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState<'home' | 'places' | 'search' | 'settings' | 'friends' | 'travel'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'places' | 'search' | 'settings' | 'profile' | 'travel'>('home');
   const [shouldOpenAddDialog, setShouldOpenAddDialog] = useState(false);
   const [viewFriendId, setViewFriendId] = useState<string | null>(null);
   const { restaurants, addRestaurant, updateRestaurant, deleteRestaurant } = useRestaurants();
   const navigate = useNavigate();
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   // Handle navigation state from other pages
   useEffect(() => {
@@ -56,11 +59,15 @@ export default function Dashboard() {
         <div className={`${activeTab === 'settings' ? 'block' : 'hidden'}`}>
           <SettingsPage onBack={() => setActiveTab('home')} />
         </div>
-        <div className={`${activeTab === 'friends' ? 'block' : 'hidden'}`}>
-          <FriendsPage 
-            initialViewFriendId={viewFriendId} 
-            onInitialViewProcessed={() => setViewFriendId(null)}
-          />
+        <div className={`${activeTab === 'profile' ? 'block' : 'hidden'}`}>
+          {isMobile ? (
+            <MobileProfilePage />
+          ) : (
+            <FriendsPage 
+              initialViewFriendId={viewFriendId} 
+              onInitialViewProcessed={() => setViewFriendId(null)}
+            />
+          )}
         </div>
       </div>
     );

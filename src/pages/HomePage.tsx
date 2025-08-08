@@ -27,7 +27,7 @@ import { useRestaurants } from '@/contexts/RestaurantContext';
 import { useNavigate } from 'react-router-dom';
 
 interface HomePageProps {
-  onNavigate: (tab: 'places' | 'search' | 'friends') => void;
+  onNavigate: (tab: 'places' | 'search' | 'profile') => void;
   onOpenAddRestaurant: () => void;
 }
 
@@ -158,7 +158,7 @@ export default function HomePage({ onNavigate, onOpenAddRestaurant }: HomePagePr
       description: 'Connect with food lovers',
       icon: Users,
       color: 'bg-indigo-500',
-      action: () => onNavigate('friends')
+      action: () => onNavigate('profile')
     }
   ];
 

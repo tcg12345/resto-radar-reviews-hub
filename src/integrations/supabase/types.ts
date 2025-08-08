@@ -437,8 +437,10 @@ export type Database = {
           address: string | null
           allow_friend_requests: boolean | null
           avatar_url: string | null
+          bio: string | null
           created_at: string | null
           email: string | null
+          home_city: string | null
           id: string
           is_public: boolean | null
           name: string | null
@@ -450,8 +452,10 @@ export type Database = {
           address?: string | null
           allow_friend_requests?: boolean | null
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string | null
           email?: string | null
+          home_city?: string | null
           id: string
           is_public?: boolean | null
           name?: string | null
@@ -463,8 +467,10 @@ export type Database = {
           address?: string | null
           allow_friend_requests?: boolean | null
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string | null
           email?: string | null
+          home_city?: string | null
           id?: string
           is_public?: boolean | null
           name?: string | null
