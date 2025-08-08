@@ -331,99 +331,99 @@ export function MobileProfilePage() {
               </div>
             </div>
           </Button>
+        </div>
 
-          {/* Recent Activity */}
-          <div className="border-t border-border">
-            <div className="px-4 py-4 bg-background">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <Activity className="h-5 w-5" />
-                Recent Activity
-              </h3>
-            </div>
-            
-            {loadingActivity ? (
-              <div className="divide-y divide-border">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="px-4 py-4 flex items-center gap-3 animate-pulse bg-background">
-                    <div className="w-12 h-12 bg-muted rounded-full"></div>
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-muted rounded w-3/4"></div>
-                      <div className="h-3 bg-muted rounded w-1/2"></div>
-                    </div>
-                    <div className="w-8 h-8 bg-muted rounded-full"></div>
+        {/* Recent Activity - Full Width */}
+        <div className="border-t border-border">
+          <div className="px-4 py-4 bg-background">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              Recent Activity
+            </h3>
+          </div>
+          
+          {loadingActivity ? (
+            <div className="divide-y divide-border">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="px-4 py-4 flex items-center gap-3 animate-pulse bg-background">
+                  <div className="w-12 h-12 bg-muted rounded-full"></div>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-muted rounded w-3/4"></div>
+                    <div className="h-3 bg-muted rounded w-1/2"></div>
                   </div>
-                ))}
-              </div>
-            ) : recentActivity.length > 0 ? (
-              <div className="divide-y divide-border">
-                {recentActivity.map((activity, index) => (
-                  <div
-                    key={activity.id}
-                    className="px-4 py-4 bg-background hover:bg-muted/50 transition-colors cursor-pointer"
-                    onClick={() => navigate(`/restaurant/${activity.place_id}`)}
-                  >
-                    <div className="flex items-start gap-3">
-                      {/* User Avatar */}
-                      <Avatar className="w-12 h-12 border-2 border-background">
-                        <AvatarImage src={profile?.avatar_url || ''} alt={profile?.username || 'User'} />
-                        <AvatarFallback className="text-sm font-bold bg-primary/10 text-primary">
-                          {profile?.name?.charAt(0) || profile?.username?.charAt(0) || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
+                  <div className="w-8 h-8 bg-muted rounded-full"></div>
+                </div>
+              ))}
+            </div>
+          ) : recentActivity.length > 0 ? (
+            <div className="divide-y divide-border">
+              {recentActivity.map((activity, index) => (
+                <div
+                  key={activity.id}
+                  className="px-4 py-4 bg-background hover:bg-muted/50 transition-colors cursor-pointer"
+                  onClick={() => navigate(`/restaurant/${activity.place_id}`)}
+                >
+                  <div className="flex items-start gap-3">
+                    {/* User Avatar */}
+                    <Avatar className="w-12 h-12 border-2 border-background">
+                      <AvatarImage src={profile?.avatar_url || ''} alt={profile?.username || 'User'} />
+                      <AvatarFallback className="text-sm font-bold bg-primary/10 text-primary">
+                        {profile?.name?.charAt(0) || profile?.username?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
 
-                      {/* Activity Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <p className="text-base font-semibold text-foreground">
-                            You ranked {activity.place_name}
-                          </p>
-                          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary font-bold text-sm">
-                            {activity.overall_rating ? activity.overall_rating.toFixed(1) : '—'}
-                          </div>
+                    {/* Activity Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-base font-semibold text-foreground">
+                          You ranked {activity.place_name}
+                        </p>
+                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary font-bold text-sm">
+                          {activity.overall_rating ? activity.overall_rating.toFixed(1) : '—'}
                         </div>
-                        
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                          <MapPinIcon className="h-4 w-4" />
-                          <span className="truncate">{activity.address}</span>
-                        </div>
-                        
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <TrendingUp className="h-4 w-4" />
-                          <span>1 visit</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex items-center justify-between mt-3">
-                      <div className="flex items-center gap-4">
-                        <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground">
-                          <Heart className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground">
-                          <MessageCircle className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground">
-                          <Share2 className="h-4 w-4" />
-                        </Button>
                       </div>
                       
-                      <span className="text-xs text-muted-foreground">
-                        {format(new Date(activity.created_at), 'MMM d')}
-                      </span>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                        <MapPinIcon className="h-4 w-4" />
+                        <span className="truncate">{activity.address}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <TrendingUp className="h-4 w-4" />
+                        <span>1 visit</span>
+                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="px-4 py-8 bg-background text-center">
-                <Activity className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-muted-foreground text-sm">
-                  No activity yet. Start rating restaurants!
-                </p>
-              </div>
-            )}
-          </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center justify-between mt-3">
+                    <div className="flex items-center gap-4">
+                      <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground">
+                        <Heart className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground">
+                        <MessageCircle className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground">
+                        <Share2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    
+                    <span className="text-xs text-muted-foreground">
+                      {format(new Date(activity.created_at), 'MMM d')}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="px-4 py-8 bg-background text-center">
+              <Activity className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+              <p className="text-muted-foreground text-sm">
+                No activity yet. Start rating restaurants!
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
