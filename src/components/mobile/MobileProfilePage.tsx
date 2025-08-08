@@ -169,15 +169,15 @@ export function MobileProfilePage() {
               <p className="text-muted-foreground">@{profile.username}</p>
             )}
             
+            {profile.bio && (
+              <p className="text-sm text-muted-foreground max-w-xs mx-auto mt-2">{profile.bio}</p>
+            )}
+            
             {profile.home_city && (
-              <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground">
+              <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground mt-2">
                 <MapPin className="h-4 w-4" />
                 <span>{profile.home_city}</span>
               </div>
-            )}
-            
-            {profile.bio && (
-              <p className="text-sm text-muted-foreground max-w-xs mx-auto">{profile.bio}</p>
             )}
 
             {/* Privacy Badge */}

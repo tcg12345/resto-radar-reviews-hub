@@ -44,8 +44,8 @@ export function MobileProfileEditPage() {
       const { error } = await supabase
         .from('profiles')
         .update({
-          username: formData.username.trim(),
-          name: formData.name.trim(),
+          username: formData.username.trim() || null,
+          name: formData.name.trim() || null,
           bio: formData.bio.trim() || null,
           home_city: formData.home_city.trim() || null,
           is_public: formData.is_public,
@@ -57,7 +57,8 @@ export function MobileProfileEditPage() {
       if (error) throw error;
 
       toast.success('Profile updated successfully');
-      navigate(-1); // Go back to previous page
+      // Force a page reload to refresh the auth context
+      window.location.href = '/friends';
     } catch (error) {
       console.error('Error updating profile:', error);
       toast.error('Failed to update profile');
