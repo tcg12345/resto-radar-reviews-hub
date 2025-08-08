@@ -192,7 +192,7 @@ export function MobileProfilePage() {
 
           {/* Itineraries Button */}
           <Button 
-            onClick={() => navigate('/travel')} 
+            onClick={() => navigate('/travel?view=saved')} 
             className="w-full h-14 bg-background hover:bg-muted/50 border border-border"
             variant="outline"
           >

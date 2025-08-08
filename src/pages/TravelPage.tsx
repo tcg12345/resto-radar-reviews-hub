@@ -1,11 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ItineraryBuilder, Itinerary } from '@/components/ItineraryBuilder';
 import { TripPlanner } from '@/components/TripPlanner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, MapPin } from 'lucide-react';
 
 export default function TravelPage() {
-  const [activeTab, setActiveTab] = useState('itinerary');
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') || 'itinerary';
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [itineraryBuilderKey, setItineraryBuilderKey] = useState(0);
 
   const handleLoadItinerary = (itinerary: Itinerary) => {
