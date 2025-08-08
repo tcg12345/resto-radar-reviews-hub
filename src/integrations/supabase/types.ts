@@ -223,6 +223,7 @@ export type Database = {
           hotels: Json | null
           id: string
           is_multi_city: boolean | null
+          is_shareable: boolean
           locations: Json | null
           start_date: string
           title: string
@@ -238,6 +239,7 @@ export type Database = {
           hotels?: Json | null
           id?: string
           is_multi_city?: boolean | null
+          is_shareable?: boolean
           locations?: Json | null
           start_date: string
           title: string
@@ -253,6 +255,7 @@ export type Database = {
           hotels?: Json | null
           id?: string
           is_multi_city?: boolean | null
+          is_shareable?: boolean
           locations?: Json | null
           start_date?: string
           title?: string

@@ -12,11 +12,13 @@ import { ItineraryMapView } from '@/components/ItineraryMapView';
 import { ShareItineraryDialog } from '@/components/ShareItineraryDialog';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function ItineraryViewPage() {
   const { itineraryId } = useParams();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { user } = useAuth();
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
   const [loading, setLoading] = useState(true);
   const [collapsedDays, setCollapsedDays] = useState<Record<string, boolean>>({});
@@ -219,12 +221,18 @@ export function ItineraryViewPage() {
         setItinerary(convertedItinerary);
       } else {
         toast.error('Itinerary not found');
-        navigate('/travel');
+        // Only navigate to /travel if user is authenticated
+        if (user) {
+          navigate('/travel');
+        }
       }
     } catch (error) {
       console.error('Error loading itinerary:', error);
       toast.error('Failed to load itinerary');
-      navigate('/travel');
+      // Only navigate to /travel if user is authenticated
+      if (user) {
+        navigate('/travel');
+      }
     } finally {
       setLoading(false);
     }
@@ -283,9 +291,11 @@ export function ItineraryViewPage() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <h1 className="text-2xl font-bold text-destructive">Itinerary Not Found</h1>
-          <Button onClick={() => navigate('/travel')}>
-            Back to Travel
-          </Button>
+          {user && (
+            <Button onClick={() => navigate('/travel')}>
+              Back to Travel
+            </Button>
+          )}
         </div>
       </div>
     );
@@ -302,15 +312,18 @@ export function ItineraryViewPage() {
       <div className="sticky top-0 z-50 bg-card/95 backdrop-blur-lg border-b border-border shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-4 pt-12 md:pt-4">
           <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/travel')}
-              className="hover:bg-accent/10"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
+            {/* Only show back button if user is authenticated */}
+            {user && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/travel')}
+                className="hover:bg-accent/10"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
+            )}
             <div className="flex-1 min-w-0">
               <h1 className={`font-bold text-foreground truncate ${isMobile ? 'text-lg' : 'text-xl'}`}>
                 {itinerary.title}
@@ -319,15 +332,18 @@ export function ItineraryViewPage() {
                 {duration} {duration === 1 ? 'day' : 'days'} • {itinerary.events.length} events
               </p>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsShareDialogOpen(true)}
-              className="hover:bg-accent/10"
-            >
-              <Share2 className="w-4 h-4 mr-2" />
-              Share
-            </Button>
+            {/* Only show share button if user is authenticated */}
+            {user && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsShareDialogOpen(true)}
+                className="hover:bg-accent/10"
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                Share
+              </Button>
+            )}
           </div>
         </div>
       </div>
