@@ -409,7 +409,7 @@ export function SavedItinerariesSection({ onLoadItinerary }: SavedItinerariesSec
               </p>
             </div>
           ) : (
-            <div className="grid gap-2 md:gap-4 -mx-10 md:mx-0">
+            <div className="grid gap-4 md:gap-6 -mx-10 md:mx-0">
               {filteredItineraries.map((itinerary) => (
                 <Card key={itinerary.id} className="mx-2 md:mx-0 transition-all duration-200 hover:shadow-md rounded-lg overflow-hidden">
                   {/* Desktop Layout */}
