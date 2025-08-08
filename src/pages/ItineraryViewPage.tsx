@@ -396,40 +396,74 @@ export function ItineraryViewPage() {
                 </div>
                 <div className="space-y-2">
                   {itinerary.hotels.map((hotel: any) => (
-                    <div key={hotel.id} className="bg-blue-50/50 dark:bg-blue-950/20 rounded-lg p-3 border border-blue-200/30">
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <Hotel className="w-4 h-4 text-blue-600" />
+                    <div key={hotel.id} className="bg-blue-50/50 dark:bg-blue-950/20 rounded-lg p-3 border border-blue-200/30 w-full">
+                      <div className="flex flex-col gap-3 w-full">
+                        <div className="flex items-start gap-3 w-full">
+                          <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <Hotel className="w-4 h-4 text-blue-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-sm text-foreground truncate">{hotel.hotel?.name || 'Hotel'}</h4>
+                            <p className="text-xs text-muted-foreground truncate">{hotel.hotel?.address}</p>
+                            {(hotel.checkIn || hotel.checkOut) && (
+                              <p className="text-xs text-blue-600 mt-1">
+                                {hotel.checkIn && hotel.checkOut 
+                                  ? `${new Date(hotel.checkIn).toLocaleDateString()} - ${new Date(hotel.checkOut).toLocaleDateString()}`
+                                  : hotel.checkIn 
+                                  ? `Check-in: ${new Date(hotel.checkIn).toLocaleDateString()}`
+                                  : `Check-out: ${new Date(hotel.checkOut).toLocaleDateString()}`
+                                }
+                              </p>
+                            )}
+                            {hotel.location && (
+                              <Badge variant="outline" className="text-xs mt-1 h-5">
+                                📍 {hotel.location}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-sm text-foreground truncate">{hotel.hotel?.name || 'Hotel'}</h4>
-                          <p className="text-xs text-muted-foreground truncate">{hotel.hotel?.address}</p>
-                          {(hotel.checkIn || hotel.checkOut) && (
-                            <p className="text-xs text-blue-600 mt-1">
-                              {hotel.checkIn && hotel.checkOut 
-                                ? `${new Date(hotel.checkIn).toLocaleDateString()} - ${new Date(hotel.checkOut).toLocaleDateString()}`
-                                : hotel.checkIn 
-                                ? `Check-in: ${new Date(hotel.checkIn).toLocaleDateString()}`
-                                : `Check-out: ${new Date(hotel.checkOut).toLocaleDateString()}`
-                              }
-                            </p>
+                        
+                        {/* Action buttons row */}
+                        <div className="flex gap-2 w-full">
+                          {hotel.hotel?.address && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1 h-8 gap-1.5 text-xs"
+                              onClick={() => {
+                                const query = encodeURIComponent(hotel.hotel.address);
+                                window.open(`https://maps.google.com/?q=${query}`, '_blank');
+                              }}
+                            >
+                              <Navigation className="w-3 h-3" />
+                              Directions
+                            </Button>
                           )}
-                          {hotel.location && (
-                            <Badge variant="outline" className="text-xs mt-1 h-5">
-                              📍 {hotel.location}
-                            </Badge>
+                          
+                          {hotel.hotel?.phone && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1 h-8 gap-1.5 text-xs"
+                              onClick={() => window.open(`tel:${hotel.hotel.phone}`, '_self')}
+                            >
+                              <Phone className="w-3 h-3" />
+                              Call
+                            </Button>
+                          )}
+                          
+                          {hotel.hotel?.website && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1 h-8 gap-1.5 text-xs"
+                              onClick={() => window.open(hotel.hotel.website, '_blank')}
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              Website
+                            </Button>
                           )}
                         </div>
-                        {hotel.hotel?.website && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-8 w-8 p-0"
-                            onClick={() => window.open(hotel.hotel.website, '_blank')}
-                          >
-                            <ExternalLink className="w-3 h-3" />
-                          </Button>
-                        )}
                       </div>
                     </div>
                   ))}
