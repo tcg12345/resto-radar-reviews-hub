@@ -52,13 +52,22 @@ export function useRestaurantReviews(restaurantPlaceId?: string, restaurantName?
     setIsLoading(true);
     
     try {
-      // Use the optimized edge function directly - no fallbacks for speed
-      const { data: communityData, error: communityError } = await supabase.functions.invoke('community-reviews', {
+      // Add timeout protection for the edge function call
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout')), 10000)
+      );
+      
+      const requestPromise = supabase.functions.invoke('community-reviews', {
         body: {
           place_id: restaurantPlaceId,
           restaurant_name: restaurantName
         }
       });
+
+      const { data: communityData, error: communityError } = await Promise.race([
+        requestPromise,
+        timeoutPromise
+      ]) as any;
 
       if (communityError) {
         console.error('Community function error:', communityError);
