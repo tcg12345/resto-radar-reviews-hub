@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFriends } from '@/hooks/useFriends';
+import { useItineraries } from '@/hooks/useItineraries';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 
@@ -22,6 +23,7 @@ export function MobileProfilePage() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { friends } = useFriends();
+  const { itineraries } = useItineraries();
 
   const [stats, setStats] = useState<ProfileStats>({
     rated_count: 0,
@@ -202,7 +204,7 @@ export function MobileProfilePage() {
                 <p className="text-base font-medium text-foreground">Itineraries</p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-lg font-bold text-foreground">0</span>
+                <span className="text-lg font-bold text-foreground">{itineraries.length}</span>
                 <ChevronRight className="h-5 w-5 text-muted-foreground" />
               </div>
             </div>
