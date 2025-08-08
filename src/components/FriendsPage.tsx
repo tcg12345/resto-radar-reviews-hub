@@ -170,21 +170,21 @@ export function FriendsPage({
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full h-auto p-0 flex overflow-x-auto gap-1 mb-8 bg-muted rounded-md">
-          <TabsTrigger value="friends" className="flex items-center gap-1 text-xs whitespace-nowrap px-3 py-2 flex-shrink-0 ml-1">
-            <Users className="h-3 w-3" />
+        <TabsList className="w-full grid grid-cols-4 gap-1 p-1 mb-8 bg-muted rounded-md">
+          <TabsTrigger value="friends" className="w-full h-9 text-sm justify-center rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+            <Users className="h-4 w-4 mr-1.5" />
             <span>Friends ({friends.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="activity" className="flex items-center gap-1 text-xs whitespace-nowrap px-3 py-2 flex-shrink-0">
-            <Activity className="h-3 w-3" />
+          <TabsTrigger value="activity" className="w-full h-9 text-sm justify-center rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+            <Activity className="h-4 w-4 mr-1.5" />
             <span>Activity</span>
           </TabsTrigger>
-          <TabsTrigger value="search" className="flex items-center gap-1 text-xs whitespace-nowrap px-3 py-2 flex-shrink-0">
-            <Plus className="h-3 w-3" />
+          <TabsTrigger value="search" className="w-full h-9 text-sm justify-center rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+            <Plus className="h-4 w-4 mr-1.5" />
             <span>Find Friends</span>
           </TabsTrigger>
-          <TabsTrigger value="requests" className="flex items-center gap-1 text-xs whitespace-nowrap px-3 py-2 flex-shrink-0 mr-1">
-            <Filter className="h-3 w-3" />
+          <TabsTrigger value="requests" className="w-full h-9 text-sm justify-center rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+            <Filter className="h-4 w-4 mr-1.5" />
             <span>Requests ({pendingRequests.length + sentRequests.length})</span>
           </TabsTrigger>
         </TabsList>
