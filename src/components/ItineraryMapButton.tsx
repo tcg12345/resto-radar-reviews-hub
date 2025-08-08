@@ -38,7 +38,7 @@ export function ItineraryMapButton({ events, onOpenMap }: ItineraryMapButtonProp
 
   if (isMobile) {
     return (
-      <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-50">
+      <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-50">
         <Button 
           onClick={onOpenMap}
           className="h-8 px-3 rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all hover:scale-105 text-xs"
