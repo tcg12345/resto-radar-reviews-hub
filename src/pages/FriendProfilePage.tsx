@@ -198,7 +198,7 @@ export default function FriendProfilePage() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={() => navigate('/friends')}
+                onClick={() => navigate('/mobile/friends')}
                 className="h-8 w-8 p-0"
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -230,7 +230,7 @@ export default function FriendProfilePage() {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  onClick={() => navigate('/friends')}
+                  onClick={() => navigate('/mobile/friends')}
                   className="h-9 w-9 p-0 hover:bg-primary/10"
                 >
                   <ArrowLeft className="h-5 w-5" />
