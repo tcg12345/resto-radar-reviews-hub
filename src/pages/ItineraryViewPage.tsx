@@ -321,7 +321,7 @@ export function ItineraryViewPage() {
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-8">
         {/* Trip Overview Card */}
-        <Card className="overflow-hidden border-0 shadow-lg bg-gradient-to-br from-primary via-primary-glow to-accent">
+        <Card className="overflow-hidden border-0 shadow-lg bg-card">
           <CardContent className="p-0">
             <div className="text-primary-foreground p-6">
               <div className="flex flex-col gap-4">
@@ -382,13 +382,16 @@ export function ItineraryViewPage() {
               </div>
             </div>
           </CardContent>
+        </Card>
         
-        {/* Hotels & Flights Section */}
+        {/* Hotels & Flights Section - Separate Card */}
         {(itinerary.hotels.length > 0 || itinerary.flights.length > 0) && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
-            {/* Hotels */}
-            {itinerary.hotels.length > 0 && (
-              <div className="space-y-3">
+          <Card className="mt-6">
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Hotels */}
+                {itinerary.hotels.length > 0 && (
+                  <div className="space-y-3">
                 <div className="flex items-center gap-2 mb-3 p-2 bg-muted/30 rounded-md border">
                   <Hotel className="w-5 h-5 text-blue-600" />
                   <span className="text-base font-semibold text-foreground">Hotels</span>
@@ -468,63 +471,64 @@ export function ItineraryViewPage() {
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+                  </div>
+                )}
 
-            {/* Flights */}
-            {itinerary.flights.length > 0 && (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 mb-3">
-                  <Plane className="w-4 h-4 text-purple-600" />
-                  <span className="text-sm font-medium text-foreground">Flights</span>
-                  <Badge variant="secondary" className="text-xs">{itinerary.flights.length}</Badge>
-                </div>
-                <div className="space-y-2">
-                  {itinerary.flights.map((flight: any) => (
-                    <div key={flight.id} className="bg-purple-50/50 dark:bg-purple-950/20 rounded-lg p-3 border border-purple-200/30">
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <Plane className="w-4 h-4 text-purple-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-sm text-foreground">
-                            {flight.airline} {flight.flightNumber}
-                          </h4>
-                          <div className="text-xs text-muted-foreground space-y-1">
-                            <div className="flex items-center gap-1">
-                              <span>{flight.departure?.airport}</span>
-                              <span>→</span>
-                              <span>{flight.arrival?.airport}</span>
-                            </div>
-                            <div>
-                              {flight.departure?.date} at {flight.departure?.time}
-                            </div>
-                          </div>
-                          {flight.price && (
-                            <Badge variant="outline" className="text-xs mt-1 h-5 text-purple-600">
-                              {flight.price}
-                            </Badge>
-                          )}
-                        </div>
-                        {flight.bookingUrl && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-8 w-8 p-0"
-                            onClick={() => window.open(flight.bookingUrl, '_blank')}
-                          >
-                            <ExternalLink className="w-3 h-3" />
-                          </Button>
-                        )}
-                      </div>
+                {/* Flights */}
+                {itinerary.flights.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Plane className="w-4 h-4 text-purple-600" />
+                      <span className="text-sm font-medium text-foreground">Flights</span>
+                      <Badge variant="secondary" className="text-xs">{itinerary.flights.length}</Badge>
                     </div>
-                  ))}
-                </div>
+                    <div className="space-y-2">
+                      {itinerary.flights.map((flight: any) => (
+                        <div key={flight.id} className="bg-purple-50/50 dark:bg-purple-950/20 rounded-lg p-3 border border-purple-200/30">
+                          <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <Plane className="w-4 h-4 text-purple-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-sm text-foreground">
+                                {flight.airline} {flight.flightNumber}
+                              </h4>
+                              <div className="text-xs text-muted-foreground space-y-1">
+                                <div className="flex items-center gap-1">
+                                  <span>{flight.departure?.airport}</span>
+                                  <span>→</span>
+                                  <span>{flight.arrival?.airport}</span>
+                                </div>
+                                <div>
+                                  {flight.departure?.date} at {flight.departure?.time}
+                                </div>
+                              </div>
+                              {flight.price && (
+                                <Badge variant="outline" className="text-xs mt-1 h-5 text-purple-600">
+                                  {flight.price}
+                                </Badge>
+                              )}
+                            </div>
+                            {flight.bookingUrl && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 w-8 p-0"
+                                onClick={() => window.open(flight.bookingUrl, '_blank')}
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </CardContent>
+          </Card>
         )}
-        </Card>
 
         {/* Daily Schedule */}
         <div className="space-y-6">
