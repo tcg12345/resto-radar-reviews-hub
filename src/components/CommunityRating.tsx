@@ -15,7 +15,7 @@ export function CommunityRating({ stats, isLoading }: CommunityRatingProps) {
   console.log('CommunityRating - stats:', stats);
   console.log('CommunityRating - isLoading:', isLoading);
   
-  if (isLoading) {
+  if (isLoading && !stats) {
     return <CommunityRatingSkeleton />;
   }
 
