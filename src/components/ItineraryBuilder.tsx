@@ -1191,7 +1191,7 @@ export function ItineraryBuilder({
             {/* Desktop: Completely New Modern Design */}
             <div className="hidden lg:block">
               <Collapsible open={isDesktopSectionOpen} onOpenChange={setIsDesktopSectionOpen}>
-                  <div className="relative overflow-hidden rounded-xl bg-card/70 backdrop-blur-md border border-border shadow-lg mx-auto max-w-5xl text-sm animate-fade-in">
+                  <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-background via-muted/30 to-secondary/20 backdrop-blur-xl border border-border/30 shadow-2xl">
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-5">
                   <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-transparent to-secondary/20"></div>
@@ -1201,31 +1201,31 @@ export function ItineraryBuilder({
                 
                 {/* Header Section */}
                 <CollapsibleTrigger asChild>
-                  <div className="relative z-10 px-6 py-4 border-b border-border/20 cursor-pointer hover:bg-background/5 transition-colors group">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
+                  <div className="relative z-10 px-8 pt-8 pb-2 border-b border-border/20 cursor-pointer hover:bg-background/5 transition-colors group">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-4">
                       <div className="relative">
-                        <div className="p-2 bg-gradient-to-br from-primary to-primary/80 rounded-xl shadow-lg">
-                          <Calendar className="w-5 h-5 text-primary-foreground" />
+                        <div className="p-3 bg-gradient-to-br from-primary to-primary/80 rounded-2xl shadow-lg">
+                          <Calendar className="w-6 h-6 text-primary-foreground" />
                         </div>
                         <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-secondary to-accent rounded-full"></div>
                       </div>
                       <div>
-                        <h2 className="text-xl font-semibold text-foreground tracking-tight">{currentItinerary?.title}</h2>
-                        <p className="text-muted-foreground text-xs">Plan your perfect getaway</p>
+                        <h2 className="text-2xl font-bold text-foreground tracking-tight">{currentItinerary?.title}</h2>
+                        <p className="text-muted-foreground text-sm">Plan your perfect getaway</p>
                       </div>
                     </div>
-                      {currentItinerary?.isMultiCity && <Badge variant="secondary" className="px-2.5 py-0.5 text-xs bg-secondary/20 border-secondary/30 text-secondary-foreground font-medium">
+                    {currentItinerary?.isMultiCity && <Badge variant="secondary" className="px-3 py-1 bg-gradient-to-r from-secondary/20 to-accent/20 border-secondary/30 text-secondary-foreground font-medium">
                         Multi-city Adventure
                       </Badge>}
-                    <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform group-hover:text-foreground ${isDesktopSectionOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform group-hover:text-foreground ${isDesktopSectionOpen ? 'rotate-180' : ''}`} />
                    </div>
                    </div>
                  </CollapsibleTrigger>
                 
                 <CollapsibleContent>
                 {/* Content Grid */}
-                <div className="relative z-10 p-6 grid grid-cols-1 xl:grid-cols-2 gap-5">
+                <div className="relative z-10 p-8 grid grid-cols-1 xl:grid-cols-2 gap-8">
                   
                   {/* Left Column - Travel Info */}
                   <div className="space-y-6">
