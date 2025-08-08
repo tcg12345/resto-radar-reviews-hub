@@ -28,7 +28,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { MichelinStars } from '@/components/MichelinStars';
 import { PriceRange } from '@/components/PriceRange';
-import { useFriendProfileOptimized } from '@/hooks/useFriendProfileOptimized';
+import { useFriendProfilePagination } from '@/hooks/useFriendProfilePagination';
 import { useFriends } from '@/hooks/useFriends';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -41,16 +41,20 @@ export default function FriendProfilePage() {
   const { friends } = useFriends();
   const { toast } = useToast();
   
-  // Use the optimized hook for instant loading
+  // Use paginated hook for fast initial load and incremental fetch
   const {
     profileData,
-    computedAnalytics,
     restaurants: allRestaurants,
     wishlist: allWishlist,
     isLoading,
+    isLoadingMore,
+    hasMoreRestaurants,
+    hasMoreWishlist,
     error,
+    loadMoreRestaurants,
+    loadMoreWishlist,
     refresh
-  } = useFriendProfileOptimized(actualUserId || '');
+  } = useFriendProfilePagination(actualUserId || '');
   
   const [friend, setFriend] = useState<any>(null);
   
@@ -87,12 +91,37 @@ export default function FriendProfilePage() {
     }
   }, [actualUserId, profileData, friends]);
 
-  // Use the computed analytics from the optimized hook, fallback to computing if needed
-  const topCuisines = computedAnalytics?.topCuisines || 
-    (profileData?.cuisine_distribution || []).slice(0, 10);
-  
-  const ratingDistribution = computedAnalytics?.ratingDistribution || 
-    (profileData?.rating_distribution || {});
+  // Compute lightweight analytics from currently loaded items for instant UX
+  const cuisineCountMap = useMemo(() => {
+    const map = new Map<string, number>();
+    (allRestaurants || []).forEach((r: any) => {
+      const c = r.cuisine?.trim();
+      if (c) map.set(c, (map.get(c) || 0) + 1);
+    });
+    return map;
+  }, [allRestaurants]);
+
+  const topCuisines = useMemo(() => {
+    return Array.from(cuisineCountMap.entries())
+      .map(([cuisine, count]) => ({ cuisine, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+  }, [cuisineCountMap]);
+
+  const uniqueCuisineCount = cuisineCountMap.size;
+
+  const ratingDistribution = useMemo(() => {
+    const buckets: Record<string, number> = { '0-2': 0, '2-4': 0, '4-6': 0, '6-8': 0, '8-10': 0 };
+    (allRestaurants || []).forEach((r: any) => {
+      const rating = Number(r.rating) || 0;
+      if (rating < 2) buckets['0-2']++;
+      else if (rating < 4) buckets['2-4']++;
+      else if (rating < 6) buckets['4-6']++;
+      else if (rating < 8) buckets['6-8']++;
+      else buckets['8-10']++;
+    });
+    return buckets;
+  }, [allRestaurants]);
 
   const filteredRestaurants = useMemo(() => {
     let filtered = allRestaurants.filter(restaurant => {
@@ -134,15 +163,24 @@ export default function FriendProfilePage() {
   }, [allRestaurants, searchTerm, cuisineFilter, cityFilter, sortBy, ratingFilter]);
 
   const availableCuisines = useMemo(() => {
-    return (profileData?.cuisine_distribution || [])
-      .map((item: any) => ({ cuisine: item.cuisine, count: item.count }))
+    const map = new Map<string, number>();
+    (allRestaurants || []).forEach((r: any) => {
+      const c = r.cuisine?.trim();
+      if (c) map.set(c, (map.get(c) || 0) + 1);
+    });
+    return Array.from(map.entries())
+      .map(([cuisine, count]) => ({ cuisine, count }))
       .sort((a, b) => a.cuisine.localeCompare(b.cuisine));
-  }, [profileData]);
+  }, [allRestaurants]);
 
   const availableCities = useMemo(() => {
-    return (profileData?.cities_distribution || [])
-      .map((item: any) => ({ city: item.city, count: item.count }));
-  }, [profileData]);
+    const map = new Map<string, number>();
+    (allRestaurants || []).forEach((r: any) => {
+      const city = r.city?.trim();
+      if (city) map.set(city, (map.get(city) || 0) + 1);
+    });
+    return Array.from(map.entries()).map(([city, count]) => ({ city, count }));
+  }, [allRestaurants]);
 
   if (isLoading || !friend || !profileData) {
     return <FriendProfileSkeleton />
