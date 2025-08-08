@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format, differenceInDays } from 'date-fns';
-import { ArrowLeft, Calendar, MapPin, Clock, Users, Globe, Star, Phone, ExternalLink, Utensils, Camera, ChevronDown, Eye, Hotel, Plane, Navigation } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Clock, Users, Globe, Star, Phone, ExternalLink, Utensils, Camera, ChevronDown, Eye, Hotel, Plane, Navigation, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -317,6 +317,26 @@ export function ItineraryViewPage() {
                 {duration} {duration === 1 ? 'day' : 'days'} • {itinerary.events.length} events
               </p>
             </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({
+                    title: itinerary.title,
+                    text: `Check out my ${duration}-day itinerary: ${itinerary.title}`,
+                    url: window.location.href
+                  });
+                } else {
+                  navigator.clipboard.writeText(window.location.href);
+                  toast.success('Link copied to clipboard!');
+                }
+              }}
+              className="hover:bg-accent/10"
+            >
+              <Share2 className="w-4 h-4 mr-2" />
+              Share
+            </Button>
           </div>
         </div>
       </div>
