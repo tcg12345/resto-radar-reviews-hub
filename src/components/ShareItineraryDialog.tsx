@@ -218,19 +218,31 @@ export function ShareItineraryDialog({ isOpen, onClose, itinerary }: ShareItiner
     toast.success('SMS app opened');
   };
 
-  const handleSocialShare = () => {
-    const itineraryUrl = `${window.location.origin}/itinerary/${itinerary.id}`;
-    if (navigator.share) {
-      navigator.share({
-        title: itinerary.title,
-        text: `Check out my trip itinerary: ${itinerary.title}`,
-        url: itineraryUrl,
-      }).catch(error => {
-        console.error('Error sharing:', error);
-        handleCopyToClipboard();
-      });
-    } else {
-      handleCopyToClipboard();
+  const handleSocialShare = async () => {
+    try {
+      const itineraryUrl = `${window.location.origin}/itinerary/${itinerary.id}`;
+      
+      if (navigator.share) {
+        await navigator.share({
+          title: itinerary.title,
+          text: `Check out my trip itinerary: ${itinerary.title}`,
+          url: itineraryUrl,
+        });
+        toast.success('Shared successfully!');
+      } else {
+        await navigator.clipboard.writeText(itineraryUrl);
+        toast.success('Link copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      // Fallback to clipboard if sharing was cancelled or failed
+      try {
+        const itineraryUrl = `${window.location.origin}/itinerary/${itinerary.id}`;
+        await navigator.clipboard.writeText(itineraryUrl);
+        toast.success('Link copied to clipboard!');
+      } catch (clipboardError) {
+        toast.error('Failed to share or copy to clipboard');
+      }
     }
   };
 
