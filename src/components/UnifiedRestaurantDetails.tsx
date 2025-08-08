@@ -105,7 +105,7 @@ export function UnifiedRestaurantDetails({
     reviews,
     isLoading: isLoadingReviews,
     submitReview
-  } = useRestaurantReviews(restaurantData.place_id);
+  } = useRestaurantReviews(restaurantData.place_id, restaurantData.name);
 
   // Save community stats to context for preloading
   useEffect(() => {

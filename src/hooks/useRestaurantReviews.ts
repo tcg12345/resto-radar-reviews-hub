@@ -240,45 +240,41 @@ export function useRestaurantReviews(restaurantPlaceId?: string, restaurantName?
 
   // Set up real-time subscriptions for automatic updates
   useEffect(() => {
-    if (!restaurantPlaceId) return;
-
     let restaurantChannel: RealtimeChannel | null = null;
     let reviewChannel: RealtimeChannel | null = null;
 
     const setupRealtimeSubscriptions = () => {
-      // Listen for changes to restaurants table (when ratings are added/updated)
+      if (!restaurantPlaceId) return; // Subscriptions only when we have a place_id
+
       restaurantChannel = supabase
         .channel('restaurant-ratings-updates')
         .on(
           'postgres_changes',
           {
-            event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+            event: '*',
             schema: 'public',
             table: 'restaurants',
-            filter: `google_place_id=eq.${restaurantPlaceId}` // Only for this restaurant
+            filter: `google_place_id=eq.${restaurantPlaceId}`
           },
           (payload) => {
             console.log('Restaurant rating updated in real-time:', payload);
-            // Refresh community stats immediately when any rating changes
             fetchCommunityStats();
           }
         )
         .subscribe();
 
-      // Listen for changes to user_reviews table  
       reviewChannel = supabase
         .channel('user-reviews-updates')
         .on(
           'postgres_changes',
           {
             event: '*',
-            schema: 'public', 
+            schema: 'public',
             table: 'user_reviews',
-            filter: `restaurant_place_id=eq.${restaurantPlaceId}` // Only for this restaurant
+            filter: `restaurant_place_id=eq.${restaurantPlaceId}`
           },
           (payload) => {
             console.log('User review updated in real-time:', payload);
-            // Refresh both stats and reviews when user reviews change
             fetchCommunityStats();
             fetchReviews();
           }
@@ -286,14 +282,21 @@ export function useRestaurantReviews(restaurantPlaceId?: string, restaurantName?
         .subscribe();
     };
 
-    // Initial load
-    fetchCommunityStats();
-    fetchReviews();
-    
-    // Set up real-time subscriptions
-    setupRealtimeSubscriptions();
+    // Initial load: always try to get stats if we have either place_id or name
+    if (restaurantPlaceId || restaurantName) {
+      fetchCommunityStats();
+    } else {
+      // Nothing to load; prevent permanent skeleton
+      setIsLoading(false);
+    }
 
-    // Cleanup subscriptions on unmount or restaurantPlaceId change
+    // Reviews + realtime only when place_id is available
+    if (restaurantPlaceId) {
+      fetchReviews();
+      setupRealtimeSubscriptions();
+    }
+
+    // Cleanup subscriptions on unmount or id change
     return () => {
       if (restaurantChannel) {
         supabase.removeChannel(restaurantChannel);
