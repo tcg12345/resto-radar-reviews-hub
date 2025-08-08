@@ -26,6 +26,7 @@ import { ProfilePageWrapper } from "@/components/ProfilePageWrapper";
 import HomePageWrapper from "./pages/HomePageWrapper";
 import { MobileProfileEditPage } from "./pages/MobileProfileEditPage";
 import { MobileProfilePhotoEditPage } from "./pages/MobileProfilePhotoEditPage";
+import { MobileFriendsPage } from "./pages/mobile/MobileFriendsPage";
 import SavedPlacesPageWrapper from "./pages/SavedPlacesPageWrapper";
 import MapPageWrapper from "./pages/MapPageWrapper";
 import UnifiedSearchPage from "./pages/UnifiedSearchPage";
@@ -86,6 +87,7 @@ const App = () => (
                 <Route path="/friends/:friendId" element={<RequireAuth><Layout activeTab="profile"><FriendProfilePage /></Layout></RequireAuth>} />
                 <Route path="/profile/edit" element={<RequireAuth><MobileProfileEditPage /></RequireAuth>} />
                 <Route path="/profile/edit-photo" element={<RequireAuth><MobileProfilePhotoEditPage /></RequireAuth>} />
+                <Route path="/mobile/friends" element={<RequireAuth><MobileFriendsPage /></RequireAuth>} />
                 
                 {/* User profile routes */}
                 <Route path="/user/:userId" element={<RequireAuth><MobileFriendProfilePage /></RequireAuth>} />

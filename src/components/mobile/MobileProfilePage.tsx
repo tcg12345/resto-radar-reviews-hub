@@ -1,19 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Camera, Edit2, User, Users, MapPin, FileText, Settings, Crown, Star, Heart, TrendingUp, Activity, Grid, List, Plus, Filter } from 'lucide-react';
+import { Camera, Edit2, Users, MapPin, Crown, Star, Heart, TrendingUp, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFriends } from '@/hooks/useFriends';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { ProfileEditDialog } from './ProfileEditDialog';
-import { PhotoUploadDialog } from './PhotoUploadDialog';
-import { FriendCard } from '@/components/friends/FriendCard';
-import { FriendSearch } from '@/components/friends/FriendSearch';
-import { FriendRequests } from '@/components/friends/FriendRequests';
 import { useNavigate } from 'react-router-dom';
 
 interface ProfileStats {
@@ -28,19 +21,8 @@ interface ProfileStats {
 export function MobileProfilePage() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const {
-    friends,
-    pendingRequests,
-    sentRequests,
-    isLoading,
-    sendFriendRequest,
-    respondToFriendRequest,
-    removeFriend,
-    searchUsers
-  } = useFriends();
+  const { friends } = useFriends();
 
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isPhotoDialogOpen, setIsPhotoDialogOpen] = useState(false);
   const [stats, setStats] = useState<ProfileStats>({
     rated_count: 0,
     wishlist_count: 0,
@@ -49,7 +31,6 @@ export function MobileProfilePage() {
     following_count: 0,
     followers_count: 0
   });
-  const [activeTab, setActiveTab] = useState('overview');
 
   // Load user stats
   useEffect(() => {
@@ -79,47 +60,6 @@ export function MobileProfilePage() {
     loadStats();
   }, [user, friends]);
 
-  const handleStartChat = async (friend: any) => {
-    if (!user) return;
-    try {
-      const { data: roomId, error } = await supabase.rpc('get_or_create_dm_room', {
-        other_user_id: friend.id
-      });
-      if (error) {
-        console.error('Error creating chat room:', error);
-        toast.error('Failed to start chat');
-        return;
-      }
-      navigate(`/chat/${roomId}`);
-    } catch (error) {
-      console.error('Error starting chat:', error);
-      toast.error('Failed to start chat');
-    }
-  };
-
-  const handleViewProfile = (friend: any) => {
-    navigate(`/friends/${friend.id}`);
-  };
-
-  const handleRemoveFriend = async (friendId: string) => {
-    try {
-      await removeFriend(friendId);
-      toast.success('Friend removed successfully');
-    } catch (error) {
-      toast.error('Failed to remove friend');
-    }
-  };
-
-  const isAlreadyFriend = (userId: string) => {
-    return friends.some(friend => friend.id === userId);
-  };
-
-  const hasPendingRequest = (userId: string) => {
-    return sentRequests.some(request => 
-      request.receiver_id === userId || 
-      (request.receiver && (request.receiver as any).id === userId)
-    );
-  };
 
   if (!user || !profile) {
     return (
@@ -204,153 +144,107 @@ export function MobileProfilePage() {
         </div>
       </div>
 
-      {/* Content Tabs */}
-      <div className="px-4">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full grid grid-cols-4 gap-1 p-1 mb-6 bg-muted rounded-lg">
-            <TabsTrigger value="overview" className="text-xs">Overview</TabsTrigger>
-            <TabsTrigger value="friends" className="text-xs">Friends</TabsTrigger>
-            <TabsTrigger value="find" className="text-xs">Find</TabsTrigger>
-            <TabsTrigger value="requests" className="text-xs">Requests</TabsTrigger>
-          </TabsList>
-
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-4">
-            {/* Stats Cards */}
-            <div className="grid grid-cols-2 gap-3">
-              <Card className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <Star className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-lg font-bold">{stats.rated_count}</p>
-                    <p className="text-xs text-muted-foreground">Restaurants Rated</p>
-                  </div>
-                </div>
-              </Card>
-
-              <Card className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-red-100 rounded-lg">
-                    <Heart className="h-5 w-5 text-red-500" />
-                  </div>
-                  <div>
-                    <p className="text-lg font-bold">{stats.wishlist_count}</p>
-                    <p className="text-xs text-muted-foreground">Wishlist Items</p>
-                  </div>
-                </div>
-              </Card>
-
-              <Card className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-yellow-100 rounded-lg">
-                    <TrendingUp className="h-5 w-5 text-yellow-600" />
-                  </div>
-                  <div>
-                    <p className="text-lg font-bold">{stats.avg_rating.toFixed(1)}</p>
-                    <p className="text-xs text-muted-foreground">Avg Rating</p>
-                  </div>
-                </div>
-              </Card>
-
-              <Card className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <Crown className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold truncate">{stats.top_cuisine || 'None'}</p>
-                    <p className="text-xs text-muted-foreground">Top Cuisine</p>
-                  </div>
-                </div>
-              </Card>
-            </div>
-
-            {/* Activity Summary */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Activity className="h-5 w-5" />
-                  Recent Activity
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {stats.rated_count > 0 ? (
-                    <>
-                      <div className="flex items-center justify-between text-sm">
-                        <span>Latest restaurant rating</span>
-                        <span className="text-muted-foreground">Recently</span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span>Wishlist updates</span>
-                        <span className="text-muted-foreground">This week</span>
-                      </div>
-                    </>
-                  ) : (
-                    <p className="text-muted-foreground text-sm text-center py-4">
-                      No activity yet. Start rating restaurants!
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Friends Tab */}
-          <TabsContent value="friends" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">My Friends ({friends.length})</h3>
-            </div>
-            
-            {friends.length === 0 ? (
-              <div className="text-center py-12">
-                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No friends yet</h3>
-                <p className="text-muted-foreground mb-4">Start building your network</p>
-                <Button onClick={() => setActiveTab('find')}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Find Friends
-                </Button>
+      {/* Content */}
+      <div className="px-4 space-y-4">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 gap-3">
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Star className="h-5 w-5 text-primary" />
               </div>
-            ) : (
-              <div className="space-y-3">
-                {friends.map(friend => (
-                  <FriendCard
-                    key={friend.id}
-                    friend={friend}
-                    onViewProfile={handleViewProfile}
-                    onChat={handleStartChat}
-                    onRemove={handleRemoveFriend}
-                    className="hover:scale-[1.01]"
-                  />
-                ))}
+              <div>
+                <p className="text-lg font-bold">{stats.rated_count}</p>
+                <p className="text-xs text-muted-foreground">Restaurants Rated</p>
               </div>
-            )}
-          </TabsContent>
+            </div>
+          </Card>
 
-          {/* Find Friends Tab */}
-          <TabsContent value="find" className="space-y-4">
-            <FriendSearch
-              onSearchUsers={searchUsers}
-              onSendFriendRequest={async (userId: string) => {
-                await sendFriendRequest(userId);
-              }}
-              isAlreadyFriend={isAlreadyFriend}
-              hasPendingRequest={hasPendingRequest}
-            />
-          </TabsContent>
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-red-100 rounded-lg">
+                <Heart className="h-5 w-5 text-red-500" />
+              </div>
+              <div>
+                <p className="text-lg font-bold">{stats.wishlist_count}</p>
+                <p className="text-xs text-muted-foreground">Wishlist Items</p>
+              </div>
+            </div>
+          </Card>
 
-          {/* Requests Tab */}
-          <TabsContent value="requests" className="space-y-4">
-            <FriendRequests
-              pendingRequests={pendingRequests as any}
-              sentRequests={sentRequests as any}
-              onRespondToRequest={respondToFriendRequest}
-            />
-          </TabsContent>
-        </Tabs>
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-yellow-100 rounded-lg">
+                <TrendingUp className="h-5 w-5 text-yellow-600" />
+              </div>
+              <div>
+                <p className="text-lg font-bold">{stats.avg_rating.toFixed(1)}</p>
+                <p className="text-xs text-muted-foreground">Avg Rating</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Crown className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm font-bold truncate">{stats.top_cuisine || 'None'}</p>
+                <p className="text-xs text-muted-foreground">Top Cuisine</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Friends Button */}
+        <Card className="p-4">
+          <Button 
+            onClick={() => navigate('/mobile/friends')} 
+            className="w-full h-14 text-left justify-start"
+            variant="ghost"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Users className="h-5 w-5 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-lg font-bold">{stats.following_count}</p>
+                <p className="text-xs text-muted-foreground">Friends</p>
+              </div>
+            </div>
+          </Button>
+        </Card>
+
+        {/* Activity Summary */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              Recent Activity
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {stats.rated_count > 0 ? (
+                <>
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Latest restaurant rating</span>
+                    <span className="text-muted-foreground">Recently</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Wishlist updates</span>
+                    <span className="text-muted-foreground">This week</span>
+                  </div>
+                </>
+              ) : (
+                <p className="text-muted-foreground text-sm text-center py-4">
+                  No activity yet. Start rating restaurants!
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Removed dialogs - now using full page navigation */}
