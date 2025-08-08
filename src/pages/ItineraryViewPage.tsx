@@ -389,14 +389,14 @@ export function ItineraryViewPage() {
             {/* Hotels */}
             {itinerary.hotels.length > 0 && (
               <div className="space-y-3">
-                <div className="flex items-center gap-2 mb-3">
-                  <Hotel className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm font-medium text-foreground">Hotels</span>
-                  <Badge variant="secondary" className="text-xs">{itinerary.hotels.length}</Badge>
+                <div className="flex items-center gap-2 mb-3 p-2 bg-muted/30 rounded-md border">
+                  <Hotel className="w-5 h-5 text-blue-600" />
+                  <span className="text-base font-semibold text-foreground">Hotels</span>
+                  <Badge variant="secondary" className="text-xs font-medium">{itinerary.hotels.length}</Badge>
                 </div>
                 <div className="space-y-2">
                   {itinerary.hotels.map((hotel: any) => (
-                    <div key={hotel.id} className="bg-blue-50/50 dark:bg-blue-950/20 rounded-lg p-3 border border-blue-200/30 w-full">
+                    <div key={hotel.id} className="bg-muted/20 dark:bg-muted/10 rounded-lg p-3 border border-border/40 w-full">
                       <div className="flex flex-col gap-3 w-full">
                         <div className="flex items-start gap-3 w-full">
                           <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
