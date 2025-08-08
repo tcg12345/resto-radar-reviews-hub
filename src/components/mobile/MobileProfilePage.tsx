@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFriends } from '@/hooks/useFriends';
 import { useItineraries } from '@/hooks/useItineraries';
@@ -147,16 +148,16 @@ export function MobileProfilePage() {
       </div>
 
       {/* Content */}
-      <div className="px-4 space-y-4">
+      <div className="space-y-4">
         {/* Navigation Buttons */}
-        <div className="space-y-2">
+        <div className="border-t border-border">
           {/* Rated Restaurants Button */}
           <Button 
             onClick={() => navigate('/rated')} 
-            className="w-full h-14 bg-background hover:bg-muted/50 border border-border"
+            className="w-full h-14 bg-background hover:bg-muted/50 border-0 rounded-none"
             variant="outline"
           >
-            <div className="flex items-center gap-4 w-full">
+            <div className="flex items-center gap-4 w-full px-4">
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                 <Star className="h-5 w-5 text-primary" />
               </div>
@@ -170,13 +171,15 @@ export function MobileProfilePage() {
             </div>
           </Button>
 
+          <Separator />
+
           {/* Wishlist Button */}
           <Button 
             onClick={() => navigate('/wishlist')} 
-            className="w-full h-14 bg-background hover:bg-muted/50 border border-border"
+            className="w-full h-14 bg-background hover:bg-muted/50 border-0 rounded-none"
             variant="outline"
           >
-            <div className="flex items-center gap-4 w-full">
+            <div className="flex items-center gap-4 w-full px-4">
               <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
                 <Bookmark className="h-5 w-5 text-orange-600" />
               </div>
@@ -190,13 +193,15 @@ export function MobileProfilePage() {
             </div>
           </Button>
 
+          <Separator />
+
           {/* Itineraries Button */}
           <Button 
             onClick={() => navigate('/travel?view=saved')} 
-            className="w-full h-14 bg-background hover:bg-muted/50 border border-border"
+            className="w-full h-14 bg-background hover:bg-muted/50 border-0 rounded-none"
             variant="outline"
           >
-            <div className="flex items-center gap-4 w-full">
+            <div className="flex items-center gap-4 w-full px-4">
               <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
                 <Route className="h-5 w-5 text-green-600" />
               </div>
@@ -210,109 +215,111 @@ export function MobileProfilePage() {
             </div>
           </Button>
         </div>
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 gap-3">
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Star className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-lg font-bold">{stats.rated_count}</p>
-                <p className="text-xs text-muted-foreground">Restaurants Rated</p>
-              </div>
-            </div>
-          </Card>
 
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <Heart className="h-5 w-5 text-red-500" />
+        <div className="px-4 space-y-4">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-2 gap-3">
+            <Card className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <Star className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-lg font-bold">{stats.rated_count}</p>
+                  <p className="text-xs text-muted-foreground">Restaurants Rated</p>
+                </div>
               </div>
-              <div>
-                <p className="text-lg font-bold">{stats.wishlist_count}</p>
-                <p className="text-xs text-muted-foreground">Wishlist Items</p>
-              </div>
-            </div>
-          </Card>
+            </Card>
 
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <TrendingUp className="h-5 w-5 text-yellow-600" />
+            <Card className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-red-100 rounded-lg">
+                  <Heart className="h-5 w-5 text-red-500" />
+                </div>
+                <div>
+                  <p className="text-lg font-bold">{stats.wishlist_count}</p>
+                  <p className="text-xs text-muted-foreground">Wishlist Items</p>
+                </div>
               </div>
-              <div>
-                <p className="text-lg font-bold">{stats.avg_rating.toFixed(1)}</p>
-                <p className="text-xs text-muted-foreground">Avg Rating</p>
-              </div>
-            </div>
-          </Card>
+            </Card>
 
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Crown className="h-5 w-5 text-green-600" />
+            <Card className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-yellow-100 rounded-lg">
+                  <TrendingUp className="h-5 w-5 text-yellow-600" />
+                </div>
+                <div>
+                  <p className="text-lg font-bold">{stats.avg_rating.toFixed(1)}</p>
+                  <p className="text-xs text-muted-foreground">Avg Rating</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-bold truncate">{stats.top_cuisine || 'None'}</p>
-                <p className="text-xs text-muted-foreground">Top Cuisine</p>
+            </Card>
+
+            <Card className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <Crown className="h-5 w-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold truncate">{stats.top_cuisine || 'None'}</p>
+                  <p className="text-xs text-muted-foreground">Top Cuisine</p>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Friends Button */}
+          <Button 
+            onClick={() => navigate('/mobile/friends')} 
+            className="w-full h-16 bg-primary/10 hover:bg-primary/20 border-2 border-primary/20 hover:border-primary/30 transition-all duration-200"
+            variant="outline"
+          >
+            <div className="flex items-center gap-4 w-full">
+              <div className="p-3 bg-primary rounded-lg">
+                <Users className="h-6 w-6 text-primary-foreground" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-lg font-bold text-foreground">{stats.following_count} Friends</p>
+                <p className="text-sm text-muted-foreground">View and manage your friends</p>
+              </div>
+              <div className="text-primary">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </div>
             </div>
+          </Button>
+
+          {/* Activity Summary */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                Recent Activity
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {stats.rated_count > 0 ? (
+                  <>
+                    <div className="flex items-center justify-between text-sm">
+                      <span>Latest restaurant rating</span>
+                      <span className="text-muted-foreground">Recently</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span>Wishlist updates</span>
+                      <span className="text-muted-foreground">This week</span>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-muted-foreground text-sm text-center py-4">
+                    No activity yet. Start rating restaurants!
+                  </p>
+                )}
+              </div>
+            </CardContent>
           </Card>
         </div>
-
-        {/* Friends Button */}
-        <Button 
-          onClick={() => navigate('/mobile/friends')} 
-          className="w-full h-16 bg-primary/10 hover:bg-primary/20 border-2 border-primary/20 hover:border-primary/30 transition-all duration-200"
-          variant="outline"
-        >
-          <div className="flex items-center gap-4 w-full">
-            <div className="p-3 bg-primary rounded-lg">
-              <Users className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <div className="flex-1 text-left">
-              <p className="text-lg font-bold text-foreground">{stats.following_count} Friends</p>
-              <p className="text-sm text-muted-foreground">View and manage your friends</p>
-            </div>
-            <div className="text-primary">
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
-          </div>
-        </Button>
-
-
-        {/* Activity Summary */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Activity className="h-5 w-5" />
-              Recent Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {stats.rated_count > 0 ? (
-                <>
-                  <div className="flex items-center justify-between text-sm">
-                    <span>Latest restaurant rating</span>
-                    <span className="text-muted-foreground">Recently</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span>Wishlist updates</span>
-                    <span className="text-muted-foreground">This week</span>
-                  </div>
-                </>
-              ) : (
-                <p className="text-muted-foreground text-sm text-center py-4">
-                  No activity yet. Start rating restaurants!
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Bottom spacer for mobile safe area */}
