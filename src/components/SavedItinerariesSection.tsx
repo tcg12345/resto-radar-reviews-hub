@@ -409,9 +409,9 @@ export function SavedItinerariesSection({ onLoadItinerary }: SavedItinerariesSec
               </p>
             </div>
           ) : (
-            <div className="grid gap-3 md:gap-4">
+            <div className="grid gap-2 md:gap-4">
               {filteredItineraries.map((itinerary) => (
-                <Card key={itinerary.id} className="mx-0.5 md:mx-0 transition-all duration-200 hover:shadow-md rounded-lg overflow-hidden">
+                <Card key={itinerary.id} className="mx-0 md:mx-0 transition-all duration-200 hover:shadow-md rounded-lg overflow-hidden">
                   {/* Desktop Layout */}
                   <div className="hidden md:block">
                     <CardHeader>
@@ -502,91 +502,81 @@ export function SavedItinerariesSection({ onLoadItinerary }: SavedItinerariesSec
                     </CardHeader>
                   </div>
 
-                  {/* Mobile Layout - Modern Edge-to-Edge Design */}
+                  {/* Mobile Layout - Compact and Wide */}
                   <div className="md:hidden">
-                    <div className="p-5 space-y-4">
-                      {/* Header Section */}
-                      <div className="space-y-2">
-                        <h3 className="text-lg font-semibold leading-tight text-foreground">
+                    <div className="p-3 space-y-2">
+                      {/* Header Section - Compact */}
+                      <div className="space-y-1">
+                        <h3 className="text-base font-semibold leading-tight text-foreground">
                           {itinerary.title}
                         </h3>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Calendar className="w-4 h-4 text-primary" />
-                          <span className="font-medium">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Calendar className="w-3 h-3" />
+                          <span>
                             {format(itinerary.startDate, 'MMM do')} - {format(itinerary.endDate, 'MMM do, yyyy')}
                           </span>
                         </div>
                       </div>
 
-                      {/* Locations Section - Enhanced with better styling */}
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4 text-primary" />
-                          <span className="text-sm font-medium text-muted-foreground">Destinations</span>
-                        </div>
-                        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
-                          {itinerary.locations.map((location) => (
-                            <Badge 
-                              key={location.id} 
-                              variant="secondary" 
-                              className="flex items-center gap-1.5 text-xs whitespace-nowrap flex-shrink-0 px-3 py-1.5 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors"
-                            >
-                              {location.name}
-                            </Badge>
-                          ))}
-                          {itinerary.isMultiCity && (
-                            <Badge 
-                              variant="outline" 
-                              className="text-xs whitespace-nowrap flex-shrink-0 px-3 py-1.5 border-accent bg-accent/10 text-accent-foreground"
-                            >
-                              Multi-city
-                            </Badge>
-                          )}
-                        </div>
+                      {/* Locations Section - Horizontal scroll */}
+                      <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-1 px-1">
+                        {itinerary.locations.map((location) => (
+                          <Badge 
+                            key={location.id} 
+                            variant="secondary" 
+                            className="text-xs whitespace-nowrap flex-shrink-0 px-2 py-0.5"
+                          >
+                            {location.name}
+                          </Badge>
+                        ))}
+                        {itinerary.isMultiCity && (
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs whitespace-nowrap flex-shrink-0 px-2 py-0.5"
+                          >
+                            Multi-city
+                          </Badge>
+                        )}
                       </div>
 
-                      {/* Action Buttons - Modern Grid Layout */}
-                      <div className="space-y-3 pt-2">
-                        <div className="grid grid-cols-2 gap-3">
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => navigate(`/itinerary/${itinerary.id}`)}
-                            className="h-10 font-medium bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
-                          >
-                            <Eye className="w-4 h-4 mr-2" />
-                            View Trip
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => onLoadItinerary(itinerary)}
-                            className="h-10 font-medium border-primary/30 text-primary hover:bg-primary/10"
-                          >
-                            <Edit className="w-4 h-4 mr-2" />
-                            Edit
-                          </Button>
-                        </div>
-                        
+                      {/* Action Buttons - Compact Grid */}
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => navigate(`/itinerary/${itinerary.id}`)}
+                          className="h-8 text-xs"
+                        >
+                          <Eye className="w-3 h-3 mr-1" />
+                          View
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onLoadItinerary(itinerary)}
+                          className="h-8 text-xs"
+                        >
+                          <Edit className="w-3 h-3 mr-1" />
+                          Edit
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => exportItinerary(itinerary)}
-                          className="w-full h-10 font-medium border-muted-foreground/30 text-muted-foreground hover:bg-muted/50"
+                          className="h-8 text-xs"
                         >
-                          <Download className="w-4 h-4 mr-2" />
-                          Export Itinerary
+                          <Download className="w-3 h-3 mr-1" />
+                          Export
                         </Button>
-                        
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button
                               variant="outline"
                               size="sm"
-                              className="w-full h-10 font-medium text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10 transition-colors"
+                              className="h-8 text-xs text-destructive hover:text-destructive"
                             >
-                              <Trash2 className="w-4 h-4 mr-2" />
-                              Delete Trip
+                              <Trash2 className="w-3 h-3 mr-1" />
+                              Delete
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
