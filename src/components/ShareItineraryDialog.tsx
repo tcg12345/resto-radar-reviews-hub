@@ -324,7 +324,7 @@ export function ShareItineraryDialog({ isOpen, onClose, itinerary }: ShareItiner
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px] max-w-[95vw] max-h-[80vh] overflow-hidden flex flex-col border-border/50 shadow-xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Share2 className="w-5 h-5" />
@@ -335,15 +335,15 @@ export function ShareItineraryDialog({ isOpen, onClose, itinerary }: ShareItiner
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="external" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="external" className="flex-1 flex flex-col min-h-0">
+          <TabsList className="grid w-full grid-cols-3 mb-4">
             <TabsTrigger value="external">External</TabsTrigger>
             <TabsTrigger value="friends">Friends</TabsTrigger>
             <TabsTrigger value="chats">Chats</TabsTrigger>
           </TabsList>
 
           {/* External Sharing */}
-          <TabsContent value="external" className="space-y-4">
+          <TabsContent value="external" className="flex-1 overflow-y-auto space-y-4 pr-2">
             {/* Preview */}
             <Card>
               <CardHeader>
@@ -425,7 +425,7 @@ export function ShareItineraryDialog({ isOpen, onClose, itinerary }: ShareItiner
           </TabsContent>
 
           {/* Share to Friends */}
-          <TabsContent value="friends" className="space-y-4">
+          <TabsContent value="friends" className="flex-1 overflow-y-auto space-y-4 pr-2">
             <div className="space-y-2">
               <Label>Personal Message (Optional)</Label>
               <Textarea
@@ -479,7 +479,7 @@ export function ShareItineraryDialog({ isOpen, onClose, itinerary }: ShareItiner
           </TabsContent>
 
           {/* Share to Chats */}
-          <TabsContent value="chats" className="space-y-4">
+          <TabsContent value="chats" className="flex-1 overflow-y-auto space-y-4 pr-2">
             <div className="space-y-2">
               <Label>Personal Message (Optional)</Label>
               <Textarea
