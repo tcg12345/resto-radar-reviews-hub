@@ -386,150 +386,165 @@ export function ItineraryViewPage() {
           </CardContent>
         </Card>
         
-        {/* Hotels & Flights Section - Separate Card */}
+        {/* Hotels & Flights Section - Modern Redesign */}
         {(itinerary.hotels.length > 0 || itinerary.flights.length > 0) && (
-          <Card className="mt-6">
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Hotels */}
-                {itinerary.hotels.length > 0 && (
-                  <div className="space-y-3">
-                <div className="flex items-center gap-2 mb-3 p-2 bg-muted/30 rounded-md border">
+          <div className="space-y-4">
+            {/* Hotels */}
+            {itinerary.hotels.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 mb-3">
                   <Hotel className="w-5 h-5 text-blue-600" />
-                  <span className="text-base font-semibold text-foreground">Hotels</span>
-                  <Badge variant="secondary" className="text-xs font-medium">{itinerary.hotels.length}</Badge>
+                  <h3 className="text-lg font-semibold text-foreground">Hotels</h3>
+                  <Badge variant="secondary" className="ml-auto">{itinerary.hotels.length}</Badge>
                 </div>
-                <div className="space-y-2">
+                
+                <div className="space-y-3">
                   {itinerary.hotels.map((hotel: any) => (
-                    <div key={hotel.id} className="bg-muted/20 dark:bg-muted/10 rounded-lg p-3 border border-border/40 w-full">
-                      <div className="flex flex-col gap-3 w-full">
-                        <div className="flex items-start gap-3 w-full">
-                          <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <Hotel className="w-4 h-4 text-blue-600" />
+                    <Card key={hotel.id} className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-4">
+                          <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <Hotel className="w-6 h-6 text-blue-600" />
                           </div>
+                          
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-sm text-foreground truncate">{hotel.hotel?.name || 'Hotel'}</h4>
-                            <p className="text-xs text-muted-foreground truncate">{hotel.hotel?.address}</p>
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-foreground text-base truncate">{hotel.hotel?.name || 'Hotel'}</h4>
+                                <p className="text-sm text-muted-foreground truncate">{hotel.hotel?.address}</p>
+                              </div>
+                              {hotel.location && (
+                                <Badge variant="outline" className="ml-2 shrink-0">
+                                  📍 {hotel.location}
+                                </Badge>
+                              )}
+                            </div>
+                            
                             {(hotel.checkIn || hotel.checkOut) && (
-                              <p className="text-xs text-blue-600 mt-1">
-                                {hotel.checkIn && hotel.checkOut 
-                                  ? `${new Date(hotel.checkIn).toLocaleDateString()} - ${new Date(hotel.checkOut).toLocaleDateString()}`
-                                  : hotel.checkIn 
-                                  ? `Check-in: ${new Date(hotel.checkIn).toLocaleDateString()}`
-                                  : `Check-out: ${new Date(hotel.checkOut).toLocaleDateString()}`
-                                }
-                              </p>
+                              <div className="mb-3 p-2 bg-blue-50/50 dark:bg-blue-900/10 rounded-lg">
+                                <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">
+                                  {hotel.checkIn && hotel.checkOut 
+                                    ? `${new Date(hotel.checkIn).toLocaleDateString()} - ${new Date(hotel.checkOut).toLocaleDateString()}`
+                                    : hotel.checkIn 
+                                    ? `Check-in: ${new Date(hotel.checkIn).toLocaleDateString()}`
+                                    : `Check-out: ${new Date(hotel.checkOut).toLocaleDateString()}`
+                                  }
+                                </p>
+                              </div>
                             )}
-                            {hotel.location && (
-                              <Badge variant="outline" className="text-xs mt-1 h-5">
-                                📍 {hotel.location}
-                              </Badge>
-                            )}
+                            
+                            <div className="flex flex-wrap gap-2">
+                              {hotel.hotel?.address && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="flex-1 min-w-fit"
+                                  onClick={() => {
+                                    const query = encodeURIComponent(hotel.hotel.address);
+                                    window.open(`https://maps.google.com/?q=${query}`, '_blank');
+                                  }}
+                                >
+                                  <Navigation className="w-4 h-4 mr-1" />
+                                  Directions
+                                </Button>
+                              )}
+                              
+                              {hotel.hotel?.phone && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="flex-1 min-w-fit"
+                                  onClick={() => window.open(`tel:${hotel.hotel.phone}`, '_self')}
+                                >
+                                  <Phone className="w-4 h-4 mr-1" />
+                                  Call
+                                </Button>
+                              )}
+                              
+                              {hotel.hotel?.website && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="flex-1 min-w-fit"
+                                  onClick={() => window.open(hotel.hotel.website, '_blank')}
+                                >
+                                  <ExternalLink className="w-4 h-4 mr-1" />
+                                  Website
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </div>
-                        
-                        {/* Action buttons row */}
-                        <div className="flex gap-2 w-full">
-                          {hotel.hotel?.address && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="flex-1 h-8 gap-1.5 text-xs"
-                              onClick={() => {
-                                const query = encodeURIComponent(hotel.hotel.address);
-                                window.open(`https://maps.google.com/?q=${query}`, '_blank');
-                              }}
-                            >
-                              <Navigation className="w-3 h-3" />
-                              Directions
-                            </Button>
-                          )}
-                          
-                          {hotel.hotel?.phone && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="flex-1 h-8 gap-1.5 text-xs"
-                              onClick={() => window.open(`tel:${hotel.hotel.phone}`, '_self')}
-                            >
-                              <Phone className="w-3 h-3" />
-                              Call
-                            </Button>
-                          )}
-                          
-                          {hotel.hotel?.website && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="flex-1 h-8 gap-1.5 text-xs"
-                              onClick={() => window.open(hotel.hotel.website, '_blank')}
-                            >
-                              <ExternalLink className="w-3 h-3" />
-                              Website
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                      </CardContent>
+                    </Card>
                   ))}
                 </div>
-                  </div>
-                )}
+              </div>
+            )}
 
-                {/* Flights */}
-                {itinerary.flights.length > 0 && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Plane className="w-4 h-4 text-purple-600" />
-                      <span className="text-sm font-medium text-foreground">Flights</span>
-                      <Badge variant="secondary" className="text-xs">{itinerary.flights.length}</Badge>
-                    </div>
-                    <div className="space-y-2">
-                      {itinerary.flights.map((flight: any) => (
-                        <div key={flight.id} className="bg-purple-50/50 dark:bg-purple-950/20 rounded-lg p-3 border border-purple-200/30">
-                          <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
-                              <Plane className="w-4 h-4 text-purple-600" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-medium text-sm text-foreground">
-                                {flight.airline} {flight.flightNumber}
-                              </h4>
-                              <div className="text-xs text-muted-foreground space-y-1">
-                                <div className="flex items-center gap-1">
+            {/* Flights */}
+            {itinerary.flights.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 mb-3">
+                  <Plane className="w-5 h-5 text-purple-600" />
+                  <h3 className="text-lg font-semibold text-foreground">Flights</h3>
+                  <Badge variant="secondary" className="ml-auto">{itinerary.flights.length}</Badge>
+                </div>
+                
+                <div className="space-y-3">
+                  {itinerary.flights.map((flight: any) => (
+                    <Card key={flight.id} className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-4">
+                          <div className="w-12 h-12 bg-purple-50 dark:bg-purple-900/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <Plane className="w-6 h-6 text-purple-600" />
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-foreground text-base">
+                                  {flight.airline} {flight.flightNumber}
+                                </h4>
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                                   <span>{flight.departure?.airport}</span>
                                   <span>→</span>
                                   <span>{flight.arrival?.airport}</span>
                                 </div>
-                                <div>
-                                  {flight.departure?.date} at {flight.departure?.time}
-                                </div>
                               </div>
                               {flight.price && (
-                                <Badge variant="outline" className="text-xs mt-1 h-5 text-purple-600">
+                                <Badge variant="outline" className="ml-2 text-purple-600 border-purple-200">
                                   {flight.price}
                                 </Badge>
                               )}
                             </div>
+                            
+                            <div className="mb-3 p-2 bg-purple-50/50 dark:bg-purple-900/10 rounded-lg">
+                              <p className="text-sm text-purple-700 dark:text-purple-300 font-medium">
+                                {flight.departure?.date} at {flight.departure?.time}
+                              </p>
+                            </div>
+                            
                             {flight.bookingUrl && (
                               <Button
                                 size="sm"
-                                variant="ghost"
-                                className="h-8 w-8 p-0"
+                                variant="outline"
+                                className="w-full"
                                 onClick={() => window.open(flight.bookingUrl, '_blank')}
                               >
-                                <ExternalLink className="w-3 h-3" />
+                                <ExternalLink className="w-4 h-4 mr-1" />
+                                View Booking
                               </Button>
                             )}
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </div>
         )}
 
         {/* Daily Schedule */}
