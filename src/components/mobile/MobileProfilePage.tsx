@@ -198,23 +198,26 @@ export function MobileProfilePage() {
         </div>
 
         {/* Friends Button */}
-        <Card className="p-4">
-          <Button 
-            onClick={() => navigate('/mobile/friends')} 
-            className="w-full h-14 text-left justify-start"
-            variant="ghost"
-          >
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Users className="h-5 w-5 text-blue-600" />
-              </div>
-              <div className="flex-1">
-                <p className="text-lg font-bold">{stats.following_count}</p>
-                <p className="text-xs text-muted-foreground">Friends</p>
-              </div>
+        <Button 
+          onClick={() => navigate('/mobile/friends')} 
+          className="w-full h-16 bg-primary/10 hover:bg-primary/20 border-2 border-primary/20 hover:border-primary/30 transition-all duration-200"
+          variant="outline"
+        >
+          <div className="flex items-center gap-4 w-full">
+            <div className="p-3 bg-primary rounded-lg">
+              <Users className="h-6 w-6 text-primary-foreground" />
             </div>
-          </Button>
-        </Card>
+            <div className="flex-1 text-left">
+              <p className="text-lg font-bold text-foreground">{stats.following_count} Friends</p>
+              <p className="text-sm text-muted-foreground">View and manage your friends</p>
+            </div>
+            <div className="text-primary">
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </div>
+        </Button>
 
         {/* Activity Summary */}
         <Card>
