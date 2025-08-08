@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Camera, Edit2, Users, MapPin, Crown, Star, Heart, TrendingUp, Activity, ChevronRight, Bookmark, Route } from 'lucide-react';
+import { Camera, Edit2, Users, MapPin, Crown, Star, Heart, TrendingUp, Activity, ChevronRight, Bookmark, Route, MessageCircle, Share2, MapPinIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +10,7 @@ import { useFriends } from '@/hooks/useFriends';
 import { useItineraries } from '@/hooks/useItineraries';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
 
 interface ProfileStats {
   rated_count: number;
@@ -18,6 +19,17 @@ interface ProfileStats {
   top_cuisine: string;
   following_count: number;
   followers_count: number;
+}
+
+interface RecentActivity {
+  id: string;
+  place_name: string;
+  address: string;
+  overall_rating: number;
+  date_visited: string;
+  created_at: string;
+  place_id: string;
+  cuisine: string;
 }
 
 export function MobileProfilePage() {
@@ -34,6 +46,9 @@ export function MobileProfilePage() {
     following_count: 0,
     followers_count: 0
   });
+
+  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
+  const [loadingActivity, setLoadingActivity] = useState(false);
 
   // Load user stats
   useEffect(() => {
@@ -62,6 +77,33 @@ export function MobileProfilePage() {
 
     loadStats();
   }, [user, friends]);
+
+  // Load recent activity
+  useEffect(() => {
+    const loadRecentActivity = async () => {
+      if (!user) return;
+
+      setLoadingActivity(true);
+      try {
+        const { data, error } = await supabase
+          .from('place_ratings')
+          .select('id, place_name, address, overall_rating, date_visited, created_at, place_id, cuisine')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        if (error) throw error;
+
+        setRecentActivity(data || []);
+      } catch (error) {
+        console.error('Error loading recent activity:', error);
+      } finally {
+        setLoadingActivity(false);
+      }
+    };
+
+    loadRecentActivity();
+  }, [user]);
 
 
   if (!user || !profile) {
@@ -290,7 +332,7 @@ export function MobileProfilePage() {
             </div>
           </Button>
 
-          {/* Activity Summary */}
+          {/* Recent Activity */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
@@ -298,25 +340,89 @@ export function MobileProfilePage() {
                 Recent Activity
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {stats.rated_count > 0 ? (
-                  <>
-                    <div className="flex items-center justify-between text-sm">
-                      <span>Latest restaurant rating</span>
-                      <span className="text-muted-foreground">Recently</span>
+            <CardContent className="p-0">
+              {loadingActivity ? (
+                <div className="p-4 space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-center gap-3 animate-pulse">
+                      <div className="w-12 h-12 bg-muted rounded-full"></div>
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-muted rounded w-3/4"></div>
+                        <div className="h-3 bg-muted rounded w-1/2"></div>
+                      </div>
+                      <div className="w-8 h-8 bg-muted rounded-full"></div>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span>Wishlist updates</span>
-                      <span className="text-muted-foreground">This week</span>
+                  ))}
+                </div>
+              ) : recentActivity.length > 0 ? (
+                <div className="divide-y divide-border">
+                  {recentActivity.map((activity, index) => (
+                    <div
+                      key={activity.id}
+                      className="p-4 hover:bg-muted/50 transition-colors cursor-pointer"
+                      onClick={() => navigate(`/restaurant/${activity.place_id}`)}
+                    >
+                      <div className="flex items-start gap-3">
+                        {/* User Avatar */}
+                        <Avatar className="w-12 h-12 border-2 border-background">
+                          <AvatarImage src={profile?.avatar_url || ''} alt={profile?.username || 'User'} />
+                          <AvatarFallback className="text-sm font-bold bg-primary/10 text-primary">
+                            {profile?.name?.charAt(0) || profile?.username?.charAt(0) || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+
+                        {/* Activity Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <p className="text-base font-semibold text-foreground">
+                              You ranked {activity.place_name}
+                            </p>
+                            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary font-bold text-sm">
+                              {activity.overall_rating.toFixed(1)}
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                            <MapPinIcon className="h-4 w-4" />
+                            <span className="truncate">{activity.address}</span>
+                          </div>
+                          
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <TrendingUp className="h-4 w-4" />
+                            <span>1 visit</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center justify-between mt-3">
+                        <div className="flex items-center gap-4">
+                          <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground">
+                            <Heart className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground">
+                            <MessageCircle className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground">
+                            <Share2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        
+                        <span className="text-xs text-muted-foreground">
+                          {format(new Date(activity.created_at), 'MMM d')}
+                        </span>
+                      </div>
                     </div>
-                  </>
-                ) : (
-                  <p className="text-muted-foreground text-sm text-center py-4">
+                  ))}
+                </div>
+              ) : (
+                <div className="p-6 text-center">
+                  <Activity className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-muted-foreground text-sm">
                     No activity yet. Start rating restaurants!
                   </p>
-                )}
-              </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
