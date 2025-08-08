@@ -189,7 +189,7 @@ export default function FriendProfilePage() {
   return (
     <>
       {/* Mobile status bar spacer */}
-      <div className="lg:hidden h-[35px] bg-background"></div>
+      <div className="lg:hidden h-[35px]" style={{ backgroundColor: 'rgb(24,24,26)' }}></div>
       <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-accent/10">
         {/* Mobile Header - Simplified */}
         <div className="lg:hidden border-b bg-card/95 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
