@@ -26,6 +26,7 @@ import { Hotel as HotelType } from '@/hooks/useGooglePlacesHotelSearch';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useItineraries } from '@/hooks/useItineraries';
+import { useScrollAutoCollapse } from '@/hooks/useScrollAutoCollapse';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 interface LocationSuggestion {
@@ -208,6 +209,19 @@ export function ItineraryBuilder({
   const [pendingEndDate, setPendingEndDate] = useState<Date | null>(dateRange.end);
   const [pendingStartDate, setPendingStartDate] = useState<Date | null>(dateRange.start);
   const [isMapOpen, setIsMapOpen] = useState(false);
+
+  // Auto-collapse hooks for dropdowns when they scroll off screen
+  const extensionRef = useScrollAutoCollapse({
+    isOpen: isExtensionOpen,
+    onClose: () => setIsExtensionOpen(false),
+    threshold: 0.3 // Collapse when 70% of element is off screen
+  });
+
+  const itineraryDetailsRef = useScrollAutoCollapse({
+    isOpen: isDesktopSectionOpen,
+    onClose: () => setIsDesktopSectionOpen(false),
+    threshold: 0.3 // Collapse when 70% of element is off screen
+  });
 
   // Persist state to localStorage whenever key state changes (excluding large data objects to prevent quota exceeded)
   useEffect(() => {
@@ -1191,7 +1205,7 @@ export function ItineraryBuilder({
             {/* Desktop: Compact Row Design */}
             <div className="hidden lg:block">
               <Collapsible open={isDesktopSectionOpen} onOpenChange={setIsDesktopSectionOpen}>
-                  <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-background via-muted/20 to-secondary/10 backdrop-blur-sm border border-border/50 shadow-sm">
+                  <div ref={itineraryDetailsRef} className="relative overflow-hidden rounded-lg bg-gradient-to-r from-background via-muted/20 to-secondary/10 backdrop-blur-sm border border-border/50 shadow-sm">
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-3">
                   <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-secondary/10"></div>
@@ -1358,7 +1372,7 @@ export function ItineraryBuilder({
 
           {/* Trip Extension Section - Show for all trips */}
           {currentItinerary && <Collapsible open={isExtensionOpen} onOpenChange={setIsExtensionOpen}>
-              <Card className="lg:rounded-lg lg:border lg:shadow-sm lg:mb-6 rounded-none border-0 border-t border-b shadow-none mb-4 relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen lg:left-auto lg:right-auto lg:ml-0 lg:mr-0 lg:w-auto">
+              <Card ref={extensionRef} className="lg:rounded-lg lg:border lg:shadow-sm lg:mb-6 rounded-none border-0 border-t border-b shadow-none mb-4 relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen lg:left-auto lg:right-auto lg:ml-0 lg:mr-0 lg:w-auto">
                 <CollapsibleTrigger asChild>
                   <CardHeader className="cursor-pointer hover:bg-accent/50 active:scale-[0.98] transition-all duration-200 p-4 lg:px-6 lg:py-4 rounded-xl lg:rounded-lg border border-border/20 lg:border-0 bg-card/50 lg:bg-transparent shadow-sm lg:shadow-none">
                     <CardTitle className="flex items-center justify-between text-base lg:text-lg">
