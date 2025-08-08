@@ -527,7 +527,7 @@ export function UnifiedRestaurantDetails({
                 </div>
               </div>
               {restaurantData.rating && restaurantData.isSharedRestaurant && restaurantData.sharedBy && <div className="flex-shrink-0 text-center">
-                  <div className="w-16 h-16 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center mb-1">
+                  <div className="w-16 h-16 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center mb-1 mx-auto">
                     <div className="text-center">
                       <div className="text-lg font-bold text-primary">{restaurantData.rating.toFixed(1)}</div>
                       <Star className="h-3 w-3 fill-primary text-primary mx-auto" />
