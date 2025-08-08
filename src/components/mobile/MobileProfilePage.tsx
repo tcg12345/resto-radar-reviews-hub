@@ -250,6 +250,9 @@ export function MobileProfilePage() {
         </Card>
       </div>
 
+      {/* Bottom spacer for mobile safe area */}
+      <div className="h-20 lg:hidden"></div>
+
       {/* Removed dialogs - now using full page navigation */}
     </div>
   );
