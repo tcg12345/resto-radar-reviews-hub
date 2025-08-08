@@ -38,12 +38,12 @@ export function ItineraryMapButton({ events, onOpenMap }: ItineraryMapButtonProp
 
   if (isMobile) {
     return (
-      <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-40">
+      <div className="fixed bottom-28 left-1/2 transform -translate-x-1/2 z-40">
         <Button 
           onClick={onOpenMap}
-          className="h-10 px-4 rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all hover:scale-105"
+          className="h-8 px-3 rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all hover:scale-105 text-xs"
         >
-          <MapPin className="w-4 h-4 mr-2" />
+          <MapPin className="w-3 h-3 mr-1" />
           View Map ({eventsWithLocation.length > 0 ? eventsWithLocation.length : 'No locations'})
         </Button>
       </div>
