@@ -16,6 +16,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { Drawer, DrawerContent, DrawerTitle, DrawerDescription } from '@/components/ui/drawer';
 
 interface TripLocation {
   id: string;
@@ -170,7 +171,288 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
     }
   };
 
+if (isMobile) {
   return (
+    <>
+      <Drawer open={isOpen && !showResults} onOpenChange={handleClose}>
+        <DrawerContent className="rounded-t-3xl border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-0">
+          <div className="mx-auto w-full max-w-md">
+            <div className="sticky top-0 z-10 border-b border-border/50 bg-gradient-to-b from-background/95 via-background to-background/80 px-5 pt-4 pb-3">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <DrawerTitle className="text-base font-semibold">Hotel Search</DrawerTitle>
+                  <DrawerDescription className="text-xs text-muted-foreground">Find the perfect accommodation for your trip</DrawerDescription>
+                </div>
+                <Button variant="ghost" size="icon" onClick={handleClose} className="h-9 w-9 rounded-full bg-muted/50 hover:bg-muted">
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="max-h-[70vh] overflow-y-auto px-5 py-4">
+              {/* Compact Mobile Search Bar */}
+              <div className="space-y-2 border-b pb-3">
+                <div className="flex gap-2">
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Search hotels..."
+                    className="h-10"
+                  />
+                  <Button
+                    onClick={handleSearch}
+                    disabled={isSearching || !searchQuery.trim()}
+                    className="h-10 px-4"
+                  >
+                    <Search className="w-4 h-4 mr-1" />
+                    Go
+                  </Button>
+                </div>
+                <div className="flex justify-between">
+                  <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
+                    {showFilters ? "Hide filters" : "Show filters"}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Filters */}
+              <div className={cn("space-y-6", showFilters ? "border-b pb-3" : "hidden")}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      <Search className="w-4 h-4" />
+                      Hotel Name or Type
+                    </Label>
+                    <Input
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder="Hilton, boutique hotel, luxury resort..."
+                      className="bg-background/60"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      <MapPin className="w-4 h-4" />
+                      Location
+                    </Label>
+                    <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                      <SelectTrigger className="bg-background/60">
+                        <SelectValue placeholder={isMultiCity ? "Select location" : locations[0]?.name || "Select location"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {isMultiCity && <SelectItem value="all">All locations</SelectItem>}
+                        {locations.map((location) => (
+                          <SelectItem key={location.id} value={location.name}>
+                            {location.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      Check-in Date
+                    </Label>
+                    <Popover open={isCheckInOpen} onOpenChange={setIsCheckInOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal bg-background/60",
+                            !checkInDate && "text-muted-foreground"
+                          )}
+                        >
+                          <Calendar className="mr-2 h-4 w-4" />
+                          {checkInDate ? format(checkInDate, "MMM dd") : "Select date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 z-[9999]" align="start">
+                        <CalendarComponent
+                          mode="single"
+                          selected={checkInDate}
+                          onSelect={handleCheckInSelect}
+                          initialFocus
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      Check-out Date
+                    </Label>
+                    <Popover open={isCheckOutOpen} onOpenChange={setIsCheckOutOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal bg-background/60",
+                            !checkOutDate && "text-muted-foreground"
+                          )}
+                        >
+                          <Calendar className="mr-2 h-4 w-4" />
+                          {checkOutDate ? format(checkOutDate, "MMM dd") : "Select date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 z-[9999]" align="start">
+                        <CalendarComponent
+                          mode="single"
+                          selected={checkOutDate}
+                          onSelect={handleCheckOutSelect}
+                          initialFocus
+                          disabled={(date) => checkInDate ? date <= checkInDate : false}
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
+
+      {/* Results Drawer */}
+      <Drawer open={showResults} onOpenChange={() => setShowResults(false)}>
+        <DrawerContent className="rounded-t-3xl border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-0">
+          <div className="mx-auto w-full max-w-md">
+            <div className="sticky top-0 z-10 border-b border-border/50 bg-gradient-to-b from-background/95 via-background to-background/80 px-5 pt-4 pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowResults(false)}
+                    className="h-9 w-9 rounded-full bg-muted/50 hover:bg-muted"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                  <div className="space-y-0.5">
+                    <DrawerTitle className="text-base font-semibold flex items-center gap-2">
+                      <div className="p-2 rounded-xl bg-primary/10">
+                        <Hotel className="w-4 h-4 text-primary" />
+                      </div>
+                      {hotels.length} Available Hotels
+                    </DrawerTitle>
+                    <DrawerDescription className="text-xs text-muted-foreground">
+                      {selectedLocation && selectedLocation !== 'all' ? `Hotels in ${selectedLocation}` : 'Hotels in all locations'}
+                    </DrawerDescription>
+                  </div>
+                </div>
+                <Button variant="ghost" size="icon" onClick={handleClose} className="h-9 w-9 rounded-full bg-muted/50 hover:bg-muted">
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="max-h-[70vh] overflow-y-auto px-5 py-4">
+              {/* Results Content */}
+              <div className="flex-1 overflow-y-auto pt-2">
+                {isSearching ? (
+                  <div className="space-y-4">
+                    {[...Array(3)].map((_, i) => (
+                      <SearchResultSkeleton key={i} />
+                    ))}
+                  </div>
+                ) : hotels.length > 0 ? (
+                  <div className="space-y-3">
+                    {hotels.map((hotel) => (
+                      <Card key={hotel.id} className="group cursor-pointer border-2 border-transparent hover:border-primary/30 transition-all duration-300 hover:shadow-lg bg-gradient-to-r from-card to-card/90">
+                        <CardContent className={cn("p-6", isMobile && "p-4")}>
+                          <div className={cn("flex gap-4", isMobile && "flex-col gap-3")}>
+                            <div className="flex-1 space-y-3 min-w-0">
+                              <div className="flex items-center gap-3 flex-wrap">
+                                <h3 className={cn("font-semibold text-lg", isMobile && "text-base")}>{hotel.name}</h3>
+                                {hotel.rating && (
+                                  <Badge className={cn("text-xs font-medium", getRatingColor(hotel.rating))}>
+                                    <Star className="w-3 h-3 mr-1 fill-current" />
+                                    {hotel.rating}
+                                  </Badge>
+                                )}
+                                {hotel.searchLocation && (
+                                  <Badge variant="outline" className="text-xs">
+                                    <MapPin className="w-3 h-3 mr-1" />
+                                    {hotel.searchLocation}
+                                  </Badge>
+                                )}
+                              </div>
+
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <MapPin className="w-4 h-4 flex-shrink-0" />
+                                <span className="line-clamp-1">{hotel.address}</span>
+                              </div>
+
+                              {hotel.description && !isMobile && (
+                                <p className="text-sm text-muted-foreground line-clamp-2">
+                                  {hotel.description}
+                                </p>
+                              )}
+
+                              {hotel.amenities && hotel.amenities.length > 0 && (
+                                <div className="flex flex-wrap gap-2">
+                                  {hotel.amenities.slice(0, isMobile ? 3 : 4).map((amenity, index) => (
+                                    <Badge key={index} variant="outline" className="text-xs">
+                                      {getAmenityIcon(amenity)}
+                                      <span className="ml-1">{amenity}</span>
+                                    </Badge>
+                                  ))}
+                                  {hotel.amenities.length > (isMobile ? 3 : 4) && (
+                                    <Badge variant="outline" className="text-xs">
+                                      +{hotel.amenities.length - (isMobile ? 3 : 4)} more
+                                    </Badge>
+                                  )}
+                                </div>
+                              )}
+
+                              {hotel.priceRange && (
+                                <Badge variant="secondary" className="w-fit">
+                                  {hotel.priceRange}
+                                </Badge>
+                              )}
+                            </div>
+
+                            <div className={cn("flex-shrink-0 flex flex-col justify-center", isMobile && "w-full")}>
+                              <Button
+                                onClick={() => handleHotelSelect(hotel)}
+                                className={cn("whitespace-nowrap bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md group-hover:shadow-lg transition-all", isMobile && "w-full")}
+                              >
+                                Select Hotel
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Hotel className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <p className="text-lg">No hotels found</p>
+                    <Button variant="outline" onClick={() => setShowResults(false)} className="mt-4">
+                      Search Again
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
+    </>
+  );
+}
+
+return (
     <>
       {/* Main Search Dialog */}
       <Dialog open={isOpen && !showResults} onOpenChange={handleClose}>
