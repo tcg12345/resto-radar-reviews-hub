@@ -37,28 +37,6 @@ export function HotelDetailedOverviewPage() {
       if (storedHotel) {
         const hotelData = JSON.parse(storedHotel);
         setHotel(hotelData);
-        
-        // Generate detailed AI overview
-        setIsLoadingOverview(true);
-        try {
-          const { data: overviewData, error: overviewError } = await supabase.functions.invoke('ai-hotel-overview', {
-            body: {
-              hotel: hotelData,
-              detailed: true
-            }
-          });
-
-          if (!overviewError && overviewData?.overview) {
-            setDetailedOverview(overviewData.overview);
-          } else {
-            setDetailedOverview('This exceptional hotel offers an unparalleled luxury experience with world-class amenities, elegant accommodations, and impeccable service. Located in a prime destination, it provides guests with sophisticated comfort and access to the finest local attractions, dining, and cultural experiences.');
-          }
-        } catch (error) {
-          console.error('Error generating detailed AI overview:', error);
-          setDetailedOverview('This exceptional hotel offers an unparalleled luxury experience with world-class amenities, elegant accommodations, and impeccable service.');
-        } finally {
-          setIsLoadingOverview(false);
-        }
       } else {
         navigate('/travel');
       }
@@ -67,6 +45,39 @@ export function HotelDetailedOverviewPage() {
 
     fetchHotelData();
   }, [hotelId, navigate]);
+
+  // Load detailed AI overview asynchronously after page loads
+  useEffect(() => {
+    const loadDetailedOverview = async () => {
+      if (!hotel) return;
+      
+      setIsLoadingOverview(true);
+      try {
+        const { data: overviewData, error: overviewError } = await supabase.functions.invoke('ai-hotel-overview', {
+          body: {
+            hotel: hotel,
+            detailed: true
+          }
+        });
+
+        if (!overviewError && overviewData?.overview) {
+          setDetailedOverview(overviewData.overview);
+        } else {
+          setDetailedOverview('This exceptional hotel offers an unparalleled luxury experience with world-class amenities, elegant accommodations, and impeccable service. Located in a prime destination, it provides guests with sophisticated comfort and access to the finest local attractions, dining, and cultural experiences. The property features meticulously designed rooms and suites, each thoughtfully appointed with premium furnishings and modern conveniences. Guests can enjoy exceptional dining venues, comprehensive wellness facilities, and personalized service that anticipates every need, making this an ideal choice for discerning travelers seeking both luxury and authentic local experiences.');
+        }
+      } catch (error) {
+        console.error('Error generating detailed AI overview:', error);
+        setDetailedOverview('This exceptional hotel offers an unparalleled luxury experience with world-class amenities, elegant accommodations, and impeccable service. Located in a prime destination, it provides guests with sophisticated comfort and access to the finest local attractions, dining, and cultural experiences.');
+      } finally {
+        setIsLoadingOverview(false);
+      }
+    };
+
+    // Small delay to let the page render first
+    if (hotel) {
+      setTimeout(loadDetailedOverview, 100);
+    }
+  }, [hotel]);
 
   const handleBack = () => {
     navigate(`/hotel/${hotelId}`);
