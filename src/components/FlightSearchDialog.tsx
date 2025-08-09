@@ -79,6 +79,9 @@ export function FlightSearchDialog({ isOpen, onClose, onSelect, locations }: Fli
   const isMobile = useIsMobile();
   const [showFilters, setShowFilters] = useState(!isMobile);
   
+  const snapPoints = [0.5, 0.92, 1];
+  const [activeSnap, setActiveSnap] = useState<number | string>(snapPoints[0]);
+  const [activeSnapResults, setActiveSnapResults] = useState<number | string>(snapPoints[0]);
   const { searchFlights } = useAmadeusApi();
 
   const handleSearch = async () => {
@@ -161,7 +164,7 @@ if (isMobile) {
   return (
     <>
       {/* Main Search Drawer */}
-      <Drawer open={isOpen && !showResults} onOpenChange={handleClose}>
+      <Drawer open={isOpen && !showResults} onOpenChange={handleClose} snapPoints={snapPoints} activeSnapPoint={activeSnap} onSnapPointChange={setActiveSnap}>
         <DrawerContent className="rounded-t-3xl border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-0">
           <div className="mx-auto w-full max-w-md">
             <div className="sticky top-0 z-10 border-b border-border/50 bg-gradient-to-b from-background/95 via-background to-background/80 px-5 pt-4 pb-3">
@@ -322,7 +325,7 @@ if (isMobile) {
       </Drawer>
 
       {/* Results Drawer */}
-      <Drawer open={showResults} onOpenChange={() => setShowResults(false)}>
+      <Drawer open={showResults} onOpenChange={() => setShowResults(false)} snapPoints={snapPoints} activeSnapPoint={activeSnapResults} onSnapPointChange={setActiveSnapResults}>
         <DrawerContent className="rounded-t-3xl border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-0">
           <div className="mx-auto w-full max-w-md">
             <div className="sticky top-0 z-10 border-b border-border/50 bg-gradient-to-b from-background/95 via-background to-background/80 px-5 pt-4 pb-3">
