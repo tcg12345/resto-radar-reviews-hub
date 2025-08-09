@@ -66,12 +66,13 @@ export function HotelDetailsPage() {
         const hotelData = JSON.parse(storedHotel);
         setHotel(hotelData);
         
-        // Generate AI overview
+        // Generate AI overview (short version)
         setIsLoadingOverview(true);
         try {
           const { data: overviewData, error: overviewError } = await supabase.functions.invoke('ai-hotel-overview', {
             body: {
-              hotel: hotelData
+              hotel: hotelData,
+              detailed: false // Request short overview
             }
           });
 
@@ -380,13 +381,23 @@ export function HotelDetailsPage() {
             </div>
 
             {isLoadingOverview ? (
-              <div className="space-y-2">
+              <div className="space-y-2 mb-4">
                 <div className="h-4 bg-muted rounded animate-pulse w-full"></div>
                 <div className="h-4 bg-muted rounded animate-pulse w-5/6"></div>
-                <div className="h-4 bg-muted rounded animate-pulse w-4/5"></div>
               </div>
             ) : (
-              <p className="text-muted-foreground mb-4 leading-relaxed">{aiOverview}</p>
+              <div className="mb-4">
+                <p className="text-muted-foreground leading-relaxed mb-3">{aiOverview}</p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigate(`/hotel/${hotelId}/overview`)}
+                  className="flex items-center gap-2"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  View Detailed Overview
+                </Button>
+              </div>
             )}
           </div>
 

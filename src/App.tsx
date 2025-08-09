@@ -49,7 +49,7 @@ import RestaurantPhotosPage from "./pages/RestaurantPhotosPage";
 import CommunityPhotoGalleryPage from "./pages/CommunityPhotoGalleryPage";
 import ShareRestaurantPage from "./pages/ShareRestaurantPage";
 import { HotelDetailsPage } from "./pages/HotelDetailsPage";
-
+import { HotelDetailedOverviewPage } from "./pages/HotelDetailedOverviewPage";
 
 const queryClient = new QueryClient();
 
@@ -79,6 +79,7 @@ const App = () => (
                 <Route path="/map" element={<RequireAuth><Layout activeTab="search" showChatbot={false}><MapPageWrapper /></Layout></RequireAuth>} />
                 <Route path="/travel" element={<RequireAuth><Layout activeTab="travel"><TravelPage /></Layout></RequireAuth>} />
                 <Route path="/hotel/:hotelId" element={<RequireAuth><HotelDetailsPage /></RequireAuth>} />
+                <Route path="/hotel/:hotelId/overview" element={<RequireAuth><HotelDetailedOverviewPage /></RequireAuth>} />
                 <Route path="/trip/:tripId" element={<RequireAuth><TripDetailPage /></RequireAuth>} />
                 <Route path="/itinerary/:itineraryId" element={<ItineraryViewPage />} />
                 <Route path="/shared-trip/:tripId" element={<SharedTripPage />} />

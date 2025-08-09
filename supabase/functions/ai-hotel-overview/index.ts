@@ -25,7 +25,7 @@ serve(async (req) => {
   }
 
   try {
-    const { hotel } = await req.json();
+    const { hotel, detailed = false } = await req.json();
 
     if (!hotel || !hotel.name) {
       return new Response(
@@ -46,24 +46,14 @@ serve(async (req) => {
       hotelContext += `\nAmenities: ${hotel.amenities.join(', ')}`;
     }
 
-    console.log('Generating detailed overview for hotel:', hotel.name);
+    console.log(`Generating ${detailed ? 'detailed' : 'short'} overview for hotel:`, hotel.name);
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `You are an expert travel writer specializing in luxury hospitality. Create highly detailed, immersive hotel descriptions that paint a vivid picture of the guest experience. Focus on specific architectural details, interior design elements, service quality, neighborhood characteristics, dining experiences, and unique selling points. Write in an engaging, descriptive style that helps readers visualize their stay. Be specific about room features, public spaces, service offerings, and local attractions. Make each description feel personalized and distinctive.`
-          },
-          {
-            role: 'user',
-            content: `Create an exceptionally detailed and personalized overview for this hotel. Use the provided information to craft a rich, immersive description:\n\n${hotelContext}\n\nPlease include:
+    const systemPrompt = detailed 
+      ? `You are an expert travel writer specializing in luxury hospitality. Create highly detailed, immersive hotel descriptions that paint a vivid picture of the guest experience. Focus on specific architectural details, interior design elements, service quality, neighborhood characteristics, dining experiences, and unique selling points. Write in an engaging, descriptive style that helps readers visualize their stay. Be specific about room features, public spaces, service offerings, and local attractions. Make each description feel personalized and distinctive.`
+      : `You are a travel expert who creates concise, compelling hotel summaries. Write brief but engaging descriptions that capture the essence of each hotel in 1-2 sentences. Focus on the most distinctive features and main appeal.`;
+
+    const userPrompt = detailed 
+      ? `Create an exceptionally detailed and personalized overview for this hotel. Use the provided information to craft a rich, immersive description:\n\n${hotelContext}\n\nPlease include:
 - Specific details about the hotel's architecture, design, and ambiance
 - Detailed room descriptions and guest experience
 - In-depth coverage of amenities and their unique features
@@ -76,9 +66,27 @@ serve(async (req) => {
 - Any historical or cultural significance of the location
 
 Write 4-5 detailed paragraphs that make potential guests excited about staying here. Be specific, vivid, and compelling.`
+      : `Create a brief, compelling summary for this hotel in 1-2 sentences:\n\n${hotelContext}\n\nCapture the hotel's main appeal and most distinctive features. Make it engaging and enticing while keeping it concise.`;
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: systemPrompt
+          },
+          {
+            role: 'user',
+            content: userPrompt
           }
         ],
-        max_tokens: 800,
+        max_tokens: detailed ? 800 : 150,
         temperature: 0.8,
       }),
     });
