@@ -66,28 +66,6 @@ export function HotelDetailsPage() {
         const hotelData = JSON.parse(storedHotel);
         setHotel(hotelData);
         
-        // Generate AI overview (short version)
-        setIsLoadingOverview(true);
-        try {
-          const { data: overviewData, error: overviewError } = await supabase.functions.invoke('ai-hotel-overview', {
-            body: {
-              hotel: hotelData,
-              detailed: false // Request short overview
-            }
-          });
-
-          if (!overviewError && overviewData?.overview) {
-            setAiOverview(overviewData.overview);
-          } else {
-            setAiOverview('This hotel offers a comfortable stay with excellent amenities and service in a prime location.');
-          }
-        } catch (error) {
-          console.error('Error generating AI overview:', error);
-          setAiOverview('This hotel offers a comfortable stay with excellent amenities and service in a prime location.');
-        } finally {
-          setIsLoadingOverview(false);
-        }
-        
         // Fetch photos from TripAdvisor API
         try {
           const { data: tripAdvisorData, error } = await supabase.functions.invoke('tripadvisor-api', {
@@ -125,6 +103,39 @@ export function HotelDetailsPage() {
 
     fetchHotelData();
   }, [hotelId, navigate]);
+
+  // Load AI overview asynchronously after page loads
+  useEffect(() => {
+    const loadAiOverview = async () => {
+      if (!hotel) return;
+      
+      setIsLoadingOverview(true);
+      try {
+        const { data: overviewData, error: overviewError } = await supabase.functions.invoke('ai-hotel-overview', {
+          body: {
+            hotel: hotel,
+            detailed: false // Request short overview
+          }
+        });
+
+        if (!overviewError && overviewData?.overview) {
+          setAiOverview(overviewData.overview);
+        } else {
+          setAiOverview('This hotel offers excellent amenities and service in a prime location.');
+        }
+      } catch (error) {
+        console.error('Error generating AI overview:', error);
+        setAiOverview('This hotel offers excellent amenities and service in a prime location.');
+      } finally {
+        setIsLoadingOverview(false);
+      }
+    };
+
+    // Add a small delay to let the page render first
+    if (hotel) {
+      setTimeout(loadAiOverview, 200);
+    }
+  }, [hotel]);
 
   // Initialize map when token and hotel data are available
   useEffect(() => {

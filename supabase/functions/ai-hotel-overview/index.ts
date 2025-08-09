@@ -50,9 +50,9 @@ serve(async (req) => {
 
     const systemPrompt = detailed 
       ? `You are an expert travel writer specializing in luxury hospitality. Create highly detailed, immersive hotel descriptions that paint a vivid picture of the guest experience. Focus on specific architectural details, interior design elements, service quality, neighborhood characteristics, dining experiences, and unique selling points. Write in an engaging, descriptive style that helps readers visualize their stay. Be specific about room features, public spaces, service offerings, and local attractions. Make each description feel personalized and distinctive.`
-      : `You are a travel expert who creates concise, compelling hotel summaries. Write brief but engaging descriptions that capture the essence of each hotel in 1-2 sentences. Focus on the most distinctive features and main appeal.`;
+      : `You are a travel expert who creates ultra-concise hotel summaries. Write brief, punchy descriptions in exactly one sentence that captures the hotel's main appeal and most distinctive feature.`;
 
-    const userPrompt = detailed 
+    const userPrompt = detailed
       ? `Create an exceptionally detailed and personalized overview for this hotel. Use the provided information to craft a rich, immersive description:\n\n${hotelContext}\n\nPlease include:
 - Specific details about the hotel's architecture, design, and ambiance
 - Detailed room descriptions and guest experience
@@ -66,7 +66,7 @@ serve(async (req) => {
 - Any historical or cultural significance of the location
 
 Write 4-5 detailed paragraphs that make potential guests excited about staying here. Be specific, vivid, and compelling.`
-      : `Create a brief, compelling summary for this hotel in 1-2 sentences:\n\n${hotelContext}\n\nCapture the hotel's main appeal and most distinctive features. Make it engaging and enticing while keeping it concise.`;
+      : `Create a single, compelling sentence summary for this hotel:\n\n${hotelContext}\n\nWrite exactly one sentence that captures the hotel's essence and main appeal. Be punchy and engaging.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -86,7 +86,7 @@ Write 4-5 detailed paragraphs that make potential guests excited about staying h
             content: userPrompt
           }
         ],
-        max_tokens: detailed ? 800 : 150,
+        max_tokens: detailed ? 800 : 60,
         temperature: 0.8,
       }),
     });
