@@ -80,7 +80,7 @@ export function MobileFriendsPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate('/friends')}
+            onClick={() => navigate('/profile')}
             className="h-10 w-10 p-0"
           >
             <ArrowLeft className="h-5 w-5" />
