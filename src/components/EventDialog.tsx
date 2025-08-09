@@ -4,6 +4,8 @@ import { Clock, MapPin, Search, Utensils, MapPinIcon, ExternalLink, Phone } from
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Drawer, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -195,6 +197,406 @@ export function EventDialog({
     setLocationSuggestions([]);
   };
   const formattedDate = selectedDate ? format(new Date(selectedDate), 'EEEE, MMMM do') : '';
+  const isMobile = useIsMobile();
+
+  const formContent = (
+    <div className="space-y-6">
+      {/* Event Type Selection */}
+      <div className="space-y-3">
+        <Label>Event Type</Label>
+        <Tabs value={type} onValueChange={value => setType(value as typeof type)}>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="restaurant" className="flex items-center gap-1 text-xs">
+              <Utensils className="w-3 h-3" />
+              Restaurant
+            </TabsTrigger>
+            <TabsTrigger value="attraction" className="flex items-center gap-1 text-xs">
+              <MapPinIcon className="w-3 h-3" />
+              Places
+            </TabsTrigger>
+            <TabsTrigger value="other" className="flex items-center gap-1 text-xs">
+              <Clock className="w-3 h-3" />
+              Other
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="restaurant" className="space-y-4">
+            {restaurantData && restaurantData.name ? (
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-base">{restaurantData.name}</CardTitle>
+                      <CardDescription className="flex items-center gap-1 mt-1">
+                        <MapPin className="w-3 h-3" />
+                        {restaurantData.address}
+                      </CardDescription>
+                    </div>
+                    <Badge variant="secondary">Restaurant</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      setRestaurantData(null);
+                      setTitle('');
+                    }}
+                  >
+                    Change Restaurant
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Search for restaurants, cafes, and dining places.
+                </p>
+                <InlineRestaurantSearch 
+                  value={restaurantData}
+                  onRestaurantSelect={(restaurant) => {
+                    console.log('Selected restaurant data:', restaurant);
+                    setRestaurantData(restaurant);
+                    setTitle(restaurant.name);
+                    setType('restaurant');
+                  }}
+                  location={itineraryLocation}
+                  placeholder="Search for restaurants..."
+                />
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="attraction" className="space-y-4">
+            {attractionData ? (
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-base">{attractionData.name}</CardTitle>
+                      <CardDescription className="flex items-center gap-1 mt-1">
+                        <MapPin className="w-3 h-3" />
+                        {attractionData.address}
+                      </CardDescription>
+                    </div>
+                    <Badge variant="secondary">{attractionData.category || 'Attraction'}</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="flex flex-wrap gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setAttractionData(null)}>
+                      Change Place
+                    </Button>
+                    {attractionData.address && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => window.open(`https://maps.google.com/maps?q=${encodeURIComponent(attractionData.address)}`, '_blank')}
+                      >
+                        <MapPin className="w-3 h-3 mr-1" />
+                        Directions
+                      </Button>
+                    )}
+                    {attractionData.website && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => window.open(attractionData.website, '_blank')}
+                      >
+                        <ExternalLink className="w-3 h-3 mr-1" />
+                        Website
+                      </Button>
+                    )}
+                    {attractionData.phone && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => window.open(`tel:${attractionData.phone}`, '_self')}
+                      >
+                        <Phone className="w-3 h-3 mr-1" />
+                        Call
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Search for attractions, museums, landmarks, and places to visit.
+                </p>
+                <AttractionsSearch value={attractionData} onChange={handleAttractionSelect} location={itineraryLocation} placeholder="Search Louvre, Eiffel Tower, Central Park..." />
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="other" className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Add any other type of event or reminder.
+            </p>
+            
+            {/* Location Field with Autocomplete */}
+            <div className="space-y-2">
+              <Label htmlFor="event-location">Location (Optional)</Label>
+              <div className="relative">
+                <Input
+                  id="event-location"
+                  value={location}
+                  onChange={(e) => handleLocationChange(e.target.value)}
+                  placeholder="Enter address or location..."
+                  className="w-full"
+                />
+                {showLocationSuggestions && locationSuggestions.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-md shadow-lg z-[9999] max-h-60 overflow-y-auto">
+                    {locationSuggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => handleLocationSelect(suggestion)}
+                        className="w-full text-left px-3 py-2 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground first:rounded-t-md last:rounded-b-md"
+                      >
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-muted-foreground shrink-0" />
+                          <div className="min-w-0">
+                            <div className="font-medium truncate">
+                              {suggestion.name || suggestion.formatted_address}
+                            </div>
+                            {suggestion.name && suggestion.formatted_address && (
+                              <div className="text-xs text-muted-foreground truncate">
+                                {suggestion.formatted_address}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {location && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <MapPin className="w-3 h-3" />
+                  {location}
+                </p>
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {/* Event Title */}
+      <div className="space-y-2">
+        <Label htmlFor="title">Event Title *</Label>
+        <Input id="title" value={title} onChange={e => setTitle(e.target.value)} placeholder="Enter event title..." className="w-full" />
+      </div>
+
+      {/* Time */}
+      <div className="space-y-2">
+        <Label>Time *</Label>
+        <Popover open={isTimePickerOpen} onOpenChange={setIsTimePickerOpen}>
+          <PopoverTrigger asChild>
+            <Button type="button" variant="outline" className={cn("w-full justify-start text-left font-normal", !time && "text-muted-foreground")} onClick={e => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsTimePickerOpen(!isTimePickerOpen);
+            }}>
+              <Clock className="mr-2 h-4 w-4" />
+              {time ? time : <span>Select time</span>}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0 bg-background border shadow-lg" align="start" side="bottom" sideOffset={4} style={{
+            zIndex: 9999
+          }}>
+            <div className="p-4 space-y-4">
+              {/* 24-hour toggle */}
+              <div className="flex items-center justify-between pb-2 border-b">
+                
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs">12h</span>
+                  <Switch checked={is24Hour} onCheckedChange={checked => {
+                    setIs24Hour(checked);
+                    if (checked) {
+                      // Convert 12-hour to 24-hour
+                      let hour24 = parseInt(selectedHour);
+                      if (selectedPeriod === 'PM' && hour24 !== 12) {
+                        hour24 += 12;
+                      } else if (selectedPeriod === 'AM' && hour24 === 12) {
+                        hour24 = 0;
+                      }
+                      setSelectedHour(hour24.toString().padStart(2, '0'));
+                    } else {
+                      // Convert 24-hour to 12-hour
+                      let hour12 = parseInt(selectedHour);
+                      const period = hour12 >= 12 ? 'PM' : 'AM';
+                      if (hour12 === 0) hour12 = 12;else if (hour12 > 12) hour12 -= 12;
+                      setSelectedHour(hour12.toString().padStart(2, '0'));
+                      setSelectedPeriod(period);
+                    }
+                  }} />
+                  <span className="text-xs">24h</span>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <div className="space-y-1">
+                  <Label className="text-xs">Hour</Label>
+                  <Select value={selectedHour} onValueChange={setSelectedHour}>
+                    <SelectTrigger className="w-16">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {is24Hour ?
+                      // 24-hour format: 00-23
+                      Array.from({
+                        length: 24
+                      }, (_, i) => <SelectItem key={i} value={i.toString().padStart(2, '0')}>
+                              {i.toString().padStart(2, '0')}
+                            </SelectItem>) :
+                      // 12-hour format: 01-12
+                      Array.from({
+                        length: 12
+                      }, (_, i) => {
+                        const hour = i + 1;
+                        return <SelectItem key={hour} value={hour.toString().padStart(2, '0')}>
+                                {hour.toString().padStart(2, '0')}
+                              </SelectItem>;
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="text-xl font-bold">:</div>
+                
+                <div className="space-y-1">
+                  <Label className="text-xs">Minute</Label>
+                  <Select value={selectedMinute} onValueChange={setSelectedMinute}>
+                    <SelectTrigger className="w-16">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {['00', '15', '30', '45'].map(minute => <SelectItem key={minute} value={minute}>
+                          {minute}
+                        </SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {!is24Hour && <div className="space-y-1">
+                    <Label className="text-xs">Period</Label>
+                    <Select value={selectedPeriod} onValueChange={(value: 'AM' | 'PM') => setSelectedPeriod(value)}>
+                      <SelectTrigger className="w-16">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="AM">AM</SelectItem>
+                        <SelectItem value="PM">PM</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>}
+              </div>
+              
+              <div className="flex justify-between pt-2 border-t">
+                <Button type="button" variant="ghost" size="sm" onClick={() => {
+                  setTime('');
+                  setSelectedHour(is24Hour ? '12' : '12');
+                  setSelectedMinute('00');
+                  if (!is24Hour) setSelectedPeriod('PM');
+                  setIsTimePickerOpen(false);
+                }} className="text-muted-foreground hover:text-foreground">
+                  Clear
+                </Button>
+                <Button type="button" size="sm" onClick={() => {
+                  const timeString = is24Hour ? `${selectedHour}:${selectedMinute}` : `${selectedHour}:${selectedMinute} ${selectedPeriod}`;
+                  setTime(timeString);
+                  setIsTimePickerOpen(false);
+                }}>
+                  Set Time
+                </Button>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      {/* Date Selection for Multi-Day Events */}
+      {isMultiDayEvent && availableDates.length > 0 && (
+        <div className="space-y-3">
+          <Label>Select Days for Event *</Label>
+          <p className="text-sm text-muted-foreground">
+            Choose which day(s) you want to add this event to
+          </p>
+          <div className="grid gap-2 max-h-32 overflow-y-auto">
+            {availableDates.map((date) => {
+              const formattedDate = format(new Date(date), 'EEEE, MMMM do');
+              const isSelected = selectedDates.includes(date);
+              return (
+                <div key={date} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id={`date-${date}`}
+                    checked={isSelected}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedDates(prev => [...prev, date]);
+                      } else {
+                        setSelectedDates(prev => prev.filter(d => d !== date));
+                      }
+                    }}
+                    className="rounded border-border"
+                  />
+                  <Label htmlFor={`date-${date}`} className="text-sm cursor-pointer">
+                    {formattedDate}
+                  </Label>
+                </div>
+              );
+            })}
+          </div>
+          {selectedDates.length > 0 && (
+            <p className="text-xs text-primary">
+              Selected {selectedDates.length} day{selectedDates.length !== 1 ? 's' : ''}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Description */}
+      <div className="space-y-2">
+        <Label htmlFor="description">Description</Label>
+        <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Add notes or additional details..." rows={3} />
+      </div>
+    </div>
+  );
+
+  if (isMobile) {
+    return (
+      <Drawer open={isOpen} onOpenChange={(open) => { if (!open) handleClose(); }}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>{editingEvent ? 'Edit Event' : 'Add New Event'}</DrawerTitle>
+            {formattedDate && (
+              <DrawerDescription>{`Adding event for ${formattedDate}`}</DrawerDescription>
+            )}
+          </DrawerHeader>
+          <div className="px-4 pb-4 max-h-[75vh] overflow-y-auto">
+            {formContent}
+          </div>
+          <DrawerFooter>
+            <Button variant="outline" onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSave} 
+              disabled={!title.trim() || !time || (isMultiDayEvent && selectedDates.length === 0)}
+            >
+              {editingEvent ? 'Update Event' : 'Add Event'}
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
@@ -207,368 +609,7 @@ export function EventDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Event Type Selection */}
-          <div className="space-y-3">
-            <Label>Event Type</Label>
-            <Tabs value={type} onValueChange={value => setType(value as typeof type)}>
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="restaurant" className="flex items-center gap-1 text-xs">
-                  <Utensils className="w-3 h-3" />
-                  Restaurant
-                </TabsTrigger>
-                <TabsTrigger value="attraction" className="flex items-center gap-1 text-xs">
-                  <MapPinIcon className="w-3 h-3" />
-                  Places
-                </TabsTrigger>
-                <TabsTrigger value="other" className="flex items-center gap-1 text-xs">
-                  <Clock className="w-3 h-3" />
-                  Other
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="restaurant" className="space-y-4">
-                {restaurantData && restaurantData.name ? (
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <CardTitle className="text-base">{restaurantData.name}</CardTitle>
-                          <CardDescription className="flex items-center gap-1 mt-1">
-                            <MapPin className="w-3 h-3" />
-                            {restaurantData.address}
-                          </CardDescription>
-                        </div>
-                        <Badge variant="secondary">Restaurant</Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => {
-                          setRestaurantData(null);
-                          setTitle('');
-                        }}
-                      >
-                        Change Restaurant
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className="space-y-3">
-                    <p className="text-sm text-muted-foreground">
-                      Search for restaurants, cafes, and dining places.
-                    </p>
-                    <InlineRestaurantSearch 
-                      value={restaurantData}
-                      onRestaurantSelect={(restaurant) => {
-                        console.log('Selected restaurant data:', restaurant);
-                        setRestaurantData(restaurant);
-                        setTitle(restaurant.name);
-                        setType('restaurant');
-                      }}
-                      location={itineraryLocation}
-                      placeholder="Search for restaurants..."
-                    />
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="attraction" className="space-y-4">
-                {attractionData ? <Card>
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <CardTitle className="text-base">{attractionData.name}</CardTitle>
-                          <CardDescription className="flex items-center gap-1 mt-1">
-                            <MapPin className="w-3 h-3" />
-                            {attractionData.address}
-                          </CardDescription>
-                        </div>
-                        <Badge variant="secondary">{attractionData.category || 'Attraction'}</Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="flex flex-wrap gap-2">
-                        <Button variant="outline" size="sm" onClick={() => setAttractionData(null)}>
-                          Change Place
-                        </Button>
-                        {attractionData.address && (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => window.open(`https://maps.google.com/maps?q=${encodeURIComponent(attractionData.address)}`, '_blank')}
-                          >
-                            <MapPin className="w-3 h-3 mr-1" />
-                            Directions
-                          </Button>
-                        )}
-                        {attractionData.website && (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => window.open(attractionData.website, '_blank')}
-                          >
-                            <ExternalLink className="w-3 h-3 mr-1" />
-                            Website
-                          </Button>
-                        )}
-                        {attractionData.phone && (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => window.open(`tel:${attractionData.phone}`, '_self')}
-                          >
-                            <Phone className="w-3 h-3 mr-1" />
-                            Call
-                          </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card> : <div className="space-y-3">
-                    <p className="text-sm text-muted-foreground">
-                      Search for attractions, museums, landmarks, and places to visit.
-                    </p>
-                    <AttractionsSearch value={attractionData} onChange={handleAttractionSelect} location={itineraryLocation} placeholder="Search Louvre, Eiffel Tower, Central Park..." />
-                  </div>}
-              </TabsContent>
-
-              <TabsContent value="other" className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Add any other type of event or reminder.
-                </p>
-                
-                {/* Location Field with Autocomplete */}
-                <div className="space-y-2">
-                  <Label htmlFor="event-location">Location (Optional)</Label>
-                  <div className="relative">
-                    <Input
-                      id="event-location"
-                      value={location}
-                      onChange={(e) => handleLocationChange(e.target.value)}
-                      placeholder="Enter address or location..."
-                      className="w-full"
-                    />
-                    {showLocationSuggestions && locationSuggestions.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-md shadow-lg z-[9999] max-h-60 overflow-y-auto">
-                        {locationSuggestions.map((suggestion, index) => (
-                          <button
-                            key={index}
-                            type="button"
-                            onClick={() => handleLocationSelect(suggestion)}
-                            className="w-full text-left px-3 py-2 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground first:rounded-t-md last:rounded-b-md"
-                          >
-                            <div className="flex items-center gap-2">
-                              <MapPin className="w-4 h-4 text-muted-foreground shrink-0" />
-                              <div className="min-w-0">
-                                <div className="font-medium truncate">
-                                  {suggestion.name || suggestion.formatted_address}
-                                </div>
-                                {suggestion.name && suggestion.formatted_address && (
-                                  <div className="text-xs text-muted-foreground truncate">
-                                    {suggestion.formatted_address}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  {location && (
-                    <p className="text-xs text-muted-foreground flex items-center gap-1">
-                      <MapPin className="w-3 h-3" />
-                      {location}
-                    </p>
-                  )}
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
-
-          {/* Event Title */}
-          <div className="space-y-2">
-            <Label htmlFor="title">Event Title *</Label>
-            <Input id="title" value={title} onChange={e => setTitle(e.target.value)} placeholder="Enter event title..." className="w-full" />
-          </div>
-
-          {/* Time */}
-          <div className="space-y-2">
-            <Label>Time *</Label>
-            <Popover open={isTimePickerOpen} onOpenChange={setIsTimePickerOpen}>
-              <PopoverTrigger asChild>
-                <Button type="button" variant="outline" className={cn("w-full justify-start text-left font-normal", !time && "text-muted-foreground")} onClick={e => {
-                e.preventDefault();
-                e.stopPropagation();
-                setIsTimePickerOpen(!isTimePickerOpen);
-              }}>
-                  <Clock className="mr-2 h-4 w-4" />
-                  {time ? time : <span>Select time</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-background border shadow-lg" align="start" side="bottom" sideOffset={4} style={{
-              zIndex: 9999
-            }}>
-                <div className="p-4 space-y-4">
-                  {/* 24-hour toggle */}
-                  <div className="flex items-center justify-between pb-2 border-b">
-                    
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs">12h</span>
-                      <Switch checked={is24Hour} onCheckedChange={checked => {
-                      setIs24Hour(checked);
-                      if (checked) {
-                        // Convert 12-hour to 24-hour
-                        let hour24 = parseInt(selectedHour);
-                        if (selectedPeriod === 'PM' && hour24 !== 12) {
-                          hour24 += 12;
-                        } else if (selectedPeriod === 'AM' && hour24 === 12) {
-                          hour24 = 0;
-                        }
-                        setSelectedHour(hour24.toString().padStart(2, '0'));
-                      } else {
-                        // Convert 24-hour to 12-hour
-                        let hour12 = parseInt(selectedHour);
-                        const period = hour12 >= 12 ? 'PM' : 'AM';
-                        if (hour12 === 0) hour12 = 12;else if (hour12 > 12) hour12 -= 12;
-                        setSelectedHour(hour12.toString().padStart(2, '0'));
-                        setSelectedPeriod(period);
-                      }
-                    }} />
-                      <span className="text-xs">24h</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <div className="space-y-1">
-                      <Label className="text-xs">Hour</Label>
-                      <Select value={selectedHour} onValueChange={setSelectedHour}>
-                        <SelectTrigger className="w-16">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {is24Hour ?
-                        // 24-hour format: 00-23
-                        Array.from({
-                          length: 24
-                        }, (_, i) => <SelectItem key={i} value={i.toString().padStart(2, '0')}>
-                                {i.toString().padStart(2, '0')}
-                              </SelectItem>) :
-                        // 12-hour format: 01-12
-                        Array.from({
-                          length: 12
-                        }, (_, i) => {
-                          const hour = i + 1;
-                          return <SelectItem key={hour} value={hour.toString().padStart(2, '0')}>
-                                  {hour.toString().padStart(2, '0')}
-                                </SelectItem>;
-                        })}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="text-xl font-bold">:</div>
-                    
-                    <div className="space-y-1">
-                      <Label className="text-xs">Minute</Label>
-                      <Select value={selectedMinute} onValueChange={setSelectedMinute}>
-                        <SelectTrigger className="w-16">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {['00', '15', '30', '45'].map(minute => <SelectItem key={minute} value={minute}>
-                              {minute}
-                            </SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    {!is24Hour && <div className="space-y-1">
-                        <Label className="text-xs">Period</Label>
-                        <Select value={selectedPeriod} onValueChange={(value: 'AM' | 'PM') => setSelectedPeriod(value)}>
-                          <SelectTrigger className="w-16">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="AM">AM</SelectItem>
-                            <SelectItem value="PM">PM</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>}
-                  </div>
-                  
-                  <div className="flex justify-between pt-2 border-t">
-                    <Button type="button" variant="ghost" size="sm" onClick={() => {
-                    setTime('');
-                    setSelectedHour(is24Hour ? '12' : '12');
-                    setSelectedMinute('00');
-                    if (!is24Hour) setSelectedPeriod('PM');
-                    setIsTimePickerOpen(false);
-                  }} className="text-muted-foreground hover:text-foreground">
-                      Clear
-                    </Button>
-                    <Button type="button" size="sm" onClick={() => {
-                    const timeString = is24Hour ? `${selectedHour}:${selectedMinute}` : `${selectedHour}:${selectedMinute} ${selectedPeriod}`;
-                    setTime(timeString);
-                    setIsTimePickerOpen(false);
-                  }}>
-                      Set Time
-                    </Button>
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          {/* Date Selection for Multi-Day Events */}
-          {isMultiDayEvent && availableDates.length > 0 && (
-            <div className="space-y-3">
-              <Label>Select Days for Event *</Label>
-              <p className="text-sm text-muted-foreground">
-                Choose which day(s) you want to add this event to
-              </p>
-              <div className="grid gap-2 max-h-32 overflow-y-auto">
-                {availableDates.map((date) => {
-                  const formattedDate = format(new Date(date), 'EEEE, MMMM do');
-                  const isSelected = selectedDates.includes(date);
-                  return (
-                    <div key={date} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id={`date-${date}`}
-                        checked={isSelected}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedDates(prev => [...prev, date]);
-                          } else {
-                            setSelectedDates(prev => prev.filter(d => d !== date));
-                          }
-                        }}
-                        className="rounded border-border"
-                      />
-                      <Label htmlFor={`date-${date}`} className="text-sm cursor-pointer">
-                        {formattedDate}
-                      </Label>
-                    </div>
-                  );
-                })}
-              </div>
-              {selectedDates.length > 0 && (
-                <p className="text-xs text-primary">
-                  Selected {selectedDates.length} day{selectedDates.length !== 1 ? 's' : ''}
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Add notes or additional details..." rows={3} />
-          </div>
-        </div>
+        {formContent}
 
         <DialogFooter>
           <Button variant="outline" onClick={handleClose}>
