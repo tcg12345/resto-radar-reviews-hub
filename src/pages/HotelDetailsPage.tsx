@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { ArrowLeft, MapPin, Clock, Phone, Globe, Star, ExternalLink, Navigation, Bed, Wifi, Car, Users, Coffee } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Phone, Globe, Star, ExternalLink, Navigation, Bed, Wifi, Car, Users, Coffee, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Hotel {
   id: string;
@@ -30,17 +31,53 @@ export function HotelDetailsPage() {
   const isMobile = useIsMobile();
   const [hotel, setHotel] = useState<Hotel | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hotelPhotos, setHotelPhotos] = useState<string[]>([]);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
   useEffect(() => {
-    // Get hotel data from sessionStorage or state
-    const storedHotel = sessionStorage.getItem(`hotel_${hotelId}`);
-    if (storedHotel) {
-      setHotel(JSON.parse(storedHotel));
-    } else {
-      toast.error('Hotel not found');
-      navigate('/travel');
-    }
-    setIsLoading(false);
+    const fetchHotelData = async () => {
+      // Get hotel data from sessionStorage or state
+      const storedHotel = sessionStorage.getItem(`hotel_${hotelId}`);
+      if (storedHotel) {
+        const hotelData = JSON.parse(storedHotel);
+        setHotel(hotelData);
+        
+        // Fetch photos from TripAdvisor API
+        try {
+          const { data: tripAdvisorData, error } = await supabase.functions.invoke('tripadvisor-api', {
+            body: {
+              action: 'searchLocation',
+              searchQuery: `${hotelData.name} ${hotelData.address}`,
+            }
+          });
+
+          if (!error && tripAdvisorData?.data?.length > 0) {
+            const locationId = tripAdvisorData.data[0].location_id;
+            
+            // Get photos from TripAdvisor
+            const { data: photosData, error: photosError } = await supabase.functions.invoke('tripadvisor-api', {
+              body: {
+                action: 'getPhotos',
+                locationId: locationId,
+              }
+            });
+
+            if (!photosError && photosData?.data?.length > 0) {
+              const photoUrls = photosData.data.map((photo: any) => photo.images.large.url);
+              setHotelPhotos(photoUrls.slice(0, 5)); // Limit to 5 photos
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching hotel photos:', error);
+        }
+      } else {
+        toast.error('Hotel not found');
+        navigate('/travel');
+      }
+      setIsLoading(false);
+    };
+
+    fetchHotelData();
   }, [hotelId, navigate]);
 
   const handleBack = () => {
@@ -109,10 +146,55 @@ export function HotelDetailsPage() {
           </Button>
         </div>
 
-        {/* Hotel Image */}
+        {/* Hotel Image Gallery */}
         <Card className="mb-6 overflow-hidden">
-          <div className="aspect-[16/9] bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 flex items-center justify-center">
-            <Bed className="w-24 h-24 text-muted-foreground/30" />
+          <div className="relative aspect-[16/9]">
+            {hotelPhotos.length > 0 ? (
+              <>
+                <img 
+                  src={hotelPhotos[currentPhotoIndex]} 
+                  alt={`${hotel.name} - Photo ${currentPhotoIndex + 1}`}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = '';
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+                {hotelPhotos.length > 1 && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/50 text-white hover:bg-black/70"
+                      onClick={() => setCurrentPhotoIndex((prev) => prev === 0 ? hotelPhotos.length - 1 : prev - 1)}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/50 text-white hover:bg-black/70"
+                      onClick={() => setCurrentPhotoIndex((prev) => prev === hotelPhotos.length - 1 ? 0 : prev + 1)}
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                    <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-2">
+                      {hotelPhotos.map((_, index) => (
+                        <button
+                          key={index}
+                          className={`w-2 h-2 rounded-full ${index === currentPhotoIndex ? 'bg-white' : 'bg-white/50'}`}
+                          onClick={() => setCurrentPhotoIndex(index)}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </>
+            ) : (
+              <div className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 flex items-center justify-center h-full">
+                <Bed className="w-24 h-24 text-muted-foreground/30" />
+              </div>
+            )}
           </div>
         </Card>
 
