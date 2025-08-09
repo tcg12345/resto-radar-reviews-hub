@@ -170,24 +170,9 @@ export function ItineraryPrivacySettings() {
   }
 
   if (itineraries.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5" />
-            Itinerary Privacy Settings
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
-            <MapPin className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>No itineraries found</p>
-            <p className="text-sm">Create some travel plans to manage their privacy settings</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return null;
   }
+
 
   const publicCount = itineraries.filter(it => it.is_shareable).length;
   const privateCount = itineraries.length - publicCount;
