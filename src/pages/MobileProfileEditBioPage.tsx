@@ -42,7 +42,7 @@ export function MobileProfileEditBioPage() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/20">
-        <div className="flex items-center justify-between px-4 py-4">
+        <div className="flex items-center justify-between px-4 py-4 pt-safe">
           <Button
             variant="ghost"
             size="icon"
