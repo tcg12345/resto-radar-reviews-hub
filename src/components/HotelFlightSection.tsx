@@ -693,12 +693,12 @@ export function HotelFlightSection({
                   </Button>
                 )}
                 {selectedHotel.hotel.bookingUrl && (
-                  <Button size="sm" onClick={() => window.open(selectedHotel.hotel.bookingUrl, '_blank)}>
+                  <Button size="sm" onClick={() => window.open(selectedHotel.hotel.bookingUrl, '_blank')}>
                     Book Now
                   </Button>
                 )}
                 {tripAdvisorLocationId && (
-                  <Button variant="outline" size="sm" onClick={() => window.open(`https://www.tripadvisor.com/Hotel_Review-d${tripAdvisorLocationId}`, '_blank)}>
+                  <Button variant="outline" size="sm" onClick={() => window.open(`https://www.tripadvisor.com/Hotel_Review-d${tripAdvisorLocationId}`, '_blank')}>
                     <ExternalLink className="w-4 h-4 mr-1" />
                     TripAdvisor
                   </Button>
@@ -755,16 +755,16 @@ export function HotelFlightSection({
                 )}
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button variant="outline" size="sm" onClick={() => window.open(getAirportDirectionsUrl(selectedFlight.departure.airport), '_blank)}>
+                <Button variant="outline" size="sm" onClick={() => window.open(getAirportDirectionsUrl(selectedFlight.departure.airport), '_blank')}>
                   <Navigation className="w-4 h-4 mr-2" />
                   Directions to Airport
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => window.open(getFlightTrackingUrl(selectedFlight.airline, selectedFlight.flightNumber), '_blank)}>
+                <Button variant="outline" size="sm" onClick={() => window.open(getFlightTrackingUrl(selectedFlight.airline, selectedFlight.flightNumber), '_blank')}>
                   <Radar className="w-4 h-4 mr-2" />
                   Track Flight
                 </Button>
                 {selectedFlight.bookingUrl && (
-                  <Button size="sm" onClick={() => window.open(selectedFlight.bookingUrl, '_blank)}>
+                  <Button size="sm" onClick={() => window.open(selectedFlight.bookingUrl, '_blank')}>
                     View Booking
                   </Button>
                 )}
