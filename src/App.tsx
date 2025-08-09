@@ -25,6 +25,10 @@ import { ChatPage } from "./pages/ChatPage";
 import { ProfilePageWrapper } from "@/components/ProfilePageWrapper";
 import HomePageWrapper from "./pages/HomePageWrapper";
 import { MobileProfileEditPage } from "./pages/MobileProfileEditPage";
+import { MobileProfileEditNamePage } from "./pages/MobileProfileEditNamePage";
+import { MobileProfileEditUsernamePage } from "./pages/MobileProfileEditUsernamePage";
+import { MobileProfileEditHomeCityPage } from "./pages/MobileProfileEditHomeCityPage";
+import { MobileProfileEditBioPage } from "./pages/MobileProfileEditBioPage";
 import { MobileProfilePhotoEditPage } from "./pages/MobileProfilePhotoEditPage";
 import { MobileFriendsPage } from "./pages/mobile/MobileFriendsPage";
 import SavedPlacesPageWrapper from "./pages/SavedPlacesPageWrapper";
@@ -87,6 +91,10 @@ const App = () => (
                 <Route path="/friends" element={<RequireAuth><Layout activeTab="friends"><FriendsPage /></Layout></RequireAuth>} />
                 <Route path="/friends/:friendId" element={<RequireAuth><FriendProfilePage /></RequireAuth>} />
                 <Route path="/profile/edit" element={<RequireAuth><MobileProfileEditPage /></RequireAuth>} />
+                <Route path="/profile/edit/name" element={<RequireAuth><MobileProfileEditNamePage /></RequireAuth>} />
+                <Route path="/profile/edit/username" element={<RequireAuth><MobileProfileEditUsernamePage /></RequireAuth>} />
+                <Route path="/profile/edit/home-city" element={<RequireAuth><MobileProfileEditHomeCityPage /></RequireAuth>} />
+                <Route path="/profile/edit/bio" element={<RequireAuth><MobileProfileEditBioPage /></RequireAuth>} />
                 <Route path="/profile/edit-photo" element={<RequireAuth><MobileProfilePhotoEditPage /></RequireAuth>} />
                 <Route path="/mobile/friends" element={<RequireAuth><MobileFriendsPage /></RequireAuth>} />
                 

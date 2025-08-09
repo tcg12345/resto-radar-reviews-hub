@@ -137,62 +137,64 @@ export function MobileProfileEditPage() {
       {/* Form Fields */}
       <div className="px-6 py-4 space-y-1">
         {/* Name */}
-        <div className="flex items-center justify-between py-4 border-b border-border/10">
-          <label className="text-base font-medium text-foreground">Name</label>
-          <div className="flex items-center gap-3 flex-1 max-w-[200px]">
-            <Input
-              value={formData.name}
-              onChange={(e) => handleChange('name', e.target.value)}
-              placeholder="Add your name"
-              className="border-0 bg-transparent text-right text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 p-0"
-            />
-            <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+        <Button
+          variant="ghost"
+          className="w-full justify-between p-4 h-auto text-left border-b border-border/10 rounded-none"
+          onClick={() => navigate('/profile/edit/name')}
+        >
+          <span className="text-base font-medium text-foreground">Name</span>
+          <div className="flex items-center gap-3">
+            <span className="text-muted-foreground">
+              {formData.name || 'Add your name'}
+            </span>
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
           </div>
-        </div>
+        </Button>
 
         {/* Username */}
-        <div className="flex items-center justify-between py-4 border-b border-border/10">
-          <label className="text-base font-medium text-foreground">Username</label>
-          <div className="flex items-center gap-3 flex-1 max-w-[200px]">
-            <Input
-              value={formData.username}
-              onChange={(e) => handleChange('username', e.target.value)}
-              placeholder="Add username"
-              className="border-0 bg-transparent text-right text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 p-0"
-            />
-            <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+        <Button
+          variant="ghost"
+          className="w-full justify-between p-4 h-auto text-left border-b border-border/10 rounded-none"
+          onClick={() => navigate('/profile/edit/username')}
+        >
+          <span className="text-base font-medium text-foreground">Username</span>
+          <div className="flex items-center gap-3">
+            <span className="text-muted-foreground">
+              {formData.username || 'Add username'}
+            </span>
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
           </div>
-        </div>
+        </Button>
 
         {/* Home City */}
-        <div className="flex items-center justify-between py-4 border-b border-border/10">
-          <label className="text-base font-medium text-foreground">Home city</label>
-          <div className="flex items-center gap-3 flex-1 max-w-[200px]">
-            <Input
-              value={formData.home_city}
-              onChange={(e) => handleChange('home_city', e.target.value)}
-              placeholder="Add home city"
-              className="border-0 bg-transparent text-right text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 p-0"
-            />
-            <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+        <Button
+          variant="ghost"
+          className="w-full justify-between p-4 h-auto text-left border-b border-border/10 rounded-none"
+          onClick={() => navigate('/profile/edit/home-city')}
+        >
+          <span className="text-base font-medium text-foreground">Home city</span>
+          <div className="flex items-center gap-3">
+            <span className="text-muted-foreground">
+              {formData.home_city || 'Add home city'}
+            </span>
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
           </div>
-        </div>
+        </Button>
 
         {/* Bio */}
-        <div className="flex items-center justify-between py-4 border-b border-border/10">
-          <label className="text-base font-medium text-foreground">Bio</label>
-          <div className="flex items-center gap-3 flex-1 max-w-[200px]">
-            <Textarea
-              value={formData.bio}
-              onChange={(e) => handleChange('bio', e.target.value)}
-              placeholder="Add a bio"
-              maxLength={160}
-              rows={1}
-              className="border-0 bg-transparent text-right text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 p-0 resize-none min-h-0 h-6"
-            />
-            <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+        <Button
+          variant="ghost"
+          className="w-full justify-between p-4 h-auto text-left border-b border-border/10 rounded-none"
+          onClick={() => navigate('/profile/edit/bio')}
+        >
+          <span className="text-base font-medium text-foreground">Bio</span>
+          <div className="flex items-center gap-3">
+            <span className="text-muted-foreground">
+              {formData.bio || 'Add a bio'}
+            </span>
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
           </div>
-        </div>
+        </Button>
       </div>
 
       {/* Privacy Settings */}
