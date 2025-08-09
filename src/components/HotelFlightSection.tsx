@@ -774,6 +774,23 @@ export function HotelFlightSection({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Hotel & Flight Search Dialogs - Mobile */}
+      <HotelSearchDialog
+        key={dialogKey}
+        isOpen={isHotelDialogOpen}
+        onClose={() => setIsHotelDialogOpen(false)}
+        onSelect={handleHotelSelect}
+        locations={locations}
+        isMultiCity={isMultiCity}
+      />
+
+      <FlightSearchDialog
+        isOpen={isFlightDialogOpen}
+        onClose={() => setIsFlightDialogOpen(false)}
+        onSelect={handleFlightSelect}
+        locations={locations}
+      />
     </div>;
 
   }
