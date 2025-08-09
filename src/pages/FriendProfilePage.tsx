@@ -34,6 +34,7 @@ import { useFriends } from '@/hooks/useFriends';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { FriendItinerariesTab } from '@/components/FriendItinerariesTab';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function FriendProfilePage() {
   const { friendId, userId } = useParams();
@@ -66,6 +67,7 @@ export default function FriendProfilePage() {
   const [cityFilter, setCityFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [ratingFilter, setRatingFilter] = useState('all');
+  const [hasItineraries, setHasItineraries] = useState(false);
 
   useEffect(() => {
     if (error) {
@@ -92,6 +94,20 @@ export default function FriendProfilePage() {
       setFriend(foundFriend);
     }
   }, [actualUserId, profileData, friends]);
+
+  useEffect(() => {
+    const checkHasItineraries = async () => {
+      if (!actualUserId) return;
+      const { count, error } = await supabase
+        .from('itineraries')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', actualUserId)
+        .eq('is_shareable', true);
+      if (!error) setHasItineraries((count ?? 0) > 0);
+      else setHasItineraries(false);
+    };
+    checkHasItineraries();
+  }, [actualUserId]);
 
   // Compute lightweight analytics from currently loaded items for instant UX
   const cuisineCountMap = useMemo(() => {
@@ -381,7 +397,7 @@ export default function FriendProfilePage() {
           {/* Mobile Tabs - Simplified */}
           <div className="lg:hidden">
             <Tabs defaultValue="restaurants" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 h-11 bg-muted/50 rounded-xl">
+              <TabsList className={`grid w-full ${hasItineraries ? 'grid-cols-4' : 'grid-cols-3'} h-11 bg-muted/50 rounded-xl`}>
                 <TabsTrigger value="restaurants" className="text-xs rounded-lg">
                   <Utensils className="h-3 w-3 mr-1" />
                   <span className="hidden sm:inline">Restaurants</span>
@@ -392,11 +408,13 @@ export default function FriendProfilePage() {
                   <span className="hidden sm:inline">Wishlist</span>
                   <span className="sm:hidden">({allWishlist.length})</span>
                 </TabsTrigger>
-                <TabsTrigger value="itineraries" className="text-xs rounded-lg">
-                  <Route className="h-3 w-3 mr-1" />
-                  <span className="hidden sm:inline">Trips</span>
-                  <span className="sm:hidden">🗺️</span>
-                </TabsTrigger>
+                {hasItineraries && (
+                  <TabsTrigger value="itineraries" className="text-xs rounded-lg">
+                    <Route className="h-3 w-3 mr-1" />
+                    <span className="hidden sm:inline">Trips</span>
+                    <span className="sm:hidden">🗺️</span>
+                  </TabsTrigger>
+                )}
                 <TabsTrigger value="analytics" className="text-xs rounded-lg">
                   <PieChart className="h-3 w-3 mr-1" />
                   <span className="hidden sm:inline">Analytics</span>
@@ -542,9 +560,11 @@ export default function FriendProfilePage() {
               </TabsContent>
 
               {/* Mobile Itineraries Tab */}
-              <TabsContent value="itineraries" className="space-y-4 mt-4">
-                <FriendItinerariesTab friendId={actualUserId || ''} friendName={friend.name || friend.username} />
-              </TabsContent>
+              {hasItineraries && (
+                <TabsContent value="itineraries" className="space-y-4 mt-4">
+                  <FriendItinerariesTab friendId={actualUserId || ''} friendName={friend.name || friend.username} />
+                </TabsContent>
+              )}
 
               {/* Mobile Analytics Tab */}
               <TabsContent value="analytics" className="space-y-4 mt-4">
@@ -604,7 +624,7 @@ export default function FriendProfilePage() {
           {/* Desktop Tabs - Keep original */}
           <div className="hidden lg:block">
             <Tabs defaultValue="restaurants" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 h-12 bg-muted/50">
+              <TabsList className={`grid w-full ${hasItineraries ? 'grid-cols-4' : 'grid-cols-3'} h-12 bg-muted/50`}>
                 <TabsTrigger value="restaurants" className="flex items-center gap-2 text-sm">
                   <Utensils className="h-4 w-4" />
                   Restaurants ({filteredRestaurants.length})
@@ -613,10 +633,12 @@ export default function FriendProfilePage() {
                   <Heart className="h-4 w-4" />
                   Wishlist ({allWishlist.length})
                 </TabsTrigger>
-                <TabsTrigger value="itineraries" className="flex items-center gap-2 text-sm">
-                  <Route className="h-4 w-4" />
-                  Travel Plans
-                </TabsTrigger>
+                {hasItineraries && (
+                  <TabsTrigger value="itineraries" className="flex items-center gap-2 text-sm">
+                    <Route className="h-4 w-4" />
+                    Travel Plans
+                  </TabsTrigger>
+                )}
                 <TabsTrigger value="analytics" className="flex items-center gap-2 text-sm">
                   <PieChart className="h-4 w-4" />
                   Analytics
@@ -839,9 +861,11 @@ export default function FriendProfilePage() {
             </TabsContent>
 
             {/* Desktop Itineraries Tab */}
-            <TabsContent value="itineraries" className="space-y-6 mt-6">
-              <FriendItinerariesTab friendId={actualUserId || ''} friendName={friend.name || friend.username} />
-            </TabsContent>
+            {hasItineraries && (
+              <TabsContent value="itineraries" className="space-y-6 mt-6">
+                <FriendItinerariesTab friendId={actualUserId || ''} friendName={friend.name || friend.username} />
+              </TabsContent>
+            )}
 
             {/* Analytics Tab */}
             <TabsContent value="analytics" className="space-y-6 mt-6">
