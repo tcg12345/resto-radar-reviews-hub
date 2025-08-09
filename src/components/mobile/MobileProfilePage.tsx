@@ -239,15 +239,10 @@ export function MobileProfilePage() {
             </div>
           </Button>
 
-          <Separator />
+          
 
           {/* Trip Privacy Button - only show if user has itineraries */}
-          {itineraries.length > 0 && (
-            <Button 
-              onClick={() => navigate('/itinerary-privacy')} 
-              variant="outline" 
-              className="w-full h-16 bg-muted/30 hover:bg-muted/50 border-2 border-border hover:border-border/80 transition-all duration-200 my-[7px]"
-            >
+          {itineraries.length > 0 && <Button onClick={() => navigate('/itinerary-privacy')} variant="outline" className="w-full h-16 bg-muted/30 hover:bg-muted/50 border-2 border-border hover:border-border/80 transition-all duration-200 my-[7px]">
               <div className="flex items-center gap-4 w-full">
                 <div className="p-3 bg-muted rounded-lg">
                   <Route className="h-6 w-6 text-foreground" />
@@ -262,8 +257,7 @@ export function MobileProfilePage() {
                   </svg>
                 </div>
               </div>
-            </Button>
-          )}
+            </Button>}
         </div>
 
         
