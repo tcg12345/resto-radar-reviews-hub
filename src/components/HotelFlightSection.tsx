@@ -288,20 +288,20 @@ export function HotelFlightSection({
                               </Badge>}
                           </div>
                           
-                          <div className="flex flex-wrap gap-2 mt-3">
-                            <Button size="sm" variant="outline" onClick={() => window.open(getDirectionsUrl(booking.hotel.address), '_blank')} className="h-9 text-xs px-3 whitespace-nowrap bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 flex-none w-auto">
+              <div className="grid grid-cols-2 gap-2 mt-3">
+                            <Button size="sm" variant="outline" onClick={() => window.open(getDirectionsUrl(booking.hotel.address), '_blank')} className="h-9 text-xs px-3 whitespace-nowrap bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 w-full">
                               <Navigation className="w-3 h-3 mr-1" />
                               Directions
                             </Button>
-                            {booking.hotel.website && <Button size="sm" variant="outline" onClick={() => window.open(booking.hotel.website, '_blank')} className="h-9 text-xs px-3 whitespace-nowrap bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 flex-none w-auto">
+                            {booking.hotel.website && <Button size="sm" variant="outline" onClick={() => window.open(booking.hotel.website, '_blank')} className="h-9 text-xs px-3 whitespace-nowrap bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 w-full">
                                 <ExternalLink className="w-3 h-3 mr-1" />
                                 Website
                               </Button>}
-                            {booking.hotel.phone && <Button size="sm" variant="outline" onClick={() => window.open(`tel:${booking.hotel.phone}`, '_blank')} className="h-9 text-xs px-3 whitespace-nowrap bg-green-50 border-green-200 text-green-700 hover:bg-green-100 flex-none w-auto">
+                            {booking.hotel.phone && <Button size="sm" variant="outline" onClick={() => window.open(`tel:${booking.hotel.phone}`, '_blank')} className="h-9 text-xs px-3 whitespace-nowrap bg-green-50 border-green-200 text-green-700 hover:bg-green-100 w-full">
                                 <Phone className="w-3 h-3 mr-1" />
                                 Call
                               </Button>}
-                            {booking.hotel.bookingUrl && <Button size="sm" onClick={() => window.open(booking.hotel.bookingUrl, '_blank')} className="w-full h-9 text-xs bg-blue-600 hover:bg-blue-700 text-white mt-1">
+                            {booking.hotel.bookingUrl && <Button size="sm" onClick={() => window.open(booking.hotel.bookingUrl, '_blank')} className="h-9 text-xs px-3 whitespace-nowrap bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 w-full">
                                 Book Hotel
                               </Button>}
                           </div>
