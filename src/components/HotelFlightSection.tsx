@@ -424,7 +424,7 @@ export function HotelFlightSection({
           setIsHotelDetailsOpen(open);
         }}
       >
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto fixed z-[100] bg-white dark:bg-gray-900 border shadow-lg">
+        <DialogContent overlayClassName="bg-transparent" className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto fixed z-[100] bg-white dark:bg-gray-900 border shadow-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Hotel className="w-5 h-5 text-blue-600" />
@@ -710,7 +710,7 @@ export function HotelFlightSection({
       </Dialog>
 
       <Dialog open={isFlightDetailsOpen} onOpenChange={setIsFlightDetailsOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogContent overlayClassName="bg-transparent" className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Plane className="w-5 h-5 text-purple-600" />
@@ -967,7 +967,7 @@ export function HotelFlightSection({
           setIsHotelDetailsOpen(open);
         }}
       >
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto fixed z-[100] bg-white dark:bg-gray-900 border shadow-lg">
+        <DialogContent overlayClassName="bg-transparent" className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto fixed z-[100] bg-white dark:bg-gray-900 border shadow-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Hotel className="w-5 h-5 text-blue-600" />
@@ -1214,7 +1214,7 @@ export function HotelFlightSection({
 
       {/* Flight Details Modal */}
       <Dialog open={isFlightDetailsOpen} onOpenChange={setIsFlightDetailsOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogContent overlayClassName="bg-transparent" className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Plane className="w-5 h-5 text-purple-600" />
