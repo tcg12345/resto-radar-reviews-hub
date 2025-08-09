@@ -85,26 +85,26 @@ export function MobileProfileEditNamePage() {
           <p className="text-sm text-muted-foreground">
             This is how your name will appear to other users.
           </p>
-        </div>
-      </div>
 
-      {/* Save Button */}
-      <div className="p-6 border-t border-border/20">
-        <Button
-          onClick={handleSave}
-          disabled={isLoading}
-          className="w-full h-12 text-base font-medium"
-          size="lg"
-        >
-          {isLoading ? (
-            <div className="flex items-center gap-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary-foreground border-t-transparent" />
-              Saving...
-            </div>
-          ) : (
-            'Save changes'
-          )}
-        </Button>
+          {/* Save Button */}
+          <div className="pt-8">
+            <Button
+              onClick={handleSave}
+              disabled={isLoading}
+              className="w-full h-12 text-base font-medium"
+              size="lg"
+            >
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary-foreground border-t-transparent" />
+                  Saving...
+                </div>
+              ) : (
+                'Save changes'
+              )}
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );
