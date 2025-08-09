@@ -188,10 +188,6 @@ export function TripCalendar({
                                   <MapPin className="w-3 h-3 shrink-0" />
                                   <span className="truncate">{getCityForDate(day)}</span>
                                 </div>}
-                              {dayHotel && <div className="flex items-center gap-1 text-blue-600 font-medium text-xs bg-blue-50 dark:bg-blue-950/30 px-2 py-1 rounded-md border border-blue-200/50">
-                                  <Hotel className="w-3 h-3 shrink-0" />
-                                  <span className="truncate">{dayHotel.hotel?.name || 'Hotel'}</span>
-                                </div>}
                             </div>
                           </div>
                         </div>
