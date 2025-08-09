@@ -49,9 +49,6 @@ export function Layout({
 
   return (
     <div className={`flex min-h-screen flex-col bg-background mobile-viewport`}>
-      {/* Mobile status bar spacer - creates blank space at top */}
-      <div className="lg:hidden h-[35px] bg-background"></div>
-      
       {showNavbar && (
         <Navbar 
           activeTab={activeTab} 
