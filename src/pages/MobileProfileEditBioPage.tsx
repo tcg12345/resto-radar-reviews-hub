@@ -46,7 +46,7 @@ export function MobileProfileEditBioPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/profile/edit')}
             className="h-10 w-10"
           >
             <ArrowLeft className="h-5 w-5" />
