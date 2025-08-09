@@ -157,7 +157,7 @@ export function HotelDetailsPage() {
   if (isLoading) {
     return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 py-6 pt-20">{/* Added pt-20 for top spacing */}
+      <div className="max-w-4xl mx-auto px-4 py-6 pt-12">{/* Reduced to pt-12 for less spacing */}
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-muted rounded w-1/3"></div>
             <div className="h-64 bg-muted rounded"></div>
@@ -185,7 +185,7 @@ export function HotelDetailsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 py-6 pt-20">{/* Added pt-20 for top spacing */}
+      <div className="max-w-4xl mx-auto px-4 py-6 pt-12">{/* Reduced to pt-12 for less spacing */}
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <Button 
