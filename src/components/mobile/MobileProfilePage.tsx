@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Camera, Edit2, Users, MapPin, Crown, Star, Heart, TrendingUp, Activity, ChevronRight, Bookmark, Route, MessageCircle, Share2, MapPinIcon, Lock } from 'lucide-react';
+import { Camera, Edit2, Users, MapPin, Crown, Star, Heart, TrendingUp, Activity, ChevronRight, Bookmark, Route, MessageCircle, Share2, MapPinIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +11,6 @@ import { useItineraries } from '@/hooks/useItineraries';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-
 interface ProfileStats {
   rated_count: number;
   wishlist_count: number;
@@ -239,80 +238,9 @@ export function MobileProfilePage() {
               </div>
             </div>
           </Button>
-
-          <Separator />
-
-          {/* Itinerary Privacy Button */}
-          <Button onClick={() => navigate('/itinerary-privacy')} variant="outline" className="w-full h-16 bg-muted/40 hover:bg-muted/60 border-2 border-border transition-all duration-200 my-[7px]">
-            <div className="flex items-center gap-4 w-full">
-              <div className="p-3 bg-muted rounded-lg">
-                <Lock className="h-6 w-6 text-muted-foreground" />
-              </div>
-              <div className="flex-1 text-left">
-                <p className="text-lg font-bold text-foreground">Trip Privacy</p>
-                <p className="text-sm text-muted-foreground">Manage which trips friends can see</p>
-              </div>
-              <div className="text-muted-foreground">
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </div>
-          </Button>
         </div>
 
-        <div className="px-4 space-y-4">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 gap-3">
-            <Card className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Star className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-lg font-bold">{stats.rated_count}</p>
-                  <p className="text-xs text-muted-foreground">Restaurants Rated</p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-red-100 rounded-lg">
-                  <Heart className="h-5 w-5 text-red-500" />
-                </div>
-                <div>
-                  <p className="text-lg font-bold">{stats.wishlist_count}</p>
-                  <p className="text-xs text-muted-foreground">Wishlist Items</p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-yellow-100 rounded-lg">
-                  <TrendingUp className="h-5 w-5 text-yellow-600" />
-                </div>
-                <div>
-                  <p className="text-lg font-bold">{stats.avg_rating.toFixed(1)}</p>
-                  <p className="text-xs text-muted-foreground">Avg Rating</p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <Crown className="h-5 w-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold truncate">{stats.top_cuisine || 'None'}</p>
-                  <p className="text-xs text-muted-foreground">Top Cuisine</p>
-                </div>
-              </div>
-            </Card>
-          </div>
-        </div>
+        
 
         {/* Recent Activity - Full Width */}
         <div className="border-t border-border">
