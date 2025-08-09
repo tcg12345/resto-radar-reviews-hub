@@ -423,3 +423,4 @@ Only respond with the JSON object, no additional text or formatting.`;
     console.error('Error in AI cuisine detection for', restaurantName, ':', error);
     return extractCuisineFromName(restaurantName);
   }
+}
