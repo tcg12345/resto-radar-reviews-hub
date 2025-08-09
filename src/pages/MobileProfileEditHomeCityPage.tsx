@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { CityAutocomplete } from '@/components/CityAutocomplete';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -55,7 +55,12 @@ export function MobileProfileEditHomeCityPage() {
             <label className="text-sm font-medium text-muted-foreground">
               Home city
             </label>
-            <Input value={homeCity} onChange={e => setHomeCity(e.target.value)} placeholder="Enter your home city" className="mt-2 text-base" maxLength={100} />
+            <CityAutocomplete 
+              value={homeCity} 
+              onChange={setHomeCity} 
+              placeholder="Enter your home city" 
+              className="mt-2" 
+            />
           </div>
           
           
