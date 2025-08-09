@@ -38,6 +38,8 @@ export function HotelDetailsPage() {
   const [mapboxToken, setMapboxToken] = useState<string>('');
   const [aiOverview, setAiOverview] = useState<string>('');
   const [isLoadingOverview, setIsLoadingOverview] = useState(false);
+  const [mapError, setMapError] = useState<string>('');
+  const [isMapLoading, setIsMapLoading] = useState(true);
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
 
@@ -127,34 +129,111 @@ export function HotelDetailsPage() {
   useEffect(() => {
     if (!mapboxToken || !hotel || !hotel.latitude || !hotel.longitude || !mapContainer.current || map.current) return;
 
-    mapboxgl.accessToken = mapboxToken;
-    
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [hotel.longitude, hotel.latitude],
-      zoom: 15
-    });
+    setIsMapLoading(true);
+    setMapError('');
 
-    // Add navigation controls
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+    try {
+      mapboxgl.accessToken = mapboxToken;
+      
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [hotel.longitude, hotel.latitude],
+        zoom: 15
+      });
 
-    // Add marker for hotel location
-    new mapboxgl.Marker({
-      color: '#ef4444'
-    })
-    .setLngLat([hotel.longitude, hotel.latitude])
-    .setPopup(
-      new mapboxgl.Popup({ offset: 25 })
-        .setHTML(`<h3 style="margin: 0; font-weight: bold;">${hotel.name}</h3><p style="margin: 4px 0 0 0; font-size: 14px;">${hotel.address}</p>`)
-    )
-    .addTo(map.current);
+      // Handle map load success
+      map.current.on('load', () => {
+        setIsMapLoading(false);
+        console.log('Map loaded successfully');
+      });
+
+      // Handle map load errors
+      map.current.on('error', (e) => {
+        console.error('Mapbox error:', e);
+        setMapError('Failed to load map. Please try refreshing the page.');
+        setIsMapLoading(false);
+      });
+
+      // Add navigation controls
+      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+      // Add marker for hotel location
+      new mapboxgl.Marker({
+        color: '#ef4444'
+      })
+      .setLngLat([hotel.longitude, hotel.latitude])
+      .setPopup(
+        new mapboxgl.Popup({ offset: 25 })
+          .setHTML(`<h3 style="margin: 0; font-weight: bold;">${hotel.name}</h3><p style="margin: 4px 0 0 0; font-size: 14px;">${hotel.address}</p>`)
+      )
+      .addTo(map.current);
+
+    } catch (error) {
+      console.error('Error initializing map:', error);
+      setMapError('Unable to initialize map. Please check your connection and try again.');
+      setIsMapLoading(false);
+    }
 
     return () => {
       map.current?.remove();
       map.current = null;
     };
   }, [mapboxToken, hotel]);
+
+  const retryMap = () => {
+    setMapError('');
+    setIsMapLoading(true);
+    
+    // Clear existing map
+    if (map.current) {
+      map.current.remove();
+      map.current = null;
+    }
+    
+    // Trigger re-initialization by forcing a re-render
+    setTimeout(() => {
+      if (mapContainer.current && mapboxToken && hotel?.latitude && hotel?.longitude) {
+        try {
+          mapboxgl.accessToken = mapboxToken;
+          
+          map.current = new mapboxgl.Map({
+            container: mapContainer.current,
+            style: 'mapbox://styles/mapbox/streets-v12',
+            center: [hotel.longitude, hotel.latitude],
+            zoom: 15
+          });
+
+          map.current.on('load', () => {
+            setIsMapLoading(false);
+          });
+
+          map.current.on('error', (e) => {
+            console.error('Mapbox retry error:', e);
+            setMapError('Map failed to load after retry. Please refresh the page.');
+            setIsMapLoading(false);
+          });
+
+          map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+          new mapboxgl.Marker({
+            color: '#ef4444'
+          })
+          .setLngLat([hotel.longitude, hotel.latitude])
+          .setPopup(
+            new mapboxgl.Popup({ offset: 25 })
+              .setHTML(`<h3 style="margin: 0; font-weight: bold;">${hotel.name}</h3><p style="margin: 4px 0 0 0; font-size: 14px;">${hotel.address}</p>`)
+          )
+          .addTo(map.current);
+
+        } catch (error) {
+          console.error('Error retrying map:', error);
+          setMapError('Unable to load map. Please refresh the page.');
+          setIsMapLoading(false);
+        }
+      }
+    }, 100);
+  };
 
   const handleBack = () => {
     navigate(-1);
@@ -386,12 +465,36 @@ export function HotelDetailsPage() {
               <div>
                 <h3 className="text-lg font-semibold mb-3">Location</h3>
                 <Card className="overflow-hidden">
-                  <CardContent className="p-0">
+                  <CardContent className="p-0 relative">
+                    {/* Map Container */}
                     <div 
                       ref={mapContainer} 
                       className="w-full h-64 rounded-lg"
                       style={{ minHeight: '300px' }}
                     />
+                    
+                    {/* Loading Overlay */}
+                    {isMapLoading && (
+                      <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-lg">
+                        <div className="text-center">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                          <p className="text-sm text-muted-foreground">Loading map...</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Error Overlay */}
+                    {mapError && (
+                      <div className="absolute inset-0 bg-background/90 flex items-center justify-center rounded-lg">
+                        <div className="text-center p-6">
+                          <MapPin className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                          <p className="text-sm text-muted-foreground mb-3">{mapError}</p>
+                          <Button size="sm" onClick={retryMap} variant="outline">
+                            Try Again
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>
