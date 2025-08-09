@@ -15,6 +15,7 @@ import { SearchResultSkeleton } from '@/components/skeletons/SearchResultSkeleto
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface TripLocation {
   id: string;
@@ -46,6 +47,9 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
   const [checkOutDate, setCheckOutDate] = useState<Date>();
   const [isCheckInOpen, setIsCheckInOpen] = useState(false);
   const [isCheckOutOpen, setIsCheckOutOpen] = useState(false);
+  
+  const isMobile = useIsMobile();
+  const [showFilters, setShowFilters] = useState(!isMobile);
   
   const { searchHotels } = useGooglePlacesHotelSearch();
 
@@ -165,21 +169,56 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[900px] max-h-[95vh] overflow-hidden flex flex-col bg-gradient-to-br from-background to-accent/20">
-        <DialogHeader className="space-y-3 pb-4">
-          <DialogTitle className="flex items-center gap-3 text-2xl">
+      <DialogContent
+        className={cn(
+          "sm:max-w-[900px] overflow-hidden flex flex-col bg-gradient-to-br from-background to-accent/20",
+          isMobile ? "h-[75vh] max-h-[75vh] p-3 rounded-t-2xl" : "max-h-[90vh] p-6"
+        )}
+      >
+        <DialogHeader className={cn(isMobile ? "space-y-1 pb-2" : "space-y-3 pb-4") }>
+          <DialogTitle className={cn("flex items-center gap-3", isMobile ? "text-lg" : "text-2xl") }>
             <div className="p-2 rounded-xl bg-primary/10">
               <Hotel className="w-6 h-6 text-primary" />
             </div>
             Hotel Search
           </DialogTitle>
-          <DialogDescription className="text-lg">
-            Find the perfect accommodation for your trip
-          </DialogDescription>
+          {!isMobile && (
+            <DialogDescription className="text-lg">
+              Find the perfect accommodation for your trip
+            </DialogDescription>
+          )}
         </DialogHeader>
         
+        {/* Compact Mobile Search Bar */}
+        {isMobile && (
+          <div className="md:hidden space-y-2 border-b pb-3">
+            <div className="flex gap-2">
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Search hotels..."
+                className="h-10"
+              />
+              <Button
+                onClick={handleSearch}
+                disabled={isSearching || !searchQuery.trim()}
+                className="h-10 px-4"
+              >
+                <Search className="w-4 h-4 mr-1" />
+                Go
+              </Button>
+            </div>
+            <div className="flex justify-between">
+              <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
+                {showFilters ? "Hide filters" : "Show filters"}
+              </Button>
+            </div>
+          </div>
+        )}
+        
         {/* Search Form */}
-        <div className="space-y-6 border-b pb-6">
+        <div className={cn("space-y-6 border-b pb-6", isMobile && !showFilters && "hidden")}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-sm font-medium flex items-center gap-2">
@@ -279,18 +318,20 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
             </div>
           </div>
 
-          <Button
-            onClick={handleSearch}
-            disabled={isSearching || !searchQuery.trim()}
-            className="w-full h-12 text-lg bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg"
-          >
-            <Search className="w-5 h-5 mr-2" />
-            {isSearching ? 'Searching Hotels...' : 'Search Hotels'}
-          </Button>
+          {!isMobile && (
+            <Button
+              onClick={handleSearch}
+              disabled={isSearching || !searchQuery.trim()}
+              className="w-full h-12 text-lg bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg"
+            >
+              <Search className="w-5 h-5 mr-2" />
+              {isSearching ? 'Searching Hotels...' : 'Search Hotels'}
+            </Button>
+          )}
         </div>
 
         {/* Search Results */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto pt-2">
           {isSearching ? (
             <div className="space-y-4">
               {[...Array(3)].map((_, i) => (
