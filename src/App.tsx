@@ -50,6 +50,7 @@ import CommunityPhotoGalleryPage from "./pages/CommunityPhotoGalleryPage";
 import ShareRestaurantPage from "./pages/ShareRestaurantPage";
 import { HotelDetailsPage } from "./pages/HotelDetailsPage";
 import { HotelDetailedOverviewPage } from "./pages/HotelDetailedOverviewPage";
+import { ItineraryPrivacyPage } from "./pages/ItineraryPrivacyPage";
 
 const queryClient = new QueryClient();
 
@@ -99,6 +100,7 @@ const App = () => (
                 <Route path="/profile/edit/home-city" element={<RequireAuth><MobileProfileEditHomeCityPage /></RequireAuth>} />
                 <Route path="/profile/edit/bio" element={<RequireAuth><MobileProfileEditBioPage /></RequireAuth>} />
                 <Route path="/profile/edit-photo" element={<RequireAuth><MobileProfilePhotoEditPage /></RequireAuth>} />
+                <Route path="/itinerary-privacy" element={<RequireAuth><ItineraryPrivacyPage /></RequireAuth>} />
                 <Route path="/mobile/friends" element={<RequireAuth><MobileFriendsPage /></RequireAuth>} />
                 
                  {/* User profile routes */}

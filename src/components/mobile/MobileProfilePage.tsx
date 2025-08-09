@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Camera, Edit2, Users, MapPin, Crown, Star, Heart, TrendingUp, Activity, ChevronRight, Bookmark, Route, MessageCircle, Share2, MapPinIcon } from 'lucide-react';
+import { Camera, Edit2, Users, MapPin, Crown, Star, Heart, TrendingUp, Activity, ChevronRight, Bookmark, Route, MessageCircle, Share2, MapPinIcon, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +11,7 @@ import { useItineraries } from '@/hooks/useItineraries';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { ItineraryPrivacySettings } from '@/components/ItineraryPrivacySettings';
+
 interface ProfileStats {
   rated_count: number;
   wishlist_count: number;
@@ -239,11 +239,26 @@ export function MobileProfilePage() {
               </div>
             </div>
           </Button>
-        </div>
 
-        {/* Itinerary Privacy Settings */}
-        <div className="px-4">
-          <ItineraryPrivacySettings />
+          <Separator />
+
+          {/* Itinerary Privacy Button */}
+          <Button onClick={() => navigate('/itinerary-privacy')} variant="outline" className="w-full h-16 bg-green-50 hover:bg-green-100 border-2 border-green-200 hover:border-green-300 transition-all duration-200 my-[7px]">
+            <div className="flex items-center gap-4 w-full">
+              <div className="p-3 bg-green-600 rounded-lg">
+                <Lock className="h-6 w-6 text-white" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-lg font-bold text-foreground">Trip Privacy</p>
+                <p className="text-sm text-muted-foreground">Manage which trips friends can see</p>
+              </div>
+              <div className="text-green-600">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+          </Button>
         </div>
 
         <div className="px-4 space-y-4">
