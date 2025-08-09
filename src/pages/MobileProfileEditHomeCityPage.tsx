@@ -6,28 +6,25 @@ import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-
 export function MobileProfileEditHomeCityPage() {
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const {
+    user,
+    profile
+  } = useAuth();
   const [homeCity, setHomeCity] = useState(profile?.home_city || '');
   const [isLoading, setIsLoading] = useState(false);
-
   const handleSave = async () => {
     if (!user) return;
-
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          home_city: homeCity.trim() || null,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id);
-
+      const {
+        error
+      } = await supabase.from('profiles').update({
+        home_city: homeCity.trim() || null,
+        updated_at: new Date().toISOString()
+      }).eq('id', user.id);
       if (error) throw error;
-
       toast.success('Home city updated successfully');
       navigate(-1);
     } catch (error) {
@@ -37,18 +34,11 @@ export function MobileProfileEditHomeCityPage() {
       setIsLoading(false);
     }
   };
-
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
+  return <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/20">
         <div className="flex items-center justify-between px-4 py-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(-1)}
-            className="h-10 w-10"
-          >
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-10 w-10">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           
@@ -65,39 +55,21 @@ export function MobileProfileEditHomeCityPage() {
             <label className="text-sm font-medium text-muted-foreground">
               Home city
             </label>
-            <Input
-              value={homeCity}
-              onChange={(e) => setHomeCity(e.target.value)}
-              placeholder="Enter your home city"
-              className="mt-2 text-base"
-              maxLength={100}
-            />
+            <Input value={homeCity} onChange={e => setHomeCity(e.target.value)} placeholder="Enter your home city" className="mt-2 text-base" maxLength={100} />
           </div>
           
-          <p className="text-sm text-muted-foreground">
-            Let others know where you're from or currently based.
-          </p>
+          
 
           {/* Save Button */}
           <div className="pt-8">
-            <Button
-              onClick={handleSave}
-              disabled={isLoading}
-              className="w-full h-12 text-base font-medium"
-              size="lg"
-            >
-              {isLoading ? (
-                <div className="flex items-center gap-2">
+            <Button onClick={handleSave} disabled={isLoading} className="w-full h-12 text-base font-medium" size="lg">
+              {isLoading ? <div className="flex items-center gap-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary-foreground border-t-transparent" />
                   Saving...
-                </div>
-              ) : (
-                'Save changes'
-              )}
+                </div> : 'Save changes'}
             </Button>
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 }
