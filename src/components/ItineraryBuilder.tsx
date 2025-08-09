@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { addDays, format, startOfDay, differenceInDays, eachDayOfInterval } from 'date-fns';
 import { Calendar, Plus, Download, Share2, Save, CalendarDays, MapPin, X, CalendarIcon, BookOpen, GripVertical, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -125,8 +125,8 @@ export function ItineraryBuilder({
     updateItinerary
   } = useItineraries();
 
-  // Load state from localStorage on mount
-  const loadPersistedState = () => {
+  // Load state from localStorage on mount - moved to useMemo to ensure consistent execution
+  const persistedState = useMemo(() => {
     try {
       const savedState = localStorage.getItem('currentItineraryBuilder');
       if (savedState) {
@@ -169,8 +169,8 @@ export function ItineraryBuilder({
       console.error('Error loading persisted state:', error);
     }
     return null;
-  };
-  const persistedState = loadPersistedState();
+  }, []); // Empty dependency array to run only once
+
   console.log('Loading persisted state:', persistedState);
   const [dateRange, setDateRange] = useState<{
     start: Date | null;
