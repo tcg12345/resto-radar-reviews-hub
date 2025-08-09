@@ -54,15 +54,7 @@ export function MobileProfileEditHomeCityPage() {
           
           <h1 className="text-lg font-semibold">Home city</h1>
           
-          <Button
-            onClick={handleSave}
-            disabled={isLoading}
-            size="icon"
-            variant="ghost"
-            className="h-10 w-10 text-primary"
-          >
-            <Check className="h-5 w-5" />
-          </Button>
+          <div className="w-10"></div>
         </div>
       </div>
 
