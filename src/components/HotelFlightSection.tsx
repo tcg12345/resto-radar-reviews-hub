@@ -416,7 +416,365 @@ export function HotelFlightSection({
                 </div>}
             </div>}
         </div>
-      </div>;
+      {/* Details Modals - Mobile */}
+      <Dialog 
+        open={isHotelDetailsOpen} 
+        onOpenChange={(open) => {
+          console.log('Hotel Details Dialog onOpenChange called with:', open);
+          setIsHotelDetailsOpen(open);
+        }}
+      >
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto fixed z-[100] bg-white dark:bg-gray-900 border shadow-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Hotel className="w-5 h-5 text-blue-600" />
+              {selectedHotel?.hotel.name || 'Hotel Details'}
+            </DialogTitle>
+            <DialogDescription>
+              Hotel booking details and information
+            </DialogDescription>
+          </DialogHeader>
+          {selectedHotel && (
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm">{selectedHotel.hotel.address}</span>
+                </div>
+                {selectedHotel.hotel.rating && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">Rating:</span>
+                    <Badge variant="secondary">⭐ {selectedHotel.hotel.rating}</Badge>
+                  </div>
+                )}
+                {selectedHotel.hotel.priceRange && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">Price Range:</span>
+                    <Badge variant="outline">{selectedHotel.hotel.priceRange}</Badge>
+                  </div>
+                )}
+              </div>
+              {(selectedHotel.checkIn || selectedHotel.checkOut) && (
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <h4 className="font-medium text-sm mb-2 text-blue-900 dark:text-blue-100">Stay Dates</h4>
+                  <div className="space-y-1 text-sm">
+                    {selectedHotel.checkIn && (
+                      <div>
+                        Check-in: <span className="font-medium">{formatDate(selectedHotel.checkIn)}</span>
+                      </div>
+                    )}
+                    {selectedHotel.checkOut && (
+                      <div>
+                        Check-out: <span className="font-medium">{formatDate(selectedHotel.checkOut)}</span>
+                      </div>
+                    )}
+                    {selectedHotel.location && (
+                      <div>
+                        Location: <span className="font-medium">{selectedHotel.location}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              {selectedHotel.hotel.description && (
+                <div>
+                  <h4 className="font-medium text-sm mb-2">Description</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{selectedHotel.hotel.description}</p>
+                </div>
+              )}
+              {selectedHotel.hotel.amenities && selectedHotel.hotel.amenities.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-sm mb-2">Amenities</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedHotel.hotel.amenities.map((amenity, index) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {amenity}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {tripAdvisorPhotos.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Camera className="w-4 h-4 text-blue-600" />
+                    <h4 className="font-medium text-sm">Photos from TripAdvisor</h4>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">
+                    {tripAdvisorPhotos.slice(0, 12).map((photo, index) => (
+                      <div
+                        key={photo.id || index}
+                        className="relative aspect-video rounded-lg overflow-hidden bg-muted cursor-pointer group"
+                        onClick={() => handlePhotoClick(index)}
+                      >
+                        <img
+                          src={photo.images?.medium?.url || photo.images?.small?.url || photo.images?.thumbnail?.url}
+                          alt={photo.caption || 'Hotel photo'}
+                          className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                          <Eye className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                        {photo.caption && (
+                          <div className="absolute inset-x-0 bottom-0 bg-black/60 text-white p-1">
+                            <p className="text-xs truncate">{photo.caption}</p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {tripAdvisorReviews.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Star className="w-4 h-4 text-yellow-500" />
+                    <h4 className="font-medium text-sm">Reviews from TripAdvisor</h4>
+                  </div>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {tripAdvisorReviews.slice(0, 6).map((review, index) => (
+                      <div key={review.id || index} className="p-2 bg-muted/50 rounded-lg">
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-1">
+                            <div className="flex items-center">
+                              {[...Array(5)].map((_, i) => (
+                                <Star key={i} className={`${i < review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'} w-3 h-3`} />
+                              ))}
+                            </div>
+                            <span className="text-xs font-medium">{review.user?.username}</span>
+                          </div>
+                          <span className="text-xs text-muted-foreground">{new Date(review.published_date).toLocaleDateString()}</span>
+                        </div>
+                        {review.title && <h5 className="font-medium text-xs mb-1">{review.title}</h5>}
+                        <p className="text-xs text-muted-foreground line-clamp-3">{review.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {tripAdvisorLocationId && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-green-600" />
+                    <h4 className="font-medium text-sm">Book This Hotel</h4>
+                  </div>
+                  <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label htmlFor="checkin" className="text-xs">Check-in</Label>
+                        <Input id="checkin" type="date" value={checkInDate} onChange={(e) => setCheckInDate(e.target.value)} className="h-8 text-xs" min={new Date().toISOString().split('T')[0]} />
+                      </div>
+                      <div>
+                        <Label htmlFor="checkout" className="text-xs">Check-out</Label>
+                        <Input id="checkout" type="date" value={checkOutDate} onChange={(e) => setCheckOutDate(e.target.value)} className="h-8 text-xs" min={checkInDate || new Date().toISOString().split('T')[0]} />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1">
+                        <Label htmlFor="guests" className="text-xs">Guests</Label>
+                        <Select value={guests.toString()} onValueChange={(value) => setGuests(parseInt(value))}>
+                          <SelectTrigger className="h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {[1, 2, 3, 4, 5, 6].map((num) => (
+                              <SelectItem key={num} value={num.toString()}>
+                                {num} Guest{num > 1 ? 's' : ''}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={async () => {
+                          if (!checkInDate || !checkOutDate || !tripAdvisorLocationId) {
+                            alert('Please select check-in and check-out dates');
+                            return;
+                          }
+                          setLoadingBooking(true);
+                          try {
+                            const offers = await getBookingOffers(tripAdvisorLocationId, checkInDate, checkOutDate, guests);
+                            setBookingOffers(offers || []);
+                          } catch (error) {
+                            console.error('Error fetching booking offers:', error);
+                            alert('Unable to fetch booking offers at the moment');
+                          } finally {
+                            setLoadingBooking(false);
+                          }
+                        }}
+                        disabled={loadingBooking || !checkInDate || !checkOutDate}
+                        className="mt-4"
+                      >
+                        {loadingBooking ? (
+                          <>
+                            <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin mr-1" />
+                            Searching...
+                          </>
+                        ) : (
+                          <>
+                            <Calendar className="w-3 h-3 mr-1" />
+                            Search Deals
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                  {bookingOffers.length > 0 && (
+                    <div className="space-y-2">
+                      <h5 className="text-sm font-medium text-green-700 dark:text-green-300">Available Deals</h5>
+                      <div className="space-y-2 max-h-48 overflow-y-auto">
+                        {bookingOffers.slice(0, 5).map((offer, index) => (
+                          <div key={index} className="p-3 bg-white dark:bg-green-950/40 rounded-lg border border-green-200 dark:border-green-800/50">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="text-sm font-medium">{offer.partner_name || 'Booking Partner'}</div>
+                                {offer.price && (
+                                  <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                                    ${offer.price}
+                                    <span className="text-xs text-muted-foreground ml-1">per night</span>
+                                  </div>
+                                )}
+                                {offer.total_price && <div className="text-sm text-muted-foreground">Total: ${offer.total_price}</div>}
+                              </div>
+                              <Button size="sm" onClick={() => window.open(offer.booking_url || `https://www.tripadvisor.com/Hotel_Review-d${tripAdvisorLocationId}`, '_blank')} className="bg-green-600 hover:bg-green-700">
+                                Book Now
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              {loadingTripAdvisorData && (
+                <div className="flex items-center justify-center py-2">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    Loading TripAdvisor content...
+                  </div>
+                </div>
+              )}
+              {loadingBooking && (
+                <div className="flex items-center justify-center py-2">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+                    Searching for booking deals...
+                  </div>
+                </div>
+              )}
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" size="sm" onClick={() => window.open(getDirectionsUrl(selectedHotel.hotel.address), '_blank')}>
+                  <Navigation className="w-4 h-4 mr-2" />
+                  Get Directions
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const websiteUrl = hotelWebsite || selectedHotel.hotel.website;
+                    if (websiteUrl) {
+                      window.open(websiteUrl, '_blank');
+                    } else {
+                      const searchQuery = encodeURIComponent(`${selectedHotel.hotel.name} ${selectedHotel.hotel.address} official website`);
+                      window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+                    }
+                  }}
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  {hotelWebsite || selectedHotel.hotel.website ? 'Hotel Website' : 'Find Website'}
+                </Button>
+                {selectedHotel.hotel.phone && (
+                  <Button variant="outline" size="sm" onClick={() => window.open(`tel:${selectedHotel.hotel.phone}`, '_blank')}>
+                    <Phone className="w-4 h-4 mr-2" />
+                    Call Hotel
+                  </Button>
+                )}
+                {selectedHotel.hotel.bookingUrl && (
+                  <Button size="sm" onClick={() => window.open(selectedHotel.hotel.bookingUrl, '_blank)}>
+                    Book Now
+                  </Button>
+                )}
+                {tripAdvisorLocationId && (
+                  <Button variant="outline" size="sm" onClick={() => window.open(`https://www.tripadvisor.com/Hotel_Review-d${tripAdvisorLocationId}`, '_blank)}>
+                    <ExternalLink className="w-4 h-4 mr-1" />
+                    TripAdvisor
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isFlightDetailsOpen} onOpenChange={setIsFlightDetailsOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Plane className="w-5 h-5 text-purple-600" />
+              {selectedFlight?.airline} {selectedFlight?.flightNumber}
+            </DialogTitle>
+            <DialogDescription>Flight booking details and information</DialogDescription>
+          </DialogHeader>
+          {selectedFlight && (
+            <div className="space-y-6">
+              <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="text-center">
+                    <div className="font-bold text-lg">{selectedFlight.departure.time}</div>
+                    <div className="text-sm text-muted-foreground">{selectedFlight.departure.airport}</div>
+                    <div className="text-xs text-muted-foreground">{selectedFlight.departure.date}</div>
+                  </div>
+                  <div className="flex-1 flex flex-col items-center mx-4">
+                    <Plane className="w-6 h-6 text-purple-600 mb-1" />
+                    <div className="w-full h-px bg-purple-300"></div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-bold text-lg">{selectedFlight.arrival.time}</div>
+                    <div className="text-sm text-muted-foreground">{selectedFlight.arrival.airport}</div>
+                    <div className="text-xs text-muted-foreground">{selectedFlight.arrival.date}</div>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Airline:</span>
+                  <span className="text-sm">{selectedFlight.airline}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Flight Number:</span>
+                  <span className="text-sm font-mono">{selectedFlight.flightNumber}</span>
+                </div>
+                {selectedFlight.price && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">Price:</span>
+                    <span className="text-sm">{selectedFlight.price}</span>
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" size="sm" onClick={() => window.open(getAirportDirectionsUrl(selectedFlight.departure.airport), '_blank)}>
+                  <Navigation className="w-4 h-4 mr-2" />
+                  Directions to Airport
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => window.open(getFlightTrackingUrl(selectedFlight.airline, selectedFlight.flightNumber), '_blank)}>
+                  <Radar className="w-4 h-4 mr-2" />
+                  Track Flight
+                </Button>
+                {selectedFlight.bookingUrl && (
+                  <Button size="sm" onClick={() => window.open(selectedFlight.bookingUrl, '_blank)}>
+                    View Booking
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>;
+
   }
   return <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:contents">
       {/* Hotels Section - Desktop */}
