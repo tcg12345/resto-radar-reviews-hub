@@ -92,7 +92,7 @@ export function MobileProfilePage() {
           .eq('is_wishlist', false)
           .not('rating', 'is', null)
           .order('created_at', { ascending: false })
-          .limit(3);
+          .limit(25);
 
         if (error) throw error;
 
