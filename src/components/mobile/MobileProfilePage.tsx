@@ -406,7 +406,15 @@ export function MobileProfilePage() {
                       <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground">
                         <MessageCircle className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-8 px-2 text-muted-foreground hover:text-foreground"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/share/restaurant/${activity.id}`);
+                        }}
+                      >
                         <Share2 className="h-4 w-4" />
                       </Button>
                     </div>

@@ -43,6 +43,7 @@ import { SharedItineraryPage } from "./pages/SharedItineraryPage";
 import { ItineraryViewPage } from "./pages/ItineraryViewPage";
 import RestaurantPhotosPage from "./pages/RestaurantPhotosPage";
 import CommunityPhotoGalleryPage from "./pages/CommunityPhotoGalleryPage";
+import ShareRestaurantPage from "./pages/ShareRestaurantPage";
 
 
 const queryClient = new QueryClient();
@@ -108,6 +109,7 @@ const App = () => (
                 <Route path="/recommendation/:place_id" element={<RequireAuth><RecommendationDetailPage /></RequireAuth>} />
                 <Route path="/mobile/restaurant/:restaurantId" element={<RequireAuth><MobileRestaurantDetailsPage /></RequireAuth>} />
                 <Route path="/mobile/search/restaurant" element={<RequireAuth><MobileSearchRestaurantDetailsPage /></RequireAuth>} />
+                <Route path="/share/restaurant/:restaurantId" element={<RequireAuth><ShareRestaurantPage /></RequireAuth>} />
                 
                 {/* Main route - shows landing page or dashboard based on auth */}
                 <Route path="/" element={<Index />} />
