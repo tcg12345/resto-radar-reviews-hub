@@ -46,7 +46,7 @@ serve(async (req) => {
       hotelContext += `\nAmenities: ${hotel.amenities.join(', ')}`;
     }
 
-    console.log('Generating overview for hotel:', hotel.name);
+    console.log('Generating detailed overview for hotel:', hotel.name);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -59,15 +59,27 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a professional travel writer who creates engaging, detailed hotel overviews. Write compelling descriptions that help travelers understand what makes each hotel special. Focus on atmosphere, location benefits, guest experience, and unique features. Keep the tone professional yet inviting, and make it 2-3 paragraphs long.`
+            content: `You are an expert travel writer specializing in luxury hospitality. Create highly detailed, immersive hotel descriptions that paint a vivid picture of the guest experience. Focus on specific architectural details, interior design elements, service quality, neighborhood characteristics, dining experiences, and unique selling points. Write in an engaging, descriptive style that helps readers visualize their stay. Be specific about room features, public spaces, service offerings, and local attractions. Make each description feel personalized and distinctive.`
           },
           {
             role: 'user',
-            content: `Create a detailed, engaging overview for this hotel based on the following information:\n\n${hotelContext}\n\nWrite a comprehensive description that covers the hotel's atmosphere, location advantages, amenities, and what guests can expect from their stay. Make it informative and appealing to potential guests.`
+            content: `Create an exceptionally detailed and personalized overview for this hotel. Use the provided information to craft a rich, immersive description:\n\n${hotelContext}\n\nPlease include:
+- Specific details about the hotel's architecture, design, and ambiance
+- Detailed room descriptions and guest experience
+- In-depth coverage of amenities and their unique features
+- Neighborhood characteristics and local attractions within walking distance
+- Dining options and culinary experiences
+- Service quality and staff expertise
+- What makes this particular hotel unique compared to others
+- Specific benefits for different types of travelers (business, leisure, couples, families)
+- Seasonal considerations and best times to visit
+- Any historical or cultural significance of the location
+
+Write 4-5 detailed paragraphs that make potential guests excited about staying here. Be specific, vivid, and compelling.`
           }
         ],
-        max_tokens: 500,
-        temperature: 0.7,
+        max_tokens: 800,
+        temperature: 0.8,
       }),
     });
 
