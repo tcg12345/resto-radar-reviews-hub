@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { Hotel, Plane, Plus, MapPin, ExternalLink, Phone, Navigation, Eye, Radar, Star, Camera, Calendar, Users, ChevronDown, ChevronUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -127,12 +128,12 @@ export function HotelFlightSection({
       return '';
     }
   };
+  const navigate = useNavigate();
+  
   const handleHotelCardClick = (booking: HotelBooking) => {
-    console.log('handleHotelCardClick called with:', booking.hotel.name, 'Current modal state:', isHotelDetailsOpen);
-    setSelectedHotel(booking);
-    setIsHotelDetailsOpen(true);
-    console.log('Hotel details modal should now be open');
-    loadTripAdvisorData(booking.hotel.name, booking.hotel.address);
+    // Store hotel data in sessionStorage for the details page
+    sessionStorage.setItem(`hotel_${booking.hotel.id}`, JSON.stringify(booking.hotel));
+    navigate(`/hotel/${booking.hotel.id}`);
   };
   const handleFlightCardClick = (flight: FlightBooking) => {
     setSelectedFlight(flight);
@@ -250,18 +251,18 @@ export function HotelFlightSection({
                                     <Star className="w-3 h-3 text-amber-500 mr-1" />
                                     <span className="text-xs font-medium text-amber-700 dark:text-amber-300">{booking.hotel.rating}</span>
                                   </div>}
-                                <Button 
-                                  onClick={() => {
-                                    console.log('Details button clicked for hotel:', booking.hotel.name);
-                                    handleHotelCardClick(booking);
-                                  }} 
-                                  size="sm" 
-                                  variant="ghost" 
-                                  className="h-6 px-2 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50"
-                                >
-                                  <Eye className="w-3 h-3 mr-1" />
-                                  Details
-                                </Button>
+                                 <Button 
+                                   onClick={(e) => {
+                                     e.stopPropagation();
+                                     handleHotelCardClick(booking);
+                                   }} 
+                                   size="sm" 
+                                   variant="ghost" 
+                                   className="h-6 px-2 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50"
+                                 >
+                                   <Eye className="w-3 h-3 mr-1" />
+                                   Details
+                                 </Button>
                               </div>
                             </div>
                             <Button onClick={() => onRemoveHotel(booking.id)} size="sm" variant="ghost" className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 p-1">
