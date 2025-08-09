@@ -214,7 +214,17 @@ export function TripCalendar({
                                 <MapPin className="w-3 h-3 shrink-0" />
                                 <span className="truncate">{getCityForDate(day)}</span>
                               </div>}
-                            {dayHotel && <div className="flex items-center gap-1 text-blue-600 font-medium text-sm bg-blue-50 dark:bg-blue-950/30 px-3 py-1.5 rounded-md border border-blue-200/50">
+                            {dayHotel && <div 
+                                className="flex items-center gap-1 text-blue-600 font-medium text-sm bg-blue-50 dark:bg-blue-950/30 px-3 py-1.5 rounded-md border border-blue-200/50 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (dayHotel.hotel?.id) {
+                                    // Store hotel data in sessionStorage for the details page
+                                    sessionStorage.setItem(`hotel_${dayHotel.hotel.id}`, JSON.stringify(dayHotel.hotel));
+                                    navigate(`/hotel/${dayHotel.hotel.id}`);
+                                  }
+                                }}
+                              >
                                 <Hotel className="w-4 h-4 shrink-0" />
                                 <span className="truncate">{dayHotel.hotel?.name || 'Hotel'}</span>
                               </div>}
