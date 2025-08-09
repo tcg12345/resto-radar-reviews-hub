@@ -10,7 +10,7 @@ import { Restaurant, RestaurantFormData } from "@/types/restaurant";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
 interface RestaurantDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -43,37 +43,33 @@ export function RestaurantDialog({
 
   if (isMobile) {
     return (
-      <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogContent className="fixed inset-x-0 bottom-0 top-16 rounded-t-3xl border-t bg-background/95 backdrop-blur-md p-0 shadow-2xl animate-slide-in-right data-[state=closed]:animate-slide-out-right overflow-hidden">
-          {/* Modern Mobile Header */}
-          <div className="sticky top-0 z-10 bg-gradient-to-b from-background via-background/95 to-background/80 backdrop-blur-sm border-b border-border/50">
-            <div className="flex items-center justify-between p-6 pb-4">
-              <div className="space-y-1">
-                <DialogTitle className="text-xl font-semibold text-foreground">
-                  {dialogType === "add" ? "Add Restaurant" : "Edit Restaurant"}
-                </DialogTitle>
-                <DialogDescription className="text-sm text-muted-foreground">
-                  {dialogType === "add"
-                    ? "Add a new place to your collection"
-                    : "Update restaurant details"}
-                </DialogDescription>
+      <Drawer open={isOpen} onOpenChange={onOpenChange}>
+        <DrawerContent className="rounded-t-3xl border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-0">
+          <div className="mx-auto w-full max-w-md">
+            <div className="sticky top-0 z-10 bg-gradient-to-b from-background/95 via-background to-background/80 backdrop-blur-sm border-b border-border/50 px-5 pt-4 pb-3">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <DialogTitle className="text-base font-semibold">
+                    {dialogType === "add" ? "Add Restaurant" : "Edit Restaurant"}
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-muted-foreground">
+                    {dialogType === "add"
+                      ? "Quickly add a place to your list"
+                      : "Make a quick update"}
+                  </DialogDescription>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleCancel}
+                  className="h-9 w-9 rounded-full bg-muted/50 hover:bg-muted"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleCancel}
-                className="h-9 w-9 rounded-full bg-muted/50 hover:bg-muted"
-              >
-                <X className="h-4 w-4" />
-              </Button>
             </div>
-            {/* Subtle divider line */}
-            <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-          </div>
-          
-          {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-6 pt-4 pb-8">
+
+            <div className="max-h-[70vh] overflow-y-auto px-5 py-4">
               <RestaurantForm
                 initialData={restaurant}
                 onSubmit={handleSave}
@@ -83,11 +79,10 @@ export function RestaurantDialog({
               />
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </DrawerContent>
+      </Drawer>
     );
   }
-
   // Desktop version (existing style)
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
