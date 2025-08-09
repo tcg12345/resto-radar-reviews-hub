@@ -245,17 +245,21 @@ export function MobileProfilePage() {
           <Button 
             onClick={() => navigate('/itinerary-privacy')} 
             variant="outline" 
-            className="w-full h-14 bg-muted/30 hover:bg-muted/50 border-0 rounded-none"
+            className="w-full h-16 bg-purple-500/10 hover:bg-purple-500/20 border-2 border-purple-500/20 hover:border-purple-500/30 transition-all duration-200 my-[7px]"
           >
-            <div className="flex items-center gap-4 w-full px-4">
-              <div className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center">
-                <Route className="h-5 w-5 text-muted-foreground" />
+            <div className="flex items-center gap-4 w-full">
+              <div className="p-3 bg-purple-500 rounded-lg">
+                <Route className="h-6 w-6 text-white" />
               </div>
               <div className="flex-1 text-left">
-                <p className="text-base font-medium text-foreground">Trip Privacy</p>
+                <p className="text-lg font-bold text-foreground">Trip Privacy</p>
                 <p className="text-sm text-muted-foreground">Manage your itinerary sharing settings</p>
               </div>
-              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              <div className="text-purple-500">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
             </div>
           </Button>
         </div>
