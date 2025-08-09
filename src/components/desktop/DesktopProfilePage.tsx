@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { ItineraryPrivacySettings } from '@/components/ItineraryPrivacySettings';
 
 interface ProfileStats {
   rated_count: number;
@@ -202,6 +203,9 @@ export default function DesktopProfilePage() {
           </div>
         </Card>
       </div>
+
+      {/* Itinerary Privacy Settings */}
+      <ItineraryPrivacySettings />
 
       {/* Recent activity */}
       <div className="space-y-2">

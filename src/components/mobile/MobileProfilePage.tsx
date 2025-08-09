@@ -11,6 +11,7 @@ import { useItineraries } from '@/hooks/useItineraries';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
+import { ItineraryPrivacySettings } from '@/components/ItineraryPrivacySettings';
 interface ProfileStats {
   rated_count: number;
   wishlist_count: number;
@@ -238,6 +239,11 @@ export function MobileProfilePage() {
               </div>
             </div>
           </Button>
+        </div>
+
+        {/* Itinerary Privacy Settings */}
+        <div className="px-4">
+          <ItineraryPrivacySettings />
         </div>
 
         <div className="px-4 space-y-4">
