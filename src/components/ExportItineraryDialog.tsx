@@ -10,6 +10,8 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { Itinerary } from '@/components/ItineraryBuilder';
 import jsPDF from 'jspdf';
+import { Drawer, DrawerContent, DrawerFooter, DrawerTitle, DrawerDescription } from '@/components/ui/drawer';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface ExportItineraryDialogProps {
   isOpen: boolean;
@@ -22,6 +24,7 @@ type ExportFormat = 'pdf' | 'txt' | 'json' | 'csv';
 export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItineraryDialogProps) {
   const [isExporting, setIsExporting] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState<ExportFormat>('pdf');
+  const isMobile = useIsMobile();
 
   if (!itinerary) return null;
 
@@ -498,6 +501,138 @@ export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItin
       setIsExporting(false);
     }
   };
+
+  if (isMobile) {
+    return (
+      <Drawer open={isOpen} onOpenChange={onClose}>
+        <DrawerContent className="rounded-t-3xl border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-0">
+          <div className="mx-auto w-full max-w-md">
+            <div className="sticky top-0 z-10 border-b border-border/50 bg-gradient-to-b from-background/95 via-background to-background/80 px-5 pt-4 pb-3">
+              <div className="space-y-0.5">
+                <DrawerTitle className="text-base font-semibold">Export Itinerary</DrawerTitle>
+                <DrawerDescription className="text-xs text-muted-foreground">Choose your preferred format to download your itinerary</DrawerDescription>
+              </div>
+            </div>
+
+            <div className="max-h-[70vh] overflow-y-auto px-5 py-4">
+              <div className="space-y-6">
+                {/* Export Preview */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <FileText className="w-4 h-4" />
+                      Export Preview
+                    </CardTitle>
+                    <CardDescription>
+                      Your itinerary will be exported with all events and details
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Trip Title:</span>
+                          <span className="font-medium text-right">{itinerary.title}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Duration:</span>
+                          <span className="font-medium text-right">
+                            {format(itinerary.startDate, 'MMM do')} - {format(itinerary.endDate, 'MMM do')}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Total Events:</span>
+                          <span className="font-medium text-right">{itinerary.events.length}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Restaurants:</span>
+                          <span className="font-medium text-right">
+                            {itinerary.events.filter(e => e.type === 'restaurant').length}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Export Format Selection */}
+                <div className="space-y-4">
+                  <h3 className="font-medium">Choose Export Format</h3>
+                  
+                  <RadioGroup value={selectedFormat} onValueChange={(value) => setSelectedFormat(value as ExportFormat)}>
+                    <div className="grid gap-3">
+                      {formatOptions.map((option) => {
+                        const Icon = option.icon;
+                        return (
+                          <div key={option.value} className="relative">
+                            <RadioGroupItem
+                              value={option.value}
+                              id={option.value}
+                              className="sr-only"
+                            />
+                            <Label
+                              htmlFor={option.value}
+                              className={`flex items-center gap-4 p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                                selectedFormat === option.value
+                                  ? 'border-primary bg-primary/5 shadow-sm'
+                                  : 'border-border hover:border-primary/50'
+                              }`}
+                            >
+                              <Icon className="w-5 h-5 text-muted-foreground" />
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium">{option.label}</span>
+                                  {option.popular && (
+                                    <Badge variant="secondary" className="text-xs">Popular</Badge>
+                                  )}
+                                </div>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  {option.description}
+                                </p>
+                              </div>
+                              <div className={`w-4 h-4 rounded-full border-2 transition-colors ${
+                                selectedFormat === option.value
+                                  ? 'border-primary bg-primary'
+                                  : 'border-muted-foreground/30'
+                              }`}>
+                                {selectedFormat === option.value && (
+                                  <div className="w-full h-full flex items-center justify-center">
+                                    <div className="w-2 h-2 bg-white rounded-full" />
+                                  </div>
+                                )}
+                              </div>
+                            </Label>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </RadioGroup>
+                </div>
+              </div>
+            </div>
+
+            <DrawerFooter>
+              <div className="flex justify-end gap-3">
+                <Button variant="outline" onClick={onClose} disabled={isExporting}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleExport}
+                  disabled={isExporting}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  {isExporting ? 'Exporting...' : `Export as ${selectedFormat.toUpperCase()}`}
+                </Button>
+              </div>
+            </DrawerFooter>
+          </div>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
