@@ -288,15 +288,15 @@ export function HotelFlightSection({
                           </div>
                           
                           <div className="flex flex-wrap gap-2 mt-3">
-                            <Button size="sm" variant="outline" onClick={() => window.open(getDirectionsUrl(booking.hotel.address), '_blank')} className="flex-1 min-w-0 h-9 text-xs bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100">
+                            <Button size="sm" variant="outline" onClick={() => window.open(getDirectionsUrl(booking.hotel.address), '_blank')} className="h-9 text-xs px-3 whitespace-nowrap bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 flex-none w-auto">
                               <Navigation className="w-3 h-3 mr-1" />
                               Directions
                             </Button>
-                            {booking.hotel.website && <Button size="sm" variant="outline" onClick={() => window.open(booking.hotel.website, '_blank')} className="flex-1 min-w-0 h-9 text-xs bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100">
+                            {booking.hotel.website && <Button size="sm" variant="outline" onClick={() => window.open(booking.hotel.website, '_blank')} className="h-9 text-xs px-3 whitespace-nowrap bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 flex-none w-auto">
                                 <ExternalLink className="w-3 h-3 mr-1" />
                                 Website
                               </Button>}
-                            {booking.hotel.phone && <Button size="sm" variant="outline" onClick={() => window.open(`tel:${booking.hotel.phone}`, '_blank')} className="flex-1 min-w-0 h-9 text-xs bg-green-50 border-green-200 text-green-700 hover:bg-green-100">
+                            {booking.hotel.phone && <Button size="sm" variant="outline" onClick={() => window.open(`tel:${booking.hotel.phone}`, '_blank')} className="h-9 text-xs px-3 whitespace-nowrap bg-green-50 border-green-200 text-green-700 hover:bg-green-100 flex-none w-auto">
                                 <Phone className="w-3 h-3 mr-1" />
                                 Call
                               </Button>}
@@ -394,11 +394,11 @@ export function HotelFlightSection({
                           </div>
                           
                           <div className="flex flex-wrap gap-2 mt-3">
-                            <Button size="sm" variant="outline" onClick={() => window.open(getAirportDirectionsUrl(flight.departure.airport), '_blank')} className="flex-1 min-w-0 h-9 text-xs bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100">
+                            <Button size="sm" variant="outline" onClick={() => window.open(getAirportDirectionsUrl(flight.departure.airport), '_blank')} className="h-9 text-xs px-3 whitespace-nowrap bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 flex-none w-auto">
                               <Navigation className="w-3 h-3 mr-1" />
                               To Airport
                             </Button>
-                            <Button size="sm" variant="outline" onClick={() => window.open(getFlightTrackingUrl(flight.airline, flight.flightNumber), '_blank')} className="flex-1 min-w-0 h-9 text-xs bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100">
+                            <Button size="sm" variant="outline" onClick={() => window.open(getFlightTrackingUrl(flight.airline, flight.flightNumber), '_blank')} className="h-9 text-xs px-3 whitespace-nowrap bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 flex-none w-auto">
                               <Radar className="w-3 h-3 mr-1" />
                               Track
                             </Button>
