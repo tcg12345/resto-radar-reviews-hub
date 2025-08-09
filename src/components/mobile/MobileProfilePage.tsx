@@ -238,6 +238,26 @@ export function MobileProfilePage() {
               </div>
             </div>
           </Button>
+
+          <Separator />
+
+          {/* Trip Privacy Button */}
+          <Button 
+            onClick={() => navigate('/itinerary-privacy')} 
+            variant="outline" 
+            className="w-full h-14 bg-muted/30 hover:bg-muted/50 border-0 rounded-none"
+          >
+            <div className="flex items-center gap-4 w-full px-4">
+              <div className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center">
+                <Route className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-base font-medium text-foreground">Trip Privacy</p>
+                <p className="text-sm text-muted-foreground">Manage your itinerary sharing settings</p>
+              </div>
+              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            </div>
+          </Button>
         </div>
 
         
