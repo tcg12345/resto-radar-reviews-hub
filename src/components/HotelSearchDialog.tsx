@@ -177,7 +177,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
         <DialogContent
           className={cn(
             "sm:max-w-[900px] overflow-hidden flex flex-col bg-gradient-to-br from-background to-accent/20",
-            isMobile ? "h-[75vh] max-h-[75vh] p-3 rounded-t-2xl" : "max-h-[90vh] p-6"
+            isMobile ? "h-[75vh] max-h-[75vh] p-3 rounded-2xl" : "max-h-[90vh] p-6"
           )}
         >
           <DialogHeader className={cn(isMobile ? "space-y-1 pb-2" : "space-y-3 pb-4") }>
@@ -347,7 +347,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
         <DialogContent
           className={cn(
             "sm:max-w-[900px] overflow-hidden flex flex-col bg-gradient-to-br from-background to-accent/20",
-            isMobile ? "h-[80vh] max-h-[80vh] p-3 rounded-t-2xl" : "max-h-[90vh] p-6"
+            isMobile ? "h-[80vh] max-h-[80vh] p-3 rounded-2xl" : "max-h-[90vh] p-6"
           )}
         >
           <DialogHeader className={cn(isMobile ? "space-y-1 pb-2" : "space-y-3 pb-4")}>
