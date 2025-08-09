@@ -1290,5 +1290,23 @@ export function HotelFlightSection({
 
       {/* Photo Gallery Modal */}
       <PhotoGallery photos={getPhotoUrls()} initialIndex={photoGalleryIndex} isOpen={isPhotoGalleryOpen} onClose={() => setIsPhotoGalleryOpen(false)} restaurantName={selectedHotel?.hotel.name} isMobile={isMobile} />
+      
+      {/* Hotel Search Dialog */}
+      <HotelSearchDialog
+        key={dialogKey}
+        isOpen={isHotelDialogOpen}
+        onClose={() => setIsHotelDialogOpen(false)}
+        onSelect={handleHotelSelect}
+        locations={locations}
+        isMultiCity={isMultiCity}
+      />
+
+      {/* Flight Search Dialog */}
+      <FlightSearchDialog
+        isOpen={isFlightDialogOpen}
+        onClose={() => setIsFlightDialogOpen(false)}
+        onSelect={handleFlightSelect}
+        locations={locations}
+      />
     </div>;
 }
