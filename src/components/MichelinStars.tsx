@@ -49,9 +49,17 @@ export const MichelinStars = React.memo(({
           
         </>}
       
-      {!readonly && onStarsChange && displayStars === 0 && <span className={`text-muted-foreground ${textSizeClasses[size]}`}>
-          Select Michelin stars
-        </span>}
+      {!readonly && onStarsChange && (
+        displayStars === 0 ? (
+          <span className={`text-muted-foreground ${textSizeClasses[size]}`}>
+            Select Michelin stars
+          </span>
+        ) : (
+          <span className={`text-muted-foreground ${textSizeClasses[size]}`}>
+            {displayStars} star{displayStars !== 1 ? 's' : ''} selected
+          </span>
+        )
+      )}
     </div>;
 });
 MichelinStars.displayName = 'MichelinStars';
