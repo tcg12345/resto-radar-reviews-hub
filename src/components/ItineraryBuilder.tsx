@@ -209,6 +209,7 @@ export function ItineraryBuilder({
   const [pendingEndDate, setPendingEndDate] = useState<Date | null>(dateRange.end);
   const [pendingStartDate, setPendingStartDate] = useState<Date | null>(dateRange.start);
   const [isMapOpen, setIsMapOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("builder");
 
   // Auto-collapse hooks for dropdowns when they scroll off screen
   const extensionRef = useScrollAutoCollapse({
@@ -1069,8 +1070,6 @@ export function ItineraryBuilder({
     locationLengthOfStay: Object.keys(locationLengthOfStay),
     events: events.length
   });
-  
-  const [activeTab, setActiveTab] = useState("builder");
   
   return <div className="w-full px-4 lg:px-6 space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
