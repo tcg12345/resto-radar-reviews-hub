@@ -236,15 +236,15 @@ export function HotelFlightSection({
           
           {isHotelsExpanded && <div className="pb-4 animate-fade-in">
               {hotels.length > 0 ? <div className="space-y-3">
-                  {hotels.map(booking => <div key={booking.id} className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-white/20">
-                      <div className="flex items-start gap-4">
-                        <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/50 shrink-0">
+                  {hotels.map(booking => <div key={booking.id} className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-2xl px-3 py-3 shadow-lg border border-white/20 overflow-hidden">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2.5 rounded-lg bg-blue-100 dark:bg-blue-900/50 shrink-0">
                           <Hotel className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-bold text-gray-900 dark:text-white text-lg leading-tight">{booking.hotel.name}</h4>
+                              <h4 className="font-bold text-gray-900 dark:text-white text-lg leading-tight break-words">{booking.hotel.name}</h4>
                               <div className="flex items-center gap-2 mt-1">
                                 {booking.hotel.rating && <div className="flex items-center bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded-lg">
                                     <Star className="w-3 h-3 text-amber-500 mr-1" />
@@ -272,7 +272,7 @@ export function HotelFlightSection({
                           <div className="space-y-2">
                             <div className="flex items-center text-gray-600 dark:text-gray-400">
                               <MapPin className="w-4 h-4 mr-2 shrink-0" />
-                              <span className="text-sm">{booking.hotel.address}</span>
+                              <span className="text-sm break-words">{booking.hotel.address}</span>
                             </div>
                             
                             {(booking.checkIn || booking.checkOut) && <div className="flex items-center text-gray-600 dark:text-gray-400">
