@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Hotel, Star, MapPin, Wifi, Car, Coffee, Dumbbell, Waves, Utensils, Calendar } from 'lucide-react';
+import { Search, Hotel, Star, MapPin, Wifi, Car, Coffee, Dumbbell, Waves, Utensils, Calendar, ArrowLeft, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -47,6 +47,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
   const [checkOutDate, setCheckOutDate] = useState<Date>();
   const [isCheckInOpen, setIsCheckInOpen] = useState(false);
   const [isCheckOutOpen, setIsCheckOutOpen] = useState(false);
+  const [showResults, setShowResults] = useState(false);
   
   const isMobile = useIsMobile();
   const [showFilters, setShowFilters] = useState(!isMobile);
@@ -98,6 +99,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
         toast.info('No hotels found for the specified criteria');
       } else {
         toast.success(`Found ${uniqueResults.length} hotels`);
+        setShowResults(true); // Show results popup
       }
     } catch (error) {
       console.error('Hotel search failed:', error);
@@ -122,6 +124,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
     setCheckOutDate(undefined);
     setIsCheckInOpen(false);
     setIsCheckOutOpen(false);
+    setShowResults(false);
     onClose();
   };
 
@@ -168,26 +171,33 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent
-        className={cn(
-          "sm:max-w-[900px] overflow-hidden flex flex-col bg-gradient-to-br from-background to-accent/20",
-          isMobile ? "h-[75vh] max-h-[75vh] p-3 rounded-t-2xl" : "max-h-[90vh] p-6"
-        )}
-      >
-        <DialogHeader className={cn(isMobile ? "space-y-1 pb-2" : "space-y-3 pb-4") }>
-          <DialogTitle className={cn("flex items-center gap-3", isMobile ? "text-lg" : "text-2xl") }>
-            <div className="p-2 rounded-xl bg-primary/10">
-              <Hotel className="w-6 h-6 text-primary" />
-            </div>
-            Hotel Search
-          </DialogTitle>
-          {!isMobile && (
-            <DialogDescription className="text-lg">
-              Find the perfect accommodation for your trip
-            </DialogDescription>
+    <>
+      {/* Main Search Dialog */}
+      <Dialog open={isOpen && !showResults} onOpenChange={handleClose}>
+        <DialogContent
+          className={cn(
+            "sm:max-w-[900px] overflow-hidden flex flex-col bg-gradient-to-br from-background to-accent/20",
+            isMobile ? "h-[75vh] max-h-[75vh] p-3 rounded-t-2xl" : "max-h-[90vh] p-6"
           )}
-        </DialogHeader>
+        >
+          <DialogHeader className={cn(isMobile ? "space-y-1 pb-2" : "space-y-3 pb-4") }>
+            <div className="flex items-center justify-between">
+              <DialogTitle className={cn("flex items-center gap-3", isMobile ? "text-lg" : "text-2xl") }>
+                <div className="p-2 rounded-xl bg-primary/10">
+                  <Hotel className="w-6 h-6 text-primary" />
+                </div>
+                Hotel Search
+              </DialogTitle>
+              <Button variant="ghost" size="sm" onClick={handleClose} className="h-8 w-8 p-0">
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            {!isMobile && (
+              <DialogDescription className="text-lg">
+                Find the perfect accommodation for your trip
+              </DialogDescription>
+            )}
+          </DialogHeader>
         
         {/* Compact Mobile Search Bar */}
         {isMobile && (
@@ -329,27 +339,53 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
             </Button>
           )}
         </div>
+        </DialogContent>
+      </Dialog>
 
-        {/* Search Results */}
-        <div className="flex-1 overflow-y-auto pt-2">
-          {isSearching ? (
-            <div className="space-y-4">
-              {[...Array(3)].map((_, i) => (
-                <SearchResultSkeleton key={i} />
-              ))}
+      {/* Results Dialog */}
+      <Dialog open={showResults} onOpenChange={() => setShowResults(false)}>
+        <DialogContent
+          className={cn(
+            "sm:max-w-[900px] overflow-hidden flex flex-col bg-gradient-to-br from-background to-accent/20",
+            isMobile ? "h-[80vh] max-h-[80vh] p-3 rounded-t-2xl" : "max-h-[90vh] p-6"
+          )}
+        >
+          <DialogHeader className={cn(isMobile ? "space-y-1 pb-2" : "space-y-3 pb-4")}>
+            <div className="flex items-center justify-between">
+              <DialogTitle className={cn("flex items-center gap-3", isMobile ? "text-lg" : "text-2xl")}>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setShowResults(false)}
+                  className="h-8 w-8 p-0 mr-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+                <div className="p-2 rounded-xl bg-primary/10">
+                  <Hotel className="w-6 h-6 text-primary" />
+                </div>
+                {hotels.length} Available Hotels
+              </DialogTitle>
+              <Button variant="ghost" size="sm" onClick={handleClose} className="h-8 w-8 p-0">
+                <X className="w-4 h-4" />
+              </Button>
             </div>
-          ) : hotels.length > 0 ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <Hotel className="w-5 h-5 text-primary" />
-                  {hotels.length} Available Hotels
-                </h3>
-                <Badge variant="secondary" className="px-3 py-1">
-                  {selectedLocation && selectedLocation !== 'all' ? selectedLocation : 'All locations'}
-                </Badge>
+            {!isMobile && (
+              <DialogDescription className="text-lg">
+                {selectedLocation && selectedLocation !== 'all' ? `Hotels in ${selectedLocation}` : 'Hotels in all locations'}
+              </DialogDescription>
+            )}
+          </DialogHeader>
+
+          {/* Results Content */}
+          <div className="flex-1 overflow-y-auto pt-2">
+            {isSearching ? (
+              <div className="space-y-4">
+                {[...Array(3)].map((_, i) => (
+                  <SearchResultSkeleton key={i} />
+                ))}
               </div>
-              
+            ) : hotels.length > 0 ? (
               <div className="space-y-3">
                 {hotels.map((hotel) => (
                   <Card key={hotel.id} className="group cursor-pointer border-2 border-transparent hover:border-primary/30 transition-all duration-300 hover:shadow-lg bg-gradient-to-r from-card to-card/90">
@@ -419,15 +455,18 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
                   </Card>
                 ))}
               </div>
-            </div>
-          ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <Hotel className="w-16 h-16 mx-auto mb-4 opacity-50" />
-              <p className="text-lg">Enter your search criteria and find hotels</p>
-            </div>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <Hotel className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                <p className="text-lg">No hotels found</p>
+                <Button variant="outline" onClick={() => setShowResults(false)} className="mt-4">
+                  Search Again
+                </Button>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
