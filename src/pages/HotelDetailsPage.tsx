@@ -248,7 +248,7 @@ export function HotelDetailsPage() {
   };
 
   const handleBack = () => {
-    navigate(-1);
+    navigate('/travel');
   };
 
   const getAmenityIcon = (amenity: string) => {
