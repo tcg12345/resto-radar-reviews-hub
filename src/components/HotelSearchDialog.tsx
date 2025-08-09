@@ -191,7 +191,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
         
         {/* Compact Mobile Search Bar */}
         {isMobile && (
-          <div className="md:hidden space-y-2 border-b pb-3">
+          <div className="space-y-2 border-b pb-3">
             <div className="flex gap-2">
               <Input
                 value={searchQuery}
@@ -217,8 +217,8 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
           </div>
         )}
         
-        {/* Search Form */}
-        <div className={cn("space-y-6 border-b pb-6", isMobile && !showFilters && "hidden")}>
+        {/* Desktop & Mobile Filters */}
+        <div className={cn("space-y-6", isMobile ? (showFilters ? "border-b pb-3" : "hidden") : "border-b pb-6")}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-sm font-medium flex items-center gap-2">
@@ -353,11 +353,11 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
               <div className="space-y-3">
                 {hotels.map((hotel) => (
                   <Card key={hotel.id} className="group cursor-pointer border-2 border-transparent hover:border-primary/30 transition-all duration-300 hover:shadow-lg bg-gradient-to-r from-card to-card/90">
-                    <CardContent className="p-6">
-                      <div className="flex gap-4">
+                    <CardContent className={cn("p-6", isMobile && "p-4")}>
+                      <div className={cn("flex gap-4", isMobile && "flex-col gap-3")}>
                         <div className="flex-1 space-y-3 min-w-0">
                           <div className="flex items-center gap-3 flex-wrap">
-                            <h3 className="font-semibold text-lg">{hotel.name}</h3>
+                            <h3 className={cn("font-semibold text-lg", isMobile && "text-base")}>{hotel.name}</h3>
                             {hotel.rating && (
                               <Badge className={cn("text-xs font-medium", getRatingColor(hotel.rating))}>
                                 <Star className="w-3 h-3 mr-1 fill-current" />
@@ -377,7 +377,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
                             <span className="line-clamp-1">{hotel.address}</span>
                           </div>
 
-                          {hotel.description && (
+                          {hotel.description && !isMobile && (
                             <p className="text-sm text-muted-foreground line-clamp-2">
                               {hotel.description}
                             </p>
@@ -385,15 +385,15 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
 
                           {hotel.amenities && hotel.amenities.length > 0 && (
                             <div className="flex flex-wrap gap-2">
-                              {hotel.amenities.slice(0, 4).map((amenity, index) => (
+                              {hotel.amenities.slice(0, isMobile ? 3 : 4).map((amenity, index) => (
                                 <Badge key={index} variant="outline" className="text-xs">
                                   {getAmenityIcon(amenity)}
                                   <span className="ml-1">{amenity}</span>
                                 </Badge>
                               ))}
-                              {hotel.amenities.length > 4 && (
+                              {hotel.amenities.length > (isMobile ? 3 : 4) && (
                                 <Badge variant="outline" className="text-xs">
-                                  +{hotel.amenities.length - 4} more
+                                  +{hotel.amenities.length - (isMobile ? 3 : 4)} more
                                 </Badge>
                               )}
                             </div>
@@ -406,10 +406,10 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
                           )}
                         </div>
 
-                        <div className="flex-shrink-0 flex flex-col justify-center">
+                        <div className={cn("flex-shrink-0 flex flex-col justify-center", isMobile && "w-full")}>
                           <Button
                             onClick={() => handleHotelSelect(hotel)}
-                            className="whitespace-nowrap bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md group-hover:shadow-lg transition-all"
+                            className={cn("whitespace-nowrap bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md group-hover:shadow-lg transition-all", isMobile && "w-full")}
                           >
                             Select Hotel
                           </Button>
