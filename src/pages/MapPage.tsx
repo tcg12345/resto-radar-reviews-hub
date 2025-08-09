@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
-import { BottomSheet, BottomSheetHeader, BottomSheetContent, BottomSheetFooter } from '@/components/ui/bottom-sheet';
+import { Drawer, DrawerContent, DrawerFooter, DrawerTitle, DrawerDescription } from '@/components/ui/drawer';
 import { useNavigate } from 'react-router-dom';
 import { Filter, X, Star, DollarSign, MapPin, ChevronDown, GripVertical, ArrowLeft, Utensils, Search, Satellite } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -440,154 +440,110 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
         </Card>
       )}
 
-      {/* Mobile Filter Bottom Sheet */}
-      <BottomSheet open={showFilters} onOpenChange={setShowFilters}>
-        <BottomSheetHeader className="lg:hidden">
-          <div className="flex items-center justify-center">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Filters
-            </h2>
-          </div>
-        </BottomSheetHeader>
-
-        <BottomSheetContent className="lg:hidden space-y-6">
-          {/* Type Filter */}
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">Type</Label>
-            <div className="grid grid-cols-3 gap-2">
-              <Button
-                variant={filterType === 'all' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFilterType('all')}
-                className="text-xs"
-              >
-                All
-              </Button>
-              <Button
-                variant={filterType === 'rated' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFilterType('rated')}
-                className="text-xs"
-              >
-                Rated
-              </Button>
-              <Button
-                variant={filterType === 'wishlist' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFilterType('wishlist')}
-                className="text-xs"
-              >
-                Wishlist
-              </Button>
-            </div>
-          </div>
-
-          {/* Cuisine Filter */}
-          <div className="space-y-3">
-            <Label className="text-sm font-medium flex items-center gap-2">
-              <Utensils className="h-4 w-4" />
-              Cuisine
-              {filterCuisines.length > 0 && (
-                <Badge variant="outline" className="h-5 px-2 text-xs">
-                  {filterCuisines.length}
-                </Badge>
-              )}
-            </Label>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {uniqueCuisines.map((cuisine) => (
-                <div key={cuisine} className="flex items-center justify-between py-2">
-                  <div className="flex items-center space-x-3">
-                    <Checkbox
-                      id={`mobile-cuisine-${cuisine}`}
-                      checked={filterCuisines.includes(cuisine)}
-                      onCheckedChange={() => toggleCuisine(cuisine)}
-                    />
-                    <label htmlFor={`mobile-cuisine-${cuisine}`} className="text-sm cursor-pointer">
-                      {cuisine}
-                    </label>
-                  </div>
+      {/* Mobile Filter Drawer */}
+      <Drawer open={showFilters} onOpenChange={setShowFilters}>
+        <DrawerContent className="lg:hidden rounded-t-3xl border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-0">
+          <div className="mx-auto w-full max-w-md">
+            <div className="sticky top-0 z-10 border-b border-border/50 bg-gradient-to-b from-background/95 via-background to-background/80 px-5 pt-4 pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-5 w-5" />
+                  <DrawerTitle className="text-base font-semibold">Filters</DrawerTitle>
+                  {getActiveFilterCount() > 0 && (
+                    <Badge variant="secondary" className="h-5 px-2 text-xs">{getActiveFilterCount()}</Badge>
+                  )}
                 </div>
-              ))}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowFilters(false)}
+                  className="h-9 w-9 rounded-full bg-muted/50 hover:bg-muted"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <DrawerDescription className="text-xs text-muted-foreground mt-1">Refine map results</DrawerDescription>
             </div>
-          </div>
 
-          {/* Price Filter */}
-          <div className="space-y-3">
-            <Label className="text-sm font-medium flex items-center gap-2">
-              <DollarSign className="h-4 w-4" />
-              Price Range
-              {filterPrices.length > 0 && (
-                <Badge variant="outline" className="h-5 px-2 text-xs">
-                  {filterPrices.length}
-                </Badge>
-              )}
-            </Label>
-            <div className="space-y-2">
-              {uniquePriceRanges.map((price) => (
-                <div key={price} className="flex items-center justify-between py-2">
-                  <div className="flex items-center space-x-3">
-                    <Checkbox
-                      id={`mobile-price-${price}`}
-                      checked={filterPrices.includes(price.toString())}
-                      onCheckedChange={() => togglePrice(price.toString())}
-                    />
-                    <label htmlFor={`mobile-price-${price}`} className="text-sm cursor-pointer">
-                      {'$'.repeat(price)}
-                    </label>
-                  </div>
+            <div className="max-h-[70vh] overflow-y-auto px-5 py-4 space-y-6">
+              {/* Type Filter */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Type</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button variant={filterType === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setFilterType('all')} className="text-xs">All</Button>
+                  <Button variant={filterType === 'rated' ? 'default' : 'outline'} size="sm" onClick={() => setFilterType('rated')} className="text-xs">Rated</Button>
+                  <Button variant={filterType === 'wishlist' ? 'default' : 'outline'} size="sm" onClick={() => setFilterType('wishlist')} className="text-xs">Wishlist</Button>
                 </div>
-              ))}
+              </div>
+
+              {/* Cuisine Filter */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <Utensils className="h-4 w-4" />
+                  Cuisine
+                  {filterCuisines.length > 0 && (
+                    <Badge variant="outline" className="h-5 px-2 text-xs">{filterCuisines.length}</Badge>
+                  )}
+                </Label>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {uniqueCuisines.map((cuisine) => (
+                    <div key={cuisine} className="flex items-center justify-between py-2">
+                      <div className="flex items-center space-x-3">
+                        <Checkbox id={`mobile-cuisine-${cuisine}`} checked={filterCuisines.includes(cuisine)} onCheckedChange={() => toggleCuisine(cuisine)} />
+                        <label htmlFor={`mobile-cuisine-${cuisine}`} className="text-sm cursor-pointer">{cuisine}</label>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Price Filter */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <DollarSign className="h-4 w-4" />
+                  Price Range
+                  {filterPrices.length > 0 && (
+                    <Badge variant="outline" className="h-5 px-2 text-xs">{filterPrices.length}</Badge>
+                  )}
+                </Label>
+                <div className="space-y-2">
+                  {uniquePriceRanges.map((price) => (
+                    <div key={price} className="flex items-center justify-between py-2">
+                      <div className="flex items-center space-x-3">
+                        <Checkbox id={`mobile-price-${price}`} checked={filterPrices.includes(price.toString())} onCheckedChange={() => togglePrice(price.toString())} />
+                        <label htmlFor={`mobile-price-${price}`} className="text-sm cursor-pointer">{'$'.repeat(price)}</label>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Rating Range */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <Star className="h-4 w-4" />
+                  Rating Range
+                </Label>
+                <div className="flex items-center space-x-3">
+                  <span className="text-sm text-muted-foreground w-8">{tempRatingRange[0]}</span>
+                  <Slider value={tempRatingRange} onValueChange={(value) => setTempRatingRange(value as [number, number])} max={10} min={0} step={0.1} className="flex-1" />
+                  <span className="text-sm text-muted-foreground w-8">{tempRatingRange[1]}</span>
+                </div>
+                <Button onClick={applyRatingFilter} size="sm" className="w-full">Apply Rating</Button>
+              </div>
+
+              <div className="text-sm text-muted-foreground text-center">Showing {restaurantsWithCoords.length} of {restaurants.length} restaurants</div>
             </div>
-          </div>
 
-          {/* Rating Range */}
-          <div className="space-y-3">
-            <Label className="text-sm font-medium flex items-center gap-2">
-              <Star className="h-4 w-4" />
-              Rating Range
-            </Label>
-            <div className="flex items-center space-x-3">
-              <span className="text-sm text-muted-foreground w-8">{tempRatingRange[0]}</span>
-              <Slider
-                value={tempRatingRange}
-                onValueChange={(value) => setTempRatingRange(value as [number, number])}
-                max={10}
-                min={0}
-                step={0.1}
-                className="flex-1"
-              />
-              <span className="text-sm text-muted-foreground w-8">{tempRatingRange[1]}</span>
-            </div>
-            <Button onClick={applyRatingFilter} size="sm" className="w-full">
-              Apply Rating
-            </Button>
+            <DrawerFooter>
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={clearFilters} className="flex-1" disabled={getActiveFilterCount() === 0}>Clear All</Button>
+                <Button onClick={() => setShowFilters(false)} className="flex-1">Apply</Button>
+              </div>
+            </DrawerFooter>
           </div>
-
-          <div className="text-sm text-muted-foreground text-center">
-            Showing {restaurantsWithCoords.length} of {restaurants.length} restaurants
-          </div>
-        </BottomSheetContent>
-
-        <BottomSheetFooter className="lg:hidden">
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={clearFilters}
-              className="flex-1"
-              disabled={getActiveFilterCount() === 0}
-            >
-              Clear All
-            </Button>
-            <Button
-              onClick={() => setShowFilters(false)}
-              className="flex-1"
-            >
-              Apply
-            </Button>
-          </div>
-        </BottomSheetFooter>
-      </BottomSheet>
+        </DrawerContent>
+      </Drawer>
 
       {/* Desktop Filter Toggle (unchanged) */}
       <Button
