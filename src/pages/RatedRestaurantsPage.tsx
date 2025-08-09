@@ -66,14 +66,37 @@ export function RatedRestaurantsPage({
     }
   }, [shouldOpenAddDialog, onAddDialogClose]);
 
-  // Load all photos for rated restaurants when page loads to prevent individual requests
+  // Aggressively preload all photos for faster loading
   useEffect(() => {
     if (ratedRestaurants.length > 0 && !photosLoadedRef.current) {
       photosLoadedRef.current = true;
-      // Add a small delay to let the page render first
-      setTimeout(() => {
+      
+      // Start preloading immediately without delay
+      const preloadImages = async () => {
+        // Get all unique photo URLs from first photo of each restaurant (cover photos)
+        const coverPhotos = ratedRestaurants
+          .filter(r => r.photos && r.photos.length > 0)
+          .map(r => r.photos[0])
+          .filter(Boolean);
+        
+        // Preload cover photos in parallel with high priority
+        const preloadPromises = coverPhotos.map(url => {
+          return new Promise<void>((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve();
+            img.onerror = () => resolve(); // Don't block on errors
+            img.src = url;
+          });
+        });
+        
+        // Don't wait for all to complete, just start them
+        Promise.allSettled(preloadPromises);
+        
+        // Also trigger bulk photo loading from context
         loadAllRestaurantPhotos();
-      }, 100);
+      };
+      
+      preloadImages();
     }
   }, [ratedRestaurants.length, loadAllRestaurantPhotos]);
 

@@ -18,7 +18,7 @@ import { ShareRestaurantDialog } from '@/components/ShareRestaurantDialog';
 import { Restaurant } from '@/types/restaurant';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 import { getStateFromCoordinatesCached } from '@/utils/geocoding';
-import { toast } from 'sonner';
+import { LazyImage } from '@/components/LazyImage';
 interface RestaurantCardProps {
   restaurant: Restaurant;
   onEdit?: (id: string) => void;
@@ -90,28 +90,28 @@ export function RestaurantCard({
   } = useRestaurants();
   const hasMultiplePhotos = restaurant.photos.length > 1;
 
-  // Optimized preload - no individual photo loading requests
+  // Optimized loading - minimal delay for better perceived performance
   useEffect(() => {
-    const preloadData = async () => {
-      // Don't load photos individually - they're loaded in bulk by the parent page
-      // This prevents multiple individual requests that slow down page loading
+    const initializeCard = () => {
+      // Immediately set as ready for rated restaurants (photos are preloaded)
+      setIsDataReady(true);
       
-      // Preload first image if available
+      // For images, we'll use LazyImage component which has better caching
       if (restaurant.photos.length > 0) {
-        const img = new Image();
-        img.onload = () => setImageLoading(false);
-        img.onerror = () => setImageLoading(false);
-        img.src = restaurant.photos[0];
+        setImageLoading(false); // LazyImage will handle loading states
       } else {
         setImageLoading(false);
       }
-
-      // Small delay to ensure all data processing is complete
-      await new Promise(resolve => setTimeout(resolve, 50)); // Reduced delay
-      setIsDataReady(true);
     };
-    preloadData();
-  }, [restaurant.id, restaurant.photos.length]);
+    
+    // For rated restaurants, initialize immediately (photos are preloaded by parent)
+    if (!restaurant.isWishlist) {
+      initializeCard();
+    } else {
+      // Small delay for wishlist items only
+      setTimeout(initializeCard, 30);
+    }
+  }, [restaurant.id, restaurant.isWishlist, restaurant.photos.length]);
   const nextPhoto = () => {
     setImageLoading(true);
     setCurrentPhotoIndex(prev => (prev + 1) % restaurant.photos.length);
@@ -164,10 +164,17 @@ export function RestaurantCard({
       {/* Show photo section based on restaurant type */}
       {restaurant.photos.length > 0 || !restaurant.isWishlist ? <div className="relative aspect-video w-full overflow-hidden bg-muted lg:aspect-video">
           {restaurant.photos.length > 0 ? <>
-              {imageLoading && <div className="absolute inset-0 z-10">
-                  <Skeleton className="h-full w-full" />
-                </div>}
-              <img src={restaurant.photos[currentPhotoIndex]} alt={`${restaurant.name} photo ${currentPhotoIndex + 1}`} className="h-full w-full object-cover transition-transform duration-300 hover:scale-105 cursor-pointer" onClick={openGallery} onLoad={() => setImageLoading(false)} onError={() => setImageLoading(false)} />
+              <LazyImage
+                src={restaurant.photos[currentPhotoIndex]}
+                alt={`${restaurant.name} photo ${currentPhotoIndex + 1}`}
+                className="h-full w-full cursor-pointer transition-transform duration-300 hover:scale-105"
+                onLoad={() => setImageLoading(false)}
+                onError={() => setImageLoading(false)}
+              />
+              <div 
+                className="absolute inset-0 cursor-pointer"
+                onClick={openGallery}
+              />
               
               {hasMultiplePhotos && <div className="absolute inset-x-0 bottom-0 flex justify-between p-1 lg:p-2">
                   <Button size="icon" variant="secondary" className="h-6 w-6 lg:h-8 lg:w-8 rounded-full bg-background/80 backdrop-blur-sm text-xs" onClick={e => {
