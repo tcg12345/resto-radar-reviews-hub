@@ -11,7 +11,6 @@ import { useItineraries } from '@/hooks/useItineraries';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-
 interface ProfileStats {
   rated_count: number;
   wishlist_count: number;
@@ -20,7 +19,6 @@ interface ProfileStats {
   following_count: number;
   followers_count: number;
 }
-
 interface RecentActivity {
   id: string;
   name: string;
@@ -31,13 +29,18 @@ interface RecentActivity {
   google_place_id: string;
   cuisine: string;
 }
-
 export function MobileProfilePage() {
-  const { user, profile } = useAuth();
+  const {
+    user,
+    profile
+  } = useAuth();
   const navigate = useNavigate();
-  const { friends } = useFriends();
-  const { itineraries } = useItineraries();
-
+  const {
+    friends
+  } = useFriends();
+  const {
+    itineraries
+  } = useItineraries();
   const [stats, setStats] = useState<ProfileStats>({
     rated_count: 0,
     wishlist_count: 0,
@@ -46,7 +49,6 @@ export function MobileProfilePage() {
     following_count: 0,
     followers_count: 0
   });
-
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [loadingActivity, setLoadingActivity] = useState(false);
 
@@ -54,14 +56,14 @@ export function MobileProfilePage() {
   useEffect(() => {
     const loadStats = async () => {
       if (!user) return;
-
       try {
-        const { data, error } = await supabase.rpc('get_user_stats', {
+        const {
+          data,
+          error
+        } = await supabase.rpc('get_user_stats', {
           target_user_id: user.id
         });
-
         if (error) throw error;
-
         setStats({
           rated_count: data[0]?.rated_count || 0,
           wishlist_count: data[0]?.wishlist_count || 0,
@@ -74,7 +76,6 @@ export function MobileProfilePage() {
         console.error('Error loading stats:', error);
       }
     };
-
     loadStats();
   }, [user, friends]);
 
@@ -82,20 +83,15 @@ export function MobileProfilePage() {
   useEffect(() => {
     const loadRecentActivity = async () => {
       if (!user) return;
-
       setLoadingActivity(true);
       try {
-        const { data, error } = await supabase
-          .from('restaurants')
-          .select('id, name, address, rating, date_visited, created_at, google_place_id, cuisine')
-          .eq('user_id', user.id)
-          .eq('is_wishlist', false)
-          .not('rating', 'is', null)
-          .order('created_at', { ascending: false })
-          .limit(25);
-
+        const {
+          data,
+          error
+        } = await supabase.from('restaurants').select('id, name, address, rating, date_visited, created_at, google_place_id, cuisine').eq('user_id', user.id).eq('is_wishlist', false).not('rating', 'is', null).order('created_at', {
+          ascending: false
+        }).limit(25);
         if (error) throw error;
-
         setRecentActivity(data || []);
       } catch (error) {
         console.error('Error loading recent activity:', error);
@@ -103,21 +99,14 @@ export function MobileProfilePage() {
         setLoadingActivity(false);
       }
     };
-
     loadRecentActivity();
   }, [user]);
-
-
   if (!user || !profile) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
+    return <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       {/* Profile Header */}
       <div className="relative bg-gradient-to-br from-primary/5 via-primary/10 to-primary-glow/10 pt-6 pb-8">
         <div className="px-4 flex flex-col items-center space-y-4">
@@ -129,11 +118,7 @@ export function MobileProfilePage() {
                 {profile.name?.charAt(0) || profile.username?.charAt(0) || 'U'}
               </AvatarFallback>
             </Avatar>
-            <Button
-              size="sm"
-              className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full shadow-lg"
-              onClick={() => navigate('/profile/edit-photo')}
-            >
+            <Button size="sm" className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full shadow-lg" onClick={() => navigate('/profile/edit-photo')}>
               <Camera className="h-4 w-4" />
             </Button>
           </div>
@@ -142,30 +127,19 @@ export function MobileProfilePage() {
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center gap-2">
               <h1 className="text-2xl font-bold">{profile.name || profile.username}</h1>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-8 w-8 p-0"
-                onClick={() => navigate('/profile/edit')}
-              >
+              <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => navigate('/profile/edit')}>
                 <Edit2 className="h-4 w-4" />
               </Button>
             </div>
             
-            {profile.username && profile.name && (
-              <p className="text-muted-foreground">@{profile.username}</p>
-            )}
+            {profile.username && profile.name && <p className="text-muted-foreground">@{profile.username}</p>}
             
-            {profile.bio && (
-              <p className="text-sm text-muted-foreground max-w-xs mx-auto mt-2">{profile.bio}</p>
-            )}
+            {profile.bio && <p className="text-sm text-muted-foreground max-w-xs mx-auto mt-2">{profile.bio}</p>}
             
-            {profile.home_city && (
-              <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground mt-2">
+            {profile.home_city && <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground mt-2">
                 <MapPin className="h-4 w-4" />
                 <span>{profile.home_city}</span>
-              </div>
-            )}
+              </div>}
 
             {/* Privacy Badge */}
             <Badge variant={profile.is_public ? "default" : "secondary"} className="mt-2">
@@ -196,11 +170,7 @@ export function MobileProfilePage() {
         {/* Navigation Buttons */}
         <div className="border-t border-border">
           {/* Rated Restaurants Button */}
-          <Button 
-            onClick={() => navigate('/rated')} 
-            className="w-full h-14 bg-background hover:bg-muted/50 border-0 rounded-none"
-            variant="outline"
-          >
+          <Button onClick={() => navigate('/rated')} className="w-full h-14 bg-background hover:bg-muted/50 border-0 rounded-none" variant="outline">
             <div className="flex items-center gap-4 w-full px-4">
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                 <Star className="h-5 w-5 text-primary" />
@@ -218,11 +188,7 @@ export function MobileProfilePage() {
           <Separator />
 
           {/* Wishlist Button */}
-          <Button 
-            onClick={() => navigate('/wishlist')} 
-            className="w-full h-14 bg-background hover:bg-muted/50 border-0 rounded-none"
-            variant="outline"
-          >
+          <Button onClick={() => navigate('/wishlist')} className="w-full h-14 bg-background hover:bg-muted/50 border-0 rounded-none" variant="outline">
             <div className="flex items-center gap-4 w-full px-4">
               <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
                 <Bookmark className="h-5 w-5 text-orange-600" />
@@ -240,11 +206,7 @@ export function MobileProfilePage() {
           <Separator />
 
           {/* Itineraries Button */}
-          <Button 
-            onClick={() => navigate('/travel?view=saved')} 
-            className="w-full h-14 bg-background hover:bg-muted/50 border-0 rounded-none"
-            variant="outline"
-          >
+          <Button onClick={() => navigate('/travel?view=saved')} className="w-full h-14 bg-background hover:bg-muted/50 border-0 rounded-none" variant="outline">
             <div className="flex items-center gap-4 w-full px-4">
               <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
                 <Route className="h-5 w-5 text-green-600" />
@@ -260,11 +222,7 @@ export function MobileProfilePage() {
           </Button>
 
           {/* Friends Button */}
-          <Button 
-            onClick={() => navigate('/mobile/friends')} 
-            className="w-full h-16 bg-primary/10 hover:bg-primary/20 border-2 border-primary/20 hover:border-primary/30 transition-all duration-200"
-            variant="outline"
-          >
+          <Button onClick={() => navigate('/mobile/friends')} variant="outline" className="w-full h-16 bg-primary/10 hover:bg-primary/20 border-2 border-primary/20 hover:border-primary/30 transition-all duration-200 my-[7px]">
             <div className="flex items-center gap-4 w-full">
               <div className="p-3 bg-primary rounded-lg">
                 <Users className="h-6 w-6 text-primary-foreground" />
@@ -344,27 +302,17 @@ export function MobileProfilePage() {
             </h3>
           </div>
           
-          {loadingActivity ? (
-            <div className="divide-y divide-border">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="px-4 py-4 flex items-center gap-3 animate-pulse bg-background">
+          {loadingActivity ? <div className="divide-y divide-border">
+              {[1, 2, 3].map(i => <div key={i} className="px-4 py-4 flex items-center gap-3 animate-pulse bg-background">
                   <div className="w-12 h-12 bg-muted rounded-full"></div>
                   <div className="flex-1 space-y-2">
                     <div className="h-4 bg-muted rounded w-3/4"></div>
                     <div className="h-3 bg-muted rounded w-1/2"></div>
                   </div>
                   <div className="w-8 h-8 bg-muted rounded-full"></div>
-                </div>
-              ))}
-            </div>
-          ) : recentActivity.length > 0 ? (
-            <div className="divide-y divide-border">
-              {recentActivity.map((activity, index) => (
-                  <div
-                    key={activity.id}
-                    className="px-4 py-4 bg-background hover:bg-muted/50 transition-colors cursor-pointer"
-                    onClick={() => navigate(`/restaurant/${activity.id}`)}
-                  >
+                </div>)}
+            </div> : recentActivity.length > 0 ? <div className="divide-y divide-border">
+              {recentActivity.map((activity, index) => <div key={activity.id} className="px-4 py-4 bg-background hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => navigate(`/restaurant/${activity.id}`)}>
                     <div className="flex items-start gap-3">
                       {/* User Avatar */}
                     <Avatar className="w-12 h-12 border-2 border-background">
@@ -406,15 +354,10 @@ export function MobileProfilePage() {
                       <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground">
                         <MessageCircle className="h-4 w-4" />
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-8 px-2 text-muted-foreground hover:text-foreground"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/share/restaurant/${activity.id}`);
-                        }}
-                      >
+                      <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground" onClick={e => {
+                  e.stopPropagation();
+                  navigate(`/share/restaurant/${activity.id}`);
+                }}>
                         <Share2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -423,22 +366,17 @@ export function MobileProfilePage() {
                       {format(new Date(activity.created_at), 'MMM d')}
                     </span>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="px-4 py-8 bg-background text-center">
+                </div>)}
+            </div> : <div className="px-4 py-8 bg-background text-center">
               <Activity className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
               <p className="text-muted-foreground text-sm">
                 No activity yet. Start rating restaurants!
               </p>
-            </div>
-          )}
+            </div>}
         </div>
       </div>
 
       {/* Bottom spacer for mobile safe area */}
       <div className="h-20 lg:hidden"></div>
-    </div>
-  );
+    </div>;
 }
