@@ -36,6 +36,8 @@ export function HotelDetailsPage() {
   const [hotelPhotos, setHotelPhotos] = useState<string[]>([]);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [mapboxToken, setMapboxToken] = useState<string>('');
+  const [aiOverview, setAiOverview] = useState<string>('');
+  const [isLoadingOverview, setIsLoadingOverview] = useState(false);
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
 
@@ -61,6 +63,27 @@ export function HotelDetailsPage() {
       if (storedHotel) {
         const hotelData = JSON.parse(storedHotel);
         setHotel(hotelData);
+        
+        // Generate AI overview
+        setIsLoadingOverview(true);
+        try {
+          const { data: overviewData, error: overviewError } = await supabase.functions.invoke('ai-hotel-overview', {
+            body: {
+              hotel: hotelData
+            }
+          });
+
+          if (!overviewError && overviewData?.overview) {
+            setAiOverview(overviewData.overview);
+          } else {
+            setAiOverview('This hotel offers a comfortable stay with excellent amenities and service in a prime location.');
+          }
+        } catch (error) {
+          console.error('Error generating AI overview:', error);
+          setAiOverview('This hotel offers a comfortable stay with excellent amenities and service in a prime location.');
+        } finally {
+          setIsLoadingOverview(false);
+        }
         
         // Fetch photos from TripAdvisor API
         try {
@@ -277,8 +300,14 @@ export function HotelDetailsPage() {
               </div>
             </div>
 
-            {hotel.description && (
-              <p className="text-muted-foreground mb-4">{hotel.description}</p>
+            {isLoadingOverview ? (
+              <div className="space-y-2">
+                <div className="h-4 bg-muted rounded animate-pulse w-full"></div>
+                <div className="h-4 bg-muted rounded animate-pulse w-5/6"></div>
+                <div className="h-4 bg-muted rounded animate-pulse w-4/5"></div>
+              </div>
+            ) : (
+              <p className="text-muted-foreground mb-4 leading-relaxed">{aiOverview}</p>
             )}
           </div>
 
