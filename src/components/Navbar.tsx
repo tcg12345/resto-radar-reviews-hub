@@ -10,8 +10,8 @@ import { NotificationsPanel } from '@/components/NotificationsPanel';
 import { useUnreadMessageCount } from '@/hooks/useUnreadMessageCount';
 
 interface NavbarProps {
-  activeTab: 'home' | 'places' | 'search' | 'settings' | 'profile' | 'travel';
-  onTabChange: (tab: 'home' | 'places' | 'search' | 'settings' | 'profile' | 'travel') => void;
+  activeTab: 'home' | 'places' | 'search' | 'settings' | 'profile' | 'travel' | 'friends';
+  onTabChange: (tab: 'home' | 'places' | 'search' | 'settings' | 'profile' | 'travel' | 'friends') => void;
 }
 
 export function Navbar({ activeTab, onTabChange }: NavbarProps) {
@@ -19,7 +19,16 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
   const navigate = useNavigate();
   const unreadMessageCount = useUnreadMessageCount();
 
-  const tabs = [
+  const tabsDesktop = [
+    { id: 'home' as const, label: 'Home', icon: Home, shortLabel: 'Home' },
+    { id: 'search' as const, label: 'Search & Discover', icon: Search, shortLabel: 'Search' },
+    { id: 'places' as const, label: 'My Places', icon: Star, shortLabel: 'Places' },
+    { id: 'travel' as const, label: 'Travel', icon: Calendar, shortLabel: 'Travel' },
+    { id: 'friends' as const, label: 'Friends', icon: Users, shortLabel: 'Friends' },
+    { id: 'profile' as const, label: 'Profile', icon: User, shortLabel: 'Profile' },
+  ];
+
+  const tabsMobile = [
     { id: 'home' as const, label: 'Home', icon: Home, shortLabel: 'Home' },
     { id: 'search' as const, label: 'Search & Discover', icon: Search, shortLabel: 'Search' },
     { id: 'places' as const, label: 'My Places', icon: Star, shortLabel: 'Places' },
@@ -38,7 +47,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
 
           <div className="flex-1 flex justify-center">
             <div className="flex items-center space-x-1 rounded-lg bg-muted/50 p-1">
-              {tabs.map((tab) => {
+              {tabsDesktop.map((tab) => {
                 const Icon = tab.icon;
                 return (
                   <Button
@@ -158,7 +167,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t border-border/20">
         <div className="pb-safe-area-bottom">
           <div className="flex justify-around items-center px-4 pt-2 pb-6">
-            {tabs.map((tab) => {
+            {tabsMobile.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (

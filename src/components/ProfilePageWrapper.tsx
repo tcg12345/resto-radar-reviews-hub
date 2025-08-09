@@ -1,5 +1,5 @@
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { FriendsPage } from '@/pages/FriendsPage';
+import DesktopProfilePage from '@/components/desktop/DesktopProfilePage';
 import { MobileProfilePage } from '@/components/mobile/MobileProfilePage';
 
 interface ProfilePageWrapperProps {
@@ -19,10 +19,5 @@ export function ProfilePageWrapper({
     return <MobileProfilePage />;
   }
   
-  return (
-    <FriendsPage 
-      initialViewFriendId={initialViewFriendId} 
-      onInitialViewProcessed={onInitialViewProcessed}
-    />
-  );
+  return <DesktopProfilePage />;
 }
