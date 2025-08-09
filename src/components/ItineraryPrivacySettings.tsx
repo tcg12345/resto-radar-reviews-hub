@@ -194,9 +194,9 @@ export function ItineraryPrivacySettings() {
 
   if (isMobile) {
     return (
-      <div className="space-y-0">
+      <div className="border-t border-border">
         {/* Header */}
-        <div className="px-4 py-4 bg-background border-t border-border">
+        <div className="px-4 py-4 bg-background">
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <Users className="h-5 w-5" />
             Itinerary Privacy
@@ -206,8 +206,10 @@ export function ItineraryPrivacySettings() {
           </p>
         </div>
 
+        <Separator />
+
         {/* Summary Stats */}
-        <div className="px-4 py-4 bg-background border-b border-border">
+        <div className="px-4 py-4 bg-background">
           <div className="flex justify-between items-center mb-4">
             <div className="flex gap-6">
               <div className="text-center">
@@ -233,6 +235,8 @@ export function ItineraryPrivacySettings() {
             </Button>
           </div>
         </div>
+
+        <Separator />
 
         {/* Individual Itineraries */}
         <div className="divide-y divide-border">
