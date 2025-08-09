@@ -86,13 +86,19 @@ export function RestaurantDetailPage() {
     return restaurant;
   };
 
-  // Helper function to check if a string is a valid UUID
-  const isValidUUID = (str: string) => {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    return uuidRegex.test(str);
-  };
+// Helper function to check if a string is a valid UUID
+const isValidUUID = (str: string) => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+};
 
-  useEffect(() => {
+// Helper function to check if a string looks like a Google Place ID
+const isValidGooglePlaceId = (str: string) => {
+  // Most Google Place IDs start with "ChI"; also exclude known internal placeholders like "grubby_"
+  return str.startsWith('ChI');
+};
+
+useEffect(() => {
     const fetchRestaurantDetails = async () => {
       if (!restaurantId) return;
       
@@ -127,48 +133,77 @@ export function RestaurantDetailPage() {
           }
           setRestaurant(enhancedRestaurant);
         } else {
-          // It's a Google Place ID - fetch from Google Places API
-          console.log('Fetching restaurant by Place ID:', restaurantId);
-          
-          try {
-            const { data, error } = await supabase.functions.invoke('google-places-search', {
-              body: { placeId: restaurantId, type: 'details' }
-            });
+          // It's an identifier that's not a UUID
+          console.log('Fetching restaurant by identifier:', restaurantId);
 
-            if (error) {
-              console.error('Error fetching place details:', error);
+          if (isValidGooglePlaceId(restaurantId)) {
+            // Treat as Google Place ID - fetch from Google Places API
+            try {
+              const { data, error } = await supabase.functions.invoke('google-places-search', {
+                body: { placeId: restaurantId, type: 'details' }
+              });
+
+              if (error) {
+                console.error('Error fetching place details:', error);
+                toast('Failed to load restaurant details');
+                return;
+              }
+
+              if (data?.result) {
+                // Convert Google Places data to our restaurant format
+                const googlePlaceData = {
+                  id: restaurantId,
+                  name: data.result.name,
+                  address: data.result.formatted_address,
+                  latitude: data.result.geometry?.location?.lat,
+                  longitude: data.result.geometry?.location?.lng,
+                  phone_number: data.result.formatted_phone_number,
+                  website: data.result.website,
+                  opening_hours: data.result.opening_hours?.weekday_text?.join('\n') || '',
+                  rating: data.result.rating,
+                  price_level: data.result.price_level,
+                  photos: data.result.photos || [],
+                  google_place_id: restaurantId,
+                  user_id: null, // This is not a user's restaurant
+                  is_wishlist: false,
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                };
+                
+                setRestaurant(googlePlaceData);
+              } else {
+                toast('Restaurant not found');
+              }
+            } catch (apiError) {
+              console.error('Error calling Google Places API:', apiError);
+              toast('Failed to load restaurant details');
+            }
+          } else {
+            // Fallback: treat as internal placeholder (e.g., grubby_*) and load from our DB by google_place_id
+            let placeholderQuery = supabase
+              .from('restaurants')
+              .select('*')
+              .eq('google_place_id', restaurantId);
+
+            if (friendId) {
+              placeholderQuery = placeholderQuery.eq('user_id', friendId);
+            } else {
+              placeholderQuery = placeholderQuery.eq('user_id', user?.id);
+            }
+
+            const { data: placeholderRestaurant, error: placeholderError } = await (placeholderQuery as any).maybeSingle();
+
+            if (placeholderError) {
+              console.error('Error loading placeholder restaurant:', placeholderError);
               toast('Failed to load restaurant details');
               return;
             }
 
-            if (data?.result) {
-              // Convert Google Places data to our restaurant format
-              const googlePlaceData = {
-                id: restaurantId,
-                name: data.result.name,
-                address: data.result.formatted_address,
-                latitude: data.result.geometry?.location?.lat,
-                longitude: data.result.geometry?.location?.lng,
-                phone_number: data.result.formatted_phone_number,
-                website: data.result.website,
-                opening_hours: data.result.opening_hours?.weekday_text?.join('\n') || '',
-                rating: data.result.rating,
-                price_level: data.result.price_level,
-                photos: data.result.photos || [],
-                google_place_id: restaurantId,
-                user_id: null, // This is not a user's restaurant
-                is_wishlist: false,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              };
-              
-              setRestaurant(googlePlaceData);
+            if (placeholderRestaurant) {
+              setRestaurant(placeholderRestaurant);
             } else {
               toast('Restaurant not found');
             }
-          } catch (apiError) {
-            console.error('Error calling Google Places API:', apiError);
-            toast('Failed to load restaurant details');
           }
         }
 

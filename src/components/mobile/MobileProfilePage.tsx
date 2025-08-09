@@ -363,7 +363,7 @@ export function MobileProfilePage() {
                   <div
                     key={activity.id}
                     className="px-4 py-4 bg-background hover:bg-muted/50 transition-colors cursor-pointer"
-                    onClick={() => navigate(`/restaurant/${activity.google_place_id}`)}
+                    onClick={() => navigate(`/restaurant/${activity.id}`)}
                   >
                     <div className="flex items-start gap-3">
                       {/* User Avatar */}
