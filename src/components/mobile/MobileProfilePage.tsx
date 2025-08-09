@@ -258,6 +258,28 @@ export function MobileProfilePage() {
               </div>
             </div>
           </Button>
+
+          {/* Friends Button */}
+          <Button 
+            onClick={() => navigate('/mobile/friends')} 
+            className="w-full h-16 bg-primary/10 hover:bg-primary/20 border-2 border-primary/20 hover:border-primary/30 transition-all duration-200"
+            variant="outline"
+          >
+            <div className="flex items-center gap-4 w-full">
+              <div className="p-3 bg-primary rounded-lg">
+                <Users className="h-6 w-6 text-primary-foreground" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-lg font-bold text-foreground">{stats.following_count} Friends</p>
+                <p className="text-sm text-muted-foreground">View and manage your friends</p>
+              </div>
+              <div className="text-primary">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+          </Button>
         </div>
 
         <div className="px-4 space-y-4">
@@ -311,28 +333,6 @@ export function MobileProfilePage() {
               </div>
             </Card>
           </div>
-
-          {/* Friends Button */}
-          <Button 
-            onClick={() => navigate('/mobile/friends')} 
-            className="w-full h-16 bg-primary/10 hover:bg-primary/20 border-2 border-primary/20 hover:border-primary/30 transition-all duration-200"
-            variant="outline"
-          >
-            <div className="flex items-center gap-4 w-full">
-              <div className="p-3 bg-primary rounded-lg">
-                <Users className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <div className="flex-1 text-left">
-                <p className="text-lg font-bold text-foreground">{stats.following_count} Friends</p>
-                <p className="text-sm text-muted-foreground">View and manage your friends</p>
-              </div>
-              <div className="text-primary">
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </div>
-          </Button>
         </div>
 
         {/* Recent Activity - Full Width */}
@@ -439,8 +439,6 @@ export function MobileProfilePage() {
 
       {/* Bottom spacer for mobile safe area */}
       <div className="h-20 lg:hidden"></div>
-
-      {/* Removed dialogs - now using full page navigation */}
     </div>
   );
 }
