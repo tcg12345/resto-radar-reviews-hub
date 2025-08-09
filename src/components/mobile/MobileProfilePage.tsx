@@ -255,7 +255,7 @@ export function MobileProfilePage() {
                 <p className="text-lg font-bold text-foreground">Trip Privacy</p>
                 <p className="text-sm text-muted-foreground">Manage your itinerary sharing settings</p>
               </div>
-              <div className="text-muted-foreground">
+              <div className="text-muted-foreground pr-2">
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
