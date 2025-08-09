@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Share2, Copy, Mail, MessageCircle, Users, Send } from 'lucide-react';
+import { Share2, Copy, Mail, MessageCircle, Users, Send, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,8 @@ import { Itinerary } from '@/components/ItineraryBuilder';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFriends } from '@/hooks/useFriends';
+import { Drawer, DrawerContent, DrawerTitle, DrawerDescription } from '@/components/ui/drawer';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface ShareItineraryDialogProps {
   isOpen: boolean;
@@ -351,9 +353,342 @@ export function ShareItineraryDialog({ isOpen, onClose, itinerary }: ShareItiner
     return otherParticipant?.profile.name || 'Unknown User';
   };
 
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return (
+      <Drawer open={isOpen} onOpenChange={onClose}>
+        <DrawerContent className="rounded-t-3xl border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-0">
+          <div className="mx-auto w-full max-w-md">
+            <div className="sticky top-0 z-10 border-b border-border/50 bg-gradient-to-b from-background/95 via-background to-background/80 px-5 pt-4 pb-3">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <DrawerTitle className="text-base font-semibold">Share Itinerary</DrawerTitle>
+                  <DrawerDescription className="text-xs text-muted-foreground">Share your trip itinerary with friends and family</DrawerDescription>
+                </div>
+                <Button variant="ghost" size="icon" onClick={onClose} className="h-9 w-9 rounded-full bg-muted/50 hover:bg-muted">
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="max-h-[70vh] overflow-y-auto px-5 py-4">
+              <Tabs defaultValue="external" className="flex-1 flex flex-col min-h-0">
+                <TabsList className="grid w-full grid-cols-3 mb-4">
+                  <TabsTrigger value="external">External</TabsTrigger>
+                  <TabsTrigger value="friends">Friends</TabsTrigger>
+                  <TabsTrigger value="chats">Chats</TabsTrigger>
+                </TabsList>
+
+                {/* External Sharing */}
+                <TabsContent value="external" className="flex-1 overflow-y-auto space-y-4 pr-2">
+                  {/* Quick Share Buttons */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button variant="outline" onClick={handleCopyToClipboard} className="flex items-center gap-2">
+                      <Copy className="w-4 h-4" />
+                      Copy Link
+                    </Button>
+                    <Button variant="outline" onClick={handleSocialShare} className="flex items-center gap-2">
+                      <Share2 className="w-4 h-4" />
+                      Share
+                    </Button>
+                    <Button variant="outline" onClick={handleSMSShare} className="flex items-center gap-2">
+                      <MessageCircle className="w-4 h-4" />
+                      Send SMS
+                    </Button>
+                  </div>
+
+                  {/* Email Share */}
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email Address</Label>
+                      <Input id="email" type="email" placeholder="Enter recipient's email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="message">Personal Message (Optional)</Label>
+                      <Textarea id="message" placeholder="Add a personal message..." value={message} onChange={(e) => setMessage(e.target.value)} rows={3} />
+                    </div>
+                    <Button onClick={handleEmailShare} disabled={!email.trim()} className="w-full flex items-center gap-2">
+                      <Mail className="w-4 h-4" />
+                      Send Email
+                    </Button>
+                  </div>
+                </TabsContent>
+
+                {/* Share to Friends */}
+                <TabsContent value="friends" className="flex-1 overflow-y-auto space-y-4 pr-2">
+                  <div className="space-y-2">
+                    <Label>Personal Message (Optional)</Label>
+                    <Textarea placeholder="Add a personal message..." value={personalMessage} onChange={(e) => setPersonalMessage(e.target.value)} rows={2} />
+                  </div>
+                  <ScrollArea className="h-60">
+                    <div className="space-y-2">
+                      {friends.map((friend) => (
+                        <div key={friend.id} className="flex items-center space-x-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/50" onClick={() => toggleFriendSelection(friend.id)}>
+                          <input type="checkbox" checked={selectedFriends.includes(friend.id)} onChange={() => toggleFriendSelection(friend.id)} className="h-4 w-4 rounded border-border" />
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={friend.avatar_url || ''} />
+                            <AvatarFallback>{(friend.name || friend.username).charAt(0).toUpperCase()}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">{friend.name || friend.username}</p>
+                            <p className="text-xs text-muted-foreground">@{friend.username}</p>
+                          </div>
+                          <Badge variant="secondary" className="text-xs">{friend.score} restaurants</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                  <Button onClick={shareToFriends} disabled={selectedFriends.length === 0 || isSharing} className="w-full flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    Share to {selectedFriends.length} Friend{selectedFriends.length !== 1 ? 's' : ''}
+                  </Button>
+                </TabsContent>
+
+                {/* Share to Chats */}
+                <TabsContent value="chats" className="flex-1 overflow-y-auto space-y-4 pr-2">
+                  <div className="space-y-2">
+                    <Label>Personal Message (Optional)</Label>
+                    <Textarea placeholder="Add a personal message..." value={personalMessage} onChange={(e) => setPersonalMessage(e.target.value)} rows={2} />
+                  </div>
+                  <ScrollArea className="h-60">
+                    <div className="space-y-2">
+                      {chatRooms.map((chat) => (
+                        <div key={chat.id} className="flex items-center space-x-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/50" onClick={() => toggleChatSelection(chat.id)}>
+                          <input type="checkbox" checked={selectedChats.includes(chat.id)} onChange={() => toggleChatSelection(chat.id)} className="h-4 w-4 rounded border-border" />
+                          {chat.is_group ? (
+                            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                              <Users className="h-4 w-4 text-primary" />
+                            </div>
+                          ) : (
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={chat.participants.find(p => p.user_id !== user?.id)?.profile.avatar_url || ''} />
+                              <AvatarFallback>{getChatDisplayName(chat).charAt(0).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                          )}
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">{getChatDisplayName(chat)}</p>
+                            <p className="text-xs text-muted-foreground">{chat.is_group ? `${chat.participants.length} members` : 'Direct message'}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                  <Button onClick={shareToChats} disabled={selectedChats.length === 0 || isSharing} className="w-full flex items-center gap-2">
+                    <Send className="w-4 h-4" />
+                    Share to {selectedChats.length} Chat{selectedChats.length !== 1 ? 's' : ''}
+                  </Button>
+                </TabsContent>
+              </Tabs>
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px] max-w-[95vw] max-h-[80vh] overflow-hidden flex flex-col border-border/50 shadow-xl rounded-xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Share2 className="w-5 h-5" />
+            Share Itinerary
+          </DialogTitle>
+          <DialogDescription>
+            Share your trip itinerary with friends and family
+          </DialogDescription>
+        </DialogHeader>
+
+        <Tabs defaultValue="external" className="flex-1 flex flex-col min-h-0">
+          <TabsList className="grid w-full grid-cols-3 mb-4">
+            <TabsTrigger value="external">External</TabsTrigger>
+            <TabsTrigger value="friends">Friends</TabsTrigger>
+            <TabsTrigger value="chats">Chats</TabsTrigger>
+          </TabsList>
+
+          {/* External Sharing */}
+          <TabsContent value="external" className="flex-1 overflow-y-auto space-y-4 pr-2">
+            {/* Quick Share Buttons */}
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                onClick={handleCopyToClipboard}
+                className="flex items-center gap-2"
+              >
+                <Copy className="w-4 h-4" />
+                Copy Link
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleSocialShare}
+                className="flex items-center gap-2"
+              >
+                <Share2 className="w-4 h-4" />
+                Share
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleSMSShare}
+                className="flex items-center gap-2"
+              >
+                <MessageCircle className="w-4 h-4" />
+                Send SMS
+              </Button>
+            </div>
+
+            {/* Email Share */}
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter recipient's email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="message">Personal Message (Optional)</Label>
+                <Textarea
+                  id="message"
+                  placeholder="Add a personal message..."
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  rows={3}
+                />
+              </div>
+              
+              <Button
+                onClick={handleEmailShare}
+                disabled={!email.trim()}
+                className="w-full flex items-center gap-2"
+              >
+                <Mail className="w-4 h-4" />
+                Send Email
+              </Button>
+            </div>
+          </TabsContent>
+
+          {/* Share to Friends */}
+          <TabsContent value="friends" className="flex-1 overflow-y-auto space-y-4 pr-2">
+            <div className="space-y-2">
+              <Label>Personal Message (Optional)</Label>
+              <Textarea
+                placeholder="Add a personal message..."
+                value={personalMessage}
+                onChange={(e) => setPersonalMessage(e.target.value)}
+                rows={2}
+              />
+            </div>
+
+            <ScrollArea className="h-60">
+              <div className="space-y-2">
+                {friends.map((friend) => (
+                  <div
+                    key={friend.id}
+                    className="flex items-center space-x-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/50"
+                    onClick={() => toggleFriendSelection(friend.id)}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedFriends.includes(friend.id)}
+                      onChange={() => toggleFriendSelection(friend.id)}
+                      className="h-4 w-4 rounded border-border"
+                    />
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={friend.avatar_url || ''} />
+                      <AvatarFallback>
+                        {(friend.name || friend.username).charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{friend.name || friend.username}</p>
+                      <p className="text-xs text-muted-foreground">@{friend.username}</p>
+                    </div>
+                    <Badge variant="secondary" className="text-xs">
+                      {friend.score} restaurants
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+
+            <Button
+              onClick={shareToFriends}
+              disabled={selectedFriends.length === 0 || isSharing}
+              className="w-full flex items-center gap-2"
+            >
+              <Users className="w-4 h-4" />
+              Share to {selectedFriends.length} Friend{selectedFriends.length !== 1 ? 's' : ''}
+            </Button>
+          </TabsContent>
+
+          {/* Share to Chats */}
+          <TabsContent value="chats" className="flex-1 overflow-y-auto space-y-4 pr-2">
+            <div className="space-y-2">
+              <Label>Personal Message (Optional)</Label>
+              <Textarea
+                placeholder="Add a personal message..."
+                value={personalMessage}
+                onChange={(e) => setPersonalMessage(e.target.value)}
+                rows={2}
+              />
+            </div>
+
+            <ScrollArea className="h-60">
+              <div className="space-y-2">
+                {chatRooms.map((chat) => (
+                  <div
+                    key={chat.id}
+                    className="flex items-center space-x-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/50"
+                    onClick={() => toggleChatSelection(chat.id)}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedChats.includes(chat.id)}
+                      onChange={() => toggleChatSelection(chat.id)}
+                      className="h-4 w-4 rounded border-border"
+                    />
+                    {chat.is_group ? (
+                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Users className="h-4 w-4 text-primary" />
+                      </div>
+                    ) : (
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={chat.participants.find(p => p.user_id !== user?.id)?.profile.avatar_url || ''} />
+                        <AvatarFallback>
+                          {getChatDisplayName(chat).charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{getChatDisplayName(chat)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {chat.is_group ? `${chat.participants.length} members` : 'Direct message'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+
+            <Button
+              onClick={shareToChats}
+              disabled={selectedChats.length === 0 || isSharing}
+              className="w-full flex items-center gap-2"
+            >
+              <Send className="w-4 h-4" />
+              Share to {selectedChats.length} Chat{selectedChats.length !== 1 ? 's' : ''}
+            </Button>
+          </TabsContent>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
+  );
+}
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Share2 className="w-5 h-5" />
