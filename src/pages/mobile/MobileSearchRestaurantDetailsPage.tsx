@@ -192,7 +192,7 @@ export default function MobileSearchRestaurantDetailsPage() {
       if (hasGenericCuisine) {
         promises.push(supabase.functions.invoke('ai-cuisine-detector', {
           body: {
-            name: restaurant.name,
+            restaurantName: restaurant.name,
             address: restaurant.formatted_address,
             types: restaurant.types || []
           }

@@ -15,8 +15,52 @@ serve(async (req) => {
   }
 
   try {
-    const { restaurantName, address, types } = await req.json();
+    const body = await req.json();
+    const { restaurantName, address, types, restaurants } = body;
 
+    // Handle batch processing for multiple restaurants
+    if (restaurants && Array.isArray(restaurants)) {
+      console.log(`Processing ${restaurants.length} restaurants for cuisine detection`);
+      const cuisines: { [key: string]: string } = {};
+      
+      for (const restaurant of restaurants) {
+        const name = restaurant.name;
+        const addr = restaurant.formatted_address || restaurant.address;
+        const restTypes = restaurant.types || [];
+        
+        if (!name) {
+          console.warn('Skipping restaurant without name:', restaurant);
+          continue;
+        }
+        
+        console.log(`Detecting cuisine for: ${name} at ${addr || 'unknown address'}`);
+        
+        // First try TripAdvisor API for more accurate cuisine information
+        let tripAdvisorCuisine = null;
+        if (tripAdvisorApiKey) {
+          try {
+            tripAdvisorCuisine = await getTripAdvisorCuisine(name, addr);
+            if (tripAdvisorCuisine && tripAdvisorCuisine !== 'International') {
+              console.log(`TripAdvisor cuisine found: ${tripAdvisorCuisine} for ${name}`);
+              cuisines[restaurant.place_id] = tripAdvisorCuisine;
+              continue;
+            }
+          } catch (tripAdvisorError) {
+            console.log(`TripAdvisor lookup failed for ${name}, falling back to AI:`, tripAdvisorError);
+          }
+        }
+        
+        // Use AI detection as fallback
+        const cuisine = await detectCuisineWithAI(name, addr, restTypes);
+        cuisines[restaurant.place_id] = cuisine;
+      }
+      
+      return new Response(JSON.stringify({ cuisines }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Handle single restaurant processing
     if (!restaurantName) {
       return new Response(JSON.stringify({ 
         error: 'Restaurant name is required' 
@@ -284,3 +328,98 @@ async function getTripAdvisorCuisine(restaurantName: string, address?: string): 
     return null;
   }
 }
+
+// Function to detect cuisine using AI
+async function detectCuisineWithAI(restaurantName: string, address?: string, types?: string[]): Promise<string> {
+  try {
+    const prompt = `Analyze this restaurant and determine its specific cuisine type based on the name and location details.
+
+Restaurant Details:
+- Name: "${restaurantName}"
+- Address: "${address || 'Not provided'}"
+- Google Places Types: ${types ? types.join(', ') : 'Not provided'}
+
+Instructions:
+1. Determine the most specific and accurate cuisine type for this restaurant
+2. Use specific cuisine categories like: Italian, French, Japanese, Chinese, Mexican, Indian, Thai, Vietnamese, Korean, Mediterranean, Greek, Lebanese, Moroccan, Spanish, German, Brazilian, Peruvian, Ethiopian, etc.
+3. For fusion restaurants, specify the fusion type (e.g., "Asian Fusion", "Latin Fusion")
+4. For American restaurants, be more specific when possible (e.g., "Southern American", "New American", "Classic American")
+5. For bars/pubs with food, determine their food style (e.g., "American Pub", "Sports Bar", "Gastropub")
+6. NEVER use generic terms like "Restaurant", "Food", "Bar" - always be specific about the cuisine style
+7. If you cannot determine the specific cuisine, use "International" as a last resort
+
+Respond with a single JSON object in this exact format:
+{"cuisine": "Italian"}
+
+Only respond with the JSON object, no additional text or formatting.`;
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { 
+            role: 'system', 
+            content: 'You are a cuisine classification expert with deep knowledge of global food cultures. Analyze restaurant information to determine the most accurate and specific cuisine type. Always respond with valid JSON only.' 
+          },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.1,
+        max_tokens: 50,
+      }),
+    });
+
+    const data = await response.json();
+    
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      console.error('Unexpected OpenAI response format:', data);
+      return "International";
+    }
+    
+    try {
+      const responseContent = data.choices[0].message.content.trim();
+      console.log(`Raw AI response for ${restaurantName}: ${responseContent}`);
+      
+      // Extract JSON from the response
+      let jsonString = responseContent;
+      
+      // Remove markdown code blocks if present
+      const jsonMatch = responseContent.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (jsonMatch) {
+        jsonString = jsonMatch[1].trim();
+      }
+      
+      // Try to extract just the JSON object if there's extra text
+      const objectMatch = jsonString.match(/\{[^}]*\}/);
+      if (objectMatch) {
+        jsonString = objectMatch[0];
+      }
+      
+      const result = JSON.parse(jsonString);
+      
+      if (!result.cuisine || result.cuisine === 'Restaurant' || result.cuisine === 'Food') {
+        console.log(`Generic cuisine detected for ${restaurantName}, using International`);
+        return "International";
+      }
+      
+      console.log(`Detected cuisine: ${result.cuisine} for ${restaurantName}`);
+      return result.cuisine;
+      
+    } catch (parseError) {
+      console.error('Error parsing AI response:', parseError);
+      console.error('Raw response content:', data.choices[0].message.content);
+      
+      // Fallback: try to extract cuisine from restaurant name patterns
+      const fallbackCuisine = extractCuisineFromName(restaurantName);
+      console.log(`Using fallback cuisine: ${fallbackCuisine} for ${restaurantName}`);
+      return fallbackCuisine;
+    }
+
+  } catch (error) {
+    console.error('Error in AI cuisine detection for', restaurantName, ':', error);
+    return extractCuisineFromName(restaurantName);
+  }
