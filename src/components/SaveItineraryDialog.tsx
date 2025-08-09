@@ -37,12 +37,10 @@ export function SaveItineraryDialog({
     onClose();
   };
   const isMobile = useIsMobile();
-  const snapPoints = [0.5, 0.92, 1];
-  const [activeSnap, setActiveSnap] = useState<number | string>(snapPoints[0]);
 
   if (isMobile) {
     return (
-      <Drawer open={isOpen} onOpenChange={handleClose} snapPoints={snapPoints} activeSnapPoint={activeSnap} onSnapPointChange={setActiveSnap}>
+      <Drawer open={isOpen} onOpenChange={handleClose}>
         <DrawerContent className="rounded-t-3xl border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-0">
           <div className="mx-auto w-full max-w-md">
             <div className="sticky top-0 z-10 border-b border-border/50 bg-gradient-to-b from-background/95 via-background to-background/80 px-5 pt-4 pb-3">
