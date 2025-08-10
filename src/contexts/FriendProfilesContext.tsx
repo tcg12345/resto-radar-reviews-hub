@@ -105,6 +105,11 @@ export const FriendProfilesProvider: React.FC<Props> = ({ children }) => {
     setIsPreloading(false);
     
     console.log(`✅ Preloaded ${newCache.size} friend profiles`);
+
+    // Warm all friend profile caches in the background for instant profile loads
+    supabase.functions.invoke('friend-profile-cache', {
+      body: { action: 'warm_all_caches' },
+    }).catch(() => {});
   }, [user, friends, friendsLoading, loadFriendProfile]);
 
   // Refresh a single profile
