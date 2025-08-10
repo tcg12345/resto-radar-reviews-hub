@@ -331,7 +331,7 @@ export function ItineraryMapView({ events, hotels = [], isOpen, onClose }: Itine
         <div ref={mapContainer} className="w-full h-full" />
         
         {/* Header */}
-        <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-background/90 to-transparent">
+        <div className="absolute inset-x-0 top-0 px-4 pt-[calc(env(safe-area-inset-top)+8px)] pb-4 bg-gradient-to-b from-background/30 to-transparent">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
               <MapPin className="w-5 h-5" />
