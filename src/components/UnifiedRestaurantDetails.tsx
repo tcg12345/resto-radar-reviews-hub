@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { ArrowLeft, MapPin, Clock, Phone, Globe, Star, Heart, Plus, Share2, Navigation, ExternalLink, Check, User } from 'lucide-react';
@@ -98,8 +98,35 @@ export function UnifiedRestaurantDetails({
   const [isPhotoGalleryOpen, setIsPhotoGalleryOpen] = useState(false);
   const [isEnhancingWithAI, setIsEnhancingWithAI] = useState(false);
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+  const [deferHeavy, setDeferHeavy] = useState(false);
+  const [showMap, setShowMap] = useState(false);
+  const mapRef = useRef<HTMLDivElement | null>(null);
 
-  // Community features
+  useEffect(() => {
+    const schedule = (cb: () => void) => {
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(cb, { timeout: 800 });
+      } else {
+        setTimeout(cb, 200);
+      }
+    };
+    schedule(() => setDeferHeavy(true));
+  }, []);
+
+  useEffect(() => {
+    const el = mapRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setShowMap(true);
+        io.disconnect();
+      }
+    }, { rootMargin: '200px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [mapRef]);
+
+
   const {
     communityStats,
     reviews,
@@ -117,16 +144,16 @@ export function UnifiedRestaurantDetails({
     setRestaurantData(restaurant);
     setPhotos(restaurant.photos || []);
 
-    // Fetch additional details if we have a place_id and missing info
-    if (restaurant.place_id && (!restaurant.website || !restaurant.formatted_phone_number)) {
+    // Fetch additional details if we have a place_id and missing info (deferred)
+    if (deferHeavy && restaurant.place_id && (!restaurant.website || !restaurant.formatted_phone_number)) {
       fetchPlaceDetails(restaurant.place_id);
     }
 
-    // Enhance with AI if cuisine is generic or Michelin stars are unknown
-    if (shouldEnhanceWithAI(restaurant)) {
+    // Enhance with AI if cuisine is generic or Michelin stars are unknown (deferred)
+    if (deferHeavy && shouldEnhanceWithAI(restaurant)) {
       enhanceWithAI(restaurant);
     }
-  }, [restaurant]);
+  }, [restaurant, deferHeavy]);
   const shouldEnhanceWithAI = (restaurant: UnifiedRestaurantData): boolean => {
     const hasGenericCuisine = !restaurant.cuisine || restaurant.cuisine.toLowerCase().includes('restaurant') || restaurant.cuisine.toLowerCase().includes('bar') || restaurant.cuisine.toLowerCase().includes('food') || restaurant.cuisine.toLowerCase().includes('establishment');
     const hasMissingMichelinInfo = restaurant.michelinStars === undefined && restaurant.michelin_stars === undefined;
@@ -385,6 +412,7 @@ export function UnifiedRestaurantDetails({
                   src={communityStats.recentPhotos[0].photos[0]} 
                   alt={restaurantData.name} 
                   className="w-full h-full object-cover transition-transform group-hover:scale-105" 
+                  loading="lazy" decoding="async"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     if (photos.length > 0) {
@@ -400,6 +428,7 @@ export function UnifiedRestaurantDetails({
                   src={photos[0]} 
                   alt={restaurantData.name} 
                   className="w-full h-full object-cover transition-transform group-hover:scale-105" 
+                  loading="lazy" decoding="async"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZjNmNGY2Ii8+CjxwYXRoIGQ9Im0xNSA5LTYgNi02LTYiIHN0cm9rZT0iIzk3YTNiMCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+';
@@ -547,7 +576,9 @@ export function UnifiedRestaurantDetails({
           
 
           {/* Community Rating */}
-          <CommunityRating stats={communityStats} isLoading={isLoadingReviews} />
+          {deferHeavy && (
+            <CommunityRating stats={communityStats} isLoading={isLoadingReviews} />
+          )}
 
           {/* Primary Action Buttons */}
           <div className="grid grid-cols-3 gap-3">
@@ -580,11 +611,13 @@ export function UnifiedRestaurantDetails({
           <Separator />
 
           {/* Unified Photo Gallery - combines community and friend photos */}
-          <UnifiedPhotoGallery stats={communityStats} isLoading={isLoadingReviews} onPhotoClick={() => {}} friendPhotos={restaurantData.isSharedRestaurant && restaurantData.photos && restaurantData.photos.length > 0 ? restaurantData.photos.map((url, index) => ({
-            url,
-            caption: Array.isArray(restaurantData.photoCaptions) ? restaurantData.photoCaptions[index] : '',
-            dishName: Array.isArray(restaurantData.photo_captions) ? restaurantData.photo_captions[index] : ''
-          })) : undefined} friendName={restaurantData.isSharedRestaurant ? restaurantData.sharedBy?.name : undefined} friendId={restaurantData.isSharedRestaurant ? restaurantData.sharedBy?.id : undefined} restaurantId={restaurantData.id} restaurantPlaceId={restaurantData.place_id} />
+          {deferHeavy && (
+            <UnifiedPhotoGallery stats={communityStats} isLoading={isLoadingReviews} onPhotoClick={() => {}} friendPhotos={restaurantData.isSharedRestaurant && restaurantData.photos && restaurantData.photos.length > 0 ? restaurantData.photos.map((url, index) => ({
+              url,
+              caption: Array.isArray(restaurantData.photoCaptions) ? restaurantData.photoCaptions[index] : '',
+              dishName: Array.isArray(restaurantData.photo_captions) ? restaurantData.photo_captions[index] : ''
+            })) : undefined} friendName={restaurantData.isSharedRestaurant ? restaurantData.sharedBy?.name : undefined} friendId={restaurantData.isSharedRestaurant ? restaurantData.sharedBy?.id : undefined} restaurantId={restaurantData.id} restaurantPlaceId={restaurantData.place_id} />
+          )}
 
           {/* Details */}
           <div className="space-y-4">
@@ -637,8 +670,10 @@ export function UnifiedRestaurantDetails({
             {restaurantData.latitude && restaurantData.longitude && <Card>
                 <CardContent className="p-4">
                   <h3 className="font-medium mb-3">Location</h3>
-                  <div className="h-48 rounded-md overflow-hidden">
-                    <RestaurantLocationMap latitude={restaurantData.latitude} longitude={restaurantData.longitude} name={restaurantData.name} address={restaurantData.address} />
+                  <div ref={mapRef} className="h-48 rounded-md overflow-hidden">
+                    {showMap && (
+                      <RestaurantLocationMap latitude={restaurantData.latitude} longitude={restaurantData.longitude} name={restaurantData.name} address={restaurantData.address} />
+                    )}
                   </div>
                 </CardContent>
               </Card>}
