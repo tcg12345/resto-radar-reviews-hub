@@ -77,47 +77,45 @@ export function MobileTripSwipePanel({
           </DrawerHeader>
 
           {/* Content */}
-          <div className="flex-1 overflow-hidden">
-            <div className="flex-1 overflow-y-auto">
-              {places.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
-                    <MapPin className="w-8 h-8 text-muted-foreground" />
-                  </div>
-                  <h3 className="font-medium text-foreground mb-2">No places yet</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Start rating places you've visited on this trip
-                  </p>
-                  <Button onClick={() => onEditPlace('')} size="sm">
+          <div className="flex-1 overflow-y-auto overscroll-contain">
+            {places.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                  <MapPin className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <h3 className="font-medium text-foreground mb-2">No places yet</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Start rating places you've visited on this trip
+                </p>
+                <Button onClick={() => onEditPlace('')} size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Your First Place
+                </Button>
+              </div>
+            ) : (
+              <div className="p-4 space-y-3 pb-safe-area-bottom">
+                {places.map((place) => (
+                  <MobileTripPlaceCard
+                    key={place.id}
+                    place={place}
+                    onDetailsClick={() => onPlaceDetails(place.id)}
+                    onPlaceClick={() => onPlaceClick(place.id)}
+                  />
+                ))}
+
+                {/* Add more places button at bottom */}
+                <div className="pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => onEditPlace('')}
+                    className="w-full h-12 border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5"
+                  >
                     <Plus className="w-4 h-4 mr-2" />
-                    Add Your First Place
+                    Add Another Place
                   </Button>
                 </div>
-              ) : (
-                <div className="p-4 space-y-3">
-                  {places.map((place) => (
-                    <MobileTripPlaceCard
-                      key={place.id}
-                      place={place}
-                      onDetailsClick={() => onPlaceDetails(place.id)}
-                      onPlaceClick={() => onPlaceClick(place.id)}
-                    />
-                  ))}
-
-                  {/* Add more places button at bottom */}
-                  <div className="pt-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => onEditPlace('')}
-                      className="w-full h-12 border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Another Place
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </DrawerContent>
       </Drawer>
