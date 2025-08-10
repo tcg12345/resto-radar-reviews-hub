@@ -96,7 +96,7 @@ export default function LandingPage() {
       {/* Mobile-Only Ultra Simple Version */}
       <div className="lg:hidden min-h-screen flex flex-col">
         {/* Mobile Navigation */}
-        <nav className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur border-b safe-area-top">
+        <nav className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur border-b">
           <div className="flex h-12 items-center justify-between px-3">
             <GrubbyLogo size="sm" />
             <Button
@@ -142,7 +142,7 @@ export default function LandingPage() {
       {/* Desktop Version - Full Original Content */}
       <div className="hidden lg:block">
         {/* Desktop Navigation */}
-        <nav className="fixed top-0 z-50 w-full bg-background/80 backdrop-blur-md border-b safe-area-top">
+        <nav className="fixed top-0 z-50 w-full bg-background/80 backdrop-blur-md border-b">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="cursor-pointer" onClick={() => navigate('/')}>
