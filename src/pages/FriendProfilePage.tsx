@@ -29,7 +29,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { MichelinStars } from '@/components/MichelinStars';
 import { PriceRange } from '@/components/PriceRange';
-import { useFriendProfilePagination } from '@/hooks/useFriendProfilePagination';
+import { useFriendProfileOptimized } from '@/hooks/useFriendProfileOptimized';
 import { useFriends } from '@/hooks/useFriends';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -44,20 +44,15 @@ export default function FriendProfilePage() {
   const { friends } = useFriends();
   const { toast } = useToast();
   
-  // Use paginated hook for fast initial load and incremental fetch
+  // Use optimized hook to load full profile and all items at once
   const {
     profileData,
     restaurants: allRestaurants,
     wishlist: allWishlist,
     isLoading,
-    isLoadingMore,
-    hasMoreRestaurants,
-    hasMoreWishlist,
     error,
-    loadMoreRestaurants,
-    loadMoreWishlist,
     refresh
-  } = useFriendProfilePagination(actualUserId || '');
+  } = useFriendProfileOptimized(actualUserId || '');
   
   const [friend, setFriend] = useState<any>(null);
   
