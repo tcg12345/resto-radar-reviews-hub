@@ -1207,15 +1207,11 @@ export function ItineraryBuilder({
             {/* Desktop: Compact Row Design */}
             <div className="hidden lg:block">
               <Collapsible open={isDesktopSectionOpen} onOpenChange={setIsDesktopSectionOpen}>
-                  <div ref={itineraryDetailsRef} className="relative overflow-hidden rounded-lg bg-gradient-to-r from-background via-muted/20 to-secondary/10 backdrop-blur-sm border border-border/50 shadow-sm">
-                {/* Background Pattern */}
-                <div className="absolute inset-0 opacity-3">
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-secondary/10"></div>
-                </div>
+                  <div ref={itineraryDetailsRef} className="relative rounded-xl md:rounded-2xl bg-card/80 supports-[backdrop-filter]:bg-card/60 backdrop-blur-md border border-border/60 shadow-lg ring-1 ring-border/40 animate-enter">
                 
                 {/* Header Section */}
                 <CollapsibleTrigger asChild>
-                  <div className="relative z-10 px-4 py-3 border-b border-border/20 cursor-pointer hover:bg-background/5 transition-colors group">
+                  <div className="relative z-10 px-4 md:px-6 py-4 md:py-5 border-b border-border/50 cursor-pointer hover:bg-muted/40 transition-colors group">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="relative">
@@ -1240,7 +1236,7 @@ export function ItineraryBuilder({
                 
                 <CollapsibleContent>
                 {/* Content Grid */}
-                <div className="relative z-10 p-4">
+                <div className="relative z-10 p-4 md:p-6 space-y-6">
                   
                   {/* Travel Info Row Layout */}
                   <div className="flex flex-row gap-4 w-full">
