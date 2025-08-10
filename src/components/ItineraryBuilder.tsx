@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { DateRangePicker } from '@/components/DateRangePicker';
 import { TripCalendar } from '@/components/TripCalendar';
 import { EventDialog } from '@/components/EventDialog';
@@ -849,6 +850,7 @@ export function ItineraryBuilder({
   };
   // Mobile detection hook
   const [isMobile, setIsMobile] = useState(false);
+  const [savedOpen, setSavedOpen] = useState(false);
   
   useEffect(() => {
     const checkIsMobile = () => {
@@ -873,9 +875,15 @@ export function ItineraryBuilder({
         <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5">
           {/* Mobile Header */}
           <div className="safe-area-top bg-background/80 backdrop-blur-md border-b border-border/50">
-            <div className="px-6 py-4">
-              <h1 className="text-lg font-semibold text-foreground">Plan Your Trip</h1>
-              <p className="text-sm text-muted-foreground mt-1">Create your perfect travel itinerary</p>
+            <div className="px-6 py-4 flex items-center justify-between">
+              <div>
+                <h1 className="text-lg font-semibold text-foreground">Plan Your Trip</h1>
+                <p className="text-sm text-muted-foreground mt-1">Create your perfect travel itinerary</p>
+              </div>
+              <Button variant="outline" size="sm" className="rounded-full" onClick={() => setSavedOpen(true)}>
+                <BookOpen className="w-4 h-4 mr-1" />
+                Saved
+              </Button>
             </div>
           </div>
 
@@ -1162,6 +1170,18 @@ export function ItineraryBuilder({
               )}
             </div>
           )}
+
+          {/* Saved Itineraries Sheet */}
+          <Sheet open={savedOpen} onOpenChange={setSavedOpen}>
+            <SheetContent side="bottom" className="h-[80vh] p-0">
+              <SheetHeader className="px-4 py-3 border-b">
+                <SheetTitle>Saved Itineraries</SheetTitle>
+              </SheetHeader>
+              <div className="p-4">
+                <SavedItinerariesSection onLoadItinerary={(it) => { handleLoadItinerary(it); setSavedOpen(false); }} />
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       );
     }
