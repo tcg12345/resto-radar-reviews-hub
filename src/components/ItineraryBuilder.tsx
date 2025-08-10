@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { BottomSheet, BottomSheetContent, BottomSheetHeader } from '@/components/ui/bottom-sheet';
 import { DateRangePicker } from '@/components/DateRangePicker';
 import { TripCalendar } from '@/components/TripCalendar';
 import { EventDialog } from '@/components/EventDialog';
@@ -1172,16 +1172,16 @@ export function ItineraryBuilder({
           )}
 
           {/* Saved Itineraries Sheet */}
-          <Sheet open={savedOpen} onOpenChange={setSavedOpen}>
-            <SheetContent side="bottom" className="h-[80vh] p-0">
-              <SheetHeader className="px-4 py-3 border-b">
-                <SheetTitle>Saved Itineraries</SheetTitle>
-              </SheetHeader>
+          <BottomSheet open={savedOpen} onOpenChange={setSavedOpen} className="max-h-[85vh] rounded-t-3xl">
+            <BottomSheetHeader className="px-4 py-3 border-b bg-background/95 backdrop-blur rounded-t-3xl">
+              <div className="text-base font-semibold">Saved Itineraries</div>
+            </BottomSheetHeader>
+            <BottomSheetContent className="p-0">
               <div className="p-4">
                 <SavedItinerariesSection onLoadItinerary={(it) => { handleLoadItinerary(it); setSavedOpen(false); }} />
               </div>
-            </SheetContent>
-          </Sheet>
+            </BottomSheetContent>
+          </BottomSheet>
         </div>
       );
     }

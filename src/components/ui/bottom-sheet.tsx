@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
 
@@ -10,10 +10,16 @@ interface BottomSheetProps {
 }
 
 export function BottomSheet({ open, onOpenChange, children, className }: BottomSheetProps) {
+  const [translateY, setTranslateY] = useState(0);
+  const startYRef = useRef<number | null>(null);
+  const draggingRef = useRef(false);
+  const scrollYRef = useRef(0);
+
   // Prevent background scrolling when open
   useEffect(() => {
     if (open) {
       const scrollY = window.scrollY;
+      scrollYRef.current = scrollY;
       document.body.style.position = 'fixed';
       document.body.style.top = `-${scrollY}px`;
       document.body.style.width = '100%';
@@ -31,6 +37,30 @@ export function BottomSheet({ open, onOpenChange, children, className }: BottomS
 
   if (!open) return null;
 
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    startYRef.current = e.touches[0].clientY;
+    draggingRef.current = true;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!draggingRef.current || startYRef.current === null) return;
+    const currentY = e.touches[0].clientY;
+    const delta = Math.max(0, currentY - startYRef.current);
+    setTranslateY(delta);
+  };
+
+  const handleTouchEnd = () => {
+    draggingRef.current = false;
+    const threshold = 100; // px to close
+    if (translateY > threshold) {
+      setTranslateY(0);
+      onOpenChange(false);
+    } else {
+      // snap back
+      setTranslateY(0);
+    }
+  };
+
   const modalContent = (
     <>
       {/* Backdrop */}
@@ -43,19 +73,26 @@ export function BottomSheet({ open, onOpenChange, children, className }: BottomS
       {/* Bottom Sheet */}
       <div 
         className={cn(
-          "fixed bottom-0 left-0 right-0 bg-background border-t rounded-t-xl",
+          "fixed bottom-0 left-0 right-0 bg-background border-t rounded-t-3xl shadow-xl",
           "animate-in slide-in-from-bottom duration-300",
           "max-h-[90vh] flex flex-col",
           className
         )}
-        style={{ zIndex: 1000000 }}
+        style={{ 
+          zIndex: 1000000,
+          transform: `translateY(${translateY}px)`,
+          transition: draggingRef.current ? 'none' : 'transform 200ms ease-out'
+        }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         {/* Drag Handle */}
         <div 
-          className="flex justify-center py-3 cursor-pointer"
+          className="flex justify-center py-3 cursor-grab active:cursor-grabbing select-none"
           onClick={() => onOpenChange(false)}
         >
-          <div className="w-8 h-1 bg-muted-foreground/30 rounded-full"></div>
+          <div className="w-10 h-1.5 bg-muted-foreground/30 rounded-full" />
         </div>
         
         {children}
@@ -74,7 +111,7 @@ interface BottomSheetHeaderProps {
 
 export function BottomSheetHeader({ children, className }: BottomSheetHeaderProps) {
   return (
-    <div className={cn("px-4 pb-4 border-b bg-background", className)}>
+    <div className={cn("px-4 pb-4 border-b bg-background rounded-t-3xl", className)}>
       {children}
     </div>
   );
