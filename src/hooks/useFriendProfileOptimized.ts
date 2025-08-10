@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFriendProfiles } from '@/contexts/FriendProfilesContext';
 import type { Json } from '@/integrations/supabase/types';
 
 export interface FriendProfileOptimizedData {
@@ -23,6 +24,7 @@ export interface FriendProfileOptimizedData {
 
 export function useFriendProfileOptimized(targetUserId: string) {
   const { user } = useAuth();
+  const { getFriendProfile } = useFriendProfiles();
   const [profileData, setProfileData] = useState<FriendProfileOptimizedData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -76,42 +78,37 @@ export function useFriendProfileOptimized(targetUserId: string) {
   };
 
   const loadProfileData = useCallback(async () => {
-    if (!user || !targetUserId) return;
+    if (!targetUserId) return;
 
-    setIsLoading(true);
     setError(null);
 
-    // 1) Instant local cache hydrate if available
+    let seeded = false;
+    // 1) Instant hydrate from localStorage
     try {
       const cached = localStorage.getItem(cacheKey);
       if (cached) {
         const parsed = JSON.parse(cached) as FriendProfileOptimizedData;
         setProfileData(parsed);
         setIsLoading(false);
+        seeded = true;
       }
-    } catch (e) {
-      // ignore cache errors
-    }
+    } catch (_) {}
 
-    // 2) Fire fast stats request for instant header if no local cache
-    let showedStats = false;
-    if (!profileData) {
+    // 2) Instant hydrate from in-memory context cache
+    if (!seeded) {
       try {
-        const { data: statsRes } = await supabase.functions.invoke('friend-profile-cache', {
-          body: { action: 'get_profile_stats', user_id: targetUserId },
-        });
-        if (statsRes?.stats) {
-          const s = statsRes.stats as any;
+        const ctx = getFriendProfile(targetUserId as string) as any;
+        if (ctx) {
           const partial: FriendProfileOptimizedData = {
             can_view: true,
-            username: s.username || '',
-            name: '',
-            avatar_url: '',
-            is_public: true,
-            rated_count: s.ratedCount || 0,
-            wishlist_count: s.wishlistCount || 0,
-            avg_rating: s.averageRating || 0,
-            top_cuisine: s.topCuisine || '',
+            username: ctx.username || '',
+            name: ctx.name || '',
+            avatar_url: ctx.avatar_url || '',
+            is_public: !!ctx.is_public,
+            rated_count: Number(ctx.rated_count) || 0,
+            wishlist_count: Number(ctx.wishlist_count) || 0,
+            avg_rating: Number(ctx.avg_rating) || 0,
+            top_cuisine: '',
             michelin_count: 0,
             all_restaurants: [],
             all_wishlist: [],
@@ -121,59 +118,90 @@ export function useFriendProfileOptimized(targetUserId: string) {
           };
           setProfileData(partial);
           setIsLoading(false);
-          showedStats = true;
+          seeded = true;
         }
-      } catch (e) {
-        // ignore stats errors
-      }
+      } catch (_) {}
     }
 
+    // 3) Fetch full restaurants data with minimal columns in parallel (fast)
     try {
-      // 3) Try cached full profile via edge function
-      const { data: edgeRes } = await supabase.functions.invoke('friend-profile-cache', {
-        body: { action: 'get_profile', user_id: targetUserId },
+      const selectCols = 'id,name,address,city,cuisine,rating,created_at,price_range,michelin_stars';
+      const [ratedRes, wishRes] = await Promise.all([
+        supabase
+          .from('restaurants')
+          .select(selectCols)
+          .eq('user_id', targetUserId)
+          .eq('is_wishlist', false)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('restaurants')
+          .select(selectCols)
+          .eq('user_id', targetUserId)
+          .eq('is_wishlist', true)
+          .order('created_at', { ascending: false }),
+      ]);
+
+      if (ratedRes.error) throw ratedRes.error;
+      if (wishRes.error) throw wishRes.error;
+
+      const rated = ratedRes.data || [];
+      const wishlist = wishRes.data || [];
+
+      const avg = rated.length
+        ? rated.reduce((s: number, r: any) => s + (Number(r.rating) || 0), 0) / rated.length
+        : (profileData?.avg_rating || 0);
+
+      setProfileData((prev) => {
+        const base = prev || {
+          can_view: true,
+          username: '',
+          name: '',
+          avatar_url: '',
+          is_public: true,
+          rated_count: 0,
+          wishlist_count: 0,
+          avg_rating: 0,
+          top_cuisine: '',
+          michelin_count: 0,
+          all_restaurants: [],
+          all_wishlist: [],
+          rating_distribution: {},
+          cuisine_distribution: [],
+          cities_distribution: [],
+        };
+        const updated: FriendProfileOptimizedData = {
+          ...base,
+          all_restaurants: rated,
+          all_wishlist: wishlist,
+          rated_count: rated.length,
+          wishlist_count: wishlist.length,
+          avg_rating: base.avg_rating || avg,
+        };
+        return updated;
       });
 
-      let normalized: FriendProfileOptimizedData | null = null;
-      if (edgeRes?.profile) {
-        normalized = normalizeProfile(edgeRes.profile);
-      }
+      try {
+        const toCache = {
+          ...(profileData || {}),
+          all_restaurants: rated,
+          all_wishlist: wishlist,
+          rated_count: rated.length,
+          wishlist_count: wishlist.length,
+          avg_rating: (profileData?.avg_rating || avg),
+        } as FriendProfileOptimizedData;
+        localStorage.setItem(cacheKey, JSON.stringify(toCache));
+      } catch (_) {}
 
-      if (!normalized) {
-        // 4) Cache miss - build cache in background and fallback to direct RPC
-        supabase.functions.invoke('friend-profile-cache', {
-          body: { action: 'build_cache', user_id: targetUserId },
-        }).catch(() => {});
-
-        const { data, error: profileError } = await supabase.rpc('get_friend_profile_with_all_data', {
-          target_user_id: targetUserId,
-          requesting_user_id: user.id,
-        });
-
-        if (profileError) {
-          console.error('Error loading friend profile:', profileError);
-          setError(profileError.message);
-          if (!showedStats) setIsLoading(false);
-          return;
-        }
-        normalized = normalizeProfile(data);
-      }
-
-      if (normalized) {
-        setProfileData(normalized);
-        try { localStorage.setItem(cacheKey, JSON.stringify(normalized)); } catch (e) {}
-      }
-    } catch (err: any) {
-      console.error('Error loading friend profile (cached):', err);
-      setError('Failed to load profile');
-    } finally {
       setIsLoading(false);
+    } catch (err: any) {
+      console.error('Error loading restaurants:', err);
+      if (!seeded) setIsLoading(false);
+      setError('Failed to load profile');
     }
-  }, [targetUserId, user]);
+  }, [targetUserId, getFriendProfile]);
 
   useEffect(() => {
     loadProfileData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadProfileData]);
 
   const computedAnalytics = profileData ? {
