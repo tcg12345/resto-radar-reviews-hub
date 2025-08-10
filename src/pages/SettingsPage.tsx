@@ -253,11 +253,9 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
 
   return (
     <>
-      {/* Mobile status bar spacer */}
-      <div className="lg:hidden h-[35px] bg-background"></div>
       <div className="min-h-screen bg-background w-full">
       {/* Header */}
-      <div className="border-b bg-card w-full">
+      <div className="border-b bg-card w-full pt-safe-area-top">
         <div className="w-full max-w-none px-4 lg:px-6 py-4">
           <div className="flex items-center gap-4">
             <Button

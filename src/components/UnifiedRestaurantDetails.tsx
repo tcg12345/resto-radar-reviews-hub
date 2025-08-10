@@ -331,11 +331,9 @@ export function UnifiedRestaurantDetails({
   };
   if (isLoading) {
     return <>
-        {/* Mobile status bar spacer */}
-        <div className="lg:hidden h-[35px] bg-background flex-shrink-0"></div>
         <div className="min-h-screen bg-background">
         {/* Header */}
-        {showBackButton && <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+        {showBackButton && <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b pt-safe-area-top">
             <div className="flex items-center gap-4 p-4">
               <Button variant="ghost" size="sm" onClick={handleBack} className="h-8 w-8 p-0">
                 <ArrowLeft className="h-4 w-4" />
@@ -356,11 +354,9 @@ export function UnifiedRestaurantDetails({
       </>;
   }
   return <>
-      {/* Mobile status bar spacer */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-[35px] bg-background z-50"></div>
       <div className="min-h-screen bg-background">
       {/* Header */}
-      {showBackButton && <div className="sticky top-[35px] lg:top-0 z-50 bg-background backdrop-blur border-b">
+      {showBackButton && <div className="sticky top-0 z-50 bg-background backdrop-blur border-b pt-safe-area-top">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="sm" onClick={handleBack} className="h-10 w-10 p-0 touch-manipulation" aria-label="Go back">
@@ -374,7 +370,7 @@ export function UnifiedRestaurantDetails({
           </div>
         </div>}
 
-      <div className={`${isMobile ? "pb-safe" : ""} ${showBackButton ? "pt-[35px] lg:pt-0" : ""}`}>
+      <div className={`${isMobile ? "pb-safe" : ""}`}>
         {/* Photos - Show either restaurant photos or community photos */}
         {(photos.length > 0 || (communityStats?.recentPhotos && communityStats.recentPhotos.length > 0)) && (
           <div 
