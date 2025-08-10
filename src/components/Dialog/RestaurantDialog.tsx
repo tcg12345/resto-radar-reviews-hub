@@ -44,8 +44,8 @@ export function RestaurantDialog({
   if (isMobile) {
     return (
       <Drawer open={isOpen} onOpenChange={onOpenChange}>
-        <DrawerContent className="rounded-t-3xl border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-0">
-          <div className="mx-auto w-full max-w-md">
+        <DrawerContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-0">
+          <div className="w-full">
             <div className="sticky top-0 z-10 bg-gradient-to-b from-background/95 via-background to-background/80 backdrop-blur-sm border-b border-border/50 px-5 pt-4 pb-3">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">

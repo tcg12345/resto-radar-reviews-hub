@@ -162,8 +162,8 @@ if (isMobile) {
     <>
       {/* Main Search Drawer */}
       <Drawer open={isOpen && !showResults} onOpenChange={handleClose}>
-        <DrawerContent className="rounded-t-3xl border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-0">
-          <div className="mx-auto w-full max-w-md">
+        <DrawerContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-0">
+          <div className="w-full">
             <div className="sticky top-0 z-10 border-b border-border/50 bg-gradient-to-b from-background/95 via-background to-background/80 px-5 pt-4 pb-3">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
@@ -323,8 +323,8 @@ if (isMobile) {
 
       {/* Results Drawer */}
       <Drawer open={showResults} onOpenChange={() => setShowResults(false)}>
-        <DrawerContent className="rounded-t-3xl border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-0">
-          <div className="mx-auto w-full max-w-md">
+        <DrawerContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-0">
+          <div className="w-full">
             <div className="sticky top-0 z-10 border-b border-border/50 bg-gradient-to-b from-background/95 via-background to-background/80 px-5 pt-4 pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
