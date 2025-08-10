@@ -43,20 +43,14 @@ export default function TravelPage() {
         </div>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6 rounded-xl border border-border bg-muted/40 p-1.5 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-muted/30">
-            <TabsTrigger
-              value="itinerary"
-              className="flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
-            >
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="itinerary" className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              <span>Itinerary Builder</span>
+              Itinerary Builder
             </TabsTrigger>
-            <TabsTrigger
-              value="trip-planner"
-              className="flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
-            >
+            <TabsTrigger value="trip-planner" className="flex items-center gap-2">
               <MapPin className="w-4 h-4" />
-              <span>Trip Planner</span>
+              Trip Planner
             </TabsTrigger>
           </TabsList>
           
