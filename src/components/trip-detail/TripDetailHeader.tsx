@@ -93,7 +93,7 @@ export function TripDetailHeader({
   ];
   return (
     <>
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b">
+      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b pt-safe-area-top">
       <div className="container mx-auto px-4 py-3 lg:py-4 lg:pt-3">
         {/* Mobile Header */}
         <div className="lg:hidden">
