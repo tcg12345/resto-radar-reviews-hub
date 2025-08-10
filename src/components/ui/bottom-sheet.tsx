@@ -51,7 +51,7 @@ export function BottomSheet({ open, onOpenChange, children, className }: BottomS
 
   const handleTouchEnd = () => {
     draggingRef.current = false;
-    const threshold = 100; // px to close
+    const threshold = 50; // px to close (match filter dialogs)
     if (translateY > threshold) {
       setTranslateY(0);
       onOpenChange(false);
@@ -75,7 +75,7 @@ export function BottomSheet({ open, onOpenChange, children, className }: BottomS
         className={cn(
           "fixed bottom-0 left-0 right-0 bg-background border-t rounded-t-3xl shadow-xl",
           "animate-in slide-in-from-bottom duration-300",
-          "max-h-[95vh] flex flex-col",
+          "max-h-[95vh] flex flex-col overflow-hidden",
           className
         )}
         style={{ 
@@ -83,6 +83,9 @@ export function BottomSheet({ open, onOpenChange, children, className }: BottomS
           transform: `translateY(${translateY}px)`,
           transition: draggingRef.current ? 'none' : 'transform 200ms ease-out'
         }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         {/* Drag Handle */}
         <div 
