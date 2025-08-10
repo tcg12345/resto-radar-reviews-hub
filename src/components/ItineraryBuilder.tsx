@@ -1104,7 +1104,7 @@ export function ItineraryBuilder({
 
           {/* Show CTA immediately when conditions are met */}
           {canCreateItinerary && (
-            <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border/50 p-6 z-50 safe-area-bottom">
+            <div className="fixed bottom-20 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border/50 p-6 z-50">
               <Button 
                 onClick={isMultiCity ? () => {
                   createMultiCityItinerary();
