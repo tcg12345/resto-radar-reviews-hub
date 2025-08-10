@@ -33,8 +33,7 @@ export function ItineraryMapButton({ events, onOpenMap }: ItineraryMapButtonProp
     }))
   });
 
-  // Always show button for debugging - remove this later
-  // if (eventsWithLocation.length === 0) return null;
+  if (eventsWithLocation.length === 0) return null;
 
   if (isMobile) {
     return (
