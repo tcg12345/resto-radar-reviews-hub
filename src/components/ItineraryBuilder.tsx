@@ -1097,15 +1097,15 @@ export function ItineraryBuilder({
                   </div>
                   <ChevronDown className="w-4 h-4 text-muted-foreground" />
                 </CollapsibleTrigger>
-                <CollapsibleContent className="bg-gradient-to-br from-primary/5 to-secondary/5 backdrop-blur-sm">
+                <CollapsibleContent className="bg-muted/20 supports-[backdrop-filter]:bg-muted/30 backdrop-blur-sm">
                   <div className="p-4 space-y-4">
                     
                     {/* Travel Info Cards */}
                     <div className="grid gap-3">
                       
                       {/* Date Card */}
-                      <div className="group relative overflow-hidden rounded-lg bg-gradient-to-r from-primary to-primary/80 p-3 text-primary-foreground shadow-md transition-all duration-300 hover:shadow-lg">
-                        <div className="absolute inset-0 bg-gradient-to-r from-background/10 to-transparent"></div>
+                      <div className="group relative rounded-xl bg-card/90 supports-[backdrop-filter]:bg-card/70 backdrop-blur-md border border-border/50 p-4 text-foreground shadow-sm hover:shadow-md ring-1 ring-border/40">
+                        
                         <div className="relative z-10">
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
@@ -1250,8 +1250,8 @@ export function ItineraryBuilder({
                         <h3 className="text-sm font-semibold text-foreground">Travel Timeline</h3>
                       </div>
                       
-                      <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-card to-card/50 backdrop-blur-sm border border-border/40 p-4 hover:shadow-md transition-all duration-300 min-h-[80px] flex items-center justify-center">
-                        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div className="relative rounded-xl bg-card/80 supports-[backdrop-filter]:bg-card/60 backdrop-blur-md border border-border/50 p-4 hover:shadow-md transition-all duration-300 min-h-[80px] flex items-center justify-center ring-1 ring-border/40">
+                        
                         <div className="relative z-10">
                           <div className="flex items-center justify-between mb-4">
                             <div className="text-foreground">
@@ -1288,7 +1288,7 @@ export function ItineraryBuilder({
                           </Badge>
                         </div>
                         
-                        <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-card to-card/50 backdrop-blur-sm border border-border/40 p-4 hover:shadow-md transition-all duration-300 min-h-[80px]">
+                        <div className="relative rounded-xl bg-card/80 supports-[backdrop-filter]:bg-card/60 backdrop-blur-md border border-border/50 p-4 hover:shadow-md transition-all duration-300 min-h-[80px] ring-1 ring-border/40">
                           <div className="relative z-10 flex flex-wrap gap-2">
                             {currentItinerary.locations.map((location, index) => <div key={location.id} className="flex items-center gap-2 px-3 py-2 bg-background/60 backdrop-blur-sm rounded-md border border-border/30 hover:bg-background/80 transition-all duration-200">
                                 <div className="flex items-center justify-center w-5 h-5 bg-gradient-to-br from-primary/20 to-primary/10 rounded-md">
