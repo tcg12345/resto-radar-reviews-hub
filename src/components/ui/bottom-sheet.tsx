@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
+import { X } from 'lucide-react';
 
 interface BottomSheetProps {
   open: boolean;
@@ -73,7 +74,7 @@ export function BottomSheet({ open, onOpenChange, children, className }: BottomS
       {/* Bottom Sheet */}
       <div 
         className={cn(
-          "fixed bottom-0 left-0 right-0 bg-background border-t rounded-t-3xl shadow-xl",
+          "fixed bottom-0 left-0 right-0 bg-background border-t rounded-t-3xl shadow-xl relative",
           "animate-in slide-in-from-bottom duration-300",
           "max-h-[95vh] flex flex-col overflow-hidden",
           className
@@ -100,6 +101,15 @@ export function BottomSheet({ open, onOpenChange, children, className }: BottomS
           <div className="w-12 h-1.5 bg-muted-foreground/30 rounded-full" />
         </div>
         
+        <button
+          type="button"
+          onClick={() => onOpenChange(false)}
+          className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-muted/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+          aria-label="Close"
+        >
+          <X className="h-4 w-4" />
+        </button>
+
         {children}
       </div>
     </>
