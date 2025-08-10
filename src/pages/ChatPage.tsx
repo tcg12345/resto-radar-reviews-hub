@@ -317,7 +317,7 @@ export function ChatPage() {
   return (
     <div className="fixed inset-0 flex flex-col bg-background">
       {/* Header */}
-      <div className="flex-shrink-0 bg-background/95 backdrop-blur-sm border-b">
+      <div className="flex-shrink-0 bg-background/95 backdrop-blur-sm border-b pt-safe-area-top">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
             <Button

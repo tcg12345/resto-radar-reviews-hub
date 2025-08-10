@@ -526,7 +526,7 @@ export function MobileChatWindow({ roomId, onBack }: MobileChatWindowProps) {
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Mobile Header */}
-      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b">
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b pt-safe-area-top">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <Button
