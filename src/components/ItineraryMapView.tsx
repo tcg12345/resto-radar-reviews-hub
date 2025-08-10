@@ -325,7 +325,7 @@ export function ItineraryMapView({ events, hotels = [], isOpen, onClose }: Itine
   }
 
   return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50">
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[100]">
       <div className="relative w-full h-full">
         {/* Map Container */}
         <div ref={mapContainer} className="w-full h-full" />
