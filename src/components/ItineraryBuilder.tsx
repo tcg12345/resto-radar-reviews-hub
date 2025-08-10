@@ -595,9 +595,30 @@ export function ItineraryBuilder({
 
   // Removed auto-creation - now requires manual button click
 
-  const canCreateItinerary = isMultiCity ? locations.length > 0 && locations.every(loc =>
-  // Either has specific dates OR has length of stay configured
-  loc.startDate && loc.endDate || locationLengthOfStay[loc.id] && locationNights[loc.id] > 0) : useLengthOfStay ? locations.length > 0 && numberOfNights > 0 : dateRange.start && dateRange.end && locations.length > 0;
+  const canCreateItinerary = (() => {
+    const result = isMultiCity ? 
+      locations.length > 0 && locations.every(loc =>
+        // Either has specific dates OR has length of stay configured
+        (loc.startDate && loc.endDate) || (locationLengthOfStay[loc.id] && locationNights[loc.id] > 0)
+      ) : 
+      useLengthOfStay ? 
+        locations.length > 0 && numberOfNights > 0 : 
+        dateRange.start && dateRange.end && locations.length > 0;
+    
+    console.log('🔍 canCreateItinerary check:', {
+      result,
+      locations: locations.length,
+      isMultiCity,
+      useLengthOfStay,
+      numberOfNights,
+      dateRange: {
+        start: !!dateRange.start,
+        end: !!dateRange.end
+      }
+    });
+    
+    return result;
+  })();
   const handleAddEvent = (date: string) => {
     setSelectedDate(date);
     setEditingEvent(null);
@@ -849,7 +870,7 @@ export function ItineraryBuilder({
     
     if (isMobile) {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5 flex flex-col">
+        <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5">
           {/* Mobile Header */}
           <div className="safe-area-top bg-background/80 backdrop-blur-md border-b border-border/50">
             <div className="px-6 py-4">
@@ -861,7 +882,6 @@ export function ItineraryBuilder({
           {/* Content */}
           <div className="flex-1 overflow-y-auto">
             <div className="p-6 space-y-8">
-              {/* Quick Toggle */}
               <div className="flex items-center justify-center">
                 <div className="flex items-center space-x-3 bg-muted/30 backdrop-blur-sm rounded-full p-1.5 border border-border/50">
                   <div className="flex items-center space-x-2 px-3 py-1.5">
@@ -1082,9 +1102,9 @@ export function ItineraryBuilder({
             </div>
           </div>
 
-          {/* Fixed Bottom CTA */}
+          {/* Show CTA immediately when conditions are met */}
           {canCreateItinerary && (
-            <div className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-md border-t border-border/50 p-6 z-20">
+            <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border/50 p-6 z-50 safe-area-bottom">
               <Button 
                 onClick={isMultiCity ? () => {
                   createMultiCityItinerary();
@@ -1133,15 +1153,15 @@ export function ItineraryBuilder({
                 <CalendarDays className="w-5 h-5 mr-2" />
                 Create Itinerary
               </Button>
+              
+              {/* Status when button not available */}
               {!canCreateItinerary && locations.length > 0 && (
-                <p className="text-center text-muted-foreground text-sm mt-2">
+                <p className="text-center text-muted-foreground text-sm mt-3">
                   {isMultiCity ? "Set dates for all destinations" : "Select travel dates to continue"}
                 </p>
               )}
             </div>
           )}
-
-          {/* Saved Itineraries Access - Remove the fixed positioning */}
         </div>
       );
     }
