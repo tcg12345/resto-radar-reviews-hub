@@ -167,12 +167,12 @@ export default function TripDetailPage() {
 
 
       {/* Main Content */}
-      <div className="flex-1">
+      <div className="flex-1 min-h-0">
         {/* Desktop Layout */}
         <div className="hidden lg:block h-full">
           <ResizablePanelGroup direction="horizontal" className="h-full">
             {/* Enhanced Left Panel */}
-            <ResizablePanel defaultSize={30} minSize={25} maxSize={60} className="bg-background flex flex-col h-full">
+            <ResizablePanel defaultSize={30} minSize={25} maxSize={60} className="bg-background flex flex-col h-full min-h-0">
               {/* Panel Header with Controls */}
               <div className="p-4 border-b space-y-4">
                 <div className="flex items-center justify-between">
