@@ -205,11 +205,11 @@ export function useFriendProfileOptimized(targetUserId: string) {
   }, [loadProfileData]);
 
   const computedAnalytics = profileData ? {
-    topCuisines: profileData.cuisine_distribution.slice(0, 10),
-    ratingDistribution: profileData.rating_distribution,
-    geographicSpread: profileData.cities_distribution,
-    totalCities: profileData.cities_distribution.length,
-    highRatedCount: profileData.all_restaurants.filter(r => r.rating >= 4).length,
+    topCuisines: Array.isArray(profileData.cuisine_distribution) ? profileData.cuisine_distribution.slice(0, 10) : [],
+    ratingDistribution: profileData.rating_distribution || {},
+    geographicSpread: Array.isArray(profileData.cities_distribution) ? profileData.cities_distribution : [],
+    totalCities: Array.isArray(profileData.cities_distribution) ? profileData.cities_distribution.length : 0,
+    highRatedCount: Array.isArray(profileData.all_restaurants) ? profileData.all_restaurants.filter(r => (Number(r.rating) || 0) >= 4).length : 0,
   } : null;
 
   return {
