@@ -166,7 +166,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
       {/* Mobile Bottom Navigation - Modern Circular Design */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t border-border/20">
         <div className="pb-safe-area-bottom">
-          <div className="flex justify-around items-center px-4 pt-2 pb-6">
+          <div className="flex justify-around items-center px-4 pt-2 pb-2">
             {tabsMobile.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;

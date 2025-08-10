@@ -255,7 +255,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
     <>
       <div className="min-h-screen bg-background w-full">
       {/* Header */}
-      <div className="border-b bg-card w-full pt-safe-area-top">
+      <div className="border-b bg-card w-full">
         <div className="w-full max-w-none px-4 lg:px-6 py-4">
           <div className="flex items-center gap-4">
             <Button

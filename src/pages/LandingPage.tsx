@@ -96,7 +96,7 @@ export default function LandingPage() {
       {/* Mobile-Only Ultra Simple Version */}
       <div className="lg:hidden min-h-screen flex flex-col">
         {/* Mobile Navigation */}
-        <nav className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur border-b pt-safe-area-top">
+        <nav className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur border-b">
           <div className="flex h-12 items-center justify-between px-3">
             <GrubbyLogo size="sm" />
             <Button

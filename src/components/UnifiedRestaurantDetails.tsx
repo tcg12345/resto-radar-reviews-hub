@@ -333,7 +333,7 @@ export function UnifiedRestaurantDetails({
     return <>
         <div className="min-h-screen bg-background">
         {/* Header */}
-        {showBackButton && <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b pt-safe-area-top">
+        {showBackButton && <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
             <div className="flex items-center gap-4 p-4">
               <Button variant="ghost" size="sm" onClick={handleBack} className="h-8 w-8 p-0">
                 <ArrowLeft className="h-4 w-4" />
@@ -356,7 +356,7 @@ export function UnifiedRestaurantDetails({
   return <>
       <div className="min-h-screen bg-background">
       {/* Header */}
-      {showBackButton && <div className="sticky top-0 z-50 bg-background backdrop-blur border-b pt-safe-area-top">
+      {showBackButton && <div className="sticky top-0 z-50 bg-background backdrop-blur border-b">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="sm" onClick={handleBack} className="h-10 w-10 p-0 touch-manipulation" aria-label="Go back">
