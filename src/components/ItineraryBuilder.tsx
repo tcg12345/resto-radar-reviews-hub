@@ -826,8 +826,340 @@ export function ItineraryBuilder({
       onLoadItinerary(itinerary);
     }
   };
+  // Mobile detection hook
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkIsMobile = () => {
+      const userAgent = window.navigator.userAgent;
+      const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+      const isMobileDevice = mobileRegex.test(userAgent);
+      const isSmallScreen = window.innerWidth <= 1024;
+      
+      setIsMobile(isMobileDevice || isSmallScreen);
+    };
+
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+    return () => window.removeEventListener('resize', checkIsMobile);
+  }, []);
+
   if (!hasCreatedItinerary) {
     console.log('Rendering creation screen - hasCreatedItinerary:', hasCreatedItinerary);
+    
+    if (isMobile) {
+      return (
+        <div className="fixed inset-0 bg-gradient-to-br from-background via-background/95 to-primary/5 flex flex-col">
+          {/* Mobile Header */}
+          <div className="safe-area-top bg-background/80 backdrop-blur-md border-b border-border/50">
+            <div className="px-6 py-4">
+              <h1 className="text-lg font-semibold text-foreground">Plan Your Trip</h1>
+              <p className="text-sm text-muted-foreground mt-1">Create your perfect travel itinerary</p>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-6 space-y-8">
+              {/* Quick Toggle */}
+              <div className="flex items-center justify-center">
+                <div className="flex items-center space-x-3 bg-muted/30 backdrop-blur-sm rounded-full p-1.5 border border-border/50">
+                  <div className="flex items-center space-x-2 px-3 py-1.5">
+                    <Switch 
+                      id="multi-city" 
+                      checked={isMultiCity} 
+                      onCheckedChange={setIsMultiCity}
+                      className="scale-90"
+                    />
+                    <Label htmlFor="multi-city" className="text-sm font-medium">Multi-city</Label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Destination Input */}
+              <div className="space-y-4">
+                <div className="text-center space-y-2">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 backdrop-blur-sm border border-primary/20 mb-4">
+                    <MapPin className="w-8 h-8 text-primary" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-foreground">
+                    {isMultiCity ? 'Where to?' : 'Choose destination'}
+                  </h2>
+                  <p className="text-muted-foreground text-sm">
+                    {isMultiCity ? 'Add multiple cities to your trip' : 'Start with your main destination'}
+                  </p>
+                </div>
+                
+                <div className="space-y-4">
+                  <AmadeusCitySearch 
+                    value={currentLocationSearch} 
+                    onChange={setCurrentLocationSearch} 
+                    onCitySelect={handleLocationSelect} 
+                    placeholder={isMultiCity ? "Add another city..." : "Search destinations..."} 
+                    className="w-full h-12 text-base rounded-xl border-0 bg-muted/30 backdrop-blur-sm shadow-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Selected Destinations */}
+              {locations.length > 0 && (
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <h3 className="font-medium text-foreground">Your destinations</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {locations.map(location => (
+                      <div key={location.id} className="bg-card/50 backdrop-blur-sm rounded-xl p-4 border border-border/50 shadow-sm">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-2 h-2 rounded-full bg-primary"></div>
+                              <h4 className="font-medium text-foreground truncate">{location.name}</h4>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {location.country}{location.state && `, ${location.state}`}
+                            </p>
+                            
+                            {isMultiCity && (
+                              <div className="mt-3 space-y-3">
+                                <div className="flex items-center space-x-2">
+                                  <Switch 
+                                    id={`length-of-stay-${location.id}`} 
+                                    checked={locationLengthOfStay[location.id] || false} 
+                                    onCheckedChange={checked => {
+                                      setLocationLengthOfStay(prev => ({
+                                        ...prev,
+                                        [location.id]: checked
+                                      }));
+                                      if (checked) {
+                                        setLocationNights(prev => ({
+                                          ...prev,
+                                          [location.id]: prev[location.id] || 1
+                                        }));
+                                      }
+                                    }}
+                                    className="scale-90"
+                                  />
+                                  <Label htmlFor={`length-of-stay-${location.id}`} className="text-xs text-muted-foreground">
+                                    Set nights
+                                  </Label>
+                                </div>
+                                
+                                {locationLengthOfStay[location.id] ? (
+                                  <div className="space-y-2">
+                                    <Slider 
+                                      value={[locationNights[location.id] || 1]} 
+                                      onValueChange={value => {
+                                        const nights = value[0];
+                                        setLocationNights(prev => ({
+                                          ...prev,
+                                          [location.id]: nights
+                                        }));
+                                        const startDate = startOfDay(new Date());
+                                        const endDate = addDays(startDate, nights);
+                                        updateLocationDates(location.id, startDate, endDate);
+                                      }} 
+                                      max={30} 
+                                      min={1} 
+                                      step={1} 
+                                      className="w-full" 
+                                    />
+                                    <div className="text-center">
+                                      <span className="text-sm font-medium">{locationNights[location.id] || 1} nights</span>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        className={cn(
+                                          "w-full h-9 text-xs rounded-lg bg-muted/50", 
+                                          (!location.startDate || !location.endDate) && "text-muted-foreground"
+                                        )}
+                                      >
+                                        <CalendarIcon className="w-3 h-3 mr-1" />
+                                        {location.startDate && location.endDate 
+                                          ? `${format(location.startDate, 'MMM dd')} - ${format(location.endDate, 'MMM dd')}` 
+                                          : 'Select dates'
+                                        }
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                      <CalendarComponent 
+                                        mode="range" 
+                                        selected={{
+                                          from: location.startDate,
+                                          to: location.endDate
+                                        }} 
+                                        onSelect={range => {
+                                          updateLocationDates(location.id, range?.from || null, range?.to || null);
+                                        }} 
+                                        initialFocus 
+                                        className="p-3"
+                                      />
+                                    </PopoverContent>
+                                  </Popover>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => removeLocation(location.id)} 
+                            className="text-muted-foreground hover:text-destructive h-8 w-8 p-0 rounded-lg"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Date Selection for Single City */}
+              {!isMultiCity && locations.length > 0 && (
+                <div className="space-y-6">
+                  <div className="text-center space-y-2">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 backdrop-blur-sm border border-primary/20">
+                      <CalendarDays className="w-6 h-6 text-primary" />
+                    </div>
+                    <h3 className="font-medium text-foreground">When are you going?</h3>
+                  </div>
+                  
+                  <div className="flex items-center justify-center">
+                    <div className="flex items-center space-x-3 bg-muted/30 backdrop-blur-sm rounded-full p-1.5 border border-border/50">
+                      <div className="flex items-center space-x-2 px-3 py-1.5">
+                        <Switch 
+                          id="length-of-stay" 
+                          checked={useLengthOfStay} 
+                          onCheckedChange={setUseLengthOfStay}
+                          className="scale-90"
+                        />
+                        <Label htmlFor="length-of-stay" className="text-sm font-medium">Use nights</Label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {useLengthOfStay ? (
+                      <div className="bg-card/50 backdrop-blur-sm rounded-xl p-6 border border-border/50 space-y-4">
+                        <div className="text-center">
+                          <Label className="text-sm font-medium text-muted-foreground">Number of nights</Label>
+                        </div>
+                        <div className="space-y-4">
+                          <Slider 
+                            value={[numberOfNights]} 
+                            onValueChange={value => setNumberOfNights(value[0])} 
+                            max={30} 
+                            min={1} 
+                            step={1} 
+                            className="w-full" 
+                          />
+                          <div className="text-center">
+                            <span className="text-2xl font-bold text-foreground">{numberOfNights}</span>
+                            <span className="text-muted-foreground ml-2">
+                              {numberOfNights === 1 ? 'night' : 'nights'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-card/50 backdrop-blur-sm rounded-xl p-4 border border-border/50">
+                        <DateRangePicker 
+                          startDate={dateRange.start} 
+                          endDate={dateRange.end} 
+                          onDateRangeChange={handleDateRangeChange} 
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Fixed Bottom CTA */}
+          {canCreateItinerary && (
+            <div className="safe-area-bottom bg-background/90 backdrop-blur-md border-t border-border/50 p-6">
+              <Button 
+                onClick={isMultiCity ? () => {
+                  createMultiCityItinerary();
+                  setHasCreatedItinerary(true);
+                } : () => {
+                  if (useLengthOfStay) {
+                    const startDate = startOfDay(new Date());
+                    const endDate = addDays(startDate, numberOfNights);
+                    const locationNames = locations.map(loc => loc.name).join(' → ');
+                    const title = `${locationNames} - ${numberOfNights} ${numberOfNights === 1 ? 'Night' : 'Nights'}`;
+                    const newItinerary: Itinerary = {
+                      title,
+                      startDate,
+                      endDate,
+                      locations,
+                      isMultiCity,
+                      events: [],
+                      hotels: [],
+                      flights: [],
+                      userId: user?.id
+                    };
+                    setCurrentItinerary(newItinerary);
+                    setDateRange({ start: startDate, end: endDate });
+                    setHasCreatedItinerary(true);
+                    setWasCreatedWithLengthOfStay(true);
+                  } else if (dateRange.start && dateRange.end && locations.length > 0) {
+                    const locationNames = locations.map(loc => loc.name).join(' → ');
+                    const title = `${locationNames} Trip`;
+                    const newItinerary: Itinerary = {
+                      title,
+                      startDate: dateRange.start,
+                      endDate: dateRange.end,
+                      locations,
+                      isMultiCity,
+                      events: [],
+                      hotels: [],
+                      flights: [],
+                      userId: user?.id
+                    };
+                    setCurrentItinerary(newItinerary);
+                    setHasCreatedItinerary(true);
+                  }
+                }}
+                className="w-full h-12 text-base font-medium rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
+              >
+                <CalendarDays className="w-5 h-5 mr-2" />
+                Create Itinerary
+              </Button>
+              {!canCreateItinerary && locations.length > 0 && (
+                <p className="text-center text-muted-foreground text-sm mt-2">
+                  {isMultiCity ? "Set dates for all destinations" : "Select travel dates to continue"}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Saved Itineraries Tab Access */}
+          <div className="fixed bottom-20 right-6">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                // Create a simple modal or navigation to saved itineraries
+              }}
+              className="rounded-full bg-background/90 backdrop-blur-md border-border/50 shadow-lg"
+            >
+              <BookOpen className="w-4 h-4 mr-1" />
+              Saved
+            </Button>
+          </div>
+        </div>
+      );
+    }
+    
+    // Desktop version remains unchanged
     return <div className="w-full px-4 lg:px-6 space-y-6">
         <Tabs defaultValue="create" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
@@ -853,13 +1185,12 @@ export function ItineraryBuilder({
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Multi-city toggle */}
+                {/* ... keep existing code (all the existing desktop content) */}
                 <div className="flex items-center justify-center space-x-2">
                   <Switch id="multi-city" checked={isMultiCity} onCheckedChange={setIsMultiCity} />
                   <Label htmlFor="multi-city">Multi-city trip</Label>
                 </div>
 
-                {/* Location selection */}
                 <div className="space-y-4">
                   <div className="text-center">
                     <h3 className="font-medium mb-2">
@@ -868,7 +1199,6 @@ export function ItineraryBuilder({
                     <AmadeusCitySearch value={currentLocationSearch} onChange={setCurrentLocationSearch} onCitySelect={handleLocationSelect} placeholder={isMultiCity ? "Add another city..." : "Enter city name"} className="max-w-md mx-auto" />
                   </div>
 
-                  {/* Selected locations display */}
                   {locations.length > 0 && <div className="space-y-3">
                       <h4 className="font-medium text-sm text-center">Selected destinations:</h4>
                       {locations.map(location => <div key={location.id} className="flex items-center justify-between p-3 bg-accent/50 rounded-lg">
@@ -883,7 +1213,6 @@ export function ItineraryBuilder({
                           </div>
                           <div className="flex items-center gap-2">
                              {isMultiCity && <div className="flex flex-col items-center gap-2">
-                                 {/* Toggle for each location */}
                                  <div className="flex items-center space-x-2">
                                    <Switch id={`length-of-stay-${location.id}`} checked={locationLengthOfStay[location.id] || false} onCheckedChange={checked => {
                             setLocationLengthOfStay(prev => ({
@@ -891,7 +1220,6 @@ export function ItineraryBuilder({
                               [location.id]: checked
                             }));
                             if (checked) {
-                              // Initialize with 1 night if not set
                               setLocationNights(prev => ({
                                 ...prev,
                                 [location.id]: prev[location.id] || 1
@@ -903,7 +1231,7 @@ export function ItineraryBuilder({
                                    </Label>
                                  </div>
                                  
-                                 {locationLengthOfStay[location.id] ? (/* Number of nights selector */
+                                 {locationLengthOfStay[location.id] ? (
                         <div className="w-32 space-y-2">
                                      <Slider value={[locationNights[location.id] || 1]} onValueChange={value => {
                             const nights = value[0];
@@ -911,8 +1239,6 @@ export function ItineraryBuilder({
                               ...prev,
                               [location.id]: nights
                             }));
-
-                            // Calculate dates based on nights - use today as start
                             const startDate = startOfDay(new Date());
                             const endDate = addDays(startDate, nights);
                             updateLocationDates(location.id, startDate, endDate);
@@ -923,7 +1249,7 @@ export function ItineraryBuilder({
                                          {(locationNights[location.id] || 1) === 1 ? 'night' : 'nights'}
                                        </span>
                                      </div>
-                                   </div>) : (/* Date picker */
+                                   </div>) : (
                         <Popover>
                                      <PopoverTrigger asChild>
                                        <Button variant="outline" size="sm" className={cn("text-xs", (!location.startDate || !location.endDate) && "text-muted-foreground")}>
@@ -949,11 +1275,9 @@ export function ItineraryBuilder({
                     </div>}
                 </div>
 
-                {/* Date selection for single city trips */}
                 {!isMultiCity && locations.length > 0 && <div className="space-y-4">
                     <h3 className="font-medium text-center">Select travel dates</h3>
                     
-                    {/* Toggle between specific dates and length of stay */}
                     <div className="flex items-center justify-center space-x-2">
                       <Switch id="length-of-stay" checked={useLengthOfStay} onCheckedChange={setUseLengthOfStay} />
                       <Label htmlFor="length-of-stay">Use length of stay instead</Label>
@@ -977,25 +1301,14 @@ export function ItineraryBuilder({
                     </div>
                   </div>}
 
-                {/* Create itinerary button */}
                 {canCreateItinerary && <div className="flex justify-center pt-4">
                     <Button onClick={isMultiCity ? () => {
                   createMultiCityItinerary();
                   setHasCreatedItinerary(true);
                 } : () => {
                   if (useLengthOfStay) {
-                    console.log('Creating single city itinerary with length of stay:', {
-                      numberOfNights,
-                      locations,
-                      useLengthOfStay
-                    });
-                    // Create dates based on number of nights - use today as start date
                     const startDate = startOfDay(new Date());
                     const endDate = addDays(startDate, numberOfNights);
-                    console.log('Calculated dates:', {
-                      startDate: startDate.toDateString(),
-                      endDate: endDate.toDateString()
-                    });
                     const locationNames = locations.map(loc => loc.name).join(' → ');
                     const title = `${locationNames} - ${numberOfNights} ${numberOfNights === 1 ? 'Night' : 'Nights'}`;
                     const newItinerary: Itinerary = {
@@ -1010,18 +1323,9 @@ export function ItineraryBuilder({
                       userId: user?.id
                     };
                     setCurrentItinerary(newItinerary);
-                    setDateRange({
-                      start: startDate,
-                      end: endDate
-                    });
+                    setDateRange({ start: startDate, end: endDate });
                     setHasCreatedItinerary(true);
-                    // Mark this itinerary as created with length of stay
                     setWasCreatedWithLengthOfStay(true);
-                    console.log('Created single city with length of stay:', {
-                      numberOfNights,
-                      wasCreatedWithLengthOfStay: true,
-                      newItinerary
-                    });
                   } else if (dateRange.start && dateRange.end && locations.length > 0) {
                     const locationNames = locations.map(loc => loc.name).join(' → ');
                     const title = `${locationNames} Trip`;
@@ -1045,7 +1349,6 @@ export function ItineraryBuilder({
                     </Button>
                   </div>}
 
-                {/* Status message */}
                 {!canCreateItinerary && locations.length > 0 && <div className="text-center text-muted-foreground text-sm">
                     {isMultiCity ? "Select dates for each destination to create your itinerary" : "Select travel dates to create your itinerary"}
                   </div>}
