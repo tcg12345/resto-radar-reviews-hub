@@ -67,33 +67,8 @@ export function useFriends() {
       // Handle friends data
       if (friendsResult.error) throw friendsResult.error;
       
-      // Get detailed stats for each friend
-      const friendIds = (friendsResult.data || []).map((f: any) => f.friend_id);
-      let friendsStats: any = {};
-      
-      if (friendIds.length > 0) {
-        // Fetch restaurant and wishlist counts for all friends
-        const { data: statsData } = await supabase
-          .from('restaurants')
-          .select('user_id, is_wishlist')
-          .in('user_id', friendIds);
-        
-        // Calculate counts for each friend
-        const statsByUser = (statsData || []).reduce((acc: any, restaurant: any) => {
-          if (!acc[restaurant.user_id]) {
-            acc[restaurant.user_id] = { restaurant_count: 0, wishlist_count: 0 };
-          }
-          if (restaurant.is_wishlist) {
-            acc[restaurant.user_id].wishlist_count++;
-          } else {
-            acc[restaurant.user_id].restaurant_count++;
-          }
-          return acc;
-        }, {});
-        
-        friendsStats = statsByUser;
-      }
-      
+      // Build mapped friends without heavy per-friend stats for instant load
+      const cacheKey = user ? `friends:list:${user.id}` : 'friends:list';
       const mappedFriends: Friend[] = (friendsResult.data || []).map((friend: any) => ({
         id: friend.friend_id,
         username: friend.username || '',
@@ -101,10 +76,9 @@ export function useFriends() {
         avatar_url: friend.avatar_url,
         is_public: friend.is_public || false,
         score: friend.score || 0,
-        restaurant_count: friendsStats[friend.friend_id]?.restaurant_count || 0,
-        wishlist_count: friendsStats[friend.friend_id]?.wishlist_count || 0
       }));
       setFriends(mappedFriends);
+      try { localStorage.setItem(cacheKey, JSON.stringify(mappedFriends)); } catch {}
 
       // Handle friend requests
       if (receivedRequestsResult.error) throw receivedRequestsResult.error;
@@ -225,9 +199,24 @@ export function useFriends() {
       return;
     }
 
-    setIsLoading(true);
+    // Instant hydrate from local cache for near-instant UI
+    let seeded = false;
+    const cacheKey = `friends:list:${user.id}`;
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        const parsed = JSON.parse(cached) as Friend[];
+        if (Array.isArray(parsed)) {
+          setFriends(parsed);
+          setIsLoading(false);
+          seeded = true;
+        }
+      }
+    } catch {}
     
-    // Load initial data with single optimized call
+    if (!seeded) setIsLoading(true);
+    
+    // Load fresh data in background
     fetchAllFriendsData().finally(() => {
       setIsLoading(false);
     });

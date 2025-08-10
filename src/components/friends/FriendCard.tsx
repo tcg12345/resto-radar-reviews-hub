@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { Star, MapPin, ChefHat, Eye, MessageCircle, User, MoreVertical } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { useFriendProfiles } from '@/contexts/FriendProfilesContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface FriendCardProps {
   friend: {
@@ -24,11 +26,44 @@ interface FriendCardProps {
   className?: string;
 }
 
-export function FriendCard({ friend, onViewProfile, onChat, onRemove, className }: FriendCardProps) {
+function FriendCardComponent({ friend, onViewProfile, onChat, onRemove, className }: FriendCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const { getFriendProfile } = useFriendProfiles();
+  const [counts, setCounts] = useState({
+    rated: friend.restaurant_count ?? 0,
+    wishlist: friend.wishlist_count ?? 0,
+  });
+
+  useEffect(() => {
+    if (counts.rated || counts.wishlist) return;
+    const observer = new IntersectionObserver((entries) => {
+      const entry = entries[0];
+      if (entry.isIntersecting) {
+        // Try context cache first for instant stats
+        const cached = getFriendProfile(friend.id);
+        if (cached) {
+          setCounts({ rated: cached.rated_count, wishlist: cached.wishlist_count });
+        } else {
+          // Fallback: quick RPC for counts only
+          supabase.rpc('get_user_stats', { target_user_id: friend.id })
+            .then(({ data }) => {
+              if (Array.isArray(data) && data[0]) {
+                setCounts({ rated: Number(data[0].rated_count) || 0, wishlist: Number(data[0].wishlist_count) || 0 });
+              }
+            })
+            
+        }
+        observer.disconnect();
+      }
+    }, { rootMargin: '200px' });
+
+    if (cardRef.current) observer.observe(cardRef.current);
+    return () => observer.disconnect();
+  }, [friend.id, counts.rated, counts.wishlist, getFriendProfile]);
 
   return (
-    <Card 
+    <Card ref={cardRef} 
       className={cn(
         "group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.02] border-l-4 border-l-primary/20 hover:border-l-primary",
         "bg-gradient-to-br from-background to-muted/30",
@@ -42,7 +77,7 @@ export function FriendCard({ friend, onViewProfile, onChat, onRemove, className 
           <div className="flex items-center gap-3">
             <div className="relative">
               <Avatar className="h-12 w-12 ring-2 ring-primary/10 transition-all group-hover:ring-primary/30">
-                <AvatarImage src={friend.avatar_url || ''} />
+                <AvatarImage src={friend.avatar_url || ''} loading="lazy" decoding="async" />
                 <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold">
                   {friend.username?.charAt(0).toUpperCase()}
                 </AvatarFallback>
@@ -103,14 +138,14 @@ export function FriendCard({ friend, onViewProfile, onChat, onRemove, className 
           <div className="text-center">
             <div className="flex items-center justify-center mb-1">
               <ChefHat className="h-4 w-4 text-primary mr-1" />
-              <span className="font-semibold text-lg">{friend.restaurant_count || 0}</span>
+              <span className="font-semibold text-lg">{counts.rated}</span>
             </div>
             <p className="text-xs text-muted-foreground">Rated</p>
           </div>
           <div className="text-center">
             <div className="flex items-center justify-center mb-1">
               <Eye className="h-4 w-4 text-secondary mr-1" />
-              <span className="font-semibold text-lg">{friend.wishlist_count || 0}</span>
+              <span className="font-semibold text-lg">{counts.wishlist}</span>
             </div>
             <p className="text-xs text-muted-foreground">Wishlist</p>
           </div>
@@ -148,3 +183,5 @@ export function FriendCard({ friend, onViewProfile, onChat, onRemove, className 
     </Card>
   );
 }
+
+export const FriendCard = memo(FriendCardComponent);
