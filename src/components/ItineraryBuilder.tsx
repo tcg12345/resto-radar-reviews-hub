@@ -849,7 +849,7 @@ export function ItineraryBuilder({
     
     if (isMobile) {
       return (
-        <div className="fixed inset-0 bg-gradient-to-br from-background via-background/95 to-primary/5 flex flex-col">
+        <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5 flex flex-col">
           {/* Mobile Header */}
           <div className="safe-area-top bg-background/80 backdrop-blur-md border-b border-border/50">
             <div className="px-6 py-4">
@@ -1084,7 +1084,7 @@ export function ItineraryBuilder({
 
           {/* Fixed Bottom CTA */}
           {canCreateItinerary && (
-            <div className="safe-area-bottom bg-background/90 backdrop-blur-md border-t border-border/50 p-6">
+            <div className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-md border-t border-border/50 p-6 z-20">
               <Button 
                 onClick={isMultiCity ? () => {
                   createMultiCityItinerary();
@@ -1141,20 +1141,7 @@ export function ItineraryBuilder({
             </div>
           )}
 
-          {/* Saved Itineraries Tab Access */}
-          <div className="fixed bottom-20 right-6">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                // Create a simple modal or navigation to saved itineraries
-              }}
-              className="rounded-full bg-background/90 backdrop-blur-md border-border/50 shadow-lg"
-            >
-              <BookOpen className="w-4 h-4 mr-1" />
-              Saved
-            </Button>
-          </div>
+          {/* Saved Itineraries Access - Remove the fixed positioning */}
         </div>
       );
     }
