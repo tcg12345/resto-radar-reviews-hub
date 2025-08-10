@@ -1172,8 +1172,8 @@ export function ItineraryBuilder({
           )}
 
           {/* Saved Itineraries Sheet */}
-          <BottomSheet open={savedOpen} onOpenChange={setSavedOpen} className="max-h-[85vh] rounded-t-3xl">
-            <BottomSheetHeader className="px-4 py-3 border-b bg-background/95 backdrop-blur rounded-t-3xl">
+          <BottomSheet open={savedOpen} onOpenChange={setSavedOpen} className="h-[92vh] max-h-[95vh] rounded-t-3xl">
+            <BottomSheetHeader className="px-4 py-4 border-b bg-background/95 backdrop-blur rounded-t-3xl">
               <div className="text-base font-semibold">Saved Itineraries</div>
             </BottomSheetHeader>
             <BottomSheetContent className="p-0">

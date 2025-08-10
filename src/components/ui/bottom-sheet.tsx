@@ -75,7 +75,7 @@ export function BottomSheet({ open, onOpenChange, children, className }: BottomS
         className={cn(
           "fixed bottom-0 left-0 right-0 bg-background border-t rounded-t-3xl shadow-xl",
           "animate-in slide-in-from-bottom duration-300",
-          "max-h-[90vh] flex flex-col",
+          "max-h-[95vh] flex flex-col",
           className
         )}
         style={{ 
@@ -83,16 +83,18 @@ export function BottomSheet({ open, onOpenChange, children, className }: BottomS
           transform: `translateY(${translateY}px)`,
           transition: draggingRef.current ? 'none' : 'transform 200ms ease-out'
         }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
       >
         {/* Drag Handle */}
         <div 
-          className="flex justify-center py-3 cursor-grab active:cursor-grabbing select-none"
+          className="flex justify-center py-4 cursor-grab active:cursor-grabbing select-none"
           onClick={() => onOpenChange(false)}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          aria-label="Close"
+          role="button"
         >
-          <div className="w-10 h-1.5 bg-muted-foreground/30 rounded-full" />
+          <div className="w-12 h-1.5 bg-muted-foreground/30 rounded-full" />
         </div>
         
         {children}
