@@ -71,8 +71,8 @@ export default function FriendsRatingsPage() {
         )}
 
         {reviews.map((r) => (
-          <Card key={r.review_id} className="overflow-hidden">
-            <CardContent className="p-3">
+          <Card key={r.review_id} className="overflow-hidden rounded-xl border border-border/60 shadow-sm animate-fade-in bg-card">
+            <CardContent className="p-4">
               {/* Mobile-optimized header */}
               <div className="flex items-center gap-3 mb-3">
                 <Avatar className="h-8 w-8 shrink-0">
@@ -88,8 +88,8 @@ export default function FriendsRatingsPage() {
                 </div>
               </div>
 
-              {/* Mobile-optimized rating display */}
-              <div className="flex items-center gap-2 mb-3 p-2 bg-muted/30 rounded-lg">
+              {/* Modern rating pill */}
+              <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-primary/5 border border-primary/10 rounded-full">
                 <StarRating rating={Number(r.overall_rating) || 0} readonly={true} size="sm" />
                 <span className="text-lg font-bold text-primary">{Number(r.overall_rating).toFixed(1)}</span>
                 <span className="text-xs text-muted-foreground ml-auto">out of 5</span>
@@ -97,8 +97,8 @@ export default function FriendsRatingsPage() {
 
               {/* Review text with better mobile formatting */}
               {r.review_text && (
-                <div className="mt-3">
-                  <p className="text-sm leading-relaxed text-foreground line-clamp-4 break-words">
+                <div className="mt-2">
+                  <p className="text-sm leading-relaxed text-foreground break-words whitespace-pre-wrap">
                     {r.review_text}
                   </p>
                 </div>
