@@ -13,6 +13,7 @@ import { CommunityRating } from '@/components/CommunityRating';
 import { CommunityPhotoGallery } from '@/components/CommunityPhotoGallery';
 import { FriendPhotoGallery } from '@/components/FriendPhotoGallery';
 import { useRestaurantReviews } from '@/hooks/useRestaurantReviews';
+import { UnifiedRestaurantDetails } from '@/components/UnifiedRestaurantDetails';
 interface GooglePlaceResult {
   place_id: string;
   name: string;
