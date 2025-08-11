@@ -124,6 +124,27 @@ export default function FeedPage({ onNavigate }: FeedPageProps) {
   const [feedData, setFeedData] = useState<any[]>([]);
   const feedRef = useRef<HTMLDivElement>(null);
 
+  // SEO: title, description, canonical
+  useEffect(() => {
+    document.title = 'Feed | Discover Restaurants and Friends Activity';
+    const desc = "Explore friends’ restaurant activity, expert reviews, and discovery picks in one engaging feed.";
+    let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.name = 'description';
+      document.head.appendChild(meta);
+    }
+    meta.content = desc;
+
+    let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.rel = 'canonical';
+      document.head.appendChild(canonical);
+    }
+    canonical.href = window.location.href;
+  }, []);
+
   // Load initial feed data
   useEffect(() => {
     loadFeedData();
@@ -133,10 +154,15 @@ export default function FeedPage({ onNavigate }: FeedPageProps) {
   const loadFeedData = async () => {
     setIsLoading(true);
     try {
+      // Use local arrays to avoid state timing issues when composing feed
+      let localFriendActivities: FriendActivity[] = [];
+      let localExpertReviews: ExpertReview[] = [];
+      let localDiscoveryBlocks: DiscoveryBlock[] = [];
+
       // Load friend activities
       if (activeTab === 'all' || activeTab === 'friends') {
         const friendsData = await fetchAllFriendsRestaurants(1, 10);
-        const activities: FriendActivity[] = friendsData.activities.map((activity: any) => ({
+        localFriendActivities = (friendsData.activities || []).map((activity: any) => ({
           id: activity.id,
           friend_id: activity.friend_id,
           friend_username: activity.friend_username,
@@ -153,12 +179,11 @@ export default function FeedPage({ onNavigate }: FeedPageProps) {
           notes: activity.notes,
           created_at: activity.created_at
         }));
-        setFriendActivities(activities);
       }
 
       // Mock expert reviews for now
       if (activeTab === 'all' || activeTab === 'experts') {
-        const mockExpertReviews: ExpertReview[] = [
+        localExpertReviews = [
           {
             id: '1',
             expert_name: 'Chef Marcus Williams',
@@ -183,60 +208,49 @@ export default function FeedPage({ onNavigate }: FeedPageProps) {
             created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()
           }
         ];
-        setExpertReviews(mockExpertReviews);
       }
 
       // Mock discovery blocks
       if (activeTab === 'all') {
-        const mockDiscoveryBlocks: DiscoveryBlock[] = [
+        localDiscoveryBlocks = [
           {
             id: '1',
             title: 'Best New Openings in Your City',
             subtitle: 'Fresh dining experiences trending now',
             type: 'new_openings',
             restaurants: [
-              {
-                id: '1',
-                name: 'Noma Copenhagen',
-                city: 'Copenhagen',
-                cuisine: 'Nordic',
-                photos: ['/placeholder.svg'],
-                rating: 9.5,
-                price_range: 4
-              },
-              {
-                id: '2',
-                name: 'Hawker Chan',
-                city: 'Singapore',
-                cuisine: 'Asian',
-                photos: ['/placeholder.svg'],
-                rating: 9.0,
-                price_range: 1
-              }
+              { id: '1', name: 'Noma Copenhagen', city: 'Copenhagen', cuisine: 'Nordic', photos: ['/placeholder.svg'], rating: 9.5, price_range: 4 },
+              { id: '2', name: 'Hawker Chan', city: 'Singapore', cuisine: 'Asian', photos: ['/placeholder.svg'], rating: 9.0, price_range: 1 }
             ]
           }
         ];
-        setDiscoveryBlocks(mockDiscoveryBlocks);
       }
+
+      // Update state for UI
+      setFriendActivities(localFriendActivities);
+      setExpertReviews(localExpertReviews);
+      setDiscoveryBlocks(localDiscoveryBlocks);
 
       // Combine and sort all feed items
-      const allFeedItems = [];
-      
+      const allFeedItems: any[] = [];
       if (activeTab === 'all') {
         allFeedItems.push(
-          ...friendActivities.map(item => ({ ...item, type: 'friend_activity' })),
-          ...expertReviews.map(item => ({ ...item, type: 'expert_review' })),
-          ...discoveryBlocks.map(item => ({ ...item, type: 'discovery_block' }))
+          ...localFriendActivities.map(item => ({ ...item, type: 'friend_activity' })),
+          ...localExpertReviews.map(item => ({ ...item, type: 'expert_review' })),
+          ...localDiscoveryBlocks.map(item => ({ ...item, type: 'discovery_block', created_at: (item as any).created_at || new Date().toISOString() }))
         );
       } else if (activeTab === 'friends') {
-        allFeedItems.push(...friendActivities.map(item => ({ ...item, type: 'friend_activity' })));
+        allFeedItems.push(...localFriendActivities.map(item => ({ ...item, type: 'friend_activity' })));
       } else if (activeTab === 'experts') {
-        allFeedItems.push(...expertReviews.map(item => ({ ...item, type: 'expert_review' })));
+        allFeedItems.push(...localExpertReviews.map(item => ({ ...item, type: 'expert_review' })));
       }
 
-      // Sort by created_at
-      allFeedItems.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      
+      const getSafeTime = (d: any) => {
+        const t = new Date(d as any).getTime();
+        return isNaN(t) ? 0 : t;
+      };
+      allFeedItems.sort((a, b) => getSafeTime(b.created_at) - getSafeTime(a.created_at));
+
       setFeedData(allFeedItems);
     } catch (error) {
       console.error('Error loading feed data:', error);
@@ -374,6 +388,7 @@ export default function FeedPage({ onNavigate }: FeedPageProps) {
                   src={activity.restaurant_photos[0]}
                   alt={activity.restaurant_name}
                   className="w-16 h-16 rounded-lg object-cover"
+                  loading="lazy"
                 />
               </div>
             )}
@@ -434,6 +449,7 @@ export default function FeedPage({ onNavigate }: FeedPageProps) {
                   src={photo}
                   alt={`${activity.restaurant_name} photo ${index + 2}`}
                   className="w-20 h-20 rounded object-cover flex-shrink-0"
+                  loading="lazy"
                 />
               ))}
               {activity.restaurant_photos.length > 4 && (
@@ -453,6 +469,7 @@ export default function FeedPage({ onNavigate }: FeedPageProps) {
               size="sm"
               onClick={() => handleLike(activity.id, 'friend_activity')}
               className="flex items-center gap-1 text-muted-foreground hover:text-primary"
+              title="Like"
             >
               <ThumbsUp className="h-4 w-4" />
               <span className="text-xs">Like</span>
@@ -462,6 +479,7 @@ export default function FeedPage({ onNavigate }: FeedPageProps) {
               size="sm"
               onClick={() => handleComment(activity.id)}
               className="flex items-center gap-1 text-muted-foreground hover:text-primary"
+              title="Comment"
             >
               <MessageCircle className="h-4 w-4" />
               <span className="text-xs">Comment</span>
@@ -471,6 +489,7 @@ export default function FeedPage({ onNavigate }: FeedPageProps) {
               size="sm"
               onClick={() => handleShare(activity.id)}
               className="flex items-center gap-1 text-muted-foreground hover:text-primary"
+              title="Share"
             >
               <Share2 className="h-4 w-4" />
               <span className="text-xs">Share</span>
@@ -482,6 +501,8 @@ export default function FeedPage({ onNavigate }: FeedPageProps) {
               size="sm"
               onClick={() => handleAddToWishlist(activity)}
               className="flex items-center gap-1 text-muted-foreground hover:text-red-500"
+              title="Add to wishlist"
+              aria-label="Add to wishlist"
             >
               <Heart className="h-4 w-4" />
             </Button>
@@ -490,6 +511,7 @@ export default function FeedPage({ onNavigate }: FeedPageProps) {
               size="sm"
               onClick={() => navigate(`/restaurant/${activity.restaurant_name}`)}
               className="flex items-center gap-1 text-muted-foreground hover:text-primary"
+              title="View restaurant"
             >
               <Eye className="h-4 w-4" />
             </Button>
@@ -570,6 +592,7 @@ export default function FeedPage({ onNavigate }: FeedPageProps) {
               variant="ghost"
               size="sm"
               className="flex items-center gap-1 text-muted-foreground hover:text-primary"
+              title="Helpful"
             >
               <ThumbsUp className="h-4 w-4" />
               <span className="text-xs">Helpful</span>
@@ -578,6 +601,7 @@ export default function FeedPage({ onNavigate }: FeedPageProps) {
               variant="ghost"
               size="sm"
               className="flex items-center gap-1 text-muted-foreground hover:text-primary"
+              title="Discuss"
             >
               <MessageCircle className="h-4 w-4" />
               <span className="text-xs">Discuss</span>
@@ -586,6 +610,7 @@ export default function FeedPage({ onNavigate }: FeedPageProps) {
               variant="ghost"
               size="sm"
               className="flex items-center gap-1 text-muted-foreground hover:text-primary"
+              title="Share"
             >
               <Share2 className="h-4 w-4" />
               <span className="text-xs">Share</span>
@@ -632,6 +657,7 @@ export default function FeedPage({ onNavigate }: FeedPageProps) {
                   src={restaurant.photos[0] || '/placeholder.svg'}
                   alt={restaurant.name}
                   className="w-12 h-12 rounded-lg object-cover"
+                  loading="lazy"
                 />
                 <div className="flex-1">
                   <h4 className="font-semibold text-sm">{restaurant.name}</h4>
@@ -825,70 +851,116 @@ export default function FeedPage({ onNavigate }: FeedPageProps) {
       </div>
 
       {/* Main Feed Content */}
-      <div ref={feedRef} className="px-4 pt-4 pb-20 space-y-4">
-        {/* Friend Suggestions Row */}
-        {activeTab === 'all' && renderSuggestedFriendsRow()}
+      <div ref={feedRef} className="px-4 pt-4 pb-20 lg:grid lg:grid-cols-12 lg:gap-6">
+        <div className="space-y-4 lg:col-span-8">
+          {/* Friend Suggestions Row */}
+          {activeTab === 'all' && renderSuggestedFriendsRow()}
 
-        {/* Loading State */}
-        {isLoading ? (
-          <div className="space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <FriendCardSkeleton key={i} />
-            ))}
-          </div>
-        ) : (
-          <>
-            {/* Feed Items */}
+          {/* Loading State */}
+          {isLoading ? (
             <div className="space-y-4">
-              {feedData.map((item, index) => {
-                if (item.type === 'friend_activity') {
-                  return renderFriendActivityCard(item as FriendActivity);
-                } else if (item.type === 'expert_review') {
-                  return renderExpertReviewCard(item as ExpertReview);
-                } else if (item.type === 'discovery_block') {
-                  return renderDiscoveryBlock(item as DiscoveryBlock);
-                }
-                return null;
-              })}
+              {[...Array(5)].map((_, i) => (
+                <FriendCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : (
+            <>
+              {/* Feed Items */}
+              <div className="space-y-4">
+                {feedData.map((item, index) => {
+                  if (item.type === 'friend_activity') {
+                    return renderFriendActivityCard(item as FriendActivity);
+                  } else if (item.type === 'expert_review') {
+                    return renderExpertReviewCard(item as ExpertReview);
+                  } else if (item.type === 'discovery_block') {
+                    return renderDiscoveryBlock(item as DiscoveryBlock);
+                  }
+                  return null;
+                })}
 
-              {/* Date Separators */}
-              {feedData.length > 10 && (
-                <div className="flex items-center gap-3 py-4">
-                  <div className="flex-1 h-px bg-border"></div>
-                  <span className="text-xs text-muted-foreground bg-background px-3">Yesterday</span>
-                  <div className="flex-1 h-px bg-border"></div>
+                {/* Date Separators (basic example) */}
+                {feedData.length > 10 && (
+                  <div className="flex items-center gap-3 py-4">
+                    <div className="flex-1 h-px bg-border"></div>
+                    <span className="text-xs text-muted-foreground bg-background px-3">Yesterday</span>
+                    <div className="flex-1 h-px bg-border"></div>
+                  </div>
+                )}
+              </div>
+
+              {/* Infinite Scroll Loader */}
+              <InfiniteScrollLoader
+                hasMore={hasMore}
+                isLoading={isLoadingMore}
+                onLoadMore={loadMoreContent}
+                loadMoreText="Load More Posts"
+              />
+
+              {/* Empty State */}
+              {feedData.length === 0 && (
+                <div className="text-center py-12">
+                  <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="font-semibold text-lg mb-2">No posts yet</h3>
+                  <p className="text-muted-foreground mb-4">
+                    {activeTab === 'friends' 
+                      ? "Follow friends to see their restaurant activity here"
+                      : activeTab === 'experts'
+                      ? "Expert reviews will appear here"
+                      : "Your personalized feed will appear here"
+                    }
+                  </p>
+                  <Button onClick={() => navigate('/friends')}>
+                    Find Friends
+                  </Button>
                 </div>
               )}
-            </div>
+            </>
+          )}
+        </div>
 
-            {/* Infinite Scroll Loader */}
-            <InfiniteScrollLoader
-              hasMore={hasMore}
-              isLoading={isLoadingMore}
-              onLoadMore={loadMoreContent}
-              loadMoreText="Load More Posts"
-            />
-
-            {/* Empty State */}
-            {feedData.length === 0 && (
-              <div className="text-center py-12">
-                <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="font-semibold text-lg mb-2">No posts yet</h3>
-                <p className="text-muted-foreground mb-4">
-                  {activeTab === 'friends' 
-                    ? "Follow friends to see their restaurant activity here"
-                    : activeTab === 'experts'
-                    ? "Expert reviews will appear here"
-                    : "Your personalized feed will appear here"
-                  }
-                </p>
-                <Button onClick={() => navigate('/friends')}>
-                  Find Friends
-                </Button>
+        {/* Sidebar (desktop) */}
+        <aside className="hidden lg:block lg:col-span-4 space-y-4">
+          <Card className="animate-fade-in">
+            <CardContent className="p-4">
+              <h3 className="font-semibold mb-3 text-sm">Friend Requests</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Avatar className="h-8 w-8"><AvatarFallback>FR</AvatarFallback></Avatar>
+                    <div>
+                      <div className="text-sm font-medium">Alex Johnson</div>
+                      <div className="text-xs text-muted-foreground">2 mutual friends</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button size="sm" variant="secondary"><CheckCircle className="h-3 w-3 mr-1" />Accept</Button>
+                    <Button size="sm" variant="ghost"><X className="h-3 w-3 mr-1" />Ignore</Button>
+                  </div>
+                </div>
               </div>
-            )}
-          </>
-        )}
+            </CardContent>
+          </Card>
+
+          <Card className="animate-fade-in">
+            <CardContent className="p-4">
+              <h3 className="font-semibold mb-3 text-sm">Upcoming Trips</h3>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <div>Sarah's NYC Weekend · Aug 28-30</div>
+                <div>Mike's Tokyo Food Tour · Sep 10-18</div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="animate-fade-in">
+            <CardContent className="p-4">
+              <h3 className="font-semibold mb-3 text-sm">Nearby Events</h3>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <div>Farm-to-Table Festival · Saturday</div>
+                <div>Wine Tasting at Vinoteca · Tonight</div>
+              </div>
+            </CardContent>
+          </Card>
+        </aside>
       </div>
     </div>
   );
