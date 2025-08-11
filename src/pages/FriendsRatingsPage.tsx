@@ -74,7 +74,7 @@ export default function FriendsRatingsPage() {
         {reviews.length > 0 && (
           <ul className="divide-y divide-border/60">
             {reviews.map((r) => (
-              <li key={r.review_id} className="relative py-4 pl-12 pr-2 animate-fade-in">
+              <li key={r.review_id} className="relative py-4 pl-12 pr-4 animate-fade-in">
                 {/* Avatar on the left */}
                 <div className="absolute left-0 top-4">
                   <Avatar className="h-8 w-8 ring-1 ring-border">
@@ -85,9 +85,9 @@ export default function FriendsRatingsPage() {
 
                 <div className="min-w-0">
                   {/* Header row: name + rating pill */}
-                  <div className="flex items-center gap-2">
+                  <div className="grid grid-cols-[1fr_auto] items-center gap-2">
                     <div className="font-medium text-sm truncate">{r.username || 'Anonymous'}</div>
-                    <div className="ml-auto inline-flex items-center gap-1 rounded-full border border-primary/10 bg-primary/5 px-2.5 py-1">
+                    <div className="inline-flex items-center gap-1 rounded-full border border-primary/10 bg-primary/5 px-2 py-1 shrink-0 mr-1">
                       <StarRating rating={Number(r.overall_rating) || 0} readonly={true} size="sm" />
                       <span className="text-xs font-semibold text-primary">{Number(r.overall_rating).toFixed(1)}</span>
                     </div>
