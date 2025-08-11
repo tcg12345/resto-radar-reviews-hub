@@ -189,9 +189,9 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
     const { processImagesInParallel } = await import('@/utils/imageUtils');
     
     return processImagesInParallel(photos, {
-      maxWidth: 800,
-      maxHeight: 800,
-      quality: 0.6,
+      maxWidth: 640,
+      maxHeight: 640,
+      quality: 0.5,
       format: 'jpeg'
     }, onProgress);
   }, []);
@@ -345,7 +345,10 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       const combinedPhotos = [...updatedPhotos, ...newPhotoDataUrls];
       const combinedDishNames = [...updatedDishNames, ...(data.photoDishNames || [])];
       const combinedNotes = [...updatedNotes, ...(data.photoNotes || [])];
-      
+      try {
+        const approxSizeKb = Math.round(combinedPhotos.reduce((acc, s) => acc + (s?.length || 0), 0) / 1024);
+        console.debug('[updateRestaurant] combined photos count/sizeKB', combinedPhotos.length, approxSizeKb);
+      } catch {}
       // Geocode the address if it changed using the edge function
       let coordinates = {
         latitude: existingRestaurant.latitude,
@@ -369,7 +372,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       }
       
       // Update restaurant in Supabase
-      const { data: updated, error } = await supabase
+const { data: updated, error } = await supabase
         .from('restaurants')
         .update({
           name: data.name,
@@ -392,23 +395,47 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
           michelin_stars: data.michelinStars ?? null,
           website: (data as any).website ?? null,
           phone_number: (data as any).phone_number ?? null,
-          opening_hours: (data as any).openingHours ?? null, // Use camelCase from form data
+          opening_hours: (data as any).openingHours ?? null,
           reservable: (data as any).reservable ?? null,
           reservation_url: (data as any).reservation_url ?? null,
-          // user_id is already set, no need to update it
         })
         .eq('id', id)
-        .select()
+        .select('id, updated_at')
         .single();
 
       if (error) throw error;
 
-      const restaurant = mapDbRestaurantToRestaurant(updated);
-      
+      // Build updated restaurant locally to avoid returning huge payloads
+      const restaurant = {
+        ...existingRestaurant,
+        name: data.name,
+        address: data.address,
+        city: data.city,
+        country: coordinates.country ?? undefined,
+        cuisine: data.cuisine,
+        rating: data.rating ?? undefined,
+        notes: data.notes ?? undefined,
+        dateVisited: data.dateVisited ? data.dateVisited : undefined,
+        photos: combinedPhotos,
+        photoDishNames: combinedDishNames,
+        photoNotes: combinedNotes,
+        isWishlist: data.isWishlist,
+        latitude: coordinates.latitude ?? undefined,
+        longitude: coordinates.longitude ?? undefined,
+        categoryRatings: data.categoryRatings as unknown as CategoryRating,
+        useWeightedRating: data.useWeightedRating,
+        priceRange: data.priceRange ?? undefined,
+        michelinStars: data.michelinStars ?? undefined,
+        website: (data as any).website ?? undefined,
+        phone_number: (data as any).phone_number ?? undefined,
+        openingHours: (data as any).openingHours ?? undefined,
+        reservable: (data as any).reservable ?? undefined,
+        reservationUrl: (data as any).reservation_url ?? undefined,
+        updatedAt: updated?.updated_at || existingRestaurant.updatedAt,
+      } as Restaurant;
+
       // Update local state
-      setRestaurants((prev) =>
-        prev.map((r) => (r.id === id ? restaurant : r))
-      );
+      setRestaurants((prev) => prev.map((r) => (r.id === id ? restaurant : r)));
       
       if (coordinates.latitude && coordinates.longitude) {
         toast.success('Restaurant updated and placed on map!');
