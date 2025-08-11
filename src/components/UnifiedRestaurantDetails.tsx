@@ -282,6 +282,7 @@ export function UnifiedRestaurantDetails({
         notes: restaurantData.notes || '',
         latitude: restaurantData.latitude,
         longitude: restaurantData.longitude,
+        google_place_id: restaurantData.place_id, // ensure friend/expert stats can link
         website: restaurantData.website || '',
         phone_number: restaurantData.phone || restaurantData.phone_number || restaurantData.formatted_phone_number || '',
         opening_hours: typeof restaurantData.opening_hours === 'object' ? restaurantData.opening_hours?.weekday_text?.join('\n') || '' : restaurantData.opening_hours || restaurantData.openingHours || '',
