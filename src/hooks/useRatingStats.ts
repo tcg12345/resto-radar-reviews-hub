@@ -19,7 +19,7 @@ export function useRatingStats(placeId?: string) {
 
   useEffect(() => {
     const fetchStats = async () => {
-      if (!placeId || !placeId.startsWith('ChI')) return; // only valid Google Place IDs
+      if (!placeId) return;
       const cacheKey = `${placeId}:${user?.id || 'anon'}`;
       const cached = statsCache.get(cacheKey);
       const now = Date.now();

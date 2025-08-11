@@ -98,7 +98,7 @@ export function UnifiedRestaurantDetails({
   const [deferHeavy, setDeferHeavy] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const mapRef = useRef<HTMLDivElement | null>(null);
-  const hasValidPlaceId = useMemo(() => !!restaurant.place_id && restaurant.place_id.startsWith('ChI'), [restaurant.place_id]);
+  const hasValidPlaceId = useMemo(() => !!restaurant.place_id, [restaurant.place_id]);
 
   useEffect(() => {
     const schedule = (cb: () => void) => {
@@ -132,7 +132,7 @@ export function UnifiedRestaurantDetails({
     submitReview
   } = useRestaurantReviews(hasValidPlaceId ? restaurantData.place_id : undefined, restaurantData.name);
 
-  const { friendStats, expertStats } = useRatingStats(hasValidPlaceId ? restaurantData.place_id : undefined);
+  const { friendStats, expertStats, loading: isLoadingStats } = useRatingStats(hasValidPlaceId ? restaurantData.place_id : undefined);
 
   // Save community stats to context for preloading
   useEffect(() => {
@@ -586,10 +586,10 @@ export function UnifiedRestaurantDetails({
                     <Users className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">Friends</span>
                   </div>
-                  <div className="text-right">
-                    <div className="text-base font-semibold">{friendStats.avg ?? '—'}</div>
-                    <div className="text-xs text-muted-foreground">{friendStats.count} reviews</div>
-                  </div>
+                    <div className="text-right">
+                      <div className="text-base font-semibold">{isLoadingStats ? '—' : (friendStats.avg ?? '—')}</div>
+                      <div className="text-xs text-muted-foreground">{isLoadingStats ? 'Loading…' : `${friendStats.count} reviews`}</div>
+                    </div>
                 </CardContent>
               </Card>
               {/* Expert Rating */}
@@ -600,8 +600,8 @@ export function UnifiedRestaurantDetails({
                     <span className="text-sm">Experts</span>
                   </div>
                   <div className="text-right">
-                    <div className="text-base font-semibold">{expertStats.avg ?? '—'}</div>
-                    <div className="text-xs text-muted-foreground">{expertStats.count} reviews</div>
+                    <div className="text-base font-semibold">{isLoadingStats ? '—' : (expertStats.avg ?? '—')}</div>
+                    <div className="text-xs text-muted-foreground">{isLoadingStats ? 'Loading…' : `${expertStats.count} reviews`}</div>
                   </div>
                 </CardContent>
               </Card>
