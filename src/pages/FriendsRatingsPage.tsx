@@ -29,6 +29,7 @@ export default function FriendsRatingsPage() {
   const navigate = useNavigate();
   const [reviews, setReviews] = useState<ReviewRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     document.title = `${name} • Friends Ratings`;
@@ -64,7 +65,7 @@ export default function FriendsRatingsPage() {
         </div>
       </div>
 
-      <div className="p-4 space-y-3">
+      <div className="px-3 py-4 space-y-4 max-w-screen-sm mx-auto">
         {loading && <p className="text-sm text-muted-foreground">Loading friends ratings...</p>}
         {!loading && reviews.length === 0 && (
           <p className="text-sm text-muted-foreground">No friends have rated this place yet.</p>
@@ -95,12 +96,43 @@ export default function FriendsRatingsPage() {
                 <span className="text-xs text-muted-foreground ml-auto">out of 5</span>
               </div>
 
-              {/* Review text with better mobile formatting */}
+              {/* Optional review photos */}
+              {Array.isArray(r.photos) && r.photos.length > 0 && (
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  {r.photos.slice(0, 3).map((src, i) => (
+                    <img
+                      key={i}
+                      src={src}
+                      alt={`Review photo ${i + 1}`}
+                      className="h-20 w-full object-cover rounded-md hover-scale"
+                      loading="lazy"
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Review text with expand/collapse */}
               {r.review_text && (
-                <div className="mt-2">
-                  <p className="text-sm leading-relaxed text-foreground break-words whitespace-pre-wrap">
+                <div className="mt-3">
+                  <p
+                    className={`text-sm leading-relaxed text-foreground break-words whitespace-pre-wrap ${
+                      expanded[r.review_id] ? '' : 'line-clamp-4'
+                    }`}
+                  >
                     {r.review_text}
                   </p>
+                  <div className="mt-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="px-0 h-7 text-xs"
+                      onClick={() =>
+                        setExpanded((prev) => ({ ...prev, [r.review_id]: !prev[r.review_id] }))
+                      }
+                    >
+                      {expanded[r.review_id] ? 'Show less' : 'Show more'}
+                    </Button>
+                  </div>
                 </div>
               )}
             </CardContent>
