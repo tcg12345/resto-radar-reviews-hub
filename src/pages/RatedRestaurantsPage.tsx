@@ -65,39 +65,27 @@ export function RatedRestaurantsPage({
     }
   }, [shouldOpenAddDialog, onAddDialogClose]);
 
-  // Aggressively preload all photos for faster loading
+  // Aggressively preload cover photos for faster perceived load, without external context calls
   useEffect(() => {
     if (ratedRestaurants.length > 0 && !photosLoadedRef.current) {
       photosLoadedRef.current = true;
-      
-      // Start preloading immediately without delay
       const preloadImages = async () => {
-        // Get all unique photo URLs from first photo of each restaurant (cover photos)
         const coverPhotos = ratedRestaurants
           .filter(r => r.photos && r.photos.length > 0)
           .map(r => r.photos[0])
           .filter(Boolean);
-        
-        // Preload cover photos in parallel with high priority
-        const preloadPromises = coverPhotos.map(url => {
-          return new Promise<void>((resolve) => {
-            const img = new Image();
-            img.onload = () => resolve();
-            img.onerror = () => resolve(); // Don't block on errors
-            img.src = url;
-          });
-        });
-        
-        // Don't wait for all to complete, just start them
+        const preloadPromises = coverPhotos.map(url => new Promise<void>((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve();
+          img.onerror = () => resolve(); // Don't block on errors
+          img.src = url as string;
+        }));
+        // Fire-and-forget
         Promise.allSettled(preloadPromises);
-        
-        // Also trigger bulk photo loading from context
-        loadAllRestaurantPhotos();
       };
-      
       preloadImages();
     }
-  }, [ratedRestaurants.length, loadAllRestaurantPhotos]);
+  }, [ratedRestaurants.length]);
 
   // Get unique cuisines
   const cuisines = Array.from(new Set(ratedRestaurants.map(r => r.cuisine)));

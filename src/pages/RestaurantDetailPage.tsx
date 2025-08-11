@@ -158,7 +158,7 @@ useEffect(() => {
                   opening_hours: data.result.opening_hours?.weekday_text?.join('\n') || '',
                   rating: data.result.rating,
                   price_level: data.result.price_level,
-                  photos: data.result.photos || [],
+                  photos: [], // avoid raw photo objects; rely on community/user photos
                   google_place_id: restaurantId,
                   user_id: null, // This is not a user's restaurant
                   is_wishlist: false,

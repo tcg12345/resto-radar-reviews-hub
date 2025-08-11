@@ -85,12 +85,8 @@ export function UnifiedRestaurantDetails({
   isMobile = false
 }: UnifiedRestaurantDetailsProps) {
   const navigate = useNavigate();
-  const {
-    user
-  } = useAuth();
-  const {
-    setPreloadedStats
-  } = useCommunityData();
+  const { user } = useAuth();
+  const { setPreloadedStats } = useCommunityData();
   const actualIsMobile = useIsMobile();
   const [photos, setPhotos] = useState<string[]>([]);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
@@ -102,6 +98,7 @@ export function UnifiedRestaurantDetails({
   const [deferHeavy, setDeferHeavy] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const mapRef = useRef<HTMLDivElement | null>(null);
+  const hasValidPlaceId = useMemo(() => !!restaurant.place_id && restaurant.place_id.startsWith('ChI'), [restaurant.place_id]);
 
   useEffect(() => {
     const schedule = (cb: () => void) => {
