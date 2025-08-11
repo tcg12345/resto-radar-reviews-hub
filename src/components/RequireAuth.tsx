@@ -31,7 +31,7 @@ export function RequireAuth({ children }: RequireAuthProps) {
 
   if (!user) {
     // Redirect to auth page
-    return <Navigate to="/auth" state={{ from: location.pathname }} replace />;
+    return <Navigate to="/auth" state={{ from: location.pathname + location.search }} replace />;
   }
 
   return <>{children}</>;

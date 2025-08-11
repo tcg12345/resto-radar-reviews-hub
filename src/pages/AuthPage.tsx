@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +16,7 @@ import { validatePassword, getPasswordStrengthLabel, getPasswordStrengthColor } 
 
 export default function AuthPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,14 +33,17 @@ export default function AuthPage() {
   const [isResetMode, setIsResetMode] = useState(false);
   const [isResetLoading, setIsResetLoading] = useState(false);
 
-  // Check if user is already logged in
+  // If already logged in, redirect to intended page (if any)
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session} }) => {
       if (session) {
-        navigate('/');
+        const state = (location.state as any) || {};
+        const params = new URLSearchParams(location.search);
+        const redirectTo = state.from || params.get('redirectTo') || '/';
+        navigate(redirectTo, { replace: true });
       }
     });
-  }, [navigate]);
+  }, [navigate, location]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,7 +74,10 @@ export default function AuthPage() {
       if (error) throw error;
       
       toast.success('Welcome back!');
-      navigate('/');
+      const state = (location.state as any) || {};
+      const params = new URLSearchParams(location.search);
+      const redirectTo = state.from || params.get('redirectTo') || '/';
+      navigate(redirectTo, { replace: true });
     } catch (error: any) {
       console.error('Error signing in:', error);
       
