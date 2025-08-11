@@ -380,7 +380,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       }
       
       // Add new photos and captions
-      const combinedPhotos = [...updatedPhotos, ...newPhotoDataUrls];
+      const combinedPhotos = [...updatedPhotos, ...newPhotoUrls];
       const combinedDishNames = [...updatedDishNames, ...(data.photoDishNames || [])];
       const combinedNotes = [...updatedNotes, ...(data.photoNotes || [])];
       try {

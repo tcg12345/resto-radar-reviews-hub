@@ -107,6 +107,11 @@ export function RestaurantCard({
       }
     };
     
+    // Proactively load photos if missing
+    if (restaurant.photos.length === 0) {
+      loadRestaurantPhotos(restaurant.id).catch((e) => console.warn('Photo load failed', e));
+    }
+    
     // For rated restaurants, initialize immediately (photos are preloaded by parent)
     if (!restaurant.isWishlist) {
       initializeCard();
@@ -114,7 +119,7 @@ export function RestaurantCard({
       // Small delay for wishlist items only
       setTimeout(initializeCard, 30);
     }
-  }, [restaurant.id, restaurant.isWishlist, restaurant.photos.length]);
+  }, [restaurant.id, restaurant.isWishlist, restaurant.photos.length, loadRestaurantPhotos]);
   const nextPhoto = () => {
     setImageLoading(true);
     setCurrentPhotoIndex(prev => (prev + 1) % restaurant.photos.length);
