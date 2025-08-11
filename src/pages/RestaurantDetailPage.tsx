@@ -126,12 +126,8 @@ useEffect(() => {
             return;
           }
 
-          // Try to enhance with Google Places data if missing website or phone
-          let enhancedRestaurant = restaurantData;
-          if (!restaurantData.website || !(restaurantData as any).phone_number) {
-            enhancedRestaurant = await fetchGooglePlacesDetails(restaurantData);
-          }
-          setRestaurant(enhancedRestaurant);
+          // Set as-is and let the details component load any extras lazily
+          setRestaurant(restaurantData);
         } else {
           // It's an identifier that's not a UUID
           console.log('Fetching restaurant by identifier:', restaurantId);

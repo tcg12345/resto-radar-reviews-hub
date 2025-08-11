@@ -15,6 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { MobileChatWindow } from './MobileChatWindow';
 import { toast } from 'sonner';
+import { useFriends } from '@/hooks/useFriends';
 
 interface ChatRoom {
   id: string;
@@ -48,7 +49,7 @@ export function MobileChatListPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
-  const [friends, setFriends] = useState<Friend[]>([]);
+  const { friends } = useFriends();
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -61,7 +62,6 @@ export function MobileChatListPage() {
     if (!user) return;
     
     fetchChatRooms();
-    fetchFriends();
     setupRealtimeSubscription();
   }, [user]);
 
@@ -159,24 +159,6 @@ export function MobileChatListPage() {
       console.error('Error in fetchChatRooms:', error);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const fetchFriends = async () => {
-    if (!user) return;
-
-    try {
-      const { data: friendsData, error } = await supabase
-        .rpc('get_friends_with_scores', { requesting_user_id: user.id });
-
-      if (error) {
-        console.error('Error fetching friends:', error);
-        return;
-      }
-
-      setFriends(friendsData || []);
-    } catch (error) {
-      console.error('Error fetching friends:', error);
     }
   };
 
@@ -398,7 +380,7 @@ export function MobileChatListPage() {
     }
   };
 
-  const filteredFriends = friends.filter(friend =>
+  const filteredFriends = (friends as any[]).filter(friend =>
     friend.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     friend.username?.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -564,7 +546,7 @@ export function MobileChatListPage() {
                     </p>
                     <div className="flex flex-wrap gap-1">
                       {selectedFriends.map((friendId) => {
-                        const friend = friends.find(f => f.friend_id === friendId);
+                        const friend = (friends as any[]).find((f: any) => f.friend_id === friendId);
                         return (
                           <Badge key={friendId} variant="secondary" className="text-xs">
                             {friend?.name}

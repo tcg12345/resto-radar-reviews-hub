@@ -15,6 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { ChatWindow } from '@/components/ChatWindow';
 import { toast } from 'sonner';
+import { useFriends } from '@/hooks/useFriends';
 
 interface ChatRoom {
   id: string;
@@ -48,7 +49,7 @@ export function ChatListPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
-  const [friends, setFriends] = useState<Friend[]>([]);
+  const { friends } = useFriends();
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -61,7 +62,6 @@ export function ChatListPage() {
     if (!user) return;
     
     fetchChatRooms();
-    fetchFriends();
     setupRealtimeSubscription();
   }, [user]);
 
@@ -166,24 +166,6 @@ export function ChatListPage() {
       console.error('Error in fetchChatRooms:', error);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const fetchFriends = async () => {
-    if (!user) return;
-
-    try {
-      const { data: friendsData, error } = await supabase
-        .rpc('get_friends_with_scores', { requesting_user_id: user.id });
-
-      if (error) {
-        console.error('Error fetching friends:', error);
-        return;
-      }
-
-      setFriends(friendsData || []);
-    } catch (error) {
-      console.error('Error fetching friends:', error);
     }
   };
 
@@ -438,7 +420,7 @@ export function ChatListPage() {
     }
   };
 
-  const filteredFriends = friends.filter(friend =>
+  const filteredFriends = (friends as any[]).filter(friend =>
     friend.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     friend.username?.toLowerCase().includes(searchQuery.toLowerCase())
   );
