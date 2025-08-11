@@ -20,7 +20,8 @@ export function useRatingStats(placeId?: string, restaurantName?: string) {
   useEffect(() => {
     const fetchStats = async () => {
       if (!placeId) return;
-      const cacheKey = `${placeId}:${user?.id || 'anon'}`;
+      const normalizedName = (restaurantName || '').trim().toLowerCase();
+      const cacheKey = `${placeId}:${normalizedName}:${user?.id || 'anon'}`;
       const cached = statsCache.get(cacheKey);
       const now = Date.now();
       if (cached && now - cached.ts < CACHE_TTL_MS) {
