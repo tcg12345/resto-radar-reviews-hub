@@ -981,11 +981,18 @@ export type Database = {
         }[]
       }
       get_expert_reviews_for_place: {
-        Args: {
-          place_id_param: string
-          page_limit?: number
-          page_offset?: number
-        }
+        Args:
+          | {
+              place_id_param: string
+              page_limit?: number
+              page_offset?: number
+            }
+          | {
+              place_id_param: string
+              page_limit?: number
+              page_offset?: number
+              restaurant_name_param?: string
+            }
         Returns: {
           review_id: string
           user_id: string
@@ -1081,12 +1088,20 @@ export type Database = {
         }[]
       }
       get_friend_reviews_for_place: {
-        Args: {
-          place_id_param: string
-          page_limit?: number
-          page_offset?: number
-          requesting_user_id?: string
-        }
+        Args:
+          | {
+              place_id_param: string
+              page_limit?: number
+              page_offset?: number
+              requesting_user_id?: string
+            }
+          | {
+              place_id_param: string
+              page_limit?: number
+              page_offset?: number
+              requesting_user_id?: string
+              restaurant_name_param?: string
+            }
         Returns: {
           review_id: string
           user_id: string
