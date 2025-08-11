@@ -138,9 +138,17 @@ export function UnifiedRestaurantDetails({
 
   const { friendStats, expertStats, loading: isLoadingStats } = useRatingStats(hasValidPlaceId ? restaurantData.place_id : undefined, restaurantData.name);
   const hasCommunityPhoto = useMemo(() => {
-    return communityStats?.recentPhotos?.some((rp: any) => Array.isArray(rp?.photos) && rp.photos.some((p: string) => !!p)) || false;
+    return communityStats?.recentPhotos?.some((rp: any) => 
+      Array.isArray(rp?.photos) && 
+      rp.photos.some((p: string) => p && typeof p === 'string' && p.trim() !== '' && p !== 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZjNmNGY2Ii8+CjxwYXRoIGQ9Im0xNSA5LTYgNi02LTYiIHN0cm9rZT0iIzk3YTNiMCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+')
+    ) || false;
   }, [communityStats?.recentPhotos]);
-  const hasHeroPhoto = photos.length > 0 || hasCommunityPhoto;
+  
+  const hasValidRestaurantPhotos = useMemo(() => {
+    return photos.length > 0 && photos.some(p => p && typeof p === 'string' && p.trim() !== '' && !p.includes('data:image/svg+xml'));
+  }, [photos]);
+  
+  const hasHeroPhoto = hasValidRestaurantPhotos || hasCommunityPhoto;
 
   // Save community stats to context for preloading (once per place)
   useEffect(() => {
