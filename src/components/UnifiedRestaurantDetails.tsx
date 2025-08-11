@@ -137,6 +137,10 @@ export function UnifiedRestaurantDetails({
   } = useRestaurantReviews(hasValidPlaceId ? restaurantData.place_id : undefined, restaurantData.name);
 
   const { friendStats, expertStats, loading: isLoadingStats } = useRatingStats(hasValidPlaceId ? restaurantData.place_id : undefined, restaurantData.name);
+  const hasCommunityPhoto = useMemo(() => {
+    return communityStats?.recentPhotos?.some((rp: any) => Array.isArray(rp?.photos) && rp.photos.some((p: string) => !!p)) || false;
+  }, [communityStats?.recentPhotos]);
+  const hasHeroPhoto = photos.length > 0 || hasCommunityPhoto;
 
   // Save community stats to context for preloading (once per place)
   useEffect(() => {
@@ -433,7 +437,7 @@ export function UnifiedRestaurantDetails({
 
       <div className={`${isMobile ? "pb-safe" : ""}`}>
         {/* Photos - Show either restaurant photos or community photos */}
-        {(photos.length > 0 || (communityStats?.recentPhotos && communityStats.recentPhotos.length > 0)) && (
+        {hasHeroPhoto && (
           <div 
             className={`${isMobile ? 'aspect-video' : 'aspect-video md:aspect-auto md:h-auto md:max-h-[420px] md:max-w-3xl md:mx-auto'} w-full bg-muted relative overflow-hidden cursor-pointer group`} 
             onClick={() => navigate(`/restaurant/${restaurantData.place_id || restaurantData.id}/community-photos?name=${encodeURIComponent(restaurantData.name)}`)}
