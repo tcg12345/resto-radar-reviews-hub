@@ -134,6 +134,17 @@ export default function MobileSearchRestaurantDetailsPage() {
         };
         setRestaurant(detailedPlace);
 
+        // Attempt to link historical friend/expert ratings to this Google Place ID
+        // This helps counts show up when older entries lack google_place_id
+        try {
+          await supabase.rpc('link_restaurant_by_place_id', {
+            place_id_param: detailedPlace.place_id,
+            restaurant_name_param: detailedPlace.name,
+          });
+        } catch (e) {
+          console.warn('link_restaurant_by_place_id failed (non-blocking):', e);
+        }
+
         // Load Yelp data in background
         supabase.functions.invoke('yelp-restaurant-data', {
           body: {
@@ -143,7 +154,7 @@ export default function MobileSearchRestaurantDetailsPage() {
             limit: 1,
             sort_by: 'best_match'
           }
-        }).then(({
+        }).then(({ 
           data: yelpData,
           error: yelpError
         }) => {

@@ -154,6 +154,22 @@ export function UnifiedRestaurantDetails({
       enhanceWithAI(restaurant);
     }
   }, [restaurant, deferHeavy]);
+
+  // Ensure historical ratings are linked to this Google Place ID (helps stats show up)
+  useEffect(() => {
+    if (!restaurantData?.place_id || !restaurantData?.name) return;
+    const link = async () => {
+      try {
+        await supabase.rpc('link_restaurant_by_place_id', {
+          place_id_param: restaurantData.place_id!,
+          restaurant_name_param: restaurantData.name,
+        });
+      } catch (e) {
+        console.warn('link_restaurant_by_place_id failed (non-blocking):', e);
+      }
+    };
+    link();
+  }, [restaurantData?.place_id, restaurantData?.name]);
   const shouldEnhanceWithAI = (restaurant: UnifiedRestaurantData): boolean => {
     const hasGenericCuisine = !restaurant.cuisine || restaurant.cuisine.toLowerCase().includes('restaurant') || restaurant.cuisine.toLowerCase().includes('bar') || restaurant.cuisine.toLowerCase().includes('food') || restaurant.cuisine.toLowerCase().includes('establishment');
     const hasMissingMichelinInfo = restaurant.michelinStars === undefined && restaurant.michelin_stars === undefined;
