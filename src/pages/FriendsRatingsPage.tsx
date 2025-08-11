@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ArrowLeft, Users } from 'lucide-react';
 import { StarRating } from '@/components/StarRating';
@@ -71,73 +71,76 @@ export default function FriendsRatingsPage() {
           <p className="text-sm text-muted-foreground">No friends have rated this place yet.</p>
         )}
 
-        {reviews.map((r) => (
-          <Card key={r.review_id} className="overflow-hidden rounded-xl border border-border/60 shadow-sm animate-fade-in bg-card">
-            <CardContent className="p-4">
-              {/* Mobile-optimized header */}
-              <div className="flex items-center gap-3 mb-3">
-                <Avatar className="h-8 w-8 shrink-0">
-                  <AvatarImage src={r.avatar_url} alt={r.username} />
-                  <AvatarFallback className="text-xs">{(r.username || 'A').slice(0, 2).toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm truncate">{r.username || 'Anonymous'}</div>
-                  <div className="text-xs text-muted-foreground">
+        {reviews.length > 0 && (
+          <ul className="divide-y divide-border/60">
+            {reviews.map((r) => (
+              <li key={r.review_id} className="relative py-4 pl-12 pr-2 animate-fade-in">
+                {/* Avatar on the left */}
+                <div className="absolute left-0 top-4">
+                  <Avatar className="h-8 w-8 ring-1 ring-border">
+                    <AvatarImage src={r.avatar_url} alt={r.username} />
+                    <AvatarFallback className="text-xs">{(r.username || 'A').slice(0, 2).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                </div>
+
+                <div className="min-w-0">
+                  {/* Header row: name + rating pill */}
+                  <div className="flex items-center gap-2">
+                    <div className="font-medium text-sm truncate">{r.username || 'Anonymous'}</div>
+                    <div className="ml-auto inline-flex items-center gap-1 rounded-full border border-primary/10 bg-primary/5 px-2.5 py-1">
+                      <StarRating rating={Number(r.overall_rating) || 0} readonly={true} size="sm" />
+                      <span className="text-xs font-semibold text-primary">{Number(r.overall_rating).toFixed(1)}</span>
+                    </div>
+                  </div>
+                  <div className="mt-0.5 text-xs text-muted-foreground">
                     {new Date(r.created_at).toLocaleDateString()}
                     {r.source_type === 'personal_rating' ? ' • Personal rating' : ' • User review'}
                   </div>
-                </div>
-              </div>
 
-              {/* Modern rating pill */}
-              <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-primary/5 border border-primary/10 rounded-full">
-                <StarRating rating={Number(r.overall_rating) || 0} readonly={true} size="sm" />
-                <span className="text-lg font-bold text-primary">{Number(r.overall_rating).toFixed(1)}</span>
-                <span className="text-xs text-muted-foreground ml-auto">out of 5</span>
-              </div>
+                  {/* Optional review photos */}
+                  {Array.isArray(r.photos) && r.photos.length > 0 && (
+                    <div className="mt-3 grid grid-cols-3 gap-2">
+                      {r.photos.slice(0, 3).map((src, i) => (
+                        <img
+                          key={i}
+                          src={src}
+                          alt={`Review photo ${i + 1}`}
+                          className="h-16 w-full object-cover rounded-lg hover-scale"
+                          loading="lazy"
+                        />
+                      ))}
+                    </div>
+                  )}
 
-              {/* Optional review photos */}
-              {Array.isArray(r.photos) && r.photos.length > 0 && (
-                <div className="mt-2 grid grid-cols-3 gap-2">
-                  {r.photos.slice(0, 3).map((src, i) => (
-                    <img
-                      key={i}
-                      src={src}
-                      alt={`Review photo ${i + 1}`}
-                      className="h-20 w-full object-cover rounded-md hover-scale"
-                      loading="lazy"
-                    />
-                  ))}
+                  {/* Review text with expand/collapse */}
+                  {r.review_text && (
+                    <div className="mt-2">
+                      <p
+                        className={`text-sm leading-relaxed text-foreground break-words whitespace-pre-wrap ${
+                          expanded[r.review_id] ? '' : 'line-clamp-4'
+                        }`}
+                      >
+                        {r.review_text}
+                      </p>
+                      <div className="mt-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="px-0 h-7 text-xs"
+                          onClick={() =>
+                            setExpanded((prev) => ({ ...prev, [r.review_id]: !prev[r.review_id] }))
+                          }
+                        >
+                          {expanded[r.review_id] ? 'Show less' : 'Show more'}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-
-              {/* Review text with expand/collapse */}
-              {r.review_text && (
-                <div className="mt-3">
-                  <p
-                    className={`text-sm leading-relaxed text-foreground break-words whitespace-pre-wrap ${
-                      expanded[r.review_id] ? '' : 'line-clamp-4'
-                    }`}
-                  >
-                    {r.review_text}
-                  </p>
-                  <div className="mt-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="px-0 h-7 text-xs"
-                      onClick={() =>
-                        setExpanded((prev) => ({ ...prev, [r.review_id]: !prev[r.review_id] }))
-                      }
-                    >
-                      {expanded[r.review_id] ? 'Show less' : 'Show more'}
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
