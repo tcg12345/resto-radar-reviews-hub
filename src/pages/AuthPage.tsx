@@ -617,6 +617,16 @@ export default function AuthPage() {
                   >
                     Sign In Instead
                   </Button>
+
+                  <div className="pt-2 text-center text-sm text-muted-foreground">Want to be an expert reviewer?</div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="w-full h-10"
+                    onClick={() => navigate('/apply-expert')}
+                  >
+                    Apply for Expert Account
+                  </Button>
                 </CardFooter>
               </form>
             </TabsContent>

@@ -53,6 +53,7 @@ import { HotelDetailedOverviewPage } from "./pages/HotelDetailedOverviewPage";
 import { ItineraryPrivacyPage } from "./pages/ItineraryPrivacyPage";
 import FriendsRatingsPage from "./pages/FriendsRatingsPage";
 import ExpertRatingsPage from "./pages/ExpertRatingsPage";
+import ApplyExpertPage from "./pages/ApplyExpertPage";
 
 const queryClient = new QueryClient();
 
@@ -122,10 +123,15 @@ const App = () => (
                 <Route path="/restaurant/:restaurantId" element={<RequireAuth><RestaurantDetailPage /></RequireAuth>} />
                 <Route path="/restaurant/:restaurantId/photos" element={<RequireAuth><RestaurantPhotosPage /></RequireAuth>} />
                 <Route path="/restaurant/:placeId/community-photos" element={<RequireAuth><CommunityPhotoGalleryPage /></RequireAuth>} />
+                <Route path="/restaurant/:placeId/friends-ratings" element={<RequireAuth><FriendsRatingsPage /></RequireAuth>} />
+                <Route path="/restaurant/:placeId/expert-ratings" element={<RequireAuth><ExpertRatingsPage /></RequireAuth>} />
                 <Route path="/recommendation/:place_id" element={<RequireAuth><RecommendationDetailPage /></RequireAuth>} />
                 <Route path="/mobile/restaurant/:restaurantId" element={<RequireAuth><MobileRestaurantDetailsPage /></RequireAuth>} />
                 <Route path="/mobile/search/restaurant" element={<RequireAuth><MobileSearchRestaurantDetailsPage /></RequireAuth>} />
                 <Route path="/share/restaurant/:restaurantId" element={<RequireAuth><ShareRestaurantPage /></RequireAuth>} />
+
+                {/* Expert application */}
+                <Route path="/apply-expert" element={<RequireAuth><ApplyExpertPage /></RequireAuth>} />
                 
                 {/* Main route - shows landing page or dashboard based on auth */}
                 <Route path="/" element={<Index />} />
