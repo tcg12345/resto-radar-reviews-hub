@@ -101,6 +101,7 @@ export function UnifiedRestaurantDetails({
   const enhancedPlaceIdsRef = useRef<Set<string>>(new Set());
   const linkedPlaceIdsRef = useRef<Set<string>>(new Set());
   const fetchedDetailsPlaceIdsRef = useRef<Set<string>>(new Set());
+  const preloadedStatsPlaceIdsRef = useRef<Set<string>>(new Set());
   const hasValidPlaceId = useMemo(() => !!restaurant.place_id, [restaurant.place_id]);
 
   useEffect(() => {
@@ -135,12 +136,13 @@ export function UnifiedRestaurantDetails({
     submitReview
   } = useRestaurantReviews(hasValidPlaceId ? restaurantData.place_id : undefined, restaurantData.name);
 
-  const { friendStats, expertStats, loading: isLoadingStats } = useRatingStats(hasValidPlaceId ? restaurantData.place_id : undefined);
+  const { friendStats, expertStats, loading: isLoadingStats } = useRatingStats(hasValidPlaceId ? restaurantData.place_id : undefined, restaurantData.name);
 
-  // Save community stats to context for preloading
+  // Save community stats to context for preloading (once per place)
   useEffect(() => {
-    if (communityStats && restaurantData.place_id) {
+    if (communityStats && restaurantData.place_id && !preloadedStatsPlaceIdsRef.current.has(restaurantData.place_id)) {
       setPreloadedStats(restaurantData.place_id, communityStats);
+      preloadedStatsPlaceIdsRef.current.add(restaurantData.place_id);
     }
   }, [communityStats, restaurantData.place_id, setPreloadedStats]);
   useEffect(() => {

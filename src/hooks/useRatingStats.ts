@@ -11,7 +11,7 @@ interface RatingStats {
 const statsCache = new Map<string, { friend: RatingStats; expert: RatingStats; ts: number }>();
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
-export function useRatingStats(placeId?: string) {
+export function useRatingStats(placeId?: string, restaurantName?: string) {
   const { user } = useAuth();
   const [friendStats, setFriendStats] = useState<RatingStats>({ avg: null, count: 0 });
   const [expertStats, setExpertStats] = useState<RatingStats>({ avg: null, count: 0 });
@@ -31,8 +31,8 @@ export function useRatingStats(placeId?: string) {
       setLoading(true);
       try {
         const [friendsRes, expertsRes] = await Promise.all([
-          supabase.rpc('get_friend_rating_stats', { place_id_param: placeId, requesting_user_id: user?.id }),
-          supabase.rpc('get_expert_rating_stats', { place_id_param: placeId }),
+          supabase.rpc('get_friend_rating_stats', { place_id_param: placeId, restaurant_name_param: restaurantName, requesting_user_id: user?.id }),
+          supabase.rpc('get_expert_rating_stats', { place_id_param: placeId, restaurant_name_param: restaurantName }),
         ]);
 
         const friendRow: any = Array.isArray(friendsRes.data) ? friendsRes.data[0] : (friendsRes as any).data;
@@ -57,7 +57,7 @@ export function useRatingStats(placeId?: string) {
     };
 
     fetchStats();
-  }, [placeId, user?.id]);
+  }, [placeId, restaurantName, user?.id]);
 
   return { friendStats, expertStats, loading };
 }

@@ -957,7 +957,9 @@ export type Database = {
         Returns: Json
       }
       get_expert_rating_stats: {
-        Args: { place_id_param: string }
+        Args:
+          | { place_id_param: string }
+          | { place_id_param: string; restaurant_name_param?: string }
         Returns: {
           avg_rating: number
           total_reviews: number
@@ -1051,7 +1053,13 @@ export type Database = {
         }[]
       }
       get_friend_rating_stats: {
-        Args: { place_id_param: string; requesting_user_id?: string }
+        Args:
+          | { place_id_param: string; requesting_user_id?: string }
+          | {
+              place_id_param: string
+              restaurant_name_param?: string
+              requesting_user_id?: string
+            }
         Returns: {
           avg_rating: number
           total_reviews: number
@@ -1232,6 +1240,10 @@ export type Database = {
           updated_place_id: string
           method: string
         }[]
+      }
+      normalize_text: {
+        Args: { input: string }
+        Returns: string
       }
       rebuild_friend_activity_cache: {
         Args: { target_user_id: string }
