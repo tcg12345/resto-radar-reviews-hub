@@ -21,6 +21,7 @@ import { useCommunityData } from '@/contexts/CommunityDataContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRatingStats } from '@/hooks/useRatingStats';
+import { resolveImageUrl } from '@/utils/imageUtils';
 interface UnifiedRestaurantData {
   id?: string;
   place_id?: string;
@@ -451,7 +452,7 @@ export function UnifiedRestaurantDetails({
             <div className="md:hidden w-full h-full">
               {communityStats?.recentPhotos?.[0]?.photos?.[0] ? (
                 <img 
-                  src={communityStats.recentPhotos[0].photos[0]} 
+                  src={resolveImageUrl(communityStats.recentPhotos[0].photos[0])} 
                   alt={restaurantData.name} 
                   className="w-full h-full object-cover transition-transform group-hover:scale-105" 
                   loading="lazy" decoding="async"
@@ -459,7 +460,7 @@ export function UnifiedRestaurantDetails({
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     if (photos.length > 0) {
-                      target.src = photos[0];
+                      target.src = resolveImageUrl(photos[0]);
                     } else {
                       target.style.display = 'none';
                     }
@@ -467,7 +468,7 @@ export function UnifiedRestaurantDetails({
                 />
               ) : photos.length > 0 ? (
                 <img 
-                  src={photos[0]} 
+                  src={resolveImageUrl(photos[0])} 
                   alt={restaurantData.name} 
                   className="w-full h-full object-cover transition-transform group-hover:scale-105" 
                   loading="lazy" decoding="async"
@@ -492,7 +493,7 @@ export function UnifiedRestaurantDetails({
                       {header.map((src, i) => (
                         <img
                           key={i}
-                          src={src}
+                          src={resolveImageUrl(src)}
                           alt={`${restaurantData.name} photo ${i + 1}`}
                           className="w-full h-full object-cover rounded-md"
                           onLoad={() => setHasLoadedHeroImage(true)}
@@ -509,7 +510,7 @@ export function UnifiedRestaurantDetails({
                 if (communityStats?.recentPhotos?.[0]?.photos?.[0]) {
                   return (
                     <img
-                      src={communityStats.recentPhotos[0].photos[0]}
+                      src={resolveImageUrl(communityStats.recentPhotos[0].photos[0])}
                       alt={restaurantData.name}
                       className="w-full h-full object-cover transition-transform group-hover:scale-105 md:object-contain md:h-auto md:w-auto md:max-h-[420px] md:mx-auto"
                       onLoad={() => setHasLoadedHeroImage(true)}
@@ -523,7 +524,7 @@ export function UnifiedRestaurantDetails({
                 if (photos.length > 0) {
                   return (
                     <img
-                      src={photos[0]}
+                      src={resolveImageUrl(photos[0])}
                       alt={restaurantData.name}
                       className="w-full h-full object-cover transition-transform group-hover:scale-105 md:object-contain md:h-auto md:w-auto md:max-h-[420px] md:mx-auto"
                        onError={(e) => {
@@ -751,7 +752,7 @@ export function UnifiedRestaurantDetails({
       </div>
 
       {/* Photo Gallery */}
-      <PhotoGallery photos={photos} photoCaptions={restaurantData.photoCaptions || restaurantData.photo_captions} isOpen={isPhotoGalleryOpen} onClose={() => setIsPhotoGalleryOpen(false)} restaurantName={restaurantData.name} isMobile={actualIsMobile} />
+      <PhotoGallery photos={photos.map((p) => resolveImageUrl(p))} photoCaptions={restaurantData.photoCaptions || restaurantData.photo_captions} isOpen={isPhotoGalleryOpen} onClose={() => setIsPhotoGalleryOpen(false)} restaurantName={restaurantData.name} isMobile={actualIsMobile} />
 
     </>;
 }
