@@ -355,7 +355,9 @@ export default function FeedPage({ onNavigate }: FeedPageProps) {
               )}
             </div>
             <p className="text-xs text-muted-foreground">
-              {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
+              {activity.created_at && !isNaN(new Date(activity.created_at).getTime()) 
+                ? formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })
+                : 'Recently'}
             </p>
           </div>
           <Button variant="ghost" size="sm">
@@ -521,7 +523,9 @@ export default function FeedPage({ onNavigate }: FeedPageProps) {
               </Badge>
             </div>
             <p className="text-xs text-muted-foreground">
-              {formatDistanceToNow(new Date(review.created_at), { addSuffix: true })}
+              {review.created_at && !isNaN(new Date(review.created_at).getTime()) 
+                ? formatDistanceToNow(new Date(review.created_at), { addSuffix: true })
+                : 'Recently'}
             </p>
           </div>
         </div>
