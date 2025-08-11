@@ -19,6 +19,8 @@ import { Restaurant } from '@/types/restaurant';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 import { getStateFromCoordinatesCached } from '@/utils/geocoding';
 import { LazyImage } from '@/components/LazyImage';
+import { supabase } from '@/integrations/supabase/client';
+
 
 // Image URL resolution
 import { resolveImageUrl, getLqipUrl } from '@/utils/imageUtils';
@@ -88,6 +90,7 @@ export function RestaurantCard({
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
   const [isDataReady, setIsDataReady] = useState(false);
+  const [prefetched, setPrefetched] = useState(false);
   const {
     loadRestaurantPhotos
   } = useRestaurants();
@@ -142,6 +145,23 @@ export function RestaurantCard({
     }
   };
 
+  const handlePrefetch = async () => {
+    if (prefetched) return;
+    setPrefetched(true);
+    try {
+      // Warm community stats (by name fallback)
+      await supabase.functions.invoke('community-reviews', {
+        body: { restaurant_name: restaurant.name }
+      });
+      // Warm DB for details fetch (lightweight select)
+      await supabase.from('restaurants')
+        .select('id,name,address,city,country,cuisine,rating,price_range,michelin_stars,website,phone_number,opening_hours,latitude,longitude,is_wishlist,created_at,updated_at,user_id')
+        .eq('id', restaurant.id)
+        .limit(1);
+    } catch (e) {
+      // Silent prefetch errors
+    }
+  };
   // Show skeleton until all data is ready
   if (!isDataReady) {
     return <Card className="overflow-hidden">
@@ -277,7 +297,35 @@ export function RestaurantCard({
           size="sm" 
           variant="outline" 
           className="flex-1 h-6 lg:h-7 px-1 lg:px-2 text-[10px] lg:text-xs mobile-button"
-          onClick={() => navigate(`/restaurant/${restaurant.id}`)}
+          onMouseEnter={handlePrefetch}
+          onFocus={handlePrefetch}
+          onTouchStart={handlePrefetch}
+          onClick={() => {
+            const preview = {
+              id: restaurant.id,
+              name: restaurant.name,
+              address: restaurant.address,
+              city: restaurant.city,
+              country: restaurant.country,
+              cuisine: restaurant.cuisine,
+              rating: restaurant.rating,
+              price_range: restaurant.priceRange,
+              michelin_stars: restaurant.michelinStars,
+              notes: restaurant.notes,
+              photos: restaurant.photos,
+              website: restaurant.website,
+              phone_number: restaurant.phone_number,
+              latitude: restaurant.latitude,
+              longitude: restaurant.longitude,
+              reservable: (restaurant as any).reservable,
+              reservation_url: (restaurant as any).reservationUrl,
+              opening_hours: restaurant.openingHours,
+              date_visited: restaurant.dateVisited,
+              user_id: restaurant.userId,
+              is_wishlist: restaurant.isWishlist,
+            };
+            navigate(`/restaurant/${restaurant.id}`, { state: { restaurantPreview: preview, returnUrl: encodeURIComponent(window.location.pathname) } });
+          }}
         >
           <Eye className="mr-0.5 lg:mr-1 h-2.5 w-2.5 lg:h-3 lg:w-3" />
           <span className="hidden sm:inline">Details</span>

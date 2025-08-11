@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+import { useParams, useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -49,10 +49,11 @@ export function RestaurantDetailPage() {
   const returnUrl = searchParams.get('returnUrl');
   const navigate = useNavigate();
   const { user } = useAuth();
+  const location = useLocation();
   
-  const [restaurant, setRestaurant] = useState<any>(null);
+  const [restaurant, setRestaurant] = useState<any>((location.state as any)?.restaurantPreview || null);
   const [friendProfile, setFriendProfile] = useState<Profile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!(location.state as any)?.restaurantPreview);
 
   const fetchGooglePlacesDetails = async (restaurant: any) => {
     try {
