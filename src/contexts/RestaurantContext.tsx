@@ -85,6 +85,7 @@ const mapDbRestaurantToRestaurant = (dbRestaurant: DbRestaurant): Restaurant => 
 export function RestaurantProvider({ children }: RestaurantProviderProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [photosHydrated, setPhotosHydrated] = useState(false);
 
   // Load restaurants from Supabase
   useEffect(() => {
@@ -196,6 +197,43 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
     }, onProgress);
   }, []);
 
+  // Helper: dataURL -> Blob for storage upload
+  const dataUrlToBlob = (dataUrl: string): Blob => {
+    const [header, base64] = dataUrl.split(',');
+    const mimeMatch = header.match(/data:(.*?);base64/);
+    const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+    const binary = atob(base64);
+    const len = binary.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+    return new Blob([bytes], { type: mime });
+  };
+
+  // Upload compressed photos to Supabase Storage (reuse 'avatars' bucket)
+  const uploadCompressedPhotos = useCallback(async (
+    files: File[],
+    userId: string,
+    onProgress?: (processed: number, total: number) => void
+  ): Promise<string[]> => {
+    const dataUrls = await convertPhotosToDataUrls(files, onProgress);
+    const urls: string[] = [];
+    for (let i = 0; i < dataUrls.length; i++) {
+      const blob = dataUrlToBlob(dataUrls[i]);
+      const fileName = `restaurant-photos/${userId}/${Date.now()}-${i}.jpg`;
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, blob, {
+          contentType: 'image/jpeg',
+          upsert: true
+        });
+      if (uploadError) throw uploadError;
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+      urls.push(publicUrl);
+    }
+    return urls;
+  }, [convertPhotosToDataUrls]);
   // Geocode the address using the edge function
   const geocodeAddress = useCallback(async (address: string, city: string): Promise<{ latitude: number, longitude: number, country?: string } | null> => {
     try {
@@ -233,9 +271,9 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         throw new Error('Authentication required to add restaurants');
       }
       
-      // Convert photos to data URLs with progress tracking
-      const photoDataUrls = await convertPhotosToDataUrls(data.photos, (processed, total) => {
-        console.log(`Processing photos: ${processed}/${total}`);
+      // Upload photos to storage (compressed)
+      const uploadedPhotoUrls = await uploadCompressedPhotos(data.photos, session.user.id, (processed, total) => {
+        console.log(`Uploading photos: ${processed}/${total}`);
       });
       
       // Geocode the address using the edge function
@@ -254,7 +292,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         rating: data.rating ?? null,
         notes: data.notes ?? null,
         date_visited: data.dateVisited ? data.dateVisited : null,
-        photos: photoDataUrls,
+        photos: uploadedPhotoUrls,
         photo_dish_names: data.photoDishNames || [],
         photo_notes: data.photoNotes || [],
         is_wishlist: data.isWishlist,
@@ -301,7 +339,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [convertPhotosToDataUrls, geocodeAddress]);
+  }, [uploadCompressedPhotos, geocodeAddress]);
 
   const updateRestaurant = useCallback(async (id: string, data: RestaurantFormData) => {
     try {
@@ -319,9 +357,9 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         throw new Error('Restaurant not found');
       }
       
-      // Convert new photos to data URLs with progress tracking
-      const newPhotoDataUrls = await convertPhotosToDataUrls(data.photos, (processed, total) => {
-        console.log(`Processing updated photos: ${processed}/${total}`);
+      // Upload new photos to storage (compressed)
+      const newPhotoUrls = await uploadCompressedPhotos(data.photos, session.user.id, (processed, total) => {
+        console.log(`Uploading updated photos: ${processed}/${total}`);
       });
       
       // Handle photo removal and combine with new photos
