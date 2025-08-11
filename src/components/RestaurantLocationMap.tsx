@@ -53,6 +53,8 @@ export function RestaurantLocationMap({ latitude, longitude, name, address }: Re
 
       map.current.on('load', () => {
         setMapLoaded(true);
+        // Ensure correct sizing once style/resources are ready
+        map.current?.resize();
       });
 
       map.current.on('error', (e) => {
@@ -70,6 +72,34 @@ export function RestaurantLocationMap({ latitude, longitude, name, address }: Re
       }
     };
   }, [token, latitude, longitude, name, address]);
+
+  // Keep the map sized correctly when container visibility or size changes
+  useEffect(() => {
+    if (!map.current || !mapContainer.current) return;
+
+    const ro = new ResizeObserver(() => {
+      map.current?.resize();
+    });
+    ro.observe(mapContainer.current);
+
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          map.current?.resize();
+        }
+      });
+    }, { threshold: 0.1 });
+    io.observe(mapContainer.current);
+
+    // Extra nudge after mount
+    const t = window.setTimeout(() => map.current?.resize(), 150);
+
+    return () => {
+      ro.disconnect();
+      io.disconnect();
+      window.clearTimeout(t);
+    };
+  }, [mapLoaded]);
 
   if (isLoading) {
     return <Skeleton className="h-full w-full" />;
