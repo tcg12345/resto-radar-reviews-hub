@@ -133,3 +133,66 @@ export const createThumbnail = async (file: File): Promise<string> => {
     format: 'jpeg'
   });
 };
+
+// Image URL resolution helpers
+const SUPABASE_PROJECT_REF = 'ocpmhsquwsdaauflbygf';
+const EDGE_BASE = `https://${SUPABASE_PROJECT_REF}.functions.supabase.co`;
+
+const extractGooglePhotoRef = (input: string): string | null => {
+  try {
+    // Direct Google Place Photo URL
+    if (input.includes('maps.googleapis.com/maps/api/place/photo')) {
+      const u = new URL(input);
+      return (
+        u.searchParams.get('photoreference') ||
+        u.searchParams.get('photo_reference')
+      );
+    }
+  } catch {}
+  // Common stored reference patterns
+  if (/^(gphoto:|google_photo_ref:|places_photo:)/.test(input)) {
+    return input.split(':').pop() || null;
+  }
+  // Plain reference token (no slashes, long-ish)
+  if (/^[A-Za-z0-9_-]{30,}$/.test(input) && !input.includes('/')) {
+    return input;
+  }
+  return null;
+};
+
+const normalizeLocalUrl = (url: string): string => {
+  if (!url) return '';
+  if (url.startsWith('http') || url.startsWith('blob:') || url.startsWith('data:')) return url;
+  if (url.startsWith('/public/')) return url.replace(/^\/public\//, '/');
+  if (url.startsWith('public/')) return '/' + url.replace(/^public\//, '');
+  if (url.startsWith('/')) return url;
+  return '/' + url.replace(/^\.\//, '');
+};
+
+const buildGooglePhotoProxyUrl = (
+  ref: string,
+  opts?: { width?: number; height?: number }
+): string => {
+  const url = new URL(`${EDGE_BASE}/google-photo-proxy`);
+  url.searchParams.set('photoreference', ref);
+  if (opts?.height) url.searchParams.set('maxheight', String(opts.height));
+  else url.searchParams.set('maxwidth', String(opts?.width || 640));
+  return url.toString();
+};
+
+export const resolveImageUrl = (
+  input: string,
+  opts?: { width?: number; height?: number }
+): string => {
+  if (!input) return '';
+  const ref = extractGooglePhotoRef(input);
+  if (ref) return buildGooglePhotoProxyUrl(ref, opts);
+  return normalizeLocalUrl(input);
+};
+
+export const getLqipUrl = (input: string): string => {
+  const ref = extractGooglePhotoRef(input);
+  if (ref) return buildGooglePhotoProxyUrl(ref, { width: 64 });
+  // For local/remote images, return the same URL (browser will downscale)
+  return normalizeLocalUrl(input);
+};

@@ -5,6 +5,7 @@ interface LazyImageProps {
   src: string;
   alt: string;
   className?: string;
+  placeholderSrc?: string;
   onLoad?: () => void;
   onError?: () => void;
 }
@@ -35,7 +36,7 @@ const saveCacheToStorage = (key: string, cache: Set<string>) => {
 const imageCache = loadCacheFromStorage(CACHE_KEY);
 const errorCache = loadCacheFromStorage(ERROR_CACHE_KEY);
 
-export const LazyImage = React.memo(({ src, alt, className, onLoad, onError }: LazyImageProps) => {
+export const LazyImage = React.memo(({ src, alt, className, placeholderSrc, onLoad, onError }: LazyImageProps) => {
   const [isLoaded, setIsLoaded] = useState(() => imageCache.has(src));
   const [hasError, setHasError] = useState(() => errorCache.has(src));
   const [isInView, setIsInView] = useState(false);
@@ -106,25 +107,37 @@ export const LazyImage = React.memo(({ src, alt, className, onLoad, onError }: L
     );
   }
 
-  return (
-    <div ref={containerRef} className={className}>
-      {!isLoaded && (
-        <Skeleton className="absolute inset-0 w-full h-full" />
-      )}
-      {(isInView || isLoaded) && (
-        <img
-          src={src}
-          alt={alt}
-          className={`w-full h-full object-cover transition-opacity duration-300 ${
-            isLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
-          onLoad={handleLoad}
-          onError={handleError}
-          loading="lazy"
-        />
-      )}
-    </div>
-  );
+return (
+  <div ref={containerRef} className={`relative ${className || ''}`}>
+    {!isLoaded && (
+      <>
+        {placeholderSrc ? (
+          <img
+            src={placeholderSrc}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 w-full h-full object-cover blur-md scale-105 opacity-70"
+            loading="eager"
+          />
+        ) : (
+          <Skeleton className="absolute inset-0 w-full h-full" />
+        )}
+      </>
+    )}
+    {(isInView || isLoaded) && (
+      <img
+        src={src}
+        alt={alt}
+        className={`w-full h-full object-cover transition-opacity duration-300 ${
+          isLoaded ? 'opacity-100' : 'opacity-0'
+        }`}
+        onLoad={handleLoad}
+        onError={handleError}
+        loading="lazy"
+      />
+    )}
+  </div>
+);
 });
 
 LazyImage.displayName = 'LazyImage';

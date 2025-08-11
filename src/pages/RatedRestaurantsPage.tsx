@@ -15,8 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { RatedRestaurantsFilterDialog } from '@/components/RatedRestaurantsFilterDialog';
-
-
+import { resolveImageUrl } from '@/utils/imageUtils';
 
 interface RatedRestaurantsPageProps {
   restaurants: Restaurant[];
@@ -98,20 +97,28 @@ export function RatedRestaurantsPage({
   useEffect(() => {
     if (ratedRestaurants.length > 0 && !photosLoadedRef.current) {
       photosLoadedRef.current = true;
-      const preloadImages = async () => {
-        const coverPhotos = ratedRestaurants
-          .filter(r => r.photos && r.photos.length > 0)
-          .map(r => r.photos[0])
-          .filter(Boolean);
-        const preloadPromises = coverPhotos.map(url => new Promise<void>((resolve) => {
-          const img = new Image();
-          img.onload = () => resolve();
-          img.onerror = () => resolve(); // Don't block on errors
-          img.src = url as string;
-        }));
-        // Fire-and-forget
-        Promise.allSettled(preloadPromises);
-      };
+const preloadImages = async () => {
+  const coverPhotos = ratedRestaurants
+    .filter(r => r.photos && r.photos.length > 0)
+    .map(r => resolveImageUrl(r.photos[0], { width: 800 }))
+    .filter(Boolean);
+  const preloadPromises = coverPhotos.map(url => new Promise<void>((resolve) => {
+    // Add prefetch hint
+    try {
+      const link = document.createElement('link');
+      link.rel = 'prefetch';
+      link.as = 'image';
+      link.href = url as string;
+      document.head.appendChild(link);
+    } catch {}
+    const img = new Image();
+    img.onload = () => resolve();
+    img.onerror = () => resolve(); // Don't block on errors
+    img.src = url as string;
+  }));
+  // Fire-and-forget
+  Promise.allSettled(preloadPromises);
+};
       preloadImages();
     }
   }, [ratedRestaurants.length]);

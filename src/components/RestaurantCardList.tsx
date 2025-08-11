@@ -17,13 +17,8 @@ import { useRestaurants } from '@/contexts/RestaurantContext';
 import { getStateFromCoordinatesCached } from '@/utils/geocoding';
 import { LazyImage } from '@/components/LazyImage';
 
-// Normalize stored photo URLs (strip leading public/ and ensure root slash)
-const normalizePhotoUrl = (url: string) => {
-  if (!url) return '';
-  if (url.startsWith('/public/')) return url.replace(/^\/public\//, '/');
-  if (url.startsWith('public/')) return '/' + url.replace(/^public\//, '');
-  return url;
-};
+// Image URL resolution
+import { resolveImageUrl, getLqipUrl } from '@/utils/imageUtils';
 interface RestaurantCardListProps {
   restaurant: Restaurant;
   onEdit?: (id: string) => void;
@@ -107,11 +102,12 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
         <div className={isMobile ? "block" : "flex"}>
           {!isMobile && restaurant.photos.length > 0 && (
             <div className="w-32 h-32 lg:w-40 lg:h-40 flex-shrink-0 relative overflow-hidden" onClick={openGallery}>
-              <LazyImage 
-                src={normalizePhotoUrl(restaurant.photos[currentPhotoIndex])}
-                alt={`${restaurant.name} photo`}
-                className="h-full w-full object-cover transition-transform duration-300 hover:scale-105 cursor-pointer"
-              />
+<LazyImage 
+  src={resolveImageUrl(restaurant.photos[currentPhotoIndex], { width: 400 })}
+  placeholderSrc={getLqipUrl(restaurant.photos[currentPhotoIndex])}
+  alt={`${restaurant.name} photo`}
+  className="h-full w-full object-cover transition-transform duration-300 hover:scale-105 cursor-pointer"
+/>
             </div>
           )}
 
