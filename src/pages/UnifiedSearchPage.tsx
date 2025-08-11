@@ -635,11 +635,11 @@ const performLiveSearch = async () => {
           </TabsList>
 
           <TabsContent value="list" className="space-y-4">
-            {isLoading ? <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {isLoading ? <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {[...Array(6)].map((_, i) => <SearchResultSkeleton key={i} />)}
-              </div> : <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {searchResults.map(place => <Card key={place.place_id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handlePlaceClick(place)}>
-                    <CardContent className="p-2 lg:p-4">
+              </div> : <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {searchResults.map(place => <Card key={place.place_id} className="cursor-pointer hover:shadow-lg transition-shadow w-full" onClick={() => handlePlaceClick(place)}>
+                    <CardContent className="p-3 lg:p-4 min-w-0 overflow-hidden">
                       {/* Mobile Layout */}
                       <div className="lg:hidden">
                         <div className="flex justify-between items-center">
