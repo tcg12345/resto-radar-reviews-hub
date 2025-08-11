@@ -98,6 +98,9 @@ export function UnifiedRestaurantDetails({
   const [deferHeavy, setDeferHeavy] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const mapRef = useRef<HTMLDivElement | null>(null);
+  const enhancedPlaceIdsRef = useRef<Set<string>>(new Set());
+  const linkedPlaceIdsRef = useRef<Set<string>>(new Set());
+  const fetchedDetailsPlaceIdsRef = useRef<Set<string>>(new Set());
   const hasValidPlaceId = useMemo(() => !!restaurant.place_id, [restaurant.place_id]);
 
   useEffect(() => {
@@ -145,12 +148,24 @@ export function UnifiedRestaurantDetails({
     setPhotos(restaurant.photos || []);
 
     // Fetch additional details if we have a place_id and missing info (deferred)
-    if (deferHeavy && restaurant.place_id && (!restaurant.website || !restaurant.formatted_phone_number)) {
+    if (
+      deferHeavy &&
+      restaurant.place_id &&
+      (!restaurant.website && !(restaurant.formatted_phone_number || restaurant.phone || restaurant.phone_number)) &&
+      !fetchedDetailsPlaceIdsRef.current.has(restaurant.place_id)
+    ) {
+      fetchedDetailsPlaceIdsRef.current.add(restaurant.place_id);
       fetchPlaceDetails(restaurant.place_id);
     }
 
     // Enhance with AI if cuisine is generic or Michelin stars are unknown (deferred)
-    if (deferHeavy && shouldEnhanceWithAI(restaurant)) {
+    if (
+      deferHeavy &&
+      restaurant.place_id &&
+      shouldEnhanceWithAI(restaurant) &&
+      !enhancedPlaceIdsRef.current.has(restaurant.place_id)
+    ) {
+      enhancedPlaceIdsRef.current.add(restaurant.place_id);
       enhanceWithAI(restaurant);
     }
   }, [restaurant, deferHeavy]);
