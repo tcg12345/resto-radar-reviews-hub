@@ -51,6 +51,8 @@ import ShareRestaurantPage from "./pages/ShareRestaurantPage";
 import { HotelDetailsPage } from "./pages/HotelDetailsPage";
 import { HotelDetailedOverviewPage } from "./pages/HotelDetailedOverviewPage";
 import { ItineraryPrivacyPage } from "./pages/ItineraryPrivacyPage";
+import FriendsRatingsPage from "./pages/FriendsRatingsPage";
+import ExpertRatingsPage from "./pages/ExpertRatingsPage";
 
 const queryClient = new QueryClient();
 

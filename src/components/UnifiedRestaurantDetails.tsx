@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { ArrowLeft, MapPin, Clock, Phone, Globe, Star, Heart, Plus, Share2, Navigation, ExternalLink, Check, User } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Phone, Globe, Star, Heart, Plus, Share2, Navigation, ExternalLink, Check, User, Users, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +20,7 @@ import { useRestaurantReviews } from '@/hooks/useRestaurantReviews';
 import { useCommunityData } from '@/contexts/CommunityDataContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRatingStats } from '@/hooks/useRatingStats';
 interface UnifiedRestaurantData {
   id?: string;
   place_id?: string;
@@ -133,6 +134,8 @@ export function UnifiedRestaurantDetails({
     isLoading: isLoadingReviews,
     submitReview
   } = useRestaurantReviews(restaurantData.place_id, restaurantData.name);
+
+  const { friendStats, expertStats } = useRatingStats(restaurantData.place_id);
 
   // Save community stats to context for preloading
   useEffect(() => {
@@ -574,6 +577,38 @@ export function UnifiedRestaurantDetails({
           </div>
 
           
+
+          {/* Ratings Summary: Friends and Experts */}
+          {restaurantData.place_id && (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {/* Friends Rating */}
+              <Card onClick={() => navigate(`/restaurant/${restaurantData.place_id}/friends-ratings?name=${encodeURIComponent(restaurantData.name)}`)} className="cursor-pointer hover:shadow" aria-label="View friends ratings">
+                <CardContent className="p-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">Friends</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-base font-semibold">{friendStats.avg ?? '—'}</div>
+                    <div className="text-xs text-muted-foreground">{friendStats.count} reviews</div>
+                  </div>
+                </CardContent>
+              </Card>
+              {/* Expert Rating */}
+              <Card onClick={() => navigate(`/restaurant/${restaurantData.place_id}/expert-ratings?name=${encodeURIComponent(restaurantData.name)}`)} className="cursor-pointer hover:shadow" aria-label="View expert ratings">
+                <CardContent className="p-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Award className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">Experts</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-base font-semibold">{expertStats.avg ?? '—'}</div>
+                    <div className="text-xs text-muted-foreground">{expertStats.count} reviews</div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* Community Rating */}
           {deferHeavy && (
