@@ -16,6 +16,7 @@ import { RestaurantProfileModal } from '@/components/RestaurantProfileModal';
 import { DiscoverPage } from '@/pages/DiscoverPage';
 import { SearchResultSkeleton } from '@/components/skeletons/SearchResultSkeleton';
 import { InfiniteScrollLoader } from '@/components/InfiniteScrollLoader';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 interface GooglePlaceResult {
   place_id: string;
   name: string;
@@ -93,8 +94,9 @@ export default function UnifiedSearchPage() {
   const [hasMoreRecommendations, setHasMoreRecommendations] = useState(true);
   const [nextPageToken, setNextPageToken] = useState<string | null>(null);
   const [userRestaurants, setUserRestaurants] = useState<any[]>([]);
-  const searchRef = useRef<HTMLDivElement>(null);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+const searchRef = useRef<HTMLDivElement>(null);
+const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+const [searchError, setSearchError] = useState<string | null>(null);
 
   // Load initial data on component mount
   useEffect(() => {
@@ -246,52 +248,81 @@ export default function UnifiedSearchPage() {
       }
     };
   }, [searchQuery, locationQuery]);
-  const performLiveSearch = async () => {
-    if (!searchQuery.trim() || searchQuery.length < 3) {
-      setSearchResults([]);
+const performLiveSearch = async () => {
+  if (!searchQuery.trim() || searchQuery.length < 3) {
+    setSearchResults([]);
+    setSearchError(null);
+    return;
+  }
+  setIsLoading(true);
+  setSearchError(null);
+  try {
+    // Simplified search - just use query and location text for speed
+    const searchParams: any = {
+      query: locationQuery.trim() ? `${searchQuery} in ${locationQuery}` : searchQuery,
+      type: 'search',
+      radius: 25000 // Standard radius
+    };
+
+    // Only add coordinates if user location is available (no geocoding delay)
+    if (userLocation && !locationQuery.trim()) {
+      searchParams.location = `${userLocation.lat},${userLocation.lng}`;
+      searchParams.radius = 50000;
+    }
+
+    const { data, error } = await supabase.functions.invoke('google-places-search', {
+      body: searchParams
+    });
+
+    if (!error && data && data.status === 'OK' && data.results && data.results.length > 0) {
+      const resultsWithFallback = data.results.map((result: any) => ({
+        ...result,
+        fallbackCuisine: result.types.find((type: string) => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 'Restaurant'
+      }));
+      setSearchResults(resultsWithFallback);
       return;
     }
-    setIsLoading(true);
-    try {
-      // Simplified search - just use query and location text for speed
-      const searchParams: any = {
-        query: locationQuery.trim() ? `${searchQuery} in ${locationQuery}` : searchQuery,
-        type: 'search',
-        radius: 25000 // Standard radius
-      };
 
-      // Only add coordinates if user location is available (no geocoding delay)
-      if (userLocation && !locationQuery.trim()) {
-        searchParams.location = `${userLocation.lat},${userLocation.lng}`;
-        searchParams.radius = 50000;
+    // Fallback: AI discovery search if Google Places fails or returns empty
+    const fallbackQuery = searchQuery;
+    const fallbackLocation = locationQuery;
+    const { data: aiData, error: aiError } = await supabase.functions.invoke('restaurant-discovery', {
+      body: {
+        query: fallbackQuery,
+        location: fallbackLocation,
+        searchType: 'description',
+        filters: {}
       }
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('google-places-search', {
-        body: searchParams
-      });
-      if (error) {
-        setSearchResults([]);
-        setIsLoading(false);
-        return;
-      }
-      if (data && data.status === 'OK' && data.results && data.results.length > 0) {
-        // Add immediate fallback cuisine to all results for instant display
-        const resultsWithFallback = data.results.map(result => ({
-          ...result,
-          fallbackCuisine: result.types.find(type => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 'Restaurant'
-        }));
-        setSearchResults(resultsWithFallback);
-      } else {
-        setSearchResults([]);
-      }
-    } catch (error) {
+    });
+
+    if (!aiError && aiData?.restaurants?.length) {
+      const mapped = aiData.restaurants.map((r: any) => ({
+        place_id: r.id || `${r.name}-${r.address}`,
+        name: r.name,
+        formatted_address: r.address,
+        rating: r.rating || undefined,
+        user_ratings_total: r.reviewCount || undefined,
+        price_level: r.priceRange || undefined,
+        photos: [],
+        geometry: { location: { lat: r.location?.lat || 0, lng: r.location?.lng || 0 } },
+        types: [r.cuisine ? r.cuisine.toLowerCase().replace(/\s+/g, '_') : 'restaurant'],
+        opening_hours: typeof r.isOpen === 'boolean' ? { open_now: r.isOpen } : undefined,
+        fallbackCuisine: r.cuisine || 'Restaurant',
+        yelpData: r.yelpData
+      }));
+      setSearchResults(mapped);
+      setSearchError('Google search is temporarily unavailable. Showing AI results instead.');
+    } else {
       setSearchResults([]);
-    } finally {
-      setIsLoading(false);
+      setSearchError('Search service is currently unavailable. Please try again later.');
     }
-  };
+  } catch (error) {
+    setSearchResults([]);
+    setSearchError('Unexpected error during search. Please retry.');
+  } finally {
+    setIsLoading(false);
+  }
+};
   const handleQuickAdd = async (place: GooglePlaceResult) => {
     if (!user) {
       toast.error('Please log in to add restaurants');
@@ -487,13 +518,21 @@ export default function UnifiedSearchPage() {
               </div>
             </div>
             
-            {/* Location-based search info */}
-            {(locationQuery || userLocation) && <div className="text-center">
-                <p className="text-sm text-muted-foreground">
-                  {locationQuery ? `Searching near "${locationQuery}"` : 'Searching near your location'}
-                  {!locationQuery && userLocation && ' - specify a location above for more targeted results'}
-                </p>
-              </div>}
+{/* Location-based search info */}
+{(locationQuery || userLocation) && <div className="text-center">
+    <p className="text-sm text-muted-foreground">
+      {locationQuery ? `Searching near "${locationQuery}"` : 'Searching near your location'}
+      {!locationQuery && userLocation && ' - specify a location above for more targeted results'}
+    </p>
+  </div>}
+
+{/* Error / Fallback notice */}
+{searchError && (
+  <Alert variant="destructive" className="mt-3">
+    <AlertTitle>Search issue</AlertTitle>
+    <AlertDescription>{searchError}</AlertDescription>
+  </Alert>
+)}
           </div>
         </div>
       </div>
