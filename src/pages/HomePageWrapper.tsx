@@ -1,10 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import HomePage from './HomePage';
+import { useIsMobile } from '@/hooks/useIsMobile';
+import MobileFeedPage from './mobile/MobileFeedPage';
 
 export default function HomePageWrapper() {
   const navigate = useNavigate();
   const [shouldOpenAddDialog, setShouldOpenAddDialog] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleNavigate = (tab: 'places' | 'search' | 'profile') => {
     switch (tab) {
@@ -24,6 +27,10 @@ export default function HomePageWrapper() {
     setShouldOpenAddDialog(true);
     navigate('/places');
   };
+
+  if (isMobile) {
+    return <MobileFeedPage />;
+  }
 
   return (
     <HomePage 
