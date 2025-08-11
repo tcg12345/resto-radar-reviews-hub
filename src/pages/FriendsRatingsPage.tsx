@@ -71,28 +71,38 @@ export default function FriendsRatingsPage() {
         )}
 
         {reviews.map((r) => (
-          <Card key={r.review_id}>
-            <CardContent className="p-4 flex items-start gap-3">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={r.avatar_url} alt={r.username} />
-                <AvatarFallback>{(r.username || 'A').slice(0, 2).toUpperCase()}</AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="truncate font-medium">{r.username || 'Anonymous'}</div>
-                  <div className="flex items-center gap-2">
-                    <StarRating rating={Number(r.overall_rating) || 0} readonly={true} size="sm" />
-                    <span className="text-sm font-semibold">{Number(r.overall_rating).toFixed(1)}</span>
+          <Card key={r.review_id} className="overflow-hidden">
+            <CardContent className="p-3">
+              {/* Mobile-optimized header */}
+              <div className="flex items-center gap-3 mb-3">
+                <Avatar className="h-8 w-8 shrink-0">
+                  <AvatarImage src={r.avatar_url} alt={r.username} />
+                  <AvatarFallback className="text-xs">{(r.username || 'A').slice(0, 2).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-sm truncate">{r.username || 'Anonymous'}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {new Date(r.created_at).toLocaleDateString()}
+                    {r.source_type === 'personal_rating' ? ' • Personal rating' : ' • User review'}
                   </div>
                 </div>
-                {r.review_text && (
-                  <p className="mt-1 text-sm text-muted-foreground whitespace-pre-line line-clamp-6">{r.review_text}</p>
-                )}
-                <div className="mt-2 text-xs text-muted-foreground">
-                  {new Date(r.created_at).toLocaleDateString()}
-                  {r.source_type === 'personal_rating' ? ' • Personal rating' : ' • User review'}
-                </div>
               </div>
+
+              {/* Mobile-optimized rating display */}
+              <div className="flex items-center gap-2 mb-3 p-2 bg-muted/30 rounded-lg">
+                <StarRating rating={Number(r.overall_rating) || 0} readonly={true} size="sm" />
+                <span className="text-lg font-bold text-primary">{Number(r.overall_rating).toFixed(1)}</span>
+                <span className="text-xs text-muted-foreground ml-auto">out of 5</span>
+              </div>
+
+              {/* Review text with better mobile formatting */}
+              {r.review_text && (
+                <div className="mt-3">
+                  <p className="text-sm leading-relaxed text-foreground line-clamp-4 break-words">
+                    {r.review_text}
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}
