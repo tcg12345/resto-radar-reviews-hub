@@ -52,7 +52,7 @@ export default function FriendsRatingsPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="sticky top-0 z-50 bg-background backdrop-blur border-b pt-safe-area-top">
-        <div className="flex items-center gap-3 p-4">
+        <div className="flex items-center gap-3 p-4" role="banner">
           <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="h-10 w-10 p-0" aria-label="Go back">
             <ArrowLeft className="h-4 w-4" />
           </Button>

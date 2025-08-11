@@ -426,7 +426,7 @@ export default function UnifiedSearchPage() {
     return '$'.repeat(priceLevel);
   };
   const getPhotoUrl = (photoReference: string) => {
-    return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photoReference}&key=${import.meta.env.VITE_GOOGLE_PLACES_API_KEY}`;
+    return '/placeholder.svg';
   };
   return <div className="w-full">
       {/* Modern Search Section */}

@@ -130,9 +130,9 @@ export function UnifiedRestaurantDetails({
     reviews,
     isLoading: isLoadingReviews,
     submitReview
-  } = useRestaurantReviews(restaurantData.place_id, restaurantData.name);
+  } = useRestaurantReviews(hasValidPlaceId ? restaurantData.place_id : undefined, restaurantData.name);
 
-  const { friendStats, expertStats } = useRatingStats(restaurantData.place_id);
+  const { friendStats, expertStats } = useRatingStats(hasValidPlaceId ? restaurantData.place_id : undefined);
 
   // Save community stats to context for preloading
   useEffect(() => {

@@ -1,10 +1,9 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import UnifiedSearchPage from './UnifiedSearchPage';
-import { DiscoverPage } from './DiscoverPage';
-import { PersonalizedRecommendations } from '@/components/PersonalizedRecommendations';
-import { FriendsActivityPage } from './FriendsActivityPage';
+const UnifiedSearchPage = lazy(() => import('./UnifiedSearchPage'));
+const DiscoverPage = lazy(() => import('./DiscoverPage').then(m => ({ default: m.DiscoverPage })));
+const FriendsActivityPage = lazy(() => import('./FriendsActivityPage').then(m => ({ default: m.FriendsActivityPage })));
 
 type SearchTab = 'global' | 'smart' | 'recommendations' | 'friends';
 
@@ -70,13 +69,21 @@ export default function SearchTabsPage() {
             </button>
           </div>
 
-          <TabsContent value="global" className="mt-0">
-            <UnifiedSearchPage />
-          </TabsContent>
+{activeTab === 'global' && (
+  <TabsContent value="global" className="mt-0">
+    <Suspense fallback={<div className="p-4 text-sm text-muted-foreground">Loading...</div>}>
+      <UnifiedSearchPage />
+    </Suspense>
+  </TabsContent>
+)}
 
-          <TabsContent value="friends" className="mt-0">
-            <FriendsActivityPage />
-          </TabsContent>
+{activeTab === 'friends' && (
+  <TabsContent value="friends" className="mt-0">
+    <Suspense fallback={<div className="p-4 text-sm text-muted-foreground">Loading...</div>}>
+      <FriendsActivityPage />
+    </Suspense>
+  </TabsContent>
+)}
         </Tabs>
       </div>
 
@@ -98,17 +105,29 @@ export default function SearchTabsPage() {
             <TabsTrigger value="friends" className="text-sm px-3 py-1.5">Friends</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="global" className="space-y-6">
-            <UnifiedSearchPage />
-          </TabsContent>
+{activeTab === 'global' && (
+  <TabsContent value="global" className="space-y-6">
+    <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Loading search...</div>}>
+      <UnifiedSearchPage />
+    </Suspense>
+  </TabsContent>
+)}
 
-          <TabsContent value="smart" className="space-y-6">
-            <DiscoverPage />
-          </TabsContent>
+{activeTab === 'smart' && (
+  <TabsContent value="smart" className="space-y-6">
+    <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Loading discovery...</div>}>
+      <DiscoverPage />
+    </Suspense>
+  </TabsContent>
+)}
 
-          <TabsContent value="friends" className="space-y-6">
-            <FriendsActivityPage />
-          </TabsContent>
+{activeTab === 'friends' && (
+  <TabsContent value="friends" className="space-y-6">
+    <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Loading friends...</div>}>
+      <FriendsActivityPage />
+    </Suspense>
+  </TabsContent>
+)}
         </Tabs>
       </div>
     </>

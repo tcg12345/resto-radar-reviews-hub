@@ -207,8 +207,8 @@ export function PersonalizedRecommendations() {
   };
 
   const getPhotoUrl = (photoReference: string) => {
-    if (!photoReference) return null;
-    return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photoReference}&key=${import.meta.env.VITE_GOOGLE_PLACES_API_KEY}`;
+    if (!photoReference) return '/placeholder.svg';
+    return '/placeholder.svg';
   };
 
   const formatAddress = (fullAddress: string) => {
