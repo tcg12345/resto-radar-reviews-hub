@@ -54,8 +54,11 @@ export function RatedRestaurantsPage({
   const { view, setView } = useViewToggle('rated-restaurants-view', 'grid');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const photosLoadedRef = useRef(false);
+  const [cachedRestaurants, setCachedRestaurants] = useState<Restaurant[]>([]);
+  const [hydrated, setHydrated] = useState(false);
 
-  const ratedRestaurants = restaurants.filter((r) => !r.isWishlist);
+  const sourceRestaurants = restaurants.length > 0 ? restaurants : cachedRestaurants;
+  const ratedRestaurants = sourceRestaurants.filter((r) => !r.isWishlist);
 
   // Handle opening the add dialog when triggered from HomePage
   useEffect(() => {
@@ -64,6 +67,32 @@ export function RatedRestaurantsPage({
       onAddDialogClose?.();
     }
   }, [shouldOpenAddDialog, onAddDialogClose]);
+
+  // Hydrate from localStorage for instant first paint
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('ratedRestaurantsCache');
+      if (raw) {
+        const parsed: Restaurant[] = JSON.parse(raw);
+        setCachedRestaurants(parsed);
+      }
+    } catch (e) {
+      console.warn('Failed to load ratedRestaurantsCache');
+    } finally {
+      setHydrated(true);
+    }
+  }, []);
+
+  // Persist cache when real data arrives
+  useEffect(() => {
+    if (restaurants.length > 0 && ratedRestaurants.length > 0) {
+      try {
+        localStorage.setItem('ratedRestaurantsCache', JSON.stringify(ratedRestaurants));
+      } catch (e) {
+        // ignore
+      }
+    }
+  }, [restaurants.length, ratedRestaurants.length]);
 
   // Aggressively preload cover photos for faster perceived load, without external context calls
   useEffect(() => {
@@ -586,7 +615,7 @@ export function RatedRestaurantsPage({
         </div>
       </div>
 
-      {filteredRestaurants.length === 0 ? (
+      {filteredRestaurants.length === 0 && ((restaurants.length === 0 && cachedRestaurants.length === 0) || (searchTerm || filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0 || ratingRange[0] > 0 || ratingRange[1] < 10)) ? (
         <div className="rounded-lg border border-dashed bg-muted/50 p-8 text-center">
           <h3 className="mb-2 text-lg font-medium">No rated restaurants yet</h3>
           <p className="mb-4 text-muted-foreground">

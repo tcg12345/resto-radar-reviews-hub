@@ -20,12 +20,14 @@ import { useRestaurants } from '@/contexts/RestaurantContext';
 import { getStateFromCoordinatesCached } from '@/utils/geocoding';
 import { LazyImage } from '@/components/LazyImage';
 
-// Normalize stored photo URLs (strip leading public/ and ensure root slash)
+// Normalize stored photo URLs (strip leading public/, ensure absolute URLs)
 const normalizePhotoUrl = (url: string) => {
   if (!url) return '';
+  if (url.startsWith('http') || url.startsWith('blob:') || url.startsWith('data:')) return url;
   if (url.startsWith('/public/')) return url.replace(/^\/public\//, '/');
   if (url.startsWith('public/')) return '/' + url.replace(/^public\//, '');
-  return url;
+  if (url.startsWith('/')) return url;
+  return '/' + url.replace(/^\.\//, '');
 };
 interface RestaurantCardProps {
   restaurant: Restaurant;
@@ -175,7 +177,7 @@ export function RestaurantCard({
               <LazyImage
                 src={normalizePhotoUrl(restaurant.photos[currentPhotoIndex])}
                 alt={`${restaurant.name} photo ${currentPhotoIndex + 1}`}
-                className="h-full w-full cursor-pointer transition-transform duration-300 hover:scale-105"
+                className="relative h-full w-full cursor-pointer transition-transform duration-300 hover:scale-105"
                 onLoad={() => setImageLoading(false)}
                 onError={() => setImageLoading(false)}
               />
