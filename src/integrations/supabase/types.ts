@@ -73,6 +73,48 @@ export type Database = {
         }
         Relationships: []
       }
+      expert_applications: {
+        Row: {
+          created_at: string
+          credentials: string | null
+          id: string
+          notes: string | null
+          proof_links: string[] | null
+          qualifications: string | null
+          reviewed_at: string | null
+          reviewer_id: string | null
+          status: Database["public"]["Enums"]["expert_application_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credentials?: string | null
+          id?: string
+          notes?: string | null
+          proof_links?: string[] | null
+          qualifications?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          status?: Database["public"]["Enums"]["expert_application_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credentials?: string | null
+          id?: string
+          notes?: string | null
+          proof_links?: string[] | null
+          qualifications?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          status?: Database["public"]["Enums"]["expert_application_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       friend_activity_cache: {
         Row: {
           activity_data: Json
@@ -847,6 +889,24 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -895,6 +955,34 @@ export type Database = {
       get_cached_friend_profile: {
         Args: { target_user_id: string; requesting_user_id?: string }
         Returns: Json
+      }
+      get_expert_rating_stats: {
+        Args: { place_id_param: string }
+        Returns: {
+          avg_rating: number
+          total_reviews: number
+        }[]
+      }
+      get_expert_reviews_for_place: {
+        Args: {
+          place_id_param: string
+          page_limit?: number
+          page_offset?: number
+        }
+        Returns: {
+          review_id: string
+          user_id: string
+          username: string
+          avatar_url: string
+          overall_rating: number
+          category_ratings: Json
+          review_text: string
+          photos: string[]
+          photo_captions: string[]
+          photo_dish_names: string[]
+          created_at: string
+          source_type: string
+        }[]
       }
       get_friend_profile_data: {
         Args: {
@@ -960,6 +1048,35 @@ export type Database = {
           wishlist: Json
           has_more_restaurants: boolean
           has_more_wishlist: boolean
+        }[]
+      }
+      get_friend_rating_stats: {
+        Args: { place_id_param: string; requesting_user_id?: string }
+        Returns: {
+          avg_rating: number
+          total_reviews: number
+        }[]
+      }
+      get_friend_reviews_for_place: {
+        Args: {
+          place_id_param: string
+          page_limit?: number
+          page_offset?: number
+          requesting_user_id?: string
+        }
+        Returns: {
+          review_id: string
+          user_id: string
+          username: string
+          avatar_url: string
+          overall_rating: number
+          category_ratings: Json
+          review_text: string
+          photos: string[]
+          photo_captions: string[]
+          photo_dish_names: string[]
+          created_at: string
+          source_type: string
         }[]
       }
       get_friend_wishlist_data: {
@@ -1087,6 +1204,13 @@ export type Database = {
         Args: { "": unknown }
         Returns: unknown
       }
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
+      }
       link_all_restaurants_systematically: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -1143,7 +1267,8 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "expert" | "user"
+      expert_application_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1270,6 +1395,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "expert", "user"],
+      expert_application_status: ["pending", "approved", "rejected"],
+    },
   },
 } as const
