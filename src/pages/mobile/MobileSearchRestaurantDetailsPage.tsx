@@ -355,389 +355,43 @@ export default function MobileSearchRestaurantDetailsPage() {
     return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photoReference}&key=AIzaSyDGyJd_l_BZAnseiAx5a5n4a1nSBqnS4dA`;
   };
   if (isLoading || !restaurant) {
-    return <div className="min-h-screen bg-background">
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
-          <div className="flex items-center gap-3 p-4">
-            <Button variant="ghost" size="sm" onClick={handleBack} className="h-8 w-8 p-0">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div className="h-4 bg-muted rounded animate-pulse w-32"></div>
-          </div>
-        </div>
-        <div className="p-4 space-y-4">
-          <div className="h-48 bg-muted rounded-lg animate-pulse"></div>
-          <div className="space-y-2">
-            <div className="h-6 bg-muted rounded animate-pulse"></div>
-            <div className="h-4 bg-muted rounded animate-pulse w-2/3"></div>
-          </div>
-        </div>
-      </div>;
+    return (
+      <UnifiedRestaurantDetails
+        restaurant={{ name: '', address: '', cuisine: 'Restaurant' } as any}
+        isLoading={true}
+        onBack={handleBack}
+        isMobile={true}
+      />
+    );
   }
-  return <>
-      {/* Mobile status bar spacer */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-[35px] bg-background z-50"></div>
-      <div className="min-h-screen bg-background">
-        {/* Header */}
-        <div className="sticky top-[35px] lg:top-0 z-50 bg-background backdrop-blur border-b">
-           <div className="flex items-center gap-3 p-4">
-            <Button variant="ghost" size="sm" onClick={handleBack} className="h-8 w-8 p-0">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <h1 className="font-semibold text-lg line-clamp-1">{restaurant.name}</h1>
-          </div>
-        </div>
 
-        <div className="pb-safe pt-[35px] lg:pt-0">
-        {/* Hero Image - Show restaurant photos, Yelp photos, or community photos */}
-        {(restaurant.photos?.length > 0 || restaurant.yelpData?.photos?.length > 0 || (communityStats?.recentPhotos && communityStats.recentPhotos.length > 0)) && (
-          <div 
-            className="aspect-video relative cursor-pointer group" 
-            onClick={() => navigate(`/restaurant/${restaurant.place_id}/community-photos?name=${encodeURIComponent(restaurant.name)}`)}
-          >
-            <img 
-              src={
-                restaurant.yelpData?.photos?.[0] || 
-                (restaurant.photos?.[0] ? getPhotoUrl(restaurant.photos[0].photo_reference) : '') ||
-                communityStats?.recentPhotos?.[0]?.photos?.[0]
-              } 
-              alt={restaurant.name} 
-              className="w-full h-full object-cover transition-transform group-hover:scale-105" 
-              onError={e => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-              }} 
-            />
-            <div className="absolute top-3 right-3 bg-black/70 text-white px-2 py-1 rounded-md text-sm">
-              View more photos
-            </div>
-          </div>
-        )}
+  // Map Google result to unified data structure used across the app
+  const unifiedRestaurant = {
+    place_id: restaurant.place_id,
+    name: restaurant.name,
+    address: restaurant.formatted_address,
+    cuisine:
+      restaurant.aiAnalysis?.cuisine ||
+      restaurant.fallbackCuisine ||
+      (restaurant.types?.find((t) => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(t))?.replace(/_/g, ' ')) ||
+      'Restaurant',
+    price_range: restaurant.price_level,
+    rating: restaurant.rating,
+    website: restaurant.website,
+    phone_number: restaurant.formatted_phone_number,
+    opening_hours: restaurant.opening_hours?.weekday_text?.join('\n'),
+    latitude: restaurant.geometry?.location?.lat,
+    longitude: restaurant.geometry?.location?.lng,
+    photos: restaurant.photos?.map((p: any) => p.photo_reference) || [],
+  } as any;
 
-        <div className="p-4 space-y-6">
-          {/* Basic Info with Community Rating */}
-          <div className="flex gap-4">
-            {/* Main content */}
-            <div className="flex-1 space-y-3">
-              <div className="flex items-start justify-between">
-                <div className="flex-1 min-w-0">
-                  <h1 className="text-2xl font-bold leading-tight">{restaurant.name}</h1>
-                  <div className="flex items-center gap-2 text-muted-foreground mt-1">
-                    <MapPin className="h-4 w-4 flex-shrink-0" />
-                    <span className="text-sm line-clamp-2">{restaurant.formatted_address}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Rating and Price */}
-              <div className="flex items-center gap-4 flex-wrap">
-                {restaurant.rating && <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                    <span className="font-medium">{restaurant.rating}</span>
-                    {restaurant.user_ratings_total && <span className="text-sm text-muted-foreground">
-                        ({restaurant.user_ratings_total.toLocaleString()})
-                      </span>}
-                  </div>}
-                
-                {(restaurant.price_level || restaurant.yelpData?.price) && <div className="text-lg font-bold text-green-600">
-                    {restaurant.yelpData?.price || getPriceDisplay(restaurant.price_level)}
-                  </div>}
-
-                {restaurant.opening_hours?.open_now !== undefined && <Badge variant={restaurant.opening_hours.open_now ? "default" : "destructive"}>
-                    {restaurant.opening_hours.open_now ? "Open" : "Closed"}
-                  </Badge>}
-              </div>
-
-              {/* AI-Enhanced Cuisine, Price Range, and Michelin Stars */}
-              <div className="flex flex-wrap gap-2">
-                {isEnhancingWithAI ? (
-                  <div className="flex gap-2">
-                    <Badge variant="outline" className="animate-pulse">
-                      <div className="w-16 h-4 bg-muted rounded"></div>
-                    </Badge>
-                    <Badge variant="outline" className="animate-pulse">
-                      <div className="w-12 h-4 bg-muted rounded"></div>
-                    </Badge>
-                    <Badge variant="outline" className="animate-pulse">
-                      <div className="w-20 h-4 bg-muted rounded"></div>
-                    </Badge>
-                  </div>
-                ) : (
-                  <>
-                    {/* AI-Detected Cuisine */}
-                    {(() => {
-                      const aiCuisine = restaurant.aiAnalysis?.cuisine;
-                      
-                      // Better fallback cuisine detection
-                      let fallbackCuisine = restaurant.fallbackCuisine;
-                      
-                      if (!fallbackCuisine || fallbackCuisine.toLowerCase().includes('restaurant')) {
-                        // Try to extract from restaurant types
-                        const meaningfulType = restaurant.types?.find(type => 
-                          !['restaurant', 'food', 'establishment', 'point_of_interest', 'meal_takeaway', 'meal_delivery'].includes(type)
-                        );
-                        
-                        if (meaningfulType) {
-                          fallbackCuisine = meaningfulType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                        } else if (restaurant.yelpData?.categories?.[0]) {
-                          fallbackCuisine = restaurant.yelpData.categories[0];
-                        } else {
-                          // Default based on common restaurant patterns
-                          fallbackCuisine = 'International';
-                        }
-                      }
-                      
-                      const displayCuisine = aiCuisine || fallbackCuisine;
-                      
-                      return (
-                        <Badge variant="outline" className={aiCuisine ? "border-primary/50 bg-primary/5" : ""}>
-                          {aiCuisine && <span className="text-xs mr-1">🤖</span>}
-                          {displayCuisine}
-                        </Badge>
-                      );
-                    })()}
-
-                    {/* AI-Detected Price Range */}
-                    {(() => {
-                      const aiPriceRange = restaurant.aiAnalysis?.priceRange;
-                      const googlePriceLevel = restaurant.price_level;
-                      const yelpPrice = restaurant.yelpData?.price;
-                      
-                      const displayPrice = aiPriceRange || 
-                        (googlePriceLevel ? '$'.repeat(googlePriceLevel) : '') ||
-                        yelpPrice;
-                      
-                      if (displayPrice) {
-                        return (
-                          <Badge variant="outline" className={aiPriceRange ? "border-green-500/50 bg-green-50 text-green-700" : "text-green-600"}>
-                            {aiPriceRange && <span className="text-xs mr-1">🤖</span>}
-                            {displayPrice}
-                          </Badge>
-                        );
-                      }
-                      return null;
-                    })()}
-                    
-                    {/* AI-Detected Michelin Stars */}
-                    {(() => {
-                      const aiMichelinStars = restaurant.aiAnalysis?.michelinStars;
-                      const existingStars = restaurant.michelinStars;
-                      const displayStars = aiMichelinStars ?? existingStars;
-                      
-                      if (displayStars && displayStars > 0) {
-                        console.log('Displaying Michelin stars:', displayStars, 'for restaurant:', restaurant.name);
-                        return (
-                          <Badge variant="outline" className={aiMichelinStars ? "border-yellow-500/50 bg-yellow-50" : ""}>
-                            {aiMichelinStars && <span className="text-xs mr-1">🤖</span>}
-                            <MichelinStars stars={displayStars} readonly={true} size="sm" />
-                          </Badge>
-                        );
-                      }
-                      return null;
-                    })()}
-
-                    {/* Additional Restaurant Categories */}
-                    {restaurant.types?.filter(type => 
-                      !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type) &&
-                      type !== (restaurant.aiAnalysis?.cuisine || restaurant.fallbackCuisine || '').toLowerCase().replace(/\s+/g, '_')
-                    ).slice(0, 2).map(type => (
-                      <Badge key={type} variant="secondary" className="text-xs">
-                        {type.replace(/_/g, ' ')}
-                      </Badge>
-                    ))}
-                  </>
-                )}
-              </div>
-            </div>
-
-          </div>
-
-          {/* Action Buttons */}
-          <div className="space-y-3">
-            {/* Top row - Blue buttons */}
-            <div className="grid grid-cols-3 gap-3">
-              {restaurant.formatted_phone_number && (
-                <Button 
-                  onClick={() => window.open(`tel:${restaurant.formatted_phone_number}`, '_self')}
-                  className="flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white"
-                >
-                  <Phone className="h-4 w-4" />
-                  Call
-                </Button>
-              )}
-              <Button 
-                onClick={() => {
-                  const lat = restaurant.geometry?.location?.lat;
-                  const lng = restaurant.geometry?.location?.lng;
-                  const query = lat && lng ? `${lat},${lng}` : encodeURIComponent(restaurant.formatted_address);
-                  window.open(`https://www.google.com/maps/dir/?api=1&destination=${query}`, '_blank');
-                }}
-                className="flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white"
-              >
-                <MapPin className="h-4 w-4" />
-                Directions
-              </Button>
-              {restaurant.website && (
-                <Button 
-                  onClick={() => window.open(restaurant.website, '_blank')}
-                  className="flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white"
-                >
-                  <Globe className="h-4 w-4" />
-                  Website
-                </Button>
-              )}
-            </div>
-            
-            {/* Bottom row - Dark buttons */}
-            <div className="grid grid-cols-2 gap-3">
-              <Button 
-                onClick={handleAddRating} 
-                className="flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 text-white"
-              >
-                <Plus className="h-4 w-4" />
-                Add to List
-              </Button>
-              <Button 
-                onClick={handleAddToWishlist} 
-                disabled={isAddingToWishlist}
-                className="flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 text-white"
-              >
-                <Heart className="h-4 w-4" />
-                {isAddingToWishlist ? 'Adding...' : 'Wishlist'}
-              </Button>
-            </div>
-          </div>
-
-          {/* Community Rating */}
-          <CommunityRating stats={communityStats} isLoading={isLoadingReviews} />
-
-          {/* Community Photos */}
-          <CommunityPhotoGallery 
-            stats={communityStats}
-            isLoading={isLoadingReviews}
-            onPhotoClick={() => navigate(`/restaurant/${restaurant.place_id}/community-photos?name=${encodeURIComponent(restaurant.name)}`)}
-          />
-
-          {/* Contact Info */}
-          {(restaurant.formatted_phone_number || restaurant.website) && <Card>
-              <CardContent className="p-4 space-y-3">
-                <h3 className="font-semibold">Contact Information</h3>
-                
-                {restaurant.formatted_phone_number && <div className="flex items-center gap-3">
-                    <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <a href={`tel:${restaurant.formatted_phone_number}`} className="text-primary hover:underline">
-                      {restaurant.formatted_phone_number}
-                    </a>
-                  </div>}
-                
-                {restaurant.website && <div className="flex items-center gap-3">
-                    <Globe className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <a href={restaurant.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
-                      Visit Website
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </div>}
-              </CardContent>
-            </Card>}
-
-          {/* Hours */}
-          {restaurant.opening_hours?.weekday_text && <Card className="bg-card border border-border rounded-xl">
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-base text-foreground mb-3">Hours</h3>
-                <div className="space-y-0">
-                  {restaurant.opening_hours.weekday_text.map((hours, index) => {
-                  const [day, time] = hours.split(': ');
-                  return <div key={index}>
-                        <div className="flex justify-between items-center py-2">
-                          <span className="font-medium text-sm text-foreground">{day}</span>
-                          <span className="text-sm text-muted-foreground">{time}</span>
-                        </div>
-                        {index < restaurant.opening_hours.weekday_text.length - 1 && <div className="border-b border-border/30"></div>}
-                      </div>;
-                })}
-                </div>
-              </CardContent>
-            </Card>}
-
-          {/* Location Map */}
-          <Card>
-            <CardContent className="p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <h3 className="font-semibold">Location</h3>
-              </div>
-              <div className="h-64 w-full rounded-lg overflow-hidden border">
-                {restaurant.geometry?.location?.lat && restaurant.geometry?.location?.lng && 
-                 restaurant.geometry.location.lat !== 0 && restaurant.geometry.location.lng !== 0 ? (
-                  <RestaurantLocationMap 
-                    latitude={restaurant.geometry.location.lat} 
-                    longitude={restaurant.geometry.location.lng} 
-                    name={restaurant.name} 
-                    address={restaurant.formatted_address} 
-                  />
-                ) : restaurant.formatted_address ? (
-                  <div className="h-32 flex items-center justify-center bg-muted text-muted-foreground">
-                    <div className="text-center">
-                      <MapPin className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">Map view not available</p>
-                      <p className="text-xs">{restaurant.formatted_address}</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="h-32 flex items-center justify-center bg-muted text-muted-foreground">
-                    <p>Location not available</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Yelp Data */}
-          {restaurant.yelpData && <Card>
-              <CardContent className="p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold">Yelp Information</h3>
-                  <Badge variant="secondary" className="bg-red-100 text-red-800 border-red-200">
-                    Yelp ✓
-                  </Badge>
-                </div>
-                
-                {restaurant.yelpData.transactions?.length > 0 && <div className="flex flex-wrap gap-2">
-                    {restaurant.yelpData.transactions.map((transaction, index) => <Badge key={index} variant="outline" className="text-xs">
-                        {transaction === 'delivery' && '🚚 Delivery'}
-                        {transaction === 'pickup' && '🛍️ Pickup'}
-                        {transaction === 'restaurant_reservation' && '📅 Reservations'}
-                      </Badge>)}
-                  </div>}
-
-                <Button variant="outline" onClick={() => window.open(restaurant.yelpData!.url, '_blank')} className="w-full">
-                  View on Yelp
-                  <ExternalLink className="h-4 w-4 ml-2" />
-                </Button>
-              </CardContent>
-            </Card>}
-
-
-          {/* Reviews Preview */}
-          {restaurant.reviews && restaurant.reviews.length > 0 && <Card>
-              <CardContent className="p-4 space-y-4">
-                <h3 className="font-semibold">Recent Reviews</h3>
-                {restaurant.reviews.slice(0, 3).map((review, index) => <div key={index} className="space-y-2 pb-3 border-b last:border-b-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm">{review.author_name}</span>
-                      <div className="flex items-center">
-                        {[...Array(5)].map((_, i) => <Star key={i} className={`h-3 w-3 ${i < review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'}`} />)}
-                      </div>
-                    </div>
-                    <p className="text-sm text-muted-foreground line-clamp-3">
-                      {review.text}
-                    </p>
-                  </div>)}
-              </CardContent>
-            </Card>}
-
-
-        </div>
-        </div>
-      </div>
-    </>;
+  return (
+    <UnifiedRestaurantDetails
+      restaurant={unifiedRestaurant}
+      isLoading={false}
+      onBack={handleBack}
+      canAddToWishlist={true}
+      isMobile={true}
+    />
+  );
 }
