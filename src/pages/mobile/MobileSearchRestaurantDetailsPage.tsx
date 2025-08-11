@@ -393,6 +393,7 @@ export default function MobileSearchRestaurantDetailsPage() {
     opening_hours: restaurant.opening_hours?.weekday_text?.join('\n'),
     latitude: restaurant.geometry?.location?.lat,
     longitude: restaurant.geometry?.location?.lng,
+    michelinStars: restaurant.michelinStars,
     photos: restaurant.photos?.map((p: any) => p.photo_reference) || [],
   } as any;
 
