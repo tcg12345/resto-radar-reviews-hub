@@ -118,17 +118,11 @@ export function UnifiedRestaurantDetails({
   }, []);
 
   useEffect(() => {
-    const el = mapRef.current;
-    if (!el) return;
-    const io = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        setShowMap(true);
-        io.disconnect();
-      }
-    }, { rootMargin: '200px' });
-    io.observe(el);
-    return () => io.disconnect();
-  }, [mapRef]);
+    // Show map immediately when coordinates are available
+    if (restaurantData.latitude && restaurantData.longitude) {
+      setShowMap(true);
+    }
+  }, [restaurantData.latitude, restaurantData.longitude]);
 
 
   const {
