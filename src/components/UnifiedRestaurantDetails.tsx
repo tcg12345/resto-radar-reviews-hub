@@ -97,6 +97,7 @@ export function UnifiedRestaurantDetails({
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [deferHeavy, setDeferHeavy] = useState(false);
   const [showMap, setShowMap] = useState(false);
+  const [hasLoadedHeroImage, setHasLoadedHeroImage] = useState(false);
   const mapRef = useRef<HTMLDivElement | null>(null);
   const enhancedPlaceIdsRef = useRef<Set<string>>(new Set());
   const linkedPlaceIdsRef = useRef<Set<string>>(new Set());
@@ -447,7 +448,7 @@ export function UnifiedRestaurantDetails({
         {/* Photos - Show either restaurant photos or community photos */}
         {hasHeroPhoto && (
           <div 
-            className={`${isMobile ? 'aspect-video' : 'aspect-video md:aspect-auto md:h-auto md:max-h-[420px] md:max-w-3xl md:mx-auto'} w-full bg-muted relative overflow-hidden cursor-pointer group`} 
+            className={`${isMobile ? 'aspect-video' : 'aspect-video md:aspect-auto md:h-auto md:max-h-[420px] md:max-w-3xl md:mx-auto'} w-full bg-muted relative overflow-hidden cursor-pointer group ${!hasLoadedHeroImage ? 'h-0 aspect-auto' : ''}`} 
             onClick={() => navigate(`/restaurant/${restaurantData.place_id || restaurantData.id}/community-photos?name=${encodeURIComponent(restaurantData.name)}`)}
           >
             {/* Try to show community photos first, then restaurant photos, then fallback */}
@@ -459,14 +460,10 @@ export function UnifiedRestaurantDetails({
                   alt={restaurantData.name} 
                   className="w-full h-full object-cover transition-transform group-hover:scale-105" 
                   loading="lazy" decoding="async"
+                  onLoad={() => setHasLoadedHeroImage(true)}
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    if (photos.length > 0) {
-                      target.src = photos[0];
-                    } else {
-                      target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZjNmNGY2Ii8+CjxwYXRoIGQ9Im0xNSA5LTYgNi02LTYiIHN0cm9rZT0iIzk3YTNiMCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+';
-                      target.alt = 'Photo unavailable';
-                    }
+                    target.style.display = 'none';
                   }}
                 />
               ) : photos.length > 0 ? (
@@ -475,10 +472,10 @@ export function UnifiedRestaurantDetails({
                   alt={restaurantData.name} 
                   className="w-full h-full object-cover transition-transform group-hover:scale-105" 
                   loading="lazy" decoding="async"
+                  onLoad={() => setHasLoadedHeroImage(true)}
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZjNmNGY2Ii8+CjxwYXRoIGQ9Im0xNSA5LTYgNi02LTYiIHN0cm9rZT0iIzk3YTNiMCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+';
-                    target.alt = 'Photo unavailable';
+                    target.style.display = 'none';
                   }}
                 />
               ) : null}
@@ -499,10 +496,10 @@ export function UnifiedRestaurantDetails({
                           src={src}
                           alt={`${restaurantData.name} photo ${i + 1}`}
                           className="w-full h-full object-cover rounded-md"
+                          onLoad={() => setHasLoadedHeroImage(true)}
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
-                            target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZjNmNGY2Ii8+CjxwYXRoIGQ9Im0xNSA5LTYgNi02LTYiIHN0cm9rZT0iIzk3YTNiMCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+';
-                            target.alt = 'Photo unavailable';
+                            target.style.display = 'none';
                           }}
                         />
                       ))}
@@ -516,14 +513,10 @@ export function UnifiedRestaurantDetails({
                       src={communityStats.recentPhotos[0].photos[0]}
                       alt={restaurantData.name}
                       className="w-full h-full object-cover transition-transform group-hover:scale-105 md:object-contain md:h-auto md:w-auto md:max-h-[420px] md:mx-auto"
+                      onLoad={() => setHasLoadedHeroImage(true)}
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        if (photos.length > 0) {
-                          target.src = photos[0];
-                        } else {
-                          target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZjNmNGY2Ii8+CjxwYXRoIGQ9Im0xNSA5LTYgNi02LTYiIHN0cm9rZT0iIzk3YTNiMCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+';
-                          target.alt = 'Photo unavailable';
-                        }
+                        target.style.display = 'none';
                       }}
                     />
                   );
