@@ -139,13 +139,26 @@ export function UnifiedRestaurantDetails({
   } = useRestaurantReviews(hasValidPlaceId ? restaurantData.place_id : undefined, restaurantData.name);
 
   const { friendStats, expertStats, loading: isLoadingStats } = useRatingStats(hasValidPlaceId ? restaurantData.place_id : undefined, restaurantData.name);
-  const hasCommunityPhoto = useMemo(() => {
-    return communityStats?.recentPhotos?.some((rp: any) => 
-      Array.isArray(rp?.photos) && rp.photos.length > 0
-    ) || false;
-  }, [communityStats?.recentPhotos]);
   
-  const hasHeroPhoto = photos.length > 0 || hasCommunityPhoto;
+  // Build hero image candidates: community photos first, then restaurant photos
+  const heroCandidates = useMemo(() => {
+    const community = (communityStats?.recentPhotos || []).flatMap((rp: any) => rp?.photos || []);
+    const own = photos || [];
+    return [...community, ...own].filter((p: any) => typeof p === 'string' && p.trim() !== '');
+  }, [communityStats?.recentPhotos, photos]);
+  const [heroIndex, setHeroIndex] = useState(0);
+  useEffect(() => { setHeroIndex(0); }, [heroCandidates.length]);
+  const heroSrc = heroCandidates[heroIndex];
+  const hasHeroPhoto = !!heroSrc;
+  useEffect(() => {
+    console.log('Hero candidates', {
+      placeId: restaurantData.place_id,
+      communityCount: communityStats?.recentPhotos?.length,
+      photosCount: photos.length,
+      heroCount: heroCandidates.length,
+      first: heroCandidates[0]
+    });
+  }, [heroCandidates.length]);
 
   // Save community stats to context for preloading (once per place)
   useEffect(() => {
@@ -450,33 +463,14 @@ export function UnifiedRestaurantDetails({
             {/* Try to show community photos first, then restaurant photos, then fallback */}
             {/* Mobile: single hero image */}
             <div className="md:hidden w-full h-full">
-              {communityStats?.recentPhotos?.[0]?.photos?.[0] ? (
-                <img 
-                  src={resolveImageUrl(communityStats.recentPhotos[0].photos[0])} 
-                  alt={restaurantData.name} 
-                  className="w-full h-full object-cover transition-transform group-hover:scale-105" 
+              {heroSrc ? (
+                <img
+                  src={resolveImageUrl(heroSrc)}
+                  alt={restaurantData.name}
+                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
                   loading="lazy" decoding="async"
                   onLoad={() => setHasLoadedHeroImage(true)}
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    if (photos.length > 0) {
-                      target.src = resolveImageUrl(photos[0]);
-                    } else {
-                      target.style.display = 'none';
-                    }
-                  }}
-                />
-              ) : photos.length > 0 ? (
-                <img 
-                  src={resolveImageUrl(photos[0])} 
-                  alt={restaurantData.name} 
-                  className="w-full h-full object-cover transition-transform group-hover:scale-105" 
-                  loading="lazy" decoding="async"
-                  onLoad={() => setHasLoadedHeroImage(true)}
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                  }}
+                  onError={() => setHeroIndex((i) => i + 1)}
                 />
               ) : null}
             </div>
