@@ -50,7 +50,9 @@ export const LazyImage = React.memo(({ src, alt, className, placeholderSrc, onLo
     if (errorCache.has(src)) {
       setHasError(true);
     }
-  }, [src]);
+    // Debug: log when component mounts with given src
+    try { console.debug('[LazyImage] mount', { src, placeholderSrc }); } catch {}
+  }, [src, placeholderSrc]);
 
   const handleLoad = useCallback(() => {
     setIsLoaded(true);
@@ -71,6 +73,7 @@ export const LazyImage = React.memo(({ src, alt, className, placeholderSrc, onLo
     // Persist to localStorage
     saveCacheToStorage(CACHE_KEY, imageCache);
     saveCacheToStorage(ERROR_CACHE_KEY, errorCache);
+    try { console.warn('[LazyImage] error loading image', { src }); } catch {}
     onError?.();
   }, [src, onError]);
 
@@ -98,6 +101,13 @@ export const LazyImage = React.memo(({ src, alt, className, placeholderSrc, onLo
       observerRef.current = null;
     };
   }, [handleIntersection, isLoaded, src]);
+
+  // Fallback: if IntersectionObserver doesn't fire, force-load after 1.2s
+  useEffect(() => {
+    if (isLoaded) return;
+    const t = setTimeout(() => setIsInView(true), 1200);
+    return () => clearTimeout(t);
+  }, [isLoaded, src]);
 
   if (hasError) {
     return (
