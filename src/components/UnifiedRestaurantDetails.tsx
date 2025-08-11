@@ -96,7 +96,7 @@ export function UnifiedRestaurantDetails({
   const [isEnhancingWithAI, setIsEnhancingWithAI] = useState(false);
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [deferHeavy, setDeferHeavy] = useState(false);
-  const [showMap, setShowMap] = useState(false);
+  const [showMap, setShowMap] = useState(true);
   const mapRef = useRef<HTMLDivElement | null>(null);
   const hasValidPlaceId = useMemo(() => !!restaurant.place_id && restaurant.place_id.startsWith('ChI'), [restaurant.place_id]);
 
