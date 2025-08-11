@@ -40,12 +40,12 @@ export function useRatingStats(placeId?: string) {
 
         const friend: RatingStats = friendRow ? {
           avg: friendRow.avg_rating ?? null,
-          count: friendRow.total_reviews ?? 0,
+          count: Number(friendRow.total_reviews) ?? 0,
         } : { avg: null, count: 0 };
 
         const expert: RatingStats = expertRow ? {
           avg: expertRow.avg_rating ?? null,
-          count: expertRow.total_reviews ?? 0,
+          count: Number(expertRow.total_reviews) ?? 0,
         } : { avg: null, count: 0 };
 
         setFriendStats(friend);
