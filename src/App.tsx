@@ -54,6 +54,7 @@ import { ItineraryPrivacyPage } from "./pages/ItineraryPrivacyPage";
 import FriendsRatingsPage from "./pages/FriendsRatingsPage";
 import ExpertRatingsPage from "./pages/ExpertRatingsPage";
 import ApplyExpertPage from "./pages/ApplyExpertPage";
+import AdminExpertApplicationsPage from "./pages/AdminExpertApplicationsPage";
 
 const queryClient = new QueryClient();
 
