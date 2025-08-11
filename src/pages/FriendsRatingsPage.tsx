@@ -42,7 +42,8 @@ export default function FriendsRatingsPage() {
         place_id_param: placeId,
         page_limit: 100,
         page_offset: 0,
-      });
+        restaurant_name_param: name,
+      } as any);
       if (!error && data) setReviews(data as ReviewRow[]);
       setLoading(false);
     };
