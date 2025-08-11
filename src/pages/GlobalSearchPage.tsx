@@ -183,7 +183,7 @@ export default function GlobalSearchPage() {
   };
 
   const getPhotoUrl = (photoReference: string) => {
-    return '/placeholder.svg';
+    return `https://ocpmhsquwsdaauflbygf.supabase.co/functions/v1/google-photo-proxy?photoreference=${encodeURIComponent(photoReference)}&maxwidth=400`;
   };
 
   return (

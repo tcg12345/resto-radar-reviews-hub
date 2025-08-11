@@ -60,3 +60,6 @@ verify_jwt = false
 
 [edge_functions.tripadvisor-api]
 verify_jwt = false
+
+[edge_functions.google-photo-proxy]
+verify_jwt = false

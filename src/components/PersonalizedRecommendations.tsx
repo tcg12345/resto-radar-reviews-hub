@@ -208,7 +208,7 @@ export function PersonalizedRecommendations() {
 
   const getPhotoUrl = (photoReference: string) => {
     if (!photoReference) return '/placeholder.svg';
-    return '/placeholder.svg';
+    return `https://ocpmhsquwsdaauflbygf.supabase.co/functions/v1/google-photo-proxy?photoreference=${encodeURIComponent(photoReference)}&maxwidth=400`;
   };
 
   const formatAddress = (fullAddress: string) => {
