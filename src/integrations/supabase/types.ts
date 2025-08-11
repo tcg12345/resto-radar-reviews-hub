@@ -1102,6 +1102,13 @@ export type Database = {
               requesting_user_id?: string
               restaurant_name_param?: string
             }
+          | {
+              place_id_param: string
+              page_limit?: number
+              page_offset?: number
+              restaurant_name_param?: string
+              requesting_user_id?: string
+            }
         Returns: {
           review_id: string
           user_id: string
