@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, UserPlus, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -34,23 +34,29 @@ export function FriendSearch({
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
-    
     if (query.length < 2) {
       setSearchResults([]);
       return;
     }
-
-    setIsSearching(true);
-    try {
-      const results = await onSearchUsers(query);
-      setSearchResults(results);
-    } catch (error) {
-      console.error('Search error:', error);
-      setSearchResults([]);
-    } finally {
-      setIsSearching(false);
-    }
   };
+
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (q.length < 2) return;
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const results = await onSearchUsers(q);
+        setSearchResults(results);
+      } catch (error) {
+        console.error('Search error:', error);
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery, onSearchUsers]);
 
   const getButtonText = (userId: string) => {
     if (isAlreadyFriend(userId)) return 'Already Friends';

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface LazyImageProps {
@@ -81,16 +81,22 @@ export const LazyImage = React.memo(({ src, alt, className, onLoad, onError }: L
     });
   }, []);
 
-  const imgRef = useCallback((node: HTMLDivElement | null) => {
-    if (node && !isLoaded) {
-      const observer = new IntersectionObserver(handleIntersection, {
-        threshold: 0.1,
-        rootMargin: '50px'
-      });
-      observer.observe(node);
-      return () => observer.disconnect();
-    }
-  }, [handleIntersection, isLoaded]);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  useEffect(() => {
+    const node = containerRef.current;
+    if (!node || isLoaded) return;
+    observerRef.current = new IntersectionObserver(handleIntersection, {
+      threshold: 0.1,
+      rootMargin: '50px'
+    });
+    observerRef.current.observe(node);
+    return () => {
+      observerRef.current?.disconnect();
+      observerRef.current = null;
+    };
+  }, [handleIntersection, isLoaded, src]);
 
   if (hasError) {
     return (
@@ -101,7 +107,7 @@ export const LazyImage = React.memo(({ src, alt, className, onLoad, onError }: L
   }
 
   return (
-    <div ref={imgRef} className={className}>
+    <div ref={containerRef} className={className}>
       {!isLoaded && (
         <Skeleton className="absolute inset-0 w-full h-full" />
       )}

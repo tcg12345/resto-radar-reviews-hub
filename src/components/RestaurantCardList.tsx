@@ -15,7 +15,7 @@ import { ShareRestaurantDialog } from '@/components/ShareRestaurantDialog';
 import { Restaurant } from '@/types/restaurant';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 import { getStateFromCoordinatesCached } from '@/utils/geocoding';
-
+import { LazyImage } from '@/components/LazyImage';
 interface RestaurantCardListProps {
   restaurant: Restaurant;
   onEdit?: (id: string) => void;
@@ -97,18 +97,16 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
       
       <Card className="overflow-hidden bg-card shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer" onClick={handleCardClick}>
         <div className={isMobile ? "block" : "flex"}>
-          {/* Photo section - only show on desktop */}
           {!isMobile && restaurant.photos.length > 0 && (
-            <div className="w-32 h-32 lg:w-40 lg:h-40 flex-shrink-0 relative overflow-hidden">
-              <img 
-                src={restaurant.photos[currentPhotoIndex]} 
+            <div className="w-32 h-32 lg:w-40 lg:h-40 flex-shrink-0 relative overflow-hidden" onClick={openGallery}>
+              <LazyImage 
+                src={restaurant.photos[currentPhotoIndex]}
                 alt={`${restaurant.name} photo`}
                 className="h-full w-full object-cover transition-transform duration-300 hover:scale-105 cursor-pointer"
-                onClick={openGallery}
               />
             </div>
           )}
-          
+
           {/* Content section */}
           <div className="flex-1 flex flex-col">
             <CardHeader className={`${isMobile ? "py-2 px-3" : "pb-3 p-3 lg:p-4"}`}>

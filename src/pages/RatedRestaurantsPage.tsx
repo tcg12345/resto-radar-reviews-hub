@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { RatedRestaurantsFilterDialog } from '@/components/RatedRestaurantsFilterDialog';
-import { useRestaurants } from '@/contexts/RestaurantContext';
+
 
 
 interface RatedRestaurantsPageProps {
@@ -53,7 +53,6 @@ export function RatedRestaurantsPage({
   const [tempRatingRange, setTempRatingRange] = useState<[number, number]>([0, 10]);
   const { view, setView } = useViewToggle('rated-restaurants-view', 'grid');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const { loadAllRestaurantPhotos } = useRestaurants();
   const photosLoadedRef = useRef(false);
 
   const ratedRestaurants = restaurants.filter((r) => !r.isWishlist);
