@@ -799,21 +799,21 @@ export default function FeedPage({ onNavigate }: FeedPageProps) {
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="Cuisine" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Cuisines</SelectItem>
-                  <SelectItem value="italian">Italian</SelectItem>
-                  <SelectItem value="japanese">Japanese</SelectItem>
-                  <SelectItem value="french">French</SelectItem>
-                  <SelectItem value="american">American</SelectItem>
-                </SelectContent>
+              <SelectContent className="z-50 bg-background">
+                <SelectItem value="all">All Cuisines</SelectItem>
+                <SelectItem value="italian">Italian</SelectItem>
+                <SelectItem value="japanese">Japanese</SelectItem>
+                <SelectItem value="french">French</SelectItem>
+                <SelectItem value="american">American</SelectItem>
+              </SelectContent>
               </Select>
 
               <Select value={cityFilter} onValueChange={setCityFilter}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="City" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Cities</SelectItem>
+                <SelectContent className="z-50 bg-background">
+                  <SelectItem value="all">All Cities</SelectItem>
                   <SelectItem value="nyc">New York</SelectItem>
                   <SelectItem value="sf">San Francisco</SelectItem>
                   <SelectItem value="la">Los Angeles</SelectItem>
@@ -825,8 +825,8 @@ export default function FeedPage({ onNavigate }: FeedPageProps) {
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="Price" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Prices</SelectItem>
+                <SelectContent className="z-50 bg-background">
+                  <SelectItem value="all">All Prices</SelectItem>
                   <SelectItem value="1">$ - Budget</SelectItem>
                   <SelectItem value="2">$$ - Moderate</SelectItem>
                   <SelectItem value="3">$$$ - Expensive</SelectItem>
@@ -838,8 +838,8 @@ export default function FeedPage({ onNavigate }: FeedPageProps) {
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="Date" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Time</SelectItem>
+                <SelectContent className="z-50 bg-background">
+                  <SelectItem value="all">All Time</SelectItem>
                   <SelectItem value="today">Today</SelectItem>
                   <SelectItem value="week">This Week</SelectItem>
                   <SelectItem value="month">This Month</SelectItem>
