@@ -19,6 +19,14 @@ import { Restaurant } from '@/types/restaurant';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 import { getStateFromCoordinatesCached } from '@/utils/geocoding';
 import { LazyImage } from '@/components/LazyImage';
+
+// Normalize stored photo URLs (strip leading public/ and ensure root slash)
+const normalizePhotoUrl = (url: string) => {
+  if (!url) return '';
+  if (url.startsWith('/public/')) return url.replace(/^\/public\//, '/');
+  if (url.startsWith('public/')) return '/' + url.replace(/^public\//, '');
+  return url;
+};
 interface RestaurantCardProps {
   restaurant: Restaurant;
   onEdit?: (id: string) => void;
@@ -165,7 +173,7 @@ export function RestaurantCard({
       {restaurant.photos.length > 0 || !restaurant.isWishlist ? <div className="relative aspect-video w-full overflow-hidden bg-muted lg:aspect-video">
           {restaurant.photos.length > 0 ? <>
               <LazyImage
-                src={restaurant.photos[currentPhotoIndex]}
+                src={normalizePhotoUrl(restaurant.photos[currentPhotoIndex])}
                 alt={`${restaurant.name} photo ${currentPhotoIndex + 1}`}
                 className="h-full w-full cursor-pointer transition-transform duration-300 hover:scale-105"
                 onLoad={() => setImageLoading(false)}
