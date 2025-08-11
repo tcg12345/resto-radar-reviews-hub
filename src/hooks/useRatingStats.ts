@@ -33,6 +33,14 @@ export function useRatingStats(placeId?: string, restaurantName?: string) {
       try {
         console.log('🔍 Fetching rating stats for:', { placeId, restaurantName, userId: user?.id });
         
+        // Debug: Check what friend ratings exist
+        const debugRes = await supabase.rpc('debug_friend_ratings', { 
+          place_id_param: placeId, 
+          restaurant_name_param: restaurantName, 
+          requesting_user_id: user?.id 
+        });
+        console.log('🔍 Debug friend ratings result:', debugRes);
+        
         const [friendsRes, expertsRes] = await Promise.all([
           supabase.rpc('get_friend_rating_stats', { place_id_param: placeId, restaurant_name_param: restaurantName, requesting_user_id: user?.id }),
           supabase.rpc('get_expert_rating_stats', { place_id_param: placeId, restaurant_name_param: restaurantName }),

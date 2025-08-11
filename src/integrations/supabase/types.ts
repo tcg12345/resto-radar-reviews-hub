@@ -941,6 +941,21 @@ export type Database = {
         }
         Returns: boolean
       }
+      debug_friend_ratings: {
+        Args: {
+          place_id_param: string
+          restaurant_name_param?: string
+          requesting_user_id?: string
+        }
+        Returns: {
+          source_table: string
+          user_id: string
+          rating: number
+          is_friend: boolean
+          restaurant_name: string
+          place_id: string
+        }[]
+      }
       get_cached_friend_activity: {
         Args: {
           requesting_user_id?: string
