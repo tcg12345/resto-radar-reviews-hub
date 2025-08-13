@@ -42,11 +42,11 @@ export function CommunityRating({ stats, isLoading }: CommunityRatingProps) {
   };
 
   return (
-    <div className="py-6 px-4 border-b border-border/50">
-      <div className="space-y-6">
+    <div className="py-3 px-4 border-b border-border/50">
+      <div className="space-y-3">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-foreground">Community Rating</h3>
+          <h3 className="text-base font-semibold text-foreground">Community Rating</h3>
           <Badge variant="outline" className="text-xs">
             <Users className="h-3 w-3 mr-1" />
             {stats.totalReviews} review{stats.totalReviews !== 1 ? 's' : ''}
@@ -54,40 +54,40 @@ export function CommunityRating({ stats, isLoading }: CommunityRatingProps) {
         </div>
 
         {/* Average Rating */}
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4">
           <div className="flex-shrink-0">
-            <div className={`text-3xl font-bold ${getRatingColor(stats.averageRating)}`}>
+            <div className={`text-2xl font-bold ${getRatingColor(stats.averageRating)}`}>
               {stats.averageRating.toFixed(1)}
             </div>
-            <div className="flex items-center mt-1">
-              <Star className="h-4 w-4 fill-current text-yellow-500" />
-              <span className="text-sm text-muted-foreground ml-1">
+            <div className="flex items-center mt-0.5">
+              <Star className="h-3 w-3 fill-current text-yellow-500" />
+              <span className="text-xs text-muted-foreground ml-1">
                 out of 10
               </span>
             </div>
           </div>
 
           {/* Rating Distribution */}
-          <div className="flex-1 space-y-2">
+          <div className="flex-1 space-y-1">
             {Object.entries(stats.ratingDistribution)
               .sort(([a], [b]) => b.localeCompare(a))
               .map(([range, count]) => (
-              <div key={range} className="flex items-center gap-3 text-sm">
-                <span className="w-10 text-muted-foreground font-medium">{range}</span>
-                <div className="flex-1 bg-muted rounded-full h-2">
+              <div key={range} className="flex items-center gap-2 text-xs">
+                <span className="w-8 text-muted-foreground font-medium">{range}</span>
+                <div className="flex-1 bg-muted rounded-full h-1.5">
                   <div 
-                    className="bg-primary rounded-full h-2 transition-all duration-300"
+                    className="bg-primary rounded-full h-1.5 transition-all duration-300"
                     style={{ width: `${getDistributionWidth(count)}%` }}
                   />
                 </div>
-                <span className="w-6 text-muted-foreground text-right font-medium">{count}</span>
+                <span className="w-4 text-muted-foreground text-right font-medium">{count}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Quick Stats */}
-        <div className="text-sm text-muted-foreground">
+        <div className="text-xs text-muted-foreground">
           Based on {stats.totalReviews} user review{stats.totalReviews !== 1 ? 's' : ''}
         </div>
       </div>
