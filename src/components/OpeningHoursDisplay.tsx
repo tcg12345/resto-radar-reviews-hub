@@ -11,12 +11,10 @@ export function OpeningHoursDisplay({ hours, className = "" }: OpeningHoursDispl
 
   if (!hours || hours.length === 0) {
     return (
-      <div className={`w-full ${className}`}>
-        <div className="flex items-center justify-between py-4 px-4 border-b border-border/20">
-          <div className="flex items-center gap-3">
-            <Clock className="h-5 w-5 text-muted-foreground" />
-            <span className="text-muted-foreground">Hours not available</span>
-          </div>
+      <div className={`${className}`}>
+        <div className="flex items-center gap-3 py-3">
+          <Clock className="h-5 w-5 text-muted-foreground" />
+          <span className="text-muted-foreground">Hours not available</span>
         </div>
       </div>
     );
@@ -58,10 +56,10 @@ export function OpeningHoursDisplay({ hours, className = "" }: OpeningHoursDispl
   const isOpen = todayTime !== 'Closed' && !todayTime.toLowerCase().includes('closed');
 
   return (
-    <div className={`w-full ${className}`}>
+    <div className={`${className}`}>
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between py-4 px-4 border-b border-border/20 hover:bg-muted/30 transition-colors"
+        className="w-full flex items-center justify-between py-3 hover:bg-muted/30 transition-colors rounded-md"
       >
         <div className="flex items-center gap-3">
           <Clock className="h-5 w-5 text-muted-foreground" />
@@ -77,8 +75,8 @@ export function OpeningHoursDisplay({ hours, className = "" }: OpeningHoursDispl
       </button>
 
       {isExpanded && (
-        <div className="px-4 py-3 bg-muted/20 border-b border-border/20">
-          <div className="space-y-3">
+        <div className="pl-8 pb-3">
+          <div className="space-y-2 bg-muted/20 rounded-md p-3">
             {hours.map((hour, index) => {
               const day = getDayName(hour);
               const time = formatHours(hour);
