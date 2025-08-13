@@ -39,7 +39,7 @@ interface ChatRoom {
 }
 
 interface Friend {
-  friend_id: string;
+  id: string;
   username: string;
   name: string;
   avatar_url: string;
@@ -277,15 +277,10 @@ export function ChatListPage() {
   };
 
   const toggleDMFriendSelection = (friendId: string) => {
-    console.log('toggleDMFriendSelection called with friendId:', friendId);
-    console.log('Current selectedFriends before update:', selectedFriends);
-    
     // For DM, only allow selecting one friend at a time
-    setSelectedFriends(prev => {
-      const newSelection = prev.includes(friendId) ? [] : [friendId];
-      console.log('New selectedFriends will be:', newSelection);
-      return newSelection;
-    });
+    setSelectedFriends(prev => 
+      prev.includes(friendId) ? [] : [friendId]
+    );
   };
 
   const deleteChat = async (roomId: string, roomName?: string) => {
@@ -501,22 +496,22 @@ export function ChatListPage() {
                   />
                    <div className="max-h-48 overflow-y-auto space-y-2">
                      {filteredFriends.map((friend) => {
-                       console.log('Rendering friend:', { friend_id: friend.friend_id, name: friend.name });
-                       return (
-                      <Card
-                        key={friend.friend_id}
-                        className={`cursor-pointer transition-colors ${
-                          selectedFriends.includes(friend.friend_id)
-                            ? 'bg-accent border-primary'
-                            : 'hover:bg-muted/50'
-                        }`}
-                        onClick={() => toggleDMFriendSelection(friend.friend_id)}
+                        console.log('Rendering friend:', { friend_id: friend.id, name: friend.name });
+                        return (
+                       <Card
+                         key={friend.id}
+                         className={`cursor-pointer transition-colors ${
+                           selectedFriends.includes(friend.id)
+                             ? 'bg-accent border-primary'
+                             : 'hover:bg-muted/50'
+                         }`}
+                         onClick={() => toggleDMFriendSelection(friend.id)}
                       >
                          <CardContent className="p-3">
                            <div className="flex items-center gap-3">
-                             <Checkbox
-                               checked={selectedFriends.includes(friend.friend_id)}
-                             />
+                              <Checkbox
+                                checked={selectedFriends.includes(friend.id)}
+                              />
                              <Avatar className="h-10 w-10">
                                <AvatarImage src={friend.avatar_url} />
                                <AvatarFallback>
@@ -566,22 +561,22 @@ export function ChatListPage() {
                     className="w-full"
                   />
                   <div className="max-h-48 overflow-y-auto space-y-2">
-                    {filteredFriends.map((friend) => (
-                      <Card
-                        key={friend.friend_id}
-                        className={`cursor-pointer transition-colors ${
-                          selectedFriends.includes(friend.friend_id)
-                            ? 'bg-accent border-primary'
-                            : 'hover:bg-muted/50'
-                        }`}
-                        onClick={() => toggleFriendSelection(friend.friend_id)}
+                     {filteredFriends.map((friend) => (
+                       <Card
+                         key={friend.id}
+                         className={`cursor-pointer transition-colors ${
+                           selectedFriends.includes(friend.id)
+                             ? 'bg-accent border-primary'
+                             : 'hover:bg-muted/50'
+                         }`}
+                         onClick={() => toggleFriendSelection(friend.id)}
                       >
                         <CardContent className="p-3">
                           <div className="flex items-center gap-3">
-                            <Checkbox
-                              checked={selectedFriends.includes(friend.friend_id)}
-                              onChange={() => toggleFriendSelection(friend.friend_id)}
-                            />
+                             <Checkbox
+                               checked={selectedFriends.includes(friend.id)}
+                               onChange={() => toggleFriendSelection(friend.id)}
+                             />
                             <Avatar className="h-8 w-8">
                               <AvatarImage src={friend.avatar_url} />
                               <AvatarFallback>
