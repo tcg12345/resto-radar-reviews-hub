@@ -1249,6 +1249,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_restaurant_staff_for_reservation: {
+        Args: { target_restaurant_id: string; staff_user_id: string }
+        Returns: boolean
+      }
       link_all_restaurants_systematically: {
         Args: Record<PropertyKey, never>
         Returns: {
