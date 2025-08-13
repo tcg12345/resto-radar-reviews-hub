@@ -614,7 +614,7 @@ export function UnifiedRestaurantDetails({
                       <span className="text-sm font-medium text-muted-foreground">Friends</span>
                     </div>
                     <div className="text-2xl font-bold text-foreground mb-1">
-                      {isLoadingStats ? '—' : (friendStats.avg ?? '—')}
+                      {isLoadingStats ? '—' : (friendStats.avg ? `${friendStats.avg}/10` : '—')}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {isLoadingStats ? 'Loading…' : `${friendStats.count} reviews`}
@@ -633,7 +633,7 @@ export function UnifiedRestaurantDetails({
                       <span className="text-sm font-medium text-muted-foreground">Experts</span>
                     </div>
                     <div className="text-2xl font-bold text-foreground mb-1">
-                      {isLoadingStats ? '—' : (expertStats.avg ?? '—')}
+                      {isLoadingStats ? '—' : (expertStats.avg ? `${expertStats.avg}/10` : '—')}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {isLoadingStats ? 'Loading…' : `${expertStats.count} reviews`}
