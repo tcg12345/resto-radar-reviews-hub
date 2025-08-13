@@ -277,10 +277,15 @@ export function ChatListPage() {
   };
 
   const toggleDMFriendSelection = (friendId: string) => {
+    console.log('toggleDMFriendSelection called with friendId:', friendId);
+    console.log('Current selectedFriends before update:', selectedFriends);
+    
     // For DM, only allow selecting one friend at a time
-    setSelectedFriends(prev => 
-      prev.includes(friendId) ? [] : [friendId]
-    );
+    setSelectedFriends(prev => {
+      const newSelection = prev.includes(friendId) ? [] : [friendId];
+      console.log('New selectedFriends will be:', newSelection);
+      return newSelection;
+    });
   };
 
   const deleteChat = async (roomId: string, roomName?: string) => {
@@ -494,8 +499,10 @@ export function ChatListPage() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full"
                   />
-                  <div className="max-h-48 overflow-y-auto space-y-2">
-                    {filteredFriends.map((friend) => (
+                   <div className="max-h-48 overflow-y-auto space-y-2">
+                     {filteredFriends.map((friend) => {
+                       console.log('Rendering friend:', { friend_id: friend.friend_id, name: friend.name });
+                       return (
                       <Card
                         key={friend.friend_id}
                         className={`cursor-pointer transition-colors ${
@@ -524,8 +531,9 @@ export function ChatListPage() {
                              </div>
                            </div>
                          </CardContent>
-                      </Card>
-                    ))}
+                       </Card>
+                       );
+                     })}
                     {filteredFriends.length === 0 && (
                       <div className="text-center py-8 text-muted-foreground">
                         {searchQuery ? 'No friends found' : 'No friends to chat with'}
