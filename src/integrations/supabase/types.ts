@@ -212,10 +212,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "friend_requests_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public_search"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "friend_requests_sender_id_fkey"
             columns: ["sender_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friend_requests_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public_search"
             referencedColumns: ["id"]
           },
         ]
@@ -248,10 +262,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "friends_user1_id_fkey"
+            columns: ["user1_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public_search"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "friends_user2_id_fkey"
             columns: ["user2_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friends_user2_id_fkey"
+            columns: ["user2_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public_search"
             referencedColumns: ["id"]
           },
         ]
@@ -939,7 +967,42 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      profiles_public_search: {
+        Row: {
+          allow_friend_requests: boolean | null
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          home_city: string | null
+          id: string | null
+          is_public: boolean | null
+          name: string | null
+          username: string | null
+        }
+        Insert: {
+          allow_friend_requests?: boolean | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          home_city?: string | null
+          id?: string | null
+          is_public?: boolean | null
+          name?: string | null
+          username?: string | null
+        }
+        Update: {
+          allow_friend_requests?: boolean | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          home_city?: string | null
+          id?: string | null
+          is_public?: boolean | null
+          name?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       accept_friend_request: {
@@ -1316,6 +1379,19 @@ export type Database = {
       rebuild_friend_activity_cache: {
         Args: { target_user_id: string }
         Returns: undefined
+      }
+      search_profiles_safely: {
+        Args: { search_query: string; limit_count?: number }
+        Returns: {
+          id: string
+          username: string
+          name: string
+          avatar_url: string
+          home_city: string
+          bio: string
+          is_public: boolean
+          allow_friend_requests: boolean
+        }[]
       }
       set_limit: {
         Args: { "": number }
