@@ -120,39 +120,36 @@ export function UnifiedPhotoGallery({
 
   // Mobile version - simple horizontal scroll
   if (isMobile) {
-    const displayItems = [];
+    const displayPhotos = [];
 
-    // Add friend photos first if they exist
-    if (hasFriendPhotos) {
-      displayItems.push({
-        type: 'friend',
-        title: `${friendName}'s Photos`,
-        photos: friendPhotos.slice(0, 3),
-        totalCount: friendPhotos.length
-      });
-    }
-
-    // Add dish groups if enough photos
+    // If we have enough photos for groups, show one photo from each group
     if (hasEnoughForGroups) {
+      // Show one photo from each dish group
       photoGroups.groups.forEach(([dishName, photos]) => {
-        displayItems.push({
-          type: 'dish',
-          title: dishName,
-          photos: photos.slice(0, 3),
-          totalCount: photos.length
+        displayPhotos.push({
+          ...photos[0], // Take first photo from group
+          dishName,
+          groupCount: photos.length
         });
       });
-    } else if (hasCommunityPhotos) {
-      // Show recent community photos if not enough for groups
-      displayItems.push({
-        type: 'community',
-        title: 'Community Photos',
-        photos: allCommunityPhotos.slice(0, 6),
-        totalCount: allCommunityPhotos.length
-      });
+      
+      // Add some ungrouped photos if we have space and photos
+      const remainingSlots = Math.max(0, 6 - displayPhotos.length);
+      if (remainingSlots > 0 && photoGroups.ungrouped.length > 0) {
+        displayPhotos.push(...photoGroups.ungrouped.slice(0, remainingSlots));
+      }
+    } else if (hasFriendPhotos || hasCommunityPhotos) {
+      // Show regular photos when not enough for groups
+      if (hasFriendPhotos) {
+        displayPhotos.push(...friendPhotos.slice(0, 3));
+      }
+      if (hasCommunityPhotos) {
+        const remaining = Math.max(0, 6 - displayPhotos.length);
+        displayPhotos.push(...allCommunityPhotos.slice(0, remaining));
+      }
     }
 
-    if (displayItems.length === 0) return null;
+    if (displayPhotos.length === 0) return null;
 
     return (
       <div className="space-y-4">
@@ -163,55 +160,53 @@ export function UnifiedPhotoGallery({
           </Badge>
         </div>
 
-        {displayItems.map((item, groupIndex) => (
-          <div key={groupIndex} className="space-y-2">
-            <div className="flex items-center justify-between px-4">
-              <h4 className="text-sm font-medium flex items-center gap-2">
-                {item.type === 'friend' && <User className="h-4 w-4" />}
-                {item.type === 'community' && <Users className="h-4 w-4" />}
-                {item.title}
-              </h4>
-              <span className="text-xs text-muted-foreground">
-                {item.totalCount} photo{item.totalCount !== 1 ? 's' : ''}
-              </span>
-            </div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between px-4">
+            <h4 className="text-sm font-medium flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              {hasEnoughForGroups ? 'Popular Dishes' : 'Community Photos'}
+            </h4>
+          </div>
 
-            <div className="overflow-x-auto">
-              <div className="flex gap-3 px-4 pb-2">
-                {item.photos.map((photo: any, index: number) => (
-                  <div
-                    key={index}
-                    className="relative w-32 h-32 rounded-lg overflow-hidden bg-muted flex-shrink-0"
-                    onClick={() => handleViewAllPhotos()}
-                  >
-                    <img
-                      src={typeof photo === 'string' ? photo : photo.url}
-                      alt={typeof photo === 'object' ? (photo.dishName || 'Photo') : 'Photo'}
-                      className="w-full h-full object-cover"
-                    />
-                    {typeof photo === 'object' && photo.dishName && (
-                      <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-1">
-                        <p className="text-xs font-medium truncate">{photo.dishName}</p>
-                      </div>
+          <div className="overflow-x-auto">
+            <div className="flex gap-3 px-4 pb-2">
+              {displayPhotos.map((photo: any, index: number) => (
+                <div
+                  key={index}
+                  className="relative w-32 h-32 rounded-lg overflow-hidden bg-muted flex-shrink-0"
+                  onClick={() => handleViewAllPhotos()}
+                >
+                  <img
+                    src={photo.url}
+                    alt={photo.dishName || 'Photo'}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-1">
+                    <p className="text-xs font-medium truncate">
+                      {photo.dishName || 'Photo'}
+                    </p>
+                    {photo.groupCount && photo.groupCount > 1 && (
+                      <p className="text-xs text-white/80">
+                        {photo.groupCount} photos
+                      </p>
                     )}
                   </div>
-                ))}
-                
-                {item.totalCount > item.photos.length && (
-                  <div 
-                    className="relative w-32 h-32 rounded-lg overflow-hidden bg-muted/50 border border-dashed border-muted-foreground/30 flex-shrink-0 flex items-center justify-center cursor-pointer"
-                    onClick={() => handleViewAllPhotos()}
-                  >
-                    <div className="text-center text-muted-foreground">
-                      <div className="text-lg font-bold">+{item.totalCount - item.photos.length}</div>
-                      <div className="text-xs">more</div>
-                    </div>
-                  </div>
-                )}
+                </div>
+              ))}
+              
+              {/* Show more indicator */}
+              <div 
+                className="relative w-32 h-32 rounded-lg overflow-hidden bg-muted/50 border border-dashed border-muted-foreground/30 flex-shrink-0 flex items-center justify-center cursor-pointer"
+                onClick={() => handleViewAllPhotos()}
+              >
+                <div className="text-center text-muted-foreground">
+                  <div className="text-lg font-bold">+{Math.max(0, allCommunityPhotos.length - displayPhotos.length)}</div>
+                  <div className="text-xs">more</div>
+                </div>
               </div>
             </div>
           </div>
-        ))}
+        </div>
 
         <div className="px-4 pt-2">
           <Button
