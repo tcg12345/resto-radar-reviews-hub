@@ -505,26 +505,25 @@ export function ChatListPage() {
                         }`}
                         onClick={() => toggleDMFriendSelection(friend.friend_id)}
                       >
-                        <CardContent className="p-3">
-                          <div className="flex items-center gap-3">
-                            <Checkbox
-                              checked={selectedFriends.includes(friend.friend_id)}
-                              onChange={() => toggleDMFriendSelection(friend.friend_id)}
-                            />
-                            <Avatar className="h-10 w-10">
-                              <AvatarImage src={friend.avatar_url} />
-                              <AvatarFallback>
-                                {(friend.name || friend.username || 'U').charAt(0).toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                              <p className="font-medium">{friend.name || friend.username}</p>
-                              {friend.username && friend.name && (
-                                <p className="text-sm text-muted-foreground">@{friend.username}</p>
-                              )}
-                            </div>
-                          </div>
-                        </CardContent>
+                         <CardContent className="p-3">
+                           <div className="flex items-center gap-3">
+                             <Checkbox
+                               checked={selectedFriends.includes(friend.friend_id)}
+                             />
+                             <Avatar className="h-10 w-10">
+                               <AvatarImage src={friend.avatar_url} />
+                               <AvatarFallback>
+                                 {(friend.name || friend.username || 'U').charAt(0).toUpperCase()}
+                               </AvatarFallback>
+                             </Avatar>
+                             <div className="flex-1">
+                               <p className="font-medium">{friend.name || friend.username}</p>
+                               {friend.username && friend.name && (
+                                 <p className="text-sm text-muted-foreground">@{friend.username}</p>
+                               )}
+                             </div>
+                           </div>
+                         </CardContent>
                       </Card>
                     ))}
                     {filteredFriends.length === 0 && (
