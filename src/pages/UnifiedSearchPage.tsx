@@ -94,9 +94,9 @@ export default function UnifiedSearchPage() {
   const [hasMoreRecommendations, setHasMoreRecommendations] = useState(true);
   const [nextPageToken, setNextPageToken] = useState<string | null>(null);
   const [userRestaurants, setUserRestaurants] = useState<any[]>([]);
-  const searchRef = useRef<HTMLDivElement>(null);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const [searchError, setSearchError] = useState<string | null>(null);
+const searchRef = useRef<HTMLDivElement>(null);
+const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+const [searchError, setSearchError] = useState<string | null>(null);
 
   // Load initial data on component mount
   useEffect(() => {
@@ -248,91 +248,81 @@ export default function UnifiedSearchPage() {
       }
     };
   }, [searchQuery, locationQuery]);
-  const performLiveSearch = async () => {
-    if (!searchQuery.trim() || searchQuery.length < 3) {
-      setSearchResults([]);
-      setSearchError(null);
+const performLiveSearch = async () => {
+  if (!searchQuery.trim() || searchQuery.length < 3) {
+    setSearchResults([]);
+    setSearchError(null);
+    return;
+  }
+  setIsLoading(true);
+  setSearchError(null);
+  try {
+    // Simplified search - just use query and location text for speed
+    const searchParams: any = {
+      query: locationQuery.trim() ? `${searchQuery} in ${locationQuery}` : searchQuery,
+      type: 'search',
+      radius: 25000 // Standard radius
+    };
+
+    // Only add coordinates if user location is available (no geocoding delay)
+    if (userLocation && !locationQuery.trim()) {
+      searchParams.location = `${userLocation.lat},${userLocation.lng}`;
+      searchParams.radius = 50000;
+    }
+
+    const { data, error } = await supabase.functions.invoke('google-places-search', {
+      body: searchParams
+    });
+
+    if (!error && data && data.status === 'OK' && data.results && data.results.length > 0) {
+      const resultsWithFallback = data.results.map((result: any) => ({
+        ...result,
+        fallbackCuisine: result.types.find((type: string) => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 'Restaurant'
+      }));
+      setSearchResults(resultsWithFallback);
       return;
     }
-    setIsLoading(true);
-    setSearchError(null);
-    try {
-      // Simplified search - just use query and location text for speed
-      const searchParams: any = {
-        query: locationQuery.trim() ? `${searchQuery} in ${locationQuery}` : searchQuery,
-        type: 'search',
-        radius: 25000 // Standard radius
-      };
 
-      // Only add coordinates if user location is available (no geocoding delay)
-      if (userLocation && !locationQuery.trim()) {
-        searchParams.location = `${userLocation.lat},${userLocation.lng}`;
-        searchParams.radius = 50000;
+    // Fallback: AI discovery search if Google Places fails or returns empty
+    const fallbackQuery = searchQuery;
+    const fallbackLocation = locationQuery;
+    const { data: aiData, error: aiError } = await supabase.functions.invoke('restaurant-discovery', {
+      body: {
+        query: fallbackQuery,
+        location: fallbackLocation,
+        searchType: 'description',
+        filters: {}
       }
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('google-places-search', {
-        body: searchParams
-      });
-      if (!error && data && data.status === 'OK' && data.results && data.results.length > 0) {
-        const resultsWithFallback = data.results.map((result: any) => ({
-          ...result,
-          fallbackCuisine: result.types.find((type: string) => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 'Restaurant'
-        }));
-        setSearchResults(resultsWithFallback);
-        return;
-      }
+    });
 
-      // Fallback: AI discovery search if Google Places fails or returns empty
-      const fallbackQuery = searchQuery;
-      const fallbackLocation = locationQuery;
-      const {
-        data: aiData,
-        error: aiError
-      } = await supabase.functions.invoke('restaurant-discovery', {
-        body: {
-          query: fallbackQuery,
-          location: fallbackLocation,
-          searchType: 'description',
-          filters: {}
-        }
-      });
-      if (!aiError && aiData?.restaurants?.length) {
-        const mapped = aiData.restaurants.map((r: any) => ({
-          place_id: r.id || `${r.name}-${r.address}`,
-          name: r.name,
-          formatted_address: r.address,
-          rating: r.rating || undefined,
-          user_ratings_total: r.reviewCount || undefined,
-          price_level: r.priceRange || undefined,
-          photos: [],
-          geometry: {
-            location: {
-              lat: r.location?.lat || 0,
-              lng: r.location?.lng || 0
-            }
-          },
-          types: [r.cuisine ? r.cuisine.toLowerCase().replace(/\s+/g, '_') : 'restaurant'],
-          opening_hours: typeof r.isOpen === 'boolean' ? {
-            open_now: r.isOpen
-          } : undefined,
-          fallbackCuisine: r.cuisine || 'Restaurant',
-          yelpData: r.yelpData
-        }));
-        setSearchResults(mapped);
-        setSearchError('Google search is temporarily unavailable. Showing AI results instead.');
-      } else {
-        setSearchResults([]);
-        setSearchError('Search service is currently unavailable. Please try again later.');
-      }
-    } catch (error) {
+    if (!aiError && aiData?.restaurants?.length) {
+      const mapped = aiData.restaurants.map((r: any) => ({
+        place_id: r.id || `${r.name}-${r.address}`,
+        name: r.name,
+        formatted_address: r.address,
+        rating: r.rating || undefined,
+        user_ratings_total: r.reviewCount || undefined,
+        price_level: r.priceRange || undefined,
+        photos: [],
+        geometry: { location: { lat: r.location?.lat || 0, lng: r.location?.lng || 0 } },
+        types: [r.cuisine ? r.cuisine.toLowerCase().replace(/\s+/g, '_') : 'restaurant'],
+        opening_hours: typeof r.isOpen === 'boolean' ? { open_now: r.isOpen } : undefined,
+        fallbackCuisine: r.cuisine || 'Restaurant',
+        yelpData: r.yelpData
+      }));
+      setSearchResults(mapped);
+      setSearchError('Google search is temporarily unavailable. Showing AI results instead.');
+    } else {
       setSearchResults([]);
-      setSearchError('Unexpected error during search. Please retry.');
-    } finally {
-      setIsLoading(false);
+      setSearchError('Search service is currently unavailable. Please try again later.');
     }
-  };
+  } catch (error) {
+    setSearchResults([]);
+    setSearchError('Unexpected error during search. Please retry.');
+  } finally {
+    setIsLoading(false);
+  }
+};
   const handleQuickAdd = async (place: GooglePlaceResult) => {
     if (!user) {
       toast.error('Please log in to add restaurants');
@@ -471,82 +461,189 @@ export default function UnifiedSearchPage() {
   };
   return <div className="w-full">
       {/* Modern Search Section */}
-      <div className="relative rounded-2xl bg-gradient-to-br from-background via-background to-primary/10 border border-primary/20 shadow-2xl">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary-glow/5 opacity-50" />
-        
-        <div className="relative p-3 sm:p-4 lg:p-8">
-          {/* Combined Search Header */}
-          <div className="mb-4 sm:mb-8">
-            <div className="flex justify-center"></div>
-          </div>
-
+      <div className="w-full border-b border-border/50 bg-background/50 backdrop-blur-sm">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
           {/* Search Form */}
-          <div className="space-y-3 sm:space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 sm:gap-6 items-start">
-              {/* Main Search Input */}
-              <div className="col-span-1 lg:col-span-2 space-y-2 relative" ref={searchRef}>
-                <div className="relative group">
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary-glow/20 rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="relative bg-background/80 backdrop-blur-sm rounded-lg border border-border group-hover:border-primary/50 transition-all duration-300">
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 group-hover:text-primary transition-colors duration-300" />
-                    <Input placeholder="🔍 What are you craving? Search by name, cuisine, atmosphere, or special dishes..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-12 pr-10 h-12 sm:h-14 bg-transparent border-none text-base sm:text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none" />
-                    {searchQuery && <button onClick={clearSearch} className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-muted/50">
-                        <X className="h-4 w-4" />
-                      </button>}
+          <div className="space-y-6">
+            <div className="w-full max-w-6xl mx-auto">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 items-center">
+                {/* Main Search Input */}
+                <div className="lg:col-span-2 relative" ref={searchRef}>
+                  <div className="relative group w-full">
+                    <div className="relative bg-background border border-border rounded-full hover:border-primary/50 transition-all duration-300 shadow-sm hover:shadow-md">
+                      <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 group-hover:text-primary transition-colors duration-300" />
+                      <Input 
+                        placeholder="Search restaurants, cuisines, or dishes..." 
+                        value={searchQuery} 
+                        onChange={e => setSearchQuery(e.target.value)} 
+                        className="pl-14 pr-12 h-14 bg-transparent border-none text-base placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none rounded-full" 
+                      />
+                      {searchQuery && 
+                        <button 
+                          onClick={clearSearch} 
+                          className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-2 rounded-full hover:bg-muted/50"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      }
+                    </div>
                   </div>
                 </div>
-              </div>
               
-              {/* Location Input */}
-              <div className="col-span-1 space-y-2">
-                <div className="relative group">
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary-glow/20 to-primary/20 rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="relative bg-background/80 backdrop-blur-sm rounded-lg border border-border group-hover:border-primary/50 transition-all duration-300">
-                    <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
-                    <Input placeholder="📍 Location (optional)" value={locationQuery} onChange={e => {
-                    setLocationQuery(e.target.value);
-                    generateLocationSuggestions(e.target.value);
-                    setShowLocationSuggestions(e.target.value.length > 1);
-                  }} onKeyDown={e => {
-                    if (e.key === 'Escape') {
-                      setShowLocationSuggestions(false);
-                    }
-                  }} onFocus={() => locationQuery.length > 1 && setShowLocationSuggestions(true)} onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 150)} className="pl-12 pr-4 h-12 sm:h-14 bg-transparent border-none text-base sm:text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none" />
-                    
-                    {/* Modern Location Suggestions */}
-                    {showLocationSuggestions && locationSuggestions.length > 0 && <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-card/95 backdrop-blur-lg border border-border rounded-xl shadow-2xl overflow-hidden animate-fade-in">
-                        <div className="max-h-48 overflow-y-auto">
-                          {locationSuggestions.map((suggestion, index) => <div key={index} className="px-4 py-3 hover:bg-primary/10 cursor-pointer transition-colors duration-200 border-b border-border/50 last:border-b-0 group" onClick={() => handleLocationSuggestionClick(suggestion)}>
-                              <div className="font-medium text-sm group-hover:text-primary transition-colors">{suggestion.mainText}</div>
-                              {suggestion.secondaryText && <div className="text-xs text-muted-foreground mt-1">{suggestion.secondaryText}</div>}
-                            </div>)}
+                {/* Location Input */}
+                <div className="relative">
+                  <div className="relative group w-full">
+                    <div className="relative bg-background border border-border rounded-full hover:border-primary/50 transition-all duration-300 shadow-sm hover:shadow-md">
+                      <MapPin className="absolute left-6 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
+                      <Input 
+                        placeholder="Location" 
+                        value={locationQuery} 
+                        onChange={e => {
+                          setLocationQuery(e.target.value);
+                          generateLocationSuggestions(e.target.value);
+                          setShowLocationSuggestions(e.target.value.length > 1);
+                        }} 
+                        onKeyDown={e => {
+                          if (e.key === 'Escape') {
+                            setShowLocationSuggestions(false);
+                          }
+                        }} 
+                        onFocus={() => locationQuery.length > 1 && setShowLocationSuggestions(true)} 
+                        onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 150)} 
+                        className="pl-14 pr-4 h-14 bg-transparent border-none text-base placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none rounded-full" 
+                      />
+                      
+                      {/* Modern Location Suggestions */}
+                      {showLocationSuggestions && locationSuggestions.length > 0 && 
+                        <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-card/95 backdrop-blur-lg border border-border rounded-xl shadow-2xl overflow-hidden animate-fade-in">
+                          <div className="max-h-48 overflow-y-auto">
+                            {locationSuggestions.map((suggestion, index) => 
+                              <div 
+                                key={index} 
+                                className="px-4 py-3 hover:bg-primary/10 cursor-pointer transition-colors duration-200 border-b border-border/50 last:border-b-0 group" 
+                                onClick={() => handleLocationSuggestionClick(suggestion)}
+                              >
+                                <div className="font-medium text-sm group-hover:text-primary transition-colors">{suggestion.mainText}</div>
+                                {suggestion.secondaryText && <div className="text-xs text-muted-foreground mt-1">{suggestion.secondaryText}</div>}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>}
+                      }
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
             
-          {/* Location-based search info */}
-          {(locationQuery || userLocation) && <div className="text-center">
+{/* Location-based search info */}
+{(locationQuery || userLocation) && <div className="text-center">
     <p className="text-sm text-muted-foreground">
       {locationQuery ? `Searching near "${locationQuery}"` : 'Searching near your location'}
       {!locationQuery && userLocation && ' - specify a location above for more targeted results'}
     </p>
   </div>}
 
-          {/* Error / Fallback notice */}
-          {searchError && <Alert variant="destructive" className="mt-3">
+{/* Error / Fallback notice */}
+{searchError && (
+  <Alert variant="destructive" className="mt-3">
     <AlertTitle>Search issue</AlertTitle>
     <AlertDescription>{searchError}</AlertDescription>
-  </Alert>}
+  </Alert>
+)}
           </div>
         </div>
       </div>
       
       {/* Mobile Instant Suggestions Section */}
-      {!searchQuery && user && (searchResults.length === 0 || !isLoading)}
+      {!searchQuery && user && (searchResults.length === 0 || !isLoading) && <div className="lg:hidden mt-6 space-y-6">
+          {/* Filter Pills */}
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            <Button variant="default" size="sm" className="flex-shrink-0 rounded-full bg-primary text-primary-foreground">
+              Reserve now
+            </Button>
+            <Button variant="outline" size="sm" className="flex-shrink-0 rounded-full">
+              ❤️ Recs
+            </Button>
+            <Button variant="outline" size="sm" className="flex-shrink-0 rounded-full">
+              📈 Trending
+            </Button>
+            <Button variant="outline" size="sm" className="flex-shrink-0 rounded-full">
+              🔥 Popular
+            </Button>
+          </div>
+
+          {/* Recent Restaurants Section */}
+          {recentClickedRestaurants.length > 0 && <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Recent searches</h3>
+                <Badge variant="secondary" className="text-xs">Quick access</Badge>
+              </div>
+              
+              <div className="space-y-2">
+                {recentClickedRestaurants.map(place => <div key={place.place_id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => handlePlaceClick(place)}>
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                        <Clock className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm line-clamp-1">{place.name}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-1">{place.formatted_address}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {place.rating && <div className="flex items-center gap-1">
+                          <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                          <span className="text-xs font-medium">{place.rating}</span>
+                        </div>}
+                      
+                    </div>
+                  </div>)}
+              </div>
+            </div>}
+
+          {/* Recommendations Section */}
+          {recommendedPlaces.length > 0 && <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Recommended for you</h3>
+              </div>
+              
+              {isLoadingRecommendations ? <div className="grid gap-3">
+                  {[...Array(3)].map((_, i) => <div key={i} className="h-16 bg-muted/50 rounded-lg animate-pulse" />)}
+                </div> : <div className="space-y-2">
+                  {recommendedPlaces.map((place, index) => <div key={place.place_id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => handlePlaceClick(place)}>
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <Navigation className="w-4 h-4 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm line-clamp-1">{place.name}</p>
+                          <p className="text-xs text-muted-foreground line-clamp-1">{place.formatted_address}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {place.rating && <div className="flex items-center gap-1">
+                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                            <span className="text-xs font-medium">{place.rating}</span>
+                          </div>}
+                        <Button size="sm" variant="outline" className="h-7 px-2 text-xs">
+                          View
+                        </Button>
+                      </div>
+                    </div>)}
+                  
+                  {hasMoreRecommendations && <InfiniteScrollLoader onLoadMore={loadMoreRecommendations} isLoading={isLoadingMoreRecommendations} hasMore={hasMoreRecommendations} />}
+                </div>}
+            </div>}
+
+          {/* Fallback for no data */}
+          {recentClickedRestaurants.length === 0 && recommendedPlaces.length === 0 && !isLoadingRecommendations && <div className="text-center py-8">
+              <h3 className="text-lg font-semibold mb-2">Start exploring</h3>
+              <p className="text-muted-foreground text-sm">
+                Search for restaurants to start building your personal recommendations
+              </p>
+            </div>}
+        </div>}
       
       {/* Results Section */}
       {(isLoading || searchResults.length > 0) && <Tabs defaultValue="list" className="space-y-4">
