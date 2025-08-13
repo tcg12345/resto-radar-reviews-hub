@@ -1,14 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Camera, Filter, Grid, Users, ChevronDown, User, ChevronRight } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { Camera, ChevronRight, User, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CommunityStats } from '@/hooks/useRestaurantReviews';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useNavigate } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface FriendPhoto {
   url: string;
@@ -38,9 +35,7 @@ export function UnifiedPhotoGallery({
   restaurantPlaceId
 }: UnifiedPhotoGalleryProps) {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'recent' | 'popular'>('recent');
-  const [showAll, setShowAll] = useState(false);
+  const isMobile = useIsMobile();
 
   // Community photos processing
   const allCommunityPhotos = useMemo(() => {
@@ -60,120 +55,203 @@ export function UnifiedPhotoGallery({
     );
   }, [stats?.recentPhotos]);
 
-  const filteredCommunityPhotos = useMemo(() => {
-    let filtered = allCommunityPhotos;
-
-    // Filter by search query
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(photo => 
-        photo.dishName.toLowerCase().includes(query) ||
-        photo.caption.toLowerCase().includes(query) ||
-        photo.username.toLowerCase().includes(query)
-      );
-    }
-
-    // Sort
-    if (sortBy === 'popular') {
-      filtered.sort((a, b) => b.helpfulCount - a.helpfulCount);
-    } else {
-      filtered.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    }
-
-    return filtered;
-  }, [allCommunityPhotos, searchQuery, sortBy]);
-
-  const displayCommunityPhotos = showAll ? filteredCommunityPhotos : filteredCommunityPhotos.slice(0, 8);
-
-  const dishGroups = useMemo(() => {
-    const groups: Record<string, typeof displayCommunityPhotos> = {};
-    displayCommunityPhotos.forEach(photo => {
-      if (photo.dishName) {
-        const key = photo.dishName.toLowerCase();
+  // Group photos by dish when there are enough
+  const photoGroups = useMemo(() => {
+    const groups: Record<string, typeof allCommunityPhotos> = {};
+    const ungrouped: typeof allCommunityPhotos = [];
+    
+    allCommunityPhotos.forEach(photo => {
+      if (photo.dishName && photo.dishName.trim()) {
+        const key = photo.dishName.toLowerCase().trim();
         if (!groups[key]) groups[key] = [];
         groups[key].push(photo);
+      } else {
+        ungrouped.push(photo);
       }
     });
-    return Object.entries(groups)
+
+    // Only return groups with 2+ photos, sort by count
+    const validGroups = Object.entries(groups)
+      .filter(([, photos]) => photos.length >= 2)
       .sort(([, a], [, b]) => b.length - a.length)
-      .slice(0, 5); // Top 5 dish groups
-  }, [displayCommunityPhotos]);
+      .slice(0, 6); // Max 6 groups
+
+    return { groups: validGroups, ungrouped };
+  }, [allCommunityPhotos]);
 
   const handleViewAllPhotos = () => {
-    if (restaurantId && friendId && restaurantPlaceId) {
-      navigate(`/restaurant/${restaurantId}/photos?friendId=${friendId}&placeId=${restaurantPlaceId}`);
+    if (restaurantPlaceId) {
+      navigate(`/restaurant/${restaurantPlaceId}/photos`);
     }
   };
 
   const hasFriendPhotos = friendPhotos && friendPhotos.length > 0;
   const hasCommunityPhotos = allCommunityPhotos.length > 0;
+  const hasEnoughForGroups = photoGroups.groups.length > 0;
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-5 w-5" />
-              <Skeleton className="h-6 w-32" />
-              <Skeleton className="h-5 w-8" />
-            </div>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3 mt-4">
-            <Skeleton className="h-9 flex-1" />
-            <Skeleton className="h-9 w-32" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-              <div key={i} className="aspect-square relative">
-                <Skeleton className="w-full h-full rounded-lg" />
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite] rounded-lg" />
-              </div>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between px-4">
+          <Skeleton className="h-6 w-20" />
+          <Skeleton className="h-5 w-16" />
+        </div>
+        <div className="overflow-x-auto">
+          <div className="flex gap-3 px-4 pb-2">
+            {[1, 2, 3, 4].map(i => (
+              <Skeleton key={i} className="w-32 h-32 rounded-lg flex-shrink-0" />
             ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
   // If no photos at all
   if (!isLoading && !hasCommunityPhotos && !hasFriendPhotos) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Photos</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center text-muted-foreground py-8">
-            <Camera className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p className="text-sm">No photos yet</p>
-            <p className="text-xs">Upload photos with your review to help others!</p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="text-center text-muted-foreground py-8 px-4">
+        <Camera className="h-12 w-12 mx-auto mb-3 opacity-50" />
+        <p className="text-sm">No photos yet</p>
+        <p className="text-xs">Upload photos with your review to help others!</p>
+      </div>
     );
   }
 
-  // If only friend photos (no community photos)
-  if (!hasCommunityPhotos && hasFriendPhotos) {
+  // Mobile version - simple horizontal scroll
+  if (isMobile) {
+    const displayItems = [];
+
+    // Add friend photos first if they exist
+    if (hasFriendPhotos) {
+      displayItems.push({
+        type: 'friend',
+        title: `${friendName}'s Photos`,
+        photos: friendPhotos.slice(0, 3),
+        totalCount: friendPhotos.length
+      });
+    }
+
+    // Add dish groups if enough photos
+    if (hasEnoughForGroups) {
+      photoGroups.groups.forEach(([dishName, photos]) => {
+        displayItems.push({
+          type: 'dish',
+          title: dishName,
+          photos: photos.slice(0, 3),
+          totalCount: photos.length
+        });
+      });
+    } else if (hasCommunityPhotos) {
+      // Show recent community photos if not enough for groups
+      displayItems.push({
+        type: 'community',
+        title: 'Community Photos',
+        photos: allCommunityPhotos.slice(0, 6),
+        totalCount: allCommunityPhotos.length
+      });
+    }
+
+    if (displayItems.length === 0) return null;
+
     return (
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Photos by {friendName}
-            </CardTitle>
-            <Badge variant="outline" className="text-xs">
-              {friendPhotos.length} photo{friendPhotos.length !== 1 ? 's' : ''}
-            </Badge>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between px-4">
+          <h3 className="text-lg font-semibold">Photos</h3>
+          <Badge variant="outline" className="text-xs">
+            {allCommunityPhotos.length + (friendPhotos?.length || 0)} total
+          </Badge>
+        </div>
+
+        {displayItems.map((item, groupIndex) => (
+          <div key={groupIndex} className="space-y-2">
+            <div className="flex items-center justify-between px-4">
+              <h4 className="text-sm font-medium flex items-center gap-2">
+                {item.type === 'friend' && <User className="h-4 w-4" />}
+                {item.type === 'community' && <Users className="h-4 w-4" />}
+                {item.title}
+              </h4>
+              <span className="text-xs text-muted-foreground">
+                {item.totalCount} photo{item.totalCount !== 1 ? 's' : ''}
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <div className="flex gap-3 px-4 pb-2">
+                {item.photos.map((photo: any, index: number) => (
+                  <div
+                    key={index}
+                    className="relative w-32 h-32 rounded-lg overflow-hidden bg-muted flex-shrink-0"
+                    onClick={() => handleViewAllPhotos()}
+                  >
+                    <img
+                      src={typeof photo === 'string' ? photo : photo.url}
+                      alt={typeof photo === 'object' ? (photo.dishName || 'Photo') : 'Photo'}
+                      className="w-full h-full object-cover"
+                    />
+                    {typeof photo === 'object' && photo.dishName && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-1">
+                        <p className="text-xs font-medium truncate">{photo.dishName}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                
+                {item.totalCount > item.photos.length && (
+                  <div 
+                    className="relative w-32 h-32 rounded-lg overflow-hidden bg-muted/50 border border-dashed border-muted-foreground/30 flex-shrink-0 flex items-center justify-center cursor-pointer"
+                    onClick={() => handleViewAllPhotos()}
+                  >
+                    <div className="text-center text-muted-foreground">
+                      <div className="text-lg font-bold">+{item.totalCount - item.photos.length}</div>
+                      <div className="text-xs">more</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-        </CardHeader>
-        
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-2">
+        ))}
+
+        <div className="px-4 pt-2">
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={handleViewAllPhotos}
+          >
+            <Camera className="h-4 w-4 mr-2" />
+            View All Photos
+            <ChevronRight className="h-4 w-4 ml-2" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop version - keep existing functionality
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold flex items-center gap-2">
+          <Camera className="h-5 w-5" />
+          Photos
+        </h3>
+        <Badge variant="outline" className="text-xs">
+          {allCommunityPhotos.length + (friendPhotos?.length || 0)} total
+        </Badge>
+      </div>
+
+      {/* Show friend photos first if available */}
+      {hasFriendPhotos && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-medium flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Photos by {friendName}
+            </h4>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {friendPhotos.slice(0, 4).map((photo, index) => (
               <div
                 key={index}
@@ -190,242 +268,54 @@ export function UnifiedPhotoGallery({
                     <p className="text-xs font-medium truncate">{photo.dishName}</p>
                   </div>
                 )}
-                {index === 3 && friendPhotos.length > 4 && (
-                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                    <div className="text-white text-center">
-                      <div className="text-lg font-bold">+{friendPhotos.length - 4}</div>
-                      <div className="text-xs">more</div>
-                    </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Community photos */}
+      {hasCommunityPhotos && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-medium flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Community Photos
+            </h4>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {allCommunityPhotos.slice(0, 8).map((photo, index) => (
+              <div
+                key={`${photo.reviewId}-${index}`}
+                className="relative aspect-square bg-muted rounded-lg overflow-hidden cursor-pointer group"
+                onClick={() => onPhotoClick?.(index, allCommunityPhotos.map(p => p.url))}
+              >
+                <img
+                  src={photo.url}
+                  alt={photo.dishName || photo.caption || 'Community photo'}
+                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                />
+                {photo.dishName && (
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-2">
+                    <p className="text-xs font-medium truncate">{photo.dishName}</p>
                   </div>
                 )}
               </div>
             ))}
           </div>
-
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={handleViewAllPhotos}
-          >
-            <Camera className="h-4 w-4 mr-2" />
-            View All Photos
-            <ChevronRight className="h-4 w-4 ml-2" />
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // If both community and friend photos exist
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Camera className="h-5 w-5" />
-            Photos
-          </CardTitle>
         </div>
-      </CardHeader>
+      )}
 
-      <CardContent>
-        <Tabs defaultValue="community" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="community" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Community
-              <Badge variant="outline" className="text-xs">
-                {allCommunityPhotos.length}
-              </Badge>
-            </TabsTrigger>
-            {hasFriendPhotos && (
-              <TabsTrigger value="friend" className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                {friendName}
-                <Badge variant="outline" className="text-xs">
-                  {friendPhotos.length}
-                </Badge>
-              </TabsTrigger>
-            )}
-          </TabsList>
-
-          {/* Community Photos Tab */}
-          <TabsContent value="community" className="space-y-4">
-            {/* Search and Filters */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by dish name, description..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Filter className="h-4 w-4 mr-2" />
-                    {sortBy === 'recent' ? 'Most Recent' : 'Most Popular'}
-                    <ChevronDown className="h-4 w-4 ml-2" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => setSortBy('recent')}>
-                    Most Recent
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy('popular')}>
-                    Most Popular
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-
-            {/* Popular Dishes */}
-            {dishGroups.length > 0 && !searchQuery && (
-              <div>
-                <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
-                  <Grid className="h-4 w-4" />
-                  Popular Dishes
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {dishGroups.map(([dishName, photos]) => (
-                    <Badge 
-                      key={dishName} 
-                      variant="secondary" 
-                      className="text-xs cursor-pointer hover:bg-secondary/80"
-                      onClick={() => setSearchQuery(dishName)}
-                    >
-                      {dishName} ({photos.length})
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Photo Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {displayCommunityPhotos.map((photo, index) => (
-                <div
-                  key={`${photo.reviewId}-${index}`}
-                  className="group relative aspect-square cursor-pointer overflow-hidden rounded-lg bg-muted"
-                  onClick={() => onPhotoClick?.(index, displayCommunityPhotos.map(p => p.url))}
-                >
-                  <img
-                    src={photo.url}
-                    alt={photo.dishName || photo.caption || 'Community photo'}
-                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                  />
-                  
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors">
-                    <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                      {photo.dishName && (
-                        <p className="text-white text-xs font-medium truncate">
-                          {photo.dishName}
-                        </p>
-                      )}
-                      <div className="flex items-center gap-1 text-white/80 text-xs">
-                        <Users className="h-3 w-3" />
-                        <span>{photo.username}</span>
-                        {photo.helpfulCount > 0 && (
-                          <span className="ml-auto">
-                            ❤️ {photo.helpfulCount}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Show More Button */}
-            {filteredCommunityPhotos.length > displayCommunityPhotos.length && (
-              <div className="text-center">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowAll(true)}
-                  className="w-full sm:w-auto"
-                >
-                  Show All {filteredCommunityPhotos.length} Photos
-                </Button>
-              </div>
-            )}
-
-            {/* Show Less Button */}
-            {showAll && filteredCommunityPhotos.length > 8 && (
-              <div className="text-center mt-6">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowAll(false)}
-                  className="w-full sm:w-auto"
-                >
-                  Show Less
-                </Button>
-              </div>
-            )}
-
-            {/* No Results */}
-            {filteredCommunityPhotos.length === 0 && searchQuery && (
-              <div className="text-center text-muted-foreground py-6">
-                <p className="text-sm">No photos found for "{searchQuery}"</p>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSearchQuery('')}
-                  className="mt-2"
-                >
-                  Clear search
-                </Button>
-              </div>
-            )}
-          </TabsContent>
-
-          {/* Friend Photos Tab */}
-          {hasFriendPhotos && (
-            <TabsContent value="friend" className="space-y-4">
-              <div className="grid grid-cols-2 gap-2">
-                {friendPhotos.slice(0, 4).map((photo, index) => (
-                  <div
-                    key={index}
-                    className="relative aspect-square bg-muted rounded-lg overflow-hidden cursor-pointer group"
-                    onClick={handleViewAllPhotos}
-                  >
-                    <img
-                      src={photo.url}
-                      alt={photo.dishName || `Photo ${index + 1}`}
-                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                    />
-                    {photo.dishName && (
-                      <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-2">
-                        <p className="text-xs font-medium truncate">{photo.dishName}</p>
-                      </div>
-                    )}
-                    {index === 3 && friendPhotos.length > 4 && (
-                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                        <div className="text-white text-center">
-                          <div className="text-lg font-bold">+{friendPhotos.length - 4}</div>
-                          <div className="text-xs">more</div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={handleViewAllPhotos}
-              >
-                <Camera className="h-4 w-4 mr-2" />
-                View All {friendName}'s Photos
-                <ChevronRight className="h-4 w-4 ml-2" />
-              </Button>
-            </TabsContent>
-          )}
-        </Tabs>
-      </CardContent>
-    </Card>
+      <Button
+        variant="outline"
+        className="w-full"
+        onClick={handleViewAllPhotos}
+      >
+        <Camera className="h-4 w-4 mr-2" />
+        View All Photos
+        <ChevronRight className="h-4 w-4 ml-2" />
+      </Button>
+    </div>
   );
 }

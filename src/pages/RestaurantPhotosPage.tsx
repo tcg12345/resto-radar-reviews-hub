@@ -1,257 +1,323 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Users, Grid, List } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, Search, Filter, Grid, Users, ChevronDown, Camera, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useRestaurantReviews } from '@/hooks/useRestaurantReviews';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
 
-interface RestaurantPhoto {
-  id: string;
-  url: string;
-  caption?: string;
-  dishName?: string;
-  userId: string;
-  username: string;
-  userDisplayName?: string;
-  createdAt: string;
-  helpfulCount: number;
+interface Restaurant {
+  name: string;
+  place_id: string;
 }
 
 export default function RestaurantPhotosPage() {
-  const { restaurantId } = useParams();
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  
-  const friendId = searchParams.get('friendId');
-  const placeId = searchParams.get('placeId');
-  
-  const [friendPhotos, setFriendPhotos] = useState<RestaurantPhoto[]>([]);
-  const [allPhotos, setAllPhotos] = useState<RestaurantPhoto[]>([]);
-  const [friendName, setFriendName] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'friend' | 'all'>('friend');
+  const { placeId } = useParams();
+  const [searchParams] = useSearchParams();
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'recent' | 'popular'>('recent');
+  const [selectedDish, setSelectedDish] = useState<string>('');
 
+  // Get restaurant details
   useEffect(() => {
-    if (restaurantId) {
-      loadPhotos();
-    }
-  }, [restaurantId, friendId, placeId]);
+    const fetchRestaurant = async () => {
+      if (!placeId) return;
 
-  const loadPhotos = async () => {
-    try {
-      setIsLoading(true);
+      try {
+        // First try to get from our database
+        const { data: dbRestaurant } = await supabase
+          .from('restaurants')
+          .select('name, google_place_id')
+          .eq('google_place_id', placeId)
+          .single();
 
-      // Load friend's photos first
-      if (friendId) {
-        await loadFriendPhotos();
+        if (dbRestaurant) {
+          setRestaurant({ name: dbRestaurant.name, place_id: placeId });
+          return;
+        }
+
+        // Fallback to Google Places API
+        const { data, error } = await supabase.functions.invoke('google-places-search', {
+          body: { placeId, type: 'details' }
+        });
+
+        if (!error && data?.result) {
+          setRestaurant({
+            name: data.result.name,
+            place_id: placeId
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching restaurant:', error);
       }
+    };
 
-      // Load all community photos if we have a place_id
-      if (placeId) {
-        await loadAllPhotos();
-      }
-    } catch (error) {
-      console.error('Error loading photos:', error);
-      toast.error('Failed to load photos');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    fetchRestaurant();
+  }, [placeId]);
 
-  const loadFriendPhotos = async () => {
-    if (!friendId) return;
+  const { communityStats, isLoading } = useRestaurantReviews(placeId, restaurant?.name);
 
-    try {
-      // Get friend's restaurant entry and photos
-      const { data: restaurantData, error: restaurantError } = await supabase
-        .from('restaurants')
-        .select('photos, photo_captions, photo_dish_names, user_id')
-        .eq('id', restaurantId)
-        .eq('user_id', friendId)
-        .single();
+  // Process community photos
+  const allCommunityPhotos = useMemo(() => {
+    if (!communityStats?.recentPhotos) return [];
+    
+    return communityStats.recentPhotos.flatMap(photoData => 
+      photoData.photos.map((photo, index) => ({
+        url: photo,
+        dishName: photoData.dish_names[index] || '',
+        caption: photoData.captions[index] || '',
+        username: photoData.username,
+        userId: photoData.user_id,
+        helpfulCount: photoData.helpful_count,
+        createdAt: new Date(photoData.created_at),
+        reviewId: photoData.review_id
+      }))
+    );
+  }, [communityStats?.recentPhotos]);
 
-      if (restaurantError) throw restaurantError;
+  // Filter and sort photos
+  const filteredPhotos = useMemo(() => {
+    let filtered = allCommunityPhotos;
 
-      // Set default friend name
-      let displayName = 'Friend';
-
-      // Format friend's photos
-      if (restaurantData && restaurantData.photos && Array.isArray(restaurantData.photos)) {
-        const photos: RestaurantPhoto[] = restaurantData.photos.map((url: string, index: number) => ({
-          id: `friend-${index}`,
-          url,
-          caption: Array.isArray(restaurantData.photo_captions) ? restaurantData.photo_captions[index] || '' : '',
-          dishName: Array.isArray(restaurantData.photo_dish_names) ? restaurantData.photo_dish_names[index] || '' : '',
-          userId: friendId,
-          username: 'friend',
-          userDisplayName: displayName,
-          createdAt: new Date().toISOString(),
-          helpfulCount: 0
-        }));
-        
-        setFriendPhotos(photos);
-      }
-
-      setFriendName(displayName);
-    } catch (error) {
-      console.error('Error loading friend photos:', error);
-    }
-  };
-
-  const loadAllPhotos = async () => {
-    if (!placeId) return;
-
-    try {
-      // Get all community photos for this place
-      const { data, error } = await supabase.rpc('get_restaurant_community_stats', {
-        place_id_param: placeId
-      });
-
-      if (error) throw error;
-
-      if (data && data[0]?.recent_photos && Array.isArray(data[0].recent_photos)) {
-        const communityPhotos: RestaurantPhoto[] = data[0].recent_photos.map((photo: any, index: number) => ({
-          id: `community-${photo.review_id}-${index}`,
-          url: Array.isArray(photo.photos) ? photo.photos[0] || '' : '',
-          caption: Array.isArray(photo.captions) ? photo.captions[0] || '' : '',
-          dishName: Array.isArray(photo.dish_names) ? photo.dish_names[0] || '' : '',
-          userId: photo.user_id,
-          username: photo.username,
-          userDisplayName: photo.username,
-          createdAt: photo.created_at,
-          helpfulCount: photo.helpful_count || 0
-        })).filter((photo: RestaurantPhoto) => photo.url);
-
-        setAllPhotos(communityPhotos);
-      }
-    } catch (error) {
-      console.error('Error loading community photos:', error);
-    }
-  };
-
-  const renderPhotoGrid = (photos: RestaurantPhoto[]) => {
-    if (photos.length === 0) {
-      return (
-        <div className="text-center py-8">
-          <div className="text-muted-foreground">No photos available</div>
-        </div>
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(photo => 
+        photo.dishName.toLowerCase().includes(query) ||
+        photo.caption.toLowerCase().includes(query) ||
+        photo.username.toLowerCase().includes(query)
       );
     }
 
-    return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {photos.map((photo) => (
-          <Card key={photo.id} className="overflow-hidden">
-            <div className="aspect-square relative">
-              <img
-                src={photo.url}
-                alt={photo.dishName || 'Restaurant photo'}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <CardContent className="p-3">
-              {photo.dishName && (
-                <p className="font-medium text-sm mb-1">{photo.dishName}</p>
-              )}
-              {photo.caption && (
-                <p className="text-xs text-muted-foreground mb-2">{photo.caption}</p>
-              )}
-              <div className="flex items-center justify-between">
-                <Badge variant="outline" className="text-xs">
-                  {photo.userDisplayName || photo.username}
-                </Badge>
-                {photo.helpfulCount > 0 && (
-                  <span className="text-xs text-muted-foreground">
-                    👍 {photo.helpfulCount}
-                  </span>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
+    // Filter by selected dish
+    if (selectedDish) {
+      filtered = filtered.filter(photo => 
+        photo.dishName.toLowerCase() === selectedDish.toLowerCase()
+      );
+    }
+
+    // Sort
+    if (sortBy === 'popular') {
+      filtered.sort((a, b) => b.helpfulCount - a.helpfulCount);
+    } else {
+      filtered.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    }
+
+    return filtered;
+  }, [allCommunityPhotos, searchQuery, sortBy, selectedDish]);
+
+  // Group photos by dish
+  const dishGroups = useMemo(() => {
+    const groups: Record<string, typeof allCommunityPhotos> = {};
+    allCommunityPhotos.forEach(photo => {
+      if (photo.dishName && photo.dishName.trim()) {
+        const key = photo.dishName.toLowerCase().trim();
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(photo);
+      }
+    });
+    return Object.entries(groups)
+      .sort(([, a], [, b]) => b.length - a.length)
+      .slice(0, 10); // Top 10 dish groups
+  }, [allCommunityPhotos]);
+
+  const handleBack = () => {
+    navigate(-1);
   };
 
   if (isLoading) {
     return (
-      <>
-        {/* Mobile status bar spacer */}
-        <div className="lg:hidden h-[35px] bg-background"></div>
-        <div className="min-h-screen bg-background">
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
-          <div className="flex items-center gap-3 p-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(-1)}
-              className="h-8 w-8 p-0"
-            >
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <div className="sticky top-0 z-10 bg-background border-b">
+          <div className="flex items-center gap-4 p-4">
+            <Button variant="ghost" size="sm" onClick={handleBack} className="h-8 w-8 p-0">
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <div className="h-4 bg-muted rounded animate-pulse w-32"></div>
+            <Skeleton className="h-6 w-48" />
           </div>
         </div>
+
+        {/* Search */}
+        <div className="p-4 border-b bg-muted/30">
+          <Skeleton className="h-10 w-full rounded-lg" />
+        </div>
+
+        {/* Content */}
         <div className="p-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {[...Array(8)].map((_, i) => (
-              <div key={i} className="aspect-square bg-muted rounded-lg animate-pulse"></div>
+          <div className="grid grid-cols-2 gap-3">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <Skeleton key={i} className="aspect-square rounded-lg" />
             ))}
           </div>
         </div>
-        </div>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
-      {/* Mobile status bar spacer */}
-      <div className="lg:hidden h-[35px] bg-background"></div>
-      <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
-        <div className="flex items-center gap-3 p-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate(-1)}
-            className="h-8 w-8 p-0"
-          >
+      <div className="sticky top-0 z-10 bg-background border-b">
+        <div className="flex items-center gap-4 p-4">
+          <Button variant="ghost" size="sm" onClick={handleBack} className="h-8 w-8 p-0">
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="font-semibold text-lg">Restaurant Photos</h1>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg font-semibold truncate">{restaurant?.name || 'Photos'}</h1>
+            <p className="text-sm text-muted-foreground">{filteredPhotos.length} photos</p>
+          </div>
         </div>
       </div>
 
-      <div className="p-4">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'friend' | 'all')}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="friend" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              {friendName} ({friendPhotos.length})
-            </TabsTrigger>
-            <TabsTrigger value="all" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              All Users ({allPhotos.length})
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="friend" className="mt-6">
-            {renderPhotoGrid(friendPhotos)}
-          </TabsContent>
-
-          <TabsContent value="all" className="mt-6">
-            {renderPhotoGrid(allPhotos)}
-          </TabsContent>
-        </Tabs>
+      {/* Search Bar */}
+      <div className="p-4 border-b bg-muted/30">
+        <div className="relative">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search all dishes"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 bg-background"
+          />
+        </div>
       </div>
+
+      <div className="pb-safe-area-bottom">
+        {/* Popular Dishes */}
+        {dishGroups.length > 0 && !searchQuery && !selectedDish && (
+          <div className="p-4 border-b">
+            <h2 className="text-lg font-semibold mb-3">Popular dishes</h2>
+            <div className="grid grid-cols-3 gap-3">
+              {dishGroups.slice(0, 6).map(([dishName, photos]) => (
+                <div
+                  key={dishName}
+                  className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group"
+                  onClick={() => setSelectedDish(dishName)}
+                >
+                  <img
+                    src={photos[0].url}
+                    alt={dishName}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                  />
+                  <div className="absolute inset-0 bg-black/40" />
+                  <div className="absolute bottom-0 left-0 right-0 p-2">
+                    <p className="text-white text-sm font-medium truncate">{dishName}</p>
+                    <p className="text-white/80 text-xs">{photos.length} photos</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* All Photos Section */}
+        <div className="p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              {selectedDish ? (
+                <>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setSelectedDish('')}
+                    className="h-8 w-8 p-0 mr-2"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                  {selectedDish}
+                </>
+              ) : (
+                <>
+                  <Users className="h-5 w-5" />
+                  Photos from community
+                </>
+              )}
+            </h2>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Filter className="h-4 w-4 mr-2" />
+                  {sortBy === 'recent' ? 'Recent' : 'Popular'}
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setSortBy('recent')}>
+                  Most Recent
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortBy('popular')}>
+                  Most Popular
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Photo Grid */}
+          {filteredPhotos.length > 0 ? (
+            <div className="grid grid-cols-2 gap-3">
+              {filteredPhotos.map((photo, index) => (
+                <div
+                  key={`${photo.reviewId}-${index}`}
+                  className="relative aspect-square rounded-lg overflow-hidden bg-muted cursor-pointer group"
+                >
+                  <img
+                    src={photo.url}
+                    alt={photo.dishName || photo.caption || 'Community photo'}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                  />
+                  
+                  {/* Photo overlay */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors">
+                    <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                      {photo.dishName && (
+                        <p className="text-white text-sm font-medium truncate mb-1">
+                          {photo.dishName}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-1 text-white/80 text-xs">
+                        <User className="h-3 w-3" />
+                        <span>{photo.username}</span>
+                        {photo.helpfulCount > 0 && (
+                          <span className="ml-auto">
+                            ❤️ {photo.helpfulCount}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-muted-foreground py-12">
+              <Camera className="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <p className="text-sm">
+                {searchQuery ? `No photos found for "${searchQuery}"` : 'No photos yet'}
+              </p>
+              <p className="text-xs mt-1">
+                {searchQuery ? 'Try a different search term' : 'Upload photos with your review to help others!'}
+              </p>
+              {searchQuery && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSearchQuery('')}
+                  className="mt-3"
+                >
+                  Clear search
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
-    </>
+    </div>
   );
 }
