@@ -601,19 +601,19 @@ export function UnifiedRestaurantDetails({
 
           {/* Ratings Summary: Friends and Experts */}
           {restaurantData.place_id && (
-            <div className="py-4 px-4 border-b border-border/50">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="py-3 px-4 border-b border-border/50">
+              <div className="grid grid-cols-2 gap-3">
                 {/* Friends Rating */}
                 <div 
                   onClick={() => navigate(`/restaurant/${restaurantData.place_id}/friends-ratings?name=${encodeURIComponent(restaurantData.name)}`)} 
                   className="cursor-pointer group"
                 >
-                  <div className="flex flex-col items-center text-center py-3 transition-all duration-200 group-hover:scale-105">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Users className="h-5 w-5 text-blue-500" />
+                  <div className="flex flex-col items-center text-center py-2 transition-all duration-200 group-hover:scale-105">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <Users className="h-4 w-4 text-blue-500" />
                       <span className="text-sm font-medium text-muted-foreground">Friends</span>
                     </div>
-                    <div className="text-2xl font-bold text-foreground mb-1">
+                    <div className="text-xl font-bold text-foreground mb-0.5">
                       {isLoadingStats ? '—' : (friendStats.avg ? `${friendStats.avg}/10` : '—')}
                     </div>
                     <div className="text-xs text-muted-foreground">
@@ -627,12 +627,12 @@ export function UnifiedRestaurantDetails({
                   onClick={() => navigate(`/restaurant/${restaurantData.place_id}/expert-ratings?name=${encodeURIComponent(restaurantData.name)}`)} 
                   className="cursor-pointer group"
                 >
-                  <div className="flex flex-col items-center text-center py-3 transition-all duration-200 group-hover:scale-105">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Award className="h-5 w-5 text-amber-500" />
+                  <div className="flex flex-col items-center text-center py-2 transition-all duration-200 group-hover:scale-105">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <Award className="h-4 w-4 text-amber-500" />
                       <span className="text-sm font-medium text-muted-foreground">Experts</span>
                     </div>
-                    <div className="text-2xl font-bold text-foreground mb-1">
+                    <div className="text-xl font-bold text-foreground mb-0.5">
                       {isLoadingStats ? '—' : (expertStats.avg ? `${expertStats.avg}/10` : '—')}
                     </div>
                     <div className="text-xs text-muted-foreground">
