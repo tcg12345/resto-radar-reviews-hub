@@ -462,28 +462,28 @@ const performLiveSearch = async () => {
   return <div className="w-full">
       {/* Modern Search Section */}
       <div className="w-full border-b border-border/50 bg-background/50 backdrop-blur-sm">
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
+        <div className="w-full py-4">
           {/* Search Form */}
-          <div className="space-y-6">
-            <div className="w-full max-w-6xl mx-auto">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 items-center">
+          <div className="space-y-4">
+            <div className="w-full">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 items-center">
                 {/* Main Search Input */}
                 <div className="lg:col-span-2 relative" ref={searchRef}>
                   <div className="relative group w-full">
-                    <div className="relative bg-background border border-border rounded-full hover:border-primary/50 transition-all duration-300 shadow-sm hover:shadow-md">
-                      <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 group-hover:text-primary transition-colors duration-300" />
+                    <div className="relative bg-background border border-border rounded-md hover:border-primary/50 transition-all duration-300 shadow-sm hover:shadow-md">
+                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 group-hover:text-primary transition-colors duration-300" />
                       <Input 
                         placeholder="Search restaurants, cuisines, or dishes..." 
                         value={searchQuery} 
                         onChange={e => setSearchQuery(e.target.value)} 
-                        className="pl-14 pr-12 h-14 bg-transparent border-none text-base placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none rounded-full" 
+                        className="pl-12 pr-10 h-10 bg-transparent border-none text-sm placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none rounded-md" 
                       />
                       {searchQuery && 
                         <button 
                           onClick={clearSearch} 
-                          className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-2 rounded-full hover:bg-muted/50"
+                          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-muted/50"
                         >
-                          <X className="h-4 w-4" />
+                          <X className="h-3 w-3" />
                         </button>
                       }
                     </div>
@@ -493,8 +493,8 @@ const performLiveSearch = async () => {
                 {/* Location Input */}
                 <div className="relative">
                   <div className="relative group w-full">
-                    <div className="relative bg-background border border-border rounded-full hover:border-primary/50 transition-all duration-300 shadow-sm hover:shadow-md">
-                      <MapPin className="absolute left-6 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
+                    <div className="relative bg-background border border-border rounded-md hover:border-primary/50 transition-all duration-300 shadow-sm hover:shadow-md">
+                      <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
                       <Input 
                         placeholder="Location" 
                         value={locationQuery} 
@@ -510,12 +510,12 @@ const performLiveSearch = async () => {
                         }} 
                         onFocus={() => locationQuery.length > 1 && setShowLocationSuggestions(true)} 
                         onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 150)} 
-                        className="pl-14 pr-4 h-14 bg-transparent border-none text-base placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none rounded-full" 
+                        className="pl-12 pr-3 h-10 bg-transparent border-none text-sm placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none rounded-md" 
                       />
                       
                       {/* Modern Location Suggestions */}
                       {showLocationSuggestions && locationSuggestions.length > 0 && 
-                        <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-card/95 backdrop-blur-lg border border-border rounded-xl shadow-2xl overflow-hidden animate-fade-in">
+                        <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-card/95 backdrop-blur-lg border border-border rounded-lg shadow-2xl overflow-hidden animate-fade-in">
                           <div className="max-h-48 overflow-y-auto">
                             {locationSuggestions.map((suggestion, index) => 
                               <div 
