@@ -536,13 +536,6 @@ const performLiveSearch = async () => {
               </div>
             </div>
             
-{/* Location-based search info */}
-{(locationQuery || userLocation) && <div className="text-center">
-    <p className="text-sm text-muted-foreground">
-      {locationQuery ? `Searching near "${locationQuery}"` : 'Searching near your location'}
-      {!locationQuery && userLocation && ' - specify a location above for more targeted results'}
-    </p>
-  </div>}
 
 {/* Error / Fallback notice */}
 {searchError && (
