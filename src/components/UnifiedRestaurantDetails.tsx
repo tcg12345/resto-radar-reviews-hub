@@ -601,30 +601,43 @@ export function UnifiedRestaurantDetails({
 
           {/* Ratings Summary: Friends and Experts */}
           {restaurantData.place_id && (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 px-4">
-              {/* Friends Rating */}
-              <div onClick={() => navigate(`/restaurant/${restaurantData.place_id}/friends-ratings?name=${encodeURIComponent(restaurantData.name)}`)} className="cursor-pointer hover:bg-muted/50 transition-colors p-3 border border-border rounded-lg">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">Friends</span>
-                  </div>
-                    <div className="text-right">
-                      <div className="text-base font-semibold">{isLoadingStats ? '—' : (friendStats.avg ?? '—')}</div>
-                      <div className="text-xs text-muted-foreground">{isLoadingStats ? 'Loading…' : `${friendStats.count} reviews`}</div>
+            <div className="py-4 px-4 border-b border-border/50">
+              <div className="grid grid-cols-2 gap-4">
+                {/* Friends Rating */}
+                <div 
+                  onClick={() => navigate(`/restaurant/${restaurantData.place_id}/friends-ratings?name=${encodeURIComponent(restaurantData.name)}`)} 
+                  className="cursor-pointer group"
+                >
+                  <div className="flex flex-col items-center text-center py-3 transition-all duration-200 group-hover:scale-105">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Users className="h-5 w-5 text-blue-500" />
+                      <span className="text-sm font-medium text-muted-foreground">Friends</span>
                     </div>
-                </div>
-              </div>
-              {/* Expert Rating */}
-              <div onClick={() => navigate(`/restaurant/${restaurantData.place_id}/expert-ratings?name=${encodeURIComponent(restaurantData.name)}`)} className="cursor-pointer hover:bg-muted/50 transition-colors p-3 border border-border rounded-lg">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Award className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">Experts</span>
+                    <div className="text-2xl font-bold text-foreground mb-1">
+                      {isLoadingStats ? '—' : (friendStats.avg ?? '—')}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {isLoadingStats ? 'Loading…' : `${friendStats.count} reviews`}
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-base font-semibold">{isLoadingStats ? '—' : (expertStats.avg ?? '—')}</div>
-                    <div className="text-xs text-muted-foreground">{isLoadingStats ? 'Loading…' : `${expertStats.count} reviews`}</div>
+                </div>
+                
+                {/* Expert Rating */}
+                <div 
+                  onClick={() => navigate(`/restaurant/${restaurantData.place_id}/expert-ratings?name=${encodeURIComponent(restaurantData.name)}`)} 
+                  className="cursor-pointer group"
+                >
+                  <div className="flex flex-col items-center text-center py-3 transition-all duration-200 group-hover:scale-105">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Award className="h-5 w-5 text-amber-500" />
+                      <span className="text-sm font-medium text-muted-foreground">Experts</span>
+                    </div>
+                    <div className="text-2xl font-bold text-foreground mb-1">
+                      {isLoadingStats ? '—' : (expertStats.avg ?? '—')}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {isLoadingStats ? 'Loading…' : `${expertStats.count} reviews`}
+                    </div>
                   </div>
                 </div>
               </div>
