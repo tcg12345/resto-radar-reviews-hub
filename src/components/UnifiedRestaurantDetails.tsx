@@ -538,26 +538,24 @@ export function UnifiedRestaurantDetails({
         )}
 
         {/* Main Content */}
-        <div className="p-4 space-y-6">
+        <div className="space-y-6">{/* Remove p-4 padding to make content stretch edge-to-edge */}
           {/* Shared by info */}
-          {restaurantData.isSharedRestaurant && restaurantData.sharedBy && <Card className="border-primary/20 bg-primary/5">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <User className="h-5 w-5 text-primary" />
-                  <div>
-                    <p className="text-sm font-medium">Shared by {restaurantData.sharedBy.name}</p>
-                    {restaurantData.sharedBy.username && <p className="text-xs text-muted-foreground">@{restaurantData.sharedBy.username}</p>}
-                    {restaurantData.isWishlist && <Badge variant="outline" className="mt-1">
-                        <Heart className="h-3 w-3 mr-1" />
-                        On their wishlist
-                      </Badge>}
-                  </div>
+          {restaurantData.isSharedRestaurant && restaurantData.sharedBy && <div className="border-primary/20 bg-primary/5 p-4">
+              <div className="flex items-center gap-3">
+                <User className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-sm font-medium">Shared by {restaurantData.sharedBy.name}</p>
+                  {restaurantData.sharedBy.username && <p className="text-xs text-muted-foreground">@{restaurantData.sharedBy.username}</p>}
+                  {restaurantData.isWishlist && <Badge variant="outline" className="mt-1">
+                      <Heart className="h-3 w-3 mr-1" />
+                      On their wishlist
+                    </Badge>}
                 </div>
-              </CardContent>
-            </Card>}
+              </div>
+            </div>}
 
           {/* Restaurant Header */}
-          <div className="space-y-3">
+          <div className="space-y-3 px-4">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <h1 className="text-2xl font-bold text-foreground mb-2">{restaurantData.name}</h1>
@@ -603,10 +601,10 @@ export function UnifiedRestaurantDetails({
 
           {/* Ratings Summary: Friends and Experts */}
           {restaurantData.place_id && (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 px-4">
               {/* Friends Rating */}
-              <Card onClick={() => navigate(`/restaurant/${restaurantData.place_id}/friends-ratings?name=${encodeURIComponent(restaurantData.name)}`)} className="cursor-pointer hover:shadow" aria-label="View friends ratings">
-                <CardContent className="p-3 flex items-center justify-between">
+              <div onClick={() => navigate(`/restaurant/${restaurantData.place_id}/friends-ratings?name=${encodeURIComponent(restaurantData.name)}`)} className="cursor-pointer hover:bg-muted/50 transition-colors p-3 border border-border rounded-lg">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">Friends</span>
@@ -615,11 +613,11 @@ export function UnifiedRestaurantDetails({
                       <div className="text-base font-semibold">{isLoadingStats ? '—' : (friendStats.avg ?? '—')}</div>
                       <div className="text-xs text-muted-foreground">{isLoadingStats ? 'Loading…' : `${friendStats.count} reviews`}</div>
                     </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
               {/* Expert Rating */}
-              <Card onClick={() => navigate(`/restaurant/${restaurantData.place_id}/expert-ratings?name=${encodeURIComponent(restaurantData.name)}`)} className="cursor-pointer hover:shadow" aria-label="View expert ratings">
-                <CardContent className="p-3 flex items-center justify-between">
+              <div onClick={() => navigate(`/restaurant/${restaurantData.place_id}/expert-ratings?name=${encodeURIComponent(restaurantData.name)}`)} className="cursor-pointer hover:bg-muted/50 transition-colors p-3 border border-border rounded-lg">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Award className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">Experts</span>
@@ -628,8 +626,8 @@ export function UnifiedRestaurantDetails({
                     <div className="text-base font-semibold">{isLoadingStats ? '—' : (expertStats.avg ?? '—')}</div>
                     <div className="text-xs text-muted-foreground">{isLoadingStats ? 'Loading…' : `${expertStats.count} reviews`}</div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </div>
           )}
 
@@ -639,7 +637,7 @@ export function UnifiedRestaurantDetails({
           )}
 
           {/* Primary Action Buttons */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-3 px-4">
             {getPhoneNumber() && <Button onClick={handleCall} className="flex items-center gap-2" variant="default">
                 <Phone className="h-4 w-4" />
                 Call
@@ -655,7 +653,7 @@ export function UnifiedRestaurantDetails({
           </div>
 
           {/* Secondary Action Buttons */}
-          {canAddToWishlist && <div className="grid grid-cols-2 gap-3">
+          {canAddToWishlist && <div className="grid grid-cols-2 gap-3 px-4">
               <Button onClick={handleAddToWishlist} variant="outline" className="flex items-center gap-2" disabled={isAdding}>
                 <Plus className="h-4 w-4" />
                 {isAdding ? 'Adding...' : 'Add to List'}
@@ -666,7 +664,7 @@ export function UnifiedRestaurantDetails({
               </Button>
             </div>}
 
-          <Separator />
+          <div className="h-px bg-border mx-4" />
 
           {/* Unified Photo Gallery - combines community and friend photos */}
           {deferHeavy && (
@@ -678,63 +676,42 @@ export function UnifiedRestaurantDetails({
           )}
 
           {/* Details */}
-          <div className="space-y-4">
-            
-            
+          <div className="space-y-0">
             {/* Address */}
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  <MapPin className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium">Address</p>
-                    <p className="text-sm text-muted-foreground">{restaurantData.address}</p>
-                    {restaurantData.city && <p className="text-sm text-muted-foreground">{restaurantData.city}</p>}
-                  </div>
+            <div className="p-4 border-b border-border/20">
+              <div className="flex items-start gap-3">
+                <MapPin className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium">Address</p>
+                  <p className="text-sm text-muted-foreground">{restaurantData.address}</p>
+                  {restaurantData.city && <p className="text-sm text-muted-foreground">{restaurantData.city}</p>}
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Contact */}
-            {(getPhoneNumber() || restaurantData.website) && <Card>
-                
-              </Card>}
+              </div>
+            </div>
 
             {/* Opening Hours */}
-            {getOpeningHours() && <Card>
-                <CardContent className="p-4">
-                  <h3 className="font-medium mb-3">Hours</h3>
-                  <OpeningHoursDisplay hours={getOpeningHours()!} />
-                </CardContent>
-              </Card>}
+            {getOpeningHours() && <div className="border-b border-border/20">
+                <OpeningHoursDisplay hours={getOpeningHours()!} className="px-4" />
+              </div>}
 
             {/* Notes */}
-            {restaurantData.notes && <Card>
-                <CardContent className="p-4">
-                  <h3 className="font-medium mb-3">Notes</h3>
-                  <p className="text-sm text-muted-foreground whitespace-pre-line">
-                    {restaurantData.notes}
-                  </p>
-                </CardContent>
-              </Card>}
-
-            {/* Friend's Photos - only show for shared restaurants */}
-            {/* This section is now handled by UnifiedPhotoGallery above */}
-          </div>
-
-            <Separator />
+            {restaurantData.notes && <div className="p-4 border-b border-border/20">
+                <h3 className="font-medium mb-3">Notes</h3>
+                <p className="text-sm text-muted-foreground whitespace-pre-line">
+                  {restaurantData.notes}
+                </p>
+              </div>}
 
             {/* Map */}
-            {restaurantData.latitude && restaurantData.longitude && <Card>
-                <CardContent className="p-4">
-                  <h3 className="font-medium mb-3">Location</h3>
-                  <div ref={mapRef} className="h-48 rounded-md overflow-hidden">
-                    {showMap && (
-                      <RestaurantLocationMap latitude={restaurantData.latitude} longitude={restaurantData.longitude} name={restaurantData.name} address={restaurantData.address} />
-                    )}
-                  </div>
-                </CardContent>
-              </Card>}
+            {restaurantData.latitude && restaurantData.longitude && <div className="p-4">
+                <h3 className="font-medium mb-3">Location</h3>
+                <div ref={mapRef} className="h-48 rounded-md overflow-hidden">
+                  {showMap && (
+                    <RestaurantLocationMap latitude={restaurantData.latitude} longitude={restaurantData.longitude} name={restaurantData.name} address={restaurantData.address} />
+                  )}
+                </div>
+              </div>}
+          </div>
           </div>
         </div>
       </div>
