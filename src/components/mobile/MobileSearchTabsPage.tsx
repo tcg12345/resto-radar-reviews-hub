@@ -2,8 +2,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { MobileUnifiedSearchPage } from './MobileUnifiedSearchPage';
 import { MobileFriendsActivityPage } from './MobileFriendsActivityPage';
+import { MobileExpertSearchPage } from './MobileExpertSearchPage';
 
-type SearchTab = 'global' | 'friends';
+type SearchTab = 'global' | 'friends' | 'experts';
 
 export function MobileSearchTabsPage() {
   const navigate = useNavigate();
@@ -43,7 +44,7 @@ export function MobileSearchTabsPage() {
         <div className="flex bg-muted/50 rounded-xl p-1">
           <button
             onClick={() => handleTabChange('global')}
-            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+            className={`flex-1 py-2 px-2 rounded-lg text-sm font-medium transition-all ${
               activeTab === 'global'
                 ? 'bg-background text-primary shadow-sm border'
                 : 'text-muted-foreground hover:text-foreground'
@@ -53,13 +54,23 @@ export function MobileSearchTabsPage() {
           </button>
           <button
             onClick={() => handleTabChange('friends')}
-            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+            className={`flex-1 py-2 px-2 rounded-lg text-sm font-medium transition-all ${
               activeTab === 'friends'
                 ? 'bg-background text-primary shadow-sm border'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             Friends
+          </button>
+          <button
+            onClick={() => handleTabChange('experts')}
+            className={`flex-1 py-2 px-2 rounded-lg text-sm font-medium transition-all ${
+              activeTab === 'experts'
+                ? 'bg-background text-primary shadow-sm border'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Experts
           </button>
         </div>
       </div>
@@ -68,6 +79,7 @@ export function MobileSearchTabsPage() {
       <div className="flex-1 overflow-hidden">
         {activeTab === 'global' && <MobileUnifiedSearchPage />}
         {activeTab === 'friends' && <MobileFriendsActivityPage />}
+        {activeTab === 'experts' && <MobileExpertSearchPage />}
       </div>
     </div>
   );

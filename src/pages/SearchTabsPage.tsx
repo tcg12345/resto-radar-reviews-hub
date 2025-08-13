@@ -4,8 +4,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 const UnifiedSearchPage = lazy(() => import('./UnifiedSearchPage'));
 const DiscoverPage = lazy(() => import('./DiscoverPage').then(m => ({ default: m.DiscoverPage })));
 const FriendsActivityPage = lazy(() => import('./FriendsActivityPage').then(m => ({ default: m.FriendsActivityPage })));
+const ExpertSearchPage = lazy(() => import('../components/mobile/MobileExpertSearchPage').then(m => ({ default: m.MobileExpertSearchPage })));
 
-type SearchTab = 'global' | 'smart' | 'recommendations' | 'friends';
+type SearchTab = 'global' | 'smart' | 'recommendations' | 'friends' | 'experts';
 
 export default function SearchTabsPage() {
   const navigate = useNavigate();
@@ -49,7 +50,7 @@ export default function SearchTabsPage() {
           <div className="flex mb-4 bg-muted/30 rounded-xl p-1">
             <button
               onClick={() => handleTabChange('global')}
-              className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
+              className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
                 activeTab === 'global'
                   ? 'bg-white text-primary shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
@@ -59,13 +60,23 @@ export default function SearchTabsPage() {
             </button>
             <button
               onClick={() => handleTabChange('friends')}
-              className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
+              className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
                 activeTab === 'friends'
                   ? 'bg-white text-primary shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Friends
+            </button>
+            <button
+              onClick={() => handleTabChange('experts')}
+              className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
+                activeTab === 'experts'
+                  ? 'bg-white text-primary shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Experts
             </button>
           </div>
 
@@ -84,6 +95,14 @@ export default function SearchTabsPage() {
     </Suspense>
   </TabsContent>
 )}
+
+{activeTab === 'experts' && (
+  <TabsContent value="experts" className="mt-0">
+    <Suspense fallback={<div className="p-4 text-sm text-muted-foreground">Loading...</div>}>
+      <ExpertSearchPage />
+    </Suspense>
+  </TabsContent>
+)}
         </Tabs>
       </div>
 
@@ -99,10 +118,11 @@ export default function SearchTabsPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={handleTabChange}>
-          <TabsList className="grid w-full grid-cols-3 gap-0 h-10 p-1">
-            <TabsTrigger value="global" className="text-sm px-3 py-1.5">Search</TabsTrigger>
-            <TabsTrigger value="smart" className="text-sm px-3 py-1.5">Discovery</TabsTrigger>
-            <TabsTrigger value="friends" className="text-sm px-3 py-1.5">Friends</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 gap-0 h-10 p-1">
+            <TabsTrigger value="global" className="text-sm px-2 py-1.5">Search</TabsTrigger>
+            <TabsTrigger value="smart" className="text-sm px-2 py-1.5">Discovery</TabsTrigger>
+            <TabsTrigger value="friends" className="text-sm px-2 py-1.5">Friends</TabsTrigger>
+            <TabsTrigger value="experts" className="text-sm px-2 py-1.5">Experts</TabsTrigger>
           </TabsList>
 
 {activeTab === 'global' && (
@@ -125,6 +145,14 @@ export default function SearchTabsPage() {
   <TabsContent value="friends" className="space-y-6">
     <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Loading friends...</div>}>
       <FriendsActivityPage />
+    </Suspense>
+  </TabsContent>
+)}
+
+{activeTab === 'experts' && (
+  <TabsContent value="experts" className="space-y-6">
+    <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Loading experts...</div>}>
+      <ExpertSearchPage />
     </Suspense>
   </TabsContent>
 )}
