@@ -23,6 +23,7 @@ export default function RestaurantPhotosPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'recent' | 'popular'>('recent');
   const [selectedDish, setSelectedDish] = useState<string>('');
+  const [googlePhotos, setGooglePhotos] = useState<string[]>([]);
 
   // Get restaurant details
   useEffect(() => {
@@ -52,6 +53,15 @@ export default function RestaurantPhotosPage() {
             name: data.result.name,
             place_id: placeId
           });
+          
+          // Extract Google Photos using proxy
+          if (data.result.photos) {
+            const photoUrls = data.result.photos.map((photo: any) => {
+              const proxyUrl = `${window.location.origin}/api/google-photo-proxy?photo_reference=${photo.photo_reference}&maxwidth=800`;
+              return `https://ocpmhsquwsdaauflbygf.supabase.co/functions/v1/google-photo-proxy?photo_reference=${photo.photo_reference}&maxwidth=800`;
+            });
+            setGooglePhotos(photoUrls);
+          }
         }
       } catch (error) {
         console.error('Error fetching restaurant:', error);
@@ -76,14 +86,39 @@ export default function RestaurantPhotosPage() {
         userId: photoData.user_id,
         helpfulCount: photoData.helpful_count,
         createdAt: new Date(photoData.created_at),
-        reviewId: photoData.review_id
+        reviewId: photoData.review_id,
+        isGoogle: false
       }))
     );
   }, [communityStats?.recentPhotos]);
 
+  // Combine community and Google photos
+  const allPhotos = useMemo(() => {
+    const combined = [...allCommunityPhotos];
+    
+    // Add Google photos if no community photos
+    if (allCommunityPhotos.length === 0 && googlePhotos.length > 0) {
+      googlePhotos.forEach((photo, index) => {
+        combined.push({
+          url: photo,
+          dishName: '',
+          caption: '',
+          username: 'Google',
+          userId: 'google',
+          helpfulCount: 0,
+          createdAt: new Date(),
+          reviewId: `google-${index}`,
+          isGoogle: true
+        });
+      });
+    }
+    
+    return combined;
+  }, [allCommunityPhotos, googlePhotos]);
+
   // Filter and sort photos
   const filteredPhotos = useMemo(() => {
-    let filtered = allCommunityPhotos;
+    let filtered = allPhotos;
 
     // Filter by search query
     if (searchQuery.trim()) {
@@ -110,11 +145,11 @@ export default function RestaurantPhotosPage() {
     }
 
     return filtered;
-  }, [allCommunityPhotos, searchQuery, sortBy, selectedDish]);
+  }, [allPhotos, searchQuery, sortBy, selectedDish]);
 
-  // Group photos by dish
+  // Group photos by dish (only for community photos, not Google photos)
   const dishGroups = useMemo(() => {
-    const groups: Record<string, typeof allCommunityPhotos> = {};
+    const groups: Record<string, typeof allPhotos> = {};
     allCommunityPhotos.forEach(photo => {
       if (photo.dishName && photo.dishName.trim()) {
         const key = photo.dishName.toLowerCase().trim();
