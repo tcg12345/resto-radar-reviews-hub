@@ -569,10 +569,12 @@ export function UnifiedRestaurantDetails({
                     </span>
                     {isEnhancingWithAI && <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />}
                   </Badge>
-                  {restaurantData.michelinStars || restaurantData.michelin_stars || isEnhancingWithAI ? <Badge variant="outline" className="text-sm flex items-center gap-1">
-                      <MichelinStars stars={restaurantData.michelinStars || restaurantData.michelin_stars || 0} readonly={true} size="sm" />
-                      {isEnhancingWithAI && <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />}
-                    </Badge> : null}
+                   {(restaurantData.michelinStars > 0 || restaurantData.michelin_stars > 0 || isEnhancingWithAI) && (
+                     <Badge variant="outline" className="text-sm flex items-center gap-1">
+                       <MichelinStars stars={restaurantData.michelinStars || restaurantData.michelin_stars || 0} readonly={true} size="sm" />
+                       {isEnhancingWithAI && <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />}
+                     </Badge>
+                   )}
                 </div>
               </div>
               {restaurantData.rating && restaurantData.isSharedRestaurant && restaurantData.sharedBy && <div className="flex-shrink-0 text-center">
