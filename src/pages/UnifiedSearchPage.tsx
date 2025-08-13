@@ -461,58 +461,76 @@ const performLiveSearch = async () => {
   };
   return <div className="w-full">
       {/* Modern Search Section */}
-      <div className="relative rounded-2xl bg-gradient-to-br from-background via-background to-primary/10 border border-primary/20 shadow-2xl">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary-glow/5 opacity-50" />
-        
-        <div className="relative p-3 sm:p-4 lg:p-8">
-          {/* Combined Search Header */}
-          <div className="mb-4 sm:mb-8">
-            <div className="flex justify-center"></div>
-          </div>
-
+      <div className="w-full border-b border-border/50 bg-background/50 backdrop-blur-sm">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
           {/* Search Form */}
-          <div className="space-y-3 sm:space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 sm:gap-6 items-start">
-              {/* Main Search Input */}
-              <div className="col-span-1 lg:col-span-2 space-y-2 relative" ref={searchRef}>
-                <div className="relative group">
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary-glow/20 rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="relative bg-background/80 backdrop-blur-sm rounded-lg border border-border group-hover:border-primary/50 transition-all duration-300">
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 group-hover:text-primary transition-colors duration-300" />
-                    <Input placeholder="🔍 What are you craving? Search by name, cuisine, atmosphere, or special dishes..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-12 pr-10 h-12 sm:h-14 bg-transparent border-none text-base sm:text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none" />
-                    {searchQuery && <button onClick={clearSearch} className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-muted/50">
-                        <X className="h-4 w-4" />
-                      </button>}
+          <div className="space-y-6">
+            <div className="w-full max-w-6xl mx-auto">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 items-center">
+                {/* Main Search Input */}
+                <div className="lg:col-span-2 relative" ref={searchRef}>
+                  <div className="relative group w-full">
+                    <div className="relative bg-background border border-border rounded-full hover:border-primary/50 transition-all duration-300 shadow-sm hover:shadow-md">
+                      <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 group-hover:text-primary transition-colors duration-300" />
+                      <Input 
+                        placeholder="Search restaurants, cuisines, or dishes..." 
+                        value={searchQuery} 
+                        onChange={e => setSearchQuery(e.target.value)} 
+                        className="pl-14 pr-12 h-14 bg-transparent border-none text-base placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none rounded-full" 
+                      />
+                      {searchQuery && 
+                        <button 
+                          onClick={clearSearch} 
+                          className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-2 rounded-full hover:bg-muted/50"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      }
+                    </div>
                   </div>
                 </div>
-              </div>
               
-              {/* Location Input */}
-              <div className="col-span-1 space-y-2">
-                <div className="relative group">
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary-glow/20 to-primary/20 rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="relative bg-background/80 backdrop-blur-sm rounded-lg border border-border group-hover:border-primary/50 transition-all duration-300">
-                    <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
-                    <Input placeholder="📍 Location (optional)" value={locationQuery} onChange={e => {
-                    setLocationQuery(e.target.value);
-                    generateLocationSuggestions(e.target.value);
-                    setShowLocationSuggestions(e.target.value.length > 1);
-                  }} onKeyDown={e => {
-                    if (e.key === 'Escape') {
-                      setShowLocationSuggestions(false);
-                    }
-                  }} onFocus={() => locationQuery.length > 1 && setShowLocationSuggestions(true)} onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 150)} className="pl-12 pr-4 h-12 sm:h-14 bg-transparent border-none text-base sm:text-lg placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none" />
-                    
-                    {/* Modern Location Suggestions */}
-                    {showLocationSuggestions && locationSuggestions.length > 0 && <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-card/95 backdrop-blur-lg border border-border rounded-xl shadow-2xl overflow-hidden animate-fade-in">
-                        <div className="max-h-48 overflow-y-auto">
-                          {locationSuggestions.map((suggestion, index) => <div key={index} className="px-4 py-3 hover:bg-primary/10 cursor-pointer transition-colors duration-200 border-b border-border/50 last:border-b-0 group" onClick={() => handleLocationSuggestionClick(suggestion)}>
-                              <div className="font-medium text-sm group-hover:text-primary transition-colors">{suggestion.mainText}</div>
-                              {suggestion.secondaryText && <div className="text-xs text-muted-foreground mt-1">{suggestion.secondaryText}</div>}
-                            </div>)}
+                {/* Location Input */}
+                <div className="relative">
+                  <div className="relative group w-full">
+                    <div className="relative bg-background border border-border rounded-full hover:border-primary/50 transition-all duration-300 shadow-sm hover:shadow-md">
+                      <MapPin className="absolute left-6 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
+                      <Input 
+                        placeholder="Location" 
+                        value={locationQuery} 
+                        onChange={e => {
+                          setLocationQuery(e.target.value);
+                          generateLocationSuggestions(e.target.value);
+                          setShowLocationSuggestions(e.target.value.length > 1);
+                        }} 
+                        onKeyDown={e => {
+                          if (e.key === 'Escape') {
+                            setShowLocationSuggestions(false);
+                          }
+                        }} 
+                        onFocus={() => locationQuery.length > 1 && setShowLocationSuggestions(true)} 
+                        onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 150)} 
+                        className="pl-14 pr-4 h-14 bg-transparent border-none text-base placeholder:text-muted-foreground/70 focus:ring-0 focus:outline-none rounded-full" 
+                      />
+                      
+                      {/* Modern Location Suggestions */}
+                      {showLocationSuggestions && locationSuggestions.length > 0 && 
+                        <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-card/95 backdrop-blur-lg border border-border rounded-xl shadow-2xl overflow-hidden animate-fade-in">
+                          <div className="max-h-48 overflow-y-auto">
+                            {locationSuggestions.map((suggestion, index) => 
+                              <div 
+                                key={index} 
+                                className="px-4 py-3 hover:bg-primary/10 cursor-pointer transition-colors duration-200 border-b border-border/50 last:border-b-0 group" 
+                                onClick={() => handleLocationSuggestionClick(suggestion)}
+                              >
+                                <div className="font-medium text-sm group-hover:text-primary transition-colors">{suggestion.mainText}</div>
+                                {suggestion.secondaryText && <div className="text-xs text-muted-foreground mt-1">{suggestion.secondaryText}</div>}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>}
+                      }
+                    </div>
                   </div>
                 </div>
               </div>
