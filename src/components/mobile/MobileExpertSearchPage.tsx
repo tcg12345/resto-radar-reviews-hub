@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { BottomSheet, BottomSheetContent, BottomSheetHeader } from '@/components/ui/bottom-sheet';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -249,96 +249,94 @@ export function MobileExpertSearchPage() {
         {/* Filter Button Row */}
         <div className="flex items-center justify-between">
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="h-9 px-3 relative"
-              onClick={() => setIsFilterOpen(true)}
-            >
-              <Filter className="h-4 w-4 mr-1" />
-              Filters
-              {hasActiveFilters && (
-                <div className="absolute -top-1 -right-1 h-2 w-2 bg-primary rounded-full" />
-              )}
-            </Button>
+            <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="h-9 px-3 relative">
+                  <Filter className="h-4 w-4 mr-1" />
+                  Filters
+                  {hasActiveFilters && (
+                    <div className="absolute -top-1 -right-1 h-2 w-2 bg-primary rounded-full" />
+                  )}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="w-[95vw] max-w-md mx-auto max-h-[80vh]">
+                <DialogHeader>
+                  <DialogTitle>Filter Expert Reviews</DialogTitle>
+                </DialogHeader>
+                
+                <ScrollArea className="max-h-[60vh]">
+                  <div className="space-y-4 p-1">
+                    <div>
+                      <Label className="text-sm font-medium">Cuisine</Label>
+                      <Select 
+                        value={filters.cuisine} 
+                        onValueChange={(value) => setFilters(prev => ({ ...prev, cuisine: value }))}
+                      >
+                        <SelectTrigger className="h-10 mt-1">
+                          <SelectValue placeholder="Any cuisine" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Any cuisine</SelectItem>
+                          {CUISINES.map(cuisine => (
+                            <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-            <BottomSheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-              <BottomSheetHeader>
-                <h2 className="text-lg font-semibold">Filter Expert Reviews</h2>
-              </BottomSheetHeader>
-              
-              <BottomSheetContent>
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-sm font-medium">Cuisine</Label>
-                    <Select 
-                      value={filters.cuisine} 
-                      onValueChange={(value) => setFilters(prev => ({ ...prev, cuisine: value }))}
-                    >
-                      <SelectTrigger className="h-10 mt-1">
-                        <SelectValue placeholder="Any cuisine" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Any cuisine</SelectItem>
-                        {CUISINES.map(cuisine => (
-                          <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                    <div>
+                      <Label className="text-sm font-medium">Price Range</Label>
+                      <Select 
+                        value={filters.priceRange} 
+                        onValueChange={(value) => setFilters(prev => ({ ...prev, priceRange: value }))}
+                      >
+                        <SelectTrigger className="h-10 mt-1">
+                          <SelectValue placeholder="Any price" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Any price</SelectItem>
+                          <SelectItem value="1">$ - Budget</SelectItem>
+                          <SelectItem value="2">$$ - Moderate</SelectItem>
+                          <SelectItem value="3">$$$ - Expensive</SelectItem>
+                          <SelectItem value="4">$$$$ - Very Expensive</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                  <div>
-                    <Label className="text-sm font-medium">Price Range</Label>
-                    <Select 
-                      value={filters.priceRange} 
-                      onValueChange={(value) => setFilters(prev => ({ ...prev, priceRange: value }))}
-                    >
-                      <SelectTrigger className="h-10 mt-1">
-                        <SelectValue placeholder="Any price" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Any price</SelectItem>
-                        <SelectItem value="1">$ - Budget</SelectItem>
-                        <SelectItem value="2">$$ - Moderate</SelectItem>
-                        <SelectItem value="3">$$$ - Expensive</SelectItem>
-                        <SelectItem value="4">$$$$ - Very Expensive</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                    <div>
+                      <Label className="text-sm font-medium">Minimum Rating: {filters.rating[0]}/5</Label>
+                      <Slider
+                        value={filters.rating}
+                        onValueChange={(value) => setFilters(prev => ({ ...prev, rating: value }))}
+                        max={5}
+                        min={0}
+                        step={0.5}
+                        className="mt-2"
+                      />
+                    </div>
 
-                  <div>
-                    <Label className="text-sm font-medium">Minimum Rating: {filters.rating[0]}/5</Label>
-                    <Slider
-                      value={filters.rating}
-                      onValueChange={(value) => setFilters(prev => ({ ...prev, rating: value }))}
-                      max={5}
-                      min={0}
-                      step={0.5}
-                      className="mt-2"
-                    />
+                    <div>
+                      <Label className="text-sm font-medium">Location</Label>
+                      <Input
+                        placeholder="City or country"
+                        value={filters.location}
+                        onChange={(e) => setFilters(prev => ({ ...prev, location: e.target.value }))}
+                        className="h-10 mt-1"
+                      />
+                    </div>
                   </div>
+                </ScrollArea>
 
-                  <div>
-                    <Label className="text-sm font-medium">Location</Label>
-                    <Input
-                      placeholder="City or country"
-                      value={filters.location}
-                      onChange={(e) => setFilters(prev => ({ ...prev, location: e.target.value }))}
-                      className="h-10 mt-1"
-                    />
-                  </div>
-
-                  <div className="flex gap-2 pt-4">
-                    <Button variant="outline" onClick={clearFilters} className="flex-1">
-                      Clear All
-                    </Button>
-                    <Button onClick={() => setIsFilterOpen(false)} className="flex-1">
-                      Apply Filters
-                    </Button>
-                  </div>
+                <div className="flex gap-2 pt-4">
+                  <Button variant="outline" onClick={clearFilters} className="flex-1">
+                    Clear All
+                  </Button>
+                  <Button onClick={() => setIsFilterOpen(false)} className="flex-1">
+                    Apply Filters
+                  </Button>
                 </div>
-              </BottomSheetContent>
-            </BottomSheet>
+              </DialogContent>
+            </Dialog>
 
             {hasActiveFilters && (
               <Button 
