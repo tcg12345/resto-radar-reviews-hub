@@ -644,6 +644,36 @@ export type Database = {
           },
         ]
       }
+      restaurant_staff_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          id: string
+          is_active: boolean
+          restaurant_id: string
+          role_type: string | null
+          staff_user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          is_active?: boolean
+          restaurant_id: string
+          role_type?: string | null
+          staff_user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          is_active?: boolean
+          restaurant_id?: string
+          role_type?: string | null
+          staff_user_id?: string
+        }
+        Relationships: []
+      }
       restaurants: {
         Row: {
           address: string
@@ -1250,6 +1280,10 @@ export type Database = {
         Returns: boolean
       }
       is_restaurant_staff_for_reservation: {
+        Args: { target_restaurant_id: string; staff_user_id: string }
+        Returns: boolean
+      }
+      is_restaurant_staff_for_specific_restaurant: {
         Args: { target_restaurant_id: string; staff_user_id: string }
         Returns: boolean
       }
