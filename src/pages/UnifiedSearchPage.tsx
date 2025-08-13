@@ -557,21 +557,6 @@ const performLiveSearch = async () => {
       
       {/* Mobile Instant Suggestions Section */}
       {!searchQuery && user && (searchResults.length === 0 || !isLoading) && <div className="lg:hidden mt-6 space-y-6">
-          {/* Filter Pills */}
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            <Button variant="default" size="sm" className="flex-shrink-0 rounded-full bg-primary text-primary-foreground">
-              Reserve now
-            </Button>
-            <Button variant="outline" size="sm" className="flex-shrink-0 rounded-full">
-              ❤️ Recs
-            </Button>
-            <Button variant="outline" size="sm" className="flex-shrink-0 rounded-full">
-              📈 Trending
-            </Button>
-            <Button variant="outline" size="sm" className="flex-shrink-0 rounded-full">
-              🔥 Popular
-            </Button>
-          </div>
 
           {/* Recent Restaurants Section */}
           {recentClickedRestaurants.length > 0 && <div className="space-y-3">
