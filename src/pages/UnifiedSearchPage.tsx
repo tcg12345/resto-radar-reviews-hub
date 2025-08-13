@@ -124,7 +124,7 @@ const [searchError, setSearchError] = useState<string | null>(null);
     // Load recent clicked restaurants from localStorage
     const savedRestaurants = localStorage.getItem('recentClickedRestaurants');
     if (savedRestaurants) {
-      setRecentClickedRestaurants(JSON.parse(savedRestaurants).slice(0, 5));
+      setRecentClickedRestaurants(JSON.parse(savedRestaurants).slice(0, 12));
     }
 
     // Load user's restaurants to generate location-based recommendations
@@ -225,7 +225,7 @@ const [searchError, setSearchError] = useState<string | null>(null);
     // Keep only 10 most recent
     restaurants = restaurants.slice(0, 10);
     localStorage.setItem('recentClickedRestaurants', JSON.stringify(restaurants));
-    setRecentClickedRestaurants(restaurants.slice(0, 5));
+    setRecentClickedRestaurants(restaurants.slice(0, 12));
   };
 
   // Live search for restaurants - runs as user types
