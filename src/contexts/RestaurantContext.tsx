@@ -335,7 +335,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         date_visited: data.dateVisited ? data.dateVisited : null,
         photos: uploadedPhotoUrls,
         photo_dish_names: data.photoDishNames || [],
-        photo_notes: data.photoNotes || [],
+        photo_captions: data.photoNotes || [],
         is_wishlist: data.isWishlist,
         latitude: coordinates?.latitude ?? null,
         longitude: coordinates?.longitude ?? null,
