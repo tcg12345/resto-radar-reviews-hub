@@ -120,7 +120,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
 
   const [previewImages, setPreviewImages] = useState<string[]>(initialData?.photos || []);
   const [photoDishNames, setPhotoDishNames] = useState<string[]>(initialData?.photoDishNames || []);
-  const [photoNotes, setPhotoNotes] = useState<string[]>(initialData?.photoNotes || []);
+  const [dishRatings, setDishRatings] = useState<number[]>((initialData as any)?.dishRatings || []);
 
   const sanitizeInput = (input: string, maxLength: number = 255) => {
     return input
@@ -241,7 +241,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       
       setPreviewImages(prev => [...prev, ...newPreviews]);
       setPhotoDishNames(prev => [...prev, ...new Array(newFiles.length).fill('')]);
-      setPhotoNotes(prev => [...prev, ...new Array(newFiles.length).fill('')]);
+      setDishRatings(prev => [...prev, ...new Array(newFiles.length).fill(0)]);
       
       if (newFiles.length > 5) {
         toast.success(`${newFiles.length} photos added successfully!`);
@@ -286,7 +286,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
 
         setPreviewImages(prev => [...prev, thumbnail]);
         setPhotoDishNames(prev => [...prev, '']);
-        setPhotoNotes(prev => [...prev, '']);
+        setDishRatings(prev => [...prev, 0]);
       }
     } catch (error) {
       console.error('Error selecting photo from gallery:', error);
@@ -327,7 +327,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
 
         setPreviewImages(prev => [...prev, thumbnail]);
         setPhotoDishNames(prev => [...prev, '']);
-        setPhotoNotes(prev => [...prev, '']);
+        setDishRatings(prev => [...prev, 0]);
       }
     } catch (error) {
       console.error('Error taking photo:', error);
@@ -347,12 +347,11 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     });
   };
 
-  const handlePhotoNotesChange = (index: number, notes: string) => {
-    const sanitizedNotes = notes.substring(0, 300); // 300 char limit, no sanitization to allow spaces
-    setPhotoNotes(prev => {
-      const newNotes = [...prev];
-      newNotes[index] = sanitizedNotes;
-      return newNotes;
+  const handleDishRatingChange = (index: number, rating: number) => {
+    setDishRatings(prev => {
+      const newRatings = [...prev];
+      newRatings[index] = rating;
+      return newRatings;
     });
   };
 
@@ -362,7 +361,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     // Remove from preview images and all associated arrays
     setPreviewImages(prev => prev.filter((_, i) => i !== index));
     setPhotoDishNames(prev => prev.filter((_, i) => i !== index));
-    setPhotoNotes(prev => prev.filter((_, i) => i !== index));
+    setDishRatings(prev => prev.filter((_, i) => i !== index));
     
     if (index < existingPhotosCount) {
       // This is an existing photo - track it for removal
@@ -395,11 +394,11 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       return newDishNames;
     });
     
-    setPhotoNotes(prev => {
-      const newNotes = [...prev];
-      const [movedNote] = newNotes.splice(fromIndex, 1);
-      newNotes.splice(toIndex, 0, movedNote);
-      return newNotes;
+    setDishRatings(prev => {
+      const newRatings = [...prev];
+      const [movedRating] = newRatings.splice(fromIndex, 1);
+      newRatings.splice(toIndex, 0, movedRating);
+      return newRatings;
     });
     
     // Reorder form data photos for new photos
@@ -544,7 +543,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       
       setPreviewImages(prev => [...prev, ...newPreviews]);
       setPhotoDishNames(prev => [...prev, ...new Array(files.length).fill('')]);
-      setPhotoNotes(prev => [...prev, ...new Array(files.length).fill('')]);
+      setDishRatings(prev => [...prev, ...new Array(files.length).fill(0)]);
       
       if (files.length > 1) {
         toast.success(`${files.length} photos added successfully!`);
@@ -816,7 +815,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       ...formData,
       photos: formData.photos, // Include the File objects for photos
       photoDishNames: photoDishNames,
-      photoNotes: photoNotes,
+      dishRatings: dishRatings,
       removedPhotoIndexes: removedPhotoIndexes,
       // Always include Google Places fields - preserve existing data if not in current form
       website: formDataWithPlaces.website ?? (initialData as any)?.website ?? null,
@@ -1235,13 +1234,31 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
                     className="text-xs"
                     maxLength={50}
                   />
-                  <Textarea
-                    placeholder="Notes about this photo..."
-                    value={photoNotes[index] || ''}
-                    onChange={(e) => handlePhotoNotesChange(index, e.target.value)}
-                    className="text-xs min-h-[60px] resize-none"
-                    maxLength={300}
-                  />
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium">Rate dish:</span>
+                    <div className="flex items-center gap-1">
+                      {[...Array(10)].map((_, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => handleDishRatingChange(index, i + 1)}
+                          className="transition-colors hover:scale-110"
+                        >
+                          <Star
+                            size={14}
+                            className={`${
+                              i + 1 <= (dishRatings[index] || 0)
+                                ? 'fill-rating-filled text-rating-filled'
+                                : 'fill-rating-empty text-rating-empty hover:fill-rating-hover hover:text-rating-hover'
+                            }`}
+                          />
+                        </button>
+                      ))}
+                      <span className="text-xs text-muted-foreground ml-1">
+                        {dishRatings[index] ? `${dishRatings[index]}/10` : '0/10'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
