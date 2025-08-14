@@ -265,11 +265,19 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
     try {
       setIsLoading(true);
       
-      // Get current user
-      const { data: { session } } = await supabase.auth.getSession();
+      // Get current user and ensure authentication
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) {
+        console.error('Session error:', sessionError);
+        throw new Error('Failed to get user session');
+      }
+      
       if (!session?.user) {
+        console.error('No authenticated user found');
         throw new Error('Authentication required to add restaurants');
       }
+      
+      console.log('Adding restaurant with user_id:', session.user.id);
       
       // Upload photos to storage (compressed)
       const uploadedPhotoUrls = await uploadCompressedPhotos(data.photos, session.user.id, (processed, total) => {
@@ -310,13 +318,36 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         user_id: session.user.id,
       };
       
+      console.log('About to insert restaurant data:', { 
+        ...newRestaurant, 
+        photos: `[${newRestaurant.photos.length} photos]` 
+      });
+      
+      // Refresh session before database insert to ensure auth token is valid
+      const { data: { session: freshSession }, error: refreshError } = await supabase.auth.getSession();
+      if (refreshError || !freshSession?.user) {
+        console.error('Session refresh failed:', refreshError);
+        throw new Error('Authentication expired. Please sign in again.');
+      }
+      
+      console.log('Session refreshed, proceeding with database insert for user:', freshSession.user.id);
+      
       const { data: inserted, error } = await supabase
         .from('restaurants')
         .insert(newRestaurant)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database insert error:', error);
+        console.error('Error details:', { 
+          message: error.message, 
+          details: error.details, 
+          hint: error.hint,
+          code: error.code 
+        });
+        throw error;
+      }
       
       const restaurant = mapDbRestaurantToRestaurant(inserted);
       setRestaurants((prev) => [restaurant, ...prev]);
