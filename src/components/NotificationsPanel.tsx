@@ -7,7 +7,6 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRestaurants } from '@/contexts/RestaurantContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -23,7 +22,6 @@ interface Notification {
 
 export function NotificationsPanel() {
   const { user } = useAuth();
-  const { addRestaurant } = useRestaurants();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -168,6 +166,38 @@ export function NotificationsPanel() {
       const notification = notifications.find(n => n.id === notificationId);
       if (!notification) return;
 
+      // Get the shared restaurant data
+      const { data: sharedRestaurant, error: fetchError } = await supabase
+        .from('restaurants')
+        .select('*')
+        .eq('id', restaurantId)
+        .single();
+      
+      if (fetchError) throw fetchError;
+
+      // Create new wishlist restaurant directly in database
+      const { error: insertError } = await supabase
+        .from('restaurants')
+        .insert({
+          name: sharedRestaurant.name,
+          address: sharedRestaurant.address,
+          city: sharedRestaurant.city,
+          country: sharedRestaurant.country,
+          cuisine: sharedRestaurant.cuisine,
+          notes: notification.data?.share_message || sharedRestaurant.notes || '',
+          is_wishlist: true,
+          price_range: sharedRestaurant.price_range,
+          michelin_stars: sharedRestaurant.michelin_stars,
+          phone_number: sharedRestaurant.phone_number,
+          website: sharedRestaurant.website,
+          latitude: sharedRestaurant.latitude,
+          longitude: sharedRestaurant.longitude,
+          user_id: user?.id,
+          photos: [] // Empty since we're adding to wishlist
+        });
+
+      if (insertError) throw insertError;
+
       // Update share status
       const { error: shareError } = await supabase
         .from('restaurant_shares')
@@ -175,30 +205,7 @@ export function NotificationsPanel() {
         .eq('restaurant_id', restaurantId)
         .eq('receiver_id', user?.id);
       
-      if (shareError) throw shareError;
-      
-      // Add to wishlist
-      const { data, error } = await supabase
-        .from('restaurants')
-        .select('*')
-        .eq('id', restaurantId)
-        .single();
-      
-      if (error) throw error;
-      
-      await addRestaurant({
-        name: data.name,
-        address: data.address,
-        city: data.city,
-        country: data.country || undefined,
-        cuisine: data.cuisine,
-        notes: notification.data?.share_message || data.notes || '',
-        isWishlist: true,
-        priceRange: data.price_range || undefined,
-        michelinStars: data.michelin_stars || undefined,
-        phone_number: data.phone_number || undefined,
-        photos: [] // Empty since we're adding to wishlist
-      });
+      if (shareError) console.error('Error updating share status:', shareError);
       
       // Mark notification as read
       await markAsRead(notificationId);
