@@ -406,6 +406,16 @@ All colors MUST be HSL.
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
     font-feature-settings: 'cv11', 'ss01';
     font-variant-numeric: tabular-nums;
+    /* Prevent zoom on mobile */
+    touch-action: manipulation;
+  }
+
+  /* Prevent zoom on input elements */
+  input, textarea, select {
+    font-size: 16px !important; /* Prevents iOS zoom when font-size is less than 16px */
+    touch-action: manipulation;
+    -webkit-user-select: text;
+    user-select: text;
   }
 
   /* Premium scrollbar styling */
