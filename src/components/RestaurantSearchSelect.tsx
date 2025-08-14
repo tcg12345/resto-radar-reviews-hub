@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Search, MapPin, Star, DollarSign, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -67,10 +67,10 @@ export function RestaurantSearchSelect({
   const searchRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
+  const abortControllerRef = useRef<AbortController>();
 
-  // Debounced search function
+  // Optimized debounced search with request cancellation
   useEffect(() => {
-    // Skip search if it's being set programmatically
     if (skipSearch) {
       setSkipSearch(false);
       return;
@@ -79,7 +79,13 @@ export function RestaurantSearchSelect({
     if (searchQuery.trim().length < 2) {
       setSearchResults([]);
       setShowResults(false);
+      setIsSearching(false);
       return;
+    }
+
+    // Cancel previous request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
     }
 
     // Clear existing timeout
@@ -87,19 +93,26 @@ export function RestaurantSearchSelect({
       clearTimeout(searchTimeoutRef.current);
     }
 
-    // Set new timeout for debounced search
-    searchTimeoutRef.current = setTimeout(async () => {
-      await performSearch(searchQuery.trim());
-    }, 500);
+    // Faster debounce for better UX
+    searchTimeoutRef.current = setTimeout(() => {
+      performSearch(searchQuery.trim());
+    }, 200);
 
     return () => {
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current);
       }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
     };
-  }, [searchQuery]);
+  }, [searchQuery, skipSearch]);
 
-  const performSearch = async (query: string) => {
+  const performSearch = useCallback(async (query: string) => {
+    // Create new abort controller for this request
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    
     setIsSearching(true);
     try {
       const { data, error } = await supabase.functions.invoke('google-places-search', {
@@ -108,6 +121,9 @@ export function RestaurantSearchSelect({
           type: 'search'
         }
       });
+
+      // Check if request was aborted
+      if (controller.signal.aborted) return;
 
       if (error) {
         console.error('Search error:', error);
@@ -124,12 +140,15 @@ export function RestaurantSearchSelect({
         setShowResults(false);
       }
     } catch (error) {
+      if (controller.signal.aborted) return;
       console.error('Search error:', error);
       toast.error('Failed to search restaurants');
     } finally {
-      setIsSearching(false);
+      if (!controller.signal.aborted) {
+        setIsSearching(false);
+      }
     }
-  };
+  }, []);
 
   const handleRestaurantSelect = async (place: PlaceResult) => {
     setIsSearching(true);
@@ -234,7 +253,7 @@ export function RestaurantSearchSelect({
       </div>
 
       {showResults && searchResults.length > 0 && (
-        <Card className="absolute z-[9999] w-full mt-1 max-h-80 overflow-y-auto shadow-2xl backdrop-blur-sm bg-background">
+        <Card className="absolute z-50 w-full mt-1 max-h-80 overflow-y-auto shadow-lg border bg-background">
           <CardContent className="p-0">
             {searchResults.map((place, index) => (
               <div
@@ -280,7 +299,7 @@ export function RestaurantSearchSelect({
       )}
 
       {showResults && searchResults.length === 0 && searchQuery.length >= 2 && !isSearching && (
-        <Card className="absolute z-[9999] w-full mt-1 shadow-2xl backdrop-blur-sm bg-background">
+        <Card className="absolute z-50 w-full mt-1 shadow-lg border bg-background">
           <CardContent className="p-4 text-center text-sm text-muted-foreground">
             No restaurants found. Try a different search term.
           </CardContent>
