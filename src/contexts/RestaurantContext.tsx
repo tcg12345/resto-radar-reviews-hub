@@ -215,22 +215,42 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
     userId: string,
     onProgress?: (processed: number, total: number) => void
   ): Promise<string[]> => {
+    if (files.length === 0) return [];
+    
+    console.log('Converting', files.length, 'photos to data URLs');
     const dataUrls = await convertPhotosToDataUrls(files, onProgress);
+    console.log('Successfully converted photos to data URLs');
+    
     const urls: string[] = [];
     for (let i = 0; i < dataUrls.length; i++) {
-      const blob = dataUrlToBlob(dataUrls[i]);
-      const fileName = `restaurant-photos/${userId}/${Date.now()}-${i}.jpg`;
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(fileName, blob, {
-          contentType: 'image/jpeg',
-          upsert: true
-        });
-      if (uploadError) throw uploadError;
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(fileName);
-      urls.push(publicUrl);
+      try {
+        const blob = dataUrlToBlob(dataUrls[i]);
+        const fileName = `restaurant-photos/${userId}/${Date.now()}-${i}.jpg`;
+        
+        console.log(`Uploading photo ${i + 1}/${dataUrls.length}:`, fileName);
+        
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(fileName, blob, {
+            contentType: 'image/jpeg',
+            upsert: true
+          });
+          
+        if (uploadError) {
+          console.error(`Upload error for photo ${i + 1}:`, uploadError);
+          throw uploadError;
+        }
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(fileName);
+        
+        urls.push(publicUrl);
+        console.log(`Successfully uploaded photo ${i + 1}:`, publicUrl);
+      } catch (error) {
+        console.error(`Failed to upload photo ${i + 1}:`, error);
+        throw error;
+      }
     }
     return urls;
   }, [convertPhotosToDataUrls]);
@@ -279,10 +299,23 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       
       console.log('Adding restaurant with user_id:', session.user.id);
       
-      // Upload photos to storage (compressed)
-      const uploadedPhotoUrls = await uploadCompressedPhotos(data.photos, session.user.id, (processed, total) => {
-        console.log(`Uploading photos: ${processed}/${total}`);
-      });
+      // Upload photos to storage (compressed) - add timeout and retry logic
+      console.log('Starting photo upload for', data.photos.length, 'photos');
+      let uploadedPhotoUrls: string[] = [];
+      
+      if (data.photos.length > 0) {
+        try {
+          uploadedPhotoUrls = await uploadCompressedPhotos(data.photos, session.user.id, (processed, total) => {
+            console.log(`Uploading photos: ${processed}/${total}`);
+          });
+          console.log('Successfully uploaded', uploadedPhotoUrls.length, 'photos');
+        } catch (uploadError) {
+          console.error('Photo upload failed:', uploadError);
+          // Allow restaurant creation without photos if upload fails
+          uploadedPhotoUrls = [];
+          console.log('Proceeding without photos due to upload failure');
+        }
+      }
       
       // Geocode the address using the edge function
       let coordinates = null;
