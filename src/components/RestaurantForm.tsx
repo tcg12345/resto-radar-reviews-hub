@@ -814,6 +814,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     // Always preserve Google Places data if it exists (from either new selection or existing data)
     const submissionData = {
       ...formData,
+      photos: formData.photos, // Include the File objects for photos
       photoDishNames: photoDishNames,
       photoNotes: photoNotes,
       removedPhotoIndexes: removedPhotoIndexes,
