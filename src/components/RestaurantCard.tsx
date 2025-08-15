@@ -96,33 +96,38 @@ export function RestaurantCard({
   } = useRestaurants();
   const hasMultiplePhotos = restaurant.photos.length > 1;
 
-  // Optimized loading - minimal delay for better perceived performance
+  // Optimized loading - preload all photos aggressively
   useEffect(() => {
     const initializeCard = () => {
-      // Immediately set as ready for rated restaurants (photos are preloaded)
       setIsDataReady(true);
-      
-      // For images, we'll use LazyImage component which has better caching
-      if (restaurant.photos.length > 0) {
-        setImageLoading(false); // LazyImage will handle loading states
-      } else {
-        setImageLoading(false);
-      }
+      setImageLoading(false);
+    };
+    
+    // Immediately preload all photos for this restaurant
+    const preloadPhotos = () => {
+      restaurant.photos.forEach((photo, index) => {
+        const img = new Image();
+        img.src = resolveImageUrl(photo, { width: 800 });
+        // Also preload thumbnails for gallery
+        const thumb = new Image();
+        thumb.src = resolveImageUrl(photo, { width: 400 });
+      });
     };
     
     // Proactively load photos if missing
     if (restaurant.photos.length === 0) {
-      loadRestaurantPhotos(restaurant.id).catch((e) => console.warn('Photo load failed', e));
+      loadRestaurantPhotos(restaurant.id).then(() => {
+        // Preload photos once they're loaded
+        setTimeout(preloadPhotos, 100);
+      }).catch((e) => console.warn('Photo load failed', e));
+    } else {
+      // Preload existing photos immediately
+      preloadPhotos();
     }
     
-    // For rated restaurants, initialize immediately (photos are preloaded by parent)
-    if (!restaurant.isWishlist) {
-      initializeCard();
-    } else {
-      // Small delay for wishlist items only
-      setTimeout(initializeCard, 30);
-    }
-  }, [restaurant.id, restaurant.isWishlist, restaurant.photos.length, loadRestaurantPhotos]);
+    // Initialize immediately for better performance
+    initializeCard();
+  }, [restaurant.id, restaurant.photos.length, loadRestaurantPhotos]);
   const nextPhoto = () => {
     setImageLoading(true);
     setCurrentPhotoIndex(prev => (prev + 1) % restaurant.photos.length);
@@ -199,6 +204,7 @@ export function RestaurantCard({
   className="relative h-full w-full cursor-pointer transition-transform duration-300 hover:scale-105"
   onLoad={() => setImageLoading(false)}
   onError={() => setImageLoading(false)}
+  eager={true}
 />
               <div 
                 className="absolute inset-0 cursor-pointer"

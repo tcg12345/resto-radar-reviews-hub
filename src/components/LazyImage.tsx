@@ -8,6 +8,7 @@ interface LazyImageProps {
   placeholderSrc?: string;
   onLoad?: () => void;
   onError?: () => void;
+  eager?: boolean; // New prop to disable lazy loading
 }
 
 // Global cache to remember loaded images with localStorage persistence
@@ -36,10 +37,10 @@ const saveCacheToStorage = (key: string, cache: Set<string>) => {
 const imageCache = loadCacheFromStorage(CACHE_KEY);
 const errorCache = loadCacheFromStorage(ERROR_CACHE_KEY);
 
-export const LazyImage = React.memo(({ src, alt, className, placeholderSrc, onLoad, onError }: LazyImageProps) => {
+export const LazyImage = React.memo(({ src, alt, className, placeholderSrc, onLoad, onError, eager = false }: LazyImageProps) => {
   const [isLoaded, setIsLoaded] = useState(() => imageCache.has(src));
   const [hasError, setHasError] = useState(() => errorCache.has(src));
-  const [isInView, setIsInView] = useState(false);
+  const [isInView, setIsInView] = useState(eager); // Set to true immediately if eager
 
   // Check if image is already cached when component mounts
   useEffect(() => {
@@ -90,7 +91,7 @@ export const LazyImage = React.memo(({ src, alt, className, placeholderSrc, onLo
 
   useEffect(() => {
     const node = containerRef.current;
-    if (!node || isLoaded) return;
+    if (!node || isLoaded || eager) return; // Skip observer if eager loading
     observerRef.current = new IntersectionObserver(handleIntersection, {
       threshold: 0.1,
       rootMargin: '50px'
@@ -100,14 +101,14 @@ export const LazyImage = React.memo(({ src, alt, className, placeholderSrc, onLo
       observerRef.current?.disconnect();
       observerRef.current = null;
     };
-  }, [handleIntersection, isLoaded, src]);
+  }, [handleIntersection, isLoaded, src, eager]);
 
-  // Fallback: if IntersectionObserver doesn't fire, force-load after 1.2s
+  // Fallback: if IntersectionObserver doesn't fire, force-load after 1.2s (skip if eager)
   useEffect(() => {
-    if (isLoaded) return;
+    if (isLoaded || eager) return;
     const t = setTimeout(() => setIsInView(true), 1200);
     return () => clearTimeout(t);
-  }, [isLoaded, src]);
+  }, [isLoaded, src, eager]);
 
   if (hasError) {
     return (
@@ -143,7 +144,7 @@ return (
         }`}
         onLoad={handleLoad}
         onError={handleError}
-        loading="lazy"
+        loading={eager ? "eager" : "lazy"}
       />
     )}
   </div>
