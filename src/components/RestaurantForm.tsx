@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PlusCircle, Trash2, Calendar, MapPin, Camera, Images, Monitor, Upload, Search, Loader, Sparkles, Star } from 'lucide-react';
+import { PlusCircle, Trash2, Calendar, MapPin, Camera, Images, Monitor, Upload, Search, Loader, Sparkles, Star, Award } from 'lucide-react';
 import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,7 @@ import { WeightedRating } from '@/components/WeightedRating';
 import { StarRating } from '@/components/StarRating';
 import { PriceRange } from '@/components/PriceRange';
 import { MichelinStars } from '@/components/MichelinStars';
+import { DishRatingPopup } from '@/components/DishRatingPopup';
 import { format } from 'date-fns';
 import { Restaurant, RestaurantFormData, CategoryRating } from '@/types/restaurant';
 import { Switch } from '@/components/ui/switch';
@@ -74,6 +75,8 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
   const [isAIEnhancing, setIsAIEnhancing] = useState(false);
   const [autoGeneratePhotos, setAutoGeneratePhotos] = useState(false);
   const [isGeneratingPhotos, setIsGeneratingPhotos] = useState(false);
+  const [isDishRatingOpen, setIsDishRatingOpen] = useState(false);
+  const [highlightDishIndex, setHighlightDishIndex] = useState<number | null>(null);
   
   // Track if restaurant details are from search (for new restaurants) or can be manually edited (for existing restaurants)
   const isNewRestaurant = !initialData;
@@ -816,6 +819,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       photos: formData.photos, // Include the File objects for photos
       photoDishNames: photoDishNames,
       dishRatings: dishRatings,
+      highlightDishIndex: highlightDishIndex,
       removedPhotoIndexes: removedPhotoIndexes,
       // Always include Google Places fields - preserve existing data if not in current form
       website: formDataWithPlaces.website ?? (initialData as any)?.website ?? null,
@@ -1234,31 +1238,17 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
                     className="text-xs"
                     maxLength={50}
                   />
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium">Rate dish:</span>
-                    <div className="flex items-center gap-1">
-                      {[...Array(10)].map((_, i) => (
-                        <button
-                          key={i}
-                          type="button"
-                          onClick={() => handleDishRatingChange(index, i + 1)}
-                          className="transition-colors hover:scale-110"
-                        >
-                          <Star
-                            size={14}
-                            className={`${
-                              i + 1 <= (dishRatings[index] || 0)
-                                ? 'fill-rating-filled text-rating-filled'
-                                : 'fill-rating-empty text-rating-empty hover:fill-rating-hover hover:text-rating-hover'
-                            }`}
-                          />
-                        </button>
-                      ))}
-                      <span className="text-xs text-muted-foreground ml-1">
-                        {dishRatings[index] ? `${dishRatings[index]}/10` : '0/10'}
-                      </span>
-                    </div>
-                  </div>
+                   <div className="flex items-center justify-between">
+                     <span className="text-xs text-muted-foreground">
+                       {dishRatings[index] ? `Rated: ${dishRatings[index]}/10` : 'Not rated'}
+                     </span>
+                     {highlightDishIndex === index && (
+                       <div className="flex items-center gap-1 text-xs text-amber-600">
+                         <Award size={12} className="fill-amber-500" />
+                         <span>Highlight</span>
+                       </div>
+                     )}
+                   </div>
                 </div>
               </div>
             ))}
@@ -1277,7 +1267,40 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
                 className="sr-only"
               />
             </label>
+            
+            {/* Rate Restaurant Button */}
+            {previewImages.length > 0 && (
+              <div className="col-span-full">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsDishRatingOpen(true)}
+                  className="w-full flex items-center gap-2 border-primary/20 hover:bg-primary/5"
+                >
+                  <Star className="h-4 w-4" />
+                  Rate Restaurant Dishes
+                  {dishRatings.some(rating => rating > 0) && (
+                    <span className="text-xs bg-primary/10 px-2 py-1 rounded">
+                      {dishRatings.filter(rating => rating > 0).length} rated
+                    </span>
+                  )}
+                </Button>
+              </div>
+            )}
           </div>
+          
+          <DishRatingPopup
+            isOpen={isDishRatingOpen}
+            onClose={() => setIsDishRatingOpen(false)}
+            previewImages={previewImages}
+            photoDishNames={photoDishNames}
+            dishRatings={dishRatings}
+            highlightDishIndex={highlightDishIndex}
+            onRatingsUpdate={(newRatings, newHighlightIndex) => {
+              setDishRatings(newRatings);
+              setHighlightDishIndex(newHighlightIndex);
+            }}
+          />
           </div>
         )}
 
