@@ -97,25 +97,41 @@ export const processImagesInParallel = async (
     }
   };
   
-  // Process in smaller batches to avoid overwhelming the browser
-  const batchSize = 2; // Reduced batch size for better performance
+  // Process sequentially for large batches to prevent memory issues
   const results: string[] = [];
   
-  for (let i = 0; i < files.length; i += batchSize) {
-    const batch = files.slice(i, i + batchSize);
-    const batchPromises = batch.map(processImage);
-    
-    try {
-      const batchResults = await Promise.all(batchPromises);
-      results.push(...batchResults);
-      
-      // Small delay between batches to prevent UI blocking
-      if (i + batchSize < files.length) {
-        await new Promise(resolve => setTimeout(resolve, 50));
+  if (files.length > 10) {
+    // For large batches, process one at a time with delays
+    for (const file of files) {
+      try {
+        const result = await processImage(file);
+        results.push(result);
+        
+        // Add delay for large batches to prevent timeout
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } catch (error) {
+        console.error('Error processing image:', error);
+        throw error;
       }
-    } catch (error) {
-      console.error('Error in batch processing:', error);
-      throw error;
+    }
+  } else {
+    // For small batches, process in parallel
+    const batchSize = 2;
+    for (let i = 0; i < files.length; i += batchSize) {
+      const batch = files.slice(i, i + batchSize);
+      const batchPromises = batch.map(processImage);
+      
+      try {
+        const batchResults = await Promise.all(batchPromises);
+        results.push(...batchResults);
+        
+        if (i + batchSize < files.length) {
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
+      } catch (error) {
+        console.error('Error in batch processing:', error);
+        throw error;
+      }
     }
   }
   

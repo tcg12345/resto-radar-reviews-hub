@@ -218,7 +218,24 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
     if (files.length === 0) return [];
     
     console.log('Converting', files.length, 'photos to data URLs');
-    const dataUrls = await convertPhotosToDataUrls(files, onProgress);
+    
+    // For large photo sets, process in smaller chunks
+    const chunkSize = files.length > 10 ? 1 : 3;
+    const dataUrls: string[] = [];
+    
+    for (let i = 0; i < files.length; i += chunkSize) {
+      const chunk = files.slice(i, i + chunkSize);
+      const chunkUrls = await convertPhotosToDataUrls(chunk, (processed) => {
+        onProgress?.(i + processed, files.length);
+      });
+      dataUrls.push(...chunkUrls);
+      
+      // Add delay between chunks for large uploads
+      if (files.length > 5 && i + chunkSize < files.length) {
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+    }
+    
     console.log('Successfully converted photos to data URLs');
     
     const urls: string[] = [];
@@ -229,12 +246,20 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         
         console.log(`Uploading photo ${i + 1}/${dataUrls.length}:`, fileName);
         
-        const { error: uploadError } = await supabase.storage
+        // Add timeout for upload
+        const uploadPromise = supabase.storage
           .from('avatars')
           .upload(fileName, blob, {
             contentType: 'image/jpeg',
             upsert: true
           });
+          
+        const timeoutPromise = new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Upload timeout')), 30000)
+        );
+        
+        const result = await Promise.race([uploadPromise, timeoutPromise]);
+        const uploadError = result.error;
           
         if (uploadError) {
           console.error(`Upload error for photo ${i + 1}:`, uploadError);
@@ -247,8 +272,18 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         
         urls.push(publicUrl);
         console.log(`Successfully uploaded photo ${i + 1}:`, publicUrl);
+        
+        // Add delay between uploads for large sets
+        if (files.length > 5 && i < dataUrls.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
       } catch (error) {
         console.error(`Failed to upload photo ${i + 1}:`, error);
+        // For large uploads, continue with other photos instead of failing completely
+        if (files.length > 5) {
+          console.warn(`Skipping failed photo ${i + 1}, continuing with others`);
+          continue;
+        }
         throw error;
       }
     }

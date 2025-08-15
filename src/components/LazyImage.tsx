@@ -42,18 +42,31 @@ export const LazyImage = React.memo(({ src, alt, className, placeholderSrc, onLo
   const [hasError, setHasError] = useState(() => errorCache.has(src));
   const [isInView, setIsInView] = useState(eager); // Set to true immediately if eager
 
-  // Check if image is already cached when component mounts
+  // Aggressive preloading for eager images
   useEffect(() => {
+    if (eager && src && !imageCache.has(src) && !errorCache.has(src)) {
+      const img = new Image();
+      img.onload = () => {
+        imageCache.add(src);
+        saveCacheToStorage(CACHE_KEY, imageCache);
+        setIsLoaded(true);
+      };
+      img.onerror = () => {
+        errorCache.add(src);
+        saveCacheToStorage(ERROR_CACHE_KEY, errorCache);
+        setHasError(true);
+      };
+      img.src = src;
+    }
+    
     if (imageCache.has(src)) {
       setIsLoaded(true);
-      setIsInView(true); // If cached, we can show it immediately
+      setIsInView(true);
     }
     if (errorCache.has(src)) {
       setHasError(true);
     }
-    // Debug: log when component mounts with given src
-    try { console.debug('[LazyImage] mount', { src, placeholderSrc }); } catch {}
-  }, [src, placeholderSrc]);
+  }, [src, eager]);
 
   const handleLoad = useCallback(() => {
     setIsLoaded(true);
