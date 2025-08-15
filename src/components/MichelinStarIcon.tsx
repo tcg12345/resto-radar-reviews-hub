@@ -12,7 +12,7 @@ export const MichelinStarIcon = React.memo(({
   fill = "currentColor", 
   stroke = "none" 
 }: MichelinStarIconProps) => {
-  const isSelected = fill === 'currentColor' || className.includes('text-red-600');
+  const isSelected = className.includes('text-red-600');
   
   return (
     <img 
