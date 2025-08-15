@@ -94,10 +94,11 @@ export function RestaurantCard({
   const {
     loadRestaurantPhotos
   } = useRestaurants();
-  const hasMultiplePhotos = restaurant.photos.length > 1;
+  const photos = restaurant.photos || [];
+  const hasMultiplePhotos = photos.length > 1;
 
   // Only preload first photo for instant display
-  useInstantImageCache(restaurant.photos, 1);
+  useInstantImageCache(photos, 1);
   const { loadImage } = useOnDemandImageLoader();
 
   // Optimized loading - minimal delay for better perceived performance
@@ -108,7 +109,7 @@ export function RestaurantCard({
     };
     
     // Proactively load photos if missing
-    if (restaurant.photos.length === 0) {
+    if (photos.length === 0) {
       loadRestaurantPhotos(restaurant.id).catch((e) => console.warn('Photo load failed', e));
     }
     
@@ -117,17 +118,17 @@ export function RestaurantCard({
   }, [restaurant.id]); // Remove loadRestaurantPhotos from dependencies to prevent infinite loop
   const nextPhoto = () => {
     setImageLoading(true);
-    const nextIndex = (currentPhotoIndex + 1) % restaurant.photos.length;
+    const nextIndex = (currentPhotoIndex + 1) % photos.length;
     setCurrentPhotoIndex(nextIndex);
     // Preload next photo on demand
-    loadImage(restaurant.photos[nextIndex]);
+    loadImage(photos[nextIndex]);
   };
   const previousPhoto = () => {
     setImageLoading(true);
-    const prevIndex = currentPhotoIndex === 0 ? restaurant.photos.length - 1 : currentPhotoIndex - 1;
+    const prevIndex = currentPhotoIndex === 0 ? photos.length - 1 : currentPhotoIndex - 1;
     setCurrentPhotoIndex(prevIndex);
     // Preload previous photo on demand
-    loadImage(restaurant.photos[prevIndex]);
+    loadImage(photos[prevIndex]);
   };
   const openGallery = () => {
     setIsGalleryOpen(true);
@@ -178,7 +179,7 @@ export function RestaurantCard({
   return (
     <>
       <PhotoGallery 
-        photos={restaurant.photos} 
+        photos={photos} 
         photoCaptions={restaurant.photoDishNames || []} 
         initialIndex={currentPhotoIndex} 
         isOpen={isGalleryOpen} 
@@ -188,10 +189,10 @@ export function RestaurantCard({
       />
       <Card className="overflow-hidden bg-card shadow-sm hover:shadow-md transition-shadow duration-300 lg:shadow-md lg:hover:shadow-lg flex flex-col h-full">
       {/* Show photo section only when restaurant has photos */}
-      {restaurant.photos.length > 0 && <div className="relative aspect-video w-full overflow-hidden bg-muted lg:aspect-video">
+      {photos.length > 0 && <div className="relative aspect-video w-full overflow-hidden bg-muted lg:aspect-video">
           <>
 <img
-  src={resolveImageUrl(restaurant.photos[currentPhotoIndex], { width: 400 })}
+  src={resolveImageUrl(photos[currentPhotoIndex], { width: 400 })}
   alt={`${restaurant.name} photo ${currentPhotoIndex + 1}`}
   className="relative h-full w-full cursor-pointer transition-transform duration-300 hover:scale-105 object-cover"
   onLoad={() => setImageLoading(false)}
@@ -211,7 +212,7 @@ export function RestaurantCard({
                     &larr;
                   </Button>
                   <span className="rounded-full bg-background/80 px-1.5 py-0.5 lg:px-2 lg:py-1 text-[10px] lg:text-xs font-medium backdrop-blur-sm">
-                    {currentPhotoIndex + 1}/{restaurant.photos.length}
+                    {currentPhotoIndex + 1}/{photos.length}
                   </span>
                   <Button size="icon" variant="secondary" className="h-6 w-6 lg:h-8 lg:w-8 rounded-full bg-background/80 backdrop-blur-sm text-xs" onClick={e => {
               e.stopPropagation();
