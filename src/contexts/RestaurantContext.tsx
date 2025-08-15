@@ -100,7 +100,8 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       restaurants.forEach(restaurant => {
         if (restaurant.photos.length > 0) {
           const img = new Image();
-          img.src = resolveImageUrl(restaurant.photos[0], { width: 400 });
+          // Use direct photo URL without resolveImageUrl for now
+          img.src = restaurant.photos[0].includes('http') ? restaurant.photos[0] : `/public/${restaurant.photos[0]}`;
         }
       });
 
@@ -109,7 +110,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         allPhotos.slice(restaurants.length).forEach((photo, index) => {
           setTimeout(() => {
             const img = new Image();
-            img.src = resolveImageUrl(photo, { width: 400 });
+            img.src = photo.includes('http') ? photo : `/public/${photo}`;
           }, index * 10);
         });
       }, 100);
