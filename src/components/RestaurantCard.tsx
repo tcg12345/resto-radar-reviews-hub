@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { useInstantImageCache } from '@/hooks/useInstantImageCache';
+import { useInstantImageCache, useOnDemandImageLoader } from '@/hooks/useInstantImageCache';
 import { format } from 'date-fns';
 import { MapPin, Clock, Tag, Edit2, Trash2, Eye, Bot, ExternalLink, Phone, Globe, Share2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -96,8 +96,9 @@ export function RestaurantCard({
   } = useRestaurants();
   const hasMultiplePhotos = restaurant.photos.length > 1;
 
-  // Preload images for instant display
-  useInstantImageCache(restaurant.photos);
+  // Only preload first photo for instant display
+  useInstantImageCache(restaurant.photos, 1);
+  const { loadImage } = useOnDemandImageLoader();
 
   // Optimized loading - minimal delay for better perceived performance
   useEffect(() => {
@@ -116,11 +117,17 @@ export function RestaurantCard({
   }, [restaurant.id]); // Remove loadRestaurantPhotos from dependencies to prevent infinite loop
   const nextPhoto = () => {
     setImageLoading(true);
-    setCurrentPhotoIndex(prev => (prev + 1) % restaurant.photos.length);
+    const nextIndex = (currentPhotoIndex + 1) % restaurant.photos.length;
+    setCurrentPhotoIndex(nextIndex);
+    // Preload next photo on demand
+    loadImage(restaurant.photos[nextIndex]);
   };
   const previousPhoto = () => {
     setImageLoading(true);
-    setCurrentPhotoIndex(prev => prev === 0 ? restaurant.photos.length - 1 : prev - 1);
+    const prevIndex = currentPhotoIndex === 0 ? restaurant.photos.length - 1 : currentPhotoIndex - 1;
+    setCurrentPhotoIndex(prevIndex);
+    // Preload previous photo on demand
+    loadImage(restaurant.photos[prevIndex]);
   };
   const openGallery = () => {
     setIsGalleryOpen(true);

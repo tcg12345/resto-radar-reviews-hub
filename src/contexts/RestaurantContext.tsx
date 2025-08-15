@@ -88,37 +88,6 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [photosHydrated, setPhotosHydrated] = useState(false);
 
-  // Preload all restaurant photos for instant loading
-  useEffect(() => {
-    if (restaurants.length === 0) return;
-    
-    const preloadAllPhotos = () => {
-      const allPhotos = restaurants.flatMap(r => r.photos);
-      if (allPhotos.length === 0) return;
-
-      // Preload first photo of each restaurant immediately
-      restaurants.forEach(restaurant => {
-        if (restaurant.photos.length > 0) {
-          const img = new Image();
-          // Use direct photo URL without resolveImageUrl for now
-          img.src = restaurant.photos[0].includes('http') ? restaurant.photos[0] : `/public/${restaurant.photos[0]}`;
-        }
-      });
-
-      // Preload remaining photos with delay
-      setTimeout(() => {
-        allPhotos.slice(restaurants.length).forEach((photo, index) => {
-          setTimeout(() => {
-            const img = new Image();
-            img.src = photo.includes('http') ? photo : `/public/${photo}`;
-          }, index * 10);
-        });
-      }, 100);
-    };
-
-    preloadAllPhotos();
-  }, [restaurants]);
-
   // Load restaurants from Supabase
   useEffect(() => {
     let isSubscribed = true;
