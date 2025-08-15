@@ -1,7 +1,6 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, MapPin, Star, DollarSign, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
@@ -62,17 +61,28 @@ export function RestaurantSearchSelect({
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [skipSearch, setSkipSearch] = useState(false); // Flag to prevent auto-search
   
   const searchRef = useRef<HTMLInputElement>(null);
-  const resultsRef = useRef<HTMLDivElement>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
   const abortControllerRef = useRef<AbortController>();
+  const isSelectingRef = useRef(false);
 
-  // Optimized debounced search with request cancellation
+  // Clean up on unmount
   useEffect(() => {
-    if (skipSearch) {
-      setSkipSearch(false);
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
+  // Debounced search effect
+  useEffect(() => {
+    // Don't search if we're in the middle of selecting
+    if (isSelectingRef.current) {
       return;
     }
     
@@ -83,37 +93,29 @@ export function RestaurantSearchSelect({
       return;
     }
 
-    // Cancel previous request
+    // Cancel previous request and timeout
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-
-    // Clear existing timeout
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
 
-    // Faster debounce for better UX
+    // Set new timeout
     searchTimeoutRef.current = setTimeout(() => {
       performSearch(searchQuery.trim());
-    }, 200);
-
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, [searchQuery, skipSearch]);
+    }, 300);
+  }, [searchQuery]);
 
   const performSearch = useCallback(async (query: string) => {
-    // Create new abort controller for this request
+    if (isSelectingRef.current) return;
+    
+    // Create new abort controller
     const controller = new AbortController();
     abortControllerRef.current = controller;
     
     setIsSearching(true);
+    
     try {
       const { data, error } = await supabase.functions.invoke('google-places-search', {
         body: {
@@ -150,8 +152,22 @@ export function RestaurantSearchSelect({
     }
   }, []);
 
-  const handleRestaurantSelect = async (place: PlaceResult) => {
+  const handleRestaurantSelect = useCallback(async (place: PlaceResult) => {
+    // Prevent concurrent selections and searches
+    if (isSelectingRef.current) return;
+    
+    isSelectingRef.current = true;
     setIsSearching(true);
+    setShowResults(false);
+    
+    // Cancel any pending searches
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
     try {
       // Get detailed place information
       const { data, error } = await supabase.functions.invoke('google-places-search', {
@@ -169,12 +185,13 @@ export function RestaurantSearchSelect({
 
       if (data.status === 'OK') {
         const details: PlaceDetails = data.result;
-        onRestaurantSelect(details);
         
-        // Set search query without triggering search
-        setSkipSearch(true);
+        // Update UI state
         setSearchQuery(details.name);
-        setShowResults(false);
+        setSearchResults([]);
+        
+        // Call the callback
+        onRestaurantSelect(details);
         toast.success('Restaurant selected successfully!');
       }
     } catch (error) {
@@ -182,10 +199,19 @@ export function RestaurantSearchSelect({
       toast.error('Failed to get restaurant details');
     } finally {
       setIsSearching(false);
+      // Small delay before allowing new selections/searches
+      setTimeout(() => {
+        isSelectingRef.current = false;
+      }, 100);
     }
-  };
+  }, [onRestaurantSelect]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isSelectingRef.current) return;
+    setSearchQuery(e.target.value);
+  }, []);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (!showResults || searchResults.length === 0) return;
 
     switch (e.key) {
@@ -210,7 +236,22 @@ export function RestaurantSearchSelect({
         setSelectedIndex(-1);
         break;
     }
-  };
+  }, [showResults, searchResults, selectedIndex, handleRestaurantSelect]);
+
+  const handleFocus = useCallback(() => {
+    if (searchResults.length > 0 && !isSelectingRef.current) {
+      setShowResults(true);
+    }
+  }, [searchResults.length]);
+
+  const handleBlur = useCallback(() => {
+    // Delay hiding results to allow clicks
+    setTimeout(() => {
+      if (!isSelectingRef.current) {
+        setShowResults(false);
+      }
+    }, 150);
+  }, []);
 
   const getCuisineType = (types: string[]) => {
     const cuisineTypes = types.filter(type => 
@@ -234,16 +275,10 @@ export function RestaurantSearchSelect({
           type="text"
           placeholder={placeholder}
           value={searchQuery}
-          onChange={(e) => {
-            setSkipSearch(false); // Reset flag when user types
-            setSearchQuery(e.target.value);
-          }}
+          onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          onFocus={() => {
-            if (searchResults.length > 0) {
-              setShowResults(true);
-            }
-          }}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           className="pl-10 pr-10"
           disabled={disabled}
         />
@@ -261,6 +296,10 @@ export function RestaurantSearchSelect({
                 className={`p-3 cursor-pointer border-b last:border-b-0 hover:bg-muted/50 transition-colors ${
                   index === selectedIndex ? 'bg-muted/50' : ''
                 }`}
+                onMouseDown={(e) => {
+                  // Prevent blur event from firing before click
+                  e.preventDefault();
+                }}
                 onClick={() => handleRestaurantSelect(place)}
               >
                 <div className="flex items-start gap-3">
@@ -268,11 +307,11 @@ export function RestaurantSearchSelect({
                     <h4 className="font-medium text-sm">{place.name}</h4>
                     <div className="flex items-center gap-2 mt-1">
                       <MapPin className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-muted-foreground truncate">
                         {place.formatted_address}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
                       <Badge variant="secondary" className="text-xs">
                         {formatCuisineType(getCuisineType(place.types))}
                       </Badge>
