@@ -21,8 +21,6 @@ export const MichelinStarIcon = React.memo(({
       className={`${className} mt-0.5`}
       style={{ 
         objectFit: 'contain',
-        width: '20px',
-        height: '20px',
         filter: fill !== 'currentColor' && fill !== '#dc2626' ? `hue-rotate(${getHueRotation(fill)})` : undefined
       }}
     />
