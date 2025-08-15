@@ -127,7 +127,7 @@ export function DishRatingPopup({
                         onValueChange={(value) => handleRatingChange(dish.index, value[0])}
                         max={10}
                         min={0}
-                        step={0.5}
+                        step={0.1}
                         className="w-full"
                       />
                       
