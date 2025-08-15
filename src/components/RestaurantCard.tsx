@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { useInstantImageCache } from '@/hooks/useInstantImageCache';
 import { format } from 'date-fns';
 import { MapPin, Clock, Tag, Edit2, Trash2, Eye, Bot, ExternalLink, Phone, Globe, Share2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -18,7 +19,6 @@ import { ShareRestaurantDialog } from '@/components/ShareRestaurantDialog';
 import { Restaurant } from '@/types/restaurant';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 import { getStateFromCoordinatesCached } from '@/utils/geocoding';
-import { LazyImage } from '@/components/LazyImage';
 import { supabase } from '@/integrations/supabase/client';
 
 
@@ -95,6 +95,9 @@ export function RestaurantCard({
     loadRestaurantPhotos
   } = useRestaurants();
   const hasMultiplePhotos = restaurant.photos.length > 1;
+
+  // Preload images for instant display
+  useInstantImageCache(restaurant.photos);
 
   // Optimized loading - minimal delay for better perceived performance
   useEffect(() => {
@@ -180,14 +183,13 @@ export function RestaurantCard({
       {/* Show photo section only when restaurant has photos */}
       {restaurant.photos.length > 0 && <div className="relative aspect-video w-full overflow-hidden bg-muted lg:aspect-video">
           <>
-<LazyImage
+<img
   src={resolveImageUrl(restaurant.photos[currentPhotoIndex], { width: 400 })}
-  placeholderSrc={getLqipUrl(restaurant.photos[currentPhotoIndex])}
   alt={`${restaurant.name} photo ${currentPhotoIndex + 1}`}
-  className="relative h-full w-full cursor-pointer transition-transform duration-300 hover:scale-105"
+  className="relative h-full w-full cursor-pointer transition-transform duration-300 hover:scale-105 object-cover"
   onLoad={() => setImageLoading(false)}
   onError={() => setImageLoading(false)}
-  eager={true}
+  loading="eager"
 />
               <div 
                 className="absolute inset-0 cursor-pointer"
