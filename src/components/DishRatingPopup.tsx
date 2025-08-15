@@ -132,17 +132,30 @@ export function DishRatingPopup({
                       />
                       
                       <div className="flex items-center gap-1 justify-center">
-                        {[...Array(10)].map((_, i) => (
-                          <Star
-                            key={i}
-                            size={12}
-                            className={`${
-                              i + 1 <= dish.rating
-                                ? 'fill-rating-filled text-rating-filled'
-                                : 'fill-rating-empty text-rating-empty'
-                            }`}
-                          />
-                        ))}
+                        {[...Array(10)].map((_, i) => {
+                          const fillPercentage = Math.max(0, Math.min(1, dish.rating - i));
+                          const isPartiallyFilled = fillPercentage > 0 && fillPercentage < 1;
+                          
+                          return (
+                            <div key={i} className="relative">
+                              <Star
+                                size={12}
+                                className="fill-rating-empty text-rating-empty"
+                              />
+                              {fillPercentage > 0 && (
+                                <div 
+                                  className="absolute inset-0 overflow-hidden"
+                                  style={{ width: `${fillPercentage * 100}%` }}
+                                >
+                                  <Star
+                                    size={12}
+                                    className="fill-rating-filled text-rating-filled"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
