@@ -177,9 +177,9 @@ export function RestaurantCard({
         isMobile={isMobile} 
       />
       <Card className="overflow-hidden bg-card shadow-sm hover:shadow-md transition-shadow duration-300 lg:shadow-md lg:hover:shadow-lg flex flex-col h-full">
-      {/* Show photo section based on restaurant type */}
-      {restaurant.photos.length > 0 || !restaurant.isWishlist ? <div className="relative aspect-video w-full overflow-hidden bg-muted lg:aspect-video">
-          {restaurant.photos.length > 0 ? <>
+      {/* Show photo section only when restaurant has photos */}
+      {restaurant.photos.length > 0 && <div className="relative aspect-video w-full overflow-hidden bg-muted lg:aspect-video">
+          <>
 <LazyImage
   src={resolveImageUrl(restaurant.photos[currentPhotoIndex], { width: 400 })}
   placeholderSrc={getLqipUrl(restaurant.photos[currentPhotoIndex])}
@@ -211,10 +211,8 @@ export function RestaurantCard({
                     &rarr;
                   </Button>
                 </div>}
-            </> : <div className="h-full w-full flex items-center justify-center">
-              {/* Empty photo box for rated restaurants only - no text */}
-            </div>}
-        </div> : null}
+            </>
+        </div>}
       
       <CardHeader className="pb-0 lg:pb-0 p-2 lg:p-4 relative">
         {onEdit && (
