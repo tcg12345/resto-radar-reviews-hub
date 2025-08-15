@@ -3,6 +3,7 @@ import { Restaurant, RestaurantFormData, CategoryRating } from '@/types/restaura
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Json } from '@/integrations/supabase/types';
+import { resolveImageUrl } from '@/utils/imageUtils';
 
 interface DbRestaurant {
   id: string;
@@ -86,6 +87,36 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [photosHydrated, setPhotosHydrated] = useState(false);
+
+  // Preload all restaurant photos for instant loading
+  useEffect(() => {
+    if (restaurants.length === 0) return;
+    
+    const preloadAllPhotos = () => {
+      const allPhotos = restaurants.flatMap(r => r.photos);
+      if (allPhotos.length === 0) return;
+
+      // Preload first photo of each restaurant immediately
+      restaurants.forEach(restaurant => {
+        if (restaurant.photos.length > 0) {
+          const img = new Image();
+          img.src = resolveImageUrl(restaurant.photos[0], { width: 400 });
+        }
+      });
+
+      // Preload remaining photos with delay
+      setTimeout(() => {
+        allPhotos.slice(restaurants.length).forEach((photo, index) => {
+          setTimeout(() => {
+            const img = new Image();
+            img.src = resolveImageUrl(photo, { width: 400 });
+          }, index * 10);
+        });
+      }, 100);
+    };
+
+    preloadAllPhotos();
+  }, [restaurants]);
 
   // Load restaurants from Supabase
   useEffect(() => {

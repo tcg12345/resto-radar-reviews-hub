@@ -181,7 +181,7 @@ export function RestaurantCard({
       {restaurant.photos.length > 0 || !restaurant.isWishlist ? <div className="relative aspect-video w-full overflow-hidden bg-muted lg:aspect-video">
           {restaurant.photos.length > 0 ? <>
 <LazyImage
-  src={resolveImageUrl(restaurant.photos[currentPhotoIndex], { width: 800 })}
+  src={resolveImageUrl(restaurant.photos[currentPhotoIndex], { width: 400 })}
   placeholderSrc={getLqipUrl(restaurant.photos[currentPhotoIndex])}
   alt={`${restaurant.name} photo ${currentPhotoIndex + 1}`}
   className="relative h-full w-full cursor-pointer transition-transform duration-300 hover:scale-105"
