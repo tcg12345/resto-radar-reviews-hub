@@ -96,38 +96,21 @@ export function RestaurantCard({
   } = useRestaurants();
   const hasMultiplePhotos = restaurant.photos.length > 1;
 
-  // Optimized loading - preload all photos aggressively
+  // Optimized loading - minimal delay for better perceived performance
   useEffect(() => {
     const initializeCard = () => {
       setIsDataReady(true);
       setImageLoading(false);
     };
     
-    // Immediately preload all photos for this restaurant
-    const preloadPhotos = () => {
-      restaurant.photos.forEach((photo, index) => {
-        const img = new Image();
-        img.src = resolveImageUrl(photo, { width: 800 });
-        // Also preload thumbnails for gallery
-        const thumb = new Image();
-        thumb.src = resolveImageUrl(photo, { width: 400 });
-      });
-    };
-    
     // Proactively load photos if missing
     if (restaurant.photos.length === 0) {
-      loadRestaurantPhotos(restaurant.id).then(() => {
-        // Preload photos once they're loaded
-        setTimeout(preloadPhotos, 100);
-      }).catch((e) => console.warn('Photo load failed', e));
-    } else {
-      // Preload existing photos immediately
-      preloadPhotos();
+      loadRestaurantPhotos(restaurant.id).catch((e) => console.warn('Photo load failed', e));
     }
     
     // Initialize immediately for better performance
     initializeCard();
-  }, [restaurant.id, restaurant.photos.length, loadRestaurantPhotos]);
+  }, [restaurant.id, loadRestaurantPhotos]);
   const nextPhoto = () => {
     setImageLoading(true);
     setCurrentPhotoIndex(prev => (prev + 1) % restaurant.photos.length);
