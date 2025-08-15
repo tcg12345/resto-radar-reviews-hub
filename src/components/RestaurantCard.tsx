@@ -110,7 +110,7 @@ export function RestaurantCard({
     
     // Initialize immediately for better performance
     initializeCard();
-  }, [restaurant.id, loadRestaurantPhotos]);
+  }, [restaurant.id]); // Remove loadRestaurantPhotos from dependencies to prevent infinite loop
   const nextPhoto = () => {
     setImageLoading(true);
     setCurrentPhotoIndex(prev => (prev + 1) % restaurant.photos.length);
