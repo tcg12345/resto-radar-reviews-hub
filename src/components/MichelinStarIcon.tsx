@@ -12,11 +12,9 @@ export const MichelinStarIcon = React.memo(({
   fill = "currentColor", 
   stroke = "none" 
 }: MichelinStarIconProps) => {
-  const isSelected = className.includes('text-red-600');
-  
   return (
     <img 
-      src={isSelected ? "/lovable-uploads/4184d3a1-346a-454b-ad4f-5db720774949.png" : "/lovable-uploads/6da4f98c-0208-435e-81b0-b34ddf8513a7.png"}
+      src="/lovable-uploads/4184d3a1-346a-454b-ad4f-5db720774949.png"
       alt="Michelin Star"
       className={`${className} mt-0.5`}
       style={{ 
