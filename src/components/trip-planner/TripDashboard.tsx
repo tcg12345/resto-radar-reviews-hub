@@ -85,7 +85,7 @@ export function TripDashboard() {
       <TripStats trips={trips} />
 
       {/* Controls */}
-      <Card className="border-2 border-primary/10">
+      <Card className="border-2 border-primary/10 -mx-4 lg:mx-0 rounded-none lg:rounded-lg">
         <CardContent className="p-3 md:p-4">
           {/* Mobile Layout */}
           <div className="lg:hidden space-y-3">
