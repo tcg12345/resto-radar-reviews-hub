@@ -82,9 +82,6 @@ export function TripStats({ trips }: TripStatsProps) {
                   <p className="text-xl md:text-2xl font-bold">
                     {stat.value}
                   </p>
-                  <Badge variant="secondary" className="text-xs">
-                    {stat.trend}
-                  </Badge>
                 </div>
               </div>
             );
