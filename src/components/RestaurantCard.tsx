@@ -204,17 +204,17 @@ export function RestaurantCard({
                 onClick={openGallery}
               />
               
-              {hasMultiplePhotos && <div className="absolute inset-x-0 bottom-0 flex justify-between p-1 lg:p-2">
-                  <Button size="icon" variant="secondary" className="h-6 w-6 lg:h-8 lg:w-8 rounded-full bg-background/80 backdrop-blur-sm text-xs" onClick={e => {
+              {hasMultiplePhotos && <div className="absolute inset-0 flex items-center justify-between px-2 lg:inset-x-0 lg:bottom-0 lg:top-auto lg:p-2">
+                  <Button size="icon" variant="secondary" className="h-10 w-10 lg:h-8 lg:w-8 rounded-full bg-background/80 backdrop-blur-sm text-sm lg:text-xs" onClick={e => {
               e.stopPropagation();
               previousPhoto();
             }}>
                     &larr;
                   </Button>
-                  <span className="rounded-full bg-background/80 px-1.5 py-0.5 lg:px-2 lg:py-1 text-[10px] lg:text-xs font-medium backdrop-blur-sm">
+                  <span className="absolute bottom-2 left-1/2 transform -translate-x-1/2 lg:static lg:transform-none rounded-full bg-background/80 px-1.5 py-0.5 lg:px-2 lg:py-1 text-[10px] lg:text-xs font-medium backdrop-blur-sm">
                     {currentPhotoIndex + 1}/{photos.length}
                   </span>
-                  <Button size="icon" variant="secondary" className="h-6 w-6 lg:h-8 lg:w-8 rounded-full bg-background/80 backdrop-blur-sm text-xs" onClick={e => {
+                  <Button size="icon" variant="secondary" className="h-10 w-10 lg:h-8 lg:w-8 rounded-full bg-background/80 backdrop-blur-sm text-sm lg:text-xs" onClick={e => {
               e.stopPropagation();
               nextPhoto();
             }}>
