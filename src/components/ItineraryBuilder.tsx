@@ -875,14 +875,31 @@ export function ItineraryBuilder({
         <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5">
           {/* Mobile Header */}
           <div className="safe-area-top bg-background/80 backdrop-blur-md border-b border-border/50">
-            <div className="px-6 py-4 flex items-center justify-between">
-              <div>
-                <h1 className="text-lg font-semibold text-foreground">Plan Your Trip</h1>
-                <p className="text-sm text-muted-foreground mt-1">Create your perfect travel itinerary</p>
+            <div className="px-6 py-6 flex items-center justify-between relative">
+              {/* Decorative background elements */}
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-secondary/5 rounded-b-2xl" />
+              <div className="absolute top-0 left-1/4 w-32 h-1 bg-gradient-to-r from-primary/30 to-secondary/30 rounded-full" />
+              
+              <div className="relative z-10">
+                <div className="flex items-center space-x-3 mb-1">
+                  <div className="w-2 h-2 rounded-full bg-gradient-to-r from-primary to-secondary animate-pulse" />
+                  <h1 className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+                    Plan Your Trip
+                  </h1>
+                </div>
+                <p className="text-sm text-muted-foreground/80 font-medium tracking-wide">
+                  Create your perfect travel itinerary
+                </p>
               </div>
-              <Button variant="outline" size="sm" className="rounded-full" onClick={() => setSavedOpen(true)}>
-                <BookOpen className="w-4 h-4 mr-1" />
-                Saved
+              
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="relative rounded-2xl border-2 border-primary/20 bg-background/60 backdrop-blur-sm hover:bg-primary/5 hover:border-primary/40 transition-all duration-300 shadow-lg hover:shadow-xl group" 
+                onClick={() => setSavedOpen(true)}
+              >
+                <BookOpen className="w-4 h-4 mr-2 text-primary group-hover:scale-110 transition-transform duration-200" />
+                <span className="font-medium text-foreground/90">Saved</span>
               </Button>
             </div>
           </div>
