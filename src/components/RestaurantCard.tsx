@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useInstantImageCache, useOnDemandImageLoader } from '@/hooks/useInstantImageCache';
@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { BottomSheet, BottomSheetContent, BottomSheetHeader } from '@/components/ui/bottom-sheet';
 import { StarRating } from '@/components/StarRating';
 import { PriceRange } from '@/components/PriceRange';
 import { MichelinStars } from '@/components/MichelinStars';
@@ -91,6 +92,8 @@ export function RestaurantCard({
   const [imageLoading, setImageLoading] = useState(true);
   const [isDataReady, setIsDataReady] = useState(false);
   const [prefetched, setPrefetched] = useState(false);
+  const [isActionSheetOpen, setIsActionSheetOpen] = useState(false);
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const {
     loadRestaurantPhotos
   } = useRestaurants();
@@ -161,6 +164,59 @@ export function RestaurantCard({
       // Silent prefetch errors
     }
   };
+
+  const handleLongPressStart = () => {
+    longPressTimerRef.current = setTimeout(() => {
+      setIsActionSheetOpen(true);
+    }, 500); // 500ms long press
+  };
+
+  const handleLongPressEnd = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
+
+  const handleViewDetails = () => {
+    setIsActionSheetOpen(false);
+    const preview = {
+      id: restaurant.id,
+      name: restaurant.name,
+      address: restaurant.address,
+      city: restaurant.city,
+      country: restaurant.country,
+      cuisine: restaurant.cuisine,
+      rating: restaurant.rating,
+      price_range: restaurant.priceRange,
+      michelin_stars: restaurant.michelinStars,
+      notes: restaurant.notes,
+      photos: restaurant.photos,
+      website: restaurant.website,
+      phone_number: restaurant.phone_number,
+      latitude: restaurant.latitude,
+      longitude: restaurant.longitude,
+      reservable: (restaurant as any).reservable,
+      reservation_url: (restaurant as any).reservationUrl,
+      opening_hours: restaurant.openingHours,
+      date_visited: restaurant.dateVisited,
+      user_id: restaurant.userId,
+      is_wishlist: restaurant.isWishlist,
+    };
+    navigate(`/restaurant/${restaurant.id}`, { state: { restaurantPreview: preview, returnUrl: encodeURIComponent(window.location.pathname) } });
+  };
+
+  const handleShare = () => {
+    setIsActionSheetOpen(false);
+    setIsShareDialogOpen(true);
+  };
+
+  const handleDelete = () => {
+    setIsActionSheetOpen(false);
+    if (onDelete) {
+      onDelete(restaurant.id);
+    }
+  };
   // Show skeleton until all data is ready
   if (!isDataReady) {
     return <Card className="overflow-hidden">
@@ -187,7 +243,14 @@ export function RestaurantCard({
         restaurantName={restaurant.name} 
         isMobile={isMobile} 
       />
-      <Card className="overflow-hidden bg-card shadow-sm hover:shadow-md transition-shadow duration-300 lg:shadow-md lg:hover:shadow-lg flex flex-col h-full">
+      <Card 
+        className="overflow-hidden bg-card shadow-sm hover:shadow-md transition-shadow duration-300 lg:shadow-md lg:hover:shadow-lg flex flex-col h-full"
+        onTouchStart={handleLongPressStart}
+        onTouchEnd={handleLongPressEnd}
+        onMouseDown={handleLongPressStart}
+        onMouseUp={handleLongPressEnd}
+        onMouseLeave={handleLongPressEnd}
+      >
       {/* Show photo section only when restaurant has photos */}
       {photos.length > 0 && <div className="relative aspect-video w-full overflow-hidden bg-muted lg:aspect-video">
           <>
@@ -357,8 +420,45 @@ export function RestaurantCard({
          </DialogContent>
         </Dialog>}
       
-      {/* Share Restaurant Dialog */}
-      <ShareRestaurantDialog restaurant={restaurant} isOpen={isShareDialogOpen} onOpenChange={setIsShareDialogOpen} />
-     </>
-  );
-}
+       {/* Share Restaurant Dialog */}
+       <ShareRestaurantDialog restaurant={restaurant} isOpen={isShareDialogOpen} onOpenChange={setIsShareDialogOpen} />
+       
+       {/* Action Sheet */}
+       <BottomSheet open={isActionSheetOpen} onOpenChange={setIsActionSheetOpen}>
+         <BottomSheetHeader>
+           <h3 className="text-lg font-semibold text-center">{restaurant.name}</h3>
+         </BottomSheetHeader>
+         <BottomSheetContent className="space-y-4 p-4">
+           <Button 
+             className="w-full justify-start text-left h-12"
+             variant="ghost"
+             onClick={handleViewDetails}
+           >
+             <Eye className="mr-3 h-5 w-5" />
+             View Details
+           </Button>
+           
+           <Button 
+             className="w-full justify-start text-left h-12"
+             variant="ghost"
+             onClick={handleShare}
+           >
+             <Share2 className="mr-3 h-5 w-5" />
+             Share Restaurant
+           </Button>
+           
+           {onDelete && (
+             <Button 
+               className="w-full justify-start text-left h-12 text-destructive hover:bg-destructive/10"
+               variant="ghost"
+               onClick={handleDelete}
+             >
+               <Trash2 className="mr-3 h-5 w-5" />
+               Delete Restaurant
+             </Button>
+           )}
+         </BottomSheetContent>
+       </BottomSheet>
+      </>
+   );
+ }
