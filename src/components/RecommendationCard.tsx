@@ -61,7 +61,7 @@ export function RecommendationCard({ restaurant, onAdd, onAddToWishlist }: Recom
 
   return (
     <div 
-      className="mx-3 mb-6 rounded-2xl shadow-lg bg-[rgb(24,24,27)] overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-[1.002] active:scale-[0.998]"
+      className="mx-4 mb-8 rounded-2xl shadow-lg bg-[rgb(24,24,27)] overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-[1.002] active:scale-[0.998]"
       onClick={handleCardClick}
     >
       <div className="p-5">
