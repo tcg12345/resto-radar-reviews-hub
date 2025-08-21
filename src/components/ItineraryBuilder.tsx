@@ -873,14 +873,14 @@ export function ItineraryBuilder({
     if (isMobile) {
       return (
         <div className="min-h-screen bg-gradient-subtle">
-          {/* Modern Mobile Header */}
-          <div className="bg-card/50 backdrop-blur-sm border-b border-border/30">
-            <div className="px-4 py-6 flex items-center justify-between">
+          {/* Ultra-Modern Mobile Header */}
+          <div className="bg-card/70 backdrop-blur-xl border-b border-border/20">
+            <div className="px-3 py-4 flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gradient mb-1">
+                <h1 className="text-2xl lg:text-3xl font-bold text-gradient mb-1">
                   Plan Your Trip
                 </h1>
-                <p className="text-sm text-muted-foreground font-medium">
+                <p className="text-sm text-muted-foreground/70 font-medium">
                   Create your perfect itinerary
                 </p>
               </div>
@@ -888,43 +888,45 @@ export function ItineraryBuilder({
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="rounded-xl border-border/50 bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-all duration-300 shadow-sm" 
+                className="rounded-2xl border-border/30 bg-card/60 backdrop-blur-sm hover:bg-card/90 transition-all duration-300 shadow-sm hover:shadow-lg" 
                 onClick={() => setSavedOpen(true)}
               >
                 <BookOpen className="w-4 h-4 mr-2 text-primary" />
-                <span className="font-medium">Saved</span>
+                <span className="font-semibold">Saved</span>
               </Button>
             </div>
           </div>
 
-          {/* Premium Content */}
-          <div className="flex-1 overflow-y-auto px-4 py-6 space-y-8">
-            {/* Enhanced Multi-city Toggle */}
+          {/* Ultra-Compact Premium Content */}
+          <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+            {/* Ultra-Modern Multi-city Toggle */}
             <div className="flex justify-center">
-              <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-2 border border-border/50 shadow-sm">
-                <div className="flex items-center space-x-3 px-4 py-2">
+              <div className="bg-card/70 backdrop-blur-xl rounded-3xl p-1.5 border border-border/30 shadow-premium">
+                <div className="flex items-center space-x-4 px-5 py-3">
                   <Switch 
                     id="multi-city" 
                     checked={isMultiCity} 
                     onCheckedChange={setIsMultiCity}
-                    className="data-[state=checked]:bg-primary"
+                    className="data-[state=checked]:bg-gradient-premium data-[state=unchecked]:bg-muted scale-110"
                   />
-                  <Label htmlFor="multi-city" className="font-medium text-foreground">Multi-city trip</Label>
+                  <Label htmlFor="multi-city" className="font-bold text-foreground cursor-pointer text-base">
+                    Multi-city trip
+                  </Label>
                 </div>
               </div>
             </div>
 
-            {/* Premium Destination Section */}
-            <div className="space-y-6">
+            {/* Ultra-Premium Destination Section */}
+            <div className="space-y-5">
               <div className="text-center space-y-3">
-                <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-premium/10 backdrop-blur-sm border border-primary/20 mb-4 shadow-lg">
-                  <MapPin className="w-10 h-10 text-primary" />
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-gradient-premium/20 backdrop-blur-xl border border-primary/30 mb-3 shadow-premium-glow">
+                  <MapPin className="w-8 h-8 text-primary" />
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-foreground mb-2">
                     {isMultiCity ? 'Where to?' : 'Choose destination'}
                   </h2>
-                  <p className="text-muted-foreground text-base max-w-sm mx-auto">
+                  <p className="text-muted-foreground/70 text-sm max-w-xs mx-auto font-medium">
                     {isMultiCity ? 'Add multiple cities to your adventure' : 'Start with your main destination'}
                   </p>
                 </div>
@@ -936,7 +938,7 @@ export function ItineraryBuilder({
                   onChange={setCurrentLocationSearch} 
                   onCitySelect={handleLocationSelect} 
                   placeholder={isMultiCity ? "Add another city..." : "Search destinations..."} 
-                  className="w-full h-14 text-base rounded-2xl border-0 bg-card/50 backdrop-blur-sm shadow-sm focus:shadow-lg transition-all duration-300 font-medium placeholder:text-muted-foreground/70"
+                  className="w-full h-12 text-base rounded-2xl border-0 bg-card/70 backdrop-blur-xl shadow-premium focus:shadow-premium-glow transition-all duration-300 font-medium placeholder:text-muted-foreground/60 focus:bg-card/90"
                 />
               </div>
             </div>
@@ -1167,11 +1169,11 @@ export function ItineraryBuilder({
                     setHasCreatedItinerary(true);
                   }
                 }}
-                className="w-full h-14 text-lg font-bold rounded-2xl bg-gradient-premium hover:shadow-premium-glow transition-all duration-300 shadow-lg text-primary-foreground"
+                className="w-full h-16 text-lg font-bold rounded-3xl bg-gradient-premium hover:shadow-premium-glow hover:scale-[1.02] transition-all duration-500 shadow-premium-xl text-primary-foreground"
                 size="lg"
               >
                 <CalendarDays className="w-6 h-6 mr-3" />
-                Create Itinerary
+                <span>Create Itinerary</span>
               </Button>
               
               {/* Status when button not available */}
