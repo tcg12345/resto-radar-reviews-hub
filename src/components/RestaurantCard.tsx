@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useInstantImageCache, useOnDemandImageLoader } from '@/hooks/useInstantImageCache';
@@ -8,7 +8,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { BottomSheet, BottomSheetContent, BottomSheetHeader } from '@/components/ui/bottom-sheet';
 import { StarRating } from '@/components/StarRating';
 import { PriceRange } from '@/components/PriceRange';
 import { MichelinStars } from '@/components/MichelinStars';
@@ -92,8 +91,6 @@ export function RestaurantCard({
   const [imageLoading, setImageLoading] = useState(true);
   const [isDataReady, setIsDataReady] = useState(false);
   const [prefetched, setPrefetched] = useState(false);
-  const [isActionSheetOpen, setIsActionSheetOpen] = useState(false);
-  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const {
     loadRestaurantPhotos
   } = useRestaurants();
@@ -164,64 +161,6 @@ export function RestaurantCard({
       // Silent prefetch errors
     }
   };
-
-  const handleLongPressStart = (e: React.TouchEvent | React.MouseEvent) => {
-    console.log('Long press started');
-    e.preventDefault();
-    longPressTimerRef.current = setTimeout(() => {
-      console.log('Long press triggered - opening action sheet');
-      setIsActionSheetOpen(true);
-    }, 500); // 500ms long press
-  };
-
-  const handleLongPressEnd = (e: React.TouchEvent | React.MouseEvent) => {
-    console.log('Long press ended');
-    e.preventDefault();
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-  };
-
-  const handleViewDetails = () => {
-    setIsActionSheetOpen(false);
-    const preview = {
-      id: restaurant.id,
-      name: restaurant.name,
-      address: restaurant.address,
-      city: restaurant.city,
-      country: restaurant.country,
-      cuisine: restaurant.cuisine,
-      rating: restaurant.rating,
-      price_range: restaurant.priceRange,
-      michelin_stars: restaurant.michelinStars,
-      notes: restaurant.notes,
-      photos: restaurant.photos,
-      website: restaurant.website,
-      phone_number: restaurant.phone_number,
-      latitude: restaurant.latitude,
-      longitude: restaurant.longitude,
-      reservable: (restaurant as any).reservable,
-      reservation_url: (restaurant as any).reservationUrl,
-      opening_hours: restaurant.openingHours,
-      date_visited: restaurant.dateVisited,
-      user_id: restaurant.userId,
-      is_wishlist: restaurant.isWishlist,
-    };
-    navigate(`/restaurant/${restaurant.id}`, { state: { restaurantPreview: preview, returnUrl: encodeURIComponent(window.location.pathname) } });
-  };
-
-  const handleShare = () => {
-    setIsActionSheetOpen(false);
-    setIsShareDialogOpen(true);
-  };
-
-  const handleDelete = () => {
-    setIsActionSheetOpen(false);
-    if (onDelete) {
-      onDelete(restaurant.id);
-    }
-  };
   // Show skeleton until all data is ready
   if (!isDataReady) {
     return <Card className="overflow-hidden">
@@ -248,14 +187,7 @@ export function RestaurantCard({
         restaurantName={restaurant.name} 
         isMobile={isMobile} 
       />
-      <Card 
-        className="overflow-hidden bg-card shadow-sm hover:shadow-md transition-shadow duration-300 lg:shadow-md lg:hover:shadow-lg flex flex-col h-full"
-        onTouchStart={handleLongPressStart}
-        onTouchEnd={handleLongPressEnd}
-        onMouseDown={handleLongPressStart}
-        onMouseUp={handleLongPressEnd}
-        onMouseLeave={handleLongPressEnd}
-      >
+      <Card className="overflow-hidden bg-card shadow-sm hover:shadow-md transition-shadow duration-300 lg:shadow-md lg:hover:shadow-lg flex flex-col h-full">
       {/* Show photo section only when restaurant has photos */}
       {photos.length > 0 && <div className="relative aspect-video w-full overflow-hidden bg-muted lg:aspect-video">
           <>
@@ -270,8 +202,6 @@ export function RestaurantCard({
               <div 
                 className="absolute inset-0 cursor-pointer"
                 onClick={openGallery}
-                onTouchStart={(e) => e.stopPropagation()}
-                onMouseDown={(e) => e.stopPropagation()}
               />
               
               {hasMultiplePhotos && <div className="absolute inset-0 flex items-center justify-between px-2 lg:inset-x-0 lg:bottom-0 lg:top-auto lg:p-2">
@@ -366,12 +296,8 @@ export function RestaurantCard({
           className="flex-1 h-6 lg:h-7 px-1 lg:px-2 text-[10px] lg:text-xs mobile-button"
           onMouseEnter={handlePrefetch}
           onFocus={handlePrefetch}
-          onTouchStart={(e) => {
-            e.stopPropagation();
-            handlePrefetch();
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
+          onTouchStart={handlePrefetch}
+          onClick={() => {
             const preview = {
               id: restaurant.id,
               name: restaurant.name,
@@ -403,31 +329,13 @@ export function RestaurantCard({
           <span className="sm:hidden">Info</span>
         </Button>
         
-        <Button 
-          size="sm" 
-          variant="outline" 
-          className="flex-1 h-6 lg:h-7 px-1.5 lg:px-2 text-[10px] lg:text-xs mobile-button" 
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsShareDialogOpen(true);
-          }}
-          onTouchStart={(e) => e.stopPropagation()}
-        >
+        <Button size="sm" variant="outline" className="flex-1 h-6 lg:h-7 px-1.5 lg:px-2 text-[10px] lg:text-xs mobile-button" onClick={() => setIsShareDialogOpen(true)}>
           <Share2 className="mr-0.5 lg:mr-1 h-2.5 w-2.5 lg:h-3 lg:w-3" />
           <span className="hidden sm:inline">Share</span>
           <span className="sm:hidden">Share</span>
         </Button>
         
-        {onDelete && <Button 
-          size="sm" 
-          variant="outline" 
-          className="flex-1 h-6 lg:h-7 px-1.5 lg:px-2 text-[10px] lg:text-xs text-destructive hover:bg-destructive/10 mobile-button" 
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(restaurant.id);
-          }}
-          onTouchStart={(e) => e.stopPropagation()}
-        >
+        {onDelete && <Button size="sm" variant="outline" className="flex-1 h-6 lg:h-7 px-1.5 lg:px-2 text-[10px] lg:text-xs text-destructive hover:bg-destructive/10 mobile-button" onClick={() => onDelete(restaurant.id)}>
             <Trash2 className="mr-0.5 lg:mr-1 h-2.5 w-2.5 lg:h-3 lg:w-3" />
             <span className="hidden sm:inline">Delete</span>
             <span className="sm:hidden">Del</span>
@@ -449,45 +357,8 @@ export function RestaurantCard({
          </DialogContent>
         </Dialog>}
       
-       {/* Share Restaurant Dialog */}
-       <ShareRestaurantDialog restaurant={restaurant} isOpen={isShareDialogOpen} onOpenChange={setIsShareDialogOpen} />
-       
-       {/* Action Sheet */}
-       <BottomSheet open={isActionSheetOpen} onOpenChange={setIsActionSheetOpen}>
-         <BottomSheetHeader>
-           <h3 className="text-lg font-semibold text-center">{restaurant.name}</h3>
-         </BottomSheetHeader>
-         <BottomSheetContent className="space-y-4 p-4">
-           <Button 
-             className="w-full justify-start text-left h-12"
-             variant="ghost"
-             onClick={handleViewDetails}
-           >
-             <Eye className="mr-3 h-5 w-5" />
-             View Details
-           </Button>
-           
-           <Button 
-             className="w-full justify-start text-left h-12"
-             variant="ghost"
-             onClick={handleShare}
-           >
-             <Share2 className="mr-3 h-5 w-5" />
-             Share Restaurant
-           </Button>
-           
-           {onDelete && (
-             <Button 
-               className="w-full justify-start text-left h-12 text-destructive hover:bg-destructive/10"
-               variant="ghost"
-               onClick={handleDelete}
-             >
-               <Trash2 className="mr-3 h-5 w-5" />
-               Delete Restaurant
-             </Button>
-           )}
-         </BottomSheetContent>
-       </BottomSheet>
-      </>
-   );
- }
+      {/* Share Restaurant Dialog */}
+      <ShareRestaurantDialog restaurant={restaurant} isOpen={isShareDialogOpen} onOpenChange={setIsShareDialogOpen} />
+     </>
+  );
+}
