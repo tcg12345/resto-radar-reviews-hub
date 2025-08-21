@@ -91,19 +91,23 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
 
   // Load initial recommendations instantly
   useEffect(() => {
-    if (ratedRestaurants.length > 0 && !hasLoadedInitial) {
+    if (!hasLoadedInitial) {
       const cities = [...new Set(ratedRestaurants.map(r => r.city).filter(Boolean))];
-      setUserCities(cities);
+      
+      // If user has no rated restaurants, use default popular cities
+      const defaultCities = cities.length > 0 ? cities : ['New York', 'San Francisco', 'Los Angeles'];
+      
+      setUserCities(defaultCities);
       setCurrentCityIndex(0);
       
       // Load cached data instantly without waiting
-      loadCachedDataInstantly(cities);
+      loadCachedDataInstantly(defaultCities);
       setHasLoadedInitial(true);
       
-      // Load fresh data in background
-      setTimeout(() => loadFreshDataInBackground(cities), 100);
+      // Load fresh data in background immediately (no timeout)
+      loadFreshDataInBackground(defaultCities);
     }
-  }, [ratedRestaurants.length, hasLoadedInitial]);
+  }, [hasLoadedInitial]); // Remove dependency on ratedRestaurants.length
 
   // Infinite scroll observer
   useEffect(() => {
@@ -434,17 +438,18 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
     });
   };
 
-  if (ratedRestaurants.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 text-center px-4">
-        <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold mb-2">No Recommendations Yet</h3>
-        <p className="text-muted-foreground text-sm max-w-md">
-          Start rating some restaurants to get personalized recommendations based on your preferences and locations.
-        </p>
-      </div>
-    );
-  }
+  // Remove this condition - show recommendations even for new users
+  // if (ratedRestaurants.length === 0) {
+  //   return (
+  //     <div className="flex flex-col items-center justify-center h-64 text-center px-4">
+  //       <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
+  //       <h3 className="text-lg font-semibold mb-2">No Recommendations Yet</h3>
+  //       <p className="text-muted-foreground text-sm max-w-md">
+  //         Start rating some restaurants to get personalized recommendations based on your preferences and locations.
+  //       </p>
+  //     </div>
+  //   );
+  // }
 
   if (showMap) {
     return isMobile ? (
@@ -477,7 +482,10 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
         <div className="mb-6">
           <h2 className="text-2xl font-bold mb-2">Recommended For You</h2>
           <p className="text-muted-foreground text-sm">
-            Showing {recommendations.length} restaurants from {userCities.length} cities
+            {ratedRestaurants.length > 0 
+              ? `Personalized recommendations from ${userCities.length} cities based on your ratings`
+              : `Popular restaurants from ${userCities.length} cities to get you started`
+            }
           </p>
         </div>
 
