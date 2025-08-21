@@ -173,14 +173,12 @@ export function useFriends() {
 
     if (sanitizedQuery.length < 2) return [];
 
-    // Prevent SQL injection by using parameterized queries
+    // Use the new secure function that only exposes safe fields
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, username, name, avatar_url, is_public')
-        .or(`username.ilike.%${sanitizedQuery}%,name.ilike.%${sanitizedQuery}%`)
-        .neq('id', user.id)
-        .limit(10);
+      const { data, error } = await supabase.rpc('get_discoverable_profiles', {
+        search_query: sanitizedQuery,
+        limit_count: 10
+      });
 
       if (error) throw error;
 
