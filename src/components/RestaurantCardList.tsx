@@ -105,10 +105,10 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
         isMobile={isMobile}
       />
       
-      <Card className="overflow-hidden bg-card border-0 shadow-[0_6px_25px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.15)] transition-all duration-300 rounded-3xl cursor-pointer group" onClick={handleCardClick}>
+      <Card className="overflow-hidden bg-card border-0 shadow-[0_6px_25px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.15)] transition-all duration-300 rounded-2xl cursor-pointer group" onClick={handleCardClick}>
         <div className={isMobile ? "block" : "flex"}>
           {!isMobile && restaurant.photos.length > 0 && (
-            <div className="w-32 h-32 lg:w-40 lg:h-40 flex-shrink-0 relative overflow-hidden rounded-l-3xl" onClick={openGallery}>
+            <div className="w-24 h-24 flex-shrink-0 relative overflow-hidden rounded-l-2xl" onClick={openGallery}>
 <LazyImage 
   src={resolveImageUrl(restaurant.photos[currentPhotoIndex], { width: 400 })}
   placeholderSrc={getLqipUrl(restaurant.photos[currentPhotoIndex])}
@@ -118,144 +118,100 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
             </div>
           )}
 
-          {/* Content section */}
+          {/* Compact Content section */}
           <div className="flex-1 flex flex-col">
-            <CardHeader className={`${isMobile ? "py-3 px-4" : "pb-3 p-4 lg:p-5"}`}>
-              <div className={`${isMobile ? "flex items-center justify-between" : "flex justify-between items-start"}`}>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-3 mb-2">
-                    <CardTitle className={`font-bold truncate ${isMobile ? "text-lg" : "text-lg lg:text-xl"}`}>
-                      {restaurant.name}
-                    </CardTitle>
-                    
-                    {/* Inline Star Rating - matching large card style */}
-                    {restaurant.rating !== undefined && (
-                      <div className="flex items-center gap-1.5 flex-shrink-0">
-                        <div className="text-amber-400 text-base">★</div>
-                        <span className="text-base font-bold text-foreground">
-                          {restaurant.rating.toFixed(1)}
-                        </span>
-                      </div>
+            <CardHeader className={`${isMobile ? "py-2.5 px-3" : "py-3 px-4"}`}>
+              <div className="space-y-1.5">
+                {/* Name and Rating Row */}
+                <div className="flex items-center justify-between gap-2">
+                  <CardTitle className={`font-bold truncate ${isMobile ? "text-base" : "text-lg"}`}>
+                    {restaurant.name}
+                  </CardTitle>
+                  
+                  {/* Inline Star Rating */}
+                  {restaurant.rating !== undefined && (
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <div className="text-amber-400 text-sm">★</div>
+                      <span className="text-sm font-bold text-foreground">
+                        {restaurant.rating.toFixed(1)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Compact Info Row: Cuisine • Price • City • Michelin */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-sm min-w-0 flex-1">
+                    <span className="font-medium text-foreground truncate">{restaurant.cuisine}</span>
+                    {restaurant.priceRange && (
+                      <>
+                        <span className="text-muted-foreground">•</span>
+                        <div className="flex items-center gap-0.5">
+                          <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">
+                            {'$'.repeat(restaurant.priceRange)}
+                          </span>
+                          <span className="text-sm font-light text-muted-foreground/40">
+                            {'$'.repeat(4 - restaurant.priceRange)}
+                          </span>
+                        </div>
+                      </>
                     )}
+                    <span className="text-muted-foreground">•</span>
+                    <span className="text-sm text-muted-foreground truncate">
+                      <LocationDisplay restaurant={restaurant} />
+                    </span>
                   </div>
                   
-                  {/* Cuisine, Price & Michelin Row - matching large card style */}
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 text-sm min-w-0">
-                      <span className="font-medium text-foreground truncate">{restaurant.cuisine}</span>
-                      {restaurant.priceRange && (
-                        <>
-                          <span className="text-muted-foreground">•</span>
-                          <div className="flex items-center gap-1">
-                            <span className="text-base font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">
-                              {'$'.repeat(restaurant.priceRange)}
-                            </span>
-                            <span className="text-base font-light text-muted-foreground/40">
-                              {'$'.repeat(4 - restaurant.priceRange)}
-                            </span>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                    
-                    {/* Michelin Stars */}
+                  {/* Michelin Stars and Actions */}
+                  <div className="flex items-center gap-1 flex-shrink-0">
                     {restaurant.michelinStars && (
-                      <div className="flex items-center flex-shrink-0">
+                      <div className="flex items-center mr-1">
                         <MichelinStars stars={restaurant.michelinStars} readonly size="sm" />
                       </div>
                     )}
-                  </div>
-                </div>
-                
-                {/* Action buttons - matching large card style */}
-                {!isMobile && (
-                  <div className="flex items-center gap-1 ml-3">
+                    
+                    {/* Compact Action buttons */}
                     <Button 
                       size="icon"
                       variant="ghost"
-                      className="h-8 w-8 rounded-full hover:bg-muted/50 transition-all duration-200 hover:scale-105 shadow-none"
+                      className="h-6 w-6 rounded-full hover:bg-muted/50 transition-all duration-200 hover:scale-105 shadow-none"
                       onClick={(e) => handleButtonClick(e, () => setIsShareDialogOpen(true))}
                     >
-                      <Share2 className="h-3.5 w-3.5 text-muted-foreground" />
+                      <Share2 className="h-3 w-3 text-muted-foreground" />
                     </Button>
                     
                     {onDelete && (
                       <Button 
                         size="icon"
                         variant="ghost"
-                        className="h-8 w-8 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all duration-200 hover:scale-105 shadow-none"
+                        className="h-6 w-6 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all duration-200 hover:scale-105 shadow-none"
                         onClick={(e) => handleButtonClick(e, () => onDelete(restaurant.id))}
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <Trash2 className="h-3 w-3" />
                       </Button>
                     )}
                   </div>
-                )}
-              </div>
-            </CardHeader>
-            
-            {!isMobile && (
-              <CardContent className="pt-0 flex-1 flex flex-col justify-between p-4 lg:p-5">
-                <div className="space-y-2">
-                  <div className="flex items-center text-muted-foreground text-sm">
-                    <MapPin className="mr-2.5 flex-shrink-0 h-3.5 w-3.5 text-muted-foreground/60" />
-                    <LocationDisplay restaurant={restaurant} />
-                  </div>
-                  
-                  {restaurant.openingHours && (
-                    <div className="flex items-center text-muted-foreground text-sm">
-                      <Clock className="mr-2.5 flex-shrink-0 h-3.5 w-3.5 text-muted-foreground/60" />
-                      <span className="truncate">
-                        {restaurant.openingHours.split('\n')[0]}
-                      </span>
-                    </div>
-                  )}
-                  
-                  {/* Status Tags - matching large card style */}
-                  <div className="flex items-center gap-2 flex-wrap pt-1">
+                </div>
+                
+                {/* Status Tags Row - only if present */}
+                {(restaurant.dateVisited || restaurant.isWishlist) && (
+                  <div className="flex items-center gap-1.5 pt-0.5">
                     {restaurant.dateVisited && (
-                      <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 dark:bg-blue-950/30 px-2.5 py-1 text-xs font-medium text-blue-700 dark:text-blue-300">
-                        <Clock className="h-2.5 w-2.5" />
+                      <div className="inline-flex items-center gap-1 rounded-full bg-blue-50 dark:bg-blue-950/30 px-2 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-300">
+                        <Clock className="h-2 w-2" />
                         <span>{format(new Date(restaurant.dateVisited), 'MMM d')}</span>
                       </div>
                     )}
                     
                     {restaurant.isWishlist && (
-                      <div className="inline-flex items-center rounded-full bg-amber-50 dark:bg-amber-950/30 px-2.5 py-1 text-xs font-medium text-amber-700 dark:text-amber-300">
+                      <div className="inline-flex items-center rounded-full bg-amber-50 dark:bg-amber-950/30 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-300">
                         Saved
                       </div>
                     )}
                   </div>
-                </div>
-              </CardContent>
-            )}
-            
-            {/* Mobile simplified content - matching large card style */}
-            {isMobile && (
-              <CardContent className="pt-0 px-4 pb-3">
-                <div className="flex items-center gap-1">
-                  <Button 
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8 rounded-full hover:bg-muted/50 transition-all duration-200 hover:scale-105 shadow-none"
-                    onClick={(e) => handleButtonClick(e, () => setIsShareDialogOpen(true))}
-                  >
-                    <Share2 className="h-3.5 w-3.5 text-muted-foreground" />
-                  </Button>
-                  
-                  {onDelete && (
-                    <Button 
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all duration-200 hover:scale-105 shadow-none"
-                      onClick={(e) => handleButtonClick(e, () => onDelete(restaurant.id))}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            )}
+                )}
+              </div>
+            </CardHeader>
           </div>
         </div>
       </Card>
