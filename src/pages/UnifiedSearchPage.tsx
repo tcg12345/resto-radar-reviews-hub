@@ -561,56 +561,59 @@ const performLiveSearch = async () => {
                 <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20">Quick access</Badge>
               </div>
               
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {recentClickedRestaurants.map(place => 
                   <Card key={place.place_id} className="overflow-hidden bg-card border-0 shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] transition-all duration-300 rounded-2xl cursor-pointer group" onClick={() => handlePlaceClick(place)}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 flex items-center justify-center flex-shrink-0">
-                            <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <CardContent className="py-2.5 px-3">
+                      <div className="space-y-1">
+                        {/* Top Row: Name + Rating + Button */}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <Clock className="w-3 h-3 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                            <h4 className="font-bold text-sm text-foreground truncate">{place.name}</h4>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-bold text-base text-foreground truncate mb-0.5">{place.name}</h4>
-                            <p className="text-sm text-muted-foreground truncate">
-                              {(() => {
-                                const parts = place.formatted_address?.split(', ') || [];
-                                if (parts.length >= 2) {
-                                  if (parts[parts.length - 1] === 'United States') {
-                                    const city = parts[parts.length - 3] || '';
-                                    const stateWithZip = parts[parts.length - 2] || '';
-                                    const state = stateWithZip.replace(/\s+\d{5}(-\d{4})?$/, '');
-                                    return city && state ? `${city}, ${state}` : city || state;
-                                  }
-                                  const city = parts[parts.length - 2] || '';
-                                  const country = parts[parts.length - 1] || '';
-                                  const cleanCity = city.replace(/\s+[A-Z0-9]{2,10}$/, '');
-                                  return cleanCity && country ? `${cleanCity}, ${country}` : cleanCity || country;
-                                }
-                                return parts[0] || '';
-                              })()}
-                            </p>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {place.rating && (
+                              <div className="flex items-center gap-1">
+                                <div className="text-amber-400 text-xs">★</div>
+                                <span className="text-xs font-bold text-foreground">
+                                  {place.rating.toFixed(1)}
+                                </span>
+                              </div>
+                            )}
+                            <Button 
+                              size="sm" 
+                              className="h-6 px-2.5 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-xs"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handlePlaceClick(place);
+                              }}
+                            >
+                              View
+                            </Button>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3 flex-shrink-0">
-                          {place.rating && (
-                            <div className="flex items-center gap-1.5">
-                              <div className="text-amber-400 text-sm">★</div>
-                              <span className="text-sm font-bold text-foreground">
-                                {place.rating.toFixed(1)}
-                              </span>
-                            </div>
-                          )}
-                          <Button 
-                            size="sm" 
-                            className="h-7 px-3 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-xs"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handlePlaceClick(place);
-                            }}
-                          >
-                            View
-                          </Button>
+                        
+                        {/* Bottom Row: Location */}
+                        <div className="pl-5">
+                          <p className="text-xs text-muted-foreground truncate">
+                            {(() => {
+                              const parts = place.formatted_address?.split(', ') || [];
+                              if (parts.length >= 2) {
+                                if (parts[parts.length - 1] === 'United States') {
+                                  const city = parts[parts.length - 3] || '';
+                                  const stateWithZip = parts[parts.length - 2] || '';
+                                  const state = stateWithZip.replace(/\s+\d{5}(-\d{4})?$/, '');
+                                  return city && state ? `${city}, ${state}` : city || state;
+                                }
+                                const city = parts[parts.length - 2] || '';
+                                const country = parts[parts.length - 1] || '';
+                                const cleanCity = city.replace(/\s+[A-Z0-9]{2,10}$/, '');
+                                return cleanCity && country ? `${cleanCity}, ${country}` : cleanCity || country;
+                              }
+                              return parts[0] || '';
+                            })()}
+                          </p>
                         </div>
                       </div>
                     </CardContent>
@@ -628,71 +631,78 @@ const performLiveSearch = async () => {
                 </div>
               </div>
               
-              {isLoadingRecommendations ? <div className="space-y-3">
+              {isLoadingRecommendations ? <div className="space-y-2">
                   {[...Array(3)].map((_, i) => 
                     <Card key={i} className="overflow-hidden bg-card border-0 shadow-[0_4px_20px_rgba(0,0,0,0.08)] rounded-2xl">
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-muted animate-pulse" />
-                          <div className="flex-1 space-y-2">
-                            <div className="h-4 bg-muted rounded animate-pulse" />
-                            <div className="h-3 bg-muted/60 rounded w-3/4 animate-pulse" />
+                      <CardContent className="py-2.5 px-3">
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 flex-1">
+                              <div className="w-3 h-3 bg-muted rounded animate-pulse" />
+                              <div className="h-3.5 bg-muted rounded w-32 animate-pulse" />
+                            </div>
+                            <div className="w-12 h-6 bg-muted rounded-full animate-pulse" />
                           </div>
-                          <div className="w-16 h-7 bg-muted rounded-full animate-pulse" />
+                          <div className="pl-5">
+                            <div className="h-3 bg-muted/60 rounded w-24 animate-pulse" />
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
                   )}
-                </div> : <div className="space-y-3">
+                </div> : <div className="space-y-2">
                   {recommendedPlaces.map((place, index) => 
                     <Card key={place.place_id} className="overflow-hidden bg-card border-0 shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] transition-all duration-300 rounded-2xl cursor-pointer group" onClick={() => handlePlaceClick(place)}>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/30 dark:to-emerald-900/20 flex items-center justify-center flex-shrink-0">
-                              <Navigation className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                      <CardContent className="py-2.5 px-3">
+                        <div className="space-y-1">
+                          {/* Top Row: Name + Rating + Button */}
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <Navigation className="w-3 h-3 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                              <h4 className="font-bold text-sm text-foreground truncate">{place.name}</h4>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-bold text-base text-foreground truncate mb-0.5">{place.name}</h4>
-                              <p className="text-sm text-muted-foreground truncate">
-                                {(() => {
-                                  const parts = place.formatted_address?.split(', ') || [];
-                                  if (parts.length >= 2) {
-                                    if (parts[parts.length - 1] === 'United States') {
-                                      const city = parts[parts.length - 3] || '';
-                                      const stateWithZip = parts[parts.length - 2] || '';
-                                      const state = stateWithZip.replace(/\s+\d{5}(-\d{4})?$/, '');
-                                      return city && state ? `${city}, ${state}` : city || state;
-                                    }
-                                    const city = parts[parts.length - 2] || '';
-                                    const country = parts[parts.length - 1] || '';
-                                    const cleanCity = city.replace(/\s+[A-Z0-9]{2,10}$/, '');
-                                    return cleanCity && country ? `${cleanCity}, ${country}` : cleanCity || country;
-                                  }
-                                  return parts[0] || '';
-                                })()}
-                              </p>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              {place.rating && (
+                                <div className="flex items-center gap-1">
+                                  <div className="text-amber-400 text-xs">★</div>
+                                  <span className="text-xs font-bold text-foreground">
+                                    {place.rating.toFixed(1)}
+                                  </span>
+                                </div>
+                              )}
+                              <Button 
+                                size="sm" 
+                                className="h-6 px-2.5 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-xs"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handlePlaceClick(place);
+                                }}
+                              >
+                                View
+                              </Button>
                             </div>
                           </div>
-                          <div className="flex items-center gap-3 flex-shrink-0">
-                            {place.rating && (
-                              <div className="flex items-center gap-1.5">
-                                <div className="text-amber-400 text-sm">★</div>
-                                <span className="text-sm font-bold text-foreground">
-                                  {place.rating.toFixed(1)}
-                                </span>
-                              </div>
-                            )}
-                            <Button 
-                              size="sm" 
-                              className="h-7 px-3 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-xs"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handlePlaceClick(place);
-                              }}
-                            >
-                              View
-                            </Button>
+                          
+                          {/* Bottom Row: Location */}
+                          <div className="pl-5">
+                            <p className="text-xs text-muted-foreground truncate">
+                              {(() => {
+                                const parts = place.formatted_address?.split(', ') || [];
+                                if (parts.length >= 2) {
+                                  if (parts[parts.length - 1] === 'United States') {
+                                    const city = parts[parts.length - 3] || '';
+                                    const stateWithZip = parts[parts.length - 2] || '';
+                                    const state = stateWithZip.replace(/\s+\d{5}(-\d{4})?$/, '');
+                                    return city && state ? `${city}, ${state}` : city || state;
+                                  }
+                                  const city = parts[parts.length - 2] || '';
+                                  const country = parts[parts.length - 1] || '';
+                                  const cleanCity = city.replace(/\s+[A-Z0-9]{2,10}$/, '');
+                                  return cleanCity && country ? `${cleanCity}, ${country}` : cleanCity || country;
+                                }
+                                return parts[0] || '';
+                              })()}
+                            </p>
                           </div>
                         </div>
                       </CardContent>
