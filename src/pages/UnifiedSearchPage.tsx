@@ -549,11 +549,11 @@ const performLiveSearch = async () => {
       </div>
       
       {/* Mobile Instant Suggestions Section */}
-      {!searchQuery && user && (searchResults.length === 0 || !isLoading) && <div className="lg:hidden mt-6 space-y-6">
+      {!searchQuery && user && (searchResults.length === 0 || !isLoading) && <div className="lg:hidden mt-8 space-y-8">
 
           {/* Recent Restaurants Section */}
           {recentClickedRestaurants.length > 0 && <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-3">
                   <h3 className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">Recent searches</h3>
                   <div className="h-0.5 w-8 bg-gradient-to-r from-primary to-primary-glow rounded-full"></div>
@@ -561,64 +561,147 @@ const performLiveSearch = async () => {
                 <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20">Quick access</Badge>
               </div>
               
-              <div className="space-y-2">
-                {recentClickedRestaurants.map(place => <div key={place.place_id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => handlePlaceClick(place)}>
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                        <Clock className="w-4 h-4 text-muted-foreground" />
+              <div className="space-y-3">
+                {recentClickedRestaurants.map(place => 
+                  <Card key={place.place_id} className="overflow-hidden bg-card border-0 shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] transition-all duration-300 rounded-2xl cursor-pointer group" onClick={() => handlePlaceClick(place)}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 flex items-center justify-center flex-shrink-0">
+                            <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-base text-foreground truncate mb-0.5">{place.name}</h4>
+                            <p className="text-sm text-muted-foreground truncate">
+                              {(() => {
+                                const parts = place.formatted_address?.split(', ') || [];
+                                if (parts.length >= 2) {
+                                  if (parts[parts.length - 1] === 'United States') {
+                                    const city = parts[parts.length - 3] || '';
+                                    const stateWithZip = parts[parts.length - 2] || '';
+                                    const state = stateWithZip.replace(/\s+\d{5}(-\d{4})?$/, '');
+                                    return city && state ? `${city}, ${state}` : city || state;
+                                  }
+                                  const city = parts[parts.length - 2] || '';
+                                  const country = parts[parts.length - 1] || '';
+                                  const cleanCity = city.replace(/\s+[A-Z0-9]{2,10}$/, '');
+                                  return cleanCity && country ? `${cleanCity}, ${country}` : cleanCity || country;
+                                }
+                                return parts[0] || '';
+                              })()}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 flex-shrink-0">
+                          {place.rating && (
+                            <div className="flex items-center gap-1.5">
+                              <div className="text-amber-400 text-sm">★</div>
+                              <span className="text-sm font-bold text-foreground">
+                                {place.rating.toFixed(1)}
+                              </span>
+                            </div>
+                          )}
+                          <Button 
+                            size="sm" 
+                            className="h-7 px-3 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handlePlaceClick(place);
+                            }}
+                          >
+                            View
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm line-clamp-1">{place.name}</p>
-                        <p className="text-xs text-muted-foreground line-clamp-1">{place.formatted_address}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      {place.rating && <div className="flex items-center gap-1">
-                          <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                          <span className="text-xs font-medium">{place.rating}</span>
-                        </div>}
-                      
-                    </div>
-                  </div>)}
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </div>}
 
           {/* Recommendations Section */}
           {recommendedPlaces.length > 0 && <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-3">
                   <h3 className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">Recommended for you</h3>
                   <div className="h-0.5 w-8 bg-gradient-to-r from-primary to-primary-glow rounded-full"></div>
                 </div>
               </div>
               
-              {isLoadingRecommendations ? <div className="grid gap-3">
-                  {[...Array(3)].map((_, i) => <div key={i} className="h-16 bg-muted/50 rounded-lg animate-pulse" />)}
-                </div> : <div className="space-y-2">
-                  {recommendedPlaces.map((place, index) => <div key={place.place_id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => handlePlaceClick(place)}>
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <Navigation className="w-4 h-4 text-primary" />
+              {isLoadingRecommendations ? <div className="space-y-3">
+                  {[...Array(3)].map((_, i) => 
+                    <Card key={i} className="overflow-hidden bg-card border-0 shadow-[0_4px_20px_rgba(0,0,0,0.08)] rounded-2xl">
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-muted animate-pulse" />
+                          <div className="flex-1 space-y-2">
+                            <div className="h-4 bg-muted rounded animate-pulse" />
+                            <div className="h-3 bg-muted/60 rounded w-3/4 animate-pulse" />
+                          </div>
+                          <div className="w-16 h-7 bg-muted rounded-full animate-pulse" />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm line-clamp-1">{place.name}</p>
-                          <p className="text-xs text-muted-foreground line-clamp-1">{place.formatted_address}</p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div> : <div className="space-y-3">
+                  {recommendedPlaces.map((place, index) => 
+                    <Card key={place.place_id} className="overflow-hidden bg-card border-0 shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] transition-all duration-300 rounded-2xl cursor-pointer group" onClick={() => handlePlaceClick(place)}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/30 dark:to-emerald-900/20 flex items-center justify-center flex-shrink-0">
+                              <Navigation className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-bold text-base text-foreground truncate mb-0.5">{place.name}</h4>
+                              <p className="text-sm text-muted-foreground truncate">
+                                {(() => {
+                                  const parts = place.formatted_address?.split(', ') || [];
+                                  if (parts.length >= 2) {
+                                    if (parts[parts.length - 1] === 'United States') {
+                                      const city = parts[parts.length - 3] || '';
+                                      const stateWithZip = parts[parts.length - 2] || '';
+                                      const state = stateWithZip.replace(/\s+\d{5}(-\d{4})?$/, '');
+                                      return city && state ? `${city}, ${state}` : city || state;
+                                    }
+                                    const city = parts[parts.length - 2] || '';
+                                    const country = parts[parts.length - 1] || '';
+                                    const cleanCity = city.replace(/\s+[A-Z0-9]{2,10}$/, '');
+                                    return cleanCity && country ? `${cleanCity}, ${country}` : cleanCity || country;
+                                  }
+                                  return parts[0] || '';
+                                })()}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3 flex-shrink-0">
+                            {place.rating && (
+                              <div className="flex items-center gap-1.5">
+                                <div className="text-amber-400 text-sm">★</div>
+                                <span className="text-sm font-bold text-foreground">
+                                  {place.rating.toFixed(1)}
+                                </span>
+                              </div>
+                            )}
+                            <Button 
+                              size="sm" 
+                              className="h-7 px-3 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-xs"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handlePlaceClick(place);
+                              }}
+                            >
+                              View
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        {place.rating && <div className="flex items-center gap-1">
-                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                            <span className="text-xs font-medium">{place.rating}</span>
-                          </div>}
-                        <Button size="sm" variant="outline" className="h-7 px-2 text-xs">
-                          View
-                        </Button>
-                      </div>
-                    </div>)}
+                      </CardContent>
+                    </Card>
+                  )}
                   
-                  {hasMoreRecommendations && <InfiniteScrollLoader onLoadMore={loadMoreRecommendations} isLoading={isLoadingMoreRecommendations} hasMore={hasMoreRecommendations} />}
-                </div>}
-            </div>}
+                   {hasMoreRecommendations && <InfiniteScrollLoader onLoadMore={loadMoreRecommendations} isLoading={isLoadingMoreRecommendations} hasMore={hasMoreRecommendations} />}
+                 </div>}
+             </div>}
 
           {/* Fallback for no data */}
           {recentClickedRestaurants.length === 0 && recommendedPlaces.length === 0 && !isLoadingRecommendations && <div className="text-center py-8">
