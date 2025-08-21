@@ -280,7 +280,7 @@ export function RestaurantCard({
         )}
         
         {/* Premium Content Layout */}
-        <div className="flex flex-col flex-1 p-5 space-y-5">
+        <div className="flex flex-col flex-1 p-5 space-y-4">
           {/* Restaurant Name with Inline Rating */}
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-3">
