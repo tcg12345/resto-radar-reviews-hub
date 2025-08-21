@@ -783,7 +783,7 @@ export function FriendsActivityPage() {
       </div>
 
       {/* Modern Filter Pills */}
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-2 justify-center">
+      <div className="flex gap-2 mb-6 justify-center">
         <button
           onClick={() => setFilterBy('all')}
           className={`px-4 py-2 rounded-full whitespace-nowrap transition-all flex items-center gap-2 ${
