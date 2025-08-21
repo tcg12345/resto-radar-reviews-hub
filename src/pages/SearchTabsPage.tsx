@@ -41,39 +41,39 @@ export default function SearchTabsPage() {
   return (
     <>
       {/* Mobile Version - Simplified */}
-      <div className="lg:hidden w-full mobile-container py-4">
-        <div className="mb-6 hidden">
+      <div className="lg:hidden w-full mobile-container py-3">
+        <div className="mb-4 hidden">
         </div>
 
         <Tabs value={activeTab} onValueChange={handleTabChange}>
-          {/* Modern Tab Pills - No Horizontal Scrolling */}
-          <div className="flex mb-6 bg-muted/20 rounded-2xl p-1.5 border">
+          {/* Mobile Tab Buttons */}
+          <div className="flex mb-4 bg-muted/30 rounded-xl p-1">
             <button
               onClick={() => handleTabChange('global')}
-              className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200 ${
+              className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
                 activeTab === 'global'
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  ? 'bg-white text-primary shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Restaurants
             </button>
             <button
               onClick={() => handleTabChange('friends')}
-              className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200 ${
+              className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
                 activeTab === 'friends'
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  ? 'bg-white text-primary shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Friends
             </button>
             <button
               onClick={() => handleTabChange('experts')}
-              className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200 ${
+              className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
                 activeTab === 'experts'
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  ? 'bg-white text-primary shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Experts

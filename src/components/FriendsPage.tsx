@@ -159,109 +159,44 @@ export function FriendsPage({
         </div>
       </div>;
   }
-  return <div className="w-full max-w-none py-6 px-4 lg:px-6 space-y-6">
+  return <div className="w-full max-w-none py-8 px-4 lg:px-6 space-y-8">
       {/* Header */}
       <div className="text-center space-y-4">
         
       </div>
 
-      {/* Modern Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-card rounded-xl p-4 border shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-500/10 rounded-lg">
-              <Users className="h-4 w-4 text-blue-500" />
-            </div>
-            <div>
-              <div className="text-2xl font-bold">{friends.length}</div>
-              <div className="text-xs text-muted-foreground font-medium">Friends</div>
-            </div>
-          </div>
-        </div>
-        <div className="bg-card rounded-xl p-4 border shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-orange-500/10 rounded-lg">
-              <Filter className="h-4 w-4 text-orange-500" />
-            </div>
-            <div>
-              <div className="text-2xl font-bold">{pendingRequests.length}</div>
-              <div className="text-xs text-muted-foreground font-medium">Requests</div>
-            </div>
-          </div>
-        </div>
-        <div className="bg-card rounded-xl p-4 border shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-500/10 rounded-lg">
-              <Plus className="h-4 w-4 text-green-500" />
-            </div>
-            <div>
-              <div className="text-2xl font-bold">{sentRequests.length}</div>
-              <div className="text-xs text-muted-foreground font-medium">Sent</div>
-            </div>
-          </div>
-        </div>
-        <div className="bg-card rounded-xl p-4 border shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-purple-500/10 rounded-lg">
-              <Activity className="h-4 w-4 text-purple-500" />
-            </div>
-            <div>
-              <div className="text-2xl font-bold">{getRecentActivityCount()}</div>
-              <div className="text-xs text-muted-foreground font-medium">Active</div>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Stats Overview */}
+      <FriendStats totalFriends={friends.length} pendingRequests={pendingRequests.length} sentRequests={sentRequests.length} recentActivity={getRecentActivityCount()} />
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        {/* Modern Tab Pills */}
-        <div className="flex gap-1 mb-6 bg-muted/20 rounded-2xl p-1.5 border overflow-x-auto">
-          <button
-            onClick={() => setActiveTab('friends')}
-            className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
-              activeTab === 'friends'
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-            }`}
-          >
-            <Users className="h-4 w-4" />
-            Friends ({friends.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('activity')}
-            className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
-              activeTab === 'activity'
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-            }`}
-          >
-            <Activity className="h-4 w-4" />
-            Activity
-          </button>
-          <button
-            onClick={() => setActiveTab('search')}
-            className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
-              activeTab === 'search'
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-            }`}
-          >
-            <Plus className="h-4 w-4" />
-            Find Friends
-          </button>
-          <button
-            onClick={() => setActiveTab('requests')}
-            className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
-              activeTab === 'requests'
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-            }`}
-          >
-            <Filter className="h-4 w-4" />
-            Requests ({pendingRequests.length + sentRequests.length})
-          </button>
-        </div>
+        <TabsList className="w-full grid grid-cols-4 gap-1 p-1 mb-6 bg-muted rounded-md">
+          <TabsTrigger value="friends" className="flex flex-col items-center justify-center h-10 text-[11px] sm:text-sm rounded-md px-1 leading-none data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+            <Users className="h-3 w-3 mb-0.5 shrink-0" />
+            <span>
+              <span className="sm:hidden inline">Friends</span>
+              <span className="hidden sm:inline">Friends ({friends.length})</span>
+            </span>
+          </TabsTrigger>
+          <TabsTrigger value="activity" className="flex flex-col items-center justify-center h-10 text-[11px] sm:text-sm rounded-md px-1 leading-none data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+            <Activity className="h-3 w-3 mb-0.5 shrink-0" />
+            <span>Activity</span>
+          </TabsTrigger>
+          <TabsTrigger value="search" className="flex flex-col items-center justify-center h-10 text-[11px] sm:text-sm rounded-md px-1 leading-none data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+            <Plus className="h-3 w-3 mb-0.5 shrink-0" />
+            <span>
+              <span className="sm:hidden inline">Find</span>
+              <span className="hidden sm:inline">Find Friends</span>
+            </span>
+          </TabsTrigger>
+          <TabsTrigger value="requests" className="flex flex-col items-center justify-center h-10 text-[11px] sm:text-sm rounded-md px-1 leading-none data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+            <Filter className="h-3 w-3 mb-0.5 shrink-0" />
+            <span>
+              <span className="sm:hidden inline">Requests</span>
+              <span className="hidden sm:inline">Requests ({pendingRequests.length + sentRequests.length})</span>
+            </span>
+          </TabsTrigger>
+        </TabsList>
 
         <TabsContent value="friends" className="space-y-6">
           {friends.length === 0 ? <div className="text-center py-16">
@@ -277,26 +212,23 @@ export function FriendsPage({
                 Find Friends
               </Button>
             </div> : <>
-              {/* Modern Search and Filter Controls */}
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="flex-1">
-                  <Input 
-                    placeholder="Search friends..." 
-                    value={filterQuery} 
-                    onChange={e => setFilterQuery(e.target.value)} 
-                    className="h-11 rounded-xl border-muted bg-muted/20 focus:bg-background transition-colors" 
-                  />
+              {/* Filter Controls */}
+              <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                <div className="flex items-center gap-4 flex-1">
+                  <Input placeholder="Search friends..." value={filterQuery} onChange={e => setFilterQuery(e.target.value)} className="w-full max-w-none lg:max-w-xs" />
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="name">Name</SelectItem>
+                      <SelectItem value="activity">Activity</SelectItem>
+                      <SelectItem value="score">Score</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-full sm:w-[140px] h-11 rounded-xl border-muted bg-muted/20 hover:bg-background transition-colors">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    <SelectItem value="name">Name</SelectItem>
-                    <SelectItem value="activity">Activity</SelectItem>
-                    <SelectItem value="score">Score</SelectItem>
-                  </SelectContent>
-                </Select>
+                
+                
               </div>
 
               {/* Friends Grid/List */}
@@ -341,46 +273,34 @@ export function FriendsPage({
               <p className="text-muted-foreground mb-6">
                 Your friends haven't shared any restaurant experiences recently
               </p>
-            </div> : <div className="space-y-4">
-              {friendsActivity.map(activity => <div 
+            </div> : <div className="grid gap-4">
+              {friendsActivity.map(activity => <Card 
                   key={activity.restaurant_id} 
-                  className="bg-card rounded-xl border shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer p-5"
+                  className="p-4 hover:shadow-md transition-shadow cursor-pointer"
                   onClick={() => navigate(`/restaurant/${activity.restaurant_id}?friendId=${activity.friend_id}&fromFriendsActivity=true&returnUrl=${encodeURIComponent('/friends')}`)}
                 >
-                  {/* Friend Info */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-1 bg-primary/10 rounded-lg">
-                        <Users className="h-4 w-4 text-primary" />
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="font-medium">{activity.friend_username}</span>
+                        <span className="text-muted-foreground">•</span>
+                        <span className="text-sm text-muted-foreground">
+                          {activity.date_visited ? `Visited ${new Date(activity.date_visited).toLocaleDateString()}` : `Added ${new Date(activity.created_at).toLocaleDateString()}`}
+                        </span>
                       </div>
-                      <span className="font-medium text-sm text-muted-foreground">{activity.friend_username}</span>
-                    </div>
-                    <div className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-600 border border-green-200">
-                      Visited
-                    </div>
-                  </div>
-                  
-                  {/* Restaurant Info */}
-                  <div className="mb-3">
-                    <h4 className="font-bold text-xl leading-tight text-foreground mb-2">{activity.restaurant_name}</h4>
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-muted-foreground">{activity.cuisine}</span>
-                      {activity.rating && (
-                        <>
-                          <span className="text-muted-foreground/50">•</span>
-                          <div className="flex items-center gap-1 px-2 py-1 bg-yellow-500/10 rounded-lg">
-                            <span className="text-sm font-bold text-yellow-700">{activity.rating}/10</span>
-                          </div>
-                        </>
-                      )}
+                      <h4 className="font-semibold text-lg">{activity.restaurant_name}</h4>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span>{activity.cuisine}</span>
+                        {activity.rating && <>
+                            <span>•</span>
+                            <span className="flex items-center gap-1">
+                              ⭐ {activity.rating}/10
+                            </span>
+                          </>}
+                      </div>
                     </div>
                   </div>
-                  
-                  {/* Date */}
-                  <div className="text-xs text-muted-foreground pt-3 border-t border-muted/30">
-                    {activity.date_visited ? `Visited ${new Date(activity.date_visited).toLocaleDateString()}` : `Added ${new Date(activity.created_at).toLocaleDateString()}`}
-                  </div>
-                </div>)}
+                </Card>)}
             </div>}
         </TabsContent>
 
