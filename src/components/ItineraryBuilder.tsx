@@ -872,79 +872,74 @@ export function ItineraryBuilder({
     
     if (isMobile) {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5">
-          {/* Mobile Header */}
-          <div className="safe-area-top bg-background/80 backdrop-blur-md border-b border-border/50">
-            <div className="px-6 py-6 flex items-center justify-between relative">
-              {/* Decorative background elements */}
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-secondary/5 rounded-b-2xl" />
-              <div className="absolute top-0 left-1/4 w-32 h-1 bg-gradient-to-r from-primary/30 to-secondary/30 rounded-full" />
-              
-              <div className="relative z-10">
-                <div className="flex items-center space-x-3 mb-1">
-                  <div className="w-2 h-2 rounded-full bg-gradient-to-r from-primary to-secondary animate-pulse" />
-                  <h1 className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
-                    Plan Your Trip
-                  </h1>
-                </div>
-                <p className="text-sm text-muted-foreground/80 font-medium tracking-wide">
-                  Create your perfect travel itinerary
+        <div className="min-h-screen bg-gradient-subtle">
+          {/* Modern Mobile Header */}
+          <div className="bg-card/50 backdrop-blur-sm border-b border-border/30">
+            <div className="px-4 py-6 flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gradient mb-1">
+                  Plan Your Trip
+                </h1>
+                <p className="text-sm text-muted-foreground font-medium">
+                  Create your perfect itinerary
                 </p>
               </div>
               
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="relative rounded-2xl border-2 border-primary/20 bg-background/60 backdrop-blur-sm hover:bg-primary/5 hover:border-primary/40 transition-all duration-300 shadow-lg hover:shadow-xl group" 
+                className="rounded-xl border-border/50 bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-all duration-300 shadow-sm" 
                 onClick={() => setSavedOpen(true)}
               >
-                <BookOpen className="w-4 h-4 mr-2 text-primary group-hover:scale-110 transition-transform duration-200" />
-                <span className="font-medium text-foreground/90">Saved</span>
+                <BookOpen className="w-4 h-4 mr-2 text-primary" />
+                <span className="font-medium">Saved</span>
               </Button>
             </div>
           </div>
 
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-6 space-y-8">
-              <div className="flex items-center justify-center">
-                <div className="flex items-center space-x-3 bg-muted/30 backdrop-blur-sm rounded-full p-1.5 border border-border/50">
-                  <div className="flex items-center space-x-2 px-3 py-1.5">
-                    <Switch 
-                      id="multi-city" 
-                      checked={isMultiCity} 
-                      onCheckedChange={setIsMultiCity}
-                      className="scale-90"
-                    />
-                    <Label htmlFor="multi-city" className="text-sm font-medium">Multi-city</Label>
-                  </div>
+          {/* Premium Content */}
+          <div className="flex-1 overflow-y-auto px-4 py-6 space-y-8">
+            {/* Enhanced Multi-city Toggle */}
+            <div className="flex justify-center">
+              <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-2 border border-border/50 shadow-sm">
+                <div className="flex items-center space-x-3 px-4 py-2">
+                  <Switch 
+                    id="multi-city" 
+                    checked={isMultiCity} 
+                    onCheckedChange={setIsMultiCity}
+                    className="data-[state=checked]:bg-primary"
+                  />
+                  <Label htmlFor="multi-city" className="font-medium text-foreground">Multi-city trip</Label>
                 </div>
               </div>
+            </div>
 
-              {/* Destination Input */}
-              <div className="space-y-4">
-                <div className="text-center space-y-2">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 backdrop-blur-sm border border-primary/20 mb-4">
-                    <MapPin className="w-8 h-8 text-primary" />
-                  </div>
-                  <h2 className="text-xl font-semibold text-foreground">
+            {/* Premium Destination Section */}
+            <div className="space-y-6">
+              <div className="text-center space-y-3">
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-premium/10 backdrop-blur-sm border border-primary/20 mb-4 shadow-lg">
+                  <MapPin className="w-10 h-10 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground mb-2">
                     {isMultiCity ? 'Where to?' : 'Choose destination'}
                   </h2>
-                  <p className="text-muted-foreground text-sm">
-                    {isMultiCity ? 'Add multiple cities to your trip' : 'Start with your main destination'}
+                  <p className="text-muted-foreground text-base max-w-sm mx-auto">
+                    {isMultiCity ? 'Add multiple cities to your adventure' : 'Start with your main destination'}
                   </p>
                 </div>
-                
-                <div className="space-y-4">
-                  <AmadeusCitySearch 
-                    value={currentLocationSearch} 
-                    onChange={setCurrentLocationSearch} 
-                    onCitySelect={handleLocationSelect} 
-                    placeholder={isMultiCity ? "Add another city..." : "Search destinations..."} 
-                    className="w-full h-12 text-base rounded-xl border-0 bg-muted/30 backdrop-blur-sm shadow-sm"
-                  />
-                </div>
               </div>
+              
+              <div className="space-y-4">
+                <AmadeusCitySearch 
+                  value={currentLocationSearch} 
+                  onChange={setCurrentLocationSearch} 
+                  onCitySelect={handleLocationSelect} 
+                  placeholder={isMultiCity ? "Add another city..." : "Search destinations..."} 
+                  className="w-full h-14 text-base rounded-2xl border-0 bg-card/50 backdrop-blur-sm shadow-sm focus:shadow-lg transition-all duration-300 font-medium placeholder:text-muted-foreground/70"
+                />
+              </div>
+            </div>
 
               {/* Selected Destinations */}
               {locations.length > 0 && (
@@ -1125,9 +1120,9 @@ export function ItineraryBuilder({
                 </div>
               )}
             </div>
-          </div>
+            </div>
 
-          {/* Show CTA immediately when conditions are met */}
+          {/* Premium CTA Button */}
           {canCreateItinerary && (
             <div className="px-6 py-6">
               <Button 

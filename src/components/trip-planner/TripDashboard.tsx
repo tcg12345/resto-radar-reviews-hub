@@ -60,166 +60,222 @@ export function TripDashboard() {
         </div>
       </div>;
   }
-  return <div className="w-full px-4 lg:px-6 space-y-6">
+  return <div className="w-full space-y-6 lg:space-y-8">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            Trip Dashboard
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your adventures and discover new places
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-3">
+      <div className="px-3 lg:px-0">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 lg:gap-6">
+          <div className="text-center lg:text-left">
+            <h1 className="text-2xl lg:text-4xl font-bold text-gradient mb-2">
+              My Trips
+            </h1>
+            <p className="text-muted-foreground text-sm lg:text-base">
+              Manage your adventures and discover amazing places
+            </p>
+          </div>
           
-          <Button onClick={() => setIsCreateDialogOpen(true)} className="flex items-center gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70">
-            <Plus className="w-4 h-4" />
-            New Trip
-          </Button>
+          <div className="flex justify-center lg:justify-end">
+            <Button 
+              onClick={() => setIsCreateDialogOpen(true)} 
+              className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium bg-gradient-premium hover:shadow-premium-glow transition-all duration-300 shadow-lg"
+              size="lg"
+            >
+              <Plus className="w-5 h-5" />
+              <span>New Trip</span>
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Stats Overview */}
       <TripStats trips={trips} />
 
-      {/* Controls */}
-      <Card className="border-2 border-primary/10 -mx-4 lg:mx-0 rounded-none lg:rounded-lg">
-        <CardContent className="p-3 md:p-4">
-          {/* Mobile Layout */}
-          <div className="lg:hidden space-y-3">
-            {/* Search - Full width on mobile */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input placeholder="Search trips..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 h-10" />
+      {/* Premium Controls */}
+      <div className="mx-3 lg:mx-0">
+        <Card className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl shadow-premium">
+          <CardContent className="p-4 lg:p-6">
+            {/* Mobile Layout */}
+            <div className="lg:hidden space-y-4">
+              {/* Search - Full width on mobile */}
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input 
+                  placeholder="Search trips..." 
+                  value={searchQuery} 
+                  onChange={e => setSearchQuery(e.target.value)} 
+                  className="pl-12 h-12 rounded-xl bg-muted/30 border-0 text-base font-medium placeholder:text-muted-foreground/70 focus:bg-background/80 transition-all duration-300" 
+                />
+              </div>
+
+              {/* Filters Row - Enhanced mobile layout */}
+              <div className="flex gap-3">
+                <Select value={selectedStatus} onValueChange={(value: any) => setSelectedStatus(value)}>
+                  <SelectTrigger className="flex-1 h-11 text-sm rounded-xl bg-muted/30 border-0 font-medium">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-border/50">
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="upcoming">Upcoming</SelectItem>
+                    <SelectItem value="in-progress">Active</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={sortBy} onValueChange={(value: SortBy) => setSortBy(value)}>
+                  <SelectTrigger className="flex-1 h-11 text-sm rounded-xl bg-muted/30 border-0 font-medium">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-border/50">
+                    <SelectItem value="recent">Recent</SelectItem>
+                    <SelectItem value="oldest">Oldest</SelectItem>
+                    <SelectItem value="name">Name</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Enhanced View Mode Toggle */}
+                <div className="flex items-center bg-muted/30 rounded-xl p-1">
+                  <Button 
+                    variant={viewMode === 'grid' ? 'default' : 'ghost'} 
+                    size="sm" 
+                    onClick={() => setViewMode('grid')} 
+                    className="h-9 w-9 p-0 rounded-lg"
+                  >
+                    <Grid3X3 className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    variant={viewMode === 'list' ? 'default' : 'ghost'} 
+                    size="sm" 
+                    onClick={() => setViewMode('list')} 
+                    className="h-9 w-9 p-0 rounded-lg"
+                  >
+                    <List className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
             </div>
 
-            {/* Filters Row - Compact on mobile */}
-            <div className="flex gap-2">
+            {/* Premium Desktop Layout */}
+            <div className="hidden lg:flex flex-row gap-4">
+              {/* Enhanced Search */}
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input 
+                  placeholder="Search trips by name or destination..." 
+                  value={searchQuery} 
+                  onChange={e => setSearchQuery(e.target.value)} 
+                  className="pl-12 h-12 rounded-xl bg-muted/30 border-0 text-base font-medium placeholder:text-muted-foreground/70 focus:bg-background/80 transition-all duration-300 focus:shadow-lg" 
+                />
+              </div>
+
+              {/* Status Filter */}
               <Select value={selectedStatus} onValueChange={(value: any) => setSelectedStatus(value)}>
-                <SelectTrigger className="flex-1 h-9 text-sm">
+                <SelectTrigger className="w-[160px] h-12 rounded-xl bg-muted/30 border-0 font-medium">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
+                <SelectContent className="rounded-xl border-border/50">
+                  <SelectItem value="all">All Trips</SelectItem>
                   <SelectItem value="upcoming">Upcoming</SelectItem>
                   <SelectItem value="in-progress">In Progress</SelectItem>
                   <SelectItem value="completed">Completed</SelectItem>
                 </SelectContent>
               </Select>
 
+              {/* Sort */}
               <Select value={sortBy} onValueChange={(value: SortBy) => setSortBy(value)}>
-                <SelectTrigger className="flex-1 h-9 text-sm">
+                <SelectTrigger className="w-[140px] h-12 rounded-xl bg-muted/30 border-0 font-medium">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-xl border-border/50">
                   <SelectItem value="recent">Recent</SelectItem>
                   <SelectItem value="oldest">Oldest</SelectItem>
                   <SelectItem value="name">Name</SelectItem>
                 </SelectContent>
               </Select>
 
-              {/* View Mode - Compact */}
-              <div className="flex items-center border rounded-md">
-                <Button variant={viewMode === 'grid' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('grid')} className="h-9 w-9 p-0">
-                  <Grid3X3 className="w-3.5 h-3.5" />
+              {/* Premium View Mode Toggle */}
+              <div className="flex items-center bg-muted/30 rounded-xl p-1.5">
+                <Button 
+                  variant={viewMode === 'grid' ? 'default' : 'ghost'} 
+                  size="sm" 
+                  onClick={() => setViewMode('grid')} 
+                  className="h-9 w-10 p-0 rounded-lg transition-all duration-300"
+                >
+                  <Grid3X3 className="w-4 h-4" />
                 </Button>
-                <Button variant={viewMode === 'list' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('list')} className="h-9 w-9 p-0">
-                  <List className="w-3.5 h-3.5" />
+                <Button 
+                  variant={viewMode === 'list' ? 'default' : 'ghost'} 
+                  size="sm" 
+                  onClick={() => setViewMode('list')} 
+                  className="h-9 w-10 p-0 rounded-lg transition-all duration-300"
+                >
+                  <List className="w-4 h-4" />
                 </Button>
               </div>
             </div>
-          </div>
 
-          {/* Desktop Layout */}
-          <div className="hidden lg:flex flex-row gap-4">
-            {/* Search */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input placeholder="Search trips by name or destination..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
+            {/* Enhanced Results Summary */}
+            <div className="flex items-center justify-between mt-6 pt-4 border-t border-border/50">
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="bg-primary/10 text-primary border-0 rounded-lg px-3 py-1 font-medium">
+                  {filteredAndSortedTrips.length} {filteredAndSortedTrips.length === 1 ? 'trip' : 'trips'}
+                </Badge>
+                {searchQuery && <Badge variant="outline" className="rounded-lg px-3 py-1 border-border/50">
+                    Search: "{searchQuery}"
+                  </Badge>}
+                {selectedStatus !== 'all' && <Badge variant="outline" className="rounded-lg px-3 py-1 border-border/50 capitalize">
+                    {selectedStatus}
+                  </Badge>}
+              </div>
+              
+              {filteredAndSortedTrips.length > 0 && <p className="text-sm text-muted-foreground font-medium">
+                  Sorted by {sortBy === 'recent' ? 'most recent' : sortBy === 'oldest' ? 'oldest first' : sortBy}
+                </p>}
             </div>
-
-            {/* Status Filter */}
-            <Select value={selectedStatus} onValueChange={(value: any) => setSelectedStatus(value)}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Trips</SelectItem>
-                <SelectItem value="upcoming">Upcoming</SelectItem>
-                <SelectItem value="in-progress">In Progress</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Sort */}
-            <Select value={sortBy} onValueChange={(value: SortBy) => setSortBy(value)}>
-              <SelectTrigger className="w-[120px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="recent">Recent</SelectItem>
-                <SelectItem value="oldest">Oldest</SelectItem>
-                <SelectItem value="name">Name</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* View Mode */}
-            <div className="flex items-center border rounded-lg p-1">
-              <Button variant={viewMode === 'grid' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('grid')} className="h-8 w-8 p-0">
-                <Grid3X3 className="w-4 h-4" />
-              </Button>
-              <Button variant={viewMode === 'list' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('list')} className="h-8 w-8 p-0">
-                <List className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Results Summary */}
-          <div className="flex items-center justify-between mt-4 pt-4 border-t">
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="bg-primary/10 text-primary">
-                {filteredAndSortedTrips.length} {filteredAndSortedTrips.length === 1 ? 'trip' : 'trips'}
-              </Badge>
-              {searchQuery && <Badge variant="outline">
-                  Search: "{searchQuery}"
-                </Badge>}
-              {selectedStatus !== 'all' && <Badge variant="outline">
-                  {selectedStatus}
-                </Badge>}
-            </div>
-            
-            {filteredAndSortedTrips.length > 0 && <p className="text-sm text-muted-foreground">
-                Sorted by {sortBy === 'recent' ? 'most recent' : sortBy === 'oldest' ? 'oldest first' : sortBy}
-              </p>}
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Filters Panel */}
       {showFilters && <TripFilters />}
 
-      {/* Trip Content */}
-      {filteredAndSortedTrips.length === 0 ? <Card className="border-dashed border-2 border-muted-foreground/25">
-          <CardContent className="p-12 text-center">
-            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-              <Map className="w-8 h-8 text-primary" />
-            </div>
-            <h3 className="text-lg font-semibold mb-2">
-              {trips.length === 0 ? 'Start Your Journey' : 'No trips found'}
-            </h3>
-            <p className="text-muted-foreground mb-6 w-full max-w-none">
-              {trips.length === 0 ? 'Create your first trip to begin collecting memories and rating amazing places!' : 'Try adjusting your search or filters to find what you\'re looking for.'}
-            </p>
-            {trips.length === 0 && <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-gradient-to-r from-primary to-primary/80">
-                <Plus className="w-4 h-4 mr-2" />
-                Create First Trip
-              </Button>}
-          </CardContent>
-        </Card> : <>
-          {viewMode === 'grid' ? <TripGrid trips={filteredAndSortedTrips} /> : <TripList trips={filteredAndSortedTrips} />}
-        </>}
+      {/* Premium Trip Content */}
+      <div className="mx-3 lg:mx-0">
+        {filteredAndSortedTrips.length === 0 ? (
+          <Card className="border-dashed border-2 border-border/30 rounded-2xl bg-gradient-subtle">
+            <CardContent className="p-8 lg:p-12 text-center">
+              <div className="mx-auto w-20 h-20 bg-primary/10 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+                <Map className="w-10 h-10 text-primary" />
+              </div>
+              <h3 className="text-xl lg:text-2xl font-bold mb-3 text-gradient">
+                {trips.length === 0 ? 'Start Your Journey' : 'No trips found'}
+              </h3>
+              <p className="text-muted-foreground mb-8 text-base lg:text-lg max-w-md mx-auto">
+                {trips.length === 0 
+                  ? 'Create your first trip to begin collecting memories and rating amazing places!' 
+                  : 'Try adjusting your search or filters to find what you\'re looking for.'
+                }
+              </p>
+              {trips.length === 0 && (
+                <Button 
+                  onClick={() => setIsCreateDialogOpen(true)} 
+                  className="px-8 py-3 rounded-xl font-medium bg-gradient-premium hover:shadow-premium-glow transition-all duration-300 shadow-lg"
+                  size="lg"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  Create First Trip
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="animate-fade-in-up">
+            {viewMode === 'grid' ? (
+              <TripGrid trips={filteredAndSortedTrips} />
+            ) : (
+              <TripList trips={filteredAndSortedTrips} />
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Create Trip Dialog */}
       <CreateTripDialog isOpen={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)} />
