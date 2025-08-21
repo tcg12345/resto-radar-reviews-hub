@@ -1179,115 +1179,103 @@ export function FriendsActivityPage() {
                   {/* Mobile Layout */}
                   <div className="md:hidden">
                     {/* Content Block */}
-                    <div className="p-5 space-y-4">
-                      {/* Header Row - Friend Info + Status */}
+                    <div className="p-4 space-y-3">
+                      {/* Header - Friend Info + Status Badge */}
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-8 w-8 ring-2 ring-white/10">
+                        <div className="flex items-center gap-2.5">
+                          <Avatar className="h-7 w-7 ring-1 ring-white/10">
                             <AvatarImage src={restaurant.friend.avatar_url} />
-                            <AvatarFallback className="text-sm bg-gradient-to-br from-slate-600 to-slate-700 text-white font-medium">
+                            <AvatarFallback className="text-xs bg-slate-700 text-slate-200 font-medium">
                               {restaurant.friend.name.charAt(0).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
-                          <div>
-                            <p className="text-sm font-medium text-slate-200">{restaurant.friend.name}</p>
+                          <span className="text-sm text-slate-400 font-medium">{restaurant.friend.name}</span>
+                        </div>
+                        <div className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                          restaurant.is_wishlist 
+                            ? 'bg-rose-500/15 text-rose-400 border border-rose-500/20' 
+                            : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
+                        }`}>
+                          {restaurant.is_wishlist ? 'Want' : 'Been'}
+                        </div>
+                      </div>
+
+                      {/* Restaurant Name + Rating Row */}
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-lg font-bold text-white leading-tight mb-1 truncate">{restaurant.name}</h3>
+                          
+                          {/* Cuisine + Price Row */}
+                          <div className="flex items-center gap-2 text-sm text-slate-300">
+                            <span>{restaurant.cuisine}</span>
+                            {restaurant.price_range && (
+                              <>
+                                <span className="text-slate-500">•</span>
+                                <span className="text-emerald-400 font-semibold">{'$'.repeat(restaurant.price_range)}</span>
+                              </>
+                            )}
                           </div>
                         </div>
-                        <div className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 backdrop-blur-sm ${
-                          restaurant.is_wishlist 
-                            ? 'bg-gradient-to-r from-rose-500/20 to-pink-500/20 text-rose-300 border border-rose-400/30 shadow-lg shadow-rose-500/10' 
-                            : 'bg-gradient-to-r from-emerald-500/20 to-green-500/20 text-emerald-300 border border-emerald-400/30 shadow-lg shadow-emerald-500/10'
-                        }`}>
-                          {restaurant.is_wishlist ? (
-                            <>
-                              <Heart className="h-3.5 w-3.5 fill-current" />
-                              <span>Want to Go</span>
-                            </>
-                          ) : (
-                            <>
-                              <Star className="h-3.5 w-3.5 fill-current" />
-                              <span>Visited</span>
-                            </>
+                        
+                        {/* Rating + Michelin Stars */}
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {restaurant.michelin_stars && restaurant.michelin_stars > 0 && (
+                            <div className="flex-shrink-0">
+                              <MichelinStars stars={restaurant.michelin_stars} size="sm" readonly showLogo={false} />
+                            </div>
+                          )}
+                          {restaurant.rating && (
+                            <div className="inline-flex items-center gap-1 bg-slate-800/80 backdrop-blur-sm border border-slate-700/50 px-2.5 py-1 rounded-full">
+                              <Star className="h-3.5 w-3.5 fill-current text-amber-400" />
+                              <span className="text-xs font-semibold text-white">{restaurant.rating}</span>
+                            </div>
                           )}
                         </div>
                       </div>
 
-                      {/* Main Content Row */}
-                      <div className="space-y-3">
-                        {/* Restaurant Name + Rating */}
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="text-xl font-bold text-white leading-tight truncate">{restaurant.name}</h3>
-                              {restaurant.michelin_stars && restaurant.michelin_stars > 0 && (
-                                <div className="flex-shrink-0">
-                                  <MichelinStars stars={restaurant.michelin_stars} size="sm" readonly showLogo={false} />
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          
-                          {/* Rating Badge */}
-                          {restaurant.rating && (
-                            <div className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 px-3 py-2 border border-amber-400/30 shadow-lg shadow-amber-500/10 backdrop-blur-sm">
-                              <Star className="h-4 w-4 fill-current text-amber-400" />
-                              <span className="text-sm font-bold text-amber-100">{restaurant.rating}</span>
-                            </div>
-                          )}
+                      {/* Location + Date Row */}
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-1.5 text-slate-400">
+                          <MapPin className="h-3.5 w-3.5" />
+                          <span>{restaurant.city}</span>
                         </div>
-
-                        {/* Metadata Row */}
-                        <div className="flex items-center gap-4 text-sm text-slate-300">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-medium">{restaurant.cuisine}</span>
-                          </div>
-                          {restaurant.price_range && (
-                            <div className="flex items-center gap-1">
-                              <span className="text-emerald-400 font-bold text-base tracking-wide">{'$'.repeat(restaurant.price_range)}</span>
-                            </div>
-                          )}
+                        <div className="bg-slate-800/60 border border-slate-700/40 px-2 py-1 rounded-full text-slate-300 font-medium">
+                          {restaurant.is_wishlist 
+                            ? formatDate(restaurant.created_at).replace(/,.*/, '') // Remove year for compactness
+                            : restaurant.date_visited 
+                              ? formatDate(restaurant.date_visited).replace(/,.*/, '')
+                              : formatDate(restaurant.created_at).replace(/,.*/, '')
+                          }
                         </div>
+                      </div>
 
-                        {/* Location & Date Row */}
-                        <div className="flex items-center justify-between text-sm">
-                          <div className="flex items-center gap-2 text-slate-400">
-                            <MapPin className="h-4 w-4 text-slate-500" />
-                            <span>{restaurant.city}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-slate-400">
-                            <Clock className="h-4 w-4 text-slate-500" />
-                            <span className="text-xs">
-                              {restaurant.is_wishlist 
-                                ? formatDate(restaurant.created_at)
-                                : restaurant.date_visited 
-                                  ? formatDate(restaurant.date_visited)
-                                  : formatDate(restaurant.created_at)
-                              }
-                            </span>
-                          </div>
+                      {/* Notes Preview */}
+                      {restaurant.notes && (
+                        <div className="pt-1">
+                          <p className="text-xs text-slate-400 line-clamp-2 italic leading-relaxed">
+                            "{restaurant.notes}"
+                          </p>
                         </div>
+                      )}
 
-                        {/* Notes Preview */}
-                        {restaurant.notes && (
-                          <div className="pt-2 border-t border-white/10">
-                            <p className="text-sm text-slate-300 line-clamp-2 italic leading-relaxed">
-                              "{restaurant.notes}"
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Action Button */}
-                        <div className="pt-2">
+                      {/* Actions Row */}
+                      <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                        <button 
+                          className="text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors duration-150"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          View Details
+                        </button>
+                        <div className="flex items-center gap-2">
                           <button 
-                            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/35 hover:scale-[1.02]"
+                            className="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-white/10 text-slate-400 hover:bg-white/5 hover:border-white/20 transition-all duration-150"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <span>View Details</span>
-                            <ChevronRight className="h-4 w-4" />
+                            <Heart className="h-3.5 w-3.5" />
                           </button>
                         </div>
                       </div>
-                     </div>
+                    </div>
                    </div>
                  </div>)}
 
