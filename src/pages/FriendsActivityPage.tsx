@@ -1169,152 +1169,171 @@ export function FriendsActivityPage() {
               </CardContent>
             </Card>
           </div> : <>
-            <div className="space-y-4 px-2">
-              {filteredRestaurants.map(restaurant => <div key={restaurant.id} className="bg-card rounded-xl border shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer p-5 w-full" onClick={() => {
+            <div className="space-y-3 px-4">
+              {filteredRestaurants.map(restaurant => <div key={restaurant.id} className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/40 shadow-sm hover:shadow-lg hover:bg-card/80 transition-all duration-300 cursor-pointer p-4 w-full mx-auto max-w-full" onClick={() => {
             // Preserve current search parameters for when user returns
             const currentSearch = searchParams.toString();
             const returnUrl = currentSearch ? `/search/friends?${currentSearch}` : '/search/friends';
             navigate(`/restaurant/${restaurant.id}?friendId=${restaurant.friend.id}&fromFriendsActivity=true&returnUrl=${encodeURIComponent(returnUrl)}`);
           }}>
                   {/* Mobile Layout - Modern and Clean */}
-                  <div className="md:hidden space-y-4">
+                  <div className="md:hidden space-y-3">
                     {/* Friend Info Header */}
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <Avatar className="h-7 w-7 ring-2 ring-background flex-shrink-0">
+                      <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                        <Avatar className="h-6 w-6 ring-1 ring-border/50 flex-shrink-0">
                           <AvatarImage src={restaurant.friend.avatar_url} />
-                          <AvatarFallback className="text-xs bg-muted">
+                          <AvatarFallback className="text-xs bg-muted/80 text-muted-foreground">
                             {restaurant.friend.name.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0 flex-1">
-                          <p className="font-medium text-sm text-muted-foreground truncate">{restaurant.friend.name}</p>
+                          <p className="text-sm text-muted-foreground/80 truncate font-medium">{restaurant.friend.name}</p>
                         </div>
                       </div>
-                      <div className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${
+                      <div className={`px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 flex-shrink-0 ${
                         restaurant.is_wishlist 
-                          ? 'bg-red-500/10 text-red-600 border border-red-200' 
-                          : 'bg-green-500/10 text-green-600 border border-green-200'
+                          ? 'bg-destructive/10 text-destructive border border-destructive/20' 
+                          : 'bg-success/10 text-success border border-success/20'
                       }`}>
                         {restaurant.is_wishlist ? <><Heart className="h-3 w-3" />Want</> : <><Star className="h-3 w-3" />Been</>}
                       </div>
                     </div>
 
-                    {/* Restaurant Name & Info */}
-                    <div>
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <h3 className="font-bold text-lg leading-tight text-foreground flex items-center gap-2 mb-2">
-                            {restaurant.name}
-                            {restaurant.michelin_stars && restaurant.michelin_stars > 0 && <MichelinStars stars={restaurant.michelin_stars} size="sm" readonly showLogo={false} />}
+                    {/* Restaurant Name & Rating */}
+                    <div className="space-y-2">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-bold text-xl leading-snug text-foreground flex items-center gap-2 flex-wrap">
+                            <span className="break-words">{restaurant.name}</span>
+                            {restaurant.michelin_stars && restaurant.michelin_stars > 0 && (
+                              <div className="flex-shrink-0">
+                                <MichelinStars stars={restaurant.michelin_stars} size="sm" readonly showLogo={false} />
+                              </div>
+                            )}
                           </h3>
                         </div>
                         
                         {/* Rating */}
                         {restaurant.rating && (
-                          <div className="flex items-center gap-1 px-2 py-1 bg-yellow-500/10 rounded-lg">
-                            <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                            <span className="text-sm font-bold text-yellow-700">{restaurant.rating}</span>
+                          <div className="flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 text-amber-700 rounded-lg border border-amber-200/50 flex-shrink-0">
+                            <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+                            <span className="text-sm font-bold">{restaurant.rating}</span>
                           </div>
                         )}
                       </div>
                       
-                      <div className="flex items-center gap-2 text-sm mb-3">
+                      {/* Details Row */}
+                      <div className="flex items-center gap-1.5 text-sm flex-wrap">
                         <span className="text-muted-foreground">{restaurant.cuisine}</span>
-                        <span className="text-muted-foreground/50">•</span>
+                        <span className="text-muted-foreground/40">•</span>
                         <span className="text-muted-foreground">{restaurant.city}</span>
                         {restaurant.price_range && (
                           <>
-                            <span className="text-muted-foreground/50">•</span>
-                            <span className="text-green-600 font-bold">{'$'.repeat(restaurant.price_range)}</span>
+                            <span className="text-muted-foreground/40">•</span>
+                            <span className="text-success font-bold">{'$'.repeat(restaurant.price_range)}</span>
                           </>
                         )}
                       </div>
                     </div>
 
                     {/* Date Row */}
-                    <div className="flex items-center justify-between text-xs text-muted-foreground pt-3 border-t border-muted/30">
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-3 w-3" />
-                        <span className="font-medium">
-                          {restaurant.is_wishlist 
-                            ? `Added ${formatDate(restaurant.created_at)}`
-                            : restaurant.date_visited 
-                              ? `Visited ${formatDate(restaurant.date_visited)}`
-                              : `Added ${formatDate(restaurant.created_at)}`
-                          }
-                        </span>
-                      </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t border-border/30">
+                      <Clock className="h-3 w-3 flex-shrink-0" />
+                      <span className="font-medium">
+                        {restaurant.is_wishlist 
+                          ? `Added ${formatDate(restaurant.created_at)}`
+                          : restaurant.date_visited 
+                            ? `Visited ${formatDate(restaurant.date_visited)}`
+                            : `Added ${formatDate(restaurant.created_at)}`
+                        }
+                      </span>
                     </div>
 
                     {/* Notes Preview - Mobile Only */}
-                    {restaurant.notes && <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                        "{restaurant.notes}"
-                      </p>}
+                    {restaurant.notes && (
+                      <div className="pt-1">
+                        <p className="text-xs text-muted-foreground/90 line-clamp-2 leading-relaxed italic">
+                          "{restaurant.notes}"
+                        </p>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Desktop Layout - Unchanged */}
-                  <div className="hidden md:block space-y-4">
+                  {/* Desktop Layout - Modern and Clean */}
+                  <div className="hidden md:block space-y-3">
                     {/* Header with friend info */}
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-8 w-8">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-7 w-7 ring-1 ring-border/50">
                           <AvatarImage src={restaurant.friend.avatar_url} />
-                          <AvatarFallback>
+                          <AvatarFallback className="text-xs bg-muted/80 text-muted-foreground">
                             {restaurant.friend.name.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-medium text-sm">{restaurant.friend.name}</p>
-                          <p className="text-xs text-muted-foreground">@{restaurant.friend.username}</p>
+                          <p className="font-medium text-sm text-muted-foreground">{restaurant.friend.name}</p>
                         </div>
                       </div>
-                      {restaurant.is_wishlist ? <Badge variant="outline" className="text-red-600 border-red-200">
-                          <Heart className="h-3 w-3 mr-1" />
-                          Wishlist
-                        </Badge> : <Badge variant="outline" className="text-green-600 border-green-200">
-                          <Star className="h-3 w-3 mr-1" />
-                          Rated
-                        </Badge>}
+                      <div className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 ${
+                        restaurant.is_wishlist 
+                          ? 'bg-destructive/10 text-destructive border border-destructive/20' 
+                          : 'bg-success/10 text-success border border-success/20'
+                      }`}>
+                        {restaurant.is_wishlist ? <><Heart className="h-3 w-3" />Want</> : <><Star className="h-3 w-3" />Been</>}
+                      </div>
                     </div>
 
                     {/* Restaurant info */}
-                    <div>
-                      <div className="flex items-center gap-1 mb-1">
-                        <h3 className="font-semibold text-lg">{restaurant.name}</h3>
-                         {restaurant.michelin_stars && restaurant.michelin_stars > 0 && <MichelinStars stars={restaurant.michelin_stars} size="sm" readonly showLogo={false} />}
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-2">{restaurant.cuisine}</p>
-                      
-                      {/* Rating */}
-                      {restaurant.rating && !restaurant.is_wishlist && <div className="flex items-center gap-2 mb-2">
-                          <StarRating rating={restaurant.rating} readonly size="sm" />
+                    <div className="space-y-2">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <h3 className="font-bold text-xl text-foreground">{restaurant.name}</h3>
+                            {restaurant.michelin_stars && restaurant.michelin_stars > 0 && (
+                              <MichelinStars stars={restaurant.michelin_stars} size="sm" readonly showLogo={false} />
+                            )}
+                          </div>
                           
-                        </div>}
-
-                      {/* Location */}
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
-                        <MapPin className="h-4 w-4" />
-                        <span>{restaurant.city}{restaurant.country && `, ${restaurant.country}`}</span>
-                      </div>
-
-                      {/* Additional info */}
-                      <div className="flex items-center gap-4 text-sm">
-                        {restaurant.price_range && <PriceRange priceRange={restaurant.price_range} />}
+                          {/* Details Row */}
+                          <div className="flex items-center gap-1.5 text-sm mb-2">
+                            <span className="text-muted-foreground">{restaurant.cuisine}</span>
+                            <span className="text-muted-foreground/40">•</span>
+                            <span className="text-muted-foreground">{restaurant.city}</span>
+                            {restaurant.price_range && (
+                              <>
+                                <span className="text-muted-foreground/40">•</span>
+                                <span className="text-success font-bold">{'$'.repeat(restaurant.price_range)}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Rating */}
+                        {restaurant.rating && (
+                          <div className="flex items-center gap-1 px-3 py-1.5 bg-amber-500/10 text-amber-700 rounded-lg border border-amber-200/50 flex-shrink-0">
+                            <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+                            <span className="text-sm font-bold">{restaurant.rating}</span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Date */}
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t border-border/30">
                         <Clock className="h-3 w-3" />
-                        <span>
+                        <span className="font-medium">
                           {restaurant.is_wishlist ? 'Added' : 'Visited'} {formatDate(restaurant.date_visited || restaurant.created_at)}
                         </span>
                       </div>
 
                       {/* Notes preview */}
-                      {restaurant.notes && <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                          "{restaurant.notes}"
-                        </p>}
+                      {restaurant.notes && (
+                        <div className="pt-1">
+                          <p className="text-xs text-muted-foreground/90 line-clamp-2 leading-relaxed italic">
+                            "{restaurant.notes}"
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>)}
