@@ -972,10 +972,10 @@ export function FriendsActivityPage() {
             }} className="lg:col-span-2" />
             
             <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
-              <SelectTrigger className="bg-background border-border">
+              <SelectTrigger className="rounded-xl h-10 px-4 text-sm font-medium bg-background hover:bg-muted/50 border-border">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
-              <SelectContent className="bg-background border-border z-50">
+              <SelectContent className="bg-background border-border z-50 rounded-xl">
                 <SelectItem value="recent">Most Recent</SelectItem>
                 <SelectItem value="rating">Highest Rated</SelectItem>
                 <SelectItem value="alphabetical">A-Z</SelectItem>
@@ -1002,12 +1002,14 @@ export function FriendsActivityPage() {
             {/* Friends Dropdown Filter */}
             <Collapsible open={isFriendsDropdownOpen} onOpenChange={setIsFriendsDropdownOpen} className="space-y-2">
               <CollapsibleTrigger asChild>
-                <Button variant="outline" className="w-full justify-between bg-background border-border">
-                  <span className="text-sm font-medium">
-                    Filter by Friend
-                    {selectedFriends.length > 0 && <span className="ml-2 text-primary">
-                        ({selectedFriends.length} selected)
-                      </span>}
+                <Button variant="outline" className="w-full justify-between rounded-xl h-10 px-4 text-sm font-medium bg-background hover:bg-muted/50 border-border">
+                  <span>
+                    Friends
+                    {selectedFriends.length > 0 && (
+                      <Badge variant="secondary" className="ml-2 h-5 px-2 text-xs rounded-full bg-primary/10 text-primary">
+                        {selectedFriends.length}
+                      </Badge>
+                    )}
                   </span>
                   <ChevronDown className={`h-4 w-4 transition-transform ${isFriendsDropdownOpen ? 'rotate-180' : ''}`} />
                 </Button>
@@ -1033,12 +1035,14 @@ export function FriendsActivityPage() {
             {/* City Dropdown Filter */}
             <Collapsible open={isCityDropdownOpen} onOpenChange={setIsCityDropdownOpen} className="space-y-2">
               <CollapsibleTrigger asChild>
-                <Button variant="outline" className="w-full justify-between bg-background border-border">
-                  <span className="text-sm font-medium">
-                    Filter by City
-                    {selectedCities.length > 0 && <span className="ml-2 text-primary">
-                        ({selectedCities.length} selected)
-                      </span>}
+                <Button variant="outline" className="w-full justify-between rounded-xl h-10 px-4 text-sm font-medium bg-background hover:bg-muted/50 border-border">
+                  <span>
+                    Cities
+                    {selectedCities.length > 0 && (
+                      <Badge variant="secondary" className="ml-2 h-5 px-2 text-xs rounded-full bg-primary/10 text-primary">
+                        {selectedCities.length}
+                      </Badge>
+                    )}
                   </span>
                   <ChevronDown className={`h-4 w-4 transition-transform ${isCityDropdownOpen ? 'rotate-180' : ''}`} />
                 </Button>
@@ -1064,12 +1068,14 @@ export function FriendsActivityPage() {
             {/* Cuisine Dropdown Filter */}
             <Collapsible open={isCuisineDropdownOpen} onOpenChange={setIsCuisineDropdownOpen} className="space-y-2">
               <CollapsibleTrigger asChild>
-                <Button variant="outline" className="w-full justify-between bg-background border-border">
-                  <span className="text-sm font-medium">
-                    Filter by Cuisine
-                    {selectedCuisines.length > 0 && <span className="ml-2 text-primary">
-                        ({selectedCuisines.length} selected)
-                      </span>}
+                <Button variant="outline" className="w-full justify-between rounded-xl h-10 px-4 text-sm font-medium bg-background hover:bg-muted/50 border-border">
+                  <span>
+                    Cuisines
+                    {selectedCuisines.length > 0 && (
+                      <Badge variant="secondary" className="ml-2 h-5 px-2 text-xs rounded-full bg-primary/10 text-primary">
+                        {selectedCuisines.length}
+                      </Badge>
+                    )}
                   </span>
                   <ChevronDown className={`h-4 w-4 transition-transform ${isCuisineDropdownOpen ? 'rotate-180' : ''}`} />
                 </Button>
@@ -1140,134 +1146,169 @@ export function FriendsActivityPage() {
               </CardContent>
             </Card>
           </div> : <>
-            <div className="space-y-0">
-              {filteredRestaurants.map(restaurant => <div key={restaurant.id} className="border-t border-b border-border hover:bg-accent/50 transition-colors cursor-pointer p-4" onClick={() => {
+            <div className="grid gap-3 px-4">
+              {filteredRestaurants.map(restaurant => <Card key={restaurant.id} className="cursor-pointer hover:shadow-lg transition-all duration-200 rounded-xl border shadow-sm bg-card" onClick={() => {
             // Preserve current search parameters for when user returns
             const currentSearch = searchParams.toString();
             const returnUrl = currentSearch ? `/search/friends?${currentSearch}` : '/search/friends';
             navigate(`/restaurant/${restaurant.id}?friendId=${restaurant.friend.id}&fromFriendsActivity=true&returnUrl=${encodeURIComponent(returnUrl)}`);
           }}>
+                <CardContent className="p-4">
                   {/* Mobile Layout - Optimized for small screens */}
                   <div className="md:hidden space-y-3">
-                    {/* Friend Info Header - Compact */}
-                    <div className="flex items-center justify-between">
+                    {/* Friend Info Header - Small and muted */}
+                    <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <Avatar className="h-6 w-6 flex-shrink-0">
+                        <Avatar className="h-5 w-5 flex-shrink-0">
                           <AvatarImage src={restaurant.friend.avatar_url} />
                           <AvatarFallback className="text-xs">
                             {restaurant.friend.name.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <div className="min-w-0 flex-1">
-                          <p className="font-medium text-xs truncate">{restaurant.friend.name}</p>
-                        </div>
+                        <p className="text-xs text-muted-foreground truncate">{restaurant.friend.name}</p>
                       </div>
-                      <Badge variant="outline" className={`text-xs px-2 py-0.5 flex-shrink-0 ${restaurant.is_wishlist ? 'text-red-600 border-red-200' : 'text-green-600 border-green-200'}`}>
-                        {restaurant.is_wishlist ? <><Heart className="h-2.5 w-2.5 mr-1" />Want</> : <><Star className="h-2.5 w-2.5 mr-1" />Been</>}
+                      {/* Status Badge - right aligned */}
+                      <Badge 
+                        variant="outline" 
+                        className={`text-xs px-3 py-1 rounded-full flex-shrink-0 font-medium ${
+                          restaurant.is_wishlist 
+                            ? 'bg-red-50 text-red-700 border-red-200' 
+                            : 'bg-green-50 text-green-700 border-green-200'
+                        }`}
+                      >
+                        {restaurant.is_wishlist ? 'Want' : 'Been'}
                       </Badge>
                     </div>
 
-                    {/* Restaurant Name & Basic Info */}
-                    <div>
-                      <div className="flex items-center gap-1 mb-1">
-                        <h3 className="font-semibold text-sm leading-tight line-clamp-1">{restaurant.name}</h3>
-                         {restaurant.michelin_stars && restaurant.michelin_stars > 0 && <MichelinStars stars={restaurant.michelin_stars} size="sm" readonly showLogo={false} />}
+                    {/* Top Row: Restaurant Name + Rating */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-bold text-base leading-tight line-clamp-1 text-foreground">{restaurant.name}</h3>
+                          {restaurant.michelin_stars && restaurant.michelin_stars > 0 && (
+                            <div className="flex items-center text-sm">
+                              {'⭐'.repeat(restaurant.michelin_stars)}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                        <span className="truncate">{restaurant.cuisine}</span>
-                        <span>•</span>
-                        <span className="truncate">{restaurant.city}</span>
-                      </div>
+                      {/* Rating Badge - top right */}
+                      {restaurant.rating && !restaurant.is_wishlist && (
+                        <Badge variant="secondary" className="bg-yellow-50 text-yellow-800 border-yellow-200 flex items-center gap-1 px-2 py-1 rounded-lg">
+                          <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+                          <span className="font-semibold">{restaurant.rating}</span>
+                        </Badge>
+                      )}
                     </div>
 
-                    {/* Rating & Details Row */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        {restaurant.rating && !restaurant.is_wishlist && <div className="flex items-center gap-1">
-                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                            <span className="text-xs font-medium">{restaurant.rating}</span>
-                          </div>}
-                        {restaurant.price_range && <span className="text-xs text-green-600 font-medium">
+                    {/* Details Row: Cuisine • City • Price */}
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span className="truncate">{restaurant.cuisine}</span>
+                      <span>•</span>
+                      <span className="truncate">{restaurant.city}</span>
+                      {restaurant.price_range && (
+                        <>
+                          <span>•</span>
+                          <span className="font-bold text-green-600">
                             {'$'.repeat(restaurant.price_range)}
-                          </span>}
-                      </div>
-                      <div className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        <span>{formatDate(restaurant.date_visited || restaurant.created_at)}</span>
-                      </div>
+                          </span>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Date - bottom row */}
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      <span>{formatDate(restaurant.date_visited || restaurant.created_at)}</span>
                     </div>
 
                     {/* Notes Preview - Mobile Only */}
-                    {restaurant.notes && <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                    {restaurant.notes && (
+                      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed italic">
                         "{restaurant.notes}"
-                      </p>}
+                      </p>
+                    )}
                   </div>
 
-                  {/* Desktop Layout - Unchanged */}
+                  {/* Desktop Layout - Consistent with mobile design */}
                   <div className="hidden md:block space-y-4">
-                    {/* Header with friend info */}
+                    {/* Friend Info Header - Small and muted */}
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-8 w-8">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-6 w-6">
                           <AvatarImage src={restaurant.friend.avatar_url} />
-                          <AvatarFallback>
+                          <AvatarFallback className="text-xs">
                             {restaurant.friend.name.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <p className="font-medium text-sm">{restaurant.friend.name}</p>
-                          <p className="text-xs text-muted-foreground">@{restaurant.friend.username}</p>
+                        <p className="text-sm text-muted-foreground">{restaurant.friend.name}</p>
+                      </div>
+                      {/* Status Badge - right aligned */}
+                      <Badge 
+                        variant="outline" 
+                        className={`text-sm px-4 py-1 rounded-full font-medium ${
+                          restaurant.is_wishlist 
+                            ? 'bg-red-50 text-red-700 border-red-200' 
+                            : 'bg-green-50 text-green-700 border-green-200'
+                        }`}
+                      >
+                        {restaurant.is_wishlist ? 'Want' : 'Been'}
+                      </Badge>
+                    </div>
+
+                    {/* Top Row: Restaurant Name + Rating */}
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="font-bold text-xl text-foreground">{restaurant.name}</h3>
+                          {restaurant.michelin_stars && restaurant.michelin_stars > 0 && (
+                            <div className="flex items-center text-lg">
+                              {'⭐'.repeat(restaurant.michelin_stars)}
+                            </div>
+                          )}
                         </div>
                       </div>
-                      {restaurant.is_wishlist ? <Badge variant="outline" className="text-red-600 border-red-200">
-                          <Heart className="h-3 w-3 mr-1" />
-                          Wishlist
-                        </Badge> : <Badge variant="outline" className="text-green-600 border-green-200">
-                          <Star className="h-3 w-3 mr-1" />
-                          Rated
-                        </Badge>}
+                      {/* Rating Badge - top right */}
+                      {restaurant.rating && !restaurant.is_wishlist && (
+                        <Badge variant="secondary" className="bg-yellow-50 text-yellow-800 border-yellow-200 flex items-center gap-1 px-3 py-2 rounded-lg">
+                          <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                          <span className="font-semibold text-base">{restaurant.rating}</span>
+                        </Badge>
+                      )}
                     </div>
 
-                    {/* Restaurant info */}
-                    <div>
-                      <div className="flex items-center gap-1 mb-1">
-                        <h3 className="font-semibold text-lg">{restaurant.name}</h3>
-                         {restaurant.michelin_stars && restaurant.michelin_stars > 0 && <MichelinStars stars={restaurant.michelin_stars} size="sm" readonly showLogo={false} />}
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-2">{restaurant.cuisine}</p>
-                      
-                      {/* Rating */}
-                      {restaurant.rating && !restaurant.is_wishlist && <div className="flex items-center gap-2 mb-2">
-                          <StarRating rating={restaurant.rating} readonly size="sm" />
-                          
-                        </div>}
-
-                      {/* Location */}
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
-                        <MapPin className="h-4 w-4" />
-                        <span>{restaurant.city}{restaurant.country && `, ${restaurant.country}`}</span>
-                      </div>
-
-                      {/* Additional info */}
-                      <div className="flex items-center gap-4 text-sm">
-                        {restaurant.price_range && <PriceRange priceRange={restaurant.price_range} />}
-                      </div>
-
-                      {/* Date */}
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
-                        <Clock className="h-3 w-3" />
-                        <span>
-                          {restaurant.is_wishlist ? 'Added' : 'Visited'} {formatDate(restaurant.date_visited || restaurant.created_at)}
-                        </span>
-                      </div>
-
-                      {/* Notes preview */}
-                      {restaurant.notes && <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                          "{restaurant.notes}"
-                        </p>}
+                    {/* Details Row: Cuisine • City • Price */}
+                    <div className="flex items-center gap-3 text-base text-muted-foreground">
+                      <span>{restaurant.cuisine}</span>
+                      <span>•</span>
+                      <span>{restaurant.city}</span>
+                      {restaurant.price_range && (
+                        <>
+                          <span>•</span>
+                          <span className="font-bold text-green-600">
+                            {'$'.repeat(restaurant.price_range)}
+                          </span>
+                        </>
+                      )}
                     </div>
+
+                    {/* Date - bottom row */}
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Clock className="h-4 w-4" />
+                      <span>
+                        {restaurant.is_wishlist ? 'Added' : 'Visited'} {formatDate(restaurant.date_visited || restaurant.created_at)}
+                      </span>
+                    </div>
+
+                    {/* Notes preview */}
+                    {restaurant.notes && (
+                      <p className="text-sm text-muted-foreground line-clamp-2 italic">
+                        "{restaurant.notes}"
+                      </p>
+                    )}
                   </div>
-                </div>)}
+                </CardContent>
+              </Card>)}
 
             {/* Skeleton cards for loading more - show immediately when loading starts */}
             {isLoadingMore && <>
