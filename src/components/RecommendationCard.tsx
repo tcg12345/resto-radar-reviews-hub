@@ -61,70 +61,97 @@ export function RecommendationCard({ restaurant, onAdd, onAddToWishlist }: Recom
 
   return (
     <div 
-      className="lg:border lg:border-border lg:rounded-lg lg:p-4 lg:shadow-sm lg:hover:shadow-md lg:bg-card border-b border-border py-4 hover:bg-muted/50 lg:hover:bg-muted/30 transition-all duration-200 lg:mx-0 -mx-4 cursor-pointer"
+      className="mx-4 mb-4 rounded-2xl shadow-lg bg-[rgb(24,24,27)] border border-white/10 overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
       onClick={handleCardClick}
     >
-      <div className="lg:px-0 px-4">
-      {/* Header with name and rating */}
-      <div className="flex items-start justify-between">
-        <h3 className="font-semibold text-lg text-foreground leading-tight">{restaurant.name}</h3>
-        {restaurant.rating && (
-          <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-sm font-bold text-primary">{restaurant.rating.toFixed(1)}</div>
-              <Star className="h-3 w-3 text-primary mx-auto" fill="currentColor" />
+      <div className="p-5">
+        {/* Header with name and rating */}
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-xl text-white leading-tight mb-1 truncate">
+              {restaurant.name}
+            </h3>
+            
+            {/* Price and cuisine row */}
+            <div className="flex items-center gap-2 mb-2">
+              {restaurant.priceRange && (
+                <span className="text-emerald-400 font-medium text-sm">
+                  {getPriceDisplay(restaurant.priceRange)}
+                </span>
+              )}
+              {restaurant.priceRange && restaurant.cuisine && (
+                <span className="w-1 h-1 rounded-full bg-slate-500"></span>
+              )}
+              <span className="text-slate-400 text-sm">{restaurant.cuisine}</span>
             </div>
           </div>
-        )}
-      </div>
-
-      {/* Cuisine and price */}
-      <div className="flex items-center gap-2 mb-1">
-        <span className="text-muted-foreground text-sm">{getPriceDisplay(restaurant.priceRange)}</span>
-        {restaurant.priceRange && restaurant.cuisine && (
-          <span className="w-1 h-1 rounded-full bg-muted-foreground"></span>
-        )}
-        <span className="text-muted-foreground text-sm">{restaurant.cuisine}</span>
-      </div>
-
-      {/* Location */}
-      <div className="flex items-center gap-2 mb-2">
-        <MapPin className="h-3 w-3 text-muted-foreground" />
-        <span className="text-xs text-muted-foreground">{restaurant.address}</span>
-      </div>
-
-      {/* Distance, hours, and action buttons */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          {restaurant.distance && (
-            <span className="text-xs text-muted-foreground">{formatDistance(restaurant.distance)}</span>
+          
+          {/* Rating pill badge */}
+          {restaurant.rating && (
+            <div className="flex-shrink-0 ml-3">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/30">
+                <Star className="h-3.5 w-3.5 text-amber-400" fill="currentColor" />
+                <span className="text-amber-100 font-semibold text-sm">
+                  {restaurant.rating.toFixed(1)}
+                </span>
+              </div>
+            </div>
           )}
-          <div className="flex items-center gap-1">
-            <Clock className="h-3 w-3 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">{getOpeningStatus()}</span>
+        </div>
+
+        {/* Location */}
+        <div className="flex items-center gap-2 mb-3">
+          <MapPin className="h-4 w-4 text-slate-500 flex-shrink-0" />
+          <span className="text-slate-400 text-sm leading-relaxed truncate">
+            {restaurant.address}
+          </span>
+        </div>
+
+        {/* Status and distance row */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            {restaurant.distance && (
+              <span className="text-slate-500 text-xs font-medium">
+                {formatDistance(restaurant.distance)}
+              </span>
+            )}
+            
+            {/* Status badge */}
+            <div className="flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5 text-slate-500" />
+              {restaurant.isOpen !== undefined && (
+                <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                  restaurant.isOpen 
+                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                    : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                }`}>
+                  {restaurant.isOpen ? 'Open' : 'Closed'}
+                </div>
+              )}
+              {restaurant.openingHours && (
+                <span className="text-slate-500 text-xs ml-1">
+                  {restaurant.openingHours}
+                </span>
+              )}
+            </div>
           </div>
         </div>
         
         {/* Action buttons */}
-        <div className="flex gap-2">
-          <Button
+        <div className="flex gap-2 justify-end">
+          <button
             onClick={(e) => handleButtonClick(e, onAdd || (() => {}))}
-            variant="outline"
-            size="sm"
-            className="h-8 w-8 p-0"
+            className="h-9 w-9 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 active:scale-95 transition-all duration-200"
           >
             <Plus className="h-4 w-4" />
-          </Button>
-          <Button
+          </button>
+          <button
             onClick={(e) => handleButtonClick(e, onAddToWishlist || (() => {}))}
-            variant="outline"
-            size="sm"
-            className="h-8 w-8 p-0"
+            className="h-9 w-9 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 active:scale-95 transition-all duration-200 hover:text-red-400"
           >
             <Heart className="h-4 w-4" />
-          </Button>
+          </button>
         </div>
-      </div>
       </div>
     </div>
   );
