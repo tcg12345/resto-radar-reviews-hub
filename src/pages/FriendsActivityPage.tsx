@@ -681,144 +681,173 @@ export function FriendsActivityPage() {
           Discover what your friends have been eating and their wishlist items all in one place
         </p>
       </div>
-      {/* Stats */}
-      <Card className="md:hidden">
-        <CardContent className="p-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center gap-2">
-              <Star className="h-5 w-5 text-yellow-500" />
-              <div>
-                <p className="text-xs text-muted-foreground">Total Rated</p>
-                <p className="text-lg font-bold">{filterCounts.rated}</p>
-              </div>
+      {/* Modern Stats Grid */}
+      <div className="md:hidden grid grid-cols-2 gap-3 mb-4">
+        <div className="bg-card rounded-xl p-4 border shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-yellow-500/10 rounded-lg">
+              <Star className="h-4 w-4 text-yellow-500" />
             </div>
-            
-            <div className="flex items-center gap-2">
-              <Heart className="h-5 w-5 text-red-500" />
-              <div>
-                <p className="text-xs text-muted-foreground">Wishlist Items</p>
-                <p className="text-lg font-bold">{filterCounts.wishlist}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-blue-500" />
-              <div>
-                <p className="text-xs text-muted-foreground">Active Friends</p>
-                <p className="text-lg font-bold">{new Set(friendsRestaurants.map(r => r.friend.id)).size}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-green-500" />
-              <div>
-                <p className="text-xs text-muted-foreground">Cities</p>
-                <p className="text-lg font-bold">{new Set(friendsRestaurants.map(r => r.city)).size}</p>
-              </div>
+            <div>
+              <div className="text-xs text-muted-foreground font-medium">Total Rated</div>
+              <div className="text-lg font-bold">{filterCounts.rated}</div>
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      <div className="hidden md:grid grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Star className="h-5 w-5 text-yellow-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">Total Rated</p>
-                <p className="text-2xl font-bold">
-                  {filterCounts.rated}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        </div>
         
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Heart className="h-5 w-5 text-red-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">Wishlist Items</p>
-                <p className="text-2xl font-bold">
-                  {filterCounts.wishlist}
-                </p>
-              </div>
+        <div className="bg-card rounded-xl p-4 border shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-red-500/10 rounded-lg">
+              <Heart className="h-4 w-4 text-red-500" />
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-blue-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">Active Friends</p>
-                <p className="text-2xl font-bold">
-                  {new Set(friendsRestaurants.map(r => r.friend.id)).size}
-                </p>
-              </div>
+            <div>
+              <div className="text-xs text-muted-foreground font-medium">Wishlist</div>
+              <div className="text-lg font-bold">{filterCounts.wishlist}</div>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-green-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">Cities</p>
-                <p className="text-2xl font-bold">
-                  {new Set(friendsRestaurants.map(r => r.city)).size}
-                </p>
-              </div>
+          </div>
+        </div>
+        
+        <div className="bg-card rounded-xl p-4 border shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-green-500/10 rounded-lg">
+              <Users className="h-4 w-4 text-green-500" />
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <div className="text-xs text-muted-foreground font-medium">Friends</div>
+              <div className="text-lg font-bold">{new Set(friendsRestaurants.map(r => r.friend.id)).size}</div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-card rounded-xl p-4 border shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-500/10 rounded-lg">
+              <MapPin className="h-4 w-4 text-blue-500" />
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground font-medium">Cities</div>
+              <div className="text-lg font-bold">{new Set(friendsRestaurants.map(r => r.city)).size}</div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Quick Filter Buttons */}
-      <div className="flex items-center justify-center">
-        <div className="flex items-center bg-muted/50 p-1 rounded-lg my-4">
-          <Button variant={filterBy === 'all' ? 'default' : 'ghost'} size="sm" onClick={() => setFilterBy('all')} className="flex items-center gap-2 px-4">
-            <List className="h-4 w-4" />
-            All ({filterCounts.total})
-          </Button>
-          <Button variant={filterBy === 'rated' ? 'default' : 'ghost'} size="sm" onClick={() => setFilterBy('rated')} className="flex items-center gap-2 px-4">
-            <Star className="h-4 w-4" />
-            Rated ({filterCounts.rated})
-          </Button>
-          <Button variant={filterBy === 'wishlist' ? 'default' : 'ghost'} size="sm" onClick={() => setFilterBy('wishlist')} className="flex items-center gap-2 px-4">
-            <Heart className="h-4 w-4" />
-            Wishlist ({filterCounts.wishlist})
-          </Button>
+      <div className="hidden md:grid grid-cols-4 gap-4 mb-6">
+        <div className="bg-card rounded-xl p-5 border shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-yellow-500/10 rounded-lg">
+              <Star className="h-5 w-5 text-yellow-500" />
+            </div>
+            <div>
+              <div className="text-sm text-muted-foreground font-medium">Total Rated</div>
+              <div className="text-2xl font-bold">{filterCounts.rated}</div>
+            </div>
+          </div>
         </div>
+        
+        <div className="bg-card rounded-xl p-5 border shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-red-500/10 rounded-lg">
+              <Heart className="h-5 w-5 text-red-500" />
+            </div>
+            <div>
+              <div className="text-sm text-muted-foreground font-medium">Wishlist</div>
+              <div className="text-2xl font-bold">{filterCounts.wishlist}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-card rounded-xl p-5 border shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-green-500/10 rounded-lg">
+              <Users className="h-5 w-5 text-green-500" />
+            </div>
+            <div>
+              <div className="text-sm text-muted-foreground font-medium">Friends</div>
+              <div className="text-2xl font-bold">{new Set(friendsRestaurants.map(r => r.friend.id)).size}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-card rounded-xl p-5 border shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-blue-500/10 rounded-lg">
+              <MapPin className="h-5 w-5 text-blue-500" />
+            </div>
+            <div>
+              <div className="text-sm text-muted-foreground font-medium">Cities</div>
+              <div className="text-2xl font-bold">{new Set(friendsRestaurants.map(r => r.city)).size}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Modern Filter Pills */}
+      <div className="flex gap-2 mb-6 overflow-x-auto pb-2 justify-center">
+        <button
+          onClick={() => setFilterBy('all')}
+          className={`px-4 py-2 rounded-full whitespace-nowrap transition-all flex items-center gap-2 ${
+            filterBy === 'all'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'bg-muted/50 hover:bg-muted text-muted-foreground'
+          }`}
+        >
+          <List className="h-4 w-4" />
+          All ({filterCounts.total})
+        </button>
+        <button
+          onClick={() => setFilterBy('rated')}
+          className={`px-4 py-2 rounded-full whitespace-nowrap transition-all flex items-center gap-2 ${
+            filterBy === 'rated'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'bg-muted/50 hover:bg-muted text-muted-foreground'
+          }`}
+        >
+          <Star className="h-4 w-4" />
+          Rated ({filterCounts.rated})
+        </button>
+        <button
+          onClick={() => setFilterBy('wishlist')}
+          className={`px-4 py-2 rounded-full whitespace-nowrap transition-all flex items-center gap-2 ${
+            filterBy === 'wishlist'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'bg-muted/50 hover:bg-muted text-muted-foreground'
+          }`}
+        >
+          <Heart className="h-4 w-4" />
+          Wishlist ({filterCounts.wishlist})
+        </button>
       </div>
 
       {/* Mobile-Optimized Search and Filters */}
       <div className="block md:hidden space-y-4">
-        {/* Search Bar */}
+        {/* Modern Search Bar */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search restaurants, friends..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={e => {
-            if (e.key === 'Enter') {
-              if (searchTimeoutRef.current) {
-                clearTimeout(searchTimeoutRef.current);
+          <Input 
+            placeholder="Search restaurants, friends..." 
+            value={searchQuery} 
+            onChange={e => setSearchQuery(e.target.value)} 
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                if (searchTimeoutRef.current) {
+                  clearTimeout(searchTimeoutRef.current);
+                }
+                setDebouncedSearchQuery(searchQuery);
               }
-              setDebouncedSearchQuery(searchQuery);
-            }
-          }} className="pl-10 h-12 text-base" />
+            }} 
+            className="pl-10 h-12 text-base rounded-full border-muted bg-muted/30 focus:bg-background transition-colors" 
+          />
         </div>
 
         {/* Filters and Sort Row */}
         <div className="flex gap-3">
-          {/* Mobile Filters Button */}
-          {isMobile ? <Button variant="outline" className="flex-1 h-12 flex items-center justify-between" onClick={() => setShowMobileFilters(true)}>
+          {/* Modern Filter Button */}
+          {isMobile ? <Button variant="outline" className="flex-1 h-12 flex items-center justify-between rounded-full border-muted bg-muted/30 hover:bg-background transition-colors" onClick={() => setShowMobileFilters(true)}>
               <span className="flex items-center gap-2">
                 <Filter className="h-4 w-4" />
                 Filters
-                {selectedCuisines.length + selectedCities.length + selectedFriends.length > 0 && <Badge variant="secondary" className="ml-1 h-5 px-2 text-xs">
+                {selectedCuisines.length + selectedCities.length + selectedFriends.length > 0 && <Badge variant="secondary" className="ml-1 h-5 px-2 text-xs rounded-full">
                     {selectedCuisines.length + selectedCities.length + selectedFriends.length}
                   </Badge>}
               </span>
@@ -826,11 +855,11 @@ export function FriendsActivityPage() {
             </Button> : (/* Desktop Filters Dropdown */
           <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="flex-1 h-12 flex items-center justify-between">
+                <Button variant="outline" className="flex-1 h-12 flex items-center justify-between rounded-full border-muted bg-muted/30 hover:bg-background transition-colors">
                   <span className="flex items-center gap-2">
                     <Filter className="h-4 w-4" />
                     Filters
-                    {selectedCuisines.length + selectedCities.length + selectedFriends.length > 0 && <Badge variant="secondary" className="ml-1 h-5 px-2 text-xs">
+                    {selectedCuisines.length + selectedCities.length + selectedFriends.length > 0 && <Badge variant="secondary" className="ml-1 h-5 px-2 text-xs rounded-full">
                         {selectedCuisines.length + selectedCities.length + selectedFriends.length}
                       </Badge>}
                   </span>
@@ -903,12 +932,12 @@ export function FriendsActivityPage() {
               </DropdownMenuContent>
             </DropdownMenu>)}
 
-          {/* Sort Dropdown */}
+          {/* Modern Sort Dropdown */}
           <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
-            <SelectTrigger className="w-32 h-12 bg-background border-border">
+            <SelectTrigger className="w-32 h-12 rounded-full border-muted bg-muted/30 hover:bg-background transition-colors">
               <SelectValue placeholder="Sort" />
             </SelectTrigger>
-            <SelectContent className="bg-background border-border z-50">
+            <SelectContent className="bg-background border-border z-50 rounded-xl">
               <SelectItem value="recent">Recent</SelectItem>
               <SelectItem value="rating">Rating</SelectItem>
               <SelectItem value="alphabetical">A-Z</SelectItem>
@@ -1140,60 +1169,81 @@ export function FriendsActivityPage() {
               </CardContent>
             </Card>
           </div> : <>
-            <div className="space-y-0">
-              {filteredRestaurants.map(restaurant => <div key={restaurant.id} className="border-t border-b border-border hover:bg-accent/50 transition-colors cursor-pointer p-4" onClick={() => {
+            <div className="space-y-4 px-2">
+              {filteredRestaurants.map(restaurant => <div key={restaurant.id} className="bg-card rounded-xl border shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer p-5 w-full" onClick={() => {
             // Preserve current search parameters for when user returns
             const currentSearch = searchParams.toString();
             const returnUrl = currentSearch ? `/search/friends?${currentSearch}` : '/search/friends';
             navigate(`/restaurant/${restaurant.id}?friendId=${restaurant.friend.id}&fromFriendsActivity=true&returnUrl=${encodeURIComponent(returnUrl)}`);
           }}>
-                  {/* Mobile Layout - Optimized for small screens */}
-                  <div className="md:hidden space-y-3">
-                    {/* Friend Info Header - Compact */}
+                  {/* Mobile Layout - Modern and Clean */}
+                  <div className="md:hidden space-y-4">
+                    {/* Friend Info Header */}
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <Avatar className="h-6 w-6 flex-shrink-0">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <Avatar className="h-7 w-7 ring-2 ring-background flex-shrink-0">
                           <AvatarImage src={restaurant.friend.avatar_url} />
-                          <AvatarFallback className="text-xs">
+                          <AvatarFallback className="text-xs bg-muted">
                             {restaurant.friend.name.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0 flex-1">
-                          <p className="font-medium text-xs truncate">{restaurant.friend.name}</p>
+                          <p className="font-medium text-sm text-muted-foreground truncate">{restaurant.friend.name}</p>
                         </div>
                       </div>
-                      <Badge variant="outline" className={`text-xs px-2 py-0.5 flex-shrink-0 ${restaurant.is_wishlist ? 'text-red-600 border-red-200' : 'text-green-600 border-green-200'}`}>
-                        {restaurant.is_wishlist ? <><Heart className="h-2.5 w-2.5 mr-1" />Want</> : <><Star className="h-2.5 w-2.5 mr-1" />Been</>}
-                      </Badge>
+                      <div className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${
+                        restaurant.is_wishlist 
+                          ? 'bg-red-500/10 text-red-600 border border-red-200' 
+                          : 'bg-green-500/10 text-green-600 border border-green-200'
+                      }`}>
+                        {restaurant.is_wishlist ? <><Heart className="h-3 w-3" />Want</> : <><Star className="h-3 w-3" />Been</>}
+                      </div>
                     </div>
 
-                    {/* Restaurant Name & Basic Info */}
+                    {/* Restaurant Name & Info */}
                     <div>
-                      <div className="flex items-center gap-1 mb-1">
-                        <h3 className="font-semibold text-sm leading-tight line-clamp-1">{restaurant.name}</h3>
-                         {restaurant.michelin_stars && restaurant.michelin_stars > 0 && <MichelinStars stars={restaurant.michelin_stars} size="sm" readonly showLogo={false} />}
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h3 className="font-bold text-lg leading-tight text-foreground flex items-center gap-2 mb-2">
+                            {restaurant.name}
+                            {restaurant.michelin_stars && restaurant.michelin_stars > 0 && <MichelinStars stars={restaurant.michelin_stars} size="sm" readonly showLogo={false} />}
+                          </h3>
+                        </div>
+                        
+                        {/* Rating */}
+                        {restaurant.rating && (
+                          <div className="flex items-center gap-1 px-2 py-1 bg-yellow-500/10 rounded-lg">
+                            <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+                            <span className="text-sm font-bold text-yellow-700">{restaurant.rating}</span>
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                        <span className="truncate">{restaurant.cuisine}</span>
-                        <span>•</span>
-                        <span className="truncate">{restaurant.city}</span>
+                      
+                      <div className="flex items-center gap-2 text-sm mb-3">
+                        <span className="text-muted-foreground">{restaurant.cuisine}</span>
+                        <span className="text-muted-foreground/50">•</span>
+                        <span className="text-muted-foreground">{restaurant.city}</span>
+                        {restaurant.price_range && (
+                          <>
+                            <span className="text-muted-foreground/50">•</span>
+                            <span className="text-green-600 font-bold">{'$'.repeat(restaurant.price_range)}</span>
+                          </>
+                        )}
                       </div>
                     </div>
 
-                    {/* Rating & Details Row */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        {restaurant.rating && !restaurant.is_wishlist && <div className="flex items-center gap-1">
-                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                            <span className="text-xs font-medium">{restaurant.rating}</span>
-                          </div>}
-                        {restaurant.price_range && <span className="text-xs text-green-600 font-medium">
-                            {'$'.repeat(restaurant.price_range)}
-                          </span>}
-                      </div>
-                      <div className="text-xs text-muted-foreground flex items-center gap-1">
+                    {/* Date Row */}
+                    <div className="flex items-center justify-between text-xs text-muted-foreground pt-3 border-t border-muted/30">
+                      <div className="flex items-center gap-2">
                         <Clock className="h-3 w-3" />
-                        <span>{formatDate(restaurant.date_visited || restaurant.created_at)}</span>
+                        <span className="font-medium">
+                          {restaurant.is_wishlist 
+                            ? `Added ${formatDate(restaurant.created_at)}`
+                            : restaurant.date_visited 
+                              ? `Visited ${formatDate(restaurant.date_visited)}`
+                              : `Added ${formatDate(restaurant.created_at)}`
+                          }
+                        </span>
                       </div>
                     </div>
 
