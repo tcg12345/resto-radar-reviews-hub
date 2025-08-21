@@ -552,10 +552,13 @@ const performLiveSearch = async () => {
       {!searchQuery && user && (searchResults.length === 0 || !isLoading) && <div className="lg:hidden mt-6 space-y-6">
 
           {/* Recent Restaurants Section */}
-          {recentClickedRestaurants.length > 0 && <div className="space-y-3">
+          {recentClickedRestaurants.length > 0 && <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Recent searches</h3>
-                <Badge variant="secondary" className="text-xs">Quick access</Badge>
+                <div className="flex items-center gap-3">
+                  <h3 className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">Recent searches</h3>
+                  <div className="h-0.5 w-8 bg-gradient-to-r from-primary to-primary-glow rounded-full"></div>
+                </div>
+                <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20">Quick access</Badge>
               </div>
               
               <div className="space-y-2">
@@ -581,9 +584,12 @@ const performLiveSearch = async () => {
             </div>}
 
           {/* Recommendations Section */}
-          {recommendedPlaces.length > 0 && <div className="space-y-3">
+          {recommendedPlaces.length > 0 && <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Recommended for you</h3>
+                <div className="flex items-center gap-3">
+                  <h3 className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">Recommended for you</h3>
+                  <div className="h-0.5 w-8 bg-gradient-to-r from-primary to-primary-glow rounded-full"></div>
+                </div>
               </div>
               
               {isLoadingRecommendations ? <div className="grid gap-3">
@@ -631,130 +637,215 @@ const performLiveSearch = async () => {
           </TabsList>
 
           <TabsContent value="list" className="space-y-4">
-            {isLoading ? <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {isLoading ? <div className="space-y-3">
                 {[...Array(6)].map((_, i) => <SearchResultSkeleton key={i} />)}
-              </div> : <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {searchResults.map(place => <Card key={place.place_id} className="cursor-pointer hover:shadow-lg transition-shadow w-full" onClick={() => handlePlaceClick(place)}>
-                    <CardContent className="p-3 lg:p-4 min-w-0 overflow-hidden">
+              </div> : <div className="space-y-3">
+                {searchResults.map(place => <Card key={place.place_id} className="overflow-hidden bg-card border-0 shadow-[0_6px_25px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.15)] transition-all duration-300 rounded-2xl cursor-pointer group" onClick={() => handlePlaceClick(place)}>
+                    <CardContent className="p-4">
                       {/* Mobile Layout */}
                       <div className="lg:hidden">
-                        <div className="flex justify-between items-center">
+                        <div className="flex gap-4">
+                          {/* Restaurant Image Placeholder */}
+                          <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-muted to-muted/50 flex-shrink-0 flex items-center justify-center">
+                            <MapPin className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                          
                           <div className="flex-1 min-w-0">
-                            <div className="mb-1">
-                              <h3 className="font-semibold text-sm truncate">{place.name}</h3>
+                            {/* Name and Rating Row */}
+                            <div className="flex items-center justify-between gap-3 mb-2">
+                              <h3 className="font-bold text-base truncate text-foreground">{place.name}</h3>
+                              {place.rating && (
+                                <div className="flex items-center gap-1.5 flex-shrink-0">
+                                  <div className="text-amber-400 text-sm">★</div>
+                                  <span className="text-sm font-bold text-foreground">
+                                    {place.rating.toFixed(1)}
+                                  </span>
+                                </div>
+                              )}
                             </div>
-                            <div className="flex items-center gap-2">
-                              {place.rating && <div className="flex items-center gap-1">
-                                  <span className="text-yellow-500 text-sm">★</span>
-                                  <span className="text-xs font-medium">{place.rating}</span>
-                                </div>}
-                              {place.price_level && <span className="text-xs text-green-600 font-medium">
-                                  {getPriceDisplay(place.price_level)}
-                                </span>}
+                            
+                            {/* Cuisine and Price Row */}
+                            <div className="flex items-center gap-3 mb-2">
+                              <span className="text-sm font-medium text-foreground truncate">
+                                {place.aiAnalysis?.cuisine || place.fallbackCuisine || 'Restaurant'}
+                              </span>
+                              {place.price_level && (
+                                <>
+                                  <span className="text-muted-foreground">•</span>
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">
+                                      {'$'.repeat(place.price_level)}
+                                    </span>
+                                    <span className="text-sm font-light text-muted-foreground/40">
+                                      {'$'.repeat(4 - place.price_level)}
+                                    </span>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                            
+                            {/* Address */}
+                            <div className="flex items-center gap-1.5 mb-3">
+                              <MapPin className="h-3 w-3 text-muted-foreground/60 flex-shrink-0" />
                               <span className="text-xs text-muted-foreground truncate">
                                 {(() => {
-                          const parts = place.formatted_address?.split(', ') || [];
-                          if (parts.length >= 2) {
-                            if (parts[parts.length - 1] === 'United States') {
-                              const city = parts[parts.length - 3] || '';
-                              const stateWithZip = parts[parts.length - 2] || '';
-                              const state = stateWithZip.replace(/\s+\d{5}(-\d{4})?$/, '');
-                              return parts.length >= 3 ? `${city}, ${state}` : state;
-                            }
-                            const city = parts[parts.length - 2] || '';
-                            const country = parts[parts.length - 1] || '';
-                            const cleanCity = city.replace(/\s+[A-Z0-9]{2,10}$/, '');
-                            return `${cleanCity}, ${country}`;
-                          }
-                          return parts[0] || '';
-                        })()}
+                                  const parts = place.formatted_address?.split(', ') || [];
+                                  if (parts.length >= 2) {
+                                    if (parts[parts.length - 1] === 'United States') {
+                                      const city = parts[parts.length - 3] || '';
+                                      const stateWithZip = parts[parts.length - 2] || '';
+                                      const state = stateWithZip.replace(/\s+\d{5}(-\d{4})?$/, '');
+                                      return parts.length >= 3 ? `${city}, ${state}` : state;
+                                    }
+                                    const city = parts[parts.length - 2] || '';
+                                    const country = parts[parts.length - 1] || '';
+                                    const cleanCity = city.replace(/\s+[A-Z0-9]{2,10}$/, '');
+                                    return `${cleanCity}, ${country}`;
+                                  }
+                                  return parts[0] || '';
+                                })()}
                               </span>
                             </div>
+                            
+                            {/* Status and Action Button */}
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                {place.opening_hours?.open_now !== undefined && (
+                                  <div className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                                    place.opening_hours.open_now 
+                                      ? 'bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-300' 
+                                      : 'bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300'
+                                  }`}>
+                                    {place.opening_hours.open_now ? 'Open' : 'Closed'}
+                                  </div>
+                                )}
+                              </div>
+                              <Button 
+                                size="sm" 
+                                className="h-7 px-3 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  handleQuickAdd(place);
+                                }}
+                              >
+                                Add
+                              </Button>
+                            </div>
                           </div>
-                          <Button size="sm" variant="outline" onClick={e => {
-                    e.stopPropagation();
-                    handleQuickAdd(place);
-                  }} className="h-7 px-2 text-xs ml-2 flex-shrink-0">
-                            <Plus className="h-3 w-3 mr-1" />
-                            Add
-                          </Button>
                         </div>
                       </div>
 
                       {/* Desktop Layout */}
                       <div className="hidden lg:block">
-                        <div className="flex items-start justify-between mb-2">
-                          <h3 className="font-semibold text-lg leading-tight line-clamp-2" onClick={() => handlePlaceClick(place)}>
-                            {place.name}
-                          </h3>
-                          <Button variant="ghost" size="sm" onClick={e => {
-                    e.stopPropagation();
-                    handleQuickAdd(place);
-                  }} className="shrink-0 ml-2">
-                            <Heart className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      
-                        <div className="flex items-center gap-2 mb-2" onClick={() => handlePlaceClick(place)}>
-                          <MapPin className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground line-clamp-1">
-                            {place.formatted_address}
-                          </span>
-                        </div>
-
-                        {place.rating && <div className="flex items-center gap-2 mb-2" onClick={() => handlePlaceClick(place)}>
-                            <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                            <span className="font-medium">{place.rating}</span>
-                            {place.user_ratings_total && <span className="text-sm text-muted-foreground">
-                                ({place.user_ratings_total.toLocaleString()})
-                              </span>}
-                          </div>}
-
-                        <div className="flex items-center justify-between mb-2" onClick={() => handlePlaceClick(place)}>
-                          <div className="flex">
-                            <span className="text-lg font-bold text-green-600">
-                              {place.yelpData?.price || getPriceDisplay(place.price_level)}
-                            </span>
+                        <div className="flex gap-4">
+                          {/* Restaurant Image Placeholder */}
+                          <div className="h-20 w-20 rounded-xl bg-gradient-to-br from-muted to-muted/50 flex-shrink-0 flex items-center justify-center">
+                            <MapPin className="h-8 w-8 text-muted-foreground" />
                           </div>
                           
-                          {place.opening_hours?.open_now !== undefined && <Badge variant={place.opening_hours.open_now ? "default" : "destructive"}>
-                              {place.opening_hours.open_now ? "Open" : "Closed"}
-                            </Badge>}
-                        </div>
-
-                        {/* Yelp Badge and Services */}
-                        <div className="flex flex-wrap gap-1 mb-2">
-                          {place.yelpData && <Badge variant="secondary" className="text-xs bg-red-100 text-red-800 border-red-200">
-                              Yelp ✓
-                            </Badge>}
-                          {place.yelpData?.transactions?.includes('delivery') && <Badge variant="outline" className="text-xs flex items-center gap-1">
-                              <Truck className="h-3 w-3" />
-                              Delivery
-                            </Badge>}
-                          {place.yelpData?.transactions?.includes('pickup') && <Badge variant="outline" className="text-xs flex items-center gap-1">
-                              <ShoppingBag className="h-3 w-3" />
-                              Pickup
-                            </Badge>}
-                        </div>
-
-                        <div className="flex flex-wrap gap-1 mb-3" onClick={() => handlePlaceClick(place)}>
-                          {(() => {
-                    const cuisine = place.aiAnalysis?.cuisine || place.fallbackCuisine || place.types.find(type => !['restaurant', 'food', 'establishment', 'point_of_interest'].includes(type))?.replace(/_/g, ' ') || 'Restaurant';
-                    return <Badge variant="outline" className="text-xs">{cuisine}</Badge>;
-                  })()}
-                        </div>
-
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm" onClick={() => handlePlaceClick(place)} className="flex-1">
-                            View Details
-                          </Button>
-                          
-                          {place.yelpData && <Button variant="outline" size="sm" onClick={e => {
-                    e.stopPropagation();
-                    window.open(place.yelpData.url, '_blank');
-                  }}>
-                              <Star className="h-4 w-4" />
-                            </Button>}
+                          <div className="flex-1 min-w-0">
+                            {/* Name and Rating Row */}
+                            <div className="flex items-center justify-between gap-3 mb-3">
+                              <h3 className="font-bold text-lg text-foreground truncate">{place.name}</h3>
+                              {place.rating && (
+                                <div className="flex items-center gap-1.5 flex-shrink-0">
+                                  <div className="text-amber-400 text-base">★</div>
+                                  <span className="text-base font-bold text-foreground">
+                                    {place.rating.toFixed(1)}
+                                  </span>
+                                  {place.user_ratings_total && (
+                                    <span className="text-sm text-muted-foreground">
+                                      ({place.user_ratings_total.toLocaleString()})
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            
+                            {/* Cuisine and Price Row */}
+                            <div className="flex items-center gap-3 mb-3">
+                              <span className="text-sm font-medium text-foreground">
+                                {place.aiAnalysis?.cuisine || place.fallbackCuisine || 'Restaurant'}
+                              </span>
+                              {place.price_level && (
+                                <>
+                                  <span className="text-muted-foreground">•</span>
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-base font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">
+                                      {place.yelpData?.price || getPriceDisplay(place.price_level)}
+                                    </span>
+                                    {!place.yelpData?.price && (
+                                      <span className="text-base font-light text-muted-foreground/40">
+                                        {'$'.repeat(4 - place.price_level)}
+                                      </span>
+                                    )}
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                            
+                            {/* Address */}
+                            <div className="flex items-center gap-2 mb-3">
+                              <MapPin className="h-3.5 w-3.5 text-muted-foreground/60 flex-shrink-0" />
+                              <span className="text-sm text-muted-foreground line-clamp-1">
+                                {place.formatted_address}
+                              </span>
+                            </div>
+                            
+                            {/* Status Tags and Services */}
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                {place.opening_hours?.open_now !== undefined && (
+                                  <div className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
+                                    place.opening_hours.open_now 
+                                      ? 'bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-300' 
+                                      : 'bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300'
+                                  }`}>
+                                    {place.opening_hours.open_now ? 'Open' : 'Closed'}
+                                  </div>
+                                )}
+                                {place.yelpData && (
+                                  <div className="inline-flex items-center rounded-full bg-red-50 dark:bg-red-950/30 px-2.5 py-1 text-xs font-medium text-red-700 dark:text-red-300">
+                                    Yelp ✓
+                                  </div>
+                                )}
+                                {place.yelpData?.transactions?.includes('delivery') && (
+                                  <div className="inline-flex items-center gap-1 rounded-full bg-blue-50 dark:bg-blue-950/30 px-2.5 py-1 text-xs font-medium text-blue-700 dark:text-blue-300">
+                                    <Truck className="h-2.5 w-2.5" />
+                                    Delivery
+                                  </div>
+                                )}
+                                {place.yelpData?.transactions?.includes('pickup') && (
+                                  <div className="inline-flex items-center gap-1 rounded-full bg-orange-50 dark:bg-orange-950/30 px-2.5 py-1 text-xs font-medium text-orange-700 dark:text-orange-300">
+                                    <ShoppingBag className="h-2.5 w-2.5" />
+                                    Pickup
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Action Buttons */}
+                              <div className="flex items-center gap-2">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="h-8 px-4 rounded-full border-border hover:bg-muted/50 font-medium"
+                                  onClick={() => handlePlaceClick(place)}
+                                >
+                                  View
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  className="h-8 px-4 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    handleQuickAdd(place);
+                                  }}
+                                >
+                                  Add
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </CardContent>
