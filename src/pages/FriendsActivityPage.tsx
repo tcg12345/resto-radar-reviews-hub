@@ -665,9 +665,12 @@ export function FriendsActivityPage() {
         <div className="grid gap-4">
           {[...Array(6)].map((_, i) => <ActivityFeedSkeleton key={i} />)}
         </div>
-      </div>;
+      </div>
+    );
   }
-  return <div className="w-full">
+
+  return (
+    <div className="w-full">
       <div className="p-2">
       {/* Header */}
       <div className="hidden md:block space-y-4">
@@ -1164,7 +1167,8 @@ export function FriendsActivityPage() {
           </h2>
         </div>
 
-        {friendsRestaurants.length === 0 && !isLoading ? <div className="px-6">
+        {friendsRestaurants.length === 0 && !isLoading ? (
+          <div className="px-6">
             <Card>
               <CardContent className="p-12 text-center">
                 <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -1174,7 +1178,9 @@ export function FriendsActivityPage() {
                 </p>
               </CardContent>
             </Card>
-          </div> : <>
+          </div>
+        ) : (
+          <>
             <div className="grid grid-cols-1 gap-3 px-4">
               {filteredRestaurants.map(restaurant => (
                 <Card 
