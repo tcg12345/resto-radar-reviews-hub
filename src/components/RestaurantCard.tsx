@@ -280,15 +280,32 @@ export function RestaurantCard({
         )}
         
         {/* Premium Content Layout */}
-        <div className="flex flex-col flex-1 p-6 space-y-6">
-          {/* Header: Name + Rating */}
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <h3 className="text-2xl font-bold text-foreground leading-tight truncate mb-2">
+        <div className="flex flex-col flex-1 p-5 space-y-4">
+          {/* Restaurant Name with Inline Rating */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-2xl font-bold text-foreground leading-tight truncate flex-1">
                 {restaurant.name}
               </h3>
               
-              {/* Cuisine & Price Row with Enhanced Visibility */}
+              {/* Inline Star Rating */}
+              {restaurant.rating !== undefined && (
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <div className="text-amber-400 text-lg">★</div>
+                  <span className="text-lg font-bold text-foreground">
+                    {restaurant.rating.toFixed(1)}
+                  </span>
+                  {restaurant.reviewCount && restaurant.reviewCount > 0 && (
+                    <span className="text-sm text-muted-foreground">
+                      ({restaurant.reviewCount.toLocaleString()})
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Cuisine, Price & Michelin Row */}
+            <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 text-sm">
                 <span className="font-medium text-foreground">{restaurant.cuisine}</span>
                 {restaurant.priceRange && (
@@ -305,78 +322,55 @@ export function RestaurantCard({
                   </>
                 )}
               </div>
+              
+              {/* Michelin Stars on the same line */}
+              {restaurant.michelinStars && (
+                <div className="flex items-center">
+                  <MichelinStars stars={restaurant.michelinStars} readonly size="sm" />
+                </div>
+              )}
             </div>
-            
-            {/* Modern Compact Rating Badge */}
-            {restaurant.rating !== undefined && (
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {restaurant.googleMapsUrl ? (
-                  <a 
-                    href={`https://www.google.com/search?q=${encodeURIComponent(`${restaurant.name} ${restaurant.address}`)}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="inline-flex items-center gap-1.5 bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-sm hover:shadow-md hover:scale-105 transition-all duration-200"
-                    onClick={e => e.stopPropagation()}
-                  >
-                    <span className="text-base">{restaurant.rating.toFixed(1)}</span>
-                    <div className="w-3 h-3 text-white/90 fill-current">★</div>
-                  </a>
-                ) : (
-                  <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-sm">
-                    <span className="text-base">{restaurant.rating.toFixed(1)}</span>
-                    <div className="w-3 h-3 text-white/90 fill-current">★</div>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
 
-          {/* Michelin Stars */}
-          {restaurant.michelinStars && (
-            <div className="flex items-center -mt-2">
-              <MichelinStars stars={restaurant.michelinStars} readonly size="sm" />
-            </div>
-          )}
-
-          {/* Location & Hours with Elegant Icons */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+          {/* Location & Hours - Tighter Spacing */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
               <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/60" />
               <LocationDisplay restaurant={restaurant} />
             </div>
 
             {restaurant.openingHours && (
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
                 <Clock className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/60" />
                 <span className="truncate">{getCurrentDayHours(restaurant.openingHours)}</span>
               </div>
             )}
           </div>
 
-          {/* Status Tags */}
+          {/* Compact Status Tags */}
           {(restaurant.dateVisited || restaurant.isWishlist) && (
             <div className="flex items-center gap-2 flex-wrap">
               {restaurant.dateVisited && (
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 dark:bg-blue-950/30 px-3 py-1.5 text-xs font-medium text-blue-700 dark:text-blue-300">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 dark:bg-blue-950/30 px-2.5 py-1 text-xs font-medium text-blue-700 dark:text-blue-300">
                   <Clock className="h-2.5 w-2.5" />
                   <span>{format(new Date(restaurant.dateVisited), 'MMM d')}</span>
                 </div>
               )}
               
               {restaurant.isWishlist && (
-                <div className="inline-flex items-center rounded-full bg-amber-50 dark:bg-amber-950/30 px-3 py-1.5 text-xs font-medium text-amber-700 dark:text-amber-300">
+                <div className="inline-flex items-center rounded-full bg-amber-50 dark:bg-amber-950/30 px-2.5 py-1 text-xs font-medium text-amber-700 dark:text-amber-300">
                   Saved
                 </div>
               )}
             </div>
           )}
 
-          {/* Clean Action Row */}
-          <div className="flex items-center justify-between pt-2">
+          {/* Compact Action Row */}
+          <div className="flex items-center justify-between pt-1">
             <Button 
               variant="ghost"
               size="sm"
-              className="h-10 px-4 rounded-full bg-gradient-to-r from-primary/8 to-primary/12 hover:from-primary/12 hover:to-primary/16 text-primary border-0 transition-all duration-200 hover:scale-105 shadow-none font-semibold"
+              className="h-9 px-4 rounded-full bg-gradient-to-r from-primary/8 to-primary/12 hover:from-primary/12 hover:to-primary/16 text-primary border-0 transition-all duration-200 hover:scale-105 shadow-none font-semibold text-sm"
               onMouseEnter={handlePrefetch}
               onFocus={handlePrefetch}
               onTouchStart={handlePrefetch}
@@ -414,20 +408,20 @@ export function RestaurantCard({
               <Button 
                 size="icon"
                 variant="ghost"
-                className="h-9 w-9 rounded-full hover:bg-muted/50 transition-all duration-200 hover:scale-105 shadow-none"
+                className="h-8 w-8 rounded-full hover:bg-muted/50 transition-all duration-200 hover:scale-105 shadow-none"
                 onClick={() => setIsShareDialogOpen(true)}
               >
-                <Share2 className="h-4 w-4 text-muted-foreground" />
+                <Share2 className="h-3.5 w-3.5 text-muted-foreground" />
               </Button>
               
               {onDelete && (
                 <Button 
                   size="icon"
                   variant="ghost"
-                  className="h-9 w-9 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all duration-200 hover:scale-105 shadow-none"
+                  className="h-8 w-8 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all duration-200 hover:scale-105 shadow-none"
                   onClick={() => onDelete(restaurant.id)}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               )}
             </div>
