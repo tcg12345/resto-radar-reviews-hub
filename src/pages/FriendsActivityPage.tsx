@@ -1169,8 +1169,8 @@ export function FriendsActivityPage() {
               </CardContent>
             </Card>
           </div> : <>
-            <div className="space-y-6">
-              {filteredRestaurants.map(restaurant => <div key={restaurant.id} className="w-full rounded-3xl bg-slate-900 shadow-[0_6px_24px_rgba(0,0,0,.35)] border border-white/5 overflow-hidden hover:shadow-[0_10px_28px_rgba(0,0,0,.45)] transition-all duration-200 cursor-pointer mx-auto" onClick={() => {
+            <div className="space-y-3">
+              {filteredRestaurants.map(restaurant => <div key={restaurant.id} className="bg-[rgb(24,24,27)] rounded-xl border border-white/5 shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer mx-4 md:mx-6 mb-3" onClick={() => {
             // Preserve current search parameters for when user returns
             const currentSearch = searchParams.toString();
             const returnUrl = currentSearch ? `/search/friends?${currentSearch}` : '/search/friends';
@@ -1179,11 +1179,11 @@ export function FriendsActivityPage() {
                   {/* Mobile Layout */}
                   <div className="md:hidden">
                     {/* Content Block */}
-                    <div className="p-4 sm:p-5 space-y-3">
+                    <div className="p-3 space-y-1">
                       {/* Friend Info Header */}
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                          <Avatar className="h-6 w-6 flex-shrink-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <Avatar className="h-5 w-5 flex-shrink-0">
                             <AvatarImage src={restaurant.friend.avatar_url} />
                             <AvatarFallback className="text-xs bg-slate-700 text-slate-300">
                               {restaurant.friend.name.charAt(0).toUpperCase()}
@@ -1193,7 +1193,7 @@ export function FriendsActivityPage() {
                             <p className="text-sm text-slate-300 truncate">{restaurant.friend.name}</p>
                           </div>
                         </div>
-                        <div className={`px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1 flex-shrink-0 ${
+                        <div className={`px-2 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1 flex-shrink-0 ${
                           restaurant.is_wishlist 
                             ? 'bg-red-500/20 text-red-400 border border-red-500/30' 
                             : 'bg-green-500/20 text-green-400 border border-green-500/30'
@@ -1203,10 +1203,10 @@ export function FriendsActivityPage() {
                       </div>
 
                       {/* Title Row */}
-                      <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className="text-[22px] leading-tight font-extrabold text-white truncate">{restaurant.name}</h3>
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-base font-semibold text-white truncate leading-snug">{restaurant.name}</h3>
                             {restaurant.michelin_stars && restaurant.michelin_stars > 0 && (
                               <div className="flex-shrink-0">
                                 <MichelinStars stars={restaurant.michelin_stars} size="sm" readonly showLogo={false} />
@@ -1217,66 +1217,63 @@ export function FriendsActivityPage() {
                         
                         {/* Rating */}
                         {restaurant.rating && (
-                          <div className="inline-flex items-center gap-1 rounded-full bg-slate-800 px-3 py-1 text-white text-sm font-semibold flex-shrink-0">
-                            <Star className="h-3.5 w-3.5 fill-current text-yellow-400" />
+                          <div className="inline-flex items-center gap-1 rounded-full bg-slate-800 px-2 py-0.5 text-white text-xs font-semibold flex-shrink-0">
+                            <Star className="h-3 w-3 fill-current text-yellow-400" />
                             <span>{restaurant.rating}</span>
                           </div>
                         )}
                       </div>
 
                       {/* Meta Row 1 - Cuisine & Price */}
-                      <div className="mt-2 text-[15px] text-slate-300">
+                      <div className="text-xs text-slate-300 leading-snug">
                         <span>{restaurant.cuisine}</span>
                         {restaurant.price_range && (
                           <>
-                            <span className="mx-2">•</span>
-                            <span className="text-emerald-400 font-semibold tracking-wide">{'$'.repeat(restaurant.price_range)}</span>
+                            <span className="mx-1">•</span>
+                            <span className="text-emerald-400 font-semibold">{'$'.repeat(restaurant.price_range)}</span>
                           </>
                         )}
                       </div>
 
-                      {/* Meta Row 2 - Location */}
-                      <div className="mt-3 flex items-center gap-2 text-slate-300">
-                        <MapPin className="h-4 w-4 text-slate-400 flex-shrink-0" />
-                        <span className="text-[15px]">{restaurant.city}</span>
-                        {restaurant.country && restaurant.country !== restaurant.city && (
-                          <span className="text-[15px]">, {restaurant.country}</span>
-                        )}
-                      </div>
-
-                      {/* Meta Row 3 - Date Info */}
-                      <div className="mt-1 flex items-center gap-2 text-slate-300">
-                        <Clock className="h-4 w-4 text-slate-400 flex-shrink-0" />
-                        <span className="text-[15px] line-clamp-1">
-                          {restaurant.is_wishlist 
-                            ? `Added ${formatDate(restaurant.created_at)}`
-                            : restaurant.date_visited 
-                              ? `Visited ${formatDate(restaurant.date_visited)}`
-                              : `Added ${formatDate(restaurant.created_at)}`
-                          }
-                        </span>
+                      {/* Meta Row 2 - Location & Date */}
+                      <div className="flex items-center justify-between gap-2 text-xs text-slate-300 leading-snug">
+                        <div className="flex items-center gap-1">
+                          <MapPin className="h-3 w-3 text-slate-400 flex-shrink-0" />
+                          <span>{restaurant.city}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3 text-slate-400 flex-shrink-0" />
+                          <span>
+                            {restaurant.is_wishlist 
+                              ? `Added ${formatDate(restaurant.created_at)}`
+                              : restaurant.date_visited 
+                                ? `Visited ${formatDate(restaurant.date_visited)}`
+                                : `Added ${formatDate(restaurant.created_at)}`
+                            }
+                          </span>
+                        </div>
                       </div>
 
                       {/* Notes Preview */}
                       {restaurant.notes && (
-                        <div className="mt-3 pt-3 border-t border-white/10">
-                          <p className="text-sm text-slate-300 line-clamp-2 italic">
+                        <div className="pt-1">
+                          <p className="text-xs text-slate-300 line-clamp-1 italic leading-snug">
                             "{restaurant.notes}"
                           </p>
                         </div>
                       )}
 
                       {/* Actions Row */}
-                      <div className="mt-4 flex items-center justify-between">
-                        <div className="inline-flex items-center gap-2 text-[#2E7CF6] font-semibold hover:underline">
-                          <span className="text-sm">View Details</span>
+                      <div className="pt-1 flex items-center justify-between">
+                        <div className="text-xs font-medium text-blue-400 hover:underline">
+                          <span>View Details</span>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
                           <button 
-                            className="inline-flex items-center justify-center h-10 w-10 rounded-xl border border-white/10 text-slate-300 hover:bg-white/5 transition-all duration-150"
+                            className="inline-flex items-center justify-center h-7 w-7 rounded-md border border-white/10 text-slate-300 hover:bg-white/5 transition-all duration-150"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <Heart className="h-4 w-4" />
+                            <Heart className="h-3.5 w-3.5" />
                           </button>
                         </div>
                       </div>
