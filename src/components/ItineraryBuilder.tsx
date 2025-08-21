@@ -788,9 +788,9 @@ export function ItineraryBuilder({
                   {!useLengthOfStay ? (
                     <div className="max-w-md mx-auto">
                       <DateRangePicker
-                        dateRange={dateRange}
+                        startDate={dateRange.start}
+                        endDate={dateRange.end}
                         onDateRangeChange={handleDateRangeChange}
-                        className="w-full"
                       />
                     </div>
                   ) : (
@@ -897,8 +897,8 @@ export function ItineraryBuilder({
                 Export
               </Button>
               <ItineraryMapButton 
+                events={events}
                 onOpenMap={() => setIsMapOpen(true)}
-                className="rounded-xl bg-primary hover:bg-primary/90"
               />
             </div>
           </div>
@@ -916,11 +916,33 @@ export function ItineraryBuilder({
               </div>
               <div className="p-6">
                 <HotelFlightSection 
-                  currentItinerary={currentItinerary}
+                  locations={currentItinerary.locations}
+                  isMultiCity={currentItinerary.isMultiCity}
                   hotels={hotels}
                   flights={flights}
-                  onHotelsChange={setHotels}
-                  onFlightsChange={setFlights}
+                  onAddHotel={(hotel, location, checkIn, checkOut) => {
+                    const newHotelBooking = {
+                      id: crypto.randomUUID(),
+                      hotel,
+                      checkIn,
+                      checkOut,
+                      location
+                    };
+                    setHotels(prev => [...prev, newHotelBooking]);
+                  }}
+                  onAddFlight={(flight) => {
+                    const newFlight = {
+                      id: crypto.randomUUID(),
+                      ...flight
+                    };
+                    setFlights(prev => [...prev, newFlight]);
+                  }}
+                  onRemoveHotel={(hotelId) => {
+                    setHotels(prev => prev.filter(h => h.id !== hotelId));
+                  }}
+                  onRemoveFlight={(flightId) => {
+                    setFlights(prev => prev.filter(f => f.id !== flightId));
+                  }}
                 />
               </div>
             </div>
@@ -947,15 +969,22 @@ export function ItineraryBuilder({
               </div>
               <div className="p-6">
                 <TripCalendar
-                  dateRange={dateRange}
+                  startDate={currentItinerary.startDate}
+                  endDate={currentItinerary.endDate}
                   events={events}
-                  onEventClick={(event) => {
+                  locations={currentItinerary.locations}
+                  hotels={hotels}
+                  isMultiCity={currentItinerary.isMultiCity}
+                  onAddEvent={(date) => {
+                    setSelectedDate(date);
+                    setIsEventDialogOpen(true);
+                  }}
+                  onEditEvent={(event) => {
                     setEditingEvent(event);
                     setIsEventDialogOpen(true);
                   }}
-                  onDateClick={(date) => {
-                    setSelectedDate(format(date, 'yyyy-MM-dd'));
-                    setIsEventDialogOpen(true);
+                  onDeleteEvent={(eventId) => {
+                    setEvents(prev => prev.filter(e => e.id !== eventId));
                   }}
                 />
               </div>
@@ -1104,16 +1133,18 @@ export function ItineraryBuilder({
           setEditingEvent(null);
           setSelectedDate(null);
         }}
-        onSaveEvent={(event) => {
+        onSave={(event) => {
           if (editingEvent) {
-            setEvents(prev => prev.map(e => e.id === editingEvent.id ? event : e));
+            const updatedEvent = { ...event, id: editingEvent.id };
+            setEvents(prev => prev.map(e => e.id === editingEvent.id ? updatedEvent : e));
           } else {
-            setEvents(prev => [...prev, event]);
+            const newEvent = { ...event, id: crypto.randomUUID() };
+            setEvents(prev => [...prev, newEvent]);
           }
         }}
         selectedDate={selectedDate}
         editingEvent={editingEvent}
-        locations={currentItinerary?.locations || []}
+        itineraryLocation={currentItinerary?.locations[0]?.name}
       />
 
       <ShareItineraryDialog
@@ -1131,7 +1162,8 @@ export function ItineraryBuilder({
       <SaveItineraryDialog
         isOpen={isSaveDialogOpen}
         onClose={() => setIsSaveDialogOpen(false)}
-        itinerary={currentItinerary}
+        currentTitle={currentItinerary?.title || ''}
+        isUpdate={!!currentItinerary?.id}
         onSave={async (title) => {
           if (!currentItinerary || !user) return;
           
@@ -1160,7 +1192,6 @@ export function ItineraryBuilder({
         <ItineraryMapView
           isOpen={isMapOpen}
           onClose={() => setIsMapOpen(false)}
-          itinerary={currentItinerary}
           events={events}
           hotels={hotels}
         />
