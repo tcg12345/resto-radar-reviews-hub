@@ -187,7 +187,7 @@ export function RestaurantCard({
         restaurantName={restaurant.name} 
         isMobile={isMobile} 
       />
-      <Card className="overflow-hidden bg-card border-0 shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] transition-all duration-300 rounded-3xl flex flex-col h-full group">
+      <Card className="overflow-hidden bg-card border-0 shadow-[0_6px_25px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.15)] transition-all duration-300 rounded-3xl flex flex-col h-full group">
         {/* Hero Restaurant Image */}
         {photos.length > 0 && (
           <div className="relative w-full h-52 overflow-hidden bg-gradient-to-br from-muted/30 to-muted/60">
@@ -233,31 +233,31 @@ export function RestaurantCard({
               </div>
             )}
 
-            {/* Navigation Arrows (on hover) */}
+            {/* Subtle Navigation Arrows (edge-aligned) */}
             {hasMultiplePhotos && (
-              <div className="absolute inset-0 flex items-center justify-between px-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <Button 
                   size="icon" 
-                  variant="secondary" 
-                  className="h-8 w-8 rounded-full bg-white/90 backdrop-blur-sm shadow-md hover:bg-white hover:scale-105 transition-all duration-200" 
+                  variant="ghost" 
+                  className="h-7 w-7 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/30 border-0 transition-all duration-200 hover:scale-105" 
                   onClick={e => {
                     e.stopPropagation();
                     previousPhoto();
                   }}
                 >
-                  <span className="text-gray-700">‹</span>
+                  <span className="text-white text-sm">‹</span>
                 </Button>
                 
                 <Button 
                   size="icon" 
-                  variant="secondary" 
-                  className="h-8 w-8 rounded-full bg-white/90 backdrop-blur-sm shadow-md hover:bg-white hover:scale-105 transition-all duration-200" 
+                  variant="ghost" 
+                  className="h-7 w-7 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/30 border-0 transition-all duration-200 hover:scale-105" 
                   onClick={e => {
                     e.stopPropagation();
                     nextPhoto();
                   }}
                 >
-                  <span className="text-gray-700">›</span>
+                  <span className="text-white text-sm">›</span>
                 </Button>
               </div>
             )}
@@ -266,7 +266,7 @@ export function RestaurantCard({
             {onEdit && (
               <Button
                 size="icon"
-                variant="secondary"
+                variant="ghost"
                 className="absolute top-3 right-3 h-7 w-7 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/30 border-0 transition-all duration-200 hover:scale-105"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -280,34 +280,34 @@ export function RestaurantCard({
         )}
         
         {/* Premium Content Layout */}
-        <div className="flex flex-col flex-1 p-6 space-y-5">
+        <div className="flex flex-col flex-1 p-6 space-y-6">
           {/* Header: Name + Rating */}
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
-              <h3 className="text-xl font-bold text-foreground leading-tight truncate mb-1">
+              <h3 className="text-2xl font-bold text-foreground leading-tight truncate mb-2">
                 {restaurant.name}
               </h3>
               
-              {/* Cuisine & Price Row */}
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span className="font-medium">{restaurant.cuisine}</span>
+              {/* Cuisine & Price Row with Enhanced Visibility */}
+              <div className="flex items-center gap-3 text-sm">
+                <span className="font-medium text-foreground">{restaurant.cuisine}</span>
                 {restaurant.priceRange && (
                   <>
-                    <span>•</span>
-                    <div className="flex items-center gap-0.5">
-                      {Array.from({ length: restaurant.priceRange }, (_, i) => (
-                        <div key={i} className="w-1 h-1 rounded-full bg-emerald-500"></div>
-                      ))}
-                      {Array.from({ length: 4 - restaurant.priceRange }, (_, i) => (
-                        <div key={i} className="w-1 h-1 rounded-full bg-muted"></div>
-                      ))}
+                    <span className="text-muted-foreground">•</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">
+                        {'$'.repeat(restaurant.priceRange)}
+                      </span>
+                      <span className="text-lg font-light text-muted-foreground/40">
+                        {'$'.repeat(4 - restaurant.priceRange)}
+                      </span>
                     </div>
                   </>
                 )}
               </div>
             </div>
             
-            {/* Modern Rating Badge */}
+            {/* Modern Compact Rating Badge */}
             {restaurant.rating !== undefined && (
               <div className="flex items-center gap-2 flex-shrink-0">
                 {restaurant.googleMapsUrl ? (
@@ -315,16 +315,16 @@ export function RestaurantCard({
                     href={`https://www.google.com/search?q=${encodeURIComponent(`${restaurant.name} ${restaurant.address}`)}`} 
                     target="_blank" 
                     rel="noopener noreferrer" 
-                    className="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-2.5 py-1 rounded-full text-sm font-semibold shadow-sm hover:shadow-md hover:scale-105 transition-all duration-200"
+                    className="inline-flex items-center gap-1.5 bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-sm hover:shadow-md hover:scale-105 transition-all duration-200"
                     onClick={e => e.stopPropagation()}
                   >
-                    <span>{restaurant.rating.toFixed(1)}</span>
-                    <div className="w-2.5 h-2.5 text-white fill-current">★</div>
+                    <span className="text-base">{restaurant.rating.toFixed(1)}</span>
+                    <div className="w-3 h-3 text-white/90 fill-current">★</div>
                   </a>
                 ) : (
-                  <div className="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-2.5 py-1 rounded-full text-sm font-semibold shadow-sm">
-                    <span>{restaurant.rating.toFixed(1)}</span>
-                    <div className="w-2.5 h-2.5 text-white fill-current">★</div>
+                  <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-sm">
+                    <span className="text-base">{restaurant.rating.toFixed(1)}</span>
+                    <div className="w-3 h-3 text-white/90 fill-current">★</div>
                   </div>
                 )}
               </div>
@@ -338,16 +338,16 @@ export function RestaurantCard({
             </div>
           )}
 
-          {/* Location & Hours */}
-          <div className="space-y-2.5">
-            <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
-              <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/70" />
+          {/* Location & Hours with Elegant Icons */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/60" />
               <LocationDisplay restaurant={restaurant} />
             </div>
 
             {restaurant.openingHours && (
-              <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
-                <Clock className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/70" />
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <Clock className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/60" />
                 <span className="truncate">{getCurrentDayHours(restaurant.openingHours)}</span>
               </div>
             )}
@@ -357,26 +357,26 @@ export function RestaurantCard({
           {(restaurant.dateVisited || restaurant.isWishlist) && (
             <div className="flex items-center gap-2 flex-wrap">
               {restaurant.dateVisited && (
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 dark:bg-blue-950/30 px-2.5 py-1 text-xs font-medium text-blue-700 dark:text-blue-300">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 dark:bg-blue-950/30 px-3 py-1.5 text-xs font-medium text-blue-700 dark:text-blue-300">
                   <Clock className="h-2.5 w-2.5" />
                   <span>{format(new Date(restaurant.dateVisited), 'MMM d')}</span>
                 </div>
               )}
               
               {restaurant.isWishlist && (
-                <div className="inline-flex items-center rounded-full bg-amber-50 dark:bg-amber-950/30 px-2.5 py-1 text-xs font-medium text-amber-700 dark:text-amber-300">
+                <div className="inline-flex items-center rounded-full bg-amber-50 dark:bg-amber-950/30 px-3 py-1.5 text-xs font-medium text-amber-700 dark:text-amber-300">
                   Saved
                 </div>
               )}
             </div>
           )}
 
-          {/* Elegant Action Row */}
+          {/* Clean Action Row */}
           <div className="flex items-center justify-between pt-2">
             <Button 
               variant="ghost"
               size="sm"
-              className="h-9 px-4 rounded-full bg-primary/5 hover:bg-primary/10 text-primary border-0 transition-all duration-200 hover:scale-105 shadow-none font-medium"
+              className="h-10 px-4 rounded-full bg-gradient-to-r from-primary/8 to-primary/12 hover:from-primary/12 hover:to-primary/16 text-primary border-0 transition-all duration-200 hover:scale-105 shadow-none font-semibold"
               onMouseEnter={handlePrefetch}
               onFocus={handlePrefetch}
               onTouchStart={handlePrefetch}
@@ -414,20 +414,20 @@ export function RestaurantCard({
               <Button 
                 size="icon"
                 variant="ghost"
-                className="h-8 w-8 rounded-full hover:bg-muted/50 transition-all duration-200 hover:scale-105"
+                className="h-9 w-9 rounded-full hover:bg-muted/50 transition-all duration-200 hover:scale-105 shadow-none"
                 onClick={() => setIsShareDialogOpen(true)}
               >
-                <Share2 className="h-3.5 w-3.5 text-muted-foreground" />
+                <Share2 className="h-4 w-4 text-muted-foreground" />
               </Button>
               
               {onDelete && (
                 <Button 
                   size="icon"
                   variant="ghost"
-                  className="h-8 w-8 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all duration-200 hover:scale-105"
+                  className="h-9 w-9 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all duration-200 hover:scale-105 shadow-none"
                   onClick={() => onDelete(restaurant.id)}
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               )}
             </div>
