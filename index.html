@@ -28,7 +28,7 @@
       // Prevent flash of incorrect theme
       (function() {
         const stored = localStorage.getItem('theme');
-        const theme = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        const theme = stored || 'dark'; // Default to dark mode
         document.documentElement.classList.add(theme);
       })();
     </script>
