@@ -641,10 +641,10 @@ const performLiveSearch = async () => {
                 {[...Array(6)].map((_, i) => <SearchResultSkeleton key={i} />)}
               </div> : <div className="space-y-3">
                 {searchResults.map(place => <Card key={place.place_id} className="overflow-hidden bg-card border-0 shadow-[0_6px_25px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.15)] transition-all duration-300 rounded-2xl cursor-pointer group" onClick={() => handlePlaceClick(place)}>
-                    <CardContent className="p-4">
+                    <CardContent className="p-3">
                       {/* Mobile Layout */}
                       <div className="lg:hidden">
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                           {/* Top Row: Name and Rating */}
                           <div className="flex items-center justify-between gap-3">
                             <h3 className="font-bold text-base text-foreground truncate flex-1">{place.name}</h3>
@@ -661,7 +661,21 @@ const performLiveSearch = async () => {
                           {/* Second Row: Cuisine and Price */}
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-medium text-foreground">
-                              {place.aiAnalysis?.cuisine || place.fallbackCuisine || 'Restaurant'}
+                              {(() => {
+                                // Better cuisine detection
+                                if (place.aiAnalysis?.cuisine) return place.aiAnalysis.cuisine;
+                                if (place.yelpData?.categories?.length > 0) return place.yelpData.categories[0];
+                                
+                                // Extract cuisine from place types
+                                const cuisineTypes = place.types?.filter(type => 
+                                  !['restaurant', 'food', 'establishment', 'point_of_interest', 'store'].includes(type)
+                                );
+                                if (cuisineTypes?.length > 0) {
+                                  return cuisineTypes[0].replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                }
+                                
+                                return place.fallbackCuisine || 'Restaurant';
+                              })()}
                             </span>
                             {place.price_level && (
                               <>
@@ -673,24 +687,27 @@ const performLiveSearch = async () => {
                             )}
                           </div>
                           
-                          {/* Third Row: City and Status */}
+                          {/* Third Row: City + State/Country and Status */}
                           <div className="flex items-center justify-between gap-2">
-                            <span className="text-sm text-muted-foreground">
-                              {(() => {
-                                const parts = place.formatted_address?.split(', ') || [];
-                                if (parts.length >= 2) {
-                                  if (parts[parts.length - 1] === 'United States') {
-                                    const city = parts[parts.length - 3] || '';
-                                    return city;
-                                  }
-                                  const city = parts[parts.length - 2] || '';
-                                  return city.replace(/\s+[A-Z0-9]{2,10}$/, '');
-                                }
-                                return parts[0] || '';
-                              })()}
-                            </span>
-                            
                             <div className="flex items-center gap-2">
+                              <span className="text-xs text-muted-foreground">
+                                {(() => {
+                                  const parts = place.formatted_address?.split(', ') || [];
+                                  if (parts.length >= 2) {
+                                    if (parts[parts.length - 1] === 'United States') {
+                                      const city = parts[parts.length - 3] || '';
+                                      const stateWithZip = parts[parts.length - 2] || '';
+                                      const state = stateWithZip.replace(/\s+\d{5}(-\d{4})?$/, '');
+                                      return city && state ? `${city}, ${state}` : city || state;
+                                    }
+                                    const city = parts[parts.length - 2] || '';
+                                    const country = parts[parts.length - 1] || '';
+                                    const cleanCity = city.replace(/\s+[A-Z0-9]{2,10}$/, '');
+                                    return cleanCity && country ? `${cleanCity}, ${country}` : cleanCity || country;
+                                  }
+                                  return parts[0] || '';
+                                })()}
+                              </span>
                               {place.opening_hours?.open_now !== undefined && (
                                 <div className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
                                   place.opening_hours.open_now 
@@ -700,24 +717,25 @@ const performLiveSearch = async () => {
                                   {place.opening_hours.open_now ? 'Open' : 'Closed'}
                                 </div>
                               )}
-                              <Button 
-                                size="sm" 
-                                className="h-7 px-3 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-xs"
-                                onClick={e => {
-                                  e.stopPropagation();
-                                  handleQuickAdd(place);
-                                }}
-                              >
-                                Add
-                              </Button>
                             </div>
+                            
+                            <Button 
+                              size="sm" 
+                              className="h-6 px-3 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-xs"
+                              onClick={e => {
+                                e.stopPropagation();
+                                handleQuickAdd(place);
+                              }}
+                            >
+                              Add
+                            </Button>
                           </div>
                         </div>
                       </div>
 
                       {/* Desktop Layout */}
                       <div className="hidden lg:block">
-                        <div className="space-y-3">
+                        <div className="space-y-2">
                           {/* Top Row: Name and Rating */}
                           <div className="flex items-center justify-between gap-3">
                             <h3 className="font-bold text-lg text-foreground truncate flex-1">{place.name}</h3>
@@ -739,7 +757,21 @@ const performLiveSearch = async () => {
                           {/* Second Row: Cuisine and Price */}
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-medium text-foreground">
-                              {place.aiAnalysis?.cuisine || place.fallbackCuisine || 'Restaurant'}
+                              {(() => {
+                                // Better cuisine detection
+                                if (place.aiAnalysis?.cuisine) return place.aiAnalysis.cuisine;
+                                if (place.yelpData?.categories?.length > 0) return place.yelpData.categories[0];
+                                
+                                // Extract cuisine from place types
+                                const cuisineTypes = place.types?.filter(type => 
+                                  !['restaurant', 'food', 'establishment', 'point_of_interest', 'store'].includes(type)
+                                );
+                                if (cuisineTypes?.length > 0) {
+                                  return cuisineTypes[0].replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                }
+                                
+                                return place.fallbackCuisine || 'Restaurant';
+                              })()}
                             </span>
                             {place.price_level && (
                               <>
@@ -751,16 +783,27 @@ const performLiveSearch = async () => {
                             )}
                           </div>
                           
-                          {/* Third Row: City */}
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">
-                              {place.formatted_address?.split(',')[0] || ''}
-                            </span>
-                          </div>
-                          
-                          {/* Status Tags and Actions Row */}
-                          <div className="flex items-center justify-between pt-1">
-                            <div className="flex items-center gap-2 flex-wrap">
+                          {/* Third Row: City + State/Country and Status */}
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-muted-foreground">
+                                {(() => {
+                                  const parts = place.formatted_address?.split(', ') || [];
+                                  if (parts.length >= 2) {
+                                    if (parts[parts.length - 1] === 'United States') {
+                                      const city = parts[parts.length - 3] || '';
+                                      const stateWithZip = parts[parts.length - 2] || '';
+                                      const state = stateWithZip.replace(/\s+\d{5}(-\d{4})?$/, '');
+                                      return city && state ? `${city}, ${state}` : city || state;
+                                    }
+                                    const city = parts[parts.length - 2] || '';
+                                    const country = parts[parts.length - 1] || '';
+                                    const cleanCity = city.replace(/\s+[A-Z0-9]{2,10}$/, '');
+                                    return cleanCity && country ? `${cleanCity}, ${country}` : cleanCity || country;
+                                  }
+                                  return parts[0] || '';
+                                })()}
+                              </span>
                               {place.opening_hours?.open_now !== undefined && (
                                 <div className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
                                   place.opening_hours.open_now 
@@ -770,38 +813,20 @@ const performLiveSearch = async () => {
                                   {place.opening_hours.open_now ? 'Open' : 'Closed'}
                                 </div>
                               )}
-                              {place.yelpData && (
-                                <div className="inline-flex items-center rounded-full bg-red-50 dark:bg-red-950/30 px-2.5 py-1 text-xs font-medium text-red-700 dark:text-red-300">
-                                  Yelp ✓
-                                </div>
-                              )}
-                              {place.yelpData?.transactions?.includes('delivery') && (
-                                <div className="inline-flex items-center gap-1 rounded-full bg-blue-50 dark:bg-blue-950/30 px-2.5 py-1 text-xs font-medium text-blue-700 dark:text-blue-300">
-                                  <Truck className="h-2.5 w-2.5" />
-                                  Delivery
-                                </div>
-                              )}
-                              {place.yelpData?.transactions?.includes('pickup') && (
-                                <div className="inline-flex items-center gap-1 rounded-full bg-orange-50 dark:bg-orange-950/30 px-2.5 py-1 text-xs font-medium text-orange-700 dark:text-orange-300">
-                                  <ShoppingBag className="h-2.5 w-2.5" />
-                                  Pickup
-                                </div>
-                              )}
                             </div>
                             
-                            {/* Action Buttons */}
                             <div className="flex items-center gap-2">
                               <Button 
                                 variant="outline" 
                                 size="sm" 
-                                className="h-8 px-4 rounded-full border-border hover:bg-muted/50 font-medium"
+                                className="h-7 px-3 rounded-full border-border hover:bg-muted/50 font-medium text-xs"
                                 onClick={() => handlePlaceClick(place)}
                               >
                                 View
                               </Button>
                               <Button 
                                 size="sm" 
-                                className="h-8 px-4 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                                className="h-7 px-3 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-xs"
                                 onClick={e => {
                                   e.stopPropagation();
                                   handleQuickAdd(place);
@@ -811,8 +836,31 @@ const performLiveSearch = async () => {
                               </Button>
                             </div>
                           </div>
-                         </div>
-                       </div>
+                          
+                          {/* Optional Service Tags Row - only show if present and space permits */}
+                          {(place.yelpData || (place.yelpData?.transactions?.length > 0)) && (
+                            <div className="flex items-center gap-1.5 pt-1">
+                              {place.yelpData && (
+                                <div className="inline-flex items-center rounded-full bg-red-50 dark:bg-red-950/30 px-2 py-0.5 text-xs font-medium text-red-700 dark:text-red-300">
+                                  Yelp ✓
+                                </div>
+                              )}
+                              {place.yelpData?.transactions?.includes('delivery') && (
+                                <div className="inline-flex items-center gap-1 rounded-full bg-blue-50 dark:bg-blue-950/30 px-2 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-300">
+                                  <Truck className="h-2.5 w-2.5" />
+                                  Delivery
+                                </div>
+                              )}
+                              {place.yelpData?.transactions?.includes('pickup') && (
+                                <div className="inline-flex items-center gap-1 rounded-full bg-orange-50 dark:bg-orange-950/30 px-2 py-0.5 text-xs font-medium text-orange-700 dark:text-orange-300">
+                                  <ShoppingBag className="h-2.5 w-2.5" />
+                                  Pickup
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                      </CardContent>
                    </Card>)}
                </div>}
