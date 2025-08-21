@@ -872,9 +872,9 @@ export function ItineraryBuilder({
     
     if (isMobile) {
       return (
-        <div className="min-h-screen bg-gradient-subtle">
+        <div className="min-h-screen">
           {/* Ultra-Modern Mobile Header */}
-          <div className="bg-card/70 backdrop-blur-xl border-b border-border/20">
+          <div className="backdrop-blur-xl border-b border-border/20">
             <div className="px-3 py-4 flex items-center justify-between">
               <div>
                 <h1 className="text-2xl lg:text-3xl font-bold text-gradient mb-1">
@@ -1215,17 +1215,17 @@ export function ItineraryBuilder({
           </TabsList>
           
           <TabsContent value="create" className="mt-6">
-            <Card>
-              <CardHeader className="text-center">
+            <div>
+              <div className="text-center">
                 <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                   <CalendarDays className="w-6 h-6 text-primary" />
                 </div>
-                <CardTitle>Start Planning Your Trip</CardTitle>
-                <CardDescription>
+                <div className="text-2xl font-bold mb-2">Start Planning Your Trip</div>
+                <div className="text-sm text-muted-foreground mb-6">
                   Select your destination(s) and travel dates to begin creating your itinerary
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
+                </div>
+              </div>
+              <div className="space-y-6">
                 {/* ... keep existing code (all the existing desktop content) */}
                 <div className="flex items-center justify-center space-x-2">
                   <Switch id="multi-city" checked={isMultiCity} onCheckedChange={setIsMultiCity} />
@@ -1393,8 +1393,8 @@ export function ItineraryBuilder({
                 {!canCreateItinerary && locations.length > 0 && <div className="text-center text-muted-foreground text-sm">
                     {isMultiCity ? "Select dates for each destination to create your itinerary" : "Select travel dates to create your itinerary"}
                   </div>}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </TabsContent>
           
           <TabsContent value="saved" className="mt-6">
