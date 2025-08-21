@@ -81,7 +81,7 @@ export function UnifiedPhotoGallery({
 
   const handleViewAllPhotos = () => {
     if (restaurantPlaceId) {
-      navigate(`/restaurant/${restaurantPlaceId}/photos`);
+      navigate(`/restaurant/${restaurantId || restaurantPlaceId}/photos`);
     }
   };
 

@@ -31,11 +31,11 @@ export default function RestaurantPhotosPage() {
       if (!placeId) return;
 
       try {
-        // First try to get from our database
+        // First try to get from our database using either id or google_place_id
         const { data: dbRestaurant } = await supabase
           .from('restaurants')
-          .select('name, google_place_id')
-          .eq('google_place_id', placeId)
+          .select('name, google_place_id, id')
+          .or(`id.eq.${placeId},google_place_id.eq.${placeId}`)
           .single();
 
         if (dbRestaurant) {
@@ -71,7 +71,7 @@ export default function RestaurantPhotosPage() {
     fetchRestaurant();
   }, [placeId]);
 
-  const { communityStats, isLoading } = useRestaurantReviews(placeId, restaurant?.name);
+  const { communityStats, isLoading } = useRestaurantReviews(restaurant?.place_id, restaurant?.name);
 
   // Process community photos
   const allCommunityPhotos = useMemo(() => {
