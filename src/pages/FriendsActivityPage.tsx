@@ -1170,7 +1170,7 @@ export function FriendsActivityPage() {
             </Card>
           </div> : <>
             <div className="space-y-3">
-              {filteredRestaurants.map(restaurant => <div key={restaurant.id} className="bg-[rgb(24,24,27)] rounded-xl border border-white/5 shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer mx-4 md:mx-6 mb-3" onClick={() => {
+              {filteredRestaurants.map(restaurant => <div key={restaurant.id} className="bg-[rgb(24,24,27)] rounded-xl border border-white/5 shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer mx-2 mb-3" onClick={() => {
             // Preserve current search parameters for when user returns
             const currentSearch = searchParams.toString();
             const returnUrl = currentSearch ? `/search/friends?${currentSearch}` : '/search/friends';
