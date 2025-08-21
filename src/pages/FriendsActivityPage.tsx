@@ -1177,66 +1177,68 @@ export function FriendsActivityPage() {
             navigate(`/restaurant/${restaurant.id}?friendId=${restaurant.friend.id}&fromFriendsActivity=true&returnUrl=${encodeURIComponent(returnUrl)}`);
           }}>
                   {/* Mobile Layout */}
-                  <div className="md:hidden p-4 space-y-3">
+                  <div className="md:hidden p-3 space-y-2.5">
                     {/* Friend Info Header */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                        <Avatar className="h-7 w-7 flex-shrink-0">
+                        <Avatar className="h-6 w-6 flex-shrink-0">
                           <AvatarImage src={restaurant.friend.avatar_url} />
                           <AvatarFallback className="text-xs">
                             {restaurant.friend.name.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm text-muted-foreground truncate">{restaurant.friend.name}</p>
+                          <p className="text-sm text-muted-foreground/80 truncate">{restaurant.friend.name}</p>
                         </div>
                       </div>
-                      <div className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 flex-shrink-0 ${
+                      <div className={`px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 flex-shrink-0 ${
                         restaurant.is_wishlist 
-                          ? 'bg-red-50 text-red-600 dark:bg-red-950 dark:text-red-400' 
-                          : 'bg-green-50 text-green-600 dark:bg-green-950 dark:text-green-400'
+                          ? 'bg-red-500/10 text-red-600 border border-red-200/20 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20' 
+                          : 'bg-green-500/10 text-green-600 border border-green-200/20 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20'
                       }`}>
                         {restaurant.is_wishlist ? <><Heart className="h-3 w-3" />Want</> : <><Star className="h-3 w-3" />Been</>}
                       </div>
                     </div>
 
-                    {/* Restaurant Name & Rating */}
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <h3 className="font-bold text-lg text-foreground">{restaurant.name}</h3>
-                          {restaurant.michelin_stars && restaurant.michelin_stars > 0 && (
-                            <div className="flex-shrink-0">
-                              <MichelinStars stars={restaurant.michelin_stars} size="sm" readonly showLogo={false} />
-                            </div>
-                          )}
+                    {/* Restaurant Name & Details */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-bold text-base leading-tight text-foreground truncate">{restaurant.name}</h3>
+                            {restaurant.michelin_stars && restaurant.michelin_stars > 0 && (
+                              <div className="flex-shrink-0">
+                                <MichelinStars stars={restaurant.michelin_stars} size="sm" readonly showLogo={false} />
+                              </div>
+                            )}
+                          </div>
                         </div>
                         
-                        {/* Details Row */}
-                        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                          <span>{restaurant.cuisine}</span>
-                          <span>•</span>
-                          <span>{restaurant.city}</span>
-                          {restaurant.price_range && (
-                            <>
-                              <span>•</span>
-                              <span className="text-green-600 font-semibold dark:text-green-400">{'$'.repeat(restaurant.price_range)}</span>
-                            </>
-                          )}
-                        </div>
+                        {/* Rating */}
+                        {restaurant.rating && (
+                          <div className="flex items-center gap-1 px-2 py-0.5 bg-yellow-500/10 text-yellow-600 rounded-md border border-yellow-200/20 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/20 flex-shrink-0">
+                            <Star className="h-3 w-3 fill-current" />
+                            <span className="text-xs font-semibold">{restaurant.rating}</span>
+                          </div>
+                        )}
                       </div>
                       
-                      {/* Rating */}
-                      {restaurant.rating && (
-                        <div className="flex items-center gap-1 px-2.5 py-1 bg-yellow-50 text-yellow-700 rounded-lg dark:bg-yellow-950 dark:text-yellow-400 flex-shrink-0">
-                          <Star className="h-3.5 w-3.5 fill-current" />
-                          <span className="text-sm font-semibold">{restaurant.rating}</span>
-                        </div>
-                      )}
+                      {/* Details Row */}
+                      <div className="flex items-center gap-1.5 text-sm text-muted-foreground/70">
+                        <span>{restaurant.cuisine}</span>
+                        <span>•</span>
+                        <span>{restaurant.city}</span>
+                        {restaurant.price_range && (
+                          <>
+                            <span>•</span>
+                            <span className="text-green-600 font-semibold dark:text-green-400">{'$'.repeat(restaurant.price_range)}</span>
+                          </>
+                        )}
+                      </div>
                     </div>
 
                     {/* Date Row */}
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground/60">
                       <Clock className="h-3 w-3 flex-shrink-0" />
                       <span>
                         {restaurant.is_wishlist 
@@ -1250,8 +1252,8 @@ export function FriendsActivityPage() {
 
                     {/* Notes Preview */}
                     {restaurant.notes && (
-                      <div className="pt-1">
-                        <p className="text-xs text-muted-foreground line-clamp-2 italic">
+                      <div className="pt-0.5">
+                        <p className="text-xs text-muted-foreground/60 line-clamp-2 italic">
                           "{restaurant.notes}"
                         </p>
                       </div>
