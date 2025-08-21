@@ -86,8 +86,12 @@ export function UnifiedRestaurantDetails({
   isMobile = false
 }: UnifiedRestaurantDetailsProps) {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { setPreloadedStats } = useCommunityData();
+  const {
+    user
+  } = useAuth();
+  const {
+    setPreloadedStats
+  } = useCommunityData();
   const actualIsMobile = useIsMobile();
   const [photos, setPhotos] = useState<string[]>([]);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
@@ -105,35 +109,36 @@ export function UnifiedRestaurantDetails({
   const fetchedDetailsPlaceIdsRef = useRef<Set<string>>(new Set());
   const preloadedStatsPlaceIdsRef = useRef<Set<string>>(new Set());
   const hasValidPlaceId = useMemo(() => !!restaurant.place_id, [restaurant.place_id]);
-
   useEffect(() => {
     const schedule = (cb: () => void) => {
       if ('requestIdleCallback' in window) {
-        (window as any).requestIdleCallback(cb, { timeout: 800 });
+        (window as any).requestIdleCallback(cb, {
+          timeout: 800
+        });
       } else {
         setTimeout(cb, 200);
       }
     };
     schedule(() => setDeferHeavy(true));
   }, []);
-
   useEffect(() => {
     // Show map immediately when coordinates are available
     if (restaurantData.latitude && restaurantData.longitude) {
       setShowMap(true);
     }
   }, [restaurantData.latitude, restaurantData.longitude]);
-
-
   const {
     communityStats,
     reviews,
     isLoading: isLoadingReviews,
     submitReview
   } = useRestaurantReviews(hasValidPlaceId ? restaurantData.place_id : undefined, restaurantData.name);
+  const {
+    friendStats,
+    expertStats,
+    loading: isLoadingStats
+  } = useRatingStats(hasValidPlaceId ? restaurantData.place_id : undefined, restaurantData.name);
 
-  const { friendStats, expertStats, loading: isLoadingStats } = useRatingStats(hasValidPlaceId ? restaurantData.place_id : undefined, restaurantData.name);
-  
   // Build hero image candidates: community photos first, then restaurant photos
   const heroCandidates = useMemo(() => {
     const community = (communityStats?.recentPhotos || []).flatMap((rp: any) => rp?.photos || []);
@@ -141,7 +146,9 @@ export function UnifiedRestaurantDetails({
     return [...community, ...own].filter((p: any) => typeof p === 'string' && p.trim() !== '');
   }, [communityStats?.recentPhotos, photos]);
   const [heroIndex, setHeroIndex] = useState(0);
-  useEffect(() => { setHeroIndex(0); }, [heroCandidates.length]);
+  useEffect(() => {
+    setHeroIndex(0);
+  }, [heroCandidates.length]);
   const heroSrc = heroCandidates[heroIndex];
   const hasHeroPhoto = !!heroSrc;
   useEffect(() => {
@@ -166,23 +173,13 @@ export function UnifiedRestaurantDetails({
     setPhotos(restaurant.photos || []);
 
     // Fetch additional details if we have a place_id and missing info (deferred)
-    if (
-      deferHeavy &&
-      restaurant.place_id &&
-      (!restaurant.website && !(restaurant.formatted_phone_number || restaurant.phone || restaurant.phone_number)) &&
-      !fetchedDetailsPlaceIdsRef.current.has(restaurant.place_id)
-    ) {
+    if (deferHeavy && restaurant.place_id && !restaurant.website && !(restaurant.formatted_phone_number || restaurant.phone || restaurant.phone_number) && !fetchedDetailsPlaceIdsRef.current.has(restaurant.place_id)) {
       fetchedDetailsPlaceIdsRef.current.add(restaurant.place_id);
       fetchPlaceDetails(restaurant.place_id);
     }
 
     // Enhance with AI if cuisine is generic or Michelin stars are unknown (deferred)
-    if (
-      deferHeavy &&
-      restaurant.place_id &&
-      shouldEnhanceWithAI(restaurant) &&
-      !enhancedPlaceIdsRef.current.has(restaurant.place_id)
-    ) {
+    if (deferHeavy && restaurant.place_id && shouldEnhanceWithAI(restaurant) && !enhancedPlaceIdsRef.current.has(restaurant.place_id)) {
       enhancedPlaceIdsRef.current.add(restaurant.place_id);
       enhanceWithAI(restaurant);
     }
@@ -195,7 +192,7 @@ export function UnifiedRestaurantDetails({
       try {
         await supabase.rpc('link_restaurant_by_place_id', {
           place_id_param: restaurantData.place_id!,
-          restaurant_name_param: restaurantData.name,
+          restaurant_name_param: restaurantData.name
         });
       } catch (e) {
         console.warn('link_restaurant_by_place_id failed (non-blocking):', e);
@@ -331,7 +328,8 @@ export function UnifiedRestaurantDetails({
         notes: restaurantData.notes || '',
         latitude: restaurantData.latitude,
         longitude: restaurantData.longitude,
-        google_place_id: restaurantData.place_id, // ensure friend/expert stats can link
+        google_place_id: restaurantData.place_id,
+        // ensure friend/expert stats can link
         website: restaurantData.website || '',
         phone_number: restaurantData.phone || restaurantData.phone_number || restaurantData.formatted_phone_number || '',
         opening_hours: typeof restaurantData.opening_hours === 'object' ? restaurantData.opening_hours?.weekday_text?.join('\n') || '' : restaurantData.opening_hours || restaurantData.openingHours || '',
@@ -449,93 +447,49 @@ export function UnifiedRestaurantDetails({
 
       <div className={`${isMobile ? "pb-safe" : ""}`}>
         {/* Photos - Show either restaurant photos or community photos */}
-        {hasHeroPhoto && (
-          <div 
-            className={`${isMobile ? 'aspect-video' : 'aspect-video md:aspect-auto md:h-auto md:max-h-[420px] md:max-w-3xl md:mx-auto'} w-full bg-muted relative overflow-hidden cursor-pointer group`} 
-            onClick={() => navigate(`/restaurant/${restaurantData.place_id || restaurantData.id}/community-photos?name=${encodeURIComponent(restaurantData.name)}`)}
-          >
+        {hasHeroPhoto && <div className={`${isMobile ? 'aspect-video' : 'aspect-video md:aspect-auto md:h-auto md:max-h-[420px] md:max-w-3xl md:mx-auto'} w-full bg-muted relative overflow-hidden cursor-pointer group`} onClick={() => navigate(`/restaurant/${restaurantData.place_id || restaurantData.id}/community-photos?name=${encodeURIComponent(restaurantData.name)}`)}>
             {/* Try to show community photos first, then restaurant photos, then fallback */}
             {/* Mobile: single hero image */}
             <div className="md:hidden w-full h-full">
-              {heroSrc ? (
-                <img
-                  src={resolveImageUrl(heroSrc)}
-                  alt={restaurantData.name}
-                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                  loading="lazy" decoding="async"
-                  onLoad={() => setHasLoadedHeroImage(true)}
-                  onError={() => setHeroIndex((i) => i + 1)}
-                />
-              ) : null}
+              {heroSrc ? <img src={resolveImageUrl(heroSrc)} alt={restaurantData.name} className="w-full h-full object-cover transition-transform group-hover:scale-105" loading="lazy" decoding="async" onLoad={() => setHasLoadedHeroImage(true)} onError={() => setHeroIndex(i => i + 1)} /> : null}
             </div>
 
             {/* Desktop: grid collage when multiple photos available, otherwise single image (contain) */}
             <div className="hidden md:block w-full h-full">
               {(() => {
-                const header: string[] = (communityStats?.recentPhotos?.length
-                  ? communityStats.recentPhotos.flatMap((rp: any) => rp?.photos || [])
-                  : photos).slice(0, 6);
-                if (header.length > 1) {
-                  return (
-                    <div className="grid grid-cols-3 gap-2 auto-rows-[140px]">
-                      {header.map((src, i) => (
-                        <img
-                          key={i}
-                          src={resolveImageUrl(src)}
-                          alt={`${restaurantData.name} photo ${i + 1}`}
-                          className="w-full h-full object-cover rounded-md"
-                          onLoad={() => setHasLoadedHeroImage(true)}
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                          }}
-                        />
-                      ))}
-                    </div>
-                  );
-                }
-                // Single image fallback on desktop
-                if (communityStats?.recentPhotos?.[0]?.photos?.[0]) {
-                  return (
-                    <img
-                      src={resolveImageUrl(communityStats.recentPhotos[0].photos[0])}
-                      alt={restaurantData.name}
-                      className="w-full h-full object-cover transition-transform group-hover:scale-105 md:object-contain md:h-auto md:w-auto md:max-h-[420px] md:mx-auto"
-                      onLoad={() => setHasLoadedHeroImage(true)}
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                      }}
-                    />
-                  );
-                }
-                if (photos.length > 0) {
-                  return (
-                    <img
-                      src={resolveImageUrl(photos[0])}
-                      alt={restaurantData.name}
-                      className="w-full h-full object-cover transition-transform group-hover:scale-105 md:object-contain md:h-auto md:w-auto md:max-h-[420px] md:mx-auto"
-                       onError={(e) => {
-                         const target = e.target as HTMLImageElement;
-                         target.style.display = 'none';
-                       }}
-                    />
-                  );
-                }
-                return null;
-              })()}
+              const header: string[] = (communityStats?.recentPhotos?.length ? communityStats.recentPhotos.flatMap((rp: any) => rp?.photos || []) : photos).slice(0, 6);
+              if (header.length > 1) {
+                return <div className="grid grid-cols-3 gap-2 auto-rows-[140px]">
+                      {header.map((src, i) => <img key={i} src={resolveImageUrl(src)} alt={`${restaurantData.name} photo ${i + 1}`} className="w-full h-full object-cover rounded-md" onLoad={() => setHasLoadedHeroImage(true)} onError={e => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                  }} />)}
+                    </div>;
+              }
+              // Single image fallback on desktop
+              if (communityStats?.recentPhotos?.[0]?.photos?.[0]) {
+                return <img src={resolveImageUrl(communityStats.recentPhotos[0].photos[0])} alt={restaurantData.name} className="w-full h-full object-cover transition-transform group-hover:scale-105 md:object-contain md:h-auto md:w-auto md:max-h-[420px] md:mx-auto" onLoad={() => setHasLoadedHeroImage(true)} onError={e => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                }} />;
+              }
+              if (photos.length > 0) {
+                return <img src={resolveImageUrl(photos[0])} alt={restaurantData.name} className="w-full h-full object-cover transition-transform group-hover:scale-105 md:object-contain md:h-auto md:w-auto md:max-h-[420px] md:mx-auto" onError={e => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                }} />;
+              }
+              return null;
+            })()}
             </div>
             <div className="absolute top-3 right-3 bg-black/70 text-white px-2 py-1 rounded-md text-sm">
               View more photos
             </div>
-            {communityStats?.recentPhotos && communityStats.recentPhotos.length > 0 && photos.length === 0 && (
-              <div className="absolute bottom-3 left-3 bg-black/70 text-white px-2 py-1 rounded-md text-sm flex items-center gap-2">
+            {communityStats?.recentPhotos && communityStats.recentPhotos.length > 0 && photos.length === 0 && <div className="absolute bottom-3 left-3 bg-black/70 text-white px-2 py-1 rounded-md text-sm flex items-center gap-2">
                 <User className="h-3 w-3" />
                 Shared by {communityStats.recentPhotos[0].username}
-              </div>
-            )}
-          </div>
-        )}
+              </div>}
+          </div>}
 
         {/* Main Content */}
         <div className="space-y-6">{/* Remove p-4 padding to make content stretch edge-to-edge */}
@@ -558,7 +512,7 @@ export function UnifiedRestaurantDetails({
           <div className="space-y-3 px-4">
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <h1 className="text-2xl font-bold text-foreground mb-2">{restaurantData.name}</h1>
+                <h1 className="text-2xl font-bold text-foreground mb-2 my-[8px]">{restaurantData.name}</h1>
                 <div className="flex items-center gap-2 flex-wrap">
                   <Badge variant="outline" className="text-sm flex items-center gap-1">
                     {restaurantData.cuisine}
@@ -569,12 +523,10 @@ export function UnifiedRestaurantDetails({
                     </span>
                     {isEnhancingWithAI && <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />}
                   </Badge>
-                   {(restaurantData.michelinStars > 0 || restaurantData.michelin_stars > 0 || isEnhancingWithAI) && (
-                     <Badge variant="outline" className="text-sm flex items-center gap-1">
+                   {(restaurantData.michelinStars > 0 || restaurantData.michelin_stars > 0 || isEnhancingWithAI) && <Badge variant="outline" className="text-sm flex items-center gap-1">
                        <MichelinStars stars={restaurantData.michelinStars || restaurantData.michelin_stars || 0} readonly={true} size="sm" />
                        {isEnhancingWithAI && <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />}
-                     </Badge>
-                   )}
+                     </Badge>}
                 </div>
               </div>
               {restaurantData.rating && restaurantData.isSharedRestaurant && restaurantData.sharedBy && <div className="flex-shrink-0 text-center">
@@ -602,21 +554,17 @@ export function UnifiedRestaurantDetails({
           
 
           {/* Ratings Summary: Friends and Experts */}
-          {restaurantData.place_id && (
-            <div className="py-3 px-4 border-b border-border/50">
+          {restaurantData.place_id && <div className="py-3 px-4 border-b border-border/50">
               <div className="grid grid-cols-2 gap-3">
                 {/* Friends Rating */}
-                <div 
-                  onClick={() => navigate(`/restaurant/${restaurantData.place_id}/friends-ratings?name=${encodeURIComponent(restaurantData.name)}`)} 
-                  className="cursor-pointer group"
-                >
+                <div onClick={() => navigate(`/restaurant/${restaurantData.place_id}/friends-ratings?name=${encodeURIComponent(restaurantData.name)}`)} className="cursor-pointer group">
                   <div className="flex flex-col items-center text-center py-2 transition-all duration-200 group-hover:scale-105">
                     <div className="flex items-center gap-1.5 mb-1.5">
                       <Users className="h-4 w-4 text-blue-500" />
                       <span className="text-sm font-medium text-muted-foreground">Friends</span>
                     </div>
                     <div className="text-xl font-bold text-foreground mb-0.5">
-                      {isLoadingStats ? '—' : (friendStats.avg ? `${friendStats.avg}/10` : '—')}
+                      {isLoadingStats ? '—' : friendStats.avg ? `${friendStats.avg}/10` : '—'}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {isLoadingStats ? 'Loading…' : `${friendStats.count} reviews`}
@@ -625,17 +573,14 @@ export function UnifiedRestaurantDetails({
                 </div>
                 
                 {/* Expert Rating */}
-                <div 
-                  onClick={() => navigate(`/restaurant/${restaurantData.place_id}/expert-ratings?name=${encodeURIComponent(restaurantData.name)}`)} 
-                  className="cursor-pointer group"
-                >
+                <div onClick={() => navigate(`/restaurant/${restaurantData.place_id}/expert-ratings?name=${encodeURIComponent(restaurantData.name)}`)} className="cursor-pointer group">
                   <div className="flex flex-col items-center text-center py-2 transition-all duration-200 group-hover:scale-105">
                     <div className="flex items-center gap-1.5 mb-1.5">
                       <Award className="h-4 w-4 text-amber-500" />
                       <span className="text-sm font-medium text-muted-foreground">Experts</span>
                     </div>
                     <div className="text-xl font-bold text-foreground mb-0.5">
-                      {isLoadingStats ? '—' : (expertStats.avg ? `${expertStats.avg}/10` : '—')}
+                      {isLoadingStats ? '—' : expertStats.avg ? `${expertStats.avg}/10` : '—'}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {isLoadingStats ? 'Loading…' : `${expertStats.count} reviews`}
@@ -643,13 +588,10 @@ export function UnifiedRestaurantDetails({
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            </div>}
 
           {/* Community Rating */}
-          {deferHeavy && (
-            <CommunityRating stats={communityStats} isLoading={isLoadingReviews} />
-          )}
+          {deferHeavy && <CommunityRating stats={communityStats} isLoading={isLoadingReviews} />}
 
           {/* Primary Action Buttons */}
           <div className="grid grid-cols-3 gap-3 px-4">
@@ -682,13 +624,11 @@ export function UnifiedRestaurantDetails({
           <div className="h-px bg-border mx-4" />
 
           {/* Unified Photo Gallery - combines community and friend photos */}
-          {deferHeavy && (
-            <UnifiedPhotoGallery stats={communityStats} isLoading={isLoadingReviews} onPhotoClick={() => {}} friendPhotos={restaurantData.isSharedRestaurant && restaurantData.photos && restaurantData.photos.length > 0 ? restaurantData.photos.map((url, index) => ({
-              url,
-              caption: Array.isArray(restaurantData.photoCaptions) ? restaurantData.photoCaptions[index] : '',
-              dishName: Array.isArray(restaurantData.photo_captions) ? restaurantData.photo_captions[index] : ''
-            })) : undefined} friendName={restaurantData.isSharedRestaurant ? restaurantData.sharedBy?.name : undefined} friendId={restaurantData.isSharedRestaurant ? restaurantData.sharedBy?.id : undefined} restaurantId={restaurantData.id} restaurantPlaceId={restaurantData.place_id} />
-          )}
+          {deferHeavy && <UnifiedPhotoGallery stats={communityStats} isLoading={isLoadingReviews} onPhotoClick={() => {}} friendPhotos={restaurantData.isSharedRestaurant && restaurantData.photos && restaurantData.photos.length > 0 ? restaurantData.photos.map((url, index) => ({
+            url,
+            caption: Array.isArray(restaurantData.photoCaptions) ? restaurantData.photoCaptions[index] : '',
+            dishName: Array.isArray(restaurantData.photo_captions) ? restaurantData.photo_captions[index] : ''
+          })) : undefined} friendName={restaurantData.isSharedRestaurant ? restaurantData.sharedBy?.name : undefined} friendId={restaurantData.isSharedRestaurant ? restaurantData.sharedBy?.id : undefined} restaurantId={restaurantData.id} restaurantPlaceId={restaurantData.place_id} />}
 
           {/* Details */}
           <div className="space-y-0">
@@ -721,9 +661,7 @@ export function UnifiedRestaurantDetails({
             {restaurantData.latitude && restaurantData.longitude && <div className="p-4">
                 <h3 className="font-medium mb-3">Location</h3>
                 <div ref={mapRef} className="h-48 rounded-md overflow-hidden">
-                  {showMap && (
-                    <RestaurantLocationMap latitude={restaurantData.latitude} longitude={restaurantData.longitude} name={restaurantData.name} address={restaurantData.address} />
-                  )}
+                  {showMap && <RestaurantLocationMap latitude={restaurantData.latitude} longitude={restaurantData.longitude} name={restaurantData.name} address={restaurantData.address} />}
                 </div>
               </div>}
           </div>
@@ -732,7 +670,7 @@ export function UnifiedRestaurantDetails({
       </div>
 
       {/* Photo Gallery */}
-      <PhotoGallery photos={photos.map((p) => resolveImageUrl(p))} photoCaptions={restaurantData.photoCaptions || restaurantData.photo_captions} isOpen={isPhotoGalleryOpen} onClose={() => setIsPhotoGalleryOpen(false)} restaurantName={restaurantData.name} isMobile={actualIsMobile} />
+      <PhotoGallery photos={photos.map(p => resolveImageUrl(p))} photoCaptions={restaurantData.photoCaptions || restaurantData.photo_captions} isOpen={isPhotoGalleryOpen} onClose={() => setIsPhotoGalleryOpen(false)} restaurantName={restaurantData.name} isMobile={actualIsMobile} />
 
     </>;
 }
