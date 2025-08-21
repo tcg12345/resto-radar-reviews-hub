@@ -61,37 +61,37 @@ export function RecommendationCard({ restaurant, onAdd, onAddToWishlist }: Recom
 
   return (
     <div 
-      className="mx-2 mb-4 rounded-2xl shadow-lg bg-[rgb(24,24,27)] border border-white/10 overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-[1.01] active:scale-[0.99]"
+      className="mx-1 mb-3 rounded-xl shadow-md bg-[rgb(24,24,27)] overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.005] active:scale-[0.995]"
       onClick={handleCardClick}
     >
-      <div className="p-6">
+      <div className="p-4">
         {/* Header with name and rating */}
-        <div className="flex items-start justify-between mb-4">
+        <div className="flex items-start justify-between mb-3">
           <div className="flex-1 min-w-0 pr-3">
-            <h3 className="font-bold text-xl text-white leading-tight mb-2">
+            <h3 className="font-bold text-lg text-white leading-snug mb-1">
               {restaurant.name}
             </h3>
             
             {/* Price and cuisine row */}
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2">
               {restaurant.priceRange && (
                 <span className="text-emerald-400 font-semibold text-sm">
                   {getPriceDisplay(restaurant.priceRange)}
                 </span>
               )}
               {restaurant.priceRange && restaurant.cuisine && (
-                <span className="w-1 h-1 rounded-full bg-slate-500"></span>
+                <span className="w-1 h-1 rounded-full bg-slate-600"></span>
               )}
               <span className="text-slate-400 text-sm">{restaurant.cuisine}</span>
             </div>
           </div>
           
-          {/* Rating pill badge - slightly smaller */}
+          {/* Rating pill badge - smaller and cleaner */}
           {restaurant.rating && (
             <div className="flex-shrink-0">
-              <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/30">
-                <Star className="h-3 w-3 text-amber-400" fill="currentColor" />
-                <span className="text-amber-100 font-semibold text-sm">
+              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40">
+                <Star className="h-2.5 w-2.5 text-amber-400" fill="currentColor" />
+                <span className="text-amber-100 font-medium text-xs">
                   {restaurant.rating.toFixed(1)}
                 </span>
               </div>
@@ -100,61 +100,57 @@ export function RecommendationCard({ restaurant, onAdd, onAddToWishlist }: Recom
         </div>
 
         {/* Location */}
-        <div className="flex items-start gap-2 mb-4">
-          <MapPin className="h-4 w-4 text-slate-500 flex-shrink-0 mt-0.5" />
-          <span className="text-slate-400 text-sm leading-relaxed">
+        <div className="flex items-start gap-2 mb-3">
+          <MapPin className="h-3.5 w-3.5 text-slate-500 flex-shrink-0 mt-0.5" />
+          <span className="text-slate-400 text-xs leading-relaxed">
             {restaurant.address}
           </span>
         </div>
 
-        {/* Status, hours and distance */}
-        <div className="mb-5">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-3">
-              {restaurant.distance && (
-                <span className="text-slate-500 text-xs font-medium">
-                  {formatDistance(restaurant.distance)}
-                </span>
+        {/* Status and hours */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {restaurant.distance && (
+              <span className="text-slate-500 text-xs">
+                {formatDistance(restaurant.distance)}
+              </span>
+            )}
+            
+            {/* Status badge and hours */}
+            <div className="flex items-center gap-2">
+              {restaurant.isOpen !== undefined && (
+                <div className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                  restaurant.isOpen 
+                    ? 'bg-emerald-500/20 text-emerald-400' 
+                    : 'bg-red-500/20 text-red-400'
+                }`}>
+                  {restaurant.isOpen ? 'Open' : 'Closed'}
+                </div>
               )}
               
-              {/* Status badge */}
-              {restaurant.isOpen !== undefined && (
-                <div className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                  restaurant.isOpen 
-                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
-                    : 'bg-red-500/20 text-red-400 border border-red-500/30'
-                }`}>
-                  {restaurant.isOpen ? 'Open now' : 'Closed'}
-                </div>
+              {restaurant.openingHours && (
+                <span className="text-slate-500 text-xs">
+                  {restaurant.openingHours}
+                </span>
               )}
             </div>
           </div>
           
-          {/* Operating hours */}
-          {restaurant.openingHours && (
-            <div className="flex items-start gap-2">
-              <Clock className="h-3.5 w-3.5 text-slate-500 flex-shrink-0 mt-0.5" />
-              <span className="text-slate-500 text-xs leading-relaxed">
-                {restaurant.openingHours}
-              </span>
-            </div>
-          )}
-        </div>
-        
-        {/* Action buttons - slightly smaller */}
-        <div className="flex gap-2 justify-end">
-          <button
-            onClick={(e) => handleButtonClick(e, onAdd || (() => {}))}
-            className="h-8 w-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 active:scale-95 transition-all duration-200 shadow-sm hover:shadow-md"
-          >
-            <Plus className="h-3.5 w-3.5" />
-          </button>
-          <button
-            onClick={(e) => handleButtonClick(e, onAddToWishlist || (() => {}))}
-            className="h-8 w-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 active:scale-95 transition-all duration-200 hover:text-red-400 shadow-sm hover:shadow-md"
-          >
-            <Heart className="h-3.5 w-3.5" />
-          </button>
+          {/* Action buttons - smaller and cleaner */}
+          <div className="flex gap-1.5">
+            <button
+              onClick={(e) => handleButtonClick(e, onAdd || (() => {}))}
+              className="h-7 w-7 rounded-full bg-white/10 flex items-center justify-center text-slate-300 hover:bg-white/20 hover:text-white hover:scale-105 active:scale-95 transition-all duration-200"
+            >
+              <Plus className="h-3 w-3" />
+            </button>
+            <button
+              onClick={(e) => handleButtonClick(e, onAddToWishlist || (() => {}))}
+              className="h-7 w-7 rounded-full bg-white/10 flex items-center justify-center text-slate-300 hover:bg-white/20 hover:text-red-400 hover:scale-105 active:scale-95 transition-all duration-200"
+            >
+              <Heart className="h-3 w-3" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
