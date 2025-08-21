@@ -1064,6 +1064,17 @@ export type Database = {
         Args: { requesting_user_id?: string; target_user_id: string }
         Returns: Json
       }
+      get_discoverable_profiles: {
+        Args: { limit_count?: number; search_query?: string }
+        Returns: {
+          allow_friend_requests: boolean
+          avatar_url: string
+          id: string
+          is_public: boolean
+          name: string
+          username: string
+        }[]
+      }
       get_expert_rating_stats: {
         Args:
           | { place_id_param: string }
