@@ -52,7 +52,7 @@ export function AmadeusCitySearch({
       setIsLoading(true);
       try {
         const { data, error } = await supabase.functions.invoke('location-suggestions', {
-          body: { query: value }
+          body: { input: value }
         });
 
         if (error) throw error;
