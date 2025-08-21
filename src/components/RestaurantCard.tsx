@@ -165,13 +165,18 @@ export function RestaurantCard({
     }
   };
 
-  const handleLongPressStart = () => {
+  const handleLongPressStart = (e: React.TouchEvent | React.MouseEvent) => {
+    console.log('Long press started');
+    e.preventDefault();
     longPressTimerRef.current = setTimeout(() => {
+      console.log('Long press triggered - opening action sheet');
       setIsActionSheetOpen(true);
     }, 500); // 500ms long press
   };
 
-  const handleLongPressEnd = () => {
+  const handleLongPressEnd = (e: React.TouchEvent | React.MouseEvent) => {
+    console.log('Long press ended');
+    e.preventDefault();
     if (longPressTimerRef.current) {
       clearTimeout(longPressTimerRef.current);
       longPressTimerRef.current = null;
@@ -265,6 +270,8 @@ export function RestaurantCard({
               <div 
                 className="absolute inset-0 cursor-pointer"
                 onClick={openGallery}
+                onTouchStart={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
               />
               
               {hasMultiplePhotos && <div className="absolute inset-0 flex items-center justify-between px-2 lg:inset-x-0 lg:bottom-0 lg:top-auto lg:p-2">
@@ -359,8 +366,12 @@ export function RestaurantCard({
           className="flex-1 h-6 lg:h-7 px-1 lg:px-2 text-[10px] lg:text-xs mobile-button"
           onMouseEnter={handlePrefetch}
           onFocus={handlePrefetch}
-          onTouchStart={handlePrefetch}
-          onClick={() => {
+          onTouchStart={(e) => {
+            e.stopPropagation();
+            handlePrefetch();
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
             const preview = {
               id: restaurant.id,
               name: restaurant.name,
@@ -392,13 +403,31 @@ export function RestaurantCard({
           <span className="sm:hidden">Info</span>
         </Button>
         
-        <Button size="sm" variant="outline" className="flex-1 h-6 lg:h-7 px-1.5 lg:px-2 text-[10px] lg:text-xs mobile-button" onClick={() => setIsShareDialogOpen(true)}>
+        <Button 
+          size="sm" 
+          variant="outline" 
+          className="flex-1 h-6 lg:h-7 px-1.5 lg:px-2 text-[10px] lg:text-xs mobile-button" 
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsShareDialogOpen(true);
+          }}
+          onTouchStart={(e) => e.stopPropagation()}
+        >
           <Share2 className="mr-0.5 lg:mr-1 h-2.5 w-2.5 lg:h-3 lg:w-3" />
           <span className="hidden sm:inline">Share</span>
           <span className="sm:hidden">Share</span>
         </Button>
         
-        {onDelete && <Button size="sm" variant="outline" className="flex-1 h-6 lg:h-7 px-1.5 lg:px-2 text-[10px] lg:text-xs text-destructive hover:bg-destructive/10 mobile-button" onClick={() => onDelete(restaurant.id)}>
+        {onDelete && <Button 
+          size="sm" 
+          variant="outline" 
+          className="flex-1 h-6 lg:h-7 px-1.5 lg:px-2 text-[10px] lg:text-xs text-destructive hover:bg-destructive/10 mobile-button" 
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(restaurant.id);
+          }}
+          onTouchStart={(e) => e.stopPropagation()}
+        >
             <Trash2 className="mr-0.5 lg:mr-1 h-2.5 w-2.5 lg:h-3 lg:w-3" />
             <span className="hidden sm:inline">Delete</span>
             <span className="sm:hidden">Del</span>
