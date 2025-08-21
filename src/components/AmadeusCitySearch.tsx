@@ -25,7 +25,6 @@ export function AmadeusCitySearch({
   placeholder = "Enter city name",
   className 
 }: CitySearchProps) {
-  const [searchQuery, setSearchQuery] = useState('');
   const [locations, setLocations] = useState<LocationSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -44,7 +43,7 @@ export function AmadeusCitySearch({
 
   useEffect(() => {
     const searchForLocations = async () => {
-      if (searchQuery.length < 2) {
+      if (value.length < 2) {
         setLocations([]);
         setShowResults(false);
         return;
@@ -53,7 +52,7 @@ export function AmadeusCitySearch({
       setIsLoading(true);
       try {
         const { data, error } = await supabase.functions.invoke('location-suggestions', {
-          body: { query: searchQuery }
+          body: { query: value }
         });
 
         if (error) throw error;
@@ -72,15 +71,9 @@ export function AmadeusCitySearch({
 
     const debounceTimer = setTimeout(searchForLocations, 300);
     return () => clearTimeout(debounceTimer);
-  }, [searchQuery]);
-
-  const handleInputChange = (newValue: string) => {
-    setSearchQuery(newValue);
-    onChange(newValue);
-  };
+  }, [value]);
 
   const handleLocationSelect = (location: LocationSuggestion) => {
-    setSearchQuery(location.description);
     onChange(location.description);
     setShowResults(false);
     if (onCitySelect) {
@@ -93,9 +86,9 @@ export function AmadeusCitySearch({
       <div className="relative">
         <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-primary" />
         <Input
-          value={searchQuery}
-          onChange={(e) => handleInputChange(e.target.value)}
-          onFocus={() => searchQuery.length >= 2 && setShowResults(true)}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={() => value.length >= 2 && setShowResults(true)}
           placeholder={placeholder}
           className={`pl-12 pr-12 font-medium placeholder:text-muted-foreground/60 ${className}`}
         />
@@ -134,7 +127,7 @@ export function AmadeusCitySearch({
         </div>
       )}
 
-      {showResults && locations.length === 0 && !isLoading && searchQuery.length >= 2 && (
+      {showResults && locations.length === 0 && !isLoading && value.length >= 2 && (
         <div className="absolute top-full left-0 right-0 z-50 mt-2">
           <div className="bg-card/95 backdrop-blur-xl border border-border/30 rounded-2xl shadow-premium-xl overflow-hidden">
             <div className="px-4 py-4 text-center text-muted-foreground/80 font-medium">
