@@ -187,160 +187,251 @@ export function RestaurantCard({
         restaurantName={restaurant.name} 
         isMobile={isMobile} 
       />
-      <Card className="overflow-hidden bg-card shadow-sm hover:shadow-md transition-shadow duration-300 lg:shadow-md lg:hover:shadow-lg flex flex-col h-full">
-      {/* Show photo section only when restaurant has photos */}
-      {photos.length > 0 && <div className="relative aspect-video w-full overflow-hidden bg-muted lg:aspect-video">
-          <>
-<img
-  src={resolveImageUrl(photos[currentPhotoIndex], { width: 400 })}
-  alt={`${restaurant.name} photo ${currentPhotoIndex + 1}`}
-  className="relative h-full w-full cursor-pointer transition-transform duration-300 hover:scale-105 object-cover"
-  onLoad={() => setImageLoading(false)}
-  onError={() => setImageLoading(false)}
-  loading="eager"
-/>
-              <div 
-                className="absolute inset-0 cursor-pointer"
-                onClick={openGallery}
-              />
-              
-              {hasMultiplePhotos && <div className="absolute inset-0 flex items-center justify-between px-2 lg:inset-x-0 lg:bottom-0 lg:top-auto lg:p-2">
-                  <Button size="icon" variant="secondary" className="h-10 w-10 lg:h-8 lg:w-8 rounded-full bg-background/80 backdrop-blur-sm text-sm lg:text-xs" onClick={e => {
-              e.stopPropagation();
-              previousPhoto();
-            }}>
-                    &larr;
-                  </Button>
-                  <span className="absolute bottom-2 left-1/2 transform -translate-x-1/2 lg:static lg:transform-none rounded-full bg-background/80 px-1.5 py-0.5 lg:px-2 lg:py-1 text-[10px] lg:text-xs font-medium backdrop-blur-sm">
-                    {currentPhotoIndex + 1}/{photos.length}
-                  </span>
-                  <Button size="icon" variant="secondary" className="h-10 w-10 lg:h-8 lg:w-8 rounded-full bg-background/80 backdrop-blur-sm text-sm lg:text-xs" onClick={e => {
-              e.stopPropagation();
-              nextPhoto();
-            }}>
-                    &rarr;
-                  </Button>
-                </div>}
-            </>
-        </div>}
-      
-      <CardHeader className="pb-0 lg:pb-0 p-2 lg:p-4 relative">
-        {onEdit && (
-          <Button
-            size="icon"
-            variant="ghost"
-            className="absolute top-2 right-2 h-6 w-6 hover:bg-accent/50"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(restaurant.id);
-            }}
-          >
-            <Edit2 className="h-3 w-3" />
-          </Button>
-        )}
-        <div className="mobile-space-compact lg:space-y-1">
-          <CardTitle className="lg:text-lg mobile-truncate-2 text-lg font-extrabold pr-8">{restaurant.name}</CardTitle>
-           <div className="mobile-space-compact lg:space-y-1">
-             {restaurant.rating !== undefined && <div className="mobile-rating-container flex items-center">
-                       {restaurant.googleMapsUrl ? <a href={`https://www.google.com/search?q=${encodeURIComponent(`${restaurant.name} ${restaurant.address}`)}`} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity mobile-flex-shrink" onClick={e => e.stopPropagation()}>
-                           <StarRating rating={restaurant.rating} readonly size="sm" />
-                         </a> : <StarRating rating={restaurant.rating} readonly size="sm" />}
-                       {restaurant.reviewCount && restaurant.reviewCount > 0 && <a href={`https://www.google.com/search?q=${encodeURIComponent(`${restaurant.name} ${restaurant.address}`)}`} target="_blank" rel="noopener noreferrer" className="text-[10px] lg:text-xs text-muted-foreground hover:underline mobile-flex-shrink mobile-truncate" onClick={e => e.stopPropagation()}>
-                           ({restaurant.reviewCount.toLocaleString()})
-                         </a>}
-               </div>}
-            {restaurant.michelinStars && <MichelinStars stars={restaurant.michelinStars} readonly size="sm" />}
-            <div className="mobile-rating-container">
-              <div className="mobile-rating-container flex items-center text-xs lg:text-sm font-medium -ml-1">
-                {restaurant.priceRange && <>
-                    <span className="text-green-600 mobile-badge text-sm lg:text-base">{`${'$'.repeat(restaurant.priceRange)}`}</span>
-                    <span className="text-muted-foreground">•</span>
-                  </>}
-                <span className="text-foreground mobile-truncate mobile-flex-shrink px-[6px]">{restaurant.cuisine}</span>
+      <Card className="overflow-hidden bg-card/50 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl flex flex-col h-full group">
+        {/* Premium Restaurant Image Section */}
+        {photos.length > 0 && (
+          <div className="relative w-full h-48 lg:h-56 overflow-hidden bg-gradient-to-br from-muted/50 to-muted rounded-t-2xl">
+            <img
+              src={resolveImageUrl(photos[currentPhotoIndex], { width: 600 })}
+              alt={`${restaurant.name} photo ${currentPhotoIndex + 1}`}
+              className="h-full w-full object-cover cursor-pointer transition-transform duration-500 group-hover:scale-105"
+              onLoad={() => setImageLoading(false)}
+              onError={() => setImageLoading(false)}
+              loading="eager"
+            />
+            
+            {/* Gradient Overlay for better text readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10" />
+            
+            {/* Gallery Click Area */}
+            <div 
+              className="absolute inset-0 cursor-pointer"
+              onClick={openGallery}
+            />
+            
+            {/* Photo Navigation for Multiple Images */}
+            {hasMultiplePhotos && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-3">
+                <Button 
+                  size="icon" 
+                  variant="secondary" 
+                  className="h-9 w-9 rounded-full bg-white/90 backdrop-blur-md shadow-lg hover:bg-white transition-all duration-200" 
+                  onClick={e => {
+                    e.stopPropagation();
+                    previousPhoto();
+                  }}
+                >
+                  ←
+                </Button>
+                
+                {/* Photo Indicators */}
+                <div className="flex gap-1.5">
+                  {photos.slice(0, 5).map((_, index) => (
+                    <div
+                      key={index}
+                      className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                        index === currentPhotoIndex 
+                          ? 'bg-white shadow-sm' 
+                          : 'bg-white/50'
+                      }`}
+                    />
+                  ))}
+                  {photos.length > 5 && <span className="text-white text-xs font-medium">+{photos.length - 5}</span>}
+                </div>
+                
+                <Button 
+                  size="icon" 
+                  variant="secondary" 
+                  className="h-9 w-9 rounded-full bg-white/90 backdrop-blur-md shadow-lg hover:bg-white transition-all duration-200" 
+                  onClick={e => {
+                    e.stopPropagation();
+                    nextPhoto();
+                  }}
+                >
+                  →
+                </Button>
               </div>
+            )}
+
+            {/* Edit Button */}
+            {onEdit && (
+              <Button
+                size="icon"
+                variant="secondary"
+                className="absolute top-3 right-3 h-8 w-8 rounded-full bg-white/90 backdrop-blur-md hover:bg-white shadow-lg transition-all duration-200"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(restaurant.id);
+                }}
+              >
+                <Edit2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        )}
+        
+        {/* Premium Content Section */}
+        <div className="flex flex-col flex-1 p-5 space-y-4">
+          {/* Restaurant Name & Rating */}
+          <div className="space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <h3 className="text-xl font-bold text-foreground leading-tight line-clamp-2 flex-1">
+                {restaurant.name}
+              </h3>
+              
+              {/* Premium Rating Badge */}
+              {restaurant.rating !== undefined && (
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {restaurant.googleMapsUrl ? (
+                    <a 
+                      href={`https://www.google.com/search?q=${encodeURIComponent(`${restaurant.name} ${restaurant.address}`)}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="inline-flex items-center gap-1.5 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-3 py-1.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105"
+                      onClick={e => e.stopPropagation()}
+                    >
+                      <span>{restaurant.rating.toFixed(1)}</span>
+                      <div className="w-3 h-3 text-primary-foreground fill-current">★</div>
+                    </a>
+                  ) : (
+                    <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-3 py-1.5 rounded-full text-sm font-semibold shadow-md">
+                      <span>{restaurant.rating.toFixed(1)}</span>
+                      <div className="w-3 h-3 text-primary-foreground fill-current">★</div>
+                    </div>
+                  )}
+                  
+                  {restaurant.reviewCount && restaurant.reviewCount > 0 && (
+                    <a 
+                      href={`https://www.google.com/search?q=${encodeURIComponent(`${restaurant.name} ${restaurant.address}`)}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-xs text-muted-foreground hover:text-foreground transition-colors duration-200"
+                      onClick={e => e.stopPropagation()}
+                    >
+                      ({restaurant.reviewCount.toLocaleString()})
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
+
+            {/* Michelin Stars */}
+            {restaurant.michelinStars && (
+              <div className="flex items-center">
+                <MichelinStars stars={restaurant.michelinStars} readonly size="sm" />
+              </div>
+            )}
+          </div>
+
+          {/* Cuisine & Price */}
+          <div className="flex items-center gap-3 text-sm">
+            <span className="font-medium text-foreground">{restaurant.cuisine}</span>
+            {restaurant.priceRange && (
+              <>
+                <span className="text-muted-foreground">•</span>
+                <div className="flex items-center gap-0.5">
+                  {Array.from({ length: restaurant.priceRange }, (_, i) => (
+                    <span key={i} className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                  ))}
+                  {Array.from({ length: 4 - restaurant.priceRange }, (_, i) => (
+                    <span key={i} className="w-1.5 h-1.5 rounded-full bg-muted"></span>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Location */}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <MapPin className="h-4 w-4 flex-shrink-0" />
+            <LocationDisplay restaurant={restaurant} />
+          </div>
+
+          {/* Hours */}
+          {restaurant.openingHours && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Clock className="h-4 w-4 flex-shrink-0" />
+              <span className="line-clamp-1">{getCurrentDayHours(restaurant.openingHours)}</span>
+            </div>
+          )}
+
+          {/* Status Badges */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {restaurant.dateVisited && (
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-muted/50 px-3 py-1.5 text-xs font-medium text-muted-foreground">
+                <Clock className="h-3 w-3" />
+                <span className="hidden sm:inline">{format(new Date(restaurant.dateVisited), 'MMM d, yyyy')}</span>
+                <span className="sm:hidden">{format(new Date(restaurant.dateVisited), 'MMM d')}</span>
+              </div>
+            )}
+            
+            {restaurant.isWishlist && (
+              <div className="inline-flex items-center rounded-full bg-accent/20 px-3 py-1.5 text-xs font-medium text-accent">
+                Wishlist
+              </div>
+            )}
+          </div>
+
+          {/* Premium Action Buttons */}
+          <div className="flex items-center gap-2 pt-2">
+            <Button 
+              size="sm"
+              className="flex-1 h-11 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border-0 transition-all duration-200 hover:scale-105 shadow-sm"
+              onMouseEnter={handlePrefetch}
+              onFocus={handlePrefetch}
+              onTouchStart={handlePrefetch}
+              onClick={() => {
+                const preview = {
+                  id: restaurant.id,
+                  name: restaurant.name,
+                  address: restaurant.address,
+                  city: restaurant.city,
+                  country: restaurant.country,
+                  cuisine: restaurant.cuisine,
+                  rating: restaurant.rating,
+                  price_range: restaurant.priceRange,
+                  michelin_stars: restaurant.michelinStars,
+                  notes: restaurant.notes,
+                  photos: restaurant.photos,
+                  website: restaurant.website,
+                  phone_number: restaurant.phone_number,
+                  latitude: restaurant.latitude,
+                  longitude: restaurant.longitude,
+                  reservable: (restaurant as any).reservable,
+                  reservation_url: (restaurant as any).reservationUrl,
+                  opening_hours: restaurant.openingHours,
+                  date_visited: restaurant.dateVisited,
+                  user_id: restaurant.userId,
+                  is_wishlist: restaurant.isWishlist,
+                };
+                navigate(`/restaurant/${restaurant.id}`, { state: { restaurantPreview: preview, returnUrl: encodeURIComponent(window.location.pathname) } });
+              }}
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              View Details
+            </Button>
+            
+            <Button 
+              size="sm"
+              variant="outline"
+              className="h-11 w-11 rounded-xl border-2 transition-all duration-200 hover:scale-105 shadow-sm"
+              onClick={() => setIsShareDialogOpen(true)}
+            >
+              <Share2 className="h-4 w-4" />
+            </Button>
+            
+            {onDelete && (
+              <Button 
+                size="sm"
+                variant="outline"
+                className="h-11 w-11 rounded-xl border-2 text-destructive hover:bg-destructive/10 transition-all duration-200 hover:scale-105 shadow-sm"
+                onClick={() => onDelete(restaurant.id)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
-        <CardDescription className="flex items-center text-xs lg:text-sm text-muted-foreground mobile-truncate mb-0">
-          <MapPin className="mr-1 h-3 w-3 lg:h-3.5 lg:w-3.5 flex-shrink-0" />
-          <LocationDisplay restaurant={restaurant} />
-        </CardDescription>
-      </CardHeader>
-      
-      <CardContent className="pb-0 lg:pb-0 p-2 lg:p-4 pt-0 lg:pt-0 py-[2px] flex-1">
-        <div className="mobile-flex-nowrap lg:flex lg:flex-wrap mobile-grid-compact">
-          {/* Current day hours display */}
-          {restaurant.openingHours && <div className="w-full mb-0 lg:mb-0">
-              <div className="flex items-center text-xs lg:text-sm text-muted-foreground mobile-truncate">
-                <Clock className="mr-1 h-3 w-3 lg:h-3.5 lg:w-3.5 flex-shrink-0" />
-                <span className="mobile-truncate">{getCurrentDayHours(restaurant.openingHours)}</span>
-              </div>
-            </div>}
-          
-          {restaurant.dateVisited && <div className="inline-flex items-center rounded-full bg-muted px-1.5 py-0.5 lg:px-2 lg:py-0.5 mobile-badge text-muted-foreground flex-shrink-0">
-              <Clock className="mr-1 h-2.5 w-2.5 lg:h-3 lg:w-3" />
-              <span className="hidden lg:inline">{format(new Date(restaurant.dateVisited), 'MMM d, yyyy')}</span>
-              <span className="lg:hidden">{format(new Date(restaurant.dateVisited), 'MMM d')}</span>
-            </div>}
-          
-          {restaurant.isWishlist && <div className="inline-flex items-center rounded-full bg-accent/10 px-1.5 py-0.5 lg:px-2 lg:py-0.5 mobile-badge text-accent flex-shrink-0">
-              Wishlist
-            </div>}
-        </div>
-      </CardContent>
-      
-      <CardFooter className="flex mobile-grid-compact pt-0 lg:pt-1 pb-1 lg:pb-2 p-2 lg:p-4">
-        <Button 
-          size="sm" 
-          variant="outline" 
-          className="flex-1 h-6 lg:h-7 px-1 lg:px-2 text-[10px] lg:text-xs mobile-button"
-          onMouseEnter={handlePrefetch}
-          onFocus={handlePrefetch}
-          onTouchStart={handlePrefetch}
-          onClick={() => {
-            const preview = {
-              id: restaurant.id,
-              name: restaurant.name,
-              address: restaurant.address,
-              city: restaurant.city,
-              country: restaurant.country,
-              cuisine: restaurant.cuisine,
-              rating: restaurant.rating,
-              price_range: restaurant.priceRange,
-              michelin_stars: restaurant.michelinStars,
-              notes: restaurant.notes,
-              photos: restaurant.photos,
-              website: restaurant.website,
-              phone_number: restaurant.phone_number,
-              latitude: restaurant.latitude,
-              longitude: restaurant.longitude,
-              reservable: (restaurant as any).reservable,
-              reservation_url: (restaurant as any).reservationUrl,
-              opening_hours: restaurant.openingHours,
-              date_visited: restaurant.dateVisited,
-              user_id: restaurant.userId,
-              is_wishlist: restaurant.isWishlist,
-            };
-            navigate(`/restaurant/${restaurant.id}`, { state: { restaurantPreview: preview, returnUrl: encodeURIComponent(window.location.pathname) } });
-          }}
-        >
-          <Eye className="mr-0.5 lg:mr-1 h-2.5 w-2.5 lg:h-3 lg:w-3" />
-          <span className="hidden sm:inline">Details</span>
-          <span className="sm:hidden">Info</span>
-        </Button>
-        
-        <Button size="sm" variant="outline" className="flex-1 h-6 lg:h-7 px-1.5 lg:px-2 text-[10px] lg:text-xs mobile-button" onClick={() => setIsShareDialogOpen(true)}>
-          <Share2 className="mr-0.5 lg:mr-1 h-2.5 w-2.5 lg:h-3 lg:w-3" />
-          <span className="hidden sm:inline">Share</span>
-          <span className="sm:hidden">Share</span>
-        </Button>
-        
-        {onDelete && <Button size="sm" variant="outline" className="flex-1 h-6 lg:h-7 px-1.5 lg:px-2 text-[10px] lg:text-xs text-destructive hover:bg-destructive/10 mobile-button" onClick={() => onDelete(restaurant.id)}>
-            <Trash2 className="mr-0.5 lg:mr-1 h-2.5 w-2.5 lg:h-3 lg:w-3" />
-            <span className="hidden sm:inline">Delete</span>
-            <span className="sm:hidden">Del</span>
-          </Button>}
-      </CardFooter>
      </Card>
      
      {/* AI Review Assistant Dialog */}
