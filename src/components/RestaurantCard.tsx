@@ -187,21 +187,21 @@ export function RestaurantCard({
         restaurantName={restaurant.name} 
         isMobile={isMobile} 
       />
-      <Card className="overflow-hidden bg-card/50 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl flex flex-col h-full group">
-        {/* Premium Restaurant Image Section */}
+      <Card className="overflow-hidden bg-card border-0 shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] transition-all duration-300 rounded-3xl flex flex-col h-full group">
+        {/* Hero Restaurant Image */}
         {photos.length > 0 && (
-          <div className="relative w-full h-48 lg:h-56 overflow-hidden bg-gradient-to-br from-muted/50 to-muted rounded-t-2xl">
+          <div className="relative w-full h-52 overflow-hidden bg-gradient-to-br from-muted/30 to-muted/60">
             <img
               src={resolveImageUrl(photos[currentPhotoIndex], { width: 600 })}
               alt={`${restaurant.name} photo ${currentPhotoIndex + 1}`}
-              className="h-full w-full object-cover cursor-pointer transition-transform duration-500 group-hover:scale-105"
+              className="h-full w-full object-cover cursor-pointer transition-transform duration-700 group-hover:scale-[1.02]"
               onLoad={() => setImageLoading(false)}
               onError={() => setImageLoading(false)}
               loading="eager"
             />
             
-            {/* Gradient Overlay for better text readability */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10" />
+            {/* Subtle gradient overlay for depth */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/5 via-transparent to-black/5" />
             
             {/* Gallery Click Area */}
             <div 
@@ -209,174 +209,174 @@ export function RestaurantCard({
               onClick={openGallery}
             />
             
-            {/* Photo Navigation for Multiple Images */}
+            {/* Minimal Carousel Indicators */}
             {hasMultiplePhotos && (
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-3">
+              <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex items-center gap-1.5">
+                {photos.slice(0, 5).map((_, index) => (
+                  <button
+                    key={index}
+                    className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                      index === currentPhotoIndex 
+                        ? 'bg-white scale-125 shadow-sm' 
+                        : 'bg-white/60 hover:bg-white/80'
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCurrentPhotoIndex(index);
+                      loadImage(photos[index]);
+                    }}
+                  />
+                ))}
+                {photos.length > 5 && (
+                  <span className="text-white/80 text-xs font-medium ml-1">+{photos.length - 5}</span>
+                )}
+              </div>
+            )}
+
+            {/* Navigation Arrows (on hover) */}
+            {hasMultiplePhotos && (
+              <div className="absolute inset-0 flex items-center justify-between px-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <Button 
                   size="icon" 
                   variant="secondary" 
-                  className="h-9 w-9 rounded-full bg-white/90 backdrop-blur-md shadow-lg hover:bg-white transition-all duration-200" 
+                  className="h-8 w-8 rounded-full bg-white/90 backdrop-blur-sm shadow-md hover:bg-white hover:scale-105 transition-all duration-200" 
                   onClick={e => {
                     e.stopPropagation();
                     previousPhoto();
                   }}
                 >
-                  ←
+                  <span className="text-gray-700">‹</span>
                 </Button>
-                
-                {/* Photo Indicators */}
-                <div className="flex gap-1.5">
-                  {photos.slice(0, 5).map((_, index) => (
-                    <div
-                      key={index}
-                      className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                        index === currentPhotoIndex 
-                          ? 'bg-white shadow-sm' 
-                          : 'bg-white/50'
-                      }`}
-                    />
-                  ))}
-                  {photos.length > 5 && <span className="text-white text-xs font-medium">+{photos.length - 5}</span>}
-                </div>
                 
                 <Button 
                   size="icon" 
                   variant="secondary" 
-                  className="h-9 w-9 rounded-full bg-white/90 backdrop-blur-md shadow-lg hover:bg-white transition-all duration-200" 
+                  className="h-8 w-8 rounded-full bg-white/90 backdrop-blur-sm shadow-md hover:bg-white hover:scale-105 transition-all duration-200" 
                   onClick={e => {
                     e.stopPropagation();
                     nextPhoto();
                   }}
                 >
-                  →
+                  <span className="text-gray-700">›</span>
                 </Button>
               </div>
             )}
 
-            {/* Edit Button */}
+            {/* Subtle Edit Icon */}
             {onEdit && (
               <Button
                 size="icon"
                 variant="secondary"
-                className="absolute top-3 right-3 h-8 w-8 rounded-full bg-white/90 backdrop-blur-md hover:bg-white shadow-lg transition-all duration-200"
+                className="absolute top-3 right-3 h-7 w-7 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/30 border-0 transition-all duration-200 hover:scale-105"
                 onClick={(e) => {
                   e.stopPropagation();
                   onEdit(restaurant.id);
                 }}
               >
-                <Edit2 className="h-4 w-4" />
+                <Edit2 className="h-3.5 w-3.5 text-white" />
               </Button>
             )}
           </div>
         )}
         
-        {/* Premium Content Section */}
-        <div className="flex flex-col flex-1 p-5 space-y-4">
-          {/* Restaurant Name & Rating */}
-          <div className="space-y-3">
-            <div className="flex items-start justify-between gap-3">
-              <h3 className="text-xl font-bold text-foreground leading-tight line-clamp-2 flex-1">
+        {/* Premium Content Layout */}
+        <div className="flex flex-col flex-1 p-6 space-y-5">
+          {/* Header: Name + Rating */}
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-xl font-bold text-foreground leading-tight truncate mb-1">
                 {restaurant.name}
               </h3>
               
-              {/* Premium Rating Badge */}
-              {restaurant.rating !== undefined && (
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  {restaurant.googleMapsUrl ? (
-                    <a 
-                      href={`https://www.google.com/search?q=${encodeURIComponent(`${restaurant.name} ${restaurant.address}`)}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="inline-flex items-center gap-1.5 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-3 py-1.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105"
-                      onClick={e => e.stopPropagation()}
-                    >
-                      <span>{restaurant.rating.toFixed(1)}</span>
-                      <div className="w-3 h-3 text-primary-foreground fill-current">★</div>
-                    </a>
-                  ) : (
-                    <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-3 py-1.5 rounded-full text-sm font-semibold shadow-md">
-                      <span>{restaurant.rating.toFixed(1)}</span>
-                      <div className="w-3 h-3 text-primary-foreground fill-current">★</div>
+              {/* Cuisine & Price Row */}
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span className="font-medium">{restaurant.cuisine}</span>
+                {restaurant.priceRange && (
+                  <>
+                    <span>•</span>
+                    <div className="flex items-center gap-0.5">
+                      {Array.from({ length: restaurant.priceRange }, (_, i) => (
+                        <div key={i} className="w-1 h-1 rounded-full bg-emerald-500"></div>
+                      ))}
+                      {Array.from({ length: 4 - restaurant.priceRange }, (_, i) => (
+                        <div key={i} className="w-1 h-1 rounded-full bg-muted"></div>
+                      ))}
                     </div>
-                  )}
-                  
-                  {restaurant.reviewCount && restaurant.reviewCount > 0 && (
-                    <a 
-                      href={`https://www.google.com/search?q=${encodeURIComponent(`${restaurant.name} ${restaurant.address}`)}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="text-xs text-muted-foreground hover:text-foreground transition-colors duration-200"
-                      onClick={e => e.stopPropagation()}
-                    >
-                      ({restaurant.reviewCount.toLocaleString()})
-                    </a>
-                  )}
-                </div>
-              )}
+                  </>
+                )}
+              </div>
             </div>
-
-            {/* Michelin Stars */}
-            {restaurant.michelinStars && (
-              <div className="flex items-center">
-                <MichelinStars stars={restaurant.michelinStars} readonly size="sm" />
+            
+            {/* Modern Rating Badge */}
+            {restaurant.rating !== undefined && (
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {restaurant.googleMapsUrl ? (
+                  <a 
+                    href={`https://www.google.com/search?q=${encodeURIComponent(`${restaurant.name} ${restaurant.address}`)}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-2.5 py-1 rounded-full text-sm font-semibold shadow-sm hover:shadow-md hover:scale-105 transition-all duration-200"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <span>{restaurant.rating.toFixed(1)}</span>
+                    <div className="w-2.5 h-2.5 text-white fill-current">★</div>
+                  </a>
+                ) : (
+                  <div className="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-2.5 py-1 rounded-full text-sm font-semibold shadow-sm">
+                    <span>{restaurant.rating.toFixed(1)}</span>
+                    <div className="w-2.5 h-2.5 text-white fill-current">★</div>
+                  </div>
+                )}
               </div>
             )}
           </div>
 
-          {/* Cuisine & Price */}
-          <div className="flex items-center gap-3 text-sm">
-            <span className="font-medium text-foreground">{restaurant.cuisine}</span>
-            {restaurant.priceRange && (
-              <>
-                <span className="text-muted-foreground">•</span>
-                <div className="flex items-center gap-0.5">
-                  {Array.from({ length: restaurant.priceRange }, (_, i) => (
-                    <span key={i} className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                  ))}
-                  {Array.from({ length: 4 - restaurant.priceRange }, (_, i) => (
-                    <span key={i} className="w-1.5 h-1.5 rounded-full bg-muted"></span>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Location */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <MapPin className="h-4 w-4 flex-shrink-0" />
-            <LocationDisplay restaurant={restaurant} />
-          </div>
-
-          {/* Hours */}
-          {restaurant.openingHours && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="h-4 w-4 flex-shrink-0" />
-              <span className="line-clamp-1">{getCurrentDayHours(restaurant.openingHours)}</span>
+          {/* Michelin Stars */}
+          {restaurant.michelinStars && (
+            <div className="flex items-center -mt-2">
+              <MichelinStars stars={restaurant.michelinStars} readonly size="sm" />
             </div>
           )}
 
-          {/* Status Badges */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {restaurant.dateVisited && (
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-muted/50 px-3 py-1.5 text-xs font-medium text-muted-foreground">
-                <Clock className="h-3 w-3" />
-                <span className="hidden sm:inline">{format(new Date(restaurant.dateVisited), 'MMM d, yyyy')}</span>
-                <span className="sm:hidden">{format(new Date(restaurant.dateVisited), 'MMM d')}</span>
-              </div>
-            )}
-            
-            {restaurant.isWishlist && (
-              <div className="inline-flex items-center rounded-full bg-accent/20 px-3 py-1.5 text-xs font-medium text-accent">
-                Wishlist
+          {/* Location & Hours */}
+          <div className="space-y-2.5">
+            <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
+              <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/70" />
+              <LocationDisplay restaurant={restaurant} />
+            </div>
+
+            {restaurant.openingHours && (
+              <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
+                <Clock className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/70" />
+                <span className="truncate">{getCurrentDayHours(restaurant.openingHours)}</span>
               </div>
             )}
           </div>
 
-          {/* Premium Action Buttons */}
-          <div className="flex items-center gap-2 pt-2">
+          {/* Status Tags */}
+          {(restaurant.dateVisited || restaurant.isWishlist) && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {restaurant.dateVisited && (
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 dark:bg-blue-950/30 px-2.5 py-1 text-xs font-medium text-blue-700 dark:text-blue-300">
+                  <Clock className="h-2.5 w-2.5" />
+                  <span>{format(new Date(restaurant.dateVisited), 'MMM d')}</span>
+                </div>
+              )}
+              
+              {restaurant.isWishlist && (
+                <div className="inline-flex items-center rounded-full bg-amber-50 dark:bg-amber-950/30 px-2.5 py-1 text-xs font-medium text-amber-700 dark:text-amber-300">
+                  Saved
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Elegant Action Row */}
+          <div className="flex items-center justify-between pt-2">
             <Button 
+              variant="ghost"
               size="sm"
-              className="flex-1 h-11 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border-0 transition-all duration-200 hover:scale-105 shadow-sm"
+              className="h-9 px-4 rounded-full bg-primary/5 hover:bg-primary/10 text-primary border-0 transition-all duration-200 hover:scale-105 shadow-none font-medium"
               onMouseEnter={handlePrefetch}
               onFocus={handlePrefetch}
               onTouchStart={handlePrefetch}
@@ -407,29 +407,30 @@ export function RestaurantCard({
                 navigate(`/restaurant/${restaurant.id}`, { state: { restaurantPreview: preview, returnUrl: encodeURIComponent(window.location.pathname) } });
               }}
             >
-              <Eye className="h-4 w-4 mr-2" />
               View Details
             </Button>
             
-            <Button 
-              size="sm"
-              variant="outline"
-              className="h-11 w-11 rounded-xl border-2 transition-all duration-200 hover:scale-105 shadow-sm"
-              onClick={() => setIsShareDialogOpen(true)}
-            >
-              <Share2 className="h-4 w-4" />
-            </Button>
-            
-            {onDelete && (
+            <div className="flex items-center gap-1">
               <Button 
-                size="sm"
-                variant="outline"
-                className="h-11 w-11 rounded-xl border-2 text-destructive hover:bg-destructive/10 transition-all duration-200 hover:scale-105 shadow-sm"
-                onClick={() => onDelete(restaurant.id)}
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 rounded-full hover:bg-muted/50 transition-all duration-200 hover:scale-105"
+                onClick={() => setIsShareDialogOpen(true)}
               >
-                <Trash2 className="h-4 w-4" />
+                <Share2 className="h-3.5 w-3.5 text-muted-foreground" />
               </Button>
-            )}
+              
+              {onDelete && (
+                <Button 
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all duration-200 hover:scale-105"
+                  onClick={() => onDelete(restaurant.id)}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              )}
+            </div>
           </div>
         </div>
      </Card>
