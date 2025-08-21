@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { Plus, Check, ChevronDown, X, Sliders, MapPin, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { MobileRestaurantCard } from '@/components/mobile/MobileRestaurantCard';
-
+import { RestaurantCard } from '@/components/RestaurantCard';
+import { RestaurantCardList } from '@/components/RestaurantCardList';
+import { ViewToggle, useViewToggle } from '@/components/ViewToggle';
 import { RestaurantDialog } from '@/components/Dialog/RestaurantDialog';
 import { ConfirmDialog } from '@/components/Dialog/ConfirmDialog';
 import { Restaurant, RestaurantFormData } from '@/types/restaurant';
@@ -49,7 +50,7 @@ export function RatedRestaurantsPage({
   const [filterMichelins, setFilterMichelins] = useState<string[]>([]);
   const [ratingRange, setRatingRange] = useState<[number, number]>([0, 10]);
   const [tempRatingRange, setTempRatingRange] = useState<[number, number]>([0, 10]);
-  
+  const { view, setView } = useViewToggle('rated-restaurants-view', 'grid');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const photosLoadedRef = useRef(false);
   const [cachedRestaurants, setCachedRestaurants] = useState<Restaurant[]>([]);
@@ -329,6 +330,7 @@ const preloadImages = async () => {
       <div className="mb-4 lg:mb-6 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
         <h2 className="hidden lg:block text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Rated Restaurants</h2>
         <div className="flex items-center gap-2">
+          <ViewToggle currentView={view} onViewChange={setView} storageKey="rated-restaurants-view" />
           <Button size="sm" onClick={() => setIsAddDialogOpen(true)} className="mobile-button">
             <Plus className="mr-1 lg:mr-2 h-3 w-3 lg:h-4 lg:w-4" />
             Add Restaurant
@@ -342,8 +344,8 @@ const preloadImages = async () => {
         </div>
       </div>
 
-      {/* Search + Filter button */}
-      <div className="mb-6 flex items-center gap-2">
+      {/* Mobile layout - Search + Filter button */}
+      <div className="mb-6 flex items-center gap-2 sm:hidden">
         <div className="flex-1">
           <Input
             placeholder="Search restaurants..."
@@ -361,6 +363,265 @@ const preloadImages = async () => {
         </Button>
       </div>
 
+      {/* Desktop layout - Original layout */}
+      <div className="mb-6 hidden sm:flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+        <div className="flex w-full items-center gap-2 sm:w-auto">
+          <Input
+            placeholder="Search restaurants..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-sm"
+          />
+        </div>
+
+        <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:ml-auto">
+          {/* Clear Filters Button */}
+          {(filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0 || ratingRange[0] > 0 || ratingRange[1] < 10) && (
+            <Button variant="outline" size="sm" onClick={clearFilters} className="flex-shrink-0">
+              <X className="mr-2 h-4 w-4" />
+              Clear Filters
+            </Button>
+          )}
+
+          {/* Cuisine Filter */}
+          <div className="flex-1 min-w-[140px] max-w-[180px]">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  <span>
+                    {filterCuisines.length === 0 
+                      ? 'Cuisine' 
+                      : filterCuisines.length === 1 
+                        ? filterCuisines[0]
+                        : `${filterCuisines.length} cuisines`
+                    }
+                  </span>
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[200px] p-0">
+                <div className="p-2">
+                  <div className="space-y-2">
+                    {cuisineCounts.map(({ cuisine, count }) => (
+                      <div key={cuisine} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`cuisine-${cuisine}`}
+                          checked={filterCuisines.includes(cuisine)}
+                          onCheckedChange={() => toggleCuisine(cuisine)}
+                        />
+                        <label htmlFor={`cuisine-${cuisine}`} className="text-sm cursor-pointer flex-1">
+                          {cuisine} ({count})
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Price Filter */}
+          <div className="flex-1 min-w-[140px] max-w-[180px]">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  <span>
+                    {filterPrices.length === 0 
+                      ? 'Price' 
+                      : filterPrices.length === 1 
+                        ? filterPrices[0] === '1' ? '$' : filterPrices[0] === '2' ? '$$' : filterPrices[0] === '3' ? '$$$' : '$$$$'
+                        : `${filterPrices.length} prices`
+                    }
+                  </span>
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[200px] p-0">
+                <div className="p-2">
+                  <div className="space-y-2">
+                    {priceCounts.map(({ price, count }) => (
+                      <div key={price} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`price-${price}`}
+                          checked={filterPrices.includes(price)}
+                          onCheckedChange={() => togglePrice(price)}
+                        />
+                        <label htmlFor={`price-${price}`} className="text-sm cursor-pointer flex-1">
+                          {price === '1' ? '$' : price === '2' ? '$$' : price === '3' ? '$$$' : '$$$$'} ({count})
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Michelin Filter */}
+          <div className="flex-1 min-w-[140px] max-w-[180px]">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  <span>
+                      {filterMichelins.length === 0 
+                        ? 'Michelin' 
+                        : filterMichelins.length === 1 
+                          ? `${filterMichelins[0]} Star${filterMichelins[0] === '1' ? '' : 's'}`
+                          : `${filterMichelins.length} selected`
+                    }
+                  </span>
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[200px] p-0">
+                <div className="p-2">
+                  <div className="space-y-2">
+                    {michelinCounts.map(({ michelin, count }) => (
+                      <div key={michelin} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`michelin-${michelin}`}
+                          checked={filterMichelins.includes(michelin)}
+                          onCheckedChange={() => toggleMichelin(michelin)}
+                        />
+                        <label htmlFor={`michelin-${michelin}`} className="text-sm cursor-pointer flex-1">
+                           {`${michelin} Michelin Star${michelin === '1' ? '' : 's'}`} ({count})
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Sort & Filter */}
+          <div className="flex-shrink-0 w-[60px]">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-center p-2">
+                  <Sliders className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[320px] p-0">
+                <div className="p-4">
+                  <div className="space-y-6">
+                    {/* Sort Options */}
+                    <div>
+                      <Label className="text-sm font-medium">Sort By</Label>
+                      <div className="mt-2 grid grid-cols-2 gap-2">
+                        <Button
+                          variant={sortBy === 'latest' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('latest')}
+                          className="justify-start"
+                        >
+                          Latest
+                        </Button>
+                        <Button
+                          variant={sortBy === 'oldest' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('oldest')}
+                          className="justify-start"
+                        >
+                          Oldest
+                        </Button>
+                        <Button
+                          variant={sortBy === 'rating-high' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('rating-high')}
+                          className="justify-start"
+                        >
+                          Rating ↓
+                        </Button>
+                        <Button
+                          variant={sortBy === 'rating-low' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('rating-low')}
+                          className="justify-start"
+                        >
+                          Rating ↑
+                        </Button>
+                        <Button
+                          variant={sortBy === 'name-az' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('name-az')}
+                          className="justify-start"
+                        >
+                          Name A-Z
+                        </Button>
+                        <Button
+                          variant={sortBy === 'name-za' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('name-za')}
+                          className="justify-start"
+                        >
+                          Name Z-A
+                        </Button>
+                        <Button
+                          variant={sortBy === 'price-low' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('price-low')}
+                          className="justify-start"
+                        >
+                          Price ↑
+                        </Button>
+                        <Button
+                          variant={sortBy === 'price-high' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('price-high')}
+                          className="justify-start"
+                        >
+                          Price ↓
+                        </Button>
+                        <Button
+                          variant={sortBy === 'michelin-high' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('michelin-high')}
+                          className="justify-start"
+                        >
+                          Michelin ↓
+                        </Button>
+                        <Button
+                          variant={sortBy === 'michelin-low' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('michelin-low')}
+                          className="justify-start"
+                        >
+                          Michelin ↑
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Rating Range Filter */}
+                    <div>
+                      <Label className="text-sm font-medium">Rating Range</Label>
+                      <div className="mt-2 flex items-center space-x-2">
+                        <span className="text-sm text-muted-foreground">{tempRatingRange[0]}</span>
+                        <Slider
+                          value={tempRatingRange}
+                          onValueChange={(value) => setTempRatingRange(value as [number, number])}
+                          max={10}
+                          min={0}
+                          step={0.1}
+                          className="flex-1"
+                        />
+                        <span className="text-sm text-muted-foreground">{tempRatingRange[1]}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end">
+                      <Button onClick={applyRatingFilter} size="sm">
+                        Apply
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+      </div>
+
       {filteredRestaurants.length === 0 && ((restaurants.length === 0 && cachedRestaurants.length === 0) || (searchTerm || filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0 || ratingRange[0] > 0 || ratingRange[1] < 10)) ? (
         <div className="rounded-lg border border-dashed bg-muted/50 p-8 text-center">
           <h3 className="mb-2 text-lg font-medium">No rated restaurants yet</h3>
@@ -375,14 +636,24 @@ const preloadImages = async () => {
           </Button>
         </div>
         ) : (
-          <div className="space-y-3">
+          <div className={view === 'grid' ? "grid gap-6 sm:grid-cols-2 lg:grid-cols-3" : "space-y-4"}>
             {filteredRestaurants.map((restaurant) => (
-              <MobileRestaurantCard
-                key={restaurant.id}
-                restaurant={restaurant}
-                onEdit={handleOpenEditDialog}
-                onDelete={handleOpenDeleteDialog}
-              />
+              view === 'grid' ? (
+                <RestaurantCard
+                  key={restaurant.id}
+                  restaurant={restaurant}
+                  onEdit={handleOpenEditDialog}
+                  onDelete={handleOpenDeleteDialog}
+                  showAIReviewAssistant={true}
+                />
+              ) : (
+                <RestaurantCardList
+                  key={restaurant.id}
+                  restaurant={restaurant}
+                  onEdit={handleOpenEditDialog}
+                  onDelete={handleOpenDeleteDialog}
+                />
+              )
             ))}
           </div>
         )}
