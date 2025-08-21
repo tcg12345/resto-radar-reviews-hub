@@ -101,6 +101,8 @@ export function UnifiedRestaurantDetails({
   const [isEnhancingWithAI, setIsEnhancingWithAI] = useState(false);
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [deferHeavy, setDeferHeavy] = useState(false);
+  const [deferCommunity, setDeferCommunity] = useState(false);
+  const [deferPhotos, setDeferPhotos] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const [hasLoadedHeroImage, setHasLoadedHeroImage] = useState(false);
   const mapRef = useRef<HTMLDivElement | null>(null);
@@ -110,16 +112,25 @@ export function UnifiedRestaurantDetails({
   const preloadedStatsPlaceIdsRef = useRef<Set<string>>(new Set());
   const hasValidPlaceId = useMemo(() => !!restaurant.place_id, [restaurant.place_id]);
   useEffect(() => {
-    const schedule = (cb: () => void) => {
+    const schedule = (cb: () => void, delay = 0) => {
       if ('requestIdleCallback' in window) {
         (window as any).requestIdleCallback(cb, {
-          timeout: 800
+          timeout: delay + 100
         });
       } else {
-        setTimeout(cb, 200);
+        setTimeout(cb, delay);
       }
     };
-    schedule(() => setDeferHeavy(true));
+    
+    // Immediate: Show basic content
+    // After 50ms: Load community data
+    schedule(() => setDeferCommunity(true), 50);
+    
+    // After 100ms: Load photos 
+    schedule(() => setDeferPhotos(true), 100);
+    
+    // After 200ms: Load heavy features
+    schedule(() => setDeferHeavy(true), 200);
   }, []);
   useEffect(() => {
     // Show map immediately when coordinates are available
@@ -132,12 +143,12 @@ export function UnifiedRestaurantDetails({
     reviews,
     isLoading: isLoadingReviews,
     submitReview
-  } = useRestaurantReviews(hasValidPlaceId ? restaurantData.place_id : undefined, restaurantData.name);
+  } = useRestaurantReviews(deferCommunity && hasValidPlaceId ? restaurantData.place_id : undefined, restaurantData.name);
   const {
     friendStats,
     expertStats,
     loading: isLoadingStats
-  } = useRatingStats(hasValidPlaceId ? restaurantData.place_id : undefined, restaurantData.name);
+  } = useRatingStats(deferCommunity && hasValidPlaceId ? restaurantData.place_id : undefined, restaurantData.name);
 
   // Build hero image candidates: community photos first, then restaurant photos
   const heroCandidates = useMemo(() => {
@@ -447,7 +458,7 @@ export function UnifiedRestaurantDetails({
 
       <div className={`${isMobile ? "pb-safe" : ""}`}>
         {/* Photos - Show either restaurant photos or community photos */}
-        {hasHeroPhoto && <div className={`${isMobile ? 'aspect-video' : 'aspect-video md:aspect-auto md:h-auto md:max-h-[420px] md:max-w-3xl md:mx-auto'} w-full bg-muted relative overflow-hidden cursor-pointer group`} onClick={() => navigate(`/restaurant/${restaurantData.place_id || restaurantData.id}/community-photos?name=${encodeURIComponent(restaurantData.name)}`)}>
+        {deferPhotos && hasHeroPhoto && <div className={`${isMobile ? 'aspect-video' : 'aspect-video md:aspect-auto md:h-auto md:max-h-[420px] md:max-w-3xl md:mx-auto'} w-full bg-muted relative overflow-hidden cursor-pointer group`} onClick={() => navigate(`/restaurant/${restaurantData.place_id || restaurantData.id}/community-photos?name=${encodeURIComponent(restaurantData.name)}`)}>
             {/* Try to show community photos first, then restaurant photos, then fallback */}
             {/* Mobile: single hero image */}
             <div className="md:hidden w-full h-full">
@@ -554,7 +565,7 @@ export function UnifiedRestaurantDetails({
           
 
           {/* Ratings Summary: Friends and Experts */}
-          {restaurantData.place_id && <div className="py-3 px-4 border-b border-border/50">
+          {deferCommunity && restaurantData.place_id && <div className="py-3 px-4 border-b border-border/50">
               <div className="grid grid-cols-2 gap-3">
                 {/* Friends Rating */}
                 <div onClick={() => navigate(`/restaurant/${restaurantData.place_id}/friends-ratings?name=${encodeURIComponent(restaurantData.name)}`)} className="cursor-pointer group">
@@ -590,9 +601,6 @@ export function UnifiedRestaurantDetails({
               </div>
             </div>}
 
-          {/* Community Rating */}
-          {deferHeavy && <CommunityRating stats={communityStats} isLoading={isLoadingReviews} />}
-
           {/* Primary Action Buttons */}
           <div className="grid grid-cols-3 gap-3 px-4">
             {getPhoneNumber() && <Button onClick={handleCall} className="flex items-center gap-2" variant="default">
@@ -621,10 +629,13 @@ export function UnifiedRestaurantDetails({
               </Button>
             </div>}
 
+          {/* Community Rating */}
+          {deferCommunity && <CommunityRating stats={communityStats} isLoading={isLoadingReviews} />}
+
           <div className="h-px bg-border mx-4" />
 
           {/* Unified Photo Gallery - combines community and friend photos */}
-          {deferHeavy && <UnifiedPhotoGallery stats={communityStats} isLoading={isLoadingReviews} onPhotoClick={() => {}} friendPhotos={restaurantData.isSharedRestaurant && restaurantData.photos && restaurantData.photos.length > 0 ? restaurantData.photos.map((url, index) => ({
+          {deferPhotos && <UnifiedPhotoGallery stats={communityStats} isLoading={isLoadingReviews} onPhotoClick={() => {}} friendPhotos={restaurantData.isSharedRestaurant && restaurantData.photos && restaurantData.photos.length > 0 ? restaurantData.photos.map((url, index) => ({
             url,
             caption: Array.isArray(restaurantData.photoCaptions) ? restaurantData.photoCaptions[index] : '',
             dishName: Array.isArray(restaurantData.photo_captions) ? restaurantData.photo_captions[index] : ''
