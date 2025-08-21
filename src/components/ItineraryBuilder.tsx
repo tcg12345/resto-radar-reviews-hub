@@ -1120,11 +1120,10 @@ export function ItineraryBuilder({
                 </div>
               )}
             </div>
-            </div>
 
           {/* Premium CTA Button */}
           {canCreateItinerary && (
-            <div className="px-6 py-6">
+            <div className="px-4 py-6">
               <Button 
                 onClick={isMultiCity ? () => {
                   createMultiCityItinerary();
@@ -1168,15 +1167,16 @@ export function ItineraryBuilder({
                     setHasCreatedItinerary(true);
                   }
                 }}
-                className="w-full h-12 text-base font-medium rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
+                className="w-full h-14 text-lg font-bold rounded-2xl bg-gradient-premium hover:shadow-premium-glow transition-all duration-300 shadow-lg text-primary-foreground"
+                size="lg"
               >
-                <CalendarDays className="w-5 h-5 mr-2" />
+                <CalendarDays className="w-6 h-6 mr-3" />
                 Create Itinerary
               </Button>
               
               {/* Status when button not available */}
               {!canCreateItinerary && locations.length > 0 && (
-                <p className="text-center text-muted-foreground text-sm mt-3">
+                <p className="text-center text-muted-foreground text-sm mt-4 font-medium">
                   {isMultiCity ? "Set dates for all destinations" : "Select travel dates to continue"}
                 </p>
               )}
