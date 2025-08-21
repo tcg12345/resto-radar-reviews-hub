@@ -628,7 +628,7 @@ export function UnifiedRestaurantDetails({
             url,
             caption: Array.isArray(restaurantData.photoCaptions) ? restaurantData.photoCaptions[index] : '',
             dishName: Array.isArray(restaurantData.photo_captions) ? restaurantData.photo_captions[index] : ''
-          })) : undefined} friendName={restaurantData.isSharedRestaurant ? restaurantData.sharedBy?.name : undefined} friendId={restaurantData.isSharedRestaurant ? restaurantData.sharedBy?.id : undefined} restaurantId={restaurantData.id} restaurantPlaceId={restaurantData.place_id} />}
+          })) : undefined} friendName={restaurantData.isSharedRestaurant ? restaurantData.sharedBy?.name : undefined} friendId={restaurantData.isSharedRestaurant ? restaurantData.sharedBy?.id : undefined} restaurantId={restaurantData.id} restaurantPlaceId={restaurantData.place_id} restaurantName={restaurantData.name} />}
 
           {/* Details */}
           <div className="space-y-0">

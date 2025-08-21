@@ -22,6 +22,7 @@ interface UnifiedPhotoGalleryProps {
   friendId?: string;
   restaurantId?: string;
   restaurantPlaceId?: string;
+  restaurantName?: string;
 }
 
 export function UnifiedPhotoGallery({ 
@@ -32,7 +33,8 @@ export function UnifiedPhotoGallery({
   friendName,
   friendId,
   restaurantId,
-  restaurantPlaceId
+  restaurantPlaceId,
+  restaurantName
 }: UnifiedPhotoGalleryProps) {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -80,8 +82,8 @@ export function UnifiedPhotoGallery({
   }, [allCommunityPhotos]);
 
   const handleViewAllPhotos = () => {
-    if (restaurantPlaceId) {
-      navigate(`/restaurant/${restaurantId || restaurantPlaceId}/photos`);
+    if (restaurantPlaceId && restaurantId) {
+      navigate(`/restaurant/${restaurantPlaceId}/community-photos?name=${encodeURIComponent(restaurantName || 'Restaurant')}`);
     }
   };
 
