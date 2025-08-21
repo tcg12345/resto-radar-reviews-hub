@@ -1,12 +1,11 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState, lazy, Suspense } from 'react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 const UnifiedSearchPage = lazy(() => import('./UnifiedSearchPage'));
-const DiscoverPage = lazy(() => import('./DiscoverPage').then(m => ({ default: m.DiscoverPage })));
 const FriendsActivityPage = lazy(() => import('./FriendsActivityPage').then(m => ({ default: m.FriendsActivityPage })));
 const ExpertSearchPage = lazy(() => import('../components/mobile/MobileExpertSearchPage').then(m => ({ default: m.MobileExpertSearchPage })));
 
-type SearchTab = 'global' | 'smart' | 'recommendations' | 'friends' | 'experts';
+type SearchTab = 'global' | 'friends' | 'experts';
 
 export default function SearchTabsPage() {
   const navigate = useNavigate();
@@ -39,125 +38,69 @@ export default function SearchTabsPage() {
   };
 
   return (
-    <>
-      {/* Mobile Version - Simplified */}
-      <div className="lg:hidden w-full mobile-container py-3">
-        <div className="mb-4 hidden">
-        </div>
-
-        <Tabs value={activeTab} onValueChange={handleTabChange}>
-          {/* Mobile Tab Buttons */}
-          <div className="flex mb-4 bg-muted/30 rounded-xl p-1">
-            <button
-              onClick={() => handleTabChange('global')}
-              className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
-                activeTab === 'global'
-                  ? 'bg-white text-primary shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Restaurants
-            </button>
-            <button
-              onClick={() => handleTabChange('friends')}
-              className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
-                activeTab === 'friends'
-                  ? 'bg-white text-primary shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Friends
-            </button>
-            <button
-              onClick={() => handleTabChange('experts')}
-              className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
-                activeTab === 'experts'
-                  ? 'bg-white text-primary shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Experts
-            </button>
-          </div>
-
-{activeTab === 'global' && (
-  <TabsContent value="global" className="mt-0">
-    <Suspense fallback={<div className="p-4 text-sm text-muted-foreground">Loading...</div>}>
-      <UnifiedSearchPage />
-    </Suspense>
-  </TabsContent>
-)}
-
-{activeTab === 'friends' && (
-  <TabsContent value="friends" className="mt-0">
-    <Suspense fallback={<div className="p-4 text-sm text-muted-foreground">Loading...</div>}>
-      <FriendsActivityPage />
-    </Suspense>
-  </TabsContent>
-)}
-
-{activeTab === 'experts' && (
-  <TabsContent value="experts" className="mt-0">
-    <Suspense fallback={<div className="p-4 text-sm text-muted-foreground">Loading...</div>}>
-      <ExpertSearchPage />
-    </Suspense>
-  </TabsContent>
-)}
-        </Tabs>
+    <div className="w-full mobile-container py-3">
+      <div className="mb-4 hidden">
       </div>
 
-      {/* Desktop Version - Full Tabs */}
-      <div className="hidden lg:block w-full p-6">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-            Search & Discover Restaurants
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Find restaurants worldwide with multiple search methods and personalized recommendations
-          </p>
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
+        {/* Mobile Tab Buttons */}
+        <div className="flex mb-4 bg-muted/30 rounded-xl p-1">
+          <button
+            onClick={() => handleTabChange('global')}
+            className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
+              activeTab === 'global'
+                ? 'bg-white text-primary shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Restaurants
+          </button>
+          <button
+            onClick={() => handleTabChange('friends')}
+            className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
+              activeTab === 'friends'
+                ? 'bg-white text-primary shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Friends
+          </button>
+          <button
+            onClick={() => handleTabChange('experts')}
+            className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
+              activeTab === 'experts'
+                ? 'bg-white text-primary shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Experts
+          </button>
         </div>
 
-        <Tabs value={activeTab} onValueChange={handleTabChange}>
-          <TabsList className="grid w-full grid-cols-4 gap-0 h-10 p-1">
-            <TabsTrigger value="global" className="text-sm px-2 py-1.5">Search</TabsTrigger>
-            <TabsTrigger value="smart" className="text-sm px-2 py-1.5">Discovery</TabsTrigger>
-            <TabsTrigger value="friends" className="text-sm px-2 py-1.5">Friends</TabsTrigger>
-            <TabsTrigger value="experts" className="text-sm px-2 py-1.5">Experts</TabsTrigger>
-          </TabsList>
+        {activeTab === 'global' && (
+          <TabsContent value="global" className="mt-0">
+            <Suspense fallback={<div className="p-4 text-sm text-muted-foreground">Loading...</div>}>
+              <UnifiedSearchPage />
+            </Suspense>
+          </TabsContent>
+        )}
 
-{activeTab === 'global' && (
-  <TabsContent value="global" className="space-y-6">
-    <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Loading search...</div>}>
-      <UnifiedSearchPage />
-    </Suspense>
-  </TabsContent>
-)}
+        {activeTab === 'friends' && (
+          <TabsContent value="friends" className="mt-0">
+            <Suspense fallback={<div className="p-4 text-sm text-muted-foreground">Loading...</div>}>
+              <FriendsActivityPage />
+            </Suspense>
+          </TabsContent>
+        )}
 
-{activeTab === 'smart' && (
-  <TabsContent value="smart" className="space-y-6">
-    <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Loading discovery...</div>}>
-      <DiscoverPage />
-    </Suspense>
-  </TabsContent>
-)}
-
-{activeTab === 'friends' && (
-  <TabsContent value="friends" className="space-y-6">
-    <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Loading friends...</div>}>
-      <FriendsActivityPage />
-    </Suspense>
-  </TabsContent>
-)}
-
-{activeTab === 'experts' && (
-  <TabsContent value="experts" className="space-y-6">
-    <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Loading experts...</div>}>
-      <ExpertSearchPage />
-    </Suspense>
-  </TabsContent>
-)}
-        </Tabs>
-      </div>
-    </>
+        {activeTab === 'experts' && (
+          <TabsContent value="experts" className="mt-0">
+            <Suspense fallback={<div className="p-4 text-sm text-muted-foreground">Loading...</div>}>
+              <ExpertSearchPage />
+            </Suspense>
+          </TabsContent>
+        )}
+      </Tabs>
+    </div>
   );
 }

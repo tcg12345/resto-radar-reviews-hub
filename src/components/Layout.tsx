@@ -56,17 +56,13 @@ export function Layout({
         />
       )}
       
-      <main className={`flex-1 pb-20 lg:pb-0 mobile-scroll w-full`}>
-        <div className={`min-h-full w-full lg:w-full mobile-container lg:mobile-container`}>
+      <main className={`flex-1 pb-20 mobile-scroll w-full`}>
+        <div className={`min-h-full w-full mobile-container`}>
           {children}
         </div>
       </main>
       
-      {showChatbot && (
-        <div className="hidden lg:block">
-          <AIChatbot />
-        </div>
-      )}
+      {/* Remove chatbot completely to force mobile-only experience */}
     </div>
   );
 }

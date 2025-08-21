@@ -15,9 +15,5 @@ export function ProfilePageWrapper({
   
   console.log('ProfilePageWrapper - isMobile:', isMobile, 'window.innerWidth:', window.innerWidth);
   
-  if (isMobile) {
-    return <MobileProfilePage />;
-  }
-  
-  return <DesktopProfilePage />;
+  return <MobileProfilePage />;
 }
