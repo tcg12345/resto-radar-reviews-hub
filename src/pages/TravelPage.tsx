@@ -31,52 +31,48 @@ export default function TravelPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
-      {/* Premium Container with Full-Width Layout */}
-      <div className="w-full px-4 lg:px-8 py-6 lg:py-12 max-w-7xl mx-auto">
-        {/* Premium Header */}
-        <div className="text-center mb-8 lg:mb-16">
-          <h1 className="text-5xl lg:text-7xl font-bold text-gradient mb-6 tracking-tight">
-            Travel Planner
-          </h1>
-          <p className="text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto font-light leading-relaxed">
-            Design incredible journeys with our intelligent travel companion
-          </p>
+    <div className="w-full h-full min-h-screen">
+      {/* Compact Mobile-Optimized Container */}
+      <div className="w-full max-w-none px-2 lg:px-6 py-2 lg:py-6">
+        {/* Premium Header - Hidden on mobile, enhanced on desktop */}
+        <div className="mb-4 lg:mb-8 hidden lg:block">
+          <div className="text-center space-y-4">
+            <h1 className="text-4xl lg:text-6xl font-bold text-gradient mb-4">
+              Travel Planner
+            </h1>
+            <p className="text-lg lg:text-xl text-muted-foreground/80 max-w-2xl mx-auto font-medium">
+              Plan incredible trips, rate amazing places, and create detailed itineraries
+            </p>
+          </div>
         </div>
         
-        {/* Modern Segmented Control Tabs */}
+        {/* Ultra-Premium Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="flex justify-center mb-12">
-            <div className="inline-flex bg-white/80 dark:bg-card/80 backdrop-blur-xl rounded-2xl p-2 shadow-xl border border-white/20 dark:border-border/20">
-              <TabsList className="grid grid-cols-2 bg-transparent p-0 h-auto space-x-2">
-                <TabsTrigger 
-                  value="itinerary" 
-                  className="flex items-center gap-3 px-8 py-4 rounded-xl font-semibold text-base transition-all duration-300 ease-out data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:scale-[1.02] hover:bg-primary/10 data-[state=inactive]:text-muted-foreground"
-                >
-                  <Calendar className="w-5 h-5" />
-                  <span>Plan Trip</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="trip-planner" 
-                  className="flex items-center gap-3 px-8 py-4 rounded-xl font-semibold text-base transition-all duration-300 ease-out data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:scale-[1.02] hover:bg-primary/10 data-[state=inactive]:text-muted-foreground"
-                >
-                  <MapPin className="w-5 h-5" />
-                  <span>My Trips</span>
-                </TabsTrigger>
-              </TabsList>
-            </div>
+          <div className="flex justify-center mb-4 lg:mb-8">
+            <TabsList className="grid grid-cols-2 bg-card/60 backdrop-blur-xl border border-border/30 rounded-3xl p-1 shadow-premium-xl">
+              <TabsTrigger 
+                value="itinerary" 
+                className="flex items-center gap-2 px-4 lg:px-8 py-3 lg:py-4 rounded-2xl font-bold text-sm lg:text-base transition-all duration-500 data-[state=active]:bg-gradient-premium data-[state=active]:text-primary-foreground data-[state=active]:shadow-premium-glow data-[state=active]:scale-105"
+              >
+                <Calendar className="w-4 h-4 lg:w-5 lg:h-5" />
+                <span>Plan Trip</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="trip-planner" 
+                className="flex items-center gap-2 px-4 lg:px-8 py-3 lg:py-4 rounded-2xl font-bold text-sm lg:text-base transition-all duration-500 data-[state=active]:bg-gradient-premium data-[state=active]:text-primary-foreground data-[state=active]:shadow-premium-glow data-[state=active]:scale-105"
+              >
+                <MapPin className="w-4 h-4 lg:w-5 lg:h-5" />
+                <span>My Trips</span>
+              </TabsTrigger>
+            </TabsList>
           </div>
           
-          <TabsContent value="itinerary" className="mt-0">
-            <div className="animate-fade-in-up">
-              <ItineraryBuilder key={itineraryBuilderKey} onLoadItinerary={handleLoadItinerary} />
-            </div>
+          <TabsContent value="itinerary" className="mt-0 animate-fade-in-up">
+            <ItineraryBuilder key={itineraryBuilderKey} onLoadItinerary={handleLoadItinerary} />
           </TabsContent>
           
-          <TabsContent value="trip-planner" className="mt-0">
-            <div className="animate-fade-in-up">
-              <TripPlanner />
-            </div>
+          <TabsContent value="trip-planner" className="mt-0 animate-fade-in-up">
+            <TripPlanner />
           </TabsContent>
         </Tabs>
       </div>
