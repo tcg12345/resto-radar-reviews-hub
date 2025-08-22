@@ -1732,7 +1732,7 @@ export function ItineraryBuilder({
             </div>
 
           {/* Trip Extension Section - Show for all trips */}
-          {currentItinerary && <div className="mb-6">
+          {currentItinerary && <div className="mb-6 relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen px-4">
               <Collapsible open={isExtensionOpen} onOpenChange={setIsExtensionOpen}>
                 <CollapsibleTrigger asChild>
                   <div className="cursor-pointer hover:bg-muted/30 active:scale-[0.99] transition-all duration-200 p-5 rounded-xl border border-border/20 bg-background shadow-sm group">
