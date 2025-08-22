@@ -1743,524 +1743,353 @@ export function ItineraryBuilder({
                   </CardHeader>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <CardContent className="p-4 lg:p-6">
+                  <CardContent className="p-6 space-y-6 bg-white dark:bg-slate-900">
                     
-                    {/* Mobile-Optimized Trip Mode Selector */}
-                    {(useLengthOfStay || wasCreatedWithLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) || !useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) && dateRange.start && dateRange.end) && <div className="space-y-4">
-                        
-                        {/* Header */}
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                            <CalendarIcon className="w-4 h-4 text-primary" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-base text-foreground">Trip Planning</h3>
-                            <p className="text-xs text-muted-foreground">Choose your planning style</p>
-                          </div>
-                        </div>
-                        
-                        {/* Mobile Toggle Switch Design */}
-                        <div className="bg-muted/30 p-1 rounded-xl border border-border/20">
-                          <div className="grid grid-cols-2 gap-1">
-                            
-                            {/* Dates Option */}
-                            <button onClick={() => {
-                        if (useLengthOfStay || wasCreatedWithLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) {
-                          // Convert to date-based mode
-                          if (currentItinerary) {
-                            setUseLengthOfStay(false);
-                            setWasCreatedWithLengthOfStay(false);
-                            setLocationLengthOfStay({});
-                            setLocationNights({});
-                            if (!dateRange.start || !dateRange.end) {
-                              const startDate = startOfDay(new Date());
-                              let endDate = startDate;
-                              if (currentItinerary.isMultiCity) {
-                                const totalNights = Object.values(locationNights).reduce((sum, nights) => sum + nights, 0) || 7;
-                                endDate = addDays(startDate, totalNights);
-                              } else {
-                                endDate = addDays(startDate, numberOfNights);
-                              }
-                              setDateRange({
-                                start: startDate,
-                                end: endDate
-                              });
-                              setCurrentItinerary(prev => prev ? {
-                                ...prev,
-                                startDate,
-                                endDate
-                              } : null);
-                            }
-                            setHasPendingChanges(true);
-                            toast.success('Switched to date planning');
-                          }
-                        }
-                      }} className={cn("relative p-3 rounded-lg text-sm font-medium transition-all duration-200", !useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) ? "bg-background text-foreground shadow-sm border border-border/40" : "text-muted-foreground hover:text-foreground")}>
-                              <div className="flex flex-col items-center gap-1">
-                                <CalendarIcon className="w-4 h-4" />
-                                <span className="text-xs">Specific Dates</span>
-                              </div>
-                            </button>
-                            
-                            {/* Nights Option */}
-                            <button onClick={() => {
-                        if (!useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) {
-                          // Convert to length-of-stay mode
-                          if (currentItinerary && dateRange.start && dateRange.end) {
-                            const totalNights = differenceInDays(dateRange.end, dateRange.start);
-                            if (currentItinerary.isMultiCity) {
-                              const nightsPerCity = Math.max(1, Math.floor(totalNights / currentItinerary.locations.length));
-                              const remainingNights = totalNights - nightsPerCity * (currentItinerary.locations.length - 1);
-                              const newLocationLengthOfStay: Record<string, boolean> = {};
-                              const newLocationNights: Record<string, number> = {};
-                              currentItinerary.locations.forEach((location, index) => {
-                                newLocationLengthOfStay[location.id] = true;
-                                newLocationNights[location.id] = index === currentItinerary.locations.length - 1 ? remainingNights : nightsPerCity;
-                              });
-                              setLocationLengthOfStay(newLocationLengthOfStay);
-                              setLocationNights(newLocationNights);
-                              setWasCreatedWithLengthOfStay(true);
-                            } else {
-                              setUseLengthOfStay(true);
-                              setNumberOfNights(totalNights);
-                              setWasCreatedWithLengthOfStay(true);
-                            }
-                            setHasPendingChanges(true);
-                            toast.success('Switched to nights planning');
-                          }
-                        }
-                      }} className={cn("relative p-3 rounded-lg text-sm font-medium transition-all duration-200", useLengthOfStay || wasCreatedWithLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) ? "bg-background text-foreground shadow-sm border border-border/40" : "text-muted-foreground hover:text-foreground")}>
-                              <div className="flex flex-col items-center gap-1">
-                                <div className="w-4 h-4 flex items-center justify-center">
-                                  <span className="text-xs font-bold">#</span>
-                                </div>
-                                <span className="text-xs">Number of Nights</span>
-                              </div>
-                            </button>
-                            
-                          </div>
-                        </div>
-                        
-                        {/* Current Mode Description */}
-                        
-                        
-                      </div>}
-                    {/* For date-based single city trips */}
-                    {!useLengthOfStay && !currentItinerary?.isMultiCity && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) && <div className="space-y-4">
+                    {/* Trip Mode Selector */}
+                    {(useLengthOfStay || wasCreatedWithLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) || !useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) && dateRange.start && dateRange.end) && (
+                      <div className="space-y-4">
+                        {/* Section Header */}
                         <div>
-                          <Label className="text-sm font-medium">Modify your trip dates</Label>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Change your start or end date to adjust your trip
-                          </p>
-                          <div className="mt-3 grid grid-cols-1 gap-3">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Trip Planning</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Choose your planning style</p>
+                        </div>
+                        
+                        {/* Clean Segmented Control */}
+                        <div className="inline-flex bg-gray-100 dark:bg-slate-800 p-1 rounded-lg border border-gray-200 dark:border-slate-700">
+                          {/* Specific Dates Tab */}
+                          <button 
+                            onClick={() => {
+                              if (useLengthOfStay || wasCreatedWithLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) {
+                                // Convert to date-based mode
+                                if (currentItinerary) {
+                                  setUseLengthOfStay(false);
+                                  setWasCreatedWithLengthOfStay(false);
+                                  setLocationLengthOfStay({});
+                                  setLocationNights({});
+                                  if (!dateRange.start || !dateRange.end) {
+                                    const startDate = startOfDay(new Date());
+                                    let endDate = startDate;
+                                    if (currentItinerary.isMultiCity) {
+                                      const totalNights = Object.values(locationNights).reduce((sum, nights) => sum + nights, 0) || 7;
+                                      endDate = addDays(startDate, totalNights);
+                                    } else {
+                                      endDate = addDays(startDate, numberOfNights);
+                                    }
+                                    setDateRange({ start: startDate, end: endDate });
+                                    setCurrentItinerary(prev => prev ? { ...prev, startDate, endDate } : null);
+                                  }
+                                  setHasPendingChanges(true);
+                                  toast.success('Switched to date planning');
+                                }
+                              }
+                            }}
+                            className={cn(
+                              "flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors",
+                              !useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])
+                                ? "bg-blue-600 text-white shadow-sm"
+                                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                            )}
+                          >
+                            <CalendarIcon className="w-4 h-4" />
+                            Specific Dates
+                          </button>
+                          
+                          {/* Number of Nights Tab */}
+                          <button 
+                            onClick={() => {
+                              if (!useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) {
+                                // Convert to length-of-stay mode
+                                if (currentItinerary && dateRange.start && dateRange.end) {
+                                  const totalNights = differenceInDays(dateRange.end, dateRange.start);
+                                  if (currentItinerary.isMultiCity) {
+                                    const nightsPerCity = Math.max(1, Math.floor(totalNights / currentItinerary.locations.length));
+                                    const remainingNights = totalNights - nightsPerCity * (currentItinerary.locations.length - 1);
+                                    const newLocationLengthOfStay: Record<string, boolean> = {};
+                                    const newLocationNights: Record<string, number> = {};
+                                    currentItinerary.locations.forEach((location, index) => {
+                                      newLocationLengthOfStay[location.id] = true;
+                                      newLocationNights[location.id] = index === currentItinerary.locations.length - 1 ? remainingNights : nightsPerCity;
+                                    });
+                                    setLocationLengthOfStay(newLocationLengthOfStay);
+                                    setLocationNights(newLocationNights);
+                                    setWasCreatedWithLengthOfStay(true);
+                                  } else {
+                                    setUseLengthOfStay(true);
+                                    setNumberOfNights(totalNights);
+                                    setWasCreatedWithLengthOfStay(true);
+                                  }
+                                  setHasPendingChanges(true);
+                                  toast.success('Switched to nights planning');
+                                }
+                              }
+                            }}
+                            className={cn(
+                              "flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors",
+                              useLengthOfStay || wasCreatedWithLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])
+                                ? "bg-blue-600 text-white shadow-sm"
+                                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                            )}
+                          >
+                            <span className="text-sm font-bold">#</span>
+                            Number of Nights
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Date-based Single City Trips */}
+                    {!useLengthOfStay && !currentItinerary?.isMultiCity && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) && (
+                      <div className="space-y-6">
+                        {/* Divider */}
+                        <div className="h-px bg-gray-200 dark:bg-slate-700"></div>
+                        
+                        {/* Modify Trip Dates Section */}
+                        <div className="space-y-4">
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Modify your trip dates</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Change your start or end date to adjust your trip</p>
+                          </div>
+                          
+                          <div className="grid gap-4">
                             {/* Start Date Picker */}
-                            <div>
-                              <Label className="text-xs text-muted-foreground">Start Date</Label>
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
                               <Popover>
                                 <PopoverTrigger asChild>
-                                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !pendingStartDate && "text-muted-foreground")}>
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {pendingStartDate ? format(pendingStartDate, 'PPP') : 'Select start date'}
-                                  </Button>
+                                  <button className="w-full flex items-center gap-3 px-4 py-3 border border-gray-200 dark:border-slate-600 rounded-lg hover:border-gray-300 dark:hover:border-slate-500 transition-colors bg-white dark:bg-slate-800 text-left">
+                                    <CalendarIcon className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                                    <span className={cn("font-medium", pendingStartDate ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-gray-400")}>
+                                      {pendingStartDate ? format(pendingStartDate, 'MMMM do, yyyy') : 'Select start date'}
+                                    </span>
+                                  </button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0" align="start">
-                                  <CalendarComponent mode="single" selected={pendingStartDate} onSelect={date => {
-                              if (date && (!pendingEndDate || date < pendingEndDate)) {
-                                setPendingStartDate(date);
-                                setHasPendingChanges(true);
-                              }
-                            }} disabled={date => pendingEndDate && date >= pendingEndDate} initialFocus className={cn("p-3 pointer-events-auto")} />
+                                  <CalendarComponent 
+                                    mode="single" 
+                                    selected={pendingStartDate} 
+                                    onSelect={date => {
+                                      if (date && (!pendingEndDate || date < pendingEndDate)) {
+                                        setPendingStartDate(date);
+                                        setHasPendingChanges(true);
+                                      }
+                                    }} 
+                                    disabled={date => pendingEndDate && date >= pendingEndDate} 
+                                    initialFocus 
+                                    className={cn("p-3 pointer-events-auto")} 
+                                  />
                                 </PopoverContent>
                               </Popover>
                             </div>
                             
                             {/* End Date Picker */}
-                            <div>
-                              <Label className="text-xs text-muted-foreground">End Date</Label>
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
                               <Popover>
                                 <PopoverTrigger asChild>
-                                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !pendingEndDate && "text-muted-foreground")}>
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {pendingEndDate ? format(pendingEndDate, 'PPP') : 'Select end date'}
-                                  </Button>
+                                  <button className="w-full flex items-center gap-3 px-4 py-3 border border-gray-200 dark:border-slate-600 rounded-lg hover:border-gray-300 dark:hover:border-slate-500 transition-colors bg-white dark:bg-slate-800 text-left">
+                                    <CalendarIcon className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                                    <span className={cn("font-medium", pendingEndDate ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-gray-400")}>
+                                      {pendingEndDate ? format(pendingEndDate, 'MMMM do, yyyy') : 'Select end date'}
+                                    </span>
+                                  </button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0" align="start">
-                                  <CalendarComponent mode="single" selected={pendingEndDate} onSelect={date => {
-                              if (date && (!pendingStartDate || date > pendingStartDate)) {
-                                setPendingEndDate(date);
-                                setHasPendingChanges(true);
-                              }
-                            }} disabled={date => !pendingStartDate || date <= pendingStartDate} initialFocus className={cn("p-3 pointer-events-auto")} />
+                                  <CalendarComponent 
+                                    mode="single" 
+                                    selected={pendingEndDate} 
+                                    onSelect={date => {
+                                      if (date && (!pendingStartDate || date > pendingStartDate)) {
+                                        setPendingEndDate(date);
+                                        setHasPendingChanges(true);
+                                      }
+                                    }} 
+                                    disabled={date => !pendingStartDate || date <= pendingStartDate} 
+                                    initialFocus 
+                                    className={cn("p-3 pointer-events-auto")} 
+                                  />
                                 </PopoverContent>
                               </Popover>
                             </div>
                           </div>
                         </div>
                         
-                        {/* Option to add cities to any itinerary */}
-                        <div className="pt-4 border-t">
-                          <div className="space-y-3">
-                            <Label className="text-sm font-medium">Add another city</Label>
-                            <p className="text-xs text-muted-foreground">
-                              Convert to a multi-city trip by adding destinations
-                            </p>
-                            <AmadeusCitySearch value={currentLocationSearch} onChange={setCurrentLocationSearch} onCitySelect={newLocation => {
-                        const locationToAdd: TripLocation = {
-                          id: newLocation.id,
-                          name: newLocation.mainText,
-                          country: newLocation.secondaryText.split(",").pop()?.trim() || "",
-                          state: newLocation.secondaryText.split(",")[0]?.trim()
-                        };
-
-                        // Add to locations
-                        setLocations(prev => [...prev, locationToAdd]);
-
-                        // Convert to multi-city
-                        setIsMultiCity(true);
-
-                        // If current itinerary exists, update it to multi-city
-                        if (currentItinerary) {
-                          const updatedLocations = [...currentItinerary.locations, locationToAdd];
-
-                          // Keep as date-based system - preserve existing dates if they exist
-                          if (dateRange.start && dateRange.end) {
-                            const totalDays = differenceInDays(dateRange.end, dateRange.start);
-                            const currentLocation = currentItinerary.locations[0];
-
-                            // Split the existing trip duration between cities
-                            const firstCityNights = Math.max(1, Math.floor(totalDays / 2));
-
-                            // Use existing start date and calculate split
-                            const firstCityStart = dateRange.start;
-                            const firstCityEnd = addDays(firstCityStart, firstCityNights);
-                            const secondCityStart = firstCityEnd;
-                            const secondCityEnd = dateRange.end; // Preserve original end date
-
-                            // DON'T set length of stay - keep it date-based
-                            // Just update the location dates
-                            updateLocationDates(currentLocation.id, firstCityStart, firstCityEnd);
-                            updateLocationDates(locationToAdd.id, secondCityStart, secondCityEnd);
-                            const locationsWithDates = [{
-                              ...currentLocation,
-                              startDate: firstCityStart,
-                              endDate: firstCityEnd
-                            }, {
-                              ...locationToAdd,
-                              startDate: secondCityStart,
-                              endDate: secondCityEnd
-                            }];
-                            setCurrentItinerary(prev => prev ? {
-                              ...prev,
-                              locations: locationsWithDates,
-                              isMultiCity: true,
-                              // Keep the original date range
-                              startDate: dateRange.start,
-                              endDate: dateRange.end,
-                              title: `Multi-City: ${locationsWithDates.map(loc => loc.name).join(' → ')}`
-                            } : null);
-
-                            // DON'T set wasCreatedWithLengthOfStay - keep it date-based
-                          } else {
-                            // If no dates exist, just update to multi-city without dates
-                            setCurrentItinerary(prev => prev ? {
-                              ...prev,
-                              locations: updatedLocations,
-                              isMultiCity: true,
-                              title: `Multi-City: ${updatedLocations.map(loc => loc.name).join(' → ')}`
-                            } : null);
-                          }
-                        }
-                        setCurrentLocationSearch("");
-                        toast.success(`Added ${locationToAdd.name} to your trip`);
-                      }} placeholder="Add another city..." className="w-full" />
-                          </div>
-                        </div>
-                      </div>}
-
-                    {/* For single city trips using length of stay */}
-                {useLengthOfStay && !currentItinerary?.isMultiCity && <div className="space-y-4">
-                    <div>
-                      <Label className="text-sm font-medium">Extend your stay</Label>
-                      <div className="mt-2 space-y-3">
-                        <Slider value={[pendingNights]} onValueChange={value => {
-                        const newNights = value[0];
-                        setPendingNights(newNights);
-                        setHasPendingChanges(true);
-                      }} max={90} min={1} step={1} className="w-full" />
-                        <div className="text-center">
-                          <span className="text-lg font-semibold">{pendingNights}</span>
-                          <span className="text-sm text-muted-foreground ml-1">
-                            {pendingNights === 1 ? "night" : "nights"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                        {/* Option to convert to multi-city */}
-                        <div className="pt-4 border-t">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <Label className="text-sm font-medium">Add another city</Label>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Convert to a multi-city trip
-                              </p>
-                            </div>
-                            <Button variant="outline" size="sm" onClick={() => {
-                        setIsMultiCity(true);
-                        // Convert current single city to multi-city format
-                        if (currentItinerary && currentItinerary.locations.length > 0) {
-                          const currentLocation = currentItinerary.locations[0];
-                          setLocationLengthOfStay(prev => ({
-                            ...prev,
-                            [currentLocation.id]: true
-                          }));
-                          setLocationNights(prev => ({
-                            ...prev,
-                            [currentLocation.id]: numberOfNights
-                          }));
-
-                          // Update the location with proper sequential dates (starting from today)
-                          const startDate = startOfDay(new Date());
-                          const endDate = addDays(startDate, numberOfNights);
-                          updateLocationDates(currentLocation.id, startDate, endDate);
-                          console.log('Converting to multi-city:', {
-                            city: currentLocation.name,
-                            nights: numberOfNights,
-                            start: startDate.toDateString(),
-                            end: endDate.toDateString()
-                          });
-
-                          // Update the itinerary to multi-city
-                          setCurrentItinerary(prev => prev ? {
-                            ...prev,
-                            isMultiCity: true,
-                            locations: prev.locations.map(loc => loc.id === currentLocation.id ? {
-                              ...loc,
-                              startDate,
-                              endDate
-                            } : loc)
-                          } : null);
-                        }
-                        // Keep useLengthOfStay true but also set multi-city mode
-                      }}>
-                              <Plus className="w-4 h-4 mr-2" />
-                              Add City
-                            </Button>
-                          </div>
-                        </div>
-                      </div>}
-
-                    {/* For multi-city trips - show if it's multi-city OR has length of stay locations */}
-                    {currentItinerary?.isMultiCity && <div className="space-y-6">
-                        {/* Date-based multi-city management */}
-                        {!Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) ? <div className="space-y-4">
-                            <div className="space-y-2">
-                              <Label className="text-base font-semibold">City Schedule</Label>
-                              <p className="text-sm text-muted-foreground">
-                                Adjust the dates for each destination
-                              </p>
-                            </div>
-                            <div className="space-y-3">
-                              {currentItinerary.locations.map((location, index) => <div key={location.id} className="group relative border border-border/60 rounded-xl p-4 hover:border-border transition-colors bg-card/50">
-                                  <div className="flex items-center justify-between mb-4">
-                                    <div className="flex items-center gap-3">
-                                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-medium">
-                                        {index + 1}
-                                      </div>
-                                      <div>
-                                        <h4 className="font-medium text-foreground">{location.name}</h4>
-                                        <p className="text-xs text-muted-foreground">
-                                          {location.startDate && location.endDate ? `${format(location.startDate, 'MMM dd')} - ${format(location.endDate, 'MMM dd')}` : 'Dates not set'}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                      <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Arrival</Label>
-                                      <Popover>
-                                        <PopoverTrigger asChild>
-                                          <Button variant="outline" size="sm" className={cn("w-full justify-start text-left font-normal", !location.startDate && "text-muted-foreground")}>
-                                            <CalendarIcon className="mr-2 h-4 w-4" />
-                                            {location.startDate ? format(location.startDate, 'MMM dd, yyyy') : 'Select date'}
-                                          </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0 z-50" align="start">
-                                           <CalendarComponent mode="single" selected={location.startDate} onSelect={date => {
-                                  if (date && (!location.endDate || date < location.endDate)) {
-                                    updateLocationDates(location.id, date, location.endDate);
-                                    setHasPendingChanges(true);
-                                  }
-                                }} disabled={date => location.endDate && date >= location.endDate} initialFocus className="p-3 pointer-events-auto" />
-                                        </PopoverContent>
-                                      </Popover>
-                                    </div>
-                                    <div className="space-y-2">
-                                      <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Departure</Label>
-                                      <Popover>
-                                        <PopoverTrigger asChild>
-                                          <Button variant="outline" size="sm" className={cn("w-full justify-start text-left font-normal", !location.endDate && "text-muted-foreground")}>
-                                            <CalendarIcon className="mr-2 h-4 w-4" />
-                                            {location.endDate ? format(location.endDate, 'MMM dd, yyyy') : 'Select date'}
-                                          </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0 z-50" align="start">
-                                           <CalendarComponent mode="single" selected={location.endDate} onSelect={date => {
-                                  if (date && (!location.startDate || date > location.startDate)) {
-                                    updateLocationDates(location.id, location.startDate, date);
-                                    setHasPendingChanges(true);
-                                  }
-                                }} disabled={date => !location.startDate || date <= location.startDate} initialFocus className="p-3 pointer-events-auto" />
-                                        </PopoverContent>
-                                      </Popover>
-                                    </div>
-                                  </div>
-                                </div>)}
-                            </div>
-                          </div> : (/* Length-of-stay based multi-city management */
-                  <div className="space-y-4">
-                            <div className="space-y-2">
-                              <Label className="text-base font-semibold">Stay Duration</Label>
-                              <p className="text-sm text-muted-foreground">
-                                Adjust how many nights you'll spend in each city
-                              </p>
-                            </div>
-                            <div className="space-y-3">
-                              {currentItinerary.locations.map((location, index) => locationLengthOfStay[location.id] && <div key={location.id} className="group relative border border-border/60 rounded-xl p-4 hover:border-border transition-colors bg-card/50">
-                                    <div className="flex items-center justify-between mb-4">
-                                      <div className="flex items-center gap-3">
-                                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-medium">
-                                          {index + 1}
-                                        </div>
-                                        <div>
-                                          <h4 className="font-medium text-foreground">{location.name}</h4>
-                                          <p className="text-xs text-muted-foreground">
-                                            {pendingLocationNights[location.id] || locationNights[location.id] || 1} {(pendingLocationNights[location.id] || locationNights[location.id] || 1) === 1 ? "night" : "nights"}
-                                          </p>
-                                        </div>
-                                      </div>
-                                      <div className="text-right">
-                                        <div className="text-lg font-semibold text-foreground">
-                                          {pendingLocationNights[location.id] || locationNights[location.id] || 1}
-                                        </div>
-                                        <div className="text-xs text-muted-foreground">
-                                          {(pendingLocationNights[location.id] || locationNights[location.id] || 1) === 1 ? "night" : "nights"}
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <div className="space-y-3">
-                                      <Slider value={[pendingLocationNights[location.id] || locationNights[location.id] || 1]} onValueChange={value => {
-                            const nights = value[0];
-                            setPendingLocationNights(prev => ({
-                              ...prev,
-                              [location.id]: nights
-                            }));
-                            setHasPendingChanges(true);
-                          }} max={30} min={1} step={1} className="w-full" />
-                                      <div className="flex justify-between text-xs text-muted-foreground">
-                                        
-                                        <span>30 nights</span>
-                                      </div>
-                                    </div>
-                                  </div>)}
-                            </div>
-                          </div>)}
-
-                    {/* Add another city to multi-city trip */}
-                    <div className="pt-4 border-t">
-                      <div className="space-y-3">
-                        <Label className="text-sm font-medium">Add another city</Label>
+                        {/* Divider */}
+                        <div className="h-px bg-gray-200 dark:bg-slate-700"></div>
                         
-                        <AmadeusCitySearch value={currentLocationSearch} onChange={setCurrentLocationSearch} onCitySelect={newLocation => {
-                        const locationToAdd: TripLocation = {
-                          id: newLocation.id,
-                          name: newLocation.mainText,
-                          country: newLocation.secondaryText.split(",").pop()?.trim() || "",
-                          state: newLocation.secondaryText.split(",")[0]?.trim()
-                        };
-
-                        // Add to locations
-                        setLocations(prev => [...prev, locationToAdd]);
-
-                        // Set default to use length of stay with 2 nights
-                        setLocationLengthOfStay(prev => ({
-                          ...prev,
-                          [locationToAdd.id]: true
-                        }));
-                        setLocationNights(prev => ({
-                          ...prev,
-                          [locationToAdd.id]: 2
-                        }));
-
-                        // Calculate sequential dates for all cities
-                        if (currentItinerary) {
-                          const allLocations = [...currentItinerary.locations, locationToAdd];
-                          const updatedNights = {
-                            ...locationNights,
-                            [locationToAdd.id]: 2
-                          };
-                          let currentDate = startOfDay(new Date());
-
-                          // Calculate sequential dates for all locations
-                          const updatedLocations = allLocations.map(loc => {
-                            if (locationLengthOfStay[loc.id] || loc.id === locationToAdd.id) {
-                              const nights = updatedNights[loc.id] || 1;
-                              const startDate = new Date(currentDate);
-                              const endDate = addDays(startDate, nights);
-                              console.log(`New city calculation - ${loc.name}: ${nights} nights, ${startDate.toDateString()} to ${endDate.toDateString()}`);
-
-                              // Update location dates
-                              updateLocationDates(loc.id, startDate, endDate);
-
-                              // Move to next city's start date
-                              currentDate = new Date(endDate);
-                              return {
-                                ...loc,
-                                startDate,
-                                endDate
-                              };
-                            }
-                            return loc;
-                          });
-
-                          // Recalculate overall trip dates
-                          const allStartDates = updatedLocations.map(loc => loc.startDate!).filter(Boolean);
-                          const allEndDates = updatedLocations.map(loc => loc.endDate!).filter(Boolean);
-                          const overallStart = new Date(Math.min(...allStartDates.map(d => d.getTime())));
-                          const overallEnd = new Date(Math.max(...allEndDates.map(d => d.getTime())));
-                          console.log('New overall trip dates after adding city:', {
-                            start: overallStart.toDateString(),
-                            end: overallEnd.toDateString()
-                          });
-                          setCurrentItinerary(prev => prev ? {
-                            ...prev,
-                            locations: updatedLocations,
-                            startDate: overallStart,
-                            endDate: overallEnd
-                          } : null);
-
-                          // Update date range
-                          setDateRange({
-                            start: overallStart,
-                            end: overallEnd
-                          });
-                        }
-                        setCurrentLocationSearch("");
-                      }} placeholder="Add another city..." className="w-full" />
+                        {/* Add Another City Section */}
+                        <div className="space-y-4">
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Add another city</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Convert to a multi-city trip by adding destinations</p>
+                          </div>
+                          
+                          <div className="relative">
+                            <AmadeusCitySearch 
+                              value={currentLocationSearch} 
+                              onChange={setCurrentLocationSearch} 
+                              onCitySelect={newLocation => {
+                                const locationToAdd: TripLocation = {
+                                  id: newLocation.id,
+                                  name: newLocation.mainText,
+                                  country: newLocation.secondaryText.split(",").pop()?.trim() || "",
+                                  state: newLocation.secondaryText.split(",")[0]?.trim()
+                                };
+                                
+                                // Add to locations
+                                setLocations(prev => [...prev, locationToAdd]);
+                                
+                                // Convert to multi-city
+                                setIsMultiCity(true);
+                                
+                                // If current itinerary exists, update it to multi-city
+                                if (currentItinerary) {
+                                  const updatedLocations = [...currentItinerary.locations, locationToAdd];
+                                  
+                                  // Keep as date-based system - preserve existing dates if they exist
+                                  if (dateRange.start && dateRange.end) {
+                                    const totalDays = differenceInDays(dateRange.end, dateRange.start);
+                                    const currentLocation = currentItinerary.locations[0];
+                                    
+                                    // Split the existing trip duration between cities
+                                    const firstCityNights = Math.max(1, Math.floor(totalDays / 2));
+                                    
+                                    // Use existing start date and calculate split
+                                    const firstCityStart = dateRange.start;
+                                    const firstCityEnd = addDays(firstCityStart, firstCityNights);
+                                    const secondCityStart = firstCityEnd;
+                                    const secondCityEnd = dateRange.end; // Preserve original end date
+                                    
+                                    // DON'T set length of stay - keep it date-based
+                                    // Just update the location dates
+                                    updateLocationDates(currentLocation.id, firstCityStart, firstCityEnd);
+                                    updateLocationDates(locationToAdd.id, secondCityStart, secondCityEnd);
+                                    const locationsWithDates = [{
+                                      ...currentLocation,
+                                      startDate: firstCityStart,
+                                      endDate: firstCityEnd
+                                    }, {
+                                      ...locationToAdd,
+                                      startDate: secondCityStart,
+                                      endDate: secondCityEnd
+                                    }];
+                                    setCurrentItinerary(prev => prev ? {
+                                      ...prev,
+                                      locations: locationsWithDates,
+                                      isMultiCity: true,
+                                      // Keep the original date range
+                                      startDate: dateRange.start,
+                                      endDate: dateRange.end,
+                                      title: `Multi-City: ${locationsWithDates.map(loc => loc.name).join(' → ')}`
+                                    } : null);
+                                    
+                                    // DON'T set wasCreatedWithLengthOfStay - keep it date-based
+                                  } else {
+                                    // If no dates exist, just update to multi-city without dates
+                                    setCurrentItinerary(prev => prev ? {
+                                      ...prev,
+                                      locations: updatedLocations,
+                                      isMultiCity: true,
+                                      title: `Multi-City: ${updatedLocations.map(loc => loc.name).join(' → ')}`
+                                    } : null);
+                                  }
+                                }
+                                setCurrentLocationSearch("");
+                                toast.success(`Added ${locationToAdd.name} to your trip`);
+                              }} 
+                              placeholder="Add another city..." 
+                              className="w-full px-4 py-3 pl-10 border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800" 
+                            />
+                            <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                              <MapPin className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>}
-                
-                {/* Apply Changes Button */}
-                {hasPendingChanges && <div className="flex justify-center pt-4 border-t">
-                    <Button onClick={applyPendingChanges} className="flex items-center gap-2">
-                      Apply Changes
-                    </Button>
-                  </div>}
+                    )}
+                    
+                    {/* Single City Trips Using Length of Stay */}
+                    {useLengthOfStay && !currentItinerary?.isMultiCity && (
+                      <div className="space-y-6">
+                        {/* Divider */}
+                        <div className="h-px bg-gray-200 dark:bg-slate-700"></div>
+                        
+                        {/* Extend Stay Section */}
+                        <div className="space-y-4">
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Extend your stay</h3>
+                          </div>
+                          
+                          <div className="space-y-4">
+                            <Slider 
+                              value={[pendingNights]} 
+                              onValueChange={value => {
+                                const newNights = value[0];
+                                setPendingNights(newNights);
+                                setHasPendingChanges(true);
+                              }} 
+                              max={90} 
+                              min={1} 
+                              step={1} 
+                              className="w-full" 
+                            />
+                            <div className="text-center">
+                              <span className="text-2xl font-semibold text-gray-900 dark:text-white">{pendingNights}</span>
+                              <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                                {pendingNights === 1 ? "night" : "nights"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Divider */}
+                        <div className="h-px bg-gray-200 dark:bg-slate-700"></div>
+                        
+                        {/* Convert to Multi-city */}
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Add another city</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Convert to a multi-city trip</p>
+                          </div>
+                          <button 
+                            onClick={() => {
+                              setIsMultiCity(true);
+                              // Convert current single city to multi-city format
+                              if (currentItinerary && currentItinerary.locations.length > 0) {
+                                const currentLocation = currentItinerary.locations[0];
+                                setLocationLengthOfStay(prev => ({
+                                  ...prev,
+                                  [currentLocation.id]: true
+                                }));
+                                setLocationNights(prev => ({
+                                  ...prev,
+                                  [currentLocation.id]: numberOfNights
+                                }));
+                              }
+                            }}
+                            className="px-4 py-2 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 font-medium transition-colors"
+                          >
+                            Add City
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </CollapsibleContent>
               </Card>
-            </Collapsible>}
+            </Collapsible>
+          )}
+
+          {/* Hotels and Flights Section - Moved to top */}
+          <HotelFlightSection locations={currentItinerary?.locations || []} isMultiCity={currentItinerary?.isMultiCity || false} hotels={hotels} flights={flights} onAddHotel={handleAddHotel} onAddFlight={handleAddFlight} onRemoveHotel={handleRemoveHotel} onRemoveFlight={handleRemoveFlight} />
+
+          {/* Map Button - Desktop */}
+          <div className="hidden lg:block mb-6">
+            <ItineraryMapButton events={events} onOpenMap={() => setIsMapOpen(true)} />
+          </div>
+
+          {/* Trip Calendar */}
+          <TripCalendar startDate={dateRange.start!} endDate={dateRange.end!} events={events} locations={currentItinerary?.locations || []} hotels={hotels} isMultiCity={currentItinerary?.isMultiCity || false} useLengthOfStay={wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])} onAddEvent={handleAddEvent} onEditEvent={handleEditEvent} onDeleteEvent={handleDeleteEvent} />
+        </TabsContent>
 
           {/* Hotels and Flights Section - Moved to top */}
           <HotelFlightSection locations={currentItinerary?.locations || []} isMultiCity={currentItinerary?.isMultiCity || false} hotels={hotels} flights={flights} onAddHotel={handleAddHotel} onAddFlight={handleAddFlight} onRemoveHotel={handleRemoveHotel} onRemoveFlight={handleRemoveFlight} />
@@ -2306,5 +2135,6 @@ export function ItineraryBuilder({
       {activeTab === "builder" && !isMapOpen && (
         <ItineraryMapButton events={events} onOpenMap={() => setIsMapOpen(true)} />
       )}
-    </div>;
+    </div>
+  );
 }
