@@ -1433,7 +1433,7 @@ export function ItineraryBuilder({
             {/* Mobile: Collapsible Dropdown */}
             <div className="lg:hidden relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen px-4">
               <Collapsible>
-                <CollapsibleTrigger className="w-full px-5 py-4 flex items-center justify-between bg-background hover:bg-muted/30 transition-all duration-200 rounded-xl border border-border/20 shadow-sm">
+                <CollapsibleTrigger className="modern-accordion-trigger">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                       <Calendar className="w-4 h-4 text-primary" />
