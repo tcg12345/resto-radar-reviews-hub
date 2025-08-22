@@ -1442,7 +1442,7 @@ export function ItineraryBuilder({
                   <ChevronDown className="w-4 h-4 text-muted-foreground" />
                 </CollapsibleTrigger>
                 <CollapsibleContent className="bg-muted/20 supports-[backdrop-filter]:bg-muted/30 backdrop-blur-sm">
-                  <div className="p-6 space-y-6 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-sm">
+                  <div className="p-6 space-y-6 bg-black dark:bg-black border border-gray-200 dark:border-slate-700 rounded-xl shadow-sm">
                     
                     {/* Travel Period Section */}
                     <div className="space-y-3">
