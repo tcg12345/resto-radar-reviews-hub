@@ -1743,27 +1743,22 @@ export function ItineraryBuilder({
                   </CardHeader>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <CardContent className="p-4 lg:p-6">
+                  <CardContent className="p-5 lg:p-6 bg-background">
                     
-                    {/* Mobile-Optimized Trip Mode Selector */}
-                    {(useLengthOfStay || wasCreatedWithLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) || !useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) && dateRange.start && dateRange.end) && <div className="space-y-4">
+                    {/* Trip Planning Section */}
+                    {(useLengthOfStay || wasCreatedWithLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) || !useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) && dateRange.start && dateRange.end) && <div className="space-y-6">
                         
-                        {/* Header */}
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                            <CalendarIcon className="w-4 h-4 text-primary" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-base text-foreground">Trip Planning</h3>
-                            <p className="text-xs text-muted-foreground">Choose your planning style</p>
-                          </div>
+                        {/* Section Header */}
+                        <div>
+                          <h3 className="text-lg font-semibold text-foreground">Trip Planning</h3>
+                          <p className="text-sm text-muted-foreground mt-1">Choose your planning style</p>
                         </div>
                         
-                        {/* Mobile Toggle Switch Design */}
-                        <div className="bg-muted/30 p-1 rounded-xl border border-border/20">
-                          <div className="grid grid-cols-2 gap-1">
+                        {/* Segmented Control - Pill Style */}
+                        <div className="inline-flex bg-muted/50 p-1 rounded-xl border border-border/30">
+                          <div className="flex">
                             
-                            {/* Dates Option */}
+                            {/* Specific Dates Tab */}
                             <button onClick={() => {
                         if (useLengthOfStay || wasCreatedWithLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) {
                           // Convert to date-based mode
@@ -1795,14 +1790,11 @@ export function ItineraryBuilder({
                             toast.success('Switched to date planning');
                           }
                         }
-                      }} className={cn("relative p-3 rounded-lg text-sm font-medium transition-all duration-200", !useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) ? "bg-background text-foreground shadow-sm border border-border/40" : "text-muted-foreground hover:text-foreground")}>
-                              <div className="flex flex-col items-center gap-1">
-                                <CalendarIcon className="w-4 h-4" />
-                                <span className="text-xs">Specific Dates</span>
-                              </div>
+                      }} className={cn("px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 min-w-[120px]", !useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+                              Specific Dates
                             </button>
                             
-                            {/* Nights Option */}
+                            {/* Number of Nights Tab */}
                             <button onClick={() => {
                         if (!useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) {
                           // Convert to length-of-stay mode
@@ -1829,82 +1821,83 @@ export function ItineraryBuilder({
                             toast.success('Switched to nights planning');
                           }
                         }
-                      }} className={cn("relative p-3 rounded-lg text-sm font-medium transition-all duration-200", useLengthOfStay || wasCreatedWithLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) ? "bg-background text-foreground shadow-sm border border-border/40" : "text-muted-foreground hover:text-foreground")}>
-                              <div className="flex flex-col items-center gap-1">
-                                <div className="w-4 h-4 flex items-center justify-center">
-                                  <span className="text-xs font-bold">#</span>
-                                </div>
-                                <span className="text-xs">Number of Nights</span>
-                              </div>
+                      }} className={cn("px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 min-w-[120px]", useLengthOfStay || wasCreatedWithLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+                              Number of Nights
                             </button>
                             
                           </div>
                         </div>
                         
-                        {/* Current Mode Description */}
-                        
-                        
                       </div>}
-                    {/* For date-based single city trips */}
-                    {!useLengthOfStay && !currentItinerary?.isMultiCity && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) && <div className="space-y-4">
-                        <div>
-                          <Label className="text-sm font-medium">Modify your trip dates</Label>
-                          <p className="text-xs text-muted-foreground mt-1">
+                    {/* Date Selection Section */}
+                    {!useLengthOfStay && !currentItinerary?.isMultiCity && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) && <div className="space-y-6">
+                        
+                        {/* Date Modification Header */}
+                        <div className="pt-4">
+                          <h4 className="text-lg font-semibold text-foreground">Modify your trip dates</h4>
+                          <p className="text-sm text-muted-foreground mt-1">
                             Change your start or end date to adjust your trip
                           </p>
-                          <div className="mt-3 grid grid-cols-1 gap-3">
-                            {/* Start Date Picker */}
-                            <div>
-                              <Label className="text-xs text-muted-foreground">Start Date</Label>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !pendingStartDate && "text-muted-foreground")}>
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {pendingStartDate ? format(pendingStartDate, 'PPP') : 'Select start date'}
-                                  </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                  <CalendarComponent mode="single" selected={pendingStartDate} onSelect={date => {
+                        </div>
+                        
+                        {/* Date Pickers Grid */}
+                        <div className="grid grid-cols-1 gap-4">
+                          {/* Start Date Picker */}
+                          <div className="space-y-2">
+                            <Label className="text-sm text-muted-foreground">Start Date</Label>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-12 rounded-xl border-border/30 bg-background hover:bg-muted/30", !pendingStartDate && "text-muted-foreground")}>
+                                  <CalendarIcon className="mr-3 h-4 w-4 text-muted-foreground" />
+                                  <span className="font-medium">
+                                    {pendingStartDate ? format(pendingStartDate, 'MMMM do, yyyy') : 'Select start date'}
+                                  </span>
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <CalendarComponent mode="single" selected={pendingStartDate} onSelect={date => {
                               if (date && (!pendingEndDate || date < pendingEndDate)) {
                                 setPendingStartDate(date);
                                 setHasPendingChanges(true);
                               }
                             }} disabled={date => pendingEndDate && date >= pendingEndDate} initialFocus className={cn("p-3 pointer-events-auto")} />
-                                </PopoverContent>
-                              </Popover>
-                            </div>
-                            
-                            {/* End Date Picker */}
-                            <div>
-                              <Label className="text-xs text-muted-foreground">End Date</Label>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !pendingEndDate && "text-muted-foreground")}>
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {pendingEndDate ? format(pendingEndDate, 'PPP') : 'Select end date'}
-                                  </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                  <CalendarComponent mode="single" selected={pendingEndDate} onSelect={date => {
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+                          
+                          {/* End Date Picker */}
+                          <div className="space-y-2">
+                            <Label className="text-sm text-muted-foreground">End Date</Label>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-12 rounded-xl border-border/30 bg-background hover:bg-muted/30", !pendingEndDate && "text-muted-foreground")}>
+                                  <CalendarIcon className="mr-3 h-4 w-4 text-muted-foreground" />
+                                  <span className="font-medium">
+                                    {pendingEndDate ? format(pendingEndDate, 'MMMM do, yyyy') : 'Select end date'}
+                                  </span>
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <CalendarComponent mode="single" selected={pendingEndDate} onSelect={date => {
                               if (date && (!pendingStartDate || date > pendingStartDate)) {
                                 setPendingEndDate(date);
                                 setHasPendingChanges(true);
                               }
                             }} disabled={date => !pendingStartDate || date <= pendingStartDate} initialFocus className={cn("p-3 pointer-events-auto")} />
-                                </PopoverContent>
-                              </Popover>
-                            </div>
+                              </PopoverContent>
+                            </Popover>
                           </div>
                         </div>
                         
-                        {/* Option to add cities to any itinerary */}
-                        <div className="pt-4 border-t">
-                          <div className="space-y-3">
-                            <Label className="text-sm font-medium">Add another city</Label>
-                            <p className="text-xs text-muted-foreground">
+                        {/* Add Another City Section */}
+                        <div className="pt-6 border-t border-border/20">
+                          <div className="space-y-4">
+                            <h4 className="text-lg font-semibold text-foreground">Add another city</h4>
+                            <p className="text-sm text-muted-foreground">
                               Convert to a multi-city trip by adding destinations
                             </p>
-                            <AmadeusCitySearch value={currentLocationSearch} onChange={setCurrentLocationSearch} onCitySelect={newLocation => {
+                            <div className="relative">
+                              <AmadeusCitySearch value={currentLocationSearch} onChange={setCurrentLocationSearch} onCitySelect={newLocation => {
                         const locationToAdd: TripLocation = {
                           id: newLocation.id,
                           name: newLocation.mainText,
@@ -1973,6 +1966,7 @@ export function ItineraryBuilder({
                         setCurrentLocationSearch("");
                         toast.success(`Added ${locationToAdd.name} to your trip`);
                       }} placeholder="Add another city..." className="w-full" />
+                            </div>
                           </div>
                         </div>
                       </div>}
