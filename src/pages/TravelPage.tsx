@@ -49,7 +49,7 @@ export default function TravelPage() {
         {/* Ultra-Premium Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="flex justify-center mb-4 lg:mb-8">
-            <TabsList className="grid grid-cols-2 bg-card/60 backdrop-blur-xl border border-border/30 rounded-3xl p-1 shadow-premium-xl">
+            <TabsList className="grid grid-cols-2 bg-card/60 backdrop-blur-xl border border-border/30 rounded-3xl p-1.5 shadow-premium-xl h-auto">
               <TabsTrigger 
                 value="itinerary" 
                 className="flex items-center gap-2 px-4 lg:px-8 py-3 lg:py-4 rounded-2xl font-bold text-sm lg:text-base transition-all duration-500 data-[state=active]:bg-gradient-premium data-[state=active]:text-primary-foreground data-[state=active]:shadow-premium-glow data-[state=active]:scale-105"
