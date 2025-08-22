@@ -737,7 +737,7 @@ const performLiveSearch = async () => {
                 {[...Array(6)].map((_, i) => <SearchResultSkeleton key={i} />)}
               </div> : <div className="space-y-3">
                 {searchResults.map(place => <Card key={place.place_id} className="overflow-hidden bg-card border-0 shadow-[0_6px_25px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.15)] transition-all duration-300 rounded-2xl cursor-pointer group" onClick={() => handlePlaceClick(place)}>
-                    <CardContent className="p-3">
+                    <CardContent className="p-3" style={{ backgroundColor: 'rgb(10,23,43)' }}>
                       {/* Mobile Layout */}
                       <div className="lg:hidden">
                         <div className="space-y-1.5">
