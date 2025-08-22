@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { ArrowLeft, MapPin, Clock, Phone, Globe, Star, Heart, Plus, Share2, Navigation, ExternalLink, Check, User, Users, Award, Camera, Copy, ChevronDown } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Phone, Globe, Star, Heart, Plus, Share2, Navigation, ExternalLink, Check, User, Users, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { toast } from 'sonner';
 import { OpeningHoursDisplay } from '@/components/OpeningHoursDisplay';
 import { PriceRange } from '@/components/PriceRange';
@@ -23,7 +22,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRatingStats } from '@/hooks/useRatingStats';
 import { resolveImageUrl } from '@/utils/imageUtils';
-
 interface UnifiedRestaurantData {
   id?: string;
   place_id?: string;
@@ -69,7 +67,6 @@ interface UnifiedRestaurantData {
   };
   isSharedRestaurant?: boolean;
 }
-
 interface UnifiedRestaurantDetailsProps {
   restaurant: UnifiedRestaurantData;
   onBack?: () => void;
@@ -79,7 +76,6 @@ interface UnifiedRestaurantDetailsProps {
   canAddToWishlist?: boolean;
   isMobile?: boolean;
 }
-
 export function UnifiedRestaurantDetails({
   restaurant,
   onBack,
@@ -90,8 +86,12 @@ export function UnifiedRestaurantDetails({
   isMobile = false
 }: UnifiedRestaurantDetailsProps) {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { setPreloadedStats } = useCommunityData();
+  const {
+    user
+  } = useAuth();
+  const {
+    setPreloadedStats
+  } = useCommunityData();
   const actualIsMobile = useIsMobile();
   const [photos, setPhotos] = useState<string[]>([]);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
@@ -105,16 +105,12 @@ export function UnifiedRestaurantDetails({
   const [deferPhotos, setDeferPhotos] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const [hasLoadedHeroImage, setHasLoadedHeroImage] = useState(false);
-  const [showStickyBar, setShowStickyBar] = useState(false);
-  const [showHoursExpanded, setShowHoursExpanded] = useState(false);
-  const heroRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<HTMLDivElement | null>(null);
   const enhancedPlaceIdsRef = useRef<Set<string>>(new Set());
   const linkedPlaceIdsRef = useRef<Set<string>>(new Set());
   const fetchedDetailsPlaceIdsRef = useRef<Set<string>>(new Set());
   const preloadedStatsPlaceIdsRef = useRef<Set<string>>(new Set());
   const hasValidPlaceId = useMemo(() => !!restaurant.place_id, [restaurant.place_id]);
-
   useEffect(() => {
     const schedule = (cb: () => void, delay = 0) => {
       if ('requestIdleCallback' in window) {
@@ -136,36 +132,18 @@ export function UnifiedRestaurantDetails({
     // After 200ms: Load heavy features
     schedule(() => setDeferHeavy(true), 200);
   }, []);
-
-  // Scroll handler for sticky bar
-  useEffect(() => {
-    if (!heroRef.current) return;
-    
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setShowStickyBar(!entry.isIntersecting);
-      },
-      { threshold: 0.1 }
-    );
-    
-    observer.observe(heroRef.current);
-    return () => observer.disconnect();
-  }, []);
-
   useEffect(() => {
     // Show map immediately when coordinates are available
     if (restaurantData.latitude && restaurantData.longitude) {
       setShowMap(true);
     }
   }, [restaurantData.latitude, restaurantData.longitude]);
-
   const {
     communityStats,
     reviews,
     isLoading: isLoadingReviews,
     submitReview
   } = useRestaurantReviews(deferCommunity && hasValidPlaceId ? restaurantData.place_id : undefined, restaurantData.name);
-
   const {
     friendStats,
     expertStats,
@@ -178,14 +156,21 @@ export function UnifiedRestaurantDetails({
     const own = photos || [];
     return [...community, ...own].filter((p: any) => typeof p === 'string' && p.trim() !== '');
   }, [communityStats?.recentPhotos, photos]);
-
   const [heroIndex, setHeroIndex] = useState(0);
   useEffect(() => {
     setHeroIndex(0);
   }, [heroCandidates.length]);
-
   const heroSrc = heroCandidates[heroIndex];
   const hasHeroPhoto = !!heroSrc;
+  useEffect(() => {
+    console.log('Hero candidates', {
+      placeId: restaurantData.place_id,
+      communityCount: communityStats?.recentPhotos?.length,
+      photosCount: photos.length,
+      heroCount: heroCandidates.length,
+      first: heroCandidates[0]
+    });
+  }, [heroCandidates.length]);
 
   // Save community stats to context for preloading (once per place)
   useEffect(() => {
@@ -194,7 +179,6 @@ export function UnifiedRestaurantDetails({
       preloadedStatsPlaceIdsRef.current.add(restaurantData.place_id);
     }
   }, [communityStats, restaurantData.place_id, setPreloadedStats]);
-
   useEffect(() => {
     setRestaurantData(restaurant);
     setPhotos(restaurant.photos || []);
@@ -227,13 +211,11 @@ export function UnifiedRestaurantDetails({
     };
     link();
   }, [restaurantData?.place_id, restaurantData?.name]);
-
   const shouldEnhanceWithAI = (restaurant: UnifiedRestaurantData): boolean => {
     const hasGenericCuisine = !restaurant.cuisine || restaurant.cuisine.toLowerCase().includes('restaurant') || restaurant.cuisine.toLowerCase().includes('bar') || restaurant.cuisine.toLowerCase().includes('food') || restaurant.cuisine.toLowerCase().includes('establishment');
     const hasMissingMichelinInfo = restaurant.michelinStars === undefined && restaurant.michelin_stars === undefined;
     return hasGenericCuisine || hasMissingMichelinInfo;
   };
-
   const enhanceWithAI = async (restaurant: UnifiedRestaurantData) => {
     try {
       setIsEnhancingWithAI(true);
@@ -296,11 +278,13 @@ export function UnifiedRestaurantDetails({
       setIsEnhancingWithAI(false);
     }
   };
-
   const fetchPlaceDetails = async (placeId: string) => {
     try {
       setIsLoadingDetails(true);
-      const { data, error } = await supabase.functions.invoke('google-places-search', {
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('google-places-search', {
         body: {
           type: 'details',
           placeId: placeId
@@ -325,7 +309,6 @@ export function UnifiedRestaurantDetails({
       setIsLoadingDetails(false);
     }
   };
-
   const handleBack = () => {
     if (onBack) {
       onBack();
@@ -333,7 +316,6 @@ export function UnifiedRestaurantDetails({
       navigate(-1);
     }
   };
-
   const handleAddToWishlist = async () => {
     if (!user || !restaurantData) return;
     if (onToggleWishlist) {
@@ -342,7 +324,9 @@ export function UnifiedRestaurantDetails({
     }
     setIsAdding(true);
     try {
-      const { error } = await supabase.from('restaurants').insert({
+      const {
+        error
+      } = await supabase.from('restaurants').insert({
         name: restaurantData.name,
         address: restaurantData.address,
         city: restaurantData.city || '',
@@ -356,6 +340,7 @@ export function UnifiedRestaurantDetails({
         latitude: restaurantData.latitude,
         longitude: restaurantData.longitude,
         google_place_id: restaurantData.place_id,
+        // ensure friend/expert stats can link
         website: restaurantData.website || '',
         phone_number: restaurantData.phone || restaurantData.phone_number || restaurantData.formatted_phone_number || '',
         opening_hours: typeof restaurantData.opening_hours === 'object' ? restaurantData.opening_hours?.weekday_text?.join('\n') || '' : restaurantData.opening_hours || restaurantData.openingHours || '',
@@ -377,7 +362,6 @@ export function UnifiedRestaurantDetails({
       setIsAdding(false);
     }
   };
-
   const handleShare = () => {
     if (navigator.share && restaurantData) {
       navigator.share({
@@ -390,20 +374,17 @@ export function UnifiedRestaurantDetails({
       toast.success('Link copied to clipboard!');
     }
   };
-
   const handleCall = () => {
     const phoneNumber = restaurantData.phone || restaurantData.phone_number || restaurantData.formatted_phone_number;
     if (phoneNumber) {
       window.location.href = `tel:${phoneNumber}`;
     }
   };
-
   const handleWebsite = () => {
     if (restaurantData.website) {
       window.open(restaurantData.website, '_blank');
     }
   };
-
   const handleDirections = () => {
     if (restaurantData.latitude && restaurantData.longitude) {
       const url = `https://maps.google.com/maps?daddr=${restaurantData.latitude},${restaurantData.longitude}`;
@@ -414,11 +395,9 @@ export function UnifiedRestaurantDetails({
       window.open(url, '_blank');
     }
   };
-
   const getPhoneNumber = () => {
     return restaurantData.phone || restaurantData.phone_number || restaurantData.formatted_phone_number;
   };
-
   const getOpeningHours = () => {
     if (typeof restaurantData.opening_hours === 'object' && restaurantData.opening_hours?.weekday_text) {
       return restaurantData.opening_hours.weekday_text;
@@ -428,387 +407,281 @@ export function UnifiedRestaurantDetails({
     }
     return null;
   };
-
   const getPriceDisplay = (priceRange?: number) => {
     if (!priceRange) return '';
     return '$'.repeat(priceRange);
   };
-
-  const copyAddress = () => {
-    const fullAddress = `${restaurantData.address}, ${restaurantData.city || ''}`.trim();
-    navigator.clipboard.writeText(fullAddress);
-    toast.success('Address copied to clipboard!');
+  const formatDistance = (distance?: number) => {
+    if (!distance) return '';
+    return `${distance.toFixed(1)} mi away`;
   };
-
-  const getStatusBadge = () => {
-    if (restaurantData.isOpen !== undefined) {
-      return restaurantData.isOpen ? 
-        <Badge className="bg-green-500/10 text-green-500 border-green-500/20">Open</Badge> :
-        <Badge className="bg-red-500/10 text-red-500 border-red-500/20">Closed</Badge>;
-    }
-    return null;
-  };
-
-  const getCurrentHours = () => {
-    const hours = getOpeningHours();
-    if (!hours || !Array.isArray(hours)) return 'Hours not available';
-    
-    const today = new Date().getDay();
-    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const todayHours = hours.find(h => h.includes(dayNames[today]));
-    
-    if (todayHours) {
-      return todayHours.split(': ')[1] || 'Closed';
-    }
-    return 'Hours not available';
-  };
-
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="h-[280px] bg-muted animate-pulse" />
+    return <>
+        <div className="min-h-screen bg-background">
+        {/* Header */}
+        {showBackButton && <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b pt-safe-area-top">
+            <div className="flex items-center gap-4 p-4">
+              <Button variant="ghost" size="sm" onClick={handleBack} className="h-8 w-8 p-0">
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <div className="h-6 w-48 bg-muted animate-pulse rounded"></div>
+            </div>
+          </div>}
+        
+        {/* Loading content */}
         <div className="p-4 space-y-4">
-          <div className="h-8 bg-muted animate-pulse rounded w-3/4" />
-          <div className="h-4 bg-muted animate-pulse rounded w-1/2" />
-          <div className="h-20 bg-muted animate-pulse rounded" />
+          <div className="h-48 bg-muted animate-pulse rounded-lg"></div>
+          <div className="space-y-2">
+            <div className="h-4 bg-muted animate-pulse rounded w-3/4"></div>
+            <div className="h-4 bg-muted animate-pulse rounded w-1/2"></div>
+          </div>
         </div>
-      </div>
-    );
+        </div>
+      </>;
   }
-
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section with Image Carousel */}
-      <div ref={heroRef} className="relative w-full h-[280px] overflow-hidden">
-        {hasHeroPhoto ? (
-          <Carousel className="w-full h-full">
-            <CarouselContent>
-              {heroCandidates.map((photo, index) => (
-                <CarouselItem key={index} className="w-full h-full p-0">
-                  <div className="relative w-full h-full">
-                    <img
-                      src={resolveImageUrl(photo)}
-                      alt={`${restaurantData.name} photo ${index + 1}`}
-                      className="w-full h-full object-cover"
-                      loading={index === 0 ? "eager" : "lazy"}
-                    />
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            {heroCandidates.length > 1 && (
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-1 z-10">
-                {heroCandidates.map((_, index) => (
-                  <div
-                    key={index}
-                    className={`w-2 h-2 rounded-full transition-all ${
-                      index === heroIndex ? 'bg-white' : 'bg-white/50'
-                    }`}
-                  />
-                ))}
-              </div>
-            )}
-          </Carousel>
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-muted via-muted to-muted/50 flex items-center justify-center">
-            <Camera className="h-12 w-12 text-muted-foreground/30" />
-          </div>
-        )}
-        
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-        
-        {/* Floating Controls */}
-        <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-20">
-          {showBackButton && (
-            <Button
-              variant="secondary"
-              size="icon"
-              onClick={handleBack}
-              className="h-10 w-10 bg-black/20 hover:bg-black/40 border-0 backdrop-blur-sm"
-            >
-              <ArrowLeft className="h-4 w-4 text-white" />
-            </Button>
-          )}
-          
-          <div className="flex gap-2">
-            {heroCandidates.length > 0 && (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setIsPhotoGalleryOpen(true)}
-                className="bg-black/20 hover:bg-black/40 border-0 backdrop-blur-sm text-white text-xs h-8 px-3"
-              >
-                <Camera className="h-3 w-3 mr-1" />
-                View photos ({heroCandidates.length})
+  return <>
+      <div className="min-h-screen bg-background">
+      {/* Header */}
+      {showBackButton && <div className="sticky top-0 z-50 bg-background backdrop-blur border-b pt-safe-area-top">
+          <div className="flex items-center justify-between p-4">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="sm" onClick={handleBack} className="h-10 w-10 p-0 touch-manipulation" aria-label="Go back">
+                <ArrowLeft className="h-4 w-4" />
               </Button>
-            )}
-            <Button
-              variant="secondary"
-              size="icon"
-              onClick={handleShare}
-              className="h-10 w-10 bg-black/20 hover:bg-black/40 border-0 backdrop-blur-sm"
-            >
-              <Share2 className="h-4 w-4 text-white" />
+              <h1 className="text-lg font-semibold truncate">{restaurantData.name}</h1>
+            </div>
+            <Button variant="ghost" size="sm" onClick={handleShare} className="h-8 w-8 p-0">
+              <Share2 className="h-4 w-4" />
             </Button>
           </div>
-        </div>
-        
-        {/* Restaurant Name Overlay */}
-        <div className="absolute bottom-4 left-4 right-4 z-20">
-          <h1 className="text-2xl font-bold text-white mb-2 leading-tight">
-            {restaurantData.name}
-          </h1>
-        </div>
-      </div>
+        </div>}
 
-      {/* Summary Strip */}
-      <div className="px-4 py-4 space-y-4">
-        <div className="flex flex-wrap gap-2">
-          <Badge className="bg-muted text-foreground">{restaurantData.cuisine}</Badge>
-          <Badge className="bg-green-500/10 text-green-500 border-green-500/20">
-            {getPriceDisplay(restaurantData.priceRange || restaurantData.price_range) || '$$'}
-          </Badge>
-          {(restaurantData.michelinStars || restaurantData.michelin_stars) ? (
-            <Badge className="bg-red-500/10 text-red-500 border-red-500/20 flex items-center gap-1">
-              {Array.from({ length: restaurantData.michelinStars || restaurantData.michelin_stars || 0 }).map((_, i) => (
-                <Star key={i} className="h-3 w-3 fill-current" />
-              ))}
-            </Badge>
-          ) : null}
-        </div>
-
-        {/* Social/Ratings Row */}
-        {deferCommunity && restaurantData.place_id && (
-          <div className="grid grid-cols-2 gap-3">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/restaurant/${restaurantData.place_id}/friends-ratings?name=${encodeURIComponent(restaurantData.name)}`)}>
-              <CardContent className="p-4 text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Users className="h-4 w-4 text-blue-500" />
-                  <span className="text-sm font-medium">Friends</span>
-                </div>
-                <div className="text-lg font-bold">
-                  {isLoadingStats ? '—' : friendStats.count || 0}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {friendStats.count === 0 ? 'Be the first to review' : 'reviews'}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/restaurant/${restaurantData.place_id}/expert-ratings?name=${encodeURIComponent(restaurantData.name)}`)}>
-              <CardContent className="p-4 text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Award className="h-4 w-4 text-amber-500" />
-                  <span className="text-sm font-medium">Experts</span>
-                </div>
-                <div className="text-lg font-bold">
-                  {isLoadingStats ? '—' : expertStats.count || 0}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {expertStats.count === 0 ? 'Be the first to review' : 'reviews'}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Secondary Actions */}
-        <div className="grid grid-cols-2 gap-3">
-          <Button variant="outline" onClick={handleAddToWishlist} className="flex items-center gap-2" disabled={isAdding}>
-            <Plus className="h-4 w-4" />
-            {isAdding ? 'Adding...' : 'Add to List'}
-          </Button>
-          <Button variant="outline" onClick={handleAddToWishlist} className="flex items-center gap-2" disabled={isAdding}>
-            <Heart className="h-4 w-4" />
-            {isAdding ? 'Adding...' : 'Wishlist'}
-          </Button>
-        </div>
-      </div>
-
-      {/* Community Rating */}
-      {deferCommunity && communityStats && (
-        <div className="px-4 py-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Community Rating</h3>
-            <Button variant="ghost" size="sm">
-              {communityStats.totalReviews || 0} reviews
-            </Button>
-          </div>
-          
-          <div className="flex items-center gap-6">
-            {/* Overall Rating Circle */}
-            <div className="text-center">
-              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">
-                    {communityStats.averageRating ? communityStats.averageRating.toFixed(1) : '—'}
-                  </div>
-                  <Star className="h-4 w-4 fill-primary text-primary mx-auto mt-1" />
-                </div>
-              </div>
-              <div className="text-xs text-muted-foreground">out of 10</div>
+      <div className={`${isMobile ? "pb-safe" : ""}`}>
+        {/* Photos - Show either restaurant photos or community photos */}
+        {deferPhotos && hasHeroPhoto && <div className={`${isMobile ? 'aspect-video' : 'aspect-video md:aspect-auto md:h-auto md:max-h-[420px] md:max-w-3xl md:mx-auto'} w-full bg-muted relative overflow-hidden cursor-pointer group`} onClick={() => navigate(`/restaurant/${restaurantData.place_id || restaurantData.id}/community-photos?name=${encodeURIComponent(restaurantData.name)}`)}>
+            {/* Try to show community photos first, then restaurant photos, then fallback */}
+            {/* Mobile: single hero image */}
+            <div className="md:hidden w-full h-full">
+              {heroSrc ? <img src={resolveImageUrl(heroSrc)} alt={restaurantData.name} className="w-full h-full object-cover transition-transform group-hover:scale-105" loading="lazy" decoding="async" onLoad={() => setHasLoadedHeroImage(true)} onError={() => setHeroIndex(i => i + 1)} /> : null}
             </div>
 
-            {/* Rating Distribution */}
-            <div className="flex-1 space-y-2">
-              {[5, 4, 3, 2, 1].map((rating) => (
-                <div key={rating} className="flex items-center gap-2">
-                  <span className="text-xs w-8">{rating * 2 - 1}-{rating * 2}</span>
-                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-primary rounded-full transition-all"
-                      style={{ 
-                        width: `${(communityStats.ratingDistribution?.[rating] || 0) / (communityStats.totalReviews || 1) * 100}%`,
-                        opacity: 1 - (rating - 1) * 0.2 
-                      }}
-                    />
-                  </div>
-                  <span className="text-xs w-6 text-right text-muted-foreground">
-                    {communityStats.ratingDistribution?.[rating] || 0}
-                  </span>
-                </div>
-              ))}
+            {/* Desktop: grid collage when multiple photos available, otherwise single image (contain) */}
+            <div className="hidden md:block w-full h-full">
+              {(() => {
+              const header: string[] = (communityStats?.recentPhotos?.length ? communityStats.recentPhotos.flatMap((rp: any) => rp?.photos || []) : photos).slice(0, 6);
+              if (header.length > 1) {
+                return <div className="grid grid-cols-3 gap-2 auto-rows-[140px]">
+                      {header.map((src, i) => <img key={i} src={resolveImageUrl(src)} alt={`${restaurantData.name} photo ${i + 1}`} className="w-full h-full object-cover rounded-md" onLoad={() => setHasLoadedHeroImage(true)} onError={e => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                  }} />)}
+                    </div>;
+              }
+              // Single image fallback on desktop
+              if (communityStats?.recentPhotos?.[0]?.photos?.[0]) {
+                return <img src={resolveImageUrl(communityStats.recentPhotos[0].photos[0])} alt={restaurantData.name} className="w-full h-full object-cover transition-transform group-hover:scale-105 md:object-contain md:h-auto md:w-auto md:max-h-[420px] md:mx-auto" onLoad={() => setHasLoadedHeroImage(true)} onError={e => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                }} />;
+              }
+              if (photos.length > 0) {
+                return <img src={resolveImageUrl(photos[0])} alt={restaurantData.name} className="w-full h-full object-cover transition-transform group-hover:scale-105 md:object-contain md:h-auto md:w-auto md:max-h-[420px] md:mx-auto" onError={e => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                }} />;
+              }
+              return null;
+            })()}
             </div>
-          </div>
-        </div>
-      )}
+            <div className="absolute top-3 right-3 bg-black/70 text-white px-2 py-1 rounded-md text-sm">
+              View more photos
+            </div>
+            {communityStats?.recentPhotos && communityStats.recentPhotos.length > 0 && photos.length === 0 && <div className="absolute bottom-3 left-3 bg-black/70 text-white px-2 py-1 rounded-md text-sm flex items-center gap-2">
+                <User className="h-3 w-3" />
+                Shared by {communityStats.recentPhotos[0].username}
+              </div>}
+          </div>}
 
-      {/* Photos Section */}
-      {deferPhotos && heroCandidates.length > 0 && (
-        <div className="px-4 py-6">
-          <h3 className="text-lg font-semibold mb-4">Photos</h3>
-          <div className="flex gap-3 overflow-x-auto pb-2">
-            {heroCandidates.slice(0, 6).map((photo, index) => (
-              <div key={index} className="relative flex-shrink-0 w-32 h-32 rounded-lg overflow-hidden">
-                <img
-                  src={resolveImageUrl(photo)}
-                  alt={`${restaurantData.name} photo ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
+        {/* Main Content */}
+        <div className="space-y-6">{/* Remove p-4 padding to make content stretch edge-to-edge */}
+          {/* Shared by info */}
+          {restaurantData.isSharedRestaurant && restaurantData.sharedBy && <div className="border-primary/20 bg-primary/5 p-4">
+              <div className="flex items-center gap-3">
+                <User className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-sm font-medium">Shared by {restaurantData.sharedBy.name}</p>
+                  {restaurantData.sharedBy.username && <p className="text-xs text-muted-foreground">@{restaurantData.sharedBy.username}</p>}
+                  {restaurantData.isWishlist && <Badge variant="outline" className="mt-1">
+                      <Heart className="h-3 w-3 mr-1" />
+                      On their wishlist
+                    </Badge>}
+                </div>
               </div>
-            ))}
-          </div>
-          <Button variant="outline" className="w-full mt-4" onClick={() => setIsPhotoGalleryOpen(true)}>
-            <Camera className="h-4 w-4 mr-2" />
-            View all photos
-          </Button>
-        </div>
-      )}
+            </div>}
 
-      {/* Address & Hours */}
-      <div className="px-4 py-6 space-y-4">
-        {/* Address Card */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
+          {/* Restaurant Header */}
+          <div className="space-y-3 px-4">
+            <div className="flex items-start justify-between">
               <div className="flex-1">
-                <p className="font-medium">Address</p>
-                <p className="text-sm text-muted-foreground">{restaurantData.address}</p>
-                {restaurantData.city && <p className="text-sm text-muted-foreground">{restaurantData.city}</p>}
+                <h1 className="text-2xl font-bold text-foreground mb-2 my-[8px]">{restaurantData.name}</h1>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant="outline" className="text-sm flex items-center gap-1">
+                    {restaurantData.cuisine}
+                    {/* Debug: Always show price range section */}
+                    <span className="text-muted-foreground">•</span>
+                    <span>
+                      {getPriceDisplay(restaurantData.priceRange || restaurantData.price_range) || '$$'}
+                    </span>
+                    {isEnhancingWithAI && <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />}
+                  </Badge>
+                   {(restaurantData.michelinStars > 0 || restaurantData.michelin_stars > 0 || isEnhancingWithAI) && <Badge variant="outline" className="text-sm flex items-center gap-1">
+                       <MichelinStars stars={restaurantData.michelinStars || restaurantData.michelin_stars || 0} readonly={true} size="sm" />
+                       {isEnhancingWithAI && <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />}
+                     </Badge>}
+                </div>
               </div>
-              <Button variant="ghost" size="sm" onClick={copyAddress}>
-                <Copy className="h-4 w-4" />
-              </Button>
+              {restaurantData.rating && restaurantData.isSharedRestaurant && restaurantData.sharedBy && <div className="flex-shrink-0 text-center">
+                  <div className="w-16 h-16 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center mb-1 mx-auto">
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-primary">{restaurantData.rating.toFixed(1)}</div>
+                      <Star className="h-3 w-3 fill-primary text-primary mx-auto" />
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground font-medium">
+                    {restaurantData.sharedBy.name}'s Rating
+                  </p>
+                </div>}
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Hours Card */}
-        {getOpeningHours() && (
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Clock className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="font-medium flex items-center gap-2">
-                      Hours
-                      {getStatusBadge()}
-                    </p>
-                    <p className="text-sm text-muted-foreground">{getCurrentHours()}</p>
+            {/* Status and Hours */}
+            {restaurantData.isOpen !== undefined && <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span className={`text-sm font-medium ${restaurantData.isOpen ? 'text-green-600' : 'text-red-600'}`}>
+                  {restaurantData.isOpen ? 'Open now' : 'Closed'}
+                </span>
+              </div>}
+          </div>
+
+          
+
+          {/* Ratings Summary: Friends and Experts */}
+          {deferCommunity && restaurantData.place_id && <div className="py-3 px-4 border-b border-border/50">
+              <div className="grid grid-cols-2 gap-3">
+                {/* Friends Rating */}
+                <div onClick={() => navigate(`/restaurant/${restaurantData.place_id}/friends-ratings?name=${encodeURIComponent(restaurantData.name)}`)} className="cursor-pointer group">
+                  <div className="flex flex-col items-center text-center py-2 transition-all duration-200 group-hover:scale-105">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <Users className="h-4 w-4 text-blue-500" />
+                      <span className="text-sm font-medium text-muted-foreground">Friends</span>
+                    </div>
+                    <div className="text-xl font-bold text-foreground mb-0.5">
+                      {isLoadingStats ? '—' : friendStats.avg ? `${friendStats.avg}/10` : '—'}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {isLoadingStats ? 'Loading…' : `${friendStats.count} reviews`}
+                    </div>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => setShowHoursExpanded(!showHoursExpanded)}>
-                  <ChevronDown className={`h-4 w-4 transition-transform ${showHoursExpanded ? 'rotate-180' : ''}`} />
-                </Button>
-              </div>
-              {showHoursExpanded && (
-                <div className="mt-4 pt-4 border-t space-y-2">
-                  {getOpeningHours()!.map((hour, index) => (
-                    <div key={index} className="flex justify-between text-sm">
-                      <span>{hour.split(': ')[0]}</span>
-                      <span className="text-muted-foreground">{hour.split(': ')[1]}</span>
+                
+                {/* Expert Rating */}
+                <div onClick={() => navigate(`/restaurant/${restaurantData.place_id}/expert-ratings?name=${encodeURIComponent(restaurantData.name)}`)} className="cursor-pointer group">
+                  <div className="flex flex-col items-center text-center py-2 transition-all duration-200 group-hover:scale-105">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <Award className="h-4 w-4 text-amber-500" />
+                      <span className="text-sm font-medium text-muted-foreground">Experts</span>
                     </div>
-                  ))}
+                    <div className="text-xl font-bold text-foreground mb-0.5">
+                      {isLoadingStats ? '—' : expertStats.avg ? `${expertStats.avg}/10` : '—'}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {isLoadingStats ? 'Loading…' : `${expertStats.count} reviews`}
+                    </div>
+                  </div>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-      </div>
+              </div>
+            </div>}
 
-      {/* Map */}
-      {restaurantData.latitude && restaurantData.longitude && (
-        <div className="px-4 py-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Location</h3>
-            <Button variant="ghost" size="sm" onClick={handleDirections}>
-              Open in Maps
-            </Button>
-          </div>
-          <Card className="overflow-hidden">
-            <div ref={mapRef} className="h-56">
-              {showMap && (
-                <RestaurantLocationMap 
-                  latitude={restaurantData.latitude} 
-                  longitude={restaurantData.longitude} 
-                  name={restaurantData.name} 
-                  address={restaurantData.address} 
-                />
-              )}
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {/* Sticky Action Bar */}
-      {showStickyBar && (
-        <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t p-4 z-50">
-          <div className="flex gap-3 max-w-md mx-auto">
-            {getPhoneNumber() && (
-              <Button onClick={handleCall} className="flex-1 rounded-full">
-                <Phone className="h-4 w-4 mr-2" />
+          {/* Primary Action Buttons */}
+          <div className="grid grid-cols-3 gap-3 px-4">
+            {getPhoneNumber() && <Button onClick={handleCall} className="flex items-center gap-2" variant="default">
+                <Phone className="h-4 w-4" />
                 Call
-              </Button>
-            )}
-            <Button onClick={handleDirections} className="flex-1 rounded-full">
-              <Navigation className="h-4 w-4 mr-2" />
+              </Button>}
+            <Button onClick={handleDirections} className="flex items-center gap-2" variant="default">
+              <Navigation className="h-4 w-4" />
               Directions
             </Button>
-            {restaurantData.website && (
-              <Button onClick={handleWebsite} className="flex-1 rounded-full">
-                <Globe className="h-4 w-4 mr-2" />
+            {restaurantData.website && <Button onClick={handleWebsite} className="flex items-center gap-2" variant="default">
+                <Globe className="h-4 w-4" />
                 Website
+              </Button>}
+          </div>
+
+          {/* Secondary Action Buttons */}
+          {canAddToWishlist && <div className="grid grid-cols-2 gap-3 px-4">
+              <Button onClick={handleAddToWishlist} variant="outline" className="flex items-center gap-2" disabled={isAdding}>
+                <Plus className="h-4 w-4" />
+                {isAdding ? 'Adding...' : 'Add to List'}
               </Button>
-            )}
-            <Button className="flex-1 rounded-full bg-primary text-primary-foreground">
-              Reserve
-            </Button>
+              <Button variant="outline" onClick={handleAddToWishlist} className="flex items-center gap-2" disabled={isAdding}>
+                <Heart className="h-4 w-4" />
+                {isAdding ? 'Adding...' : 'Wishlist'}
+              </Button>
+            </div>}
+
+          {/* Community Rating */}
+          {deferCommunity && <CommunityRating stats={communityStats} isLoading={isLoadingReviews} />}
+
+          <div className="h-px bg-border mx-4" />
+
+          {/* Unified Photo Gallery - combines community and friend photos */}
+          {deferPhotos && <UnifiedPhotoGallery stats={communityStats} isLoading={isLoadingReviews} onPhotoClick={() => {}} friendPhotos={restaurantData.isSharedRestaurant && restaurantData.photos && restaurantData.photos.length > 0 ? restaurantData.photos.map((url, index) => ({
+            url,
+            caption: Array.isArray(restaurantData.photoCaptions) ? restaurantData.photoCaptions[index] : '',
+            dishName: Array.isArray(restaurantData.photo_captions) ? restaurantData.photo_captions[index] : ''
+          })) : undefined} friendName={restaurantData.isSharedRestaurant ? restaurantData.sharedBy?.name : undefined} friendId={restaurantData.isSharedRestaurant ? restaurantData.sharedBy?.id : undefined} restaurantId={restaurantData.id} restaurantPlaceId={restaurantData.place_id} restaurantName={restaurantData.name} />}
+
+          {/* Details */}
+          <div className="space-y-0">
+            {/* Address */}
+            <div className="p-4 border-b border-border/20">
+              <div className="flex items-start gap-3">
+                <MapPin className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium">Address</p>
+                  <p className="text-sm text-muted-foreground">{restaurantData.address}</p>
+                  {restaurantData.city && <p className="text-sm text-muted-foreground">{restaurantData.city}</p>}
+                </div>
+              </div>
+            </div>
+
+            {/* Opening Hours */}
+            {getOpeningHours() && <div className="border-b border-border/20">
+                <OpeningHoursDisplay hours={getOpeningHours()!} className="px-4" />
+              </div>}
+
+            {/* Notes */}
+            {restaurantData.notes && <div className="p-4 border-b border-border/20">
+                <h3 className="font-medium mb-3">Notes</h3>
+                <p className="text-sm text-muted-foreground whitespace-pre-line">
+                  {restaurantData.notes}
+                </p>
+              </div>}
+
+            {/* Map */}
+            {restaurantData.latitude && restaurantData.longitude && <div className="p-4">
+                <h3 className="font-medium mb-3">Location</h3>
+                <div ref={mapRef} className="h-48 rounded-md overflow-hidden">
+                  {showMap && <RestaurantLocationMap latitude={restaurantData.latitude} longitude={restaurantData.longitude} name={restaurantData.name} address={restaurantData.address} />}
+                </div>
+              </div>}
+          </div>
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Photo Gallery Modal */}
-      <PhotoGallery 
-        photos={heroCandidates.map(p => resolveImageUrl(p))} 
-        photoCaptions={restaurantData.photoCaptions || restaurantData.photo_captions} 
-        isOpen={isPhotoGalleryOpen} 
-        onClose={() => setIsPhotoGalleryOpen(false)} 
-        restaurantName={restaurantData.name} 
-        isMobile={actualIsMobile} 
-      />
-    </div>
-  );
+      {/* Photo Gallery */}
+      <PhotoGallery photos={photos.map(p => resolveImageUrl(p))} photoCaptions={restaurantData.photoCaptions || restaurantData.photo_captions} isOpen={isPhotoGalleryOpen} onClose={() => setIsPhotoGalleryOpen(false)} restaurantName={restaurantData.name} isMobile={actualIsMobile} />
+
+    </>;
 }
