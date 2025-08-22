@@ -108,7 +108,7 @@ export function MobileProfilePage() {
   }
   return <div className="min-h-screen bg-background">
       {/* Profile Header */}
-      <div className="px-4 pt-8 pb-6">
+      <div className="px-2 pt-8 pb-6">
         <div className="flex flex-col items-center space-y-6">
           {/* Profile Photo */}
           <div className="relative">
@@ -166,7 +166,7 @@ export function MobileProfilePage() {
       </div>
 
       {/* Content */}
-      <div className="px-4 space-y-3">
+      <div className="px-2 space-y-3">
         {/* Navigation List */}
         <div className="space-y-1">
           {/* Rated Restaurants */}
@@ -243,7 +243,7 @@ export function MobileProfilePage() {
       </div>
 
       {/* Recent Activity */}
-      <div className="px-4 space-y-4 mt-8">
+      <div className="px-2 space-y-4 mt-8">
         <h3 className="text-lg font-semibold flex items-center gap-2">
           <Activity className="h-5 w-5 stroke-[1.5]" />
           Recent Activity
