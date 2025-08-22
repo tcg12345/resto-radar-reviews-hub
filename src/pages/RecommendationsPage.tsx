@@ -478,7 +478,7 @@ export function RecommendationsPage({ restaurants, onAddRestaurant }: Recommenda
         <span className="text-sm font-medium">Map</span>
       </Button>
 
-      <div className="p-4 lg:p-6">
+      <div className="p-2 lg:p-4">
         <div className="mb-6">
           <h2 className="text-2xl font-bold mb-2">Recommended For You</h2>
           <p className="text-muted-foreground text-sm">
