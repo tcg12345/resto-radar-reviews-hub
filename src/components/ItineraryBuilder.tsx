@@ -1433,16 +1433,22 @@ export function ItineraryBuilder({
             {/* Mobile: Collapsible Dropdown */}
             <div className="lg:hidden">
               <Collapsible>
-                <CollapsibleTrigger className="w-full px-3 py-2 flex items-center justify-between bg-card hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-primary" />
-                    <span className="font-medium text-sm truncate">{currentItinerary?.title}</span>
-                    {currentItinerary?.isMultiCity && <Badge variant="secondary" className="text-xs px-1.5 py-0.5">Multi-city</Badge>}
+                <CollapsibleTrigger className="w-full px-5 py-4 flex items-center justify-between bg-background hover:bg-muted/30 transition-all duration-200 rounded-xl border border-border/20 shadow-sm">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Calendar className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-base text-foreground truncate">{currentItinerary?.title}</span>
+                        {currentItinerary?.isMultiCity && <Badge variant="secondary" className="text-xs px-2 py-1 rounded-full">Multi-city</Badge>}
+                      </div>
+                    </div>
                   </div>
-                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                  <ChevronDown className="w-5 h-5 text-muted-foreground transition-transform duration-200" />
                 </CollapsibleTrigger>
-                <CollapsibleContent className="bg-muted/20 supports-[backdrop-filter]:bg-muted/30 backdrop-blur-sm">
-                  <div className="p-6 space-y-6 bg-[rgb(18,18,22)] border border-gray-200 dark:border-slate-700 rounded-xl shadow-sm">
+                <CollapsibleContent className="animate-accordion-down">
+                  <div className="mt-2 p-6 space-y-6 bg-muted/20 border border-border/20 rounded-xl shadow-sm">
                     
                     {/* Travel Period Section */}
                     <div className="space-y-3">
@@ -1726,24 +1732,26 @@ export function ItineraryBuilder({
             </div>
 
           {/* Trip Extension Section - Show for all trips */}
-          {currentItinerary && <Collapsible open={isExtensionOpen} onOpenChange={setIsExtensionOpen}>
-              <Card ref={extensionRef} className="lg:rounded-lg lg:border lg:shadow-sm lg:mb-6 rounded-none border-0 border-t border-b shadow-none mb-4 relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen lg:left-auto lg:right-auto lg:ml-0 lg:mr-0 lg:w-auto">
+          {currentItinerary && <div className="mb-6">
+              <Collapsible open={isExtensionOpen} onOpenChange={setIsExtensionOpen}>
                 <CollapsibleTrigger asChild>
-                  <CardHeader className="cursor-pointer hover:bg-accent/50 active:scale-[0.98] transition-all duration-200 p-4 lg:px-6 lg:py-4 rounded-xl lg:rounded-lg border border-border/20 lg:border-0 bg-card/50 lg:bg-transparent shadow-sm lg:shadow-none">
-                    <CardTitle className="flex items-center justify-between text-base lg:text-lg">
-                      <div className="flex items-center gap-2">
-                        <Plus className="w-4 h-4 lg:w-5 lg:h-5 text-primary" />
-                        <span>Extend Your Trip</span>
+                  <div className="cursor-pointer hover:bg-muted/30 active:scale-[0.99] transition-all duration-200 p-5 rounded-xl border border-border/20 bg-background shadow-sm group">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <Plus className="w-4 h-4 text-primary" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-base text-foreground">Extend Your Trip</h3>
+                          <p className="text-sm text-muted-foreground mt-0.5">Add more days or cities to your itinerary</p>
+                        </div>
                       </div>
-                      <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isExtensionOpen ? 'rotate-180' : ''}`} />
-                    </CardTitle>
-                    <CardDescription className="text-sm text-muted-foreground mt-1">
-                      Add more days or cities to your itinerary
-                    </CardDescription>
-                  </CardHeader>
+                      <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isExtensionOpen ? 'rotate-180' : ''}`} />
+                    </div>
+                  </div>
                 </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <CardContent className="p-5 lg:p-6 bg-background">
+                <CollapsibleContent className="animate-accordion-down">
+                  <div className="mt-2 p-6 bg-muted/20 border border-border/20 rounded-xl shadow-sm">
                     
                     {/* Trip Planning Section */}
                     {(useLengthOfStay || wasCreatedWithLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) || !useLengthOfStay && !wasCreatedWithLengthOfStay && !Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) && dateRange.start && dateRange.end) && <div className="space-y-6">
@@ -2251,10 +2259,10 @@ export function ItineraryBuilder({
                       Apply Changes
                     </Button>
                   </div>}
-                  </CardContent>
+                  </div>
                 </CollapsibleContent>
-              </Card>
-            </Collapsible>}
+              </Collapsible>
+            </div>}
 
           {/* Hotels and Flights Section - Moved to top */}
           <HotelFlightSection locations={currentItinerary?.locations || []} isMultiCity={currentItinerary?.isMultiCity || false} hotels={hotels} flights={flights} onAddHotel={handleAddHotel} onAddFlight={handleAddFlight} onRemoveHotel={handleRemoveHotel} onRemoveFlight={handleRemoveFlight} />
