@@ -1442,134 +1442,101 @@ export function ItineraryBuilder({
                   <ChevronDown className="w-4 h-4 text-muted-foreground" />
                 </CollapsibleTrigger>
                 <CollapsibleContent className="bg-muted/20 supports-[backdrop-filter]:bg-muted/30 backdrop-blur-sm">
-                  <div className="p-6 space-y-8 bg-gradient-to-br from-slate-900/95 via-slate-800/90 to-slate-900/95 backdrop-blur-xl border border-amber-500/20 rounded-2xl shadow-2xl shadow-amber-500/10">
+                  <div className="p-6 space-y-6 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-sm">
                     
-                    {/* Luxury Divider */}
-                    <div className="w-full h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent"></div>
-                    
-                    {/* Travel Info Cards */}
-                    <div className="space-y-6">
-                      
-                      {/* Premium Date Card */}
-                      <div className="group relative rounded-2xl bg-gradient-to-br from-slate-800/60 via-slate-700/40 to-slate-800/60 backdrop-blur-lg border border-amber-400/20 p-6 text-foreground shadow-xl hover:shadow-2xl hover:shadow-amber-500/20 ring-1 ring-amber-400/10 transition-all duration-500 hover:border-amber-400/40">
-                        
-                        {/* Subtle glow effect */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-amber-400/5 via-transparent to-amber-400/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                        
-                        <div className="relative z-10">
-                          <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-3">
-                              <div className="p-2 bg-gradient-to-br from-amber-400/20 to-amber-600/20 rounded-xl backdrop-blur-sm border border-amber-400/30 shadow-lg">
-                                <Calendar className="w-5 h-5 text-amber-300 stroke-1" />
-                              </div>
-                              <h3 className="font-bold text-lg text-amber-50 tracking-wide">Travel Period</h3>
-                            </div>
-                            {!(wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && <div className="shrink-0">
-                                <DateRangePicker startDate={dateRange.start} endDate={dateRange.end} onDateRangeChange={handleDateRangeChange} />
-                              </div>}
+                    {/* Travel Period Section */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="p-1.5 border border-gray-200 dark:border-slate-600 rounded-lg">
+                            <Calendar className="w-4 h-4 text-gray-600 dark:text-gray-300" />
                           </div>
-                          
-                          <div className="space-y-3">
-                            {dateRange.start && dateRange.end ? <>
-                                {wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) ? <div className="text-3xl font-bold text-amber-100 tracking-tight">{tripDays} {tripDays === 1 ? 'Night' : 'Nights'}</div> : <>
-                                    <div className="text-2xl font-bold text-amber-100 tracking-tight">
-                                      {format(dateRange.start, 'MMM do')} - {format(dateRange.end, 'MMM do')}
-                                    </div>
-                                    <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-amber-400/20 to-amber-500/20 rounded-full text-sm font-semibold text-amber-200 backdrop-blur-sm border border-amber-400/30 shadow-lg">
-                                      <div className="w-2 h-2 bg-amber-400 rounded-full mr-2 animate-pulse"></div>
-                                      {tripDays} {tripDays === 1 ? 'day' : 'days'} total
-                                    </div>
-                                  </>}
-                              </> : <div className="text-amber-300/70 italic font-medium">Tap to select your travel dates</div>}
-                          </div>
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Travel Period</h3>
                         </div>
+                        {!(wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])) && <div className="shrink-0">
+                            <DateRangePicker startDate={dateRange.start} endDate={dateRange.end} onDateRangeChange={handleDateRangeChange} />
+                          </div>}
+                      </div>
+                      
+                      <div className="space-y-2">
+                        {dateRange.start && dateRange.end ? <>
+                            {wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id]) ? 
+                              <div className="text-2xl font-bold text-gray-900 dark:text-white">{tripDays} {tripDays === 1 ? 'Night' : 'Nights'}</div> : 
+                              <>
+                                <div className="text-xl font-semibold text-gray-900 dark:text-white">
+                                  {format(dateRange.start, 'MMM do')} – {format(dateRange.end, 'MMM do')}
+                                </div>
+                                <div className="inline-flex items-center px-3 py-1 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-full text-sm font-medium text-blue-700 dark:text-blue-300">
+                                  {tripDays} {tripDays === 1 ? 'day' : 'days'} total
+                                </div>
+                              </>
+                            }
+                          </> : 
+                          <div className="text-gray-500 dark:text-gray-400">Tap to select your travel dates</div>
+                        }
                       </div>
                     </div>
                     
+                    {/* Divider */}
+                    <div className="h-px bg-gray-200 dark:bg-slate-700"></div>
+                    
                     {/* Destinations Section */}
-                    {currentItinerary?.locations && currentItinerary.locations.length > 0 && <div className="space-y-4">
-                        {/* Elegant Divider */}
-                        <div className="w-full h-px bg-gradient-to-r from-transparent via-amber-400/20 to-transparent"></div>
-                        
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="p-1.5 bg-gradient-to-br from-emerald-400/20 to-emerald-600/20 rounded-lg backdrop-blur-sm border border-emerald-400/30">
-                            <MapPin className="w-4 h-4 text-emerald-300 stroke-1" />
-                          </div>
-                          <span className="text-base font-bold text-emerald-100 tracking-wide">Destinations</span>
+                    {currentItinerary?.locations && currentItinerary.locations.length > 0 && (
+                      <div className="space-y-3">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Destinations</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {currentItinerary.locations.map((location) => (
+                            <div 
+                              key={location.id} 
+                              className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300"
+                            >
+                              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                              {location.name}
+                              {location.iataCode && (
+                                <span className="text-gray-500 dark:text-gray-400">({location.iataCode})</span>
+                              )}
+                            </div>
+                          ))}
                         </div>
-                        
-                        <div className="bg-gradient-to-br from-slate-800/40 to-slate-700/30 backdrop-blur-lg rounded-xl p-5 border border-emerald-400/20 shadow-xl">
-                          <div className="flex flex-wrap gap-3">
-                            {currentItinerary.locations.map((location, index) => <div key={location.id} className="group relative overflow-hidden">
-                                <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-400/10 to-emerald-500/10 border border-emerald-400/30 rounded-full hover:border-emerald-400/50 transition-all duration-300 backdrop-blur-sm shadow-lg hover:shadow-emerald-400/20">
-                                  <div className="w-2 h-2 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full shadow-lg shadow-emerald-400/50"></div>
-                                  <span className="font-semibold text-emerald-100 text-sm tracking-wide">
-                                    {location.name}
-                                    {location.iataCode && <span className="text-emerald-300/70 ml-1.5 font-medium">({location.iataCode})</span>}
-                                  </span>
-                                </div>
-                                {/* Subtle hover glow */}
-                                <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/5 to-emerald-500/5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                              </div>)}
-                          </div>
-                        </div>
-                      </div>}
-                    
-                    {/* Elegant Divider */}
-                    <div className="w-full h-px bg-gradient-to-r from-transparent via-amber-400/20 to-transparent"></div>
-                    
-                    {/* Premium Action Buttons */}
-                    <div className="space-y-5">
-                      <div className="flex items-center gap-3">
-                        <div className="p-1.5 bg-gradient-to-br from-violet-400/20 to-violet-600/20 rounded-lg backdrop-blur-sm border border-violet-400/30">
-                          <div className="w-3 h-3 bg-gradient-to-r from-violet-400 to-violet-500 rounded-full shadow-lg shadow-violet-400/50"></div>
-                        </div>
-                        <span className="text-base font-bold text-violet-100 tracking-wide">Quick Actions</span>
                       </div>
+                    )}
+                    
+                    {/* Divider */}
+                    <div className="h-px bg-gray-200 dark:bg-slate-700"></div>
+                    
+                    {/* Quick Actions Section */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Quick Actions</h3>
                       
-                      <div className="grid grid-cols-2 gap-4">
-                        <Button 
-                          variant="outline" 
-                          size="lg" 
-                          onClick={() => setIsSaveDialogOpen(true)} 
-                          className="group relative flex items-center justify-center gap-3 h-14 bg-gradient-to-r from-amber-400/10 to-amber-500/10 hover:from-amber-400/20 hover:to-amber-500/20 border-amber-400/30 hover:border-amber-400/50 rounded-xl font-semibold text-amber-100 backdrop-blur-sm transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-amber-400/20 overflow-hidden"
+                      <div className="grid grid-cols-2 gap-3">
+                        <button 
+                          onClick={() => setIsSaveDialogOpen(true)}
+                          className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200"
                         >
-                          <div className="absolute inset-0 bg-gradient-to-r from-amber-400/5 to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                          <Save className="w-5 h-5 stroke-1 relative z-10" />
-                          <span className="relative z-10 tracking-wide">{currentItinerary?.id ? 'Update' : 'Save'}</span>
-                        </Button>
+                          <Save className="w-4 h-4" />
+                          {currentItinerary?.id ? 'Update' : 'Save'}
+                        </button>
                         
-                        <Button 
-                          variant="outline" 
-                          size="lg" 
-                          onClick={() => setIsShareDialogOpen(true)} 
-                          className="group relative flex items-center justify-center gap-3 h-14 bg-gradient-to-r from-blue-400/10 to-blue-500/10 hover:from-blue-400/20 hover:to-blue-500/20 border-blue-400/30 hover:border-blue-400/50 rounded-xl font-semibold text-blue-100 backdrop-blur-sm transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-blue-400/20 overflow-hidden"
+                        <button 
+                          onClick={() => setIsShareDialogOpen(true)}
+                          className="flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors duration-200"
                         >
-                          <div className="absolute inset-0 bg-gradient-to-r from-blue-400/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                          <Share2 className="w-5 h-5 stroke-1 relative z-10" />
-                          <span className="relative z-10 tracking-wide">Share</span>
-                        </Button>
+                          <Share2 className="w-4 h-4" />
+                          Share
+                        </button>
                         
-                        <Button 
-                          variant="outline" 
-                          size="lg" 
-                          onClick={() => setIsExportDialogOpen(true)} 
-                          className="group relative flex items-center justify-center gap-3 h-14 bg-gradient-to-r from-emerald-400/10 to-emerald-500/10 hover:from-emerald-400/20 hover:to-emerald-500/20 border-emerald-400/30 hover:border-emerald-400/50 rounded-xl font-semibold text-emerald-100 backdrop-blur-sm transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-emerald-400/20 overflow-hidden"
+                        <button 
+                          onClick={() => setIsExportDialogOpen(true)}
+                          className="flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors duration-200"
                         >
-                          <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/5 to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                          <Download className="w-5 h-5 stroke-1 relative z-10" />
-                          <span className="relative z-10 tracking-wide">Export</span>
-                        </Button>
+                          <Download className="w-4 h-4" />
+                          Export
+                        </button>
                         
-                        <Button 
-                          variant="outline" 
-                          size="lg" 
+                        <button 
                           onClick={() => {
                             localStorage.removeItem('currentItineraryBuilder');
-                            setDateRange({
-                              start: null,
-                              end: null
-                            });
+                            setDateRange({ start: null, end: null });
                             setCurrentItinerary(null);
                             setEvents([]);
                             setLocations([]);
@@ -1581,13 +1548,12 @@ export function ItineraryBuilder({
                             setLocationLengthOfStay({});
                             setLocationNights({});
                             setWasCreatedWithLengthOfStay(false);
-                          }} 
-                          className="group relative flex items-center justify-center gap-3 h-14 bg-gradient-to-r from-violet-400/10 to-violet-500/10 hover:from-violet-400/20 hover:to-violet-500/20 border-violet-400/30 hover:border-violet-400/50 rounded-xl font-semibold text-violet-100 backdrop-blur-sm transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-violet-400/20 overflow-hidden"
+                          }}
+                          className="flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors duration-200"
                         >
-                          <div className="absolute inset-0 bg-gradient-to-r from-violet-400/5 to-violet-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                          <Plus className="w-5 h-5 stroke-1 relative z-10" />
-                          <span className="relative z-10 tracking-wide">New</span>
-                        </Button>
+                          <Plus className="w-4 h-4" />
+                          New
+                        </button>
                       </div>
                     </div>
                   </div>
