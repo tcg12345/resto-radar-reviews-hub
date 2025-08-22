@@ -1179,7 +1179,7 @@ export function FriendsActivityPage() {
                   {/* Mobile Layout */}
                   <div className="md:hidden">
                     {/* Content Block */}
-                    <div className="p-4 space-y-3">
+                    <div className="p-4 space-y-3" style={{ backgroundColor: 'rgb(10,23,43)' }}>
                       {/* Header - Friend Info + Status Badge */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
