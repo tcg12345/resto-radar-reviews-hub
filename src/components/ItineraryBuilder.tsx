@@ -1431,7 +1431,7 @@ export function ItineraryBuilder({
           {/* Header with date range and actions */}
           <div className="lg:rounded-lg lg:border lg:shadow-sm rounded-none border-0 border-t border-b shadow-none relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen lg:left-auto lg:right-auto lg:ml-0 lg:mr-0 lg:w-auto">
             {/* Mobile: Collapsible Dropdown */}
-            <div className="lg:hidden">
+            <div className="lg:hidden relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen px-4">
               <Collapsible>
                 <CollapsibleTrigger className="w-full px-5 py-4 flex items-center justify-between bg-background hover:bg-muted/30 transition-all duration-200 rounded-xl border border-border/20 shadow-sm">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
