@@ -440,248 +440,339 @@ export function UnifiedRestaurantDetails({
       </>;
   }
   return <>
-      <div className="min-h-screen bg-background">
-      {/* Header */}
-      {showBackButton && <div className="sticky top-0 z-50 bg-background backdrop-blur border-b pt-safe-area-top">
-          <div className="flex items-center justify-between p-4">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={handleBack} className="h-10 w-10 p-0 touch-manipulation" aria-label="Go back">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <h1 className="text-lg font-semibold truncate">{restaurantData.name}</h1>
+      <div className="min-h-screen bg-background text-foreground">
+        {/* Edge-to-edge Hero Image with Overlay */}
+        {hasHeroPhoto && (
+          <div className="relative w-full h-80 overflow-hidden">
+            <img
+              src={resolveImageUrl(heroSrc)}
+              alt={restaurantData.name}
+              className="w-full h-full object-cover"
+              onLoad={() => setHasLoadedHeroImage(true)}
+            />
+            {/* Dark gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-transparent" />
+            
+            {/* Header controls overlaid on image */}
+            <div className="absolute top-0 left-0 right-0 z-50 pt-safe-area-top">
+              <div className="flex items-center justify-between p-4">
+                {showBackButton && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={handleBack} 
+                    className="h-10 w-10 p-0 bg-black/20 hover:bg-black/40 text-white border-0 backdrop-blur-sm"
+                    aria-label="Go back"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleShare}
+                  className="h-10 w-10 p-0 bg-black/20 hover:bg-black/40 text-white border-0 backdrop-blur-sm"
+                  aria-label="Share"
+                >
+                  <Share2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={handleShare} className="h-8 w-8 p-0">
-              <Share2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>}
 
-      <div className={`${isMobile ? "pb-safe" : ""}`}>
-        {/* Photos - Show either restaurant photos or community photos */}
-        {deferPhotos && hasHeroPhoto && <div className={`${isMobile ? 'aspect-video' : 'aspect-video md:aspect-auto md:h-auto md:max-h-[420px] md:max-w-3xl md:mx-auto'} w-full bg-muted relative overflow-hidden cursor-pointer group`} onClick={() => navigate(`/restaurant/${restaurantData.place_id || restaurantData.id}/community-photos?name=${encodeURIComponent(restaurantData.name)}`)}>
-            {/* Try to show community photos first, then restaurant photos, then fallback */}
-            {/* Mobile: single hero image */}
-            <div className="md:hidden w-full h-full">
-              {heroSrc ? <img src={resolveImageUrl(heroSrc)} alt={restaurantData.name} className="w-full h-full object-cover transition-transform group-hover:scale-105" loading="lazy" decoding="async" onLoad={() => setHasLoadedHeroImage(true)} onError={() => setHeroIndex(i => i + 1)} /> : null}
-            </div>
-
-            {/* Desktop: grid collage when multiple photos available, otherwise single image (contain) */}
-            <div className="hidden md:block w-full h-full">
-              {(() => {
-              const header: string[] = (communityStats?.recentPhotos?.length ? communityStats.recentPhotos.flatMap((rp: any) => rp?.photos || []) : photos).slice(0, 6);
-              if (header.length > 1) {
-                return <div className="grid grid-cols-3 gap-2 auto-rows-[140px]">
-                      {header.map((src, i) => <img key={i} src={resolveImageUrl(src)} alt={`${restaurantData.name} photo ${i + 1}`} className="w-full h-full object-cover rounded-md" onLoad={() => setHasLoadedHeroImage(true)} onError={e => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                  }} />)}
-                    </div>;
-              }
-              // Single image fallback on desktop
-              if (communityStats?.recentPhotos?.[0]?.photos?.[0]) {
-                return <img src={resolveImageUrl(communityStats.recentPhotos[0].photos[0])} alt={restaurantData.name} className="w-full h-full object-cover transition-transform group-hover:scale-105 md:object-contain md:h-auto md:w-auto md:max-h-[420px] md:mx-auto" onLoad={() => setHasLoadedHeroImage(true)} onError={e => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                }} />;
-              }
-              if (photos.length > 0) {
-                return <img src={resolveImageUrl(photos[0])} alt={restaurantData.name} className="w-full h-full object-cover transition-transform group-hover:scale-105 md:object-contain md:h-auto md:w-auto md:max-h-[420px] md:mx-auto" onError={e => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                }} />;
-              }
-              return null;
-            })()}
-            </div>
-            <div className="absolute top-3 right-3 bg-black/70 text-white px-2 py-1 rounded-md text-sm">
-              View more photos
-            </div>
-            {communityStats?.recentPhotos && communityStats.recentPhotos.length > 0 && photos.length === 0 && <div className="absolute bottom-3 left-3 bg-black/70 text-white px-2 py-1 rounded-md text-sm flex items-center gap-2">
-                <User className="h-3 w-3" />
-                Shared by {communityStats.recentPhotos[0].username}
-              </div>}
-          </div>}
-
-        {/* Main Content */}
-        <div className="space-y-6">{/* Remove p-4 padding to make content stretch edge-to-edge */}
-          {/* Shared by info */}
-          {restaurantData.isSharedRestaurant && restaurantData.sharedBy && <div className="border-primary/20 bg-primary/5 p-4">
-              <div className="flex items-center gap-3">
-                <User className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="text-sm font-medium">Shared by {restaurantData.sharedBy.name}</p>
-                  {restaurantData.sharedBy.username && <p className="text-xs text-muted-foreground">@{restaurantData.sharedBy.username}</p>}
-                  {restaurantData.isWishlist && <Badge variant="outline" className="mt-1">
-                      <Heart className="h-3 w-3 mr-1" />
-                      On their wishlist
-                    </Badge>}
+            {/* Restaurant info overlaid on image */}
+            <div className="absolute bottom-0 left-0 right-0 p-6">
+              <div className="bg-black/40 backdrop-blur-sm rounded-2xl p-5 text-white">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <h1 className="text-2xl font-bold leading-tight mb-2">{restaurantData.name}</h1>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <span className="text-sm opacity-90">{restaurantData.cuisine}</span>
+                      {(restaurantData.priceRange || restaurantData.price_range) && (
+                        <span className="text-sm opacity-90">
+                          {getPriceDisplay(restaurantData.priceRange || restaurantData.price_range)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {(restaurantData.michelinStars || restaurantData.michelin_stars) && (
+                    <div className="ml-3">
+                      <MichelinStars stars={restaurantData.michelinStars || restaurantData.michelin_stars || 0} />
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>}
+            </div>
+          </div>
+        )}
 
-          {/* Restaurant Header */}
-          <div className="space-y-3 px-4">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h1 className="text-2xl font-bold text-foreground mb-2 my-[8px]">{restaurantData.name}</h1>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Badge variant="outline" className="text-sm flex items-center gap-1">
-                    {restaurantData.cuisine}
-                    {/* Debug: Always show price range section */}
-                    <span className="text-muted-foreground">•</span>
-                    <span>
-                      {getPriceDisplay(restaurantData.priceRange || restaurantData.price_range) || '$$'}
+        {/* No hero image fallback header */}
+        {!hasHeroPhoto && showBackButton && (
+          <div className="sticky top-0 z-50 bg-background backdrop-blur border-b pt-safe-area-top">
+            <div className="flex items-center justify-between p-4">
+              <div className="flex items-center gap-4">
+                <Button variant="ghost" size="sm" onClick={handleBack} className="h-10 w-10 p-0 touch-manipulation" aria-label="Go back">
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <div>
+                  <h1 className="text-lg font-semibold">{restaurantData.name}</h1>
+                  <p className="text-sm text-muted-foreground">{restaurantData.cuisine}</p>
+                </div>
+              </div>
+              <Button variant="ghost" size="sm" onClick={handleShare} className="h-10 w-10 p-0" aria-label="Share">
+                <Share2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        <div className="px-4 py-6 space-y-8">
+          {/* Restaurant info for no hero image */}
+          {!hasHeroPhoto && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <h1 className="text-2xl font-bold">{restaurantData.name}</h1>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className="text-muted-foreground">{restaurantData.cuisine}</span>
+                  {(restaurantData.priceRange || restaurantData.price_range) && (
+                    <span className="text-muted-foreground">
+                      {getPriceDisplay(restaurantData.priceRange || restaurantData.price_range)}
                     </span>
-                    {isEnhancingWithAI && <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />}
-                  </Badge>
-                   {(restaurantData.michelinStars > 0 || restaurantData.michelin_stars > 0 || isEnhancingWithAI) && <Badge variant="outline" className="text-sm flex items-center gap-1">
-                       <MichelinStars stars={restaurantData.michelinStars || restaurantData.michelin_stars || 0} readonly={true} size="sm" />
-                       {isEnhancingWithAI && <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />}
-                     </Badge>}
+                  )}
+                  {(restaurantData.michelinStars || restaurantData.michelin_stars) && (
+                    <MichelinStars stars={restaurantData.michelinStars || restaurantData.michelin_stars || 0} />
+                  )}
                 </div>
               </div>
-              {restaurantData.rating && restaurantData.isSharedRestaurant && restaurantData.sharedBy && <div className="flex-shrink-0 text-center">
-                  <div className="w-16 h-16 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center mb-1 mx-auto">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-primary">{restaurantData.rating.toFixed(1)}</div>
-                      <Star className="h-3 w-3 fill-primary text-primary mx-auto" />
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground font-medium">
-                    {restaurantData.sharedBy.name}'s Rating
-                  </p>
-                </div>}
+            </div>
+          )}
+
+          {/* Premium Action Buttons */}
+          <div className="space-y-4">
+            {/* Primary Actions */}
+            <div className="grid grid-cols-3 gap-3">
+              {getPhoneNumber() && (
+                <Button
+                  onClick={handleCall}
+                  className="h-12 rounded-full bg-accent hover:bg-accent/90 text-accent-foreground font-medium shadow-lg"
+                >
+                  <Phone className="h-4 w-4 mr-2" />
+                  Call
+                </Button>
+              )}
+              <Button
+                onClick={handleDirections}
+                className="h-12 rounded-full bg-accent hover:bg-accent/90 text-accent-foreground font-medium shadow-lg"
+              >
+                <Navigation className="h-4 w-4 mr-2" />
+                Directions
+              </Button>
+              {restaurantData.website && (
+                <Button
+                  onClick={handleWebsite}
+                  className="h-12 rounded-full bg-accent hover:bg-accent/90 text-accent-foreground font-medium shadow-lg"
+                >
+                  <Globe className="h-4 w-4 mr-2" />
+                  Website
+                </Button>
+              )}
             </div>
 
-            {/* Status and Hours */}
-            {restaurantData.isOpen !== undefined && <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className={`text-sm font-medium ${restaurantData.isOpen ? 'text-green-600' : 'text-red-600'}`}>
-                  {restaurantData.isOpen ? 'Open now' : 'Closed'}
-                </span>
-              </div>}
+            {/* Secondary Actions */}
+            <div className="flex gap-3 justify-center">
+              {canAddToWishlist && user && (
+                <Button
+                  onClick={handleAddToWishlist}
+                  disabled={isAdding}
+                  variant="outline"
+                  className="h-10 rounded-full px-6 border-accent text-accent hover:bg-accent/10"
+                >
+                  <Heart className="h-4 w-4 mr-2" />
+                  {isAdding ? 'Adding...' : 'Add to List'}
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                className="h-10 rounded-full px-6 border-accent text-accent hover:bg-accent/10"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Wishlist
+              </Button>
+            </div>
           </div>
 
-          
-
-          {/* Ratings Summary: Friends and Experts */}
-          {deferCommunity && restaurantData.place_id && <div className="py-3 px-4 border-b border-border/50">
-              <div className="grid grid-cols-2 gap-3">
-                {/* Friends Rating */}
-                <div onClick={() => navigate(`/restaurant/${restaurantData.place_id}/friends-ratings?name=${encodeURIComponent(restaurantData.name)}`)} className="cursor-pointer group">
-                  <div className="flex flex-col items-center text-center py-2 transition-all duration-200 group-hover:scale-105">
-                    <div className="flex items-center gap-1.5 mb-1.5">
-                      <Users className="h-4 w-4 text-blue-500" />
-                      <span className="text-sm font-medium text-muted-foreground">Friends</span>
-                    </div>
-                    <div className="text-xl font-bold text-foreground mb-0.5">
-                      {isLoadingStats ? '—' : friendStats.avg ? `${friendStats.avg}/10` : '—'}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {isLoadingStats ? 'Loading…' : `${friendStats.count} reviews`}
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Expert Rating */}
-                <div onClick={() => navigate(`/restaurant/${restaurantData.place_id}/expert-ratings?name=${encodeURIComponent(restaurantData.name)}`)} className="cursor-pointer group">
-                  <div className="flex flex-col items-center text-center py-2 transition-all duration-200 group-hover:scale-105">
-                    <div className="flex items-center gap-1.5 mb-1.5">
-                      <Award className="h-4 w-4 text-amber-500" />
-                      <span className="text-sm font-medium text-muted-foreground">Experts</span>
-                    </div>
-                    <div className="text-xl font-bold text-foreground mb-0.5">
-                      {isLoadingStats ? '—' : expertStats.avg ? `${expertStats.avg}/10` : '—'}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {isLoadingStats ? 'Loading…' : `${expertStats.count} reviews`}
-                    </div>
-                  </div>
-                </div>
+          {/* Community Rating Section */}
+          {deferCommunity && (communityStats || friendStats || expertStats) && (
+            <div className="space-y-6">
+              <div className="text-center">
+                <h2 className="text-xl font-bold mb-1">COMMUNITY RATING</h2>
+                <p className="text-sm text-muted-foreground">Based on friend and expert reviews</p>
               </div>
-            </div>}
 
-          {/* Primary Action Buttons */}
-          <div className="grid grid-cols-3 gap-3 px-4">
-            {getPhoneNumber() && <Button onClick={handleCall} className="flex items-center gap-2" variant="default">
-                <Phone className="h-4 w-4" />
-                Call
-              </Button>}
-            <Button onClick={handleDirections} className="flex items-center gap-2" variant="default">
-              <Navigation className="h-4 w-4" />
-              Directions
-            </Button>
-            {restaurantData.website && <Button onClick={handleWebsite} className="flex items-center gap-2" variant="default">
-                <Globe className="h-4 w-4" />
-                Website
-              </Button>}
-          </div>
-
-          {/* Secondary Action Buttons */}
-          {canAddToWishlist && <div className="grid grid-cols-2 gap-3 px-4">
-              <Button onClick={handleAddToWishlist} variant="outline" className="flex items-center gap-2" disabled={isAdding}>
-                <Plus className="h-4 w-4" />
-                {isAdding ? 'Adding...' : 'Add to List'}
-              </Button>
-              <Button variant="outline" onClick={handleAddToWishlist} className="flex items-center gap-2" disabled={isAdding}>
-                <Heart className="h-4 w-4" />
-                {isAdding ? 'Adding...' : 'Wishlist'}
-              </Button>
-            </div>}
-
-          {/* Community Rating */}
-          {deferCommunity && <CommunityRating stats={communityStats} isLoading={isLoadingReviews} />}
-
-          <div className="h-px bg-border mx-4" />
-
-          {/* Unified Photo Gallery - combines community and friend photos */}
-          {deferPhotos && <UnifiedPhotoGallery stats={communityStats} isLoading={isLoadingReviews} onPhotoClick={() => {}} friendPhotos={restaurantData.isSharedRestaurant && restaurantData.photos && restaurantData.photos.length > 0 ? restaurantData.photos.map((url, index) => ({
-            url,
-            caption: Array.isArray(restaurantData.photoCaptions) ? restaurantData.photoCaptions[index] : '',
-            dishName: Array.isArray(restaurantData.photo_captions) ? restaurantData.photo_captions[index] : ''
-          })) : undefined} friendName={restaurantData.isSharedRestaurant ? restaurantData.sharedBy?.name : undefined} friendId={restaurantData.isSharedRestaurant ? restaurantData.sharedBy?.id : undefined} restaurantId={restaurantData.id} restaurantPlaceId={restaurantData.place_id} restaurantName={restaurantData.name} />}
-
-          {/* Details */}
-          <div className="space-y-0">
-            {/* Address */}
-            <div className="p-4 border-b border-border/20">
-              <div className="flex items-start gap-3">
-                <MapPin className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-medium">Address</p>
-                  <p className="text-sm text-muted-foreground">{restaurantData.address}</p>
-                  {restaurantData.city && <p className="text-sm text-muted-foreground">{restaurantData.city}</p>}
+              {/* Circular Community Score */}
+              {communityStats?.averageRating && (
+                <div className="flex justify-center">
+                  <div className="w-24 h-24 rounded-full bg-accent/20 border-4 border-accent flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-accent">
+                        {communityStats.averageRating.toFixed(1)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {communityStats.totalReviews} reviews
+                      </div>
+                    </div>
+                  </div>
                 </div>
+              )}
+
+              {/* Rating Distribution */}
+              {communityStats?.ratingDistribution && (
+                <div className="space-y-3">
+                  {[5, 4, 3, 2, 1].map((star) => {
+                    const count = communityStats.ratingDistribution[star] || 0;
+                    const percentage = communityStats.totalReviews > 0 
+                      ? (count / communityStats.totalReviews) * 100 
+                      : 0;
+                    
+                    return (
+                      <div key={star} className="flex items-center gap-3">
+                        <div className="flex items-center gap-1 w-12">
+                          <span className="text-sm font-medium">{star}</span>
+                          <Star className="h-3 w-3 fill-accent text-accent" />
+                        </div>
+                        <div className="flex-1 h-3 bg-muted rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-green-500 to-blue-500 rounded-full transition-all duration-500"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-muted-foreground w-8 text-right">
+                          {count}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              <Separator className="my-6" />
+
+              {/* Friends & Experts Stats */}
+              <div className="grid grid-cols-2 gap-6">
+                {friendStats && friendStats.count > 0 && (
+                  <div className="text-center space-y-2">
+                    <div className="flex items-center justify-center gap-2">
+                      <Users className="h-4 w-4 text-accent" />
+                      <span className="font-semibold text-accent">FRIENDS</span>
+                    </div>
+                    <div className="text-2xl font-bold">{friendStats.avg?.toFixed(1) || 'N/A'}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {friendStats.count || 0} ratings
+                    </div>
+                  </div>
+                )}
+                {expertStats && expertStats.count > 0 && (
+                  <div className="text-center space-y-2">
+                    <div className="flex items-center justify-center gap-2">
+                      <Award className="h-4 w-4 text-accent" />
+                      <span className="font-semibold text-accent">EXPERTS</span>
+                    </div>
+                    <div className="text-2xl font-bold">{expertStats.avg?.toFixed(1) || 'N/A'}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {expertStats.count || 0} ratings
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Unified Photo Gallery */}
+          {deferPhotos && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold">PHOTOS & DISHES</h2>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsPhotoGalleryOpen(true)}
+                  className="rounded-full px-4 border-accent text-accent hover:bg-accent/10 shadow-md"
+                >
+                  View All
+                </Button>
+              </div>
+              
+              <UnifiedPhotoGallery 
+                stats={communityStats}
+                isLoading={isLoadingReviews}
+                restaurantPlaceId={restaurantData.place_id}
+                restaurantName={restaurantData.name}
+              />
+            </div>
+          )}
+
+          {/* Restaurant Info */}
+          <div className="space-y-6">
+            <h2 className="text-xl font-bold">DETAILS</h2>
+            
+            {/* Address */}
+            <div className="flex items-start gap-4 p-4 rounded-xl bg-muted/30">
+              <MapPin className="h-5 w-5 text-accent mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="font-medium">{restaurantData.address}</p>
+                {restaurantData.city && (
+                  <p className="text-sm text-muted-foreground">{restaurantData.city}</p>
+                )}
               </div>
             </div>
 
             {/* Opening Hours */}
-            {getOpeningHours() && <div className="border-b border-border/20">
-                <OpeningHoursDisplay hours={getOpeningHours()!} className="px-4" />
-              </div>}
-
-            {/* Notes */}
-            {restaurantData.notes && <div className="p-4 border-b border-border/20">
-                <h3 className="font-medium mb-3">Notes</h3>
-                <p className="text-sm text-muted-foreground whitespace-pre-line">
-                  {restaurantData.notes}
-                </p>
-              </div>}
-
-            {/* Map */}
-            {restaurantData.latitude && restaurantData.longitude && <div className="p-4">
-                <h3 className="font-medium mb-3">Location</h3>
-                <div ref={mapRef} className="h-48 rounded-md overflow-hidden">
-                  {showMap && <RestaurantLocationMap latitude={restaurantData.latitude} longitude={restaurantData.longitude} name={restaurantData.name} address={restaurantData.address} />}
+            {getOpeningHours() && (
+              <div className="flex items-start gap-4 p-4 rounded-xl bg-muted/30">
+                <Clock className="h-5 w-5 text-accent mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="font-medium mb-2">Hours</p>
+                  <OpeningHoursDisplay 
+                    hours={getOpeningHours()} 
+                    className="text-sm space-y-1"
+                  />
                 </div>
-              </div>}
+              </div>
+            )}
+
+            {/* Phone */}
+            {getPhoneNumber() && (
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30">
+                <Phone className="h-5 w-5 text-accent flex-shrink-0" />
+                <p className="font-medium">{getPhoneNumber()}</p>
+              </div>
+            )}
           </div>
+
+          {/* Map */}
+          {showMap && deferHeavy && restaurantData.latitude && restaurantData.longitude && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-bold">LOCATION</h2>
+              <div className="rounded-2xl overflow-hidden shadow-lg">
+                <RestaurantLocationMap
+                  latitude={restaurantData.latitude}
+                  longitude={restaurantData.longitude}
+                  name={restaurantData.name}
+                  address={restaurantData.address}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Sticky Reserve Button */}
+          <div className="fixed bottom-6 right-6 z-50">
+            <Button
+              size="lg"
+              className="h-14 px-8 rounded-full bg-accent hover:bg-accent/90 text-accent-foreground font-semibold shadow-2xl"
+            >
+              Reserve Table
+            </Button>
           </div>
         </div>
       </div>
-
-      {/* Photo Gallery */}
-      <PhotoGallery photos={photos.map(p => resolveImageUrl(p))} photoCaptions={restaurantData.photoCaptions || restaurantData.photo_captions} isOpen={isPhotoGalleryOpen} onClose={() => setIsPhotoGalleryOpen(false)} restaurantName={restaurantData.name} isMobile={actualIsMobile} />
-
     </>;
-}
+  }
