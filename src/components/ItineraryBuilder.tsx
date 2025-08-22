@@ -2077,7 +2077,7 @@ export function ItineraryBuilder({
                 </CollapsibleContent>
               </Card>
             </Collapsible>
-          )}
+          }
 
           {/* Hotels and Flights Section - Moved to top */}
           <HotelFlightSection locations={currentItinerary?.locations || []} isMultiCity={currentItinerary?.isMultiCity || false} hotels={hotels} flights={flights} onAddHotel={handleAddHotel} onAddFlight={handleAddFlight} onRemoveHotel={handleRemoveHotel} onRemoveFlight={handleRemoveFlight} />
