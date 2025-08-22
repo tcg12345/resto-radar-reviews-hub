@@ -270,11 +270,11 @@ export function MobileProfilePage() {
               <div key={activity.id} className="p-4 bg-muted/20 rounded-lg cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => navigate(`/restaurant/${activity.id}`)}>
                 <div className="space-y-3">
                   {/* Header Row */}
-                  <div className="flex items-center justify-between">
-                    <p className="font-medium text-foreground">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-medium text-foreground flex-1 min-w-0 truncate">
                       You ranked {activity.name}
                     </p>
-                    <Badge variant="default" className="bg-primary text-primary-foreground px-2 py-1 text-sm font-bold">
+                    <Badge variant="default" className="bg-primary text-primary-foreground px-2 py-1 text-sm font-bold whitespace-nowrap flex-shrink-0">
                       {activity.rating ? activity.rating.toFixed(1) : '—'}
                     </Badge>
                   </div>
