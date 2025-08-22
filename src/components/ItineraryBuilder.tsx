@@ -1745,7 +1745,7 @@ export function ItineraryBuilder({
           {currentItinerary && <div className="mb-6 relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen px-4">
               <Collapsible open={isExtensionOpen} onOpenChange={setIsExtensionOpen}>
                 <CollapsibleTrigger asChild>
-                  <div className="cursor-pointer hover:bg-muted/30 active:scale-[0.99] transition-all duration-200 p-5 rounded-xl border border-border/20 bg-background shadow-sm group">
+                  <div className="cursor-pointer hover:bg-muted/30 active:scale-[0.99] transition-all duration-200 p-5 rounded-xl border border-border/50 bg-background shadow-sm group">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
