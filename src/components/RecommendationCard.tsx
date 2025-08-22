@@ -64,7 +64,7 @@ export function RecommendationCard({ restaurant, onAdd, onAddToWishlist }: Recom
       className="mx-1 mb-4 rounded-xl shadow-md bg-[rgb(24,24,27)] overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.005] active:scale-[0.995]"
       onClick={handleCardClick}
     >
-      <div className="p-4">
+      <div className="p-4" style={{ backgroundColor: 'rgb(10,23,43)' }}>
         {/* Header with name and rating */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1 min-w-0 pr-3">
