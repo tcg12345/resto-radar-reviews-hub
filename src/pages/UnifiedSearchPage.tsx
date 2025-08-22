@@ -652,7 +652,9 @@ const performLiveSearch = async () => {
                   )}
                 </div> : <div className="space-y-2">
                   {recommendedPlaces.map((place, index) => 
-                    <Card key={place.place_id} className="overflow-hidden bg-card border-0 shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] transition-all duration-300 rounded-2xl cursor-pointer group" onClick={() => handlePlaceClick(place)}>
+                    <div key={place.place_id}>
+                      {index > 0 && <div className="border-t border-border/30 my-2" />}
+                      <Card className="overflow-hidden bg-card border-0 shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] transition-all duration-300 rounded-2xl cursor-pointer group" onClick={() => handlePlaceClick(place)}>
                       <CardContent className="py-2.5 px-3">
                         <div className="space-y-1">
                           {/* Top Row: Name + Rating + Button */}
@@ -705,9 +707,10 @@ const performLiveSearch = async () => {
                             </p>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  )}
+                       </CardContent>
+                     </Card>
+                   </div>
+                   )}
                   
                    {hasMoreRecommendations && <InfiniteScrollLoader onLoadMore={loadMoreRecommendations} isLoading={isLoadingMoreRecommendations} hasMore={hasMoreRecommendations} />}
                  </div>}
