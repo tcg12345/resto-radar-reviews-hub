@@ -416,17 +416,19 @@ export function UnifiedRestaurantDetails({
     return `${distance.toFixed(1)} mi away`;
   };
   if (isLoading) {
-    return <>
-        <div className="min-h-screen bg-background">
+    return (
+      <div className="min-h-screen bg-background">
         {/* Header */}
-        {showBackButton && <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b pt-safe-area-top">
+        {showBackButton && (
+          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b pt-safe-area-top">
             <div className="flex items-center gap-4 p-4">
               <Button variant="ghost" size="sm" onClick={handleBack} className="h-8 w-8 p-0">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div className="h-6 w-48 bg-muted animate-pulse rounded"></div>
             </div>
-          </div>}
+          </div>
+        )}
         
         {/* Loading content */}
         <div className="p-4 space-y-4">
@@ -436,10 +438,12 @@ export function UnifiedRestaurantDetails({
             <div className="h-4 bg-muted animate-pulse rounded w-1/2"></div>
           </div>
         </div>
-        </div>
-      </>;
+      </div>
+    );
   }
-  return <>
+
+  return (
+    <>
       <div className="min-h-screen bg-background pb-20">
         {/* Hero Section with Full-Width Carousel */}
         {deferPhotos && hasHeroPhoto && (
