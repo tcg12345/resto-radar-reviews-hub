@@ -1743,7 +1743,6 @@ export function ItineraryBuilder({
                         </div>
                         <div>
                           <h3 className="font-semibold text-base text-foreground">Extend Your Trip</h3>
-                          <p className="text-sm text-muted-foreground mt-0.5">Add more days or cities to your itinerary</p>
                         </div>
                       </div>
                       <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isExtensionOpen ? 'rotate-180' : ''}`} />
