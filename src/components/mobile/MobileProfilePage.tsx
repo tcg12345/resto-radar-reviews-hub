@@ -166,8 +166,8 @@ export function MobileProfilePage() {
       </div>
 
       {/* Content */}
-      <div className="px-2 space-y-3">
-        {/* Navigation List */}
+      <div className="px-2 space-y-6">
+        {/* Top Navigation List - Data/Stats */}
         <div className="space-y-1">
           {/* Rated Restaurants */}
           <Button onClick={() => navigate('/rated')} variant="ghost" className="w-full h-auto p-4 justify-start bg-background hover:bg-muted/50 rounded-lg border border-border/30">
@@ -210,11 +210,14 @@ export function MobileProfilePage() {
               </div>
             </div>
           </Button>
+        </div>
 
+        {/* Bottom Action Buttons - Settings/Actions */}
+        <div className="space-y-3">
           {/* Friends */}
-          <Button onClick={() => navigate('/mobile/friends')} variant="ghost" className="w-full h-auto p-4 justify-start bg-background hover:bg-muted/50 rounded-lg border border-border/30">
+          <Button onClick={() => navigate('/mobile/friends')} variant="ghost" className="w-full h-auto p-4 justify-start bg-primary/5 hover:bg-primary/10 rounded-xl border-0">
             <div className="flex items-center gap-4 w-full">
-              <Users className="h-5 w-5 stroke-[1.5] text-muted-foreground" />
+              <Users className="h-5 w-5 stroke-[1.5] text-primary" />
               <div className="flex-1 text-left">
                 <p className="font-medium text-foreground">Friends</p>
                 <p className="text-sm text-muted-foreground">View and manage your friends</p>
@@ -228,9 +231,9 @@ export function MobileProfilePage() {
 
           {/* Trip Privacy - only show if user has itineraries */}
           {itineraries.length > 0 && (
-            <Button onClick={() => navigate('/itinerary-privacy')} variant="ghost" className="w-full h-auto p-4 justify-start bg-background hover:bg-muted/50 rounded-lg border border-border/30">
+            <Button onClick={() => navigate('/itinerary-privacy')} variant="ghost" className="w-full h-auto p-4 justify-start bg-primary/5 hover:bg-primary/10 rounded-xl border-0">
               <div className="flex items-center gap-4 w-full">
-                <Route className="h-5 w-5 stroke-[1.5] text-muted-foreground" />
+                <Route className="h-5 w-5 stroke-[1.5] text-primary" />
                 <div className="flex-1 text-left">
                   <p className="font-medium text-foreground">Trip Privacy</p>
                   <p className="text-sm text-muted-foreground">Manage itinerary sharing settings</p>
