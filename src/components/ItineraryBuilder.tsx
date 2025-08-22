@@ -1415,17 +1415,27 @@ export function ItineraryBuilder({
     events: events.length
   });
   
-  return <div className="w-full px-4 lg:px-6 space-y-6">
+  return <div className="w-full px-2 lg:px-4 space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="builder" className="flex items-center gap-2">
-            Itinerary Builder
-          </TabsTrigger>
-          <TabsTrigger value="saved" className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4" />
-            Saved Itineraries
-          </TabsTrigger>
-        </TabsList>
+        <div className="flex justify-center mb-6">
+          <div className="inline-flex p-1 bg-muted/60 rounded-lg border border-border/50">
+            <TabsList className="bg-transparent h-auto p-0 gap-1">
+              <TabsTrigger 
+                value="builder" 
+                className="px-4 py-2 text-sm font-medium rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all"
+              >
+                Itinerary Builder
+              </TabsTrigger>
+              <TabsTrigger 
+                value="saved" 
+                className="px-4 py-2 text-sm font-medium rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all"
+              >
+                <BookOpen className="w-4 h-4 mr-2" />
+                Saved Itineraries
+              </TabsTrigger>
+            </TabsList>
+          </div>
+        </div>
         
         <TabsContent value="builder" className="mt-6 space-y-6">
           {/* Header with date range and actions */}
