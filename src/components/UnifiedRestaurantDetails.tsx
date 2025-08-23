@@ -22,6 +22,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRatingStats } from '@/hooks/useRatingStats';
 import { resolveImageUrl } from '@/utils/imageUtils';
+
 interface UnifiedRestaurantData {
   id?: string;
   place_id?: string;
@@ -67,6 +68,7 @@ interface UnifiedRestaurantData {
   };
   isSharedRestaurant?: boolean;
 }
+
 interface UnifiedRestaurantDetailsProps {
   restaurant: UnifiedRestaurantData;
   onBack?: () => void;
@@ -76,6 +78,7 @@ interface UnifiedRestaurantDetailsProps {
   canAddToWishlist?: boolean;
   isMobile?: boolean;
 }
+
 export function UnifiedRestaurantDetails({
   restaurant,
   onBack,
@@ -86,12 +89,8 @@ export function UnifiedRestaurantDetails({
   isMobile = false
 }: UnifiedRestaurantDetailsProps) {
   const navigate = useNavigate();
-  const {
-    user
-  } = useAuth();
-  const {
-    setPreloadedStats
-  } = useCommunityData();
+  const { user } = useAuth();
+  const { setPreloadedStats } = useCommunityData();
   const actualIsMobile = useIsMobile();
   const [photos, setPhotos] = useState<string[]>([]);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
@@ -111,6 +110,7 @@ export function UnifiedRestaurantDetails({
   const fetchedDetailsPlaceIdsRef = useRef<Set<string>>(new Set());
   const preloadedStatsPlaceIdsRef = useRef<Set<string>>(new Set());
   const hasValidPlaceId = useMemo(() => !!restaurant.place_id, [restaurant.place_id]);
+
   useEffect(() => {
     const schedule = (cb: () => void, delay = 0) => {
       if ('requestIdleCallback' in window) {
@@ -122,28 +122,24 @@ export function UnifiedRestaurantDetails({
       }
     };
     
-    // Immediate: Show basic content
-    // After 50ms: Load community data
     schedule(() => setDeferCommunity(true), 50);
-    
-    // After 100ms: Load photos 
     schedule(() => setDeferPhotos(true), 100);
-    
-    // After 200ms: Load heavy features
     schedule(() => setDeferHeavy(true), 200);
   }, []);
+
   useEffect(() => {
-    // Show map immediately when coordinates are available
     if (restaurantData.latitude && restaurantData.longitude) {
       setShowMap(true);
     }
   }, [restaurantData.latitude, restaurantData.longitude]);
+
   const {
     communityStats,
     reviews,
     isLoading: isLoadingReviews,
     submitReview
   } = useRestaurantReviews(deferCommunity && hasValidPlaceId ? restaurantData.place_id : undefined, restaurantData.name);
+
   const {
     friendStats,
     expertStats,
@@ -156,12 +152,15 @@ export function UnifiedRestaurantDetails({
     const own = photos || [];
     return [...community, ...own].filter((p: any) => typeof p === 'string' && p.trim() !== '');
   }, [communityStats?.recentPhotos, photos]);
+
   const [heroIndex, setHeroIndex] = useState(0);
   useEffect(() => {
     setHeroIndex(0);
   }, [heroCandidates.length]);
+
   const heroSrc = heroCandidates[heroIndex];
   const hasHeroPhoto = !!heroSrc;
+
   useEffect(() => {
     console.log('Hero candidates', {
       placeId: restaurantData.place_id,
@@ -211,20 +210,19 @@ export function UnifiedRestaurantDetails({
     };
     link();
   }, [restaurantData?.place_id, restaurantData?.name]);
+  
   const shouldEnhanceWithAI = (restaurant: UnifiedRestaurantData): boolean => {
     const hasGenericCuisine = !restaurant.cuisine || restaurant.cuisine.toLowerCase().includes('restaurant') || restaurant.cuisine.toLowerCase().includes('bar') || restaurant.cuisine.toLowerCase().includes('food') || restaurant.cuisine.toLowerCase().includes('establishment');
     const hasMissingMichelinInfo = restaurant.michelinStars === undefined && restaurant.michelin_stars === undefined;
     return hasGenericCuisine || hasMissingMichelinInfo;
   };
+
   const enhanceWithAI = async (restaurant: UnifiedRestaurantData) => {
     try {
       setIsEnhancingWithAI(true);
-
-      // Run both AI functions in parallel for speed
       const promises = [];
-
-      // Enhance cuisine if needed
       const hasGenericCuisine = !restaurant.cuisine || restaurant.cuisine.toLowerCase().includes('restaurant') || restaurant.cuisine.toLowerCase().includes('bar') || restaurant.cuisine.toLowerCase().includes('food') || restaurant.cuisine.toLowerCase().includes('establishment');
+      
       if (hasGenericCuisine) {
         promises.push(supabase.functions.invoke('ai-cuisine-detector', {
           body: {
@@ -234,14 +232,9 @@ export function UnifiedRestaurantDetails({
           }
         }));
       } else {
-        promises.push(Promise.resolve({
-          data: {
-            cuisine: restaurant.cuisine
-          }
-        }));
+        promises.push(Promise.resolve({ data: { cuisine: restaurant.cuisine } }));
       }
 
-      // Detect Michelin stars if missing
       const hasMissingMichelinInfo = restaurant.michelinStars === undefined && restaurant.michelin_stars === undefined;
       if (hasMissingMichelinInfo) {
         promises.push(supabase.functions.invoke('ai-michelin-detector', {
@@ -255,17 +248,10 @@ export function UnifiedRestaurantDetails({
           }
         }));
       } else {
-        promises.push(Promise.resolve({
-          data: {
-            michelinStars: restaurant.michelinStars || restaurant.michelin_stars
-          }
-        }));
+        promises.push(Promise.resolve({ data: { michelinStars: restaurant.michelinStars || restaurant.michelin_stars } }));
       }
 
-      // Wait for both to complete
       const [cuisineResult, michelinResult] = await Promise.all(promises);
-
-      // Update restaurant data with AI enhancements
       setRestaurantData(prev => ({
         ...prev,
         cuisine: cuisineResult?.data?.cuisine || prev.cuisine,
@@ -273,18 +259,15 @@ export function UnifiedRestaurantDetails({
       }));
     } catch (error) {
       console.error('Error enhancing restaurant with AI:', error);
-      // Silently fail - don't show error to user for this enhancement
     } finally {
       setIsEnhancingWithAI(false);
     }
   };
+
   const fetchPlaceDetails = async (placeId: string) => {
     try {
       setIsLoadingDetails(true);
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('google-places-search', {
+      const { data, error } = await supabase.functions.invoke('google-places-search', {
         body: {
           type: 'details',
           placeId: placeId
@@ -309,6 +292,7 @@ export function UnifiedRestaurantDetails({
       setIsLoadingDetails(false);
     }
   };
+
   const handleBack = () => {
     if (onBack) {
       onBack();
@@ -316,6 +300,7 @@ export function UnifiedRestaurantDetails({
       navigate(-1);
     }
   };
+
   const handleAddToWishlist = async () => {
     if (!user || !restaurantData) return;
     if (onToggleWishlist) {
@@ -324,9 +309,7 @@ export function UnifiedRestaurantDetails({
     }
     setIsAdding(true);
     try {
-      const {
-        error
-      } = await supabase.from('restaurants').insert({
+      const { error } = await supabase.from('restaurants').insert({
         name: restaurantData.name,
         address: restaurantData.address,
         city: restaurantData.city || '',
@@ -340,7 +323,6 @@ export function UnifiedRestaurantDetails({
         latitude: restaurantData.latitude,
         longitude: restaurantData.longitude,
         google_place_id: restaurantData.place_id,
-        // ensure friend/expert stats can link
         website: restaurantData.website || '',
         phone_number: restaurantData.phone || restaurantData.phone_number || restaurantData.formatted_phone_number || '',
         opening_hours: typeof restaurantData.opening_hours === 'object' ? restaurantData.opening_hours?.weekday_text?.join('\n') || '' : restaurantData.opening_hours || restaurantData.openingHours || '',
@@ -362,6 +344,7 @@ export function UnifiedRestaurantDetails({
       setIsAdding(false);
     }
   };
+
   const handleShare = () => {
     if (navigator.share && restaurantData) {
       navigator.share({
@@ -374,17 +357,20 @@ export function UnifiedRestaurantDetails({
       toast.success('Link copied to clipboard!');
     }
   };
+
   const handleCall = () => {
     const phoneNumber = restaurantData.phone || restaurantData.phone_number || restaurantData.formatted_phone_number;
     if (phoneNumber) {
       window.location.href = `tel:${phoneNumber}`;
     }
   };
+
   const handleWebsite = () => {
     if (restaurantData.website) {
       window.open(restaurantData.website, '_blank');
     }
   };
+
   const handleDirections = () => {
     if (restaurantData.latitude && restaurantData.longitude) {
       const url = `https://maps.google.com/maps?daddr=${restaurantData.latitude},${restaurantData.longitude}`;
@@ -395,9 +381,11 @@ export function UnifiedRestaurantDetails({
       window.open(url, '_blank');
     }
   };
+
   const getPhoneNumber = () => {
     return restaurantData.phone || restaurantData.phone_number || restaurantData.formatted_phone_number;
   };
+
   const getOpeningHours = () => {
     if (typeof restaurantData.opening_hours === 'object' && restaurantData.opening_hours?.weekday_text) {
       return restaurantData.opening_hours.weekday_text;
@@ -407,281 +395,359 @@ export function UnifiedRestaurantDetails({
     }
     return null;
   };
+
   const getPriceDisplay = (priceRange?: number) => {
     if (!priceRange) return '';
     return '$'.repeat(priceRange);
   };
+
   const formatDistance = (distance?: number) => {
     if (!distance) return '';
     return `${distance.toFixed(1)} mi away`;
   };
+
   if (isLoading) {
-    return <>
-        <div className="min-h-screen bg-background">
-        {/* Header */}
-        {showBackButton && <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b pt-safe-area-top">
-            <div className="flex items-center gap-4 p-4">
-              <Button variant="ghost" size="sm" onClick={handleBack} className="h-8 w-8 p-0">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <div className="h-6 w-48 bg-muted animate-pulse rounded"></div>
-            </div>
-          </div>}
-        
-        {/* Loading content */}
+    return (
+      <div className="min-h-screen bg-gray-950">
+        <div className="h-48 bg-gray-800 animate-pulse"></div>
         <div className="p-4 space-y-4">
-          <div className="h-48 bg-muted animate-pulse rounded-lg"></div>
+          <div className="h-6 bg-gray-800 animate-pulse rounded w-3/4"></div>
+          <div className="h-4 bg-gray-800 animate-pulse rounded w-1/2"></div>
           <div className="space-y-2">
-            <div className="h-4 bg-muted animate-pulse rounded w-3/4"></div>
-            <div className="h-4 bg-muted animate-pulse rounded w-1/2"></div>
-          </div>
-        </div>
-        </div>
-      </>;
-  }
-  return <>
-      <div className="min-h-screen bg-background">
-      {/* Header */}
-      {showBackButton && <div className="sticky top-0 z-50 bg-background backdrop-blur border-b pt-safe-area-top">
-          <div className="flex items-center justify-between p-4">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={handleBack} className="h-10 w-10 p-0 touch-manipulation" aria-label="Go back">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <h1 className="text-lg font-semibold truncate">{restaurantData.name}</h1>
-            </div>
-            <Button variant="ghost" size="sm" onClick={handleShare} className="h-8 w-8 p-0">
-              <Share2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>}
-
-      <div className={`${isMobile ? "pb-safe" : ""}`}>
-        {/* Photos - Show either restaurant photos or community photos */}
-        {deferPhotos && hasHeroPhoto && <div className={`${isMobile ? 'aspect-video' : 'aspect-video md:aspect-auto md:h-auto md:max-h-[420px] md:max-w-3xl md:mx-auto'} w-full bg-muted relative overflow-hidden cursor-pointer group`} onClick={() => navigate(`/restaurant/${restaurantData.place_id || restaurantData.id}/community-photos?name=${encodeURIComponent(restaurantData.name)}`)}>
-            {/* Try to show community photos first, then restaurant photos, then fallback */}
-            {/* Mobile: single hero image */}
-            <div className="md:hidden w-full h-full">
-              {heroSrc ? <img src={resolveImageUrl(heroSrc)} alt={restaurantData.name} className="w-full h-full object-cover transition-transform group-hover:scale-105" loading="lazy" decoding="async" onLoad={() => setHasLoadedHeroImage(true)} onError={() => setHeroIndex(i => i + 1)} /> : null}
-            </div>
-
-            {/* Desktop: grid collage when multiple photos available, otherwise single image (contain) */}
-            <div className="hidden md:block w-full h-full">
-              {(() => {
-              const header: string[] = (communityStats?.recentPhotos?.length ? communityStats.recentPhotos.flatMap((rp: any) => rp?.photos || []) : photos).slice(0, 6);
-              if (header.length > 1) {
-                return <div className="grid grid-cols-3 gap-2 auto-rows-[140px]">
-                      {header.map((src, i) => <img key={i} src={resolveImageUrl(src)} alt={`${restaurantData.name} photo ${i + 1}`} className="w-full h-full object-cover rounded-md" onLoad={() => setHasLoadedHeroImage(true)} onError={e => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                  }} />)}
-                    </div>;
-              }
-              // Single image fallback on desktop
-              if (communityStats?.recentPhotos?.[0]?.photos?.[0]) {
-                return <img src={resolveImageUrl(communityStats.recentPhotos[0].photos[0])} alt={restaurantData.name} className="w-full h-full object-cover transition-transform group-hover:scale-105 md:object-contain md:h-auto md:w-auto md:max-h-[420px] md:mx-auto" onLoad={() => setHasLoadedHeroImage(true)} onError={e => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                }} />;
-              }
-              if (photos.length > 0) {
-                return <img src={resolveImageUrl(photos[0])} alt={restaurantData.name} className="w-full h-full object-cover transition-transform group-hover:scale-105 md:object-contain md:h-auto md:w-auto md:max-h-[420px] md:mx-auto" onError={e => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                }} />;
-              }
-              return null;
-            })()}
-            </div>
-            <div className="absolute top-3 right-3 bg-black/70 text-white px-2 py-1 rounded-md text-sm">
-              View more photos
-            </div>
-            {communityStats?.recentPhotos && communityStats.recentPhotos.length > 0 && photos.length === 0 && <div className="absolute bottom-3 left-3 bg-black/70 text-white px-2 py-1 rounded-md text-sm flex items-center gap-2">
-                <User className="h-3 w-3" />
-                Shared by {communityStats.recentPhotos[0].username}
-              </div>}
-          </div>}
-
-        {/* Main Content */}
-        <div className="space-y-6">{/* Remove p-4 padding to make content stretch edge-to-edge */}
-          {/* Shared by info */}
-          {restaurantData.isSharedRestaurant && restaurantData.sharedBy && <div className="border-primary/20 bg-primary/5 p-4">
-              <div className="flex items-center gap-3">
-                <User className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="text-sm font-medium">Shared by {restaurantData.sharedBy.name}</p>
-                  {restaurantData.sharedBy.username && <p className="text-xs text-muted-foreground">@{restaurantData.sharedBy.username}</p>}
-                  {restaurantData.isWishlist && <Badge variant="outline" className="mt-1">
-                      <Heart className="h-3 w-3 mr-1" />
-                      On their wishlist
-                    </Badge>}
-                </div>
-              </div>
-            </div>}
-
-          {/* Restaurant Header */}
-          <div className="space-y-3 px-4">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h1 className="text-2xl font-bold text-foreground mb-2 my-[8px]">{restaurantData.name}</h1>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Badge variant="outline" className="text-sm flex items-center gap-1">
-                    {restaurantData.cuisine}
-                    {/* Debug: Always show price range section */}
-                    <span className="text-muted-foreground">•</span>
-                    <span>
-                      {getPriceDisplay(restaurantData.priceRange || restaurantData.price_range) || '$$'}
-                    </span>
-                    {isEnhancingWithAI && <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />}
-                  </Badge>
-                   {(restaurantData.michelinStars > 0 || restaurantData.michelin_stars > 0 || isEnhancingWithAI) && <Badge variant="outline" className="text-sm flex items-center gap-1">
-                       <MichelinStars stars={restaurantData.michelinStars || restaurantData.michelin_stars || 0} readonly={true} size="sm" />
-                       {isEnhancingWithAI && <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />}
-                     </Badge>}
-                </div>
-              </div>
-              {restaurantData.rating && restaurantData.isSharedRestaurant && restaurantData.sharedBy && <div className="flex-shrink-0 text-center">
-                  <div className="w-16 h-16 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center mb-1 mx-auto">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-primary">{restaurantData.rating.toFixed(1)}</div>
-                      <Star className="h-3 w-3 fill-primary text-primary mx-auto" />
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground font-medium">
-                    {restaurantData.sharedBy.name}'s Rating
-                  </p>
-                </div>}
-            </div>
-
-            {/* Status and Hours */}
-            {restaurantData.isOpen !== undefined && <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className={`text-sm font-medium ${restaurantData.isOpen ? 'text-green-600' : 'text-red-600'}`}>
-                  {restaurantData.isOpen ? 'Open now' : 'Closed'}
-                </span>
-              </div>}
-          </div>
-
-          
-
-          {/* Ratings Summary: Friends and Experts */}
-          {deferCommunity && restaurantData.place_id && <div className="py-3 px-4 border-b border-border/50">
-              <div className="grid grid-cols-2 gap-3">
-                {/* Friends Rating */}
-                <div onClick={() => navigate(`/restaurant/${restaurantData.place_id}/friends-ratings?name=${encodeURIComponent(restaurantData.name)}`)} className="cursor-pointer group">
-                  <div className="flex flex-col items-center text-center py-2 transition-all duration-200 group-hover:scale-105">
-                    <div className="flex items-center gap-1.5 mb-1.5">
-                      <Users className="h-4 w-4 text-blue-500" />
-                      <span className="text-sm font-medium text-muted-foreground">Friends</span>
-                    </div>
-                    <div className="text-xl font-bold text-foreground mb-0.5">
-                      {isLoadingStats ? '—' : friendStats.avg ? `${friendStats.avg}/10` : '—'}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {isLoadingStats ? 'Loading…' : `${friendStats.count} reviews`}
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Expert Rating */}
-                <div onClick={() => navigate(`/restaurant/${restaurantData.place_id}/expert-ratings?name=${encodeURIComponent(restaurantData.name)}`)} className="cursor-pointer group">
-                  <div className="flex flex-col items-center text-center py-2 transition-all duration-200 group-hover:scale-105">
-                    <div className="flex items-center gap-1.5 mb-1.5">
-                      <Award className="h-4 w-4 text-amber-500" />
-                      <span className="text-sm font-medium text-muted-foreground">Experts</span>
-                    </div>
-                    <div className="text-xl font-bold text-foreground mb-0.5">
-                      {isLoadingStats ? '—' : expertStats.avg ? `${expertStats.avg}/10` : '—'}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {isLoadingStats ? 'Loading…' : `${expertStats.count} reviews`}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>}
-
-          {/* Primary Action Buttons */}
-          <div className="grid grid-cols-3 gap-3 px-4">
-            {getPhoneNumber() && <Button onClick={handleCall} className="flex items-center gap-2" variant="default">
-                <Phone className="h-4 w-4" />
-                Call
-              </Button>}
-            <Button onClick={handleDirections} className="flex items-center gap-2" variant="default">
-              <Navigation className="h-4 w-4" />
-              Directions
-            </Button>
-            {restaurantData.website && <Button onClick={handleWebsite} className="flex items-center gap-2" variant="default">
-                <Globe className="h-4 w-4" />
-                Website
-              </Button>}
-          </div>
-
-          {/* Secondary Action Buttons */}
-          {canAddToWishlist && <div className="grid grid-cols-2 gap-3 px-4">
-              <Button onClick={handleAddToWishlist} variant="outline" className="flex items-center gap-2" disabled={isAdding}>
-                <Plus className="h-4 w-4" />
-                {isAdding ? 'Adding...' : 'Add to List'}
-              </Button>
-              <Button variant="outline" onClick={handleAddToWishlist} className="flex items-center gap-2" disabled={isAdding}>
-                <Heart className="h-4 w-4" />
-                {isAdding ? 'Adding...' : 'Wishlist'}
-              </Button>
-            </div>}
-
-          {/* Community Rating */}
-          {deferCommunity && <CommunityRating stats={communityStats} isLoading={isLoadingReviews} />}
-
-          <div className="h-px bg-border mx-4" />
-
-          {/* Unified Photo Gallery - combines community and friend photos */}
-          {deferPhotos && <UnifiedPhotoGallery stats={communityStats} isLoading={isLoadingReviews} onPhotoClick={() => {}} friendPhotos={restaurantData.isSharedRestaurant && restaurantData.photos && restaurantData.photos.length > 0 ? restaurantData.photos.map((url, index) => ({
-            url,
-            caption: Array.isArray(restaurantData.photoCaptions) ? restaurantData.photoCaptions[index] : '',
-            dishName: Array.isArray(restaurantData.photo_captions) ? restaurantData.photo_captions[index] : ''
-          })) : undefined} friendName={restaurantData.isSharedRestaurant ? restaurantData.sharedBy?.name : undefined} friendId={restaurantData.isSharedRestaurant ? restaurantData.sharedBy?.id : undefined} restaurantId={restaurantData.id} restaurantPlaceId={restaurantData.place_id} restaurantName={restaurantData.name} />}
-
-          {/* Details */}
-          <div className="space-y-0">
-            {/* Address */}
-            <div className="p-4 border-b border-border/20">
-              <div className="flex items-start gap-3">
-                <MapPin className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-medium">Address</p>
-                  <p className="text-sm text-muted-foreground">{restaurantData.address}</p>
-                  {restaurantData.city && <p className="text-sm text-muted-foreground">{restaurantData.city}</p>}
-                </div>
-              </div>
-            </div>
-
-            {/* Opening Hours */}
-            {getOpeningHours() && <div className="border-b border-border/20">
-                <OpeningHoursDisplay hours={getOpeningHours()!} className="px-4" />
-              </div>}
-
-            {/* Notes */}
-            {restaurantData.notes && <div className="p-4 border-b border-border/20">
-                <h3 className="font-medium mb-3">Notes</h3>
-                <p className="text-sm text-muted-foreground whitespace-pre-line">
-                  {restaurantData.notes}
-                </p>
-              </div>}
-
-            {/* Map */}
-            {restaurantData.latitude && restaurantData.longitude && <div className="p-4">
-                <h3 className="font-medium mb-3">Location</h3>
-                <div ref={mapRef} className="h-48 rounded-md overflow-hidden">
-                  {showMap && <RestaurantLocationMap latitude={restaurantData.latitude} longitude={restaurantData.longitude} name={restaurantData.name} address={restaurantData.address} />}
-                </div>
-              </div>}
-          </div>
+            <div className="h-4 bg-gray-800 animate-pulse rounded"></div>
+            <div className="h-4 bg-gray-800 animate-pulse rounded w-2/3"></div>
           </div>
         </div>
       </div>
+    );
+  }
 
-      {/* Photo Gallery */}
-      <PhotoGallery photos={photos.map(p => resolveImageUrl(p))} photoCaptions={restaurantData.photoCaptions || restaurantData.photo_captions} isOpen={isPhotoGalleryOpen} onClose={() => setIsPhotoGalleryOpen(false)} restaurantName={restaurantData.name} isMobile={actualIsMobile} />
+  return (
+    <>
+      <div className="min-h-screen bg-gray-950">
+        {/* Hero Section with Cover Photo */}
+        <div className="relative h-[300px] w-full overflow-hidden">
+          {hasHeroPhoto ? (
+            <div className="relative h-full w-full">
+              <img 
+                src={resolveImageUrl(heroSrc)}
+                alt={restaurantData.name}
+                className="h-full w-full object-cover"
+                onLoad={() => setHasLoadedHeroImage(true)}
+              />
+              {/* Carousel navigation if multiple photos */}
+              {heroCandidates.length > 1 && (
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+                  {heroCandidates.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setHeroIndex(index)}
+                      className={`w-2 h-2 rounded-full transition-all ${
+                        index === heroIndex ? 'bg-white' : 'bg-white/50'
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="h-full w-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+              <div className="text-center text-white/80">
+                <Globe className="h-12 w-12 mx-auto mb-2" />
+                <p>No photo available</p>
+              </div>
+            </div>
+          )}
+          
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          
+          {/* Floating action buttons */}
+          {showBackButton && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleBack}
+              className="absolute top-4 left-4 h-10 w-10 p-0 bg-black/30 backdrop-blur-sm border-0 hover:bg-black/40 text-white"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          )}
+          
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleShare}
+            className="absolute top-4 right-4 h-10 w-10 p-0 bg-black/30 backdrop-blur-sm border-0 hover:bg-black/40 text-white"
+          >
+            <Share2 className="h-4 w-4" />
+          </Button>
+          
+          {/* View photos button */}
+          {(photos.length > 0 || (communityStats?.recentPhotos?.length || 0) > 0) && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setIsPhotoGalleryOpen(true)}
+              className="absolute bottom-4 right-4 bg-black/40 backdrop-blur-sm border-0 hover:bg-black/50 text-white text-xs px-3 py-2 h-8 rounded-full"
+            >
+              View photos ({heroCandidates.length})
+            </Button>
+          )}
+          
+          {/* Restaurant name overlay */}
+          <div className="absolute bottom-6 left-4 right-4">
+            <h1 className="text-3xl font-bold text-white mb-2 leading-tight">
+              {restaurantData.name}
+            </h1>
+          </div>
+        </div>
 
-    </>;
+        {/* Content */}
+        <div className="relative bg-gray-950 -mt-4 rounded-t-3xl pt-6">
+          {/* Restaurant metadata */}
+          <div className="px-4 mb-6">
+            <div className="flex items-center gap-3 flex-wrap mb-4">
+              <span className="text-gray-300 text-base">{restaurantData.cuisine}</span>
+              <span className="text-green-400 font-semibold text-base">
+                {getPriceDisplay(restaurantData.priceRange || restaurantData.price_range)}
+              </span>
+              {(restaurantData.michelinStars || restaurantData.michelin_stars) && 
+                (restaurantData.michelinStars || restaurantData.michelin_stars) > 0 && (
+                <div className="flex items-center gap-1">
+                  <MichelinStars stars={restaurantData.michelinStars || restaurantData.michelin_stars} readonly={true} />
+                </div>
+              )}
+            </div>
+            
+            {/* Wishlist and Add to List buttons */}
+            {canAddToWishlist && (
+              <div className="flex gap-3 mb-6">
+                <Button
+                  onClick={handleAddToWishlist}
+                  variant="outline"
+                  className="flex-1 flex items-center gap-2 bg-gray-900/50 border-gray-700 text-white hover:bg-gray-800"
+                  disabled={isAdding}
+                >
+                  <Heart className="h-4 w-4" />
+                  {isAdding ? 'Adding...' : 'Wishlist'}
+                </Button>
+                <Button
+                  onClick={handleAddToWishlist}
+                  variant="outline"
+                  className="flex-1 flex items-center gap-2 bg-gray-900/50 border-gray-700 text-white hover:bg-gray-800"
+                  disabled={isAdding}
+                >
+                  <Plus className="h-4 w-4" />
+                  {isAdding ? 'Adding...' : 'Add to List'}
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Friends & Experts Reviews - Compact Cards */}
+          {deferCommunity && restaurantData.place_id && (
+            <div className="px-4 mb-6">
+              <div className="grid grid-cols-2 gap-3">
+                <Card className="bg-gray-900/50 border-gray-800 cursor-pointer hover:bg-gray-900/70 transition-colors">
+                  <CardContent className="p-4 text-center">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <Users className="h-4 w-4 text-blue-400" />
+                      <span className="text-sm font-medium text-gray-300">Friends</span>
+                    </div>
+                    <div className="text-xl font-bold text-white mb-1">
+                      {isLoadingStats ? '—' : friendStats.count || 0}
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      {friendStats.count === 0 ? 'Be the first to review' : 'reviews'}
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gray-900/50 border-gray-800 cursor-pointer hover:bg-gray-900/70 transition-colors">
+                  <CardContent className="p-4 text-center">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <Award className="h-4 w-4 text-amber-400" />
+                      <span className="text-sm font-medium text-gray-300">Experts</span>
+                    </div>
+                    <div className="text-xl font-bold text-white mb-1">
+                      {isLoadingStats ? '—' : expertStats.count || 0}
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      {expertStats.count === 0 ? 'Be the first to review' : 'reviews'}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
+
+          {/* Primary Action Buttons - Pill-shaped */}
+          <div className="px-4 mb-6">
+            <div className="flex gap-3">
+              {getPhoneNumber() && (
+                <Button
+                  onClick={handleCall}
+                  className="flex-1 flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full"
+                >
+                  <Phone className="h-4 w-4" />
+                  Call
+                </Button>
+              )}
+              <Button
+                onClick={handleDirections}
+                className="flex-1 flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full"
+              >
+                <Navigation className="h-4 w-4" />
+                Directions
+              </Button>
+              {restaurantData.website && (
+                <Button
+                  onClick={handleWebsite}
+                  className="flex-1 flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full"
+                >
+                  <Globe className="h-4 w-4" />
+                  Website
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Community Rating */}
+          {deferCommunity && (
+            <div className="px-4 mb-6">
+              <CommunityRating stats={communityStats} isLoading={isLoadingReviews} />
+            </div>
+          )}
+
+          {/* Photos Section - Cards with rounded corners */}
+          {deferPhotos && (
+            <div className="px-4 mb-6">
+              <UnifiedPhotoGallery 
+                stats={communityStats} 
+                isLoading={isLoadingReviews} 
+                onPhotoClick={() => {}} 
+                friendPhotos={restaurantData.isSharedRestaurant && restaurantData.photos && restaurantData.photos.length > 0 ? 
+                  restaurantData.photos.map((url, index) => ({
+                    url,
+                    caption: Array.isArray(restaurantData.photoCaptions) ? restaurantData.photoCaptions[index] : '',
+                    dishName: Array.isArray(restaurantData.photo_captions) ? restaurantData.photo_captions[index] : ''
+                  })) : undefined
+                } 
+                friendName={restaurantData.isSharedRestaurant ? restaurantData.sharedBy?.name : undefined} 
+                friendId={restaurantData.isSharedRestaurant ? restaurantData.sharedBy?.id : undefined} 
+                restaurantId={restaurantData.id} 
+                restaurantPlaceId={restaurantData.place_id} 
+                restaurantName={restaurantData.name} 
+              />
+            </div>
+          )}
+
+          {/* Address & Hours - Card Layout */}
+          <div className="px-4 mb-6 space-y-3">
+            {/* Address Card */}
+            <Card className="bg-gray-900/50 border-gray-800">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-5 w-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-white mb-1">Address</p>
+                    <p className="text-sm text-gray-300">{restaurantData.address}</p>
+                    {restaurantData.city && (
+                      <p className="text-sm text-gray-400">{restaurantData.city}</p>
+                    )}
+                  </div>
+                  <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                    Copy
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Hours Card */}
+            {getOpeningHours() && (
+              <Card className="bg-gray-900/50 border-gray-800">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <Clock className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          restaurantData.isOpen ? 'bg-green-900/50 text-green-300' : 'bg-red-900/50 text-red-300'
+                        }`}>
+                          {restaurantData.isOpen ? 'Open' : 'Closed'}
+                        </span>
+                        <span className="text-sm text-gray-300">
+                          {/* Show today's hours here */}
+                          Today's hours
+                        </span>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                      <span className="text-xs">View all</span>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Map */}
+          {restaurantData.latitude && restaurantData.longitude && (
+            <div className="px-4 mb-6">
+              <h3 className="text-lg font-semibold text-white mb-3">Location</h3>
+              <Card className="bg-gray-900/50 border-gray-800 overflow-hidden">
+                <div ref={mapRef} className="h-60">
+                  {showMap && (
+                    <RestaurantLocationMap 
+                      latitude={restaurantData.latitude} 
+                      longitude={restaurantData.longitude} 
+                      name={restaurantData.name} 
+                      address={restaurantData.address} 
+                    />
+                  )}
+                </div>
+                <CardContent className="p-3">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="w-full text-blue-400 hover:text-blue-300"
+                    onClick={handleDirections}
+                  >
+                    Open in Maps
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Sticky Action Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-gray-950/95 backdrop-blur-sm border-t border-gray-800 p-4 pb-safe">
+        <Button 
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-full py-3 font-semibold"
+          onClick={() => {
+            if (restaurantData.reservationUrl || restaurantData.reservation_url) {
+              window.open(restaurantData.reservationUrl || restaurantData.reservation_url, '_blank');
+            } else {
+              toast.info('Reservations not available online');
+            }
+          }}
+        >
+          Reserve
+        </Button>
+      </div>
+
+      {/* Photo Gallery Modal */}
+      <PhotoGallery 
+        photos={photos.map(p => resolveImageUrl(p))} 
+        photoCaptions={restaurantData.photoCaptions || restaurantData.photo_captions} 
+        isOpen={isPhotoGalleryOpen} 
+        onClose={() => setIsPhotoGalleryOpen(false)} 
+        restaurantName={restaurantData.name} 
+        isMobile={actualIsMobile} 
+      />
+    </>
+  );
 }
