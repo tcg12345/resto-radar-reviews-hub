@@ -664,84 +664,106 @@ export function UnifiedRestaurantDetails({
             {getOpeningHours() && (
               <Card className="bg-gray-900/50 border-gray-800/50 rounded-xl">
                 <CardContent className="p-5">
-                  {/* Header with status */}
+                  {/* Header */}
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-gray-800/50 rounded-lg">
                         <Clock className="h-4 w-4 text-gray-300" />
                       </div>
-                      <div>
-                        <h3 className="text-sm font-semibold text-white">Hours</h3>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className={`px-2 py-1 rounded-md text-xs font-medium border ${
-                            restaurantData.isOpen 
-                              ? 'bg-emerald-950/50 text-emerald-300 border-emerald-800/50' 
-                              : 'bg-red-950/50 text-red-300 border-red-800/50'
-                          }`}>
-                            {restaurantData.isOpen ? '● Open now' : '● Closed'}
+                      <h3 className="text-base font-semibold text-white">Hours</h3>
+                    </div>
+                    
+                    {/* Status Badge - Top Right */}
+                    <div className="flex items-center gap-3">
+                      <span className={`px-3 py-1.5 rounded-full text-xs font-medium border ${
+                        restaurantData.isOpen 
+                          ? 'bg-emerald-950/50 text-emerald-300 border-emerald-800/30' 
+                          : 'bg-red-950/50 text-red-300 border-red-800/30'
+                      }`}>
+                        {restaurantData.isOpen ? '● Open now' : '● Closed'}
+                      </span>
+                      
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-gray-400 hover:text-white p-1 h-auto"
+                        onClick={() => setIsHoursExpanded(!isHoursExpanded)}
+                      >
+                        {isHoursExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Today's hours only */}
+                  {!isHoursExpanded && (
+                    <div>
+                      <div className="bg-blue-950/30 border border-blue-800/20 rounded-lg p-4">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-2">
+                            <span className="text-base font-semibold text-white">Today</span>
+                            <span className="text-xs text-blue-400 font-medium">(Current)</span>
+                          </div>
+                          <span className="text-sm text-gray-300 font-mono">
+                            {(() => {
+                              const todayIndex = new Date().getDay();
+                              const hoursArray = getOpeningHours();
+                              if (!hoursArray) return 'Hours unavailable';
+                              const todayHours = hoursArray[todayIndex];
+                              if (!todayHours) return 'Hours unavailable';
+                              const parts = todayHours.split(':');
+                              return parts.length > 1 ? parts.slice(1).join(':').trim() : 'Closed';
+                            })()}
                           </span>
                         </div>
                       </div>
-                    </div>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-gray-400 hover:text-white p-1 h-auto"
-                      onClick={() => setIsHoursExpanded(!isHoursExpanded)}
-                    >
-                      {isHoursExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    </Button>
-                  </div>
-
-                  {/* Today's hours */}
-                  {!isHoursExpanded && (
-                    <div className="bg-gray-800/30 rounded-lg p-3 border border-gray-700/50">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-white">Today</span>
-                        <span className="text-sm text-gray-300 font-mono">
-                          {(() => {
-                            const todayIndex = new Date().getDay();
-                            const hoursArray = getOpeningHours();
-                            if (!hoursArray) return 'Hours unavailable';
-                            const todayHours = hoursArray[todayIndex];
-                            if (!todayHours) return 'Hours unavailable';
-                            const parts = todayHours.split(':');
-                            return parts.length > 1 ? parts.slice(1).join(':').trim() : todayHours;
-                          })()}
-                        </span>
+                      
+                      <div className="mt-3 text-center">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-gray-400 hover:text-white text-xs"
+                          onClick={() => setIsHoursExpanded(true)}
+                        >
+                          View full week
+                        </Button>
                       </div>
                     </div>
                   )}
                   
-                  {/* Full week hours */}
+                  {/* Full week schedule */}
                   {isHoursExpanded && (
-                    <div className="space-y-1">
+                    <div className="space-y-0 border border-gray-700/30 rounded-lg overflow-hidden">
                       {getOpeningHours()?.map((hours, index) => {
                         const todayIndex = new Date().getDay();
                         const isToday = index === todayIndex;
                         const parts = hours.split(':');
                         const dayName = parts[0]?.trim();
-                        const timeRange = parts.length > 1 ? parts.slice(1).join(':').trim() : '';
+                        const timeRange = parts.length > 1 ? parts.slice(1).join(':').trim() : 'Closed';
                         
                         return (
                           <div 
                             key={index} 
-                            className={`flex justify-between items-center py-2.5 px-3 rounded-lg transition-colors ${
+                            className={`flex justify-between items-center py-3 px-4 border-b border-gray-700/20 last:border-b-0 ${
                               isToday 
-                                ? 'bg-blue-950/40 border border-blue-800/30' 
-                                : 'hover:bg-gray-800/20'
+                                ? 'bg-blue-950/30 border-l-2 border-l-blue-500' 
+                                : 'bg-gray-900/20'
                             }`}
                           >
-                            <span className={`text-sm font-medium ${
-                              isToday ? 'text-blue-300' : 'text-gray-300'
-                            }`}>
-                              {dayName}
-                              {isToday && <span className="ml-2 text-xs text-blue-400">(Today)</span>}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className={`text-sm font-semibold min-w-[80px] ${
+                                isToday ? 'text-blue-300' : 'text-gray-300'
+                              }`}>
+                                {dayName}
+                              </span>
+                              {isToday && (
+                                <span className="text-xs text-blue-400 font-medium">(Today)</span>
+                              )}
+                            </div>
+                            
                             <span className={`text-sm font-mono ${
                               isToday ? 'text-white font-medium' : 'text-gray-400'
                             }`}>
-                              {timeRange || 'Closed'}
+                              {timeRange}
                             </span>
                           </div>
                         );
