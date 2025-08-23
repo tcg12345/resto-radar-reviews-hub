@@ -662,44 +662,90 @@ export function UnifiedRestaurantDetails({
 
             {/* Hours Card */}
             {getOpeningHours() && (
-              <Card className="bg-gray-900/50 border-gray-800">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between gap-3">
+              <Card className="bg-gray-900/50 border-gray-800/50 rounded-xl">
+                <CardContent className="p-5">
+                  {/* Header with status */}
+                  <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <Clock className="h-5 w-5 text-gray-400 flex-shrink-0" />
-                      <div className="flex items-center gap-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          restaurantData.isOpen ? 'bg-green-900/50 text-green-300' : 'bg-red-900/50 text-red-300'
-                        }`}>
-                          {restaurantData.isOpen ? 'Open' : 'Closed'}
-                        </span>
-                        <span className="text-sm text-gray-300">
-                          {getOpeningHours()?.[((new Date().getDay() + 6) % 7)] || 'Today\'s hours'}
-                        </span>
+                      <div className="p-2 bg-gray-800/50 rounded-lg">
+                        <Clock className="h-4 w-4 text-gray-300" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold text-white">Hours</h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className={`px-2 py-1 rounded-md text-xs font-medium border ${
+                            restaurantData.isOpen 
+                              ? 'bg-emerald-950/50 text-emerald-300 border-emerald-800/50' 
+                              : 'bg-red-950/50 text-red-300 border-red-800/50'
+                          }`}>
+                            {restaurantData.isOpen ? '● Open now' : '● Closed'}
+                          </span>
+                        </div>
                       </div>
                     </div>
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="text-gray-400 hover:text-white flex items-center gap-1"
+                      className="text-gray-400 hover:text-white p-1 h-auto"
                       onClick={() => setIsHoursExpanded(!isHoursExpanded)}
                     >
-                      <span className="text-xs">View all</span>
-                      {isHoursExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                      {isHoursExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                     </Button>
                   </div>
-                  
-                  {/* Expanded hours dropdown */}
-                  {isHoursExpanded && (
-                    <div className="mt-4 pt-4 border-t border-gray-700">
-                      <div className="space-y-2">
-                        {getOpeningHours()?.map((hours, index) => (
-                          <div key={index} className="flex justify-between text-sm">
-                            <span className="text-gray-400">{hours.split(':')[0]}:</span>
-                            <span className="text-gray-300">{hours.split(':').slice(1).join(':').trim()}</span>
-                          </div>
-                        ))}
+
+                  {/* Today's hours */}
+                  {!isHoursExpanded && (
+                    <div className="bg-gray-800/30 rounded-lg p-3 border border-gray-700/50">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-white">Today</span>
+                        <span className="text-sm text-gray-300 font-mono">
+                          {(() => {
+                            const todayIndex = new Date().getDay();
+                            const hoursArray = getOpeningHours();
+                            if (!hoursArray) return 'Hours unavailable';
+                            const todayHours = hoursArray[todayIndex];
+                            if (!todayHours) return 'Hours unavailable';
+                            const parts = todayHours.split(':');
+                            return parts.length > 1 ? parts.slice(1).join(':').trim() : todayHours;
+                          })()}
+                        </span>
                       </div>
+                    </div>
+                  )}
+                  
+                  {/* Full week hours */}
+                  {isHoursExpanded && (
+                    <div className="space-y-1">
+                      {getOpeningHours()?.map((hours, index) => {
+                        const todayIndex = new Date().getDay();
+                        const isToday = index === todayIndex;
+                        const parts = hours.split(':');
+                        const dayName = parts[0]?.trim();
+                        const timeRange = parts.length > 1 ? parts.slice(1).join(':').trim() : '';
+                        
+                        return (
+                          <div 
+                            key={index} 
+                            className={`flex justify-between items-center py-2.5 px-3 rounded-lg transition-colors ${
+                              isToday 
+                                ? 'bg-blue-950/40 border border-blue-800/30' 
+                                : 'hover:bg-gray-800/20'
+                            }`}
+                          >
+                            <span className={`text-sm font-medium ${
+                              isToday ? 'text-blue-300' : 'text-gray-300'
+                            }`}>
+                              {dayName}
+                              {isToday && <span className="ml-2 text-xs text-blue-400">(Today)</span>}
+                            </span>
+                            <span className={`text-sm font-mono ${
+                              isToday ? 'text-white font-medium' : 'text-gray-400'
+                            }`}>
+                              {timeRange || 'Closed'}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </CardContent>
