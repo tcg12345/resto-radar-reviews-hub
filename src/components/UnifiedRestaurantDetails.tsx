@@ -489,7 +489,7 @@ export function UnifiedRestaurantDetails({
               variant="secondary"
               size="sm"
               onClick={() => setIsPhotoGalleryOpen(true)}
-              className="absolute bottom-4 right-4 bg-black/40 backdrop-blur-sm border-0 hover:bg-black/50 text-white text-xs px-3 py-2 h-8 rounded-full"
+              className="absolute bottom-6 right-4 bg-black/40 backdrop-blur-sm border-0 hover:bg-black/50 text-white text-xs px-3 py-2 h-8 rounded-full"
             >
               View photos ({heroCandidates.length})
             </Button>
