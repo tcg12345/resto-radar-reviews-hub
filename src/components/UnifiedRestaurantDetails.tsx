@@ -663,8 +663,8 @@ export function UnifiedRestaurantDetails({
             {/* Hours Card */}
             {getOpeningHours() && (
               <Card className="bg-gray-900/50 border-gray-800">
-                <CardContent className="p-0">
-                  <div className="p-4 flex items-center justify-between gap-3">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <Clock className="h-5 w-5 text-gray-400 flex-shrink-0" />
                       <div className="flex items-center gap-2">
@@ -674,7 +674,7 @@ export function UnifiedRestaurantDetails({
                           {restaurantData.isOpen ? 'Open' : 'Closed'}
                         </span>
                         <span className="text-sm text-gray-300">
-                          {getOpeningHours()?.[((new Date().getDay() + 6) % 7)]?.split(':').slice(1).join(':').trim() || 'Today\'s hours'}
+                          {getOpeningHours()?.[((new Date().getDay() + 6) % 7)] || 'Today\'s hours'}
                         </span>
                       </div>
                     </div>
@@ -691,33 +691,14 @@ export function UnifiedRestaurantDetails({
                   
                   {/* Expanded hours dropdown */}
                   {isHoursExpanded && (
-                    <div className="border-t border-gray-700 bg-gray-900/30">
-                      <div className="p-4 space-y-1">
-                        {getOpeningHours()?.map((hours, index) => {
-                          const isToday = index === ((new Date().getDay() + 6) % 7);
-                          const [day, ...timeParts] = hours.split(':');
-                          const time = timeParts.join(':').trim();
-                          
-                          return (
-                            <div 
-                              key={index} 
-                              className={`flex items-center justify-between py-2 px-3 rounded-lg transition-colors ${
-                                isToday ? 'bg-blue-900/30 border border-blue-800/50' : 'hover:bg-gray-800/50'
-                              }`}
-                            >
-                              <span className={`text-sm font-medium ${
-                                isToday ? 'text-blue-300' : 'text-gray-400'
-                              }`}>
-                                {day}
-                              </span>
-                              <span className={`text-sm ${
-                                isToday ? 'text-blue-200 font-medium' : 'text-gray-300'
-                              }`}>
-                                {time}
-                              </span>
-                            </div>
-                          );
-                        })}
+                    <div className="mt-4 pt-4 border-t border-gray-700">
+                      <div className="space-y-2">
+                        {getOpeningHours()?.map((hours, index) => (
+                          <div key={index} className="flex justify-between text-sm">
+                            <span className="text-gray-400">{hours.split(':')[0]}:</span>
+                            <span className="text-gray-300">{hours.split(':').slice(1).join(':').trim()}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )}
