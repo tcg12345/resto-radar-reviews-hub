@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { ArrowLeft, MapPin, Clock, Phone, Globe, Star, Heart, Plus, Share2, Navigation, ExternalLink, Check, User, Users, Award } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Phone, Globe, Star, Heart, Plus, Share2, Navigation, ExternalLink, Check, User, Users, Award, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -103,6 +103,7 @@ export function UnifiedRestaurantDetails({
   const [deferCommunity, setDeferCommunity] = useState(false);
   const [deferPhotos, setDeferPhotos] = useState(false);
   const [showMap, setShowMap] = useState(false);
+  const [isHoursExpanded, setIsHoursExpanded] = useState(false);
   const [hasLoadedHeroImage, setHasLoadedHeroImage] = useState(false);
   const mapRef = useRef<HTMLDivElement | null>(null);
   const enhancedPlaceIdsRef = useRef<Set<string>>(new Set());
@@ -673,15 +674,34 @@ export function UnifiedRestaurantDetails({
                           {restaurantData.isOpen ? 'Open' : 'Closed'}
                         </span>
                         <span className="text-sm text-gray-300">
-                          {/* Show today's hours here */}
-                          Today's hours
+                          {getOpeningHours()?.[new Date().getDay()] || 'Today\'s hours'}
                         </span>
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-gray-400 hover:text-white flex items-center gap-1"
+                      onClick={() => setIsHoursExpanded(!isHoursExpanded)}
+                    >
                       <span className="text-xs">View all</span>
+                      {isHoursExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                     </Button>
                   </div>
+                  
+                  {/* Expanded hours dropdown */}
+                  {isHoursExpanded && (
+                    <div className="mt-4 pt-4 border-t border-gray-700">
+                      <div className="space-y-2">
+                        {getOpeningHours()?.map((hours, index) => (
+                          <div key={index} className="flex justify-between text-sm">
+                            <span className="text-gray-400">{hours.split(':')[0]}:</span>
+                            <span className="text-gray-300">{hours.split(':').slice(1).join(':').trim()}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
