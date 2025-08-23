@@ -674,7 +674,7 @@ export function UnifiedRestaurantDetails({
                           {restaurantData.isOpen ? 'Open' : 'Closed'}
                         </span>
                         <span className="text-sm text-gray-300">
-                          {getOpeningHours()?.[new Date().getDay()] || 'Today\'s hours'}
+                          {getOpeningHours()?.[((new Date().getDay() + 6) % 7)] || 'Today\'s hours'}
                         </span>
                       </div>
                     </div>
