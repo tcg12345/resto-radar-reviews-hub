@@ -435,20 +435,6 @@ export function UnifiedRestaurantDetails({
                 className="h-full w-full object-cover"
                 onLoad={() => setHasLoadedHeroImage(true)}
               />
-              {/* Carousel navigation if multiple photos */}
-              {heroCandidates.length > 1 && (
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-                  {heroCandidates.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setHeroIndex(index)}
-                      className={`w-2 h-2 rounded-full transition-all ${
-                        index === heroIndex ? 'bg-white' : 'bg-white/50'
-                      }`}
-                    />
-                  ))}
-                </div>
-              )}
             </div>
           ) : (
             <div className="h-full w-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
