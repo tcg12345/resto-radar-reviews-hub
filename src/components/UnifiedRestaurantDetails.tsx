@@ -643,7 +643,16 @@ export function UnifiedRestaurantDetails({
                       <p className="text-sm text-gray-400">{restaurantData.city}</p>
                     )}
                   </div>
-                  <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-gray-400 hover:text-white"
+                    onClick={() => {
+                      const fullAddress = `${restaurantData.address}${restaurantData.city ? `, ${restaurantData.city}` : ''}`;
+                      navigator.clipboard.writeText(fullAddress);
+                      toast.success('Address copied to clipboard!');
+                    }}
+                  >
                     Copy
                   </Button>
                 </div>
