@@ -483,23 +483,23 @@ export function UnifiedRestaurantDetails({
             <Share2 className="h-4 w-4" />
           </Button>
           
-          {/* View photos button */}
-          {(photos.length > 0 || (communityStats?.recentPhotos?.length || 0) > 0) && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setIsPhotoGalleryOpen(true)}
-              className="absolute bottom-6 right-4 bg-black/40 backdrop-blur-sm border-0 hover:bg-black/50 text-white text-xs px-3 py-2 h-8 rounded-full"
-            >
-              View photos ({heroCandidates.length})
-            </Button>
-          )}
           
           {/* Restaurant name overlay */}
-          <div className="absolute bottom-6 left-4 right-4">
-            <h1 className="text-3xl font-bold text-white mb-2 leading-tight">
+          <div className="absolute bottom-6 left-4 right-4 flex items-center justify-between">
+            <h1 className="text-3xl font-bold text-white leading-tight">
               {restaurantData.name}
             </h1>
+            {/* View photos button */}
+            {(photos.length > 0 || (communityStats?.recentPhotos?.length || 0) > 0) && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setIsPhotoGalleryOpen(true)}
+                className="bg-black/40 backdrop-blur-sm border-0 hover:bg-black/50 text-white text-xs px-3 py-2 h-8 rounded-full"
+              >
+                View photos ({heroCandidates.length})
+              </Button>
+            )}
           </div>
         </div>
 
