@@ -612,7 +612,7 @@ export function UnifiedRestaurantDetails({
               <UnifiedPhotoGallery 
                 stats={communityStats} 
                 isLoading={isLoadingReviews} 
-                onPhotoClick={() => {}} 
+                onPhotoClick={() => setIsPhotoGalleryOpen(true)} 
                 friendPhotos={restaurantData.isSharedRestaurant && restaurantData.photos && restaurantData.photos.length > 0 ? 
                   restaurantData.photos.map((url, index) => ({
                     url,
