@@ -701,7 +701,7 @@ export function UnifiedRestaurantDetails({
                         <div className="flex justify-between items-center">
                           <div className="flex items-center gap-2">
                             <span className="text-base font-semibold text-white">Today</span>
-                            <span className="text-xs text-blue-400 font-medium">(Current)</span>
+                            
                           </div>
                           <span className="text-sm text-gray-300 font-mono">
                             {(() => {
