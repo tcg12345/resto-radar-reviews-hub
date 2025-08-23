@@ -755,9 +755,6 @@ export function UnifiedRestaurantDetails({
                               }`}>
                                 {dayName}
                               </span>
-                              {isToday && (
-                                <span className="text-xs text-blue-400 font-medium">(Today)</span>
-                              )}
                             </div>
                             
                             <span className={`text-sm font-mono ${
