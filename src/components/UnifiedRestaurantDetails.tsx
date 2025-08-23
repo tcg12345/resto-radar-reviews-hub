@@ -664,10 +664,10 @@ export function UnifiedRestaurantDetails({
             {getOpeningHours() && (
               <Card className="bg-gray-900/50 border-gray-800">
                 <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <Clock className="h-5 w-5 text-gray-400 flex-shrink-0" />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <Clock className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                      <div className="flex items-center gap-2">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                           restaurantData.isOpen ? 'bg-green-900/50 text-green-300' : 'bg-red-900/50 text-red-300'
                         }`}>
