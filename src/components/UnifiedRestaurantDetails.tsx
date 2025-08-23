@@ -723,21 +723,6 @@ export function UnifiedRestaurantDetails({
         </div>
       </div>
 
-      {/* Sticky Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-gray-950/95 backdrop-blur-sm border-t border-gray-800 p-4 pb-safe">
-        <Button 
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-full py-3 font-semibold"
-          onClick={() => {
-            if (restaurantData.reservationUrl || restaurantData.reservation_url) {
-              window.open(restaurantData.reservationUrl || restaurantData.reservation_url, '_blank');
-            } else {
-              toast.info('Reservations not available online');
-            }
-          }}
-        >
-          Reserve
-        </Button>
-      </div>
 
       {/* Photo Gallery Modal */}
       <PhotoGallery 
