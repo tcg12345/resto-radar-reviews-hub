@@ -78,7 +78,7 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
         isMobile={isMobile}
       />
       
-      <Card className="overflow-hidden bg-card border-0 shadow-[0_6px_25px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.15)] transition-all duration-300 rounded-2xl cursor-pointer group" onClick={handleCardClick}>
+      <Card className="overflow-hidden border-0 shadow-[0_6px_25px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.15)] transition-all duration-300 rounded-2xl cursor-pointer group" style={{backgroundColor: 'rgb(13,23,42)'}} onClick={handleCardClick}>
         <div className={isMobile ? "block" : "flex"}>
           {!isMobile && restaurant.photos.length > 0 && (
             <div className="w-20 h-20 flex-shrink-0 relative overflow-hidden rounded-l-2xl" onClick={openGallery}>
