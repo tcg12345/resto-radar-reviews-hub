@@ -125,11 +125,6 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
                     </>
                   )}
                   
-                  <span className="text-muted-foreground">•</span>
-                  <span className="text-sm text-muted-foreground truncate">
-                    {restaurant.city}
-                  </span>
-                  
                   {/* Michelin Stars inline */}
                   {restaurant.michelinStars && (
                     <div className="flex items-center ml-1">
@@ -145,11 +140,17 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
                   </div>
                 )}
               </div>
+              
+              {/* City on separate line */}
+              <div className="mt-1">
+                <span className="text-sm text-muted-foreground truncate">
+                  {restaurant.city}
+                </span>
+              </div>
             </div>
             
             {/* Subtle Actions Row */}
-            <div className="flex justify-between items-center gap-1 px-4 pb-2">
-              <span className="text-xs text-muted-foreground truncate">{restaurant.city}</span>
+            <div className="flex justify-end items-center gap-1 px-4 pb-2">
               <div className="flex items-center gap-1">
                 <Button 
                   size="icon"
