@@ -599,7 +599,17 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
         onOpenChange={(open) => !open && setSelectedRestaurantId(null)}
       >
         <DialogContent className="sm:max-w-lg max-w-[90vw] max-h-[80vh] p-0 gap-0">
-          <div className="p-6 max-h-[80vh] overflow-y-auto">
+          <div className="relative p-6 max-h-[80vh] overflow-y-auto rounded-lg">
+            {/* Close button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute top-2 right-2 h-8 w-8 p-0 z-10"
+              onClick={() => setSelectedRestaurantId(null)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+            
             {mapSelectedRestaurant && (
               <RestaurantCard 
                 restaurant={mapSelectedRestaurant}
