@@ -502,7 +502,7 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
                 </div>
               </div>
 
-              {/* Cuisine Filter */}
+              {/* Cuisine Filter Dropdown */}
               <div className="space-y-3">
                 <Label className="text-sm font-medium flex items-center gap-2">
                   <Utensils className="h-4 w-4" />
@@ -511,19 +511,33 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
                     <Badge variant="outline" className="h-5 px-2 text-xs">{filterCuisines.length}</Badge>
                   )}
                 </Label>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {uniqueCuisines.map((cuisine) => (
-                    <div key={cuisine} className="flex items-center justify-between py-2">
-                      <div className="flex items-center space-x-3">
-                        <Checkbox id={`mobile-cuisine-${cuisine}`} checked={filterCuisines.includes(cuisine)} onCheckedChange={() => toggleCuisine(cuisine)} />
-                        <label htmlFor={`mobile-cuisine-${cuisine}`} className="text-sm cursor-pointer">{cuisine}</label>
-                      </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-between text-sm">
+                      {filterCuisines.length > 0 ? `${filterCuisines.length} selected` : "Select cuisines"}
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-3 bg-background border shadow-lg z-50">
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {uniqueCuisines.map((cuisine) => (
+                        <div key={cuisine} className="flex items-center space-x-3 py-1">
+                          <Checkbox 
+                            id={`mobile-cuisine-${cuisine}`} 
+                            checked={filterCuisines.includes(cuisine)} 
+                            onCheckedChange={() => toggleCuisine(cuisine)} 
+                          />
+                          <label htmlFor={`mobile-cuisine-${cuisine}`} className="text-sm cursor-pointer flex-1">
+                            {cuisine}
+                          </label>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </PopoverContent>
+                </Popover>
               </div>
 
-              {/* Price Filter */}
+              {/* Price Filter Dropdown */}
               <div className="space-y-3">
                 <Label className="text-sm font-medium flex items-center gap-2">
                   <DollarSign className="h-4 w-4" />
@@ -532,30 +546,68 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
                     <Badge variant="outline" className="h-5 px-2 text-xs">{filterPrices.length}</Badge>
                   )}
                 </Label>
-                <div className="space-y-2">
-                  {uniquePriceRanges.map((price) => (
-                    <div key={price} className="flex items-center justify-between py-2">
-                      <div className="flex items-center space-x-3">
-                        <Checkbox id={`mobile-price-${price}`} checked={filterPrices.includes(price.toString())} onCheckedChange={() => togglePrice(price.toString())} />
-                        <label htmlFor={`mobile-price-${price}`} className="text-sm cursor-pointer">{'$'.repeat(price)}</label>
-                      </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-between text-sm">
+                      {filterPrices.length > 0 ? `${filterPrices.length} selected` : "Select price ranges"}
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-3 bg-background border shadow-lg z-50">
+                    <div className="space-y-2">
+                      {uniquePriceRanges.map((price) => (
+                        <div key={price} className="flex items-center space-x-3 py-1">
+                          <Checkbox 
+                            id={`mobile-price-${price}`} 
+                            checked={filterPrices.includes(price.toString())} 
+                            onCheckedChange={() => togglePrice(price.toString())} 
+                          />
+                          <label htmlFor={`mobile-price-${price}`} className="text-sm cursor-pointer flex-1">
+                            {'$'.repeat(price)}
+                          </label>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </PopoverContent>
+                </Popover>
               </div>
 
-              {/* Rating Range */}
+              {/* Rating Range Dropdown */}
               <div className="space-y-3">
                 <Label className="text-sm font-medium flex items-center gap-2">
                   <Star className="h-4 w-4" />
                   Rating Range
                 </Label>
-                <div className="flex items-center space-x-3">
-                  <span className="text-sm text-muted-foreground w-8">{tempRatingRange[0]}</span>
-                  <Slider value={tempRatingRange} onValueChange={(value) => setTempRatingRange(value as [number, number])} max={10} min={0} step={0.1} className="flex-1" />
-                  <span className="text-sm text-muted-foreground w-8">{tempRatingRange[1]}</span>
-                </div>
-                <Button onClick={applyRatingFilter} size="sm" className="w-full">Apply Rating</Button>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-between text-sm">
+                      {ratingRange[0] !== 0 || ratingRange[1] !== 10 
+                        ? `${ratingRange[0]} - ${ratingRange[1]}` 
+                        : "Select rating range"
+                      }
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-3 bg-background border shadow-lg z-50">
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3">
+                        <span className="text-sm text-muted-foreground w-8">{tempRatingRange[0]}</span>
+                        <Slider 
+                          value={tempRatingRange} 
+                          onValueChange={(value) => setTempRatingRange(value as [number, number])} 
+                          max={10} 
+                          min={0} 
+                          step={0.1} 
+                          className="flex-1" 
+                        />
+                        <span className="text-sm text-muted-foreground w-8">{tempRatingRange[1]}</span>
+                      </div>
+                      <Button onClick={applyRatingFilter} size="sm" className="w-full">
+                        Apply Rating
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <div className="text-sm text-muted-foreground text-center">Showing {restaurantsWithCoords.length} of {restaurants.length} restaurants</div>
