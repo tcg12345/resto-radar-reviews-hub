@@ -311,13 +311,10 @@ export function RestaurantCard({
                 {restaurant.priceRange && (
                   <>
                     <span className="text-muted-foreground">•</span>
-                    <div className="flex items-center gap-1">
-                      <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">
-                        {'$'.repeat(restaurant.priceRange)}
-                      </span>
-                      <span className="text-lg font-light text-muted-foreground/40">
-                        {'$'.repeat(4 - restaurant.priceRange)}
-                      </span>
+                     <div className="flex items-center gap-1">
+                       <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">
+                         {'$'.repeat(restaurant.priceRange)}
+                       </span>
                     </div>
                   </>
                 )}
