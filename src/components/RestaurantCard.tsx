@@ -297,10 +297,25 @@ export function RestaurantCard({
         )}
         
         {/* Premium Content Layout */}
-        <div className="flex flex-col flex-1 p-5 space-y-4" style={{ backgroundColor: 'rgb(10,23,43)' }}>
+        <div className="relative flex flex-col flex-1 p-5 space-y-4" style={{ backgroundColor: 'rgb(10,23,43)' }}>
+          {/* Close button for no-photos layout */}
+          {onClose && (
+            <Button
+              size="icon"
+              variant="ghost"
+              className="absolute top-3 right-3 h-7 w-7 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 border-0 transition-all duration-200 hover:scale-105 z-10"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+            >
+              <X className="h-3.5 w-3.5 text-white" />
+            </Button>
+          )}
+
           {/* Restaurant Name with Inline Rating */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center justify-between gap-3 pr-10">
               <h3 className="text-2xl font-bold text-foreground leading-tight truncate flex-1">
                 {restaurant.name}
               </h3>
