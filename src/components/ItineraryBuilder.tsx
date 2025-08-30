@@ -872,70 +872,74 @@ export function ItineraryBuilder({
     
     if (isMobile) {
       return (
-        <div className="min-h-screen bg-gradient-subtle">
-          {/* Modern Compact Header */}
-          <div className="bg-card/70 backdrop-blur-xl border-b border-border/20">
-            <div className="px-4 py-3 flex items-center justify-between">
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+          {/* Premium Header Section */}
+          <div className="bg-slate-900/70 backdrop-blur-xl border-b border-slate-700/30">
+            <div className="px-6 py-6 flex items-start justify-between">
               <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h1 className="text-xl font-bold text-gradient mb-0.5">
-                      Plan Your Trip
-                    </h1>
-                    <p className="text-xs text-muted-foreground/70 font-medium">
-                      Create your perfect itinerary
-                    </p>
-                  </div>
-                  
-                  {/* Minimal Icon Button */}
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-8 w-8 p-0 rounded-lg hover:bg-card/60 transition-all duration-200" 
-                    onClick={() => setSavedOpen(true)}
-                  >
-                    <BookOpen className="w-4 h-4 text-primary" />
-                  </Button>
-                </div>
+                <h1 className="text-2xl font-semibold text-white mb-2 tracking-tight">
+                  Plan Your Trip
+                </h1>
+                <div className="h-px bg-gradient-to-r from-blue-500/60 via-blue-400/40 to-transparent w-32 mb-3"></div>
+                <p className="text-sm text-slate-400 font-normal">
+                  Create your perfect itinerary
+                </p>
               </div>
+              
+              {/* Premium Icon Button */}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-10 w-10 p-0 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:bg-slate-700/50 hover:border-blue-500/30 transition-all duration-200 shadow-lg backdrop-blur-sm" 
+                onClick={() => setSavedOpen(true)}
+              >
+                <BookOpen className="w-4 h-4 text-blue-400" />
+              </Button>
             </div>
           </div>
 
-          {/* Compact Content */}
-          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-            {/* Destination Search with Integrated Multi-city Toggle */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
+          {/* Premium Content Container */}
+          <div className="flex-1 overflow-y-auto px-6 py-8">
+            {/* Premium Search Card */}
+            <div className="bg-slate-800/40 backdrop-blur-xl rounded-2xl border border-slate-700/30 shadow-2xl shadow-blue-500/5 p-6 mb-6">
+              <div className="space-y-4">
+                {/* Premium Search Input */}
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10">
+                    <MapPin className="w-5 h-5 text-blue-400" />
+                  </div>
                   <AmadeusCitySearch 
                     value={currentLocationSearch} 
                     onChange={setCurrentLocationSearch} 
                     onCitySelect={handleLocationSelect} 
-                    placeholder="Search destination..." 
-                    className="w-full h-11 text-sm rounded-xl border border-border/50 bg-card/70 backdrop-blur-sm shadow-sm focus:shadow-md transition-all duration-200 font-medium placeholder:text-muted-foreground/60 focus:bg-card/90 focus:border-primary/30"
+                    placeholder="Where to?" 
+                    className="w-full h-14 pl-12 pr-4 text-base rounded-xl border border-slate-600/50 bg-slate-900/50 backdrop-blur-sm shadow-inner text-white placeholder:text-slate-400 focus:bg-slate-900/70 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 font-medium"
                   />
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/5 to-transparent pointer-events-none"></div>
                 </div>
                 
                 {/* Compact Multi-city Toggle */}
-                <div className="ml-3 flex items-center space-x-2 bg-card/60 backdrop-blur-sm rounded-full px-3 py-2 border border-border/30">
-                  <Switch 
-                    id="multi-city" 
-                    checked={isMultiCity} 
-                    onCheckedChange={setIsMultiCity}
-                    className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted scale-90"
-                  />
-                  <Label htmlFor="multi-city" className="text-xs font-medium text-foreground cursor-pointer whitespace-nowrap">
-                    Multi-city
-                  </Label>
+                <div className="flex justify-start">
+                  <div className="inline-flex items-center space-x-3 bg-slate-900/50 backdrop-blur-sm rounded-full px-4 py-2 border border-slate-600/30">
+                    <Switch 
+                      id="multi-city" 
+                      checked={isMultiCity} 
+                      onCheckedChange={setIsMultiCity}
+                      className="data-[state=checked]:bg-blue-500 data-[state=unchecked]:bg-slate-600 scale-90"
+                    />
+                    <Label htmlFor="multi-city" className="text-sm font-medium text-slate-300 cursor-pointer">
+                      Multi-city trip
+                    </Label>
+                  </div>
                 </div>
+                
+                {/* Subtle Help Text */}
+                {isMultiCity && (
+                  <p className="text-xs text-slate-400 px-2 animate-fade-in">
+                    Build an itinerary across multiple destinations
+                  </p>
+                )}
               </div>
-              
-              {/* Subtle Help Text */}
-              {isMultiCity && (
-                <p className="text-xs text-muted-foreground/60 px-3">
-                  Add multiple cities to your adventure
-                </p>
-              )}
             </div>
 
               {/* Selected Destinations */}
