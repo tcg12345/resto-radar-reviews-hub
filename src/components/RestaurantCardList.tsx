@@ -148,26 +148,29 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
             </div>
             
             {/* Subtle Actions Row */}
-            <div className="flex justify-end items-center gap-1 px-4 pb-2">
-              <Button 
-                size="icon"
-                variant="ghost"
-                className="h-6 w-6 rounded-full hover:bg-muted/30 transition-all duration-200 shadow-none opacity-60 hover:opacity-100"
-                onClick={(e) => handleButtonClick(e, () => setIsShareDialogOpen(true))}
-              >
-                <Share2 className="h-3 w-3 text-muted-foreground" />
-              </Button>
-              
-              {onDelete && (
+            <div className="flex justify-between items-center gap-1 px-4 pb-2">
+              <span className="text-xs text-muted-foreground truncate">{restaurant.city}</span>
+              <div className="flex items-center gap-1">
                 <Button 
                   size="icon"
                   variant="ghost"
-                  className="h-6 w-6 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all duration-200 shadow-none opacity-60 hover:opacity-100"
-                  onClick={(e) => handleButtonClick(e, () => onDelete(restaurant.id))}
+                  className="h-6 w-6 rounded-full hover:bg-muted/30 transition-all duration-200 shadow-none opacity-60 hover:opacity-100"
+                  onClick={(e) => handleButtonClick(e, () => setIsShareDialogOpen(true))}
                 >
-                  <Trash2 className="h-3 w-3" />
+                  <Share2 className="h-3 w-3 text-muted-foreground" />
                 </Button>
-              )}
+                
+                {onDelete && (
+                  <Button 
+                    size="icon"
+                    variant="ghost"
+                    className="h-6 w-6 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all duration-200 shadow-none opacity-60 hover:opacity-100"
+                    onClick={(e) => handleButtonClick(e, () => onDelete(restaurant.id))}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </div>
