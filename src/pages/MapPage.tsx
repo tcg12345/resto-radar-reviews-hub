@@ -39,6 +39,9 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
   const [filterType, setFilterType] = useState<'all' | 'rated' | 'wishlist'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [autoZoomRestaurant, setAutoZoomRestaurant] = useState<Restaurant | null>(null);
+  const [showCuisineDropdown, setShowCuisineDropdown] = useState(false);
+  const [showPriceDropdown, setShowPriceDropdown] = useState(false);
+  const [showRatingDropdown, setShowRatingDropdown] = useState(false);
   
   // Drag functionality for filter box - calculate position dynamically when opened
   const getInitialPosition = () => {
@@ -504,110 +507,107 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
 
               {/* Cuisine Filter Dropdown */}
               <div className="space-y-3">
-                <Label className="text-sm font-medium flex items-center gap-2">
-                  <Utensils className="h-4 w-4" />
-                  Cuisine
-                  {filterCuisines.length > 0 && (
-                    <Badge variant="outline" className="h-5 px-2 text-xs">{filterCuisines.length}</Badge>
-                  )}
-                </Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-between text-sm">
-                      {filterCuisines.length > 0 ? `${filterCuisines.length} selected` : "Select cuisines"}
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-full p-3 bg-background border shadow-lg z-50">
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {uniqueCuisines.map((cuisine) => (
-                        <div key={cuisine} className="flex items-center space-x-3 py-1">
-                          <Checkbox 
-                            id={`mobile-cuisine-${cuisine}`} 
-                            checked={filterCuisines.includes(cuisine)} 
-                            onCheckedChange={() => toggleCuisine(cuisine)} 
-                          />
-                          <label htmlFor={`mobile-cuisine-${cuisine}`} className="text-sm cursor-pointer flex-1">
-                            {cuisine}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between text-sm font-medium"
+                  onClick={() => setShowCuisineDropdown(!showCuisineDropdown)}
+                >
+                  <div className="flex items-center gap-2">
+                    <Utensils className="h-4 w-4" />
+                    Cuisine
+                    {filterCuisines.length > 0 && (
+                      <Badge variant="outline" className="h-5 px-2 text-xs">{filterCuisines.length}</Badge>
+                    )}
+                  </div>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${showCuisineDropdown ? 'rotate-180' : ''}`} />
+                </Button>
+                
+                {showCuisineDropdown && (
+                  <div className="border rounded-md p-3 bg-background space-y-2 max-h-48 overflow-y-auto">
+                    {uniqueCuisines.map((cuisine) => (
+                      <div key={cuisine} className="flex items-center space-x-3 py-1">
+                        <Checkbox 
+                          id={`mobile-cuisine-${cuisine}`} 
+                          checked={filterCuisines.includes(cuisine)} 
+                          onCheckedChange={() => toggleCuisine(cuisine)} 
+                        />
+                        <label htmlFor={`mobile-cuisine-${cuisine}`} className="text-sm cursor-pointer flex-1">
+                          {cuisine}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Price Filter Dropdown */}
               <div className="space-y-3">
-                <Label className="text-sm font-medium flex items-center gap-2">
-                  <DollarSign className="h-4 w-4" />
-                  Price Range
-                  {filterPrices.length > 0 && (
-                    <Badge variant="outline" className="h-5 px-2 text-xs">{filterPrices.length}</Badge>
-                  )}
-                </Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-between text-sm">
-                      {filterPrices.length > 0 ? `${filterPrices.length} selected` : "Select price ranges"}
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-full p-3 bg-background border shadow-lg z-50">
-                    <div className="space-y-2">
-                      {uniquePriceRanges.map((price) => (
-                        <div key={price} className="flex items-center space-x-3 py-1">
-                          <Checkbox 
-                            id={`mobile-price-${price}`} 
-                            checked={filterPrices.includes(price.toString())} 
-                            onCheckedChange={() => togglePrice(price.toString())} 
-                          />
-                          <label htmlFor={`mobile-price-${price}`} className="text-sm cursor-pointer flex-1">
-                            {'$'.repeat(price)}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between text-sm font-medium"
+                  onClick={() => setShowPriceDropdown(!showPriceDropdown)}
+                >
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4" />
+                    Price Range
+                    {filterPrices.length > 0 && (
+                      <Badge variant="outline" className="h-5 px-2 text-xs">{filterPrices.length}</Badge>
+                    )}
+                  </div>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${showPriceDropdown ? 'rotate-180' : ''}`} />
+                </Button>
+                
+                {showPriceDropdown && (
+                  <div className="border rounded-md p-3 bg-background space-y-2">
+                    {uniquePriceRanges.map((price) => (
+                      <div key={price} className="flex items-center space-x-3 py-1">
+                        <Checkbox 
+                          id={`mobile-price-${price}`} 
+                          checked={filterPrices.includes(price.toString())} 
+                          onCheckedChange={() => togglePrice(price.toString())} 
+                        />
+                        <label htmlFor={`mobile-price-${price}`} className="text-sm cursor-pointer flex-1">
+                          {'$'.repeat(price)}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Rating Range Dropdown */}
               <div className="space-y-3">
-                <Label className="text-sm font-medium flex items-center gap-2">
-                  <Star className="h-4 w-4" />
-                  Rating Range
-                </Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-between text-sm">
-                      {ratingRange[0] !== 0 || ratingRange[1] !== 10 
-                        ? `${ratingRange[0]} - ${ratingRange[1]}` 
-                        : "Select rating range"
-                      }
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-full p-3 bg-background border shadow-lg z-50">
-                    <div className="space-y-3">
-                      <div className="flex items-center space-x-3">
-                        <span className="text-sm text-muted-foreground w-8">{tempRatingRange[0]}</span>
-                        <Slider 
-                          value={tempRatingRange} 
-                          onValueChange={(value) => setTempRatingRange(value as [number, number])} 
-                          max={10} 
-                          min={0} 
-                          step={0.1} 
-                          className="flex-1" 
-                        />
-                        <span className="text-sm text-muted-foreground w-8">{tempRatingRange[1]}</span>
-                      </div>
-                      <Button onClick={applyRatingFilter} size="sm" className="w-full">
-                        Apply Rating
-                      </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between text-sm font-medium"
+                  onClick={() => setShowRatingDropdown(!showRatingDropdown)}
+                >
+                  <div className="flex items-center gap-2">
+                    <Star className="h-4 w-4" />
+                    Rating Range
+                  </div>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${showRatingDropdown ? 'rotate-180' : ''}`} />
+                </Button>
+                
+                {showRatingDropdown && (
+                  <div className="border rounded-md p-3 bg-background space-y-3">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-sm text-muted-foreground w-8">{tempRatingRange[0]}</span>
+                      <Slider 
+                        value={tempRatingRange} 
+                        onValueChange={(value) => setTempRatingRange(value as [number, number])} 
+                        max={10} 
+                        min={0} 
+                        step={0.1} 
+                        className="flex-1" 
+                      />
+                      <span className="text-sm text-muted-foreground w-8">{tempRatingRange[1]}</span>
                     </div>
-                  </PopoverContent>
-                </Popover>
+                    <Button onClick={applyRatingFilter} size="sm" className="w-full">
+                      Apply Rating
+                    </Button>
+                  </div>
+                )}
               </div>
 
               <div className="text-sm text-muted-foreground text-center">Showing {restaurantsWithCoords.length} of {restaurants.length} restaurants</div>
