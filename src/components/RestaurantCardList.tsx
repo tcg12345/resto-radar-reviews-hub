@@ -142,7 +142,7 @@ export function RestaurantCardList({ restaurant, onEdit, onDelete }: RestaurantC
               </div>
                
                {/* City and Actions on same line */}
-               <div className="flex justify-between items-center gap-1 px-4 pb-2 mt-1">
+               <div className="flex justify-between items-center gap-2 mt-1">
                  <span className="text-sm text-muted-foreground truncate">
                    {restaurant.city}
                  </span>
