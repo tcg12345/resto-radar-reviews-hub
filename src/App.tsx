@@ -81,7 +81,7 @@ const App = () => (
                 <Route path="/places" element={<RequireAuth><Layout activeTab="places"><SavedPlacesPageWrapper /></Layout></RequireAuth>} />
                 <Route path="/rated" element={<RequireAuth><Layout activeTab="places"><SavedPlacesPageWrapper activeSubTab="rated" /></Layout></RequireAuth>} />
                 <Route path="/wishlist" element={<RequireAuth><Layout activeTab="places"><SavedPlacesPageWrapper activeSubTab="wishlist" /></Layout></RequireAuth>} />
-                <Route path="/map" element={<RequireAuth><Layout activeTab="search" showChatbot={false}><MapPageWrapper /></Layout></RequireAuth>} />
+                <Route path="/map" element={<RequireAuth><MapPageWrapper /></RequireAuth>} />
                 <Route path="/travel" element={<RequireAuth><Layout activeTab="travel"><TravelPage /></Layout></RequireAuth>} />
                 <Route path="/hotel/:hotelId" element={<RequireAuth><HotelDetailsPage /></RequireAuth>} />
                 <Route path="/hotel/:hotelId/overview" element={<RequireAuth><HotelDetailedOverviewPage /></RequireAuth>} />
