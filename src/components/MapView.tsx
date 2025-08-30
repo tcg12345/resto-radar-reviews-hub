@@ -15,6 +15,7 @@ import { useLocalStorage } from '@/hooks/useLocalStorage';
 interface MapViewProps {
   restaurants: Restaurant[];
   onRestaurantSelect: (id: string) => void;
+  autoZoomToRestaurant?: Restaurant | null;
 }
 
 type MapStyle = 'streets' | 'satellite' | 'hybrid';
@@ -35,7 +36,7 @@ const getMarkerColor = (rating?: number, isWishlist?: boolean): string => {
   return 'ffd700'; // gold for 9+ stars
 };
 
-export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
+export function MapView({ restaurants, onRestaurantSelect, autoZoomToRestaurant }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<{ [key: string]: mapboxgl.Marker }>({});
@@ -240,6 +241,20 @@ export function MapView({ restaurants, onRestaurantSelect }: MapViewProps) {
       }
     }
   }, [filteredRestaurants, mapLoaded]);
+
+  // Auto-zoom to specific restaurant when requested
+  useEffect(() => {
+    if (!autoZoomToRestaurant || !map.current || !mapLoaded) return;
+    
+    if (autoZoomToRestaurant.latitude && autoZoomToRestaurant.longitude) {
+      map.current.flyTo({
+        center: [autoZoomToRestaurant.longitude, autoZoomToRestaurant.latitude],
+        zoom: 14,
+        essential: true
+      });
+      setSelectedRestaurant(autoZoomToRestaurant);
+    }
+  }, [autoZoomToRestaurant, mapLoaded]);
 
   const handleSaveToken = async () => {
     await saveToken(tokenInput);

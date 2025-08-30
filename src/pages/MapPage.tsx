@@ -38,6 +38,7 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
   const [tempRatingRange, setTempRatingRange] = useState<[number, number]>([0, 10]);
   const [filterType, setFilterType] = useState<'all' | 'rated' | 'wishlist'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [autoZoomRestaurant, setAutoZoomRestaurant] = useState<Restaurant | null>(null);
   
   // Drag functionality for filter box - calculate position dynamically when opened
   const getInitialPosition = () => {
@@ -173,6 +174,19 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
   
   // Apply filters
   const filteredRestaurants = restaurants.filter(restaurant => {
+    // Search query filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      const matchesName = restaurant.name.toLowerCase().includes(query);
+      const matchesAddress = restaurant.address?.toLowerCase().includes(query);
+      const matchesCity = restaurant.city?.toLowerCase().includes(query);
+      const matchesCuisine = restaurant.cuisine?.toLowerCase().includes(query);
+      
+      if (!(matchesName || matchesAddress || matchesCity || matchesCuisine)) {
+        return false;
+      }
+    }
+    
     // Type filter
     if (filterType === 'rated' && restaurant.isWishlist) return false;
     if (filterType === 'wishlist' && !restaurant.isWishlist) return false;
@@ -198,6 +212,18 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
   const restaurantsWithCoords = filteredRestaurants.filter(
     restaurant => restaurant.latitude && restaurant.longitude
   );
+  
+  // Effect to auto-zoom to first search result
+  useEffect(() => {
+    if (searchQuery.trim() && restaurantsWithCoords.length > 0) {
+      const firstResult = restaurantsWithCoords[0];
+      if (firstResult.latitude && firstResult.longitude) {
+        setAutoZoomRestaurant(firstResult);
+      }
+    } else {
+      setAutoZoomRestaurant(null);
+    }
+  }, [searchQuery, restaurantsWithCoords]);
 
   // Get unique cuisines and price ranges for filter options
   const uniqueCuisines = [...new Set(restaurants.map(r => r.cuisine))].sort();
@@ -563,7 +589,8 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
       {/* Map - full height, no margin */}
       <MapView 
         restaurants={restaurantsWithCoords} 
-        onRestaurantSelect={handleRestaurantSelect} 
+        onRestaurantSelect={handleRestaurantSelect}
+        autoZoomToRestaurant={autoZoomRestaurant}
       />
       
       {/* Mobile-optimized Map popup dialog */}
