@@ -598,18 +598,16 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
         open={!!mapSelectedRestaurant} 
         onOpenChange={(open) => !open && setSelectedRestaurantId(null)}
       >
-        <DialogContent className="sm:max-w-lg max-w-[90vw] max-h-[80vh] p-0 gap-0">
-          <div className="p-6 max-h-[80vh] overflow-y-auto rounded-lg">
-            {mapSelectedRestaurant && (
-              <RestaurantCard 
-                restaurant={mapSelectedRestaurant}
-                onEdit={handleOpenEditDialog}
-                onDelete={handleOpenDeleteDialog}
-                onClose={() => setSelectedRestaurantId(null)}
-                showAIReviewAssistant={true}
-              />
-            )}
-          </div>
+        <DialogContent className="sm:max-w-lg max-w-[90vw] max-h-[80vh] p-0 gap-0 overflow-hidden">
+          {mapSelectedRestaurant && (
+            <RestaurantCard 
+              restaurant={mapSelectedRestaurant}
+              onEdit={handleOpenEditDialog}
+              onDelete={handleOpenDeleteDialog}
+              onClose={() => setSelectedRestaurantId(null)}
+              showAIReviewAssistant={true}
+            />
+          )}
         </DialogContent>
       </Dialog>
 
