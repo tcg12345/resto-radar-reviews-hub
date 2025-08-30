@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useInstantImageCache, useOnDemandImageLoader } from '@/hooks/useInstantImageCache';
 import { format } from 'date-fns';
-import { MapPin, Clock, Tag, Edit2, Trash2, Eye, Bot, ExternalLink, Phone, Globe, Share2 } from 'lucide-react';
+import { MapPin, Clock, Tag, Edit2, Trash2, Eye, Bot, ExternalLink, Phone, Globe, Share2, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,7 @@ interface RestaurantCardProps {
   restaurant: Restaurant;
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
+  onClose?: () => void;
   showAIReviewAssistant?: boolean;
 }
 
@@ -78,6 +79,7 @@ export function RestaurantCard({
   restaurant,
   onEdit,
   onDelete,
+  onClose,
   showAIReviewAssistant = false
 }: RestaurantCardProps) {
   const navigate = useNavigate();
@@ -262,18 +264,33 @@ export function RestaurantCard({
               </div>
             )}
 
-            {/* Subtle Edit Icon */}
+            {/* Edit button moved to left side */}
             {onEdit && (
               <Button
                 size="icon"
                 variant="ghost"
-                className="absolute top-3 right-3 h-7 w-7 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/30 border-0 transition-all duration-200 hover:scale-105"
+                className="absolute top-3 left-3 h-7 w-7 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/30 border-0 transition-all duration-200 hover:scale-105"
                 onClick={(e) => {
                   e.stopPropagation();
                   onEdit(restaurant.id);
                 }}
               >
                 <Edit2 className="h-3.5 w-3.5 text-white" />
+              </Button>
+            )}
+
+            {/* Close button in top-right corner */}
+            {onClose && (
+              <Button
+                size="icon"
+                variant="ghost"
+                className="absolute top-3 right-3 h-7 w-7 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/30 border-0 transition-all duration-200 hover:scale-105"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
+              >
+                <X className="h-3.5 w-3.5 text-white" />
               </Button>
             )}
           </div>
