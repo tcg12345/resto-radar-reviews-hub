@@ -204,7 +204,7 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
   const uniquePriceRanges = [...new Set(restaurants.map(r => r.priceRange).filter(Boolean))].sort();
 
   return (
-    <div className="relative h-[calc(100vh-64px)] w-full overflow-hidden">
+    <div className="relative h-screen w-full overflow-hidden">
       {/* Top bar with all controls spanning full width */}
       <div className="absolute top-4 left-4 right-4 z-30 flex items-center gap-3">
         {/* Back button */}
