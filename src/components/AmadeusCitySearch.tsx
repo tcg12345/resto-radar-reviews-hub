@@ -90,7 +90,7 @@ export function AmadeusCitySearch({
           onChange={(e) => onChange(e.target.value)}
           onFocus={() => value.length >= 2 && setShowResults(true)}
           placeholder={placeholder}
-          className={`pl-12 pr-12 font-medium placeholder:text-muted-foreground/60 ${className}`}
+          className={`pl-12 pr-12 font-medium placeholder:text-muted-foreground/60 border-2 border-border ${className}`}
         />
         {isLoading && (
           <Loader2 className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 animate-spin text-primary" />
