@@ -213,9 +213,14 @@ export function MapView({ restaurants, onRestaurantSelect, autoZoomToRestaurant 
 
         marker.getElement().addEventListener('click', () => {
           setSelectedRestaurant(restaurant);
+          
+          // Always zoom in, never zoom out
+          const currentZoom = map.current?.getZoom() || 3;
+          const targetZoom = Math.max(currentZoom + 1, 15); // Always zoom in by at least 1 level, minimum zoom 15
+          
           map.current?.flyTo({
             center: [restaurant.longitude, restaurant.latitude],
-            zoom: 14,
+            zoom: targetZoom,
             essential: true
           });
         });
@@ -247,9 +252,13 @@ export function MapView({ restaurants, onRestaurantSelect, autoZoomToRestaurant 
     if (!autoZoomToRestaurant || !map.current || !mapLoaded) return;
     
     if (autoZoomToRestaurant.latitude && autoZoomToRestaurant.longitude) {
+      // Always zoom in for search results too
+      const currentZoom = map.current?.getZoom() || 3;
+      const targetZoom = Math.max(currentZoom + 1, 15); // Always zoom in by at least 1 level, minimum zoom 15
+      
       map.current.flyTo({
         center: [autoZoomToRestaurant.longitude, autoZoomToRestaurant.latitude],
-        zoom: 14,
+        zoom: targetZoom,
         essential: true
       });
       setSelectedRestaurant(autoZoomToRestaurant);
