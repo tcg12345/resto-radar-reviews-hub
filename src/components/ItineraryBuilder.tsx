@@ -198,6 +198,7 @@ export function ItineraryBuilder({
   const [showSearchBox, setShowSearchBox] = useState((persistedState?.locations || []).length === 0);
   const [hasCreatedItinerary, setHasCreatedItinerary] = useState(persistedState?.hasCreatedItinerary || false);
   const [useLengthOfStay, setUseLengthOfStay] = useState(persistedState?.useLengthOfStay || false);
+  const [globalSetNights, setGlobalSetNights] = useState(false);
   const [numberOfNights, setNumberOfNights] = useState<number>(persistedState?.numberOfNights || 1);
   const [locationLengthOfStay, setLocationLengthOfStay] = useState<Record<string, boolean>>(persistedState?.locationLengthOfStay || {});
   const [locationNights, setLocationNights] = useState<Record<string, number>>(persistedState?.locationNights || {});
@@ -982,17 +983,23 @@ export function ItineraryBuilder({
                                 <div className="flex items-center space-x-2">
                                   <Switch 
                                     id={`length-of-stay-${location.id}`} 
-                                    checked={locationLengthOfStay[location.id] || false} 
+                                    checked={globalSetNights} 
                                     onCheckedChange={checked => {
-                                      setLocationLengthOfStay(prev => ({
-                                        ...prev,
-                                        [location.id]: checked
-                                      }));
+                                      setGlobalSetNights(checked);
                                       if (checked) {
-                                        setLocationNights(prev => ({
-                                          ...prev,
-                                          [location.id]: prev[location.id] || 1
-                                        }));
+                                        // Enable set nights for all locations
+                                        const updatedLengthOfStay = {};
+                                        const updatedNights = {};
+                                        locations.forEach(loc => {
+                                          updatedLengthOfStay[loc.id] = true;
+                                          updatedNights[loc.id] = locationNights[loc.id] || 1;
+                                        });
+                                        setLocationLengthOfStay(updatedLengthOfStay);
+                                        setLocationNights(updatedNights);
+                                      } else {
+                                        // Disable set nights for all locations
+                                        setLocationLengthOfStay({});
+                                        setLocationNights({});
                                       }
                                     }}
                                     className="scale-90"
@@ -1002,7 +1009,7 @@ export function ItineraryBuilder({
                                   </Label>
                                 </div>
                                 
-                                {locationLengthOfStay[location.id] ? (
+                                {globalSetNights && (
                                   <div className="space-y-2">
                                     <Slider 
                                       value={[locationNights[location.id] || 1]} 
@@ -1025,7 +1032,9 @@ export function ItineraryBuilder({
                                       <span className="text-sm font-medium">{locationNights[location.id] || 1} nights</span>
                                     </div>
                                   </div>
-                                ) : (
+                                )}
+                                
+                                {!globalSetNights && (
                                   <Popover>
                                     <PopoverTrigger asChild>
                                       <Button 
