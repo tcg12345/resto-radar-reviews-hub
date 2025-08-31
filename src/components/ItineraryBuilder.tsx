@@ -872,7 +872,7 @@ export function ItineraryBuilder({
     
     if (isMobile) {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="min-h-screen bg-background">
           {/* Premium Header Section */}
           <div className="bg-slate-900/70 backdrop-blur-xl border-b border-slate-700/30">
             <div className="px-6 py-6 flex items-start justify-between">
