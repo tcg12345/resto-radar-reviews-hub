@@ -38,6 +38,8 @@ export function useFriends() {
   const [pendingRequests, setPendingRequests] = useState<FriendRequest[]>([]);
   const [sentRequests, setSentRequests] = useState<FriendRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
+  const [hasError, setHasError] = useState(false);
 
   const fetchAllFriendsData = useCallback(async () => {
     if (!user) return;
@@ -65,7 +67,10 @@ export function useFriends() {
       ]);
 
       // Handle friends data
-      if (friendsResult.error) throw friendsResult.error;
+      if (friendsResult.error) {
+        console.error('Friends RPC error:', friendsResult.error);
+        throw friendsResult.error;
+      }
       
       // Build mapped friends without heavy per-friend stats for instant load
       const cacheKey = user ? `friends:list:${user.id}` : 'friends:list';
@@ -81,22 +86,35 @@ export function useFriends() {
       try { localStorage.setItem(cacheKey, JSON.stringify(mappedFriends)); } catch {}
 
       // Handle friend requests
-      if (receivedRequestsResult.error) throw receivedRequestsResult.error;
-      if (sentRequestsResult.error) throw sentRequestsResult.error;
+      if (receivedRequestsResult.error) {
+        console.error('Received requests error:', receivedRequestsResult.error);
+        throw receivedRequestsResult.error;
+      }
+      if (sentRequestsResult.error) {
+        console.error('Sent requests error:', sentRequestsResult.error);
+        throw sentRequestsResult.error;
+      }
       
       setPendingRequests((receivedRequestsResult.data || []) as FriendRequest[]);
       setSentRequests((sentRequestsResult.data || []) as FriendRequest[]);
 
     } catch (error) {
       console.error('Error fetching friends data:', error);
-      toast.error('Failed to load friends data');
+      // Only show toast for network/server errors, not auth errors
+      if (error && typeof error === 'object' && 'message' in error) {
+        if (!error.message.includes('JWT') && !error.message.includes('unauthorized')) {
+          toast.error('Failed to load friends data');
+        }
+      }
       
       // Reset to empty arrays on error to prevent stale data
       setFriends([]);
       setPendingRequests([]);
       setSentRequests([]);
+      setHasError(true);
+      setRetryCount(prev => prev + 1);
     }
-  }, [user, setFriends, setPendingRequests, setSentRequests]);
+  }, [user]);
 
   const sendFriendRequest = async (receiverId: string) => {
     if (!user) return false;
@@ -194,6 +212,15 @@ export function useFriends() {
       setFriends([]);
       setPendingRequests([]);
       setSentRequests([]);
+      setHasError(false);
+      setRetryCount(0);
+      return;
+    }
+
+    // Prevent infinite retries - max 3 attempts
+    if (retryCount >= 3) {
+      console.warn('Max retries reached for friends data, stopping attempts');
+      setIsLoading(false);
       return;
     }
 
@@ -214,18 +241,37 @@ export function useFriends() {
     
     if (!seeded) setIsLoading(true);
     
-    // Load fresh data in background
-    fetchAllFriendsData().finally(() => {
-      setIsLoading(false);
-    });
+    // Reset error state on successful mount
+    setHasError(false);
+    
+    // Load fresh data in background with exponential backoff on retries
+    const delay = retryCount > 0 ? Math.min(1000 * Math.pow(2, retryCount), 5000) : 0;
+    
+    const loadData = async () => {
+      if (delay > 0) {
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+      fetchAllFriendsData().finally(() => {
+        setIsLoading(false);
+      });
+    };
+    
+    loadData();
+
+    // Don't set up realtime subscriptions if we've had errors
+    if (hasError || retryCount >= 2) {
+      return;
+    }
 
     // Debounced refresh function to prevent too many calls
     let timeoutId: NodeJS.Timeout;
     const debouncedRefresh = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
-        fetchAllFriendsData();
-      }, 300); // 300ms debounce
+        if (retryCount < 3) {
+          fetchAllFriendsData();
+        }
+      }, 1000); // Increased debounce to 1 second
     };
 
     // Set up real-time subscriptions with debounced updates
@@ -269,17 +315,25 @@ export function useFriends() {
       supabase.removeChannel(friendRequestsChannel);
       supabase.removeChannel(friendsChannel);
     };
-  }, [user, fetchAllFriendsData]);
+  }, [user, retryCount]);
+
+  const resetRetries = () => {
+    setRetryCount(0);
+    setHasError(false);
+  };
 
   return {
     friends,
     pendingRequests,
     sentRequests,
     isLoading,
+    hasError,
+    retryCount,
     sendFriendRequest,
     respondToFriendRequest,
     removeFriend,
     searchUsers,
-    refreshData: fetchAllFriendsData
+    refreshData: fetchAllFriendsData,
+    resetRetries
   };
 }
