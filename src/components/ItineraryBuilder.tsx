@@ -2320,7 +2320,7 @@ export function ItineraryBuilder({
       setIsEventDialogOpen(false);
       setEditingEvent(null);
       setSelectedDate(null);
-    }} onSave={handleSaveEvent} selectedDate={selectedDate} editingEvent={editingEvent} availableDates={dateRange.start && dateRange.end ? eachDayOfInterval({
+    }} onSave={handleSaveEvent} selectedDate={selectedDate} editingEvent={editingEvent} availableDates={!globalSetNights && dateRange.start && dateRange.end ? eachDayOfInterval({
       start: dateRange.start,
       end: dateRange.end
     }).map(date => format(date, 'yyyy-MM-dd')) : []} />
