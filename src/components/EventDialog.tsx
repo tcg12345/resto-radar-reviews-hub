@@ -27,6 +27,7 @@ interface EventDialogProps {
   editingEvent: ItineraryEvent | null;
   itineraryLocation?: string;
   availableDates?: string[]; // Available trip dates for multi-day selection
+  isDayMode?: boolean; // Whether the trip uses day numbers instead of dates
 }
 interface RestaurantData {
   name: string;
@@ -56,7 +57,8 @@ export function EventDialog({
   selectedDate,
   editingEvent,
   itineraryLocation,
-  availableDates = []
+  availableDates = [],
+  isDayMode = false
 }: EventDialogProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -527,8 +529,10 @@ export function EventDialog({
             Choose which day(s) you want to add this event to
           </p>
           <div className="grid gap-2 max-h-32 overflow-y-auto">
-            {availableDates.map((date) => {
-              const formattedDate = format(new Date(date), 'EEEE, MMMM do');
+            {availableDates.map((date, index) => {
+              const formattedDate = isDayMode 
+                ? `Day ${index + 1}` 
+                : format(new Date(date), 'EEEE, MMMM do');
               const isSelected = selectedDates.includes(date);
               return (
                 <div key={date} className="flex items-center space-x-2">
