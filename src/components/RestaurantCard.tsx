@@ -315,14 +315,14 @@ export function RestaurantCard({
 
           {/* Restaurant Name with Inline Rating */}
           <div className="space-y-2">
-            <div className="flex items-start justify-between gap-3 pr-10">
+            <div className="flex items-start justify-between gap-3">
               <h3 className="text-2xl font-bold text-foreground leading-tight truncate flex-1">
                 {restaurant.name}
               </h3>
               
               {/* Inline Star Rating - aligned to right */}
               {restaurant.rating !== undefined && (
-                <div className="flex items-center gap-1.5 flex-shrink-0">
+                <div className="flex items-center gap-1.5 flex-shrink-0 pr-0">
                   <div className="text-amber-400 text-lg">★</div>
                   <span className="text-lg font-bold text-foreground">
                     {restaurant.rating.toFixed(1)}
