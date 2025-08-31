@@ -2155,12 +2155,6 @@ export function ItineraryBuilder({
                             </div>
                           </div> : (/* Length-of-stay based multi-city management */
                   <div className="space-y-4">
-                            <div className="space-y-2">
-                              <Label className="text-base font-semibold">Stay Duration</Label>
-                              <p className="text-sm text-muted-foreground">
-                                Adjust how many nights you'll spend in each city
-                              </p>
-                            </div>
                             <div className="space-y-3">
                               {currentItinerary.locations.map((location, index) => locationLengthOfStay[location.id] && <div key={location.id} className="group relative border border-border/60 rounded-xl p-4 hover:border-border transition-colors bg-card/50">
                                     <div className="flex items-center justify-between mb-4">
