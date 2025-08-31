@@ -1660,7 +1660,7 @@ export function ItineraryBuilder({
                         </div>
                         
                         {/* Segmented Control - Pill Style */}
-                        <div className="inline-flex bg-muted/50 p-1 rounded-xl border border-border/30 my-[13px]">
+                        <div className="inline-flex bg-muted/50 p-1 rounded-xl border border-border/30 my-[13px] mb-6">
                           <div className="flex">
                             
                             {/* Specific Dates Tab */}
