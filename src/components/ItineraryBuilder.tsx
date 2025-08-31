@@ -552,11 +552,15 @@ export function ItineraryBuilder({
       country: secondaryText.split(',').pop()?.trim() || '',
       state: secondaryText.split(',')[0]?.trim()
     };
-    if (!isMultiCity) {
-      setLocations([newLocation]);
-    } else {
-      setLocations(prev => [...prev, newLocation]);
+    
+    // Always add to the locations array (first location enables multi-city mode)
+    setLocations(prev => [...prev, newLocation]);
+    
+    // Enable multi-city mode after first location is added
+    if (locations.length === 0) {
+      setIsMultiCity(true);
     }
+    
     setCurrentLocationSearch('');
   };
   const removeLocation = (locationId: string) => {
@@ -921,26 +925,28 @@ export function ItineraryBuilder({
                   <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/5 to-transparent pointer-events-none"></div>
                 </div>
                 
-                {/* Compact Multi-city Toggle */}
-                <div className="flex justify-start">
-                  <div className="inline-flex items-center space-x-3 bg-slate-900/50 backdrop-blur-sm rounded-full px-4 py-2 border border-slate-600/30">
-                    <Switch 
-                      id="multi-city" 
-                      checked={isMultiCity} 
-                      onCheckedChange={setIsMultiCity}
-                      className="data-[state=checked]:bg-blue-500 data-[state=unchecked]:bg-slate-600 scale-90"
-                    />
-                    <Label htmlFor="multi-city" className="text-sm font-medium text-slate-300 cursor-pointer">
-                      Multi-city trip
-                    </Label>
+                {/* Add Another City Button */}
+                {locations.length > 0 && (
+                  <div className="flex justify-start">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setCurrentLocationSearch('');
+                        // Focus the search input
+                        setTimeout(() => {
+                          const searchInput = document.querySelector('input[placeholder="Where to?"]') as HTMLInputElement;
+                          if (searchInput) {
+                            searchInput.focus();
+                          }
+                        }, 100);
+                      }}
+                      className="inline-flex items-center space-x-2 bg-slate-900/50 backdrop-blur-sm rounded-full px-4 py-2 border border-slate-600/30 hover:bg-slate-800/50 hover:border-blue-500/30 transition-all duration-200"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span className="text-sm font-medium">Add Another City</span>
+                    </Button>
                   </div>
-                </div>
-                
-                {/* Subtle Help Text */}
-                {isMultiCity && (
-                  <p className="text-xs text-slate-400 px-2 animate-fade-in">
-                    Build an itinerary across multiple destinations
-                  </p>
                 )}
               </div>
             </div>
