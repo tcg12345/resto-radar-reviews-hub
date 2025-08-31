@@ -2320,10 +2320,13 @@ export function ItineraryBuilder({
       setIsEventDialogOpen(false);
       setEditingEvent(null);
       setSelectedDate(null);
-    }} onSave={handleSaveEvent} selectedDate={selectedDate} editingEvent={editingEvent} availableDates={dateRange.start && dateRange.end ? eachDayOfInterval({
-      start: dateRange.start,
-      end: dateRange.end
-    }).map(date => format(date, 'yyyy-MM-dd')) : []} isDayMode={globalSetNights} />
+    }} onSave={handleSaveEvent} selectedDate={selectedDate} editingEvent={editingEvent} availableDates={globalSetNights 
+      ? Array.from({ length: Math.max(...Object.values(locationNights), 1) }, (_, i) => `day-${i + 1}`)
+      : (dateRange.start && dateRange.end ? eachDayOfInterval({
+          start: dateRange.start,
+          end: dateRange.end
+        }).map(date => format(date, 'yyyy-MM-dd')) : [])
+    } isDayMode={globalSetNights} />
 
       {/* Share Dialog */}
       <ShareItineraryDialog isOpen={isShareDialogOpen} onClose={() => setIsShareDialogOpen(false)} itinerary={currentItinerary} />
