@@ -899,7 +899,7 @@ export function ItineraryBuilder({
           </div>
 
           {/* Premium Content Container */}
-          <div className="flex-1 overflow-y-auto px-6 py-8">
+          <div className="flex-1 overflow-y-auto px-3 py-8">
             {/* Premium Search Card */}
             <div className="bg-slate-800/40 backdrop-blur-xl rounded-2xl border border-slate-700/30 shadow-2xl shadow-blue-500/5 p-6 mb-6">
               <div className="space-y-4">
