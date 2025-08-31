@@ -346,6 +346,33 @@ export function UnifiedRestaurantDetails({
     }
   };
 
+  const handleAddToRatedList = () => {
+    if (!user || !restaurantData) return;
+    
+    // Navigate to review form with pre-filled restaurant data
+    const restaurantFormData = encodeURIComponent(JSON.stringify({
+      name: restaurantData.name,
+      address: restaurantData.address,
+      city: restaurantData.city || '',
+      country: restaurantData.country || '',
+      cuisine: restaurantData.cuisine,
+      price_range: restaurantData.priceRange || restaurantData.price_range,
+      michelin_stars: restaurantData.michelinStars || restaurantData.michelin_stars,
+      photos: restaurantData.photos || [],
+      latitude: restaurantData.latitude,
+      longitude: restaurantData.longitude,
+      google_place_id: restaurantData.place_id,
+      website: restaurantData.website || '',
+      phone_number: restaurantData.phone || restaurantData.phone_number || restaurantData.formatted_phone_number || '',
+      opening_hours: typeof restaurantData.opening_hours === 'object' ? restaurantData.opening_hours?.weekday_text?.join('\n') || '' : restaurantData.opening_hours || restaurantData.openingHours || '',
+      reservable: restaurantData.reservable || false,
+      reservation_url: restaurantData.reservationUrl || restaurantData.reservation_url || '',
+      is_wishlist: false
+    }));
+    
+    navigate(`/restaurant-form?prefill=${restaurantFormData}`);
+  };
+
   const handleShare = () => {
     if (navigator.share && restaurantData) {
       navigator.share({
@@ -520,13 +547,12 @@ export function UnifiedRestaurantDetails({
                   {isAdding ? 'Adding...' : 'Wishlist'}
                 </Button>
                 <Button
-                  onClick={handleAddToWishlist}
+                  onClick={handleAddToRatedList}
                   variant="outline"
                   className="flex-1 flex items-center gap-2 bg-gray-900/50 border-gray-700 text-white hover:bg-gray-800"
-                  disabled={isAdding}
                 >
-                  <Plus className="h-4 w-4" />
-                  {isAdding ? 'Adding...' : 'Add to List'}
+                  <Star className="h-4 w-4" />
+                  Rate & Review
                 </Button>
               </div>
             )}
