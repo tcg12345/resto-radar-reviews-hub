@@ -55,7 +55,6 @@ import FriendsRatingsPage from "./pages/FriendsRatingsPage";
 import ExpertRatingsPage from "./pages/ExpertRatingsPage";
 import ApplyExpertPage from "./pages/ApplyExpertPage";
 import AdminExpertApplicationsPage from "./pages/AdminExpertApplicationsPage";
-import RestaurantFormPage from "./pages/RestaurantFormPage";
 
 const queryClient = new QueryClient();
 
@@ -131,9 +130,6 @@ const App = () => (
                 <Route path="/mobile/restaurant/:restaurantId" element={<RequireAuth><MobileRestaurantDetailsPage /></RequireAuth>} />
                 <Route path="/mobile/search/restaurant" element={<RequireAuth><MobileSearchRestaurantDetailsPage /></RequireAuth>} />
                 <Route path="/share/restaurant/:restaurantId" element={<RequireAuth><ShareRestaurantPage /></RequireAuth>} />
-                
-                {/* Restaurant form */}
-                <Route path="/restaurant-form" element={<RequireAuth><RestaurantFormPage /></RequireAuth>} />
 
                 {/* Expert application */}
                 <Route path="/apply-expert" element={<RequireAuth><ApplyExpertPage /></RequireAuth>} />
