@@ -319,21 +319,6 @@ export function RestaurantCard({
               <h3 className="text-2xl font-bold text-foreground leading-tight truncate flex-1">
                 {restaurant.name}
               </h3>
-              
-              {/* Inline Star Rating */}
-              {restaurant.rating !== undefined && (
-                <div className="flex items-center gap-1.5 flex-shrink-0">
-                  <div className="text-amber-400 text-lg">★</div>
-                  <span className="text-lg font-bold text-foreground">
-                    {restaurant.rating.toFixed(1)}
-                  </span>
-                  {restaurant.reviewCount && restaurant.reviewCount > 0 && (
-                    <span className="text-sm text-muted-foreground">
-                      ({restaurant.reviewCount.toLocaleString()})
-                    </span>
-                  )}
-                </div>
-              )}
             </div>
 
             {/* Cuisine, Price & Michelin Row */}
@@ -352,12 +337,30 @@ export function RestaurantCard({
                 )}
               </div>
               
-              {/* Michelin Stars on the same line */}
-              {restaurant.michelinStars && (
-                <div className="flex items-center">
-                  <MichelinStars stars={restaurant.michelinStars} readonly size="sm" />
-                </div>
-              )}
+              {/* Right side container for rating and Michelin stars */}
+              <div className="flex flex-col items-end gap-1">
+                {/* Inline Star Rating */}
+                {restaurant.rating !== undefined && (
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <div className="text-amber-400 text-lg">★</div>
+                    <span className="text-lg font-bold text-foreground">
+                      {restaurant.rating.toFixed(1)}
+                    </span>
+                    {restaurant.reviewCount && restaurant.reviewCount > 0 && (
+                      <span className="text-sm text-muted-foreground">
+                        ({restaurant.reviewCount.toLocaleString()})
+                      </span>
+                    )}
+                  </div>
+                )}
+                
+                {/* Michelin Stars */}
+                {restaurant.michelinStars && (
+                  <div className="flex items-center">
+                    <MichelinStars stars={restaurant.michelinStars} readonly size="sm" />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
