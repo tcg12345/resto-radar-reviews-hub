@@ -662,31 +662,32 @@ export function UnifiedRestaurantDetails({
 
             {/* Hours Card */}
             {getOpeningHours() && (
-              <Card className="bg-gray-900/50 border-gray-800/50 rounded-xl">
-                <CardContent className="p-5">
+              <Card className="bg-card/80 backdrop-blur-sm border-border/60 shadow-lg">
+                <CardContent className="p-6">
                   {/* Header */}
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-gray-800/50 rounded-lg">
-                        <Clock className="h-4 w-4 text-gray-300" />
+                      <div className="p-2.5 bg-primary/10 rounded-xl">
+                        <Clock className="h-5 w-5 text-primary" />
                       </div>
-                      <h3 className="text-base font-semibold text-white">Hours</h3>
+                      <h3 className="text-lg font-semibold text-foreground">Opening Hours</h3>
                     </div>
                     
                     {/* Status Badge - Top Right */}
                     <div className="flex items-center gap-3">
-                      <span className={`px-3 py-1.5 rounded-full text-xs font-medium border ${
+                      <span className={`px-4 py-2 rounded-full text-sm font-medium border-2 transition-colors ${
                         restaurantData.isOpen 
-                          ? 'bg-emerald-950/50 text-emerald-300 border-emerald-800/30' 
-                          : 'bg-red-950/50 text-red-300 border-red-800/30'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800/30' 
+                          : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-300 dark:border-red-800/30'
                       }`}>
-                        {restaurantData.isOpen ? '● Open now' : '● Closed'}
+                        <span className="mr-2">●</span>
+                        {restaurantData.isOpen ? 'Open now' : 'Closed'}
                       </span>
                       
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="text-gray-400 hover:text-white p-1 h-auto"
+                        className="text-muted-foreground hover:text-foreground hover:bg-muted/50 p-2 h-auto rounded-lg"
                         onClick={() => setIsHoursExpanded(!isHoursExpanded)}
                       >
                         {isHoursExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -696,14 +697,13 @@ export function UnifiedRestaurantDetails({
 
                   {/* Today's hours only */}
                   {!isHoursExpanded && (
-                    <div>
-                      <div className="bg-blue-950/30 border border-blue-800/20 rounded-lg p-4">
+                    <div className="space-y-4">
+                      <div className="bg-primary/5 border border-primary/10 rounded-xl p-5">
                         <div className="flex justify-between items-center">
-                          <div className="flex items-center gap-2">
-                            <span className="text-base font-semibold text-white">Today</span>
-                            
+                          <div className="flex items-center gap-3">
+                            <span className="text-lg font-semibold text-foreground">Today</span>
                           </div>
-                          <span className="text-sm text-gray-300 font-mono">
+                          <span className="text-base text-muted-foreground font-medium">
                             {(() => {
                               const todayIndex = new Date().getDay();
                               const hoursArray = getOpeningHours();
@@ -717,14 +717,14 @@ export function UnifiedRestaurantDetails({
                         </div>
                       </div>
                       
-                      <div className="mt-3 text-center">
+                      <div className="text-center">
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          className="text-gray-400 hover:text-white text-xs"
+                          className="text-muted-foreground hover:text-foreground hover:bg-muted/50 text-sm font-medium px-4 py-2"
                           onClick={() => setIsHoursExpanded(true)}
                         >
-                          View full week
+                          View full week schedule
                         </Button>
                       </div>
                     </div>
@@ -732,7 +732,7 @@ export function UnifiedRestaurantDetails({
                   
                   {/* Full week schedule */}
                   {isHoursExpanded && (
-                    <div className="space-y-0 border border-gray-700/30 rounded-lg overflow-hidden">
+                    <div className="space-y-0 border border-border/50 rounded-xl overflow-hidden bg-muted/20">
                       {getOpeningHours()?.map((hours, index) => {
                         const todayIndex = new Date().getDay();
                         const isToday = index === todayIndex;
@@ -743,22 +743,22 @@ export function UnifiedRestaurantDetails({
                         return (
                           <div 
                             key={index} 
-                            className={`flex justify-between items-center py-3 px-4 border-b border-gray-700/20 last:border-b-0 ${
+                            className={`flex justify-between items-center py-4 px-5 border-b border-border/30 last:border-b-0 transition-colors ${
                               isToday 
-                                ? 'bg-blue-950/30 border-l-2 border-l-blue-500' 
-                                : 'bg-gray-900/20'
+                                ? 'bg-primary/10 border-l-4 border-l-primary font-medium' 
+                                : 'hover:bg-muted/30'
                             }`}
                           >
-                            <div className="flex items-center gap-2">
-                              <span className={`text-sm font-semibold min-w-[80px] ${
-                                isToday ? 'text-blue-300' : 'text-gray-300'
+                            <div className="flex items-center gap-3">
+                              <span className={`text-base font-medium min-w-[90px] ${
+                                isToday ? 'text-primary' : 'text-foreground'
                               }`}>
                                 {dayName}
                               </span>
                             </div>
                             
-                            <span className={`text-sm font-mono ${
-                              isToday ? 'text-white font-medium' : 'text-gray-400'
+                            <span className={`text-base ${
+                              isToday ? 'text-foreground font-semibold' : 'text-muted-foreground'
                             }`}>
                               {timeRange}
                             </span>
