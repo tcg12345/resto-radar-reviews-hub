@@ -1,5 +1,5 @@
 import { format, eachDayOfInterval, isSameDay } from 'date-fns';
-import { Plus, MapPin, Clock, Utensils, MapPinIcon, MoreVertical, Trash2, Edit, Compass, ExternalLink, Phone, ChevronDown, Hotel } from 'lucide-react';
+import { Plus, MapPin, Clock, Utensils, MapPinIcon, MoreVertical, Trash2, Edit, Compass, ExternalLink, Phone, ChevronDown, Hotel, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ItineraryEvent, HotelBooking } from '@/components/ItineraryBuilder';
 import { useState } from 'react';
@@ -27,6 +28,7 @@ interface TripCalendarProps {
   onAddEvent: (date: string) => void;
   onEditEvent: (event: ItineraryEvent) => void;
   onDeleteEvent: (eventId: string) => void;
+  onMoveEvent?: (eventId: string, newDate: string) => void;
 }
 export function TripCalendar({
   startDate,
@@ -38,7 +40,8 @@ export function TripCalendar({
   useLengthOfStay,
   onAddEvent,
   onEditEvent,
-  onDeleteEvent
+  onDeleteEvent,
+  onMoveEvent
 }: TripCalendarProps) {
   const days = eachDayOfInterval({
     start: startDate,
@@ -49,6 +52,7 @@ export function TripCalendar({
     const allDays = eachDayOfInterval({ start: startDate, end: endDate });
     return new Set(allDays.map(day => format(day, 'yyyy-MM-dd')));
   });
+  const [changingEventId, setChangingEventId] = useState<string | null>(null);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const toggleDayCollapse = (dateStr: string) => {
@@ -297,17 +301,64 @@ export function TripCalendar({
                                         <ExternalLink className="w-4 h-4" />
                                         View Details
                                       </DropdownMenuItem>}
-                                      <DropdownMenuItem onClick={() => onEditEvent(event)} className="flex items-center gap-2">
-                                        <Edit className="w-4 h-4" />
-                                        Edit Event
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => onDeleteEvent(event.id)} className="flex items-center gap-2 text-destructive">
-                                        <Trash2 className="w-4 h-4" />
-                                        Delete Event
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-                                </div>
+                                       <DropdownMenuItem onClick={() => onEditEvent(event)} className="flex items-center gap-2">
+                                         <Edit className="w-4 h-4" />
+                                         Edit Event
+                                       </DropdownMenuItem>
+                                       {onMoveEvent && (
+                                         <DropdownMenuItem 
+                                           onClick={() => setChangingEventId(changingEventId === event.id ? null : event.id)} 
+                                           className="flex items-center gap-2"
+                                         >
+                                           <Calendar className="w-4 h-4" />
+                                           Change Day
+                                         </DropdownMenuItem>
+                                       )}
+                                       <DropdownMenuItem onClick={() => onDeleteEvent(event.id)} className="flex items-center gap-2 text-destructive">
+                                         <Trash2 className="w-4 h-4" />
+                                         Delete Event
+                                       </DropdownMenuItem>
+                                     </DropdownMenuContent>
+                                   </DropdownMenu>
+                                 </div>
+
+                                 {changingEventId === event.id && onMoveEvent && (
+                                   <div className="mt-3 p-3 bg-muted/50 rounded-lg border">
+                                     <p className="text-sm font-medium mb-2">Move to:</p>
+                                     <Select onValueChange={(newDate) => {
+                                       onMoveEvent(event.id, newDate);
+                                       setChangingEventId(null);
+                                     }}>
+                                       <SelectTrigger className="w-full">
+                                         <SelectValue placeholder="Select a day" />
+                                       </SelectTrigger>
+                                       <SelectContent>
+                                         {days.map(day => {
+                                           const dateStr = format(day, 'yyyy-MM-dd');
+                                           const isCurrentDay = isSameDay(new Date(event.date), day);
+                                           return (
+                                             <SelectItem 
+                                               key={dateStr} 
+                                               value={dateStr}
+                                               disabled={isCurrentDay}
+                                             >
+                                               {format(day, 'EEEE, MMM d')}
+                                               {isCurrentDay && ' (current)'}
+                                             </SelectItem>
+                                           );
+                                         })}
+                                       </SelectContent>
+                                     </Select>
+                                     <Button 
+                                       variant="ghost" 
+                                       size="sm" 
+                                       onClick={() => setChangingEventId(null)}
+                                       className="mt-2 w-full"
+                                     >
+                                       Cancel
+                                     </Button>
+                                   </div>
+                                 )}
 
                                 {event.restaurantData && <div className="space-y-3">
                                     <div className="flex items-start gap-2 text-sm opacity-90">
@@ -376,6 +427,6 @@ export function TripCalendar({
                </Card>
              </Collapsible>
            </div>;
-     })}
-     </div>;
- }
+      })}
+    </div>;
+}
