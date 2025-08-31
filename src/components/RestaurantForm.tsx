@@ -934,7 +934,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
           <div className="space-y-2">
             <Label htmlFor="cuisine">Cuisine *</Label>
             <Select
-              value={cuisineOptions.includes(formData.cuisine) ? formData.cuisine : customCuisine ? 'Other' : ''}
+              value={cuisineOptions.includes(formData.cuisine) ? formData.cuisine : customCuisine ? 'Other' : undefined}
               onValueChange={(value) => {
                 if (value === 'Other') {
                   setCustomCuisineInput(customCuisine);
