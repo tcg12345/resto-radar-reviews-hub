@@ -396,7 +396,7 @@ export function SavedItinerariesSection({ onLoadItinerary }: SavedItinerariesSec
             </div>
           ) : (
             <div className="space-y-4">{filteredItineraries.map((itinerary) => (
-                <Card key={itinerary.id} className="rounded-lg border border-border/50 bg-card hover:shadow-md transition-all duration-200">
+                <Card key={itinerary.id} className="rounded-lg border border-border/80 bg-card hover:shadow-md transition-all duration-200">
                   <div className="p-2 space-y-4">
                     {/* Trip Header */}
                     <div className="space-y-2">
