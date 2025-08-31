@@ -195,6 +195,7 @@ export function ItineraryBuilder({
   const [locations, setLocations] = useState<TripLocation[]>(persistedState?.locations || []);
   const [isMultiCity, setIsMultiCity] = useState(persistedState?.isMultiCity || false);
   const [currentLocationSearch, setCurrentLocationSearch] = useState('');
+  const [showSearchBox, setShowSearchBox] = useState(true);
   const [hasCreatedItinerary, setHasCreatedItinerary] = useState(persistedState?.hasCreatedItinerary || false);
   const [useLengthOfStay, setUseLengthOfStay] = useState(persistedState?.useLengthOfStay || false);
   const [numberOfNights, setNumberOfNights] = useState<number>(persistedState?.numberOfNights || 1);
@@ -556,9 +557,10 @@ export function ItineraryBuilder({
     // Always add to the locations array (first location enables multi-city mode)
     setLocations(prev => [...prev, newLocation]);
     
-    // Enable multi-city mode after first location is added
+    // Enable multi-city mode and hide search box after first location is added
     if (locations.length === 0) {
       setIsMultiCity(true);
+      setShowSearchBox(false);
     }
     
     setCurrentLocationSearch('');
@@ -910,28 +912,31 @@ export function ItineraryBuilder({
             {/* Premium Search Card */}
             <div className="bg-slate-800/40 backdrop-blur-xl rounded-2xl border border-slate-700/30 shadow-2xl shadow-blue-500/5 p-6 mb-6">
               <div className="space-y-4">
-                {/* Premium Search Input */}
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10">
-                    <MapPin className="w-5 h-5 text-blue-400" />
+                {/* Premium Search Input - conditionally rendered */}
+                {showSearchBox && (
+                  <div className="relative">
+                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10">
+                      <MapPin className="w-5 h-5 text-blue-400" />
+                    </div>
+                    <AmadeusCitySearch 
+                      value={currentLocationSearch} 
+                      onChange={setCurrentLocationSearch} 
+                      onCitySelect={handleLocationSelect} 
+                      placeholder="Where to?" 
+                      className="w-full h-14 pl-12 pr-4 text-base rounded-xl border border-slate-600/50 bg-slate-900/50 backdrop-blur-sm shadow-inner text-white placeholder:text-slate-400 focus:bg-slate-900/70 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 font-medium"
+                    />
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/5 to-transparent pointer-events-none"></div>
                   </div>
-                  <AmadeusCitySearch 
-                    value={currentLocationSearch} 
-                    onChange={setCurrentLocationSearch} 
-                    onCitySelect={handleLocationSelect} 
-                    placeholder="Where to?" 
-                    className="w-full h-14 pl-12 pr-4 text-base rounded-xl border border-slate-600/50 bg-slate-900/50 backdrop-blur-sm shadow-inner text-white placeholder:text-slate-400 focus:bg-slate-900/70 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 font-medium"
-                  />
-                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/5 to-transparent pointer-events-none"></div>
-                </div>
+                )}
                 
-                {/* Add Another City Button */}
-                {locations.length > 0 && (
-                  <div className="flex justify-start">
+                {/* Add Another City Button - centered */}
+                {locations.length > 0 && !showSearchBox && (
+                  <div className="flex justify-center">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => {
+                        setShowSearchBox(true);
                         setCurrentLocationSearch('');
                         // Focus the search input
                         setTimeout(() => {
