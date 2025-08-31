@@ -556,7 +556,7 @@ export function EventDialog({
           <div className="grid gap-2 max-h-32 overflow-y-auto">
             {availableDates.map((date, index) => {
               const formattedDate = isDayMode 
-                ? `Day ${index + 1}` 
+                ? date.startsWith('day-') ? `Day ${date.split('-')[1]}` : `Day ${index + 1}`
                 : format(new Date(date), 'EEEE, MMMM do');
               const isSelected = selectedDates.includes(date);
               return (
