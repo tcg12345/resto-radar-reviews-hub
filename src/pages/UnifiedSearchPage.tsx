@@ -555,7 +555,7 @@ const performLiveSearch = async () => {
           {recentClickedRestaurants.length > 0 && <div className="space-y-4">
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-3">
-                  <h3 className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">Recent searches</h3>
+                  <h3 className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent ml-2">Recent searches</h3>
                   <div className="h-0.5 w-8 bg-gradient-to-r from-primary to-primary-glow rounded-full"></div>
                 </div>
                 <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20">Quick access</Badge>
