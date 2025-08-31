@@ -557,11 +557,13 @@ export function ItineraryBuilder({
     // Always add to the locations array (first location enables multi-city mode)
     setLocations(prev => [...prev, newLocation]);
     
-    // Enable multi-city mode and hide search box after first location is added
+    // Only hide search box after first location is added
+    // After second+ cities, keep search box visible so users can keep adding more
     if (locations.length === 0) {
       setIsMultiCity(true);
       setShowSearchBox(false);
     }
+    // If search box is already visible (from clicking "Add Another City"), keep it visible
     
     setCurrentLocationSearch('');
   };
