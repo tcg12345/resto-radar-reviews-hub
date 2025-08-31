@@ -32,6 +32,7 @@ import { MobileProfileEditBioPage } from "./pages/MobileProfileEditBioPage";
 import { MobileProfilePhotoEditPage } from "./pages/MobileProfilePhotoEditPage";
 import { MobileFriendsPage } from "./pages/mobile/MobileFriendsPage";
 import SavedPlacesPageWrapper from "./pages/SavedPlacesPageWrapper";
+import SavedItinerariesPage from "./pages/SavedItinerariesPage";
 import MapPageWrapper from "./pages/MapPageWrapper";
 import UnifiedSearchPage from "./pages/UnifiedSearchPage";
 import SettingsPageWrapper from "./pages/SettingsPageWrapper";
@@ -83,6 +84,7 @@ const App = () => (
                 <Route path="/wishlist" element={<RequireAuth><Layout activeTab="places"><SavedPlacesPageWrapper activeSubTab="wishlist" /></Layout></RequireAuth>} />
                 <Route path="/map" element={<RequireAuth><MapPageWrapper /></RequireAuth>} />
                 <Route path="/travel" element={<RequireAuth><Layout activeTab="travel"><TravelPage /></Layout></RequireAuth>} />
+                <Route path="/saved-itineraries" element={<RequireAuth><SavedItinerariesPage /></RequireAuth>} />
                 <Route path="/hotel/:hotelId" element={<RequireAuth><HotelDetailsPage /></RequireAuth>} />
                 <Route path="/hotel/:hotelId/overview" element={<RequireAuth><HotelDetailedOverviewPage /></RequireAuth>} />
                 <Route path="/trip/:tripId" element={<RequireAuth><TripDetailPage /></RequireAuth>} />

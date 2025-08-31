@@ -893,7 +893,7 @@ export function ItineraryBuilder({
                 variant="ghost" 
                 size="sm" 
                 className="flex items-center gap-2 h-10 px-3 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:bg-slate-700/50 hover:border-blue-500/30 transition-all duration-200 shadow-lg backdrop-blur-sm" 
-                onClick={() => navigate('/places')}
+                onClick={() => navigate('/saved-itineraries')}
               >
                 <BookOpen className="w-4 h-4 text-blue-400" />
                 <span className="text-sm font-medium text-slate-300">Saved</span>
