@@ -123,6 +123,7 @@ export function EventDialog({
       time,
       date: isMultiDayEvent ? selectedDates[0] : selectedDate!, // Default to first selected date
       type,
+      location: location.trim() || undefined, // Include location for "other" type events
       restaurantData: type === 'restaurant' ? restaurantData : undefined,
       attractionData: attractionData // Always include attraction data if it exists
     };

@@ -301,6 +301,16 @@ export function TripCalendar({
                                         <ExternalLink className="w-4 h-4" />
                                         View Details
                                       </DropdownMenuItem>}
+                                       {/* Directions button for events with location */}
+                                       {event.location && (
+                                         <DropdownMenuItem 
+                                           onClick={() => window.open(`https://maps.google.com/maps?q=${encodeURIComponent(event.location!)}`, '_blank')} 
+                                           className="flex items-center gap-2"
+                                         >
+                                           <Compass className="w-4 h-4" />
+                                           Get Directions
+                                         </DropdownMenuItem>
+                                       )}
                                        <DropdownMenuItem onClick={() => onEditEvent(event)} className="flex items-center gap-2">
                                          <Edit className="w-4 h-4" />
                                          Edit Event

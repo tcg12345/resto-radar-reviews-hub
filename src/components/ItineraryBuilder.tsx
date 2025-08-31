@@ -44,6 +44,7 @@ export interface ItineraryEvent {
   time: string;
   date: string;
   type: 'restaurant' | 'hotel' | 'attraction' | 'museum' | 'park' | 'monument' | 'shopping' | 'entertainment' | 'other';
+  location?: string; // Added location field for "other" type events
   restaurantData?: {
     name: string;
     address: string;
