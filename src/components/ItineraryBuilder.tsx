@@ -195,7 +195,7 @@ export function ItineraryBuilder({
   const [locations, setLocations] = useState<TripLocation[]>(persistedState?.locations || []);
   const [isMultiCity, setIsMultiCity] = useState(persistedState?.isMultiCity || false);
   const [currentLocationSearch, setCurrentLocationSearch] = useState('');
-  const [showSearchBox, setShowSearchBox] = useState(true);
+  const [showSearchBox, setShowSearchBox] = useState((persistedState?.locations || []).length === 0);
   const [hasCreatedItinerary, setHasCreatedItinerary] = useState(persistedState?.hasCreatedItinerary || false);
   const [useLengthOfStay, setUseLengthOfStay] = useState(persistedState?.useLengthOfStay || false);
   const [numberOfNights, setNumberOfNights] = useState<number>(persistedState?.numberOfNights || 1);
