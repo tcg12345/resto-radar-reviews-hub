@@ -67,6 +67,7 @@ export function EventDialog({
   const [selectedMinute, setSelectedMinute] = useState('00');
   const [selectedPeriod, setSelectedPeriod] = useState<'AM' | 'PM'>('PM');
   const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
+  const [isAllDay, setIsAllDay] = useState(false);
   const [is24Hour, setIs24Hour] = useState(false);
   const [type, setType] = useState<'restaurant' | 'hotel' | 'attraction' | 'museum' | 'park' | 'monument' | 'shopping' | 'entertainment' | 'other'>('other');
   const [restaurantData, setRestaurantData] = useState<RestaurantData | null>(null);
@@ -412,111 +413,134 @@ export function EventDialog({
             zIndex: 9999
           }}>
             <div className="p-4 space-y-4">
-              {/* 24-hour toggle */}
+              {/* All Day toggle */}
               <div className="flex items-center justify-between pb-2 border-b">
-                
                 <div className="flex items-center space-x-2">
-                  <span className="text-xs">12h</span>
-                  <Switch checked={is24Hour} onCheckedChange={checked => {
-                    setIs24Hour(checked);
-                    if (checked) {
-                      // Convert 12-hour to 24-hour
-                      let hour24 = parseInt(selectedHour);
-                      if (selectedPeriod === 'PM' && hour24 !== 12) {
-                        hour24 += 12;
-                      } else if (selectedPeriod === 'AM' && hour24 === 12) {
-                        hour24 = 0;
+                  <Switch 
+                    checked={isAllDay} 
+                    onCheckedChange={(checked) => {
+                      setIsAllDay(checked);
+                      if (checked) {
+                        setTime('All day');
+                        setIsTimePickerOpen(false);
+                      } else {
+                        setTime('');
                       }
-                      setSelectedHour(hour24.toString().padStart(2, '0'));
-                    } else {
-                      // Convert 24-hour to 12-hour
-                      let hour12 = parseInt(selectedHour);
-                      const period = hour12 >= 12 ? 'PM' : 'AM';
-                      if (hour12 === 0) hour12 = 12;else if (hour12 > 12) hour12 -= 12;
-                      setSelectedHour(hour12.toString().padStart(2, '0'));
-                      setSelectedPeriod(period);
-                    }
-                  }} />
-                  <span className="text-xs">24h</span>
+                    }} 
+                  />
+                  <Label className="text-sm">All day</Label>
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2">
-                <div className="space-y-1">
-                  <Label className="text-xs">Hour</Label>
-                  <Select value={selectedHour} onValueChange={setSelectedHour}>
-                    <SelectTrigger className="w-16">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {is24Hour ?
-                      // 24-hour format: 00-23
-                      Array.from({
-                        length: 24
-                      }, (_, i) => <SelectItem key={i} value={i.toString().padStart(2, '0')}>
-                              {i.toString().padStart(2, '0')}
-                            </SelectItem>) :
-                      // 12-hour format: 01-12
-                      Array.from({
-                        length: 12
-                      }, (_, i) => {
-                        const hour = i + 1;
-                        return <SelectItem key={hour} value={hour.toString().padStart(2, '0')}>
-                                {hour.toString().padStart(2, '0')}
-                              </SelectItem>;
-                      })}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="text-xl font-bold">:</div>
-                
-                <div className="space-y-1">
-                  <Label className="text-xs">Minute</Label>
-                  <Select value={selectedMinute} onValueChange={setSelectedMinute}>
-                    <SelectTrigger className="w-16">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {['00', '15', '30', '45'].map(minute => <SelectItem key={minute} value={minute}>
-                          {minute}
-                        </SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                {!is24Hour && <div className="space-y-1">
-                    <Label className="text-xs">Period</Label>
-                    <Select value={selectedPeriod} onValueChange={(value: 'AM' | 'PM') => setSelectedPeriod(value)}>
-                      <SelectTrigger className="w-16">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="AM">AM</SelectItem>
-                        <SelectItem value="PM">PM</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>}
-              </div>
-              
-              <div className="flex justify-between pt-2 border-t">
-                <Button type="button" variant="ghost" size="sm" onClick={() => {
-                  setTime('');
-                  setSelectedHour(is24Hour ? '12' : '12');
-                  setSelectedMinute('00');
-                  if (!is24Hour) setSelectedPeriod('PM');
-                  setIsTimePickerOpen(false);
-                }} className="text-muted-foreground hover:text-foreground">
-                  Clear
-                </Button>
-                <Button type="button" size="sm" onClick={() => {
-                  const timeString = is24Hour ? `${selectedHour}:${selectedMinute}` : `${selectedHour}:${selectedMinute} ${selectedPeriod}`;
-                  setTime(timeString);
-                  setIsTimePickerOpen(false);
-                }}>
-                  Set Time
-                </Button>
-              </div>
+              {/* Time picker - only show when not all day */}
+              {!isAllDay && (
+                <>
+                  {/* 24-hour toggle */}
+                  <div className="flex items-center justify-between pb-2 border-b">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs">12h</span>
+                      <Switch checked={is24Hour} onCheckedChange={checked => {
+                        setIs24Hour(checked);
+                        if (checked) {
+                          // Convert 12-hour to 24-hour
+                          let hour24 = parseInt(selectedHour);
+                          if (selectedPeriod === 'PM' && hour24 !== 12) {
+                            hour24 += 12;
+                          } else if (selectedPeriod === 'AM' && hour24 === 12) {
+                            hour24 = 0;
+                          }
+                          setSelectedHour(hour24.toString().padStart(2, '0'));
+                        } else {
+                          // Convert 24-hour to 12-hour
+                          let hour12 = parseInt(selectedHour);
+                          const period = hour12 >= 12 ? 'PM' : 'AM';
+                          if (hour12 === 0) hour12 = 12;else if (hour12 > 12) hour12 -= 12;
+                          setSelectedHour(hour12.toString().padStart(2, '0'));
+                          setSelectedPeriod(period);
+                        }
+                      }} />
+                      <span className="text-xs">24h</span>
+                    </div>
+                   </div>
+
+                   <div className="flex items-center space-x-2">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Hour</Label>
+                      <Select value={selectedHour} onValueChange={setSelectedHour}>
+                        <SelectTrigger className="w-16">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {is24Hour ?
+                          // 24-hour format: 00-23
+                          Array.from({
+                            length: 24
+                          }, (_, i) => <SelectItem key={i} value={i.toString().padStart(2, '0')}>
+                                  {i.toString().padStart(2, '0')}
+                                </SelectItem>) :
+                          // 12-hour format: 01-12
+                          Array.from({
+                            length: 12
+                          }, (_, i) => {
+                            const hour = i + 1;
+                            return <SelectItem key={hour} value={hour.toString().padStart(2, '0')}>
+                                    {hour.toString().padStart(2, '0')}
+                                  </SelectItem>;
+                          })}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="text-xl font-bold">:</div>
+                    
+                    <div className="space-y-1">
+                      <Label className="text-xs">Minute</Label>
+                      <Select value={selectedMinute} onValueChange={setSelectedMinute}>
+                        <SelectTrigger className="w-16">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {['00', '15', '30', '45'].map(minute => <SelectItem key={minute} value={minute}>
+                              {minute}
+                            </SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {!is24Hour && <div className="space-y-1">
+                        <Label className="text-xs">Period</Label>
+                        <Select value={selectedPeriod} onValueChange={(value: 'AM' | 'PM') => setSelectedPeriod(value)}>
+                          <SelectTrigger className="w-16">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="AM">AM</SelectItem>
+                            <SelectItem value="PM">PM</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>}
+                  </div>
+                  
+                  <div className="flex justify-between pt-2 border-t">
+                    <Button type="button" variant="ghost" size="sm" onClick={() => {
+                      setTime('');
+                      setSelectedHour(is24Hour ? '12' : '12');
+                      setSelectedMinute('00');
+                      if (!is24Hour) setSelectedPeriod('PM');
+                      setIsTimePickerOpen(false);
+                    }} className="text-muted-foreground hover:text-foreground">
+                      Clear
+                    </Button>
+                    <Button type="button" size="sm" onClick={() => {
+                      const timeString = is24Hour ? `${selectedHour}:${selectedMinute}` : `${selectedHour}:${selectedMinute} ${selectedPeriod}`;
+                      setTime(timeString);
+                      setIsTimePickerOpen(false);
+                    }}>
+                      Set Time
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           </PopoverContent>
         </Popover>
