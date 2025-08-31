@@ -17,8 +17,34 @@ export default function RestaurantFormPage() {
     const prefillParam = searchParams.get('prefill');
     if (prefillParam) {
       try {
-        const data = JSON.parse(decodeURIComponent(prefillParam));
-        setPrefilledData(data);
+        const rawData = JSON.parse(decodeURIComponent(prefillParam));
+        
+        // Map the prefilled data to match RestaurantFormData format
+        const mappedData = {
+          name: rawData.name || '',
+          address: rawData.address || '',
+          city: rawData.city || '',
+          country: rawData.country || '',
+          cuisine: rawData.cuisine || '',
+          priceRange: rawData.price_range || rawData.priceRange,
+          michelinStars: rawData.michelin_stars || rawData.michelinStars,
+          photos: [], // Start with empty photos for new entry
+          latitude: rawData.latitude,
+          longitude: rawData.longitude,
+          website: rawData.website || '',
+          phone_number: rawData.phone_number || '',
+          opening_hours: rawData.opening_hours || rawData.openingHours || '',
+          reservable: rawData.reservable || false,
+          reservation_url: rawData.reservation_url || rawData.reservationUrl || '',
+          google_place_id: rawData.google_place_id || rawData.place_id,
+          isWishlist: false, // This should be false for rated restaurants
+          notes: '',
+          dateVisited: '',
+          categoryRatings: undefined,
+          useWeightedRating: false
+        };
+        
+        setPrefilledData(mappedData);
       } catch (error) {
         console.error('Error parsing prefilled data:', error);
         toast.error('Error loading restaurant data');
