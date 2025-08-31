@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { addDays, format, startOfDay, differenceInDays, eachDayOfInterval } from 'date-fns';
 import { Calendar, Plus, Download, Share2, Save, CalendarDays, MapPin, X, CalendarIcon, BookOpen, GripVertical, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -125,6 +126,7 @@ export function ItineraryBuilder({
     saveItinerary,
     updateItinerary
   } = useItineraries();
+  const navigate = useNavigate();
 
   // Load state from localStorage on mount - moved to useMemo to ensure consistent execution
   const persistedState = useMemo(() => {
@@ -890,10 +892,11 @@ export function ItineraryBuilder({
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="h-10 w-10 p-0 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:bg-slate-700/50 hover:border-blue-500/30 transition-all duration-200 shadow-lg backdrop-blur-sm" 
-                onClick={() => setSavedOpen(true)}
+                className="flex items-center gap-2 h-10 px-3 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:bg-slate-700/50 hover:border-blue-500/30 transition-all duration-200 shadow-lg backdrop-blur-sm" 
+                onClick={() => navigate('/places')}
               >
                 <BookOpen className="w-4 h-4 text-blue-400" />
+                <span className="text-sm font-medium text-slate-300">Saved</span>
               </Button>
             </div>
           </div>
