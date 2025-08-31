@@ -1475,7 +1475,7 @@ export function ItineraryBuilder({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-base text-foreground truncate">{currentItinerary?.title}</span>
-                        {currentItinerary?.isMultiCity && <Badge variant="secondary" className="text-xs px-2 py-1 rounded-full">Multi-city</Badge>}
+                        {locations.length > 0 && <Badge variant="secondary" className="text-xs px-2 py-1 rounded-full">{locations.length === 1 ? locations[0].name : `${locations.length} cities`}</Badge>}
                       </div>
                     </div>
                   </div>
