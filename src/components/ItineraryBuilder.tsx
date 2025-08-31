@@ -1974,14 +1974,14 @@ export function ItineraryBuilder({
                                       </div>
                                     </div>
                                   </div>
-                                  <div className="grid grid-cols-2 gap-4">
+                                  <div className="grid grid-cols-2 gap-2">
                                     <div className="space-y-2">
                                       <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Arrival</Label>
                                       <Popover>
                                         <PopoverTrigger asChild>
-                                          <Button variant="outline" size="sm" className={cn("w-full justify-start text-left font-normal", !location.startDate && "text-muted-foreground")}>
-                                            <CalendarIcon className="mr-2 h-4 w-4" />
-                                            {location.startDate ? format(location.startDate, 'MMM dd, yyyy') : 'Select date'}
+                                          <Button variant="outline" size="sm" className={cn("w-full justify-start text-left font-normal text-xs", !location.startDate && "text-muted-foreground")}>
+                                            <CalendarIcon className="mr-1 h-3 w-3 flex-shrink-0" />
+                                            <span className="truncate">{location.startDate ? format(location.startDate, 'MMM dd, yyyy') : 'Select date'}</span>
                                           </Button>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0 z-50" align="start">
