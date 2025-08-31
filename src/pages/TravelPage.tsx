@@ -31,9 +31,9 @@ export default function TravelPage() {
   };
 
   return (
-    <div className="w-full h-full min-h-screen">
+    <div className="w-full h-full min-h-screen overflow-x-hidden">
       {/* Compact Mobile-Optimized Container */}
-      <div className="w-full max-w-none px-2 lg:px-6 py-2 lg:py-6">
+      <div className="w-full max-w-7xl mx-auto px-2 lg:px-6 py-2 lg:py-6">
         {/* Premium Header - Hidden on mobile, enhanced on desktop */}
         <div className="mb-4 lg:mb-8 hidden lg:block">
           <div className="text-center space-y-4">
