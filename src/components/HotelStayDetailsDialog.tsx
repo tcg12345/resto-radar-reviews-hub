@@ -44,6 +44,11 @@ interface HotelStayDetailsDialogProps {
     notes?: string;
   };
   isEditMode?: boolean;
+  // New props for itinerary context
+  itineraryStartDate?: Date;
+  itineraryEndDate?: Date;
+  itineraryDuration?: number; // Total days of the itinerary
+  wasCreatedWithLengthOfStay?: boolean; // True for day mode, false for specific dates mode
 }
 
 export interface StayDetails {
@@ -68,10 +73,18 @@ export function HotelStayDetailsDialog({
   checkOutDate,
   selectedLocation,
   existingBookingData,
-  isEditMode = false
+  isEditMode = false,
+  itineraryStartDate,
+  itineraryEndDate,
+  itineraryDuration,
+  wasCreatedWithLengthOfStay = false
 }: HotelStayDetailsDialogProps) {
   const [checkIn, setCheckIn] = useState<Date>(checkInDate || new Date());
   const [checkOut, setCheckOut] = useState<Date>(checkOutDate || new Date(Date.now() + 24 * 60 * 60 * 1000));
+  // For day mode: track which days (1-based) user selects
+  const [checkInDay, setCheckInDay] = useState<number>(1);
+  const [checkOutDay, setCheckOutDay] = useState<number>(2);
+  
   const [guests, setGuests] = useState(existingBookingData?.guests || 2);
   const [rooms, setRooms] = useState(existingBookingData?.rooms || 1);
   const [roomType, setRoomType] = useState(existingBookingData?.roomType || '');
@@ -110,20 +123,24 @@ export function HotelStayDetailsDialog({
       checkIn, checkOut, isEditMode
     });
     
-    if (!checkIn || !checkOut) {
-      toast.error('Please select check-in and check-out dates');
-      return;
-    }
-
-    if (checkOut <= checkIn) {
-      toast.error('Check-out date must be after check-in date');
-      return;
+    if (wasCreatedWithLengthOfStay) {
+      if (!validateDayMode()) return;
+    } else {
+      if (!checkIn || !checkOut) {
+        toast.error('Please select check-in and check-out dates');
+        return;
+      }
+      if (checkOut <= checkIn) {
+        toast.error('Check-out date must be after check-in date');
+        return;
+      }
+      if (!validateSpecificDatesMode()) return;
     }
 
     const stayDetails: StayDetails = {
       hotel,
-      checkIn,
-      checkOut,
+      checkIn: getActualCheckInDate(),
+      checkOut: getActualCheckOutDate(),
       guests,
       rooms,
       roomType: roomType || undefined,
@@ -170,7 +187,70 @@ export function HotelStayDetailsDialog({
     }
   };
 
-  const nights = checkIn && checkOut ? Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+  
+  const nights = wasCreatedWithLengthOfStay 
+    ? Math.max(0, checkOutDay - checkInDay)
+    : (checkIn && checkOut ? Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)) : 0);
+
+  // Convert day numbers to actual dates for day mode
+  const getActualCheckInDate = () => {
+    if (wasCreatedWithLengthOfStay && itineraryStartDate) {
+      const date = new Date(itineraryStartDate);
+      date.setDate(date.getDate() + checkInDay - 1);
+      return date;
+    }
+    return checkIn;
+  };
+
+  const getActualCheckOutDate = () => {
+    if (wasCreatedWithLengthOfStay && itineraryStartDate) {
+      const date = new Date(itineraryStartDate);
+      date.setDate(date.getDate() + checkOutDay - 1);
+      return date;
+    }
+    return checkOut;
+  };
+
+  // Validation for day mode
+  const validateDayMode = () => {
+    if (!wasCreatedWithLengthOfStay) return true;
+    
+    const maxDays = itineraryDuration || 7;
+    if (checkInDay < 1 || checkInDay > maxDays) {
+      toast.error(`Check-in day must be between 1 and ${maxDays}`);
+      return false;
+    }
+    if (checkOutDay < 1 || checkOutDay > maxDays + 1) {
+      toast.error(`Check-out day must be between 1 and ${maxDays + 1}`);
+      return false;
+    }
+    if (checkOutDay <= checkInDay) {
+      toast.error('Check-out day must be after check-in day');
+      return false;
+    }
+    if (nights > maxDays) {
+      toast.error(`Maximum stay is ${maxDays} nights for this itinerary`);
+      return false;
+    }
+    return true;
+  };
+
+  // Validation for specific dates mode
+  const validateSpecificDatesMode = () => {
+    if (wasCreatedWithLengthOfStay) return true;
+    
+    if (!itineraryStartDate || !itineraryEndDate) return true;
+    
+    if (checkIn < itineraryStartDate || checkIn > itineraryEndDate) {
+      toast.error('Check-in date must be within the itinerary date range');
+      return false;
+    }
+    if (checkOut < itineraryStartDate || checkOut > itineraryEndDate) {
+      toast.error('Check-out date must be within the itinerary date range');
+      return false;
+    }
+    return true;
+  };
 
   const formContent = (
     <div className="space-y-6">
@@ -209,60 +289,120 @@ export function HotelStayDetailsDialog({
             Stay Dates
           </Label>
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground font-medium">Check-in</Label>
-              <Popover open={isCheckInOpen} onOpenChange={setIsCheckInOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal bg-background border-border/30",
-                      !checkIn && "text-muted-foreground"
-                    )}
-                  >
-                    <Calendar className="mr-2 h-3 w-3" />
-                    {checkIn ? format(checkIn, "MMM dd, yyyy") : "Select date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 z-[9999]" align="start">
-                  <CalendarComponent
-                    mode="single"
-                    selected={checkIn}
-                    onSelect={handleCheckInSelect}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            
-            <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground font-medium">Check-out</Label>
-              <Popover open={isCheckOutOpen} onOpenChange={setIsCheckOutOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal bg-background border-border/30",
-                      !checkOut && "text-muted-foreground"
-                    )}
-                  >
-                    <Calendar className="mr-2 h-3 w-3" />
-                    {checkOut ? format(checkOut, "MMM dd, yyyy") : "Select date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 z-[9999]" align="start">
-                  <CalendarComponent
-                    mode="single"
-                    selected={checkOut}
-                    onSelect={handleCheckOutSelect}
-                    initialFocus
-                    disabled={(date) => checkIn ? date <= checkIn : false}
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
+           {wasCreatedWithLengthOfStay ? (
+             // Day mode - show day selectors
+             <>
+               <div className="space-y-2">
+                 <Label className="text-xs text-muted-foreground font-medium">Check-in Day</Label>
+                 <Select value={checkInDay.toString()} onValueChange={(value) => {
+                   const day = parseInt(value);
+                   setCheckInDay(day);
+                   if (checkOutDay <= day) {
+                     setCheckOutDay(day + 1);
+                   }
+                 }}>
+                   <SelectTrigger className="bg-background border-border/30">
+                     <SelectValue />
+                   </SelectTrigger>
+                   <SelectContent>
+                     {Array.from({ length: itineraryDuration || 7 }, (_, i) => i + 1).map((day) => (
+                       <SelectItem key={day} value={day.toString()}>
+                         Day {day}
+                       </SelectItem>
+                     ))}
+                   </SelectContent>
+                 </Select>
+               </div>
+               
+               <div className="space-y-2">
+                 <Label className="text-xs text-muted-foreground font-medium">Check-out Day</Label>
+                 <Select value={checkOutDay.toString()} onValueChange={(value) => setCheckOutDay(parseInt(value))}>
+                   <SelectTrigger className="bg-background border-border/30">
+                     <SelectValue />
+                   </SelectTrigger>
+                   <SelectContent>
+                     {Array.from({ length: (itineraryDuration || 7) + 1 }, (_, i) => i + 1)
+                       .filter(day => day > checkInDay)
+                       .map((day) => (
+                         <SelectItem key={day} value={day.toString()}>
+                           Day {day}
+                         </SelectItem>
+                       ))}
+                   </SelectContent>
+                 </Select>
+               </div>
+             </>
+           ) : (
+             // Specific dates mode - show date pickers with restrictions
+             <>
+               <div className="space-y-2">
+                 <Label className="text-xs text-muted-foreground font-medium">Check-in</Label>
+                 <Popover open={isCheckInOpen} onOpenChange={setIsCheckInOpen}>
+                   <PopoverTrigger asChild>
+                     <Button
+                       variant="outline"
+                       className={cn(
+                         "w-full justify-start text-left font-normal bg-background border-border/30",
+                         !checkIn && "text-muted-foreground"
+                       )}
+                     >
+                       <Calendar className="mr-2 h-3 w-3" />
+                       {checkIn ? format(checkIn, "MMM dd, yyyy") : "Select date"}
+                     </Button>
+                   </PopoverTrigger>
+                   <PopoverContent className="w-auto p-0 z-[9999]" align="start">
+                     <CalendarComponent
+                       mode="single"
+                       selected={checkIn}
+                       onSelect={handleCheckInSelect}
+                       initialFocus
+                       disabled={(date) => {
+                         // Disable dates outside itinerary range
+                         if (itineraryStartDate && date < itineraryStartDate) return true;
+                         if (itineraryEndDate && date > itineraryEndDate) return true;
+                         return false;
+                       }}
+                       className={cn("p-3 pointer-events-auto")}
+                     />
+                   </PopoverContent>
+                 </Popover>
+               </div>
+               
+               <div className="space-y-2">
+                 <Label className="text-xs text-muted-foreground font-medium">Check-out</Label>
+                 <Popover open={isCheckOutOpen} onOpenChange={setIsCheckOutOpen}>
+                   <PopoverTrigger asChild>
+                     <Button
+                       variant="outline"
+                       className={cn(
+                         "w-full justify-start text-left font-normal bg-background border-border/30",
+                         !checkOut && "text-muted-foreground"
+                       )}
+                     >
+                       <Calendar className="mr-2 h-3 w-3" />
+                       {checkOut ? format(checkOut, "MMM dd, yyyy") : "Select date"}
+                     </Button>
+                   </PopoverTrigger>
+                   <PopoverContent className="w-auto p-0 z-[9999]" align="start">
+                     <CalendarComponent
+                       mode="single"
+                       selected={checkOut}
+                       onSelect={handleCheckOutSelect}
+                       initialFocus
+                       disabled={(date) => {
+                         // Disable dates outside itinerary range and before check-in
+                         if (checkIn && date <= checkIn) return true;
+                         if (itineraryStartDate && date < itineraryStartDate) return true;
+                         if (itineraryEndDate && date > itineraryEndDate) return true;
+                         return false;
+                       }}
+                       className={cn("p-3 pointer-events-auto")}
+                     />
+                   </PopoverContent>
+                 </Popover>
+               </div>
+             </>
+           )}
           </div>
           {nights > 0 && (
             <div className="text-sm text-muted-foreground bg-primary/5 rounded-lg p-2 text-center">

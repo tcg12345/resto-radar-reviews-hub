@@ -34,13 +34,18 @@ interface HotelSearchDialogProps {
   onSelect: (stayDetails: StayDetails) => void;
   locations: TripLocation[];
   isMultiCity: boolean;
+  // Add itinerary context
+  itineraryStartDate?: Date;
+  itineraryEndDate?: Date;
+  itineraryDuration?: number;
+  wasCreatedWithLengthOfStay?: boolean;
 }
 
 interface HotelWithLocation extends HotelType {
   searchLocation?: string;
 }
 
-export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMultiCity }: HotelSearchDialogProps) {
+export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMultiCity, itineraryStartDate, itineraryEndDate, itineraryDuration, wasCreatedWithLengthOfStay }: HotelSearchDialogProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [hotels, setHotels] = useState<HotelWithLocation[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -416,6 +421,10 @@ if (isMobile) {
           checkInDate={checkInDate}
           checkOutDate={checkOutDate}
           selectedLocation={selectedLocation}
+          itineraryStartDate={itineraryStartDate}
+          itineraryEndDate={itineraryEndDate}
+          itineraryDuration={itineraryDuration}
+          wasCreatedWithLengthOfStay={wasCreatedWithLengthOfStay}
         />
       )}
     </>
@@ -733,6 +742,10 @@ return (
           checkInDate={checkInDate}
           checkOutDate={checkOutDate}
           selectedLocation={selectedLocation}
+          itineraryStartDate={itineraryStartDate}
+          itineraryEndDate={itineraryEndDate}
+          itineraryDuration={itineraryDuration}
+          wasCreatedWithLengthOfStay={wasCreatedWithLengthOfStay}
         />
       )}
     </>
