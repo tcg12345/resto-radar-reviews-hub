@@ -25,6 +25,19 @@ interface Hotel {
   website?: string;
   phone?: string;
   bookingUrl?: string;
+  // Stay details added during booking
+  stayDetails?: {
+    checkIn?: Date | string;
+    checkOut?: Date | string;
+    location?: string;
+    guests?: number;
+    rooms?: number;
+    roomType?: string;
+    specialRequests?: string;
+    confirmationNumber?: string;
+    totalCost?: string;
+    notes?: string;
+  };
 }
 
 export function HotelDetailsPage() {
@@ -411,6 +424,133 @@ export function HotelDetailsPage() {
               </div>
             )}
           </div>
+
+          <Separator />
+
+          {/* Stay Details */}
+          {hotel.stayDetails && (
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Your Stay Details</h3>
+              <Card className="p-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Dates & Duration */}
+                  {(hotel.stayDetails.checkIn || hotel.stayDetails.checkOut) && (
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-foreground flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-primary" />
+                        Dates
+                      </h4>
+                      {hotel.stayDetails.checkIn && (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Check-in:</span>
+                          <span className="text-sm font-medium">
+                            {new Date(hotel.stayDetails.checkIn).toLocaleDateString()}
+                          </span>
+                        </div>
+                      )}
+                      {hotel.stayDetails.checkOut && (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Check-out:</span>
+                          <span className="text-sm font-medium">
+                            {new Date(hotel.stayDetails.checkOut).toLocaleDateString()}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Room Details */}
+                  {(hotel.stayDetails.guests || hotel.stayDetails.rooms || hotel.stayDetails.roomType) && (
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-foreground flex items-center gap-2">
+                        <Bed className="w-4 h-4 text-primary" />
+                        Room Details
+                      </h4>
+                      {hotel.stayDetails.guests && (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Guests:</span>
+                          <span className="text-sm font-medium">{hotel.stayDetails.guests}</span>
+                        </div>
+                      )}
+                      {hotel.stayDetails.rooms && (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Rooms:</span>
+                          <span className="text-sm font-medium">{hotel.stayDetails.rooms}</span>
+                        </div>
+                      )}
+                      {hotel.stayDetails.roomType && (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Room Type:</span>
+                          <span className="text-sm font-medium">{hotel.stayDetails.roomType}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Booking Information */}
+                  {(hotel.stayDetails.confirmationNumber || hotel.stayDetails.totalCost) && (
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-foreground flex items-center gap-2">
+                        <Star className="w-4 h-4 text-primary" />
+                        Booking Info
+                      </h4>
+                      {hotel.stayDetails.confirmationNumber && (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Confirmation:</span>
+                          <span className="text-sm font-mono bg-muted px-2 py-1 rounded">
+                            {hotel.stayDetails.confirmationNumber}
+                          </span>
+                        </div>
+                      )}
+                      {hotel.stayDetails.totalCost && (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Total Cost:</span>
+                          <Badge variant="secondary" className="font-semibold">
+                            {hotel.stayDetails.totalCost}
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Trip Location */}
+                  {hotel.stayDetails.location && (
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-foreground flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-primary" />
+                        Trip Location
+                      </h4>
+                      <Badge variant="outline" className="text-sm w-fit">
+                        {hotel.stayDetails.location}
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+
+                {/* Special Requests & Notes */}
+                {(hotel.stayDetails.specialRequests || hotel.stayDetails.notes) && (
+                  <div className="mt-6 pt-6 border-t border-border/20">
+                    {hotel.stayDetails.specialRequests && (
+                      <div className="mb-4">
+                        <h4 className="font-semibold text-foreground mb-2">Special Requests</h4>
+                        <p className="text-sm text-muted-foreground bg-background/50 p-3 rounded-lg">
+                          {hotel.stayDetails.specialRequests}
+                        </p>
+                      </div>
+                    )}
+                    {hotel.stayDetails.notes && (
+                      <div>
+                        <h4 className="font-semibold text-foreground mb-2">Notes</h4>
+                        <p className="text-sm text-muted-foreground bg-background/50 p-3 rounded-lg">
+                          {hotel.stayDetails.notes}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </Card>
+            </div>
+          )}
 
           <Separator />
 

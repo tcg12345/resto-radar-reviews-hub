@@ -30,6 +30,14 @@ interface HotelBooking {
   checkIn?: Date | string;
   checkOut?: Date | string;
   location?: string;
+  // Additional stay details from booking process
+  guests?: number;
+  rooms?: number;
+  roomType?: string;
+  specialRequests?: string;
+  confirmationNumber?: string;
+  totalCost?: string;
+  notes?: string;
 }
 interface FlightBooking {
   id: string;
@@ -133,8 +141,24 @@ export function HotelFlightSection({
   const navigate = useNavigate();
   
   const handleHotelCardClick = (booking: HotelBooking) => {
-    // Store hotel data in sessionStorage for the details page
-    sessionStorage.setItem(`hotel_${booking.hotel.id}`, JSON.stringify(booking.hotel));
+    // Store complete hotel booking data including all stay details
+    const hotelDetailsData = {
+      ...booking.hotel,
+      // Include all the booking details from the stay
+      stayDetails: {
+        checkIn: booking.checkIn,
+        checkOut: booking.checkOut,
+        location: booking.location,
+        guests: booking.guests,
+        rooms: booking.rooms,
+        roomType: booking.roomType,
+        specialRequests: booking.specialRequests,
+        confirmationNumber: booking.confirmationNumber,
+        totalCost: booking.totalCost,
+        notes: booking.notes
+      }
+    };
+    sessionStorage.setItem(`hotel_${booking.hotel.id}`, JSON.stringify(hotelDetailsData));
     navigate(`/hotel/${booking.hotel.id}`);
   };
   const handleFlightCardClick = (flight: FlightBooking) => {
