@@ -710,30 +710,24 @@ export function HotelDetailsPage() {
                       <div className="bg-muted/30 rounded-lg p-4 border border-border/20">
                         <div className="text-sm text-muted-foreground leading-relaxed">
                           {hotel.stayDetails.specialRequests.split('\n').map((line, index) => {
-                            const urlRegex = /(https?:\/\/[^\s]+)/g;
-                            const parts = line.split(urlRegex);
+                            const trimmedLine = line.trim();
+                            if (trimmedLine.startsWith('http://') || trimmedLine.startsWith('https://')) {
+                              return (
+                                <div key={index} className="mb-2 last:mb-0">
+                                  <a
+                                    href={trimmedLine}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-block text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline decoration-1 underline-offset-2 transition-colors break-all"
+                                  >
+                                    {trimmedLine}
+                                  </a>
+                                </div>
+                              );
+                            }
                             return (
                               <div key={index} className="mb-1 last:mb-0">
-                                {parts.map((part, partIndex) => {
-                                  if (part.match(/^https?:\/\//)) {
-                                    return (
-                                      <a
-                                        key={partIndex}
-                                        href={part}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline decoration-1 underline-offset-2 transition-colors cursor-pointer"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          window.open(part, '_blank', 'noopener,noreferrer');
-                                        }}
-                                      >
-                                        {part}
-                                      </a>
-                                    );
-                                  }
-                                  return <span key={partIndex}>{part}</span>;
-                                })}
+                                {trimmedLine}
                               </div>
                             );
                           })}
