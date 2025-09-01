@@ -24,6 +24,7 @@ export function ItineraryViewPage() {
   const [loading, setLoading] = useState(true);
   const [collapsedDays, setCollapsedDays] = useState<Record<string, boolean>>({});
   const [collapsedHotels, setCollapsedHotels] = useState(false);
+  const [collapsedEvents, setCollapsedEvents] = useState<Record<string, boolean>>({});
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
 
@@ -274,6 +275,13 @@ export function ItineraryViewPage() {
     setCollapsedDays(prev => ({
       ...prev,
       [date]: !prev[date]
+    }));
+  };
+
+  const toggleEvent = (eventId: string) => {
+    setCollapsedEvents(prev => ({
+      ...prev,
+      [eventId]: !prev[eventId]
     }));
   };
 
@@ -707,8 +715,11 @@ export function ItineraryViewPage() {
                               
                               {/* Event Content */}
                               <div className="bg-card rounded-lg border border-border/40 shadow-sm overflow-hidden">
-                                {/* Event Header */}
-                                <div className="p-4 border-b border-border/30">
+                                {/* Event Header - Always visible, acts as toggle */}
+                                <div 
+                                  className="p-4 cursor-pointer hover:bg-accent/5 transition-colors"
+                                  onClick={() => toggleEvent(event.id)}
+                                >
                                   <div className="flex items-start gap-3">
                                     <div className="flex-shrink-0 mt-1">
                                       <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -720,8 +731,15 @@ export function ItineraryViewPage() {
                                         <h5 className="font-semibold text-foreground text-base leading-tight">
                                           {event.title}
                                         </h5>
-                                        <div className="flex-shrink-0 bg-accent/10 text-accent px-2 py-1 rounded text-xs font-medium">
-                                          {event.time}
+                                        <div className="flex items-center gap-2 flex-shrink-0">
+                                          <div className="bg-accent/10 text-accent px-2 py-1 rounded text-xs font-medium">
+                                            {event.time}
+                                          </div>
+                                          <ChevronDown 
+                                            className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${
+                                              collapsedEvents[event.id] ? 'rotate-180' : ''
+                                            }`} 
+                                          />
                                         </div>
                                       </div>
                                       <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getEventTypeColor(event.type)}`}>
@@ -729,154 +747,170 @@ export function ItineraryViewPage() {
                                       </div>
                                     </div>
                                   </div>
-                                  
-                                  {event.description && (
-                                    <div className="mt-3 text-sm text-muted-foreground leading-relaxed">
-                                      {event.description}
-                                    </div>
-                                  )}
-                                  
-                                  {/* Links */}
-                                  {event.links && event.links.length > 0 && (
-                                    <div className="mt-3 space-y-2">
-                                      <h6 className="text-sm font-medium">Links</h6>
-                                      <div className="space-y-2">
-                                        {event.links.map((link, index) => (
-                                          <a
-                                            key={index}
-                                            href={link.startsWith('http') ? link : `https://${link}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 underline break-all"
-                                          >
-                                            <ExternalLink className="w-3 h-3 flex-shrink-0" />
-                                            {link}
-                                          </a>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
                                 </div>
 
-                                {/* Restaurant Details */}
-                                {event.restaurantData && (
-                                  <div className="p-4 bg-success/5">
-                                    <div className="flex items-center justify-between mb-3">
-                                      <div className="flex items-center gap-2">
-                                        <Utensils className="w-4 h-4 text-success" />
-                                        <span className="text-sm font-medium text-success">Restaurant Info</span>
-                                      </div>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => {
-                                          // Convert restaurant data to Google Places format
-                                          const googlePlaceData = {
-                                            place_id: event.restaurantData.placeId || `temp_${event.id}`,
-                                            name: event.restaurantData.name,
-                                            formatted_address: event.restaurantData.address,
-                                            formatted_phone_number: event.restaurantData.phone,
-                                            website: event.restaurantData.website,
-                                            geometry: {
-                                              location: {
-                                                lat: 0,
-                                                lng: 0
-                                              }
-                                            },
-                                            types: ['restaurant']
-                                          };
-                                          
-                                          const encodedData = encodeURIComponent(JSON.stringify(googlePlaceData));
-                                          navigate(`/mobile/search/restaurant?data=${encodedData}`);
-                                        }}
-                                        className="text-xs"
-                                      >
-                                        <Eye className="w-3 h-3 mr-1" />
-                                        View Details
-                                      </Button>
-                                    </div>
-                                    
-                                    <div className="space-y-3">
-                                      {event.restaurantData.address && (
-                                        <div className="flex items-start gap-3">
-                                          <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                                          <span className="text-sm text-foreground">{event.restaurantData.address}</span>
-                                        </div>
-                                      )}
-                                      
-                                      <div className="flex flex-col sm:flex-row gap-3">
-                                        {event.restaurantData.phone && (
-                                          <a 
-                                            href={`tel:${event.restaurantData.phone}`}
-                                            className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
-                                          >
-                                            <Phone className="w-4 h-4" />
-                                            {event.restaurantData.phone}
-                                          </a>
+                                {/* Collapsible Content */}
+                                <div 
+                                  className={`overflow-hidden transition-all duration-300 ease-out ${
+                                    collapsedEvents[event.id] 
+                                      ? 'max-h-0 opacity-0' 
+                                      : 'max-h-[9999px] opacity-100'
+                                  }`}
+                                >
+                                  <div className="border-t border-border/30">
+                                    {/* Description and Links */}
+                                    {(event.description || (event.links && event.links.length > 0)) && (
+                                      <div className="p-4">
+                                        {event.description && (
+                                          <div className="mb-3 text-sm text-muted-foreground leading-relaxed">
+                                            {event.description}
+                                          </div>
                                         )}
                                         
-                                        {event.restaurantData.website && (
-                                          <a 
-                                            href={event.restaurantData.website}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
-                                          >
-                                            <ExternalLink className="w-4 h-4" />
-                                            Website
-                                          </a>
+                                        {/* Links */}
+                                        {event.links && event.links.length > 0 && (
+                                          <div className="space-y-2">
+                                            <h6 className="text-sm font-medium">Links</h6>
+                                            <div className="space-y-2">
+                                              {event.links.map((link, index) => (
+                                                <a
+                                                  key={index}
+                                                  href={link.startsWith('http') ? link : `https://${link}`}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 underline break-all"
+                                                >
+                                                  <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                                                  {link}
+                                                </a>
+                                              ))}
+                                            </div>
+                                          </div>
                                         )}
                                       </div>
-                                    </div>
-                                  </div>
-                                )}
+                                    )}
 
-                                {/* Attraction Details */}
-                                {event.attractionData && (
-                                  <div className="p-4 bg-primary/5">
-                                    <div className="flex items-center gap-2 mb-3">
-                                      <Camera className="w-4 h-4 text-primary" />
-                                      <span className="text-sm font-medium text-primary">Attraction Info</span>
-                                    </div>
-                                    
-                                    <div className="space-y-3">
-                                      {event.attractionData.address && (
-                                        <div className="flex items-start gap-3">
-                                          <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                                          <span className="text-sm text-foreground">{event.attractionData.address}</span>
+                                    {/* Restaurant Details */}
+                                    {event.restaurantData && (
+                                      <div className="p-4 bg-success/5">
+                                        <div className="flex items-center justify-between mb-3">
+                                          <div className="flex items-center gap-2">
+                                            <Utensils className="w-4 h-4 text-success" />
+                                            <span className="text-sm font-medium text-success">Restaurant Info</span>
+                                          </div>
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                              // Convert restaurant data to Google Places format
+                                              const googlePlaceData = {
+                                                place_id: event.restaurantData.placeId || `temp_${event.id}`,
+                                                name: event.restaurantData.name,
+                                                formatted_address: event.restaurantData.address,
+                                                formatted_phone_number: event.restaurantData.phone,
+                                                website: event.restaurantData.website,
+                                                geometry: {
+                                                  location: {
+                                                    lat: 0,
+                                                    lng: 0
+                                                  }
+                                                },
+                                                types: ['restaurant']
+                                              };
+                                              
+                                              const encodedData = encodeURIComponent(JSON.stringify(googlePlaceData));
+                                              navigate(`/mobile/search/restaurant?data=${encodedData}`);
+                                            }}
+                                            className="text-xs"
+                                          >
+                                            <Eye className="w-3 h-3 mr-1" />
+                                            View Details
+                                          </Button>
                                         </div>
-                                      )}
-                                      
-                                      <div className="flex flex-col sm:flex-row gap-3">
-                                        {event.attractionData.category && (
-                                          <div className="flex items-center gap-2 text-sm text-foreground">
-                                            <Users className="w-4 h-4 text-muted-foreground" />
-                                            {event.attractionData.category}
-                                          </div>
-                                        )}
                                         
-                                        {event.attractionData.rating && (
-                                          <div className="flex items-center gap-2 text-sm text-foreground">
-                                            <Star className="w-4 h-4 text-warning fill-current" />
-                                            {event.attractionData.rating}/10
+                                        <div className="space-y-3">
+                                          {event.restaurantData.address && (
+                                            <div className="flex items-start gap-3">
+                                              <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                              <span className="text-sm text-foreground">{event.restaurantData.address}</span>
+                                            </div>
+                                          )}
+                                          
+                                          <div className="flex flex-col sm:flex-row gap-3">
+                                            {event.restaurantData.phone && (
+                                              <a 
+                                                href={`tel:${event.restaurantData.phone}`}
+                                                className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+                                              >
+                                                <Phone className="w-4 h-4" />
+                                                {event.restaurantData.phone}
+                                              </a>
+                                            )}
+                                            
+                                            {event.restaurantData.website && (
+                                              <a 
+                                                href={event.restaurantData.website}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+                                              >
+                                                <ExternalLink className="w-4 h-4" />
+                                                Website
+                                              </a>
+                                            )}
                                           </div>
-                                        )}
+                                        </div>
                                       </div>
-                                      
-                                      {event.attractionData.website && (
-                                        <a 
-                                          href={event.attractionData.website}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
-                                        >
-                                          <ExternalLink className="w-4 h-4" />
-                                          Website
-                                        </a>
-                                      )}
-                                    </div>
+                                    )}
+
+                                    {/* Attraction Details */}
+                                    {event.attractionData && (
+                                      <div className="p-4 bg-primary/5">
+                                        <div className="flex items-center gap-2 mb-3">
+                                          <Camera className="w-4 h-4 text-primary" />
+                                          <span className="text-sm font-medium text-primary">Attraction Info</span>
+                                        </div>
+                                        
+                                        <div className="space-y-3">
+                                          {event.attractionData.address && (
+                                            <div className="flex items-start gap-3">
+                                              <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                              <span className="text-sm text-foreground">{event.attractionData.address}</span>
+                                            </div>
+                                          )}
+                                          
+                                          <div className="flex flex-col sm:flex-row gap-3">
+                                            {event.attractionData.category && (
+                                              <div className="flex items-center gap-2 text-sm text-foreground">
+                                                <Users className="w-4 h-4 text-muted-foreground" />
+                                                {event.attractionData.category}
+                                              </div>
+                                            )}
+                                            
+                                            {event.attractionData.rating && (
+                                              <div className="flex items-center gap-2 text-sm text-foreground">
+                                                <Star className="w-4 h-4 text-warning fill-current" />
+                                                {event.attractionData.rating}/10
+                                              </div>
+                                            )}
+                                          </div>
+                                          
+                                          {event.attractionData.website && (
+                                            <a 
+                                              href={event.attractionData.website}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+                                            >
+                                              <ExternalLink className="w-4 h-4" />
+                                              Website
+                                            </a>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
-                                )}
+                                </div>
                               </div>
                             </div>
                           );
