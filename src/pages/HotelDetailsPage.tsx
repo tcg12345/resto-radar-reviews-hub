@@ -467,8 +467,8 @@ export function HotelDetailsPage() {
         )}
       </div>
 
-      {/* Content Section - Tighter spacing */}
-      <div className="max-w-4xl mx-auto px-6 py-5 space-y-5">
+      {/* Content Section - Reduced margins for edge-to-edge feel */}
+      <div className="max-w-4xl mx-auto px-4 py-4 space-y-4">
         
         {/* Hotel Overview Card - More compact */}
         <Card className="overflow-hidden shadow-sm border-0 bg-gradient-to-br from-background to-muted/10">
@@ -637,113 +637,107 @@ export function HotelDetailsPage() {
           </Card>
         )}
 
-        {/* Amenities - Compact grid layout */}
+        {/* Amenities - Edge-to-edge with better width usage */}
         {hotel.amenities && hotel.amenities.length > 0 && (
-          <Card className="overflow-hidden shadow-sm border-0">
-            <CardContent className="p-6">
-              <h3 className="text-xl font-bold mb-4">Amenities</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                {hotel.amenities.map((amenity, index) => (
-                  <Badge 
-                    key={index} 
-                    variant="secondary" 
-                    className="flex items-center gap-1.5 px-3 py-2 bg-muted/40 hover:bg-muted/60 transition-colors rounded-full text-xs font-medium justify-center"
-                  >
-                    {getAmenityIcon(amenity)}
-                    <span className="truncate">{amenity}</span>
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <div className="space-y-3">
+            <h3 className="text-xl font-bold px-2">Amenities</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 px-2">
+              {hotel.amenities.map((amenity, index) => (
+                <Badge 
+                  key={index} 
+                  variant="secondary" 
+                  className="flex items-center gap-1.5 px-3 py-2.5 bg-muted/40 hover:bg-muted/60 transition-colors rounded-full text-xs font-medium justify-center min-h-[38px]"
+                >
+                  {getAmenityIcon(amenity)}
+                  <span className="truncate text-center">{amenity}</span>
+                </Badge>
+              ))}
+            </div>
+          </div>
         )}
 
-        {/* Contact & Booking Actions - More compact */}
-        <Card className="overflow-hidden shadow-sm border-0">
-          <CardContent className="p-6">
-            <h3 className="text-xl font-bold mb-4">Contact & Booking</h3>
-            
-            {/* Primary booking button - reduced padding */}
-            {hotel.bookingUrl && (
+        {/* Contact & Booking Actions - Edge-to-edge layout */}
+        <div className="space-y-3">
+          <h3 className="text-xl font-bold px-2">Contact & Booking</h3>
+          
+          {/* Primary booking button - full width edge-to-edge */}
+          {hotel.bookingUrl && (
+            <div className="px-2">
               <Button 
                 size="lg"
                 onClick={() => window.open(hotel.bookingUrl, '_blank')}
-                className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary rounded-full mb-4"
+                className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary rounded-full"
               >
                 Book Now
               </Button>
-            )}
-            
-            {/* Secondary actions grid - one row underneath */}
-            <div className="grid grid-cols-3 gap-3">
-              {hotel.phone && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => window.open(`tel:${hotel.phone}`, '_self')}
-                  className="flex items-center gap-2 h-10 rounded-full text-xs"
-                >
-                  <Phone className="w-4 h-4" />
-                  Call
-                </Button>
-              )}
-              
-              {hotel.website && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => window.open(hotel.website, '_blank')}
-                  className="flex items-center gap-2 h-10 rounded-full text-xs"
-                >
-                  <Globe className="w-4 h-4" />
-                  Website
-                </Button>
-              )}
-              
+            </div>
+          )}
+          
+          {/* Secondary actions grid - edge-to-edge 3-column layout */}
+          <div className="grid grid-cols-3 gap-2 px-2">
+            {hotel.phone && (
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(hotel.address)}`, '_blank')}
-                className="flex items-center gap-2 h-10 rounded-full text-xs"
+                onClick={() => window.open(`tel:${hotel.phone}`, '_self')}
+                className="flex items-center gap-1.5 h-10 rounded-full text-xs font-medium"
               >
-                <Navigation className="w-4 h-4" />
-                Directions
+                <Phone className="w-3.5 h-3.5" />
+                Call
               </Button>
-            </div>
-          </CardContent>
-        </Card>
+            )}
+            
+            {hotel.website && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => window.open(hotel.website, '_blank')}
+                className="flex items-center gap-1.5 h-10 rounded-full text-xs font-medium"
+              >
+                <Globe className="w-3.5 h-3.5" />
+                Website
+              </Button>
+            )}
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(hotel.address)}`, '_blank')}
+              className="flex items-center gap-1.5 h-10 rounded-full text-xs font-medium"
+            >
+              <Navigation className="w-3.5 h-3.5" />
+              Directions
+            </Button>
+          </div>
+        </div>
 
-        {/* Location Map - Reduced height */}
+        {/* Location Map - Edge-to-edge with minimal padding */}
         {hotel.latitude && hotel.longitude && (
-          <Card className="overflow-hidden shadow-sm border-0 rounded-2xl">
-            <CardContent className="p-0">
-              <div className="p-6 pb-3">
-                <h3 className="text-xl font-bold">Location</h3>
+          <div className="space-y-3">
+            <h3 className="text-xl font-bold px-2">Location</h3>
+            
+            <div className="px-2">
+              <div className="relative h-48 rounded-xl overflow-hidden border border-border/20 shadow-sm bg-muted/10">
+                {isMapLoading && (
+                  <div className="absolute inset-0 bg-muted flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                  </div>
+                )}
+                
+                {mapError && (
+                  <div className="absolute inset-0 bg-muted flex flex-col items-center justify-center text-center p-4">
+                    <MapPin className="w-6 h-6 text-muted-foreground mb-2" />
+                    <p className="text-xs text-muted-foreground mb-3">{mapError}</p>
+                    <Button onClick={retryMap} variant="outline" size="sm">
+                      Retry
+                    </Button>
+                  </div>
+                )}
+                
+                <div ref={mapContainer} className="w-full h-full" />
               </div>
-              
-              <div className="px-6 pb-6">
-                <div className="relative h-48 rounded-xl overflow-hidden border border-border/20 shadow-sm bg-muted/10">
-                  {isMapLoading && (
-                    <div className="absolute inset-0 bg-muted flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                    </div>
-                  )}
-                  
-                  {mapError && (
-                    <div className="absolute inset-0 bg-muted flex flex-col items-center justify-center text-center p-4">
-                      <MapPin className="w-6 h-6 text-muted-foreground mb-2" />
-                      <p className="text-xs text-muted-foreground mb-3">{mapError}</p>
-                      <Button onClick={retryMap} variant="outline" size="sm">
-                        Retry
-                      </Button>
-                    </div>
-                  )}
-                  
-                  <div ref={mapContainer} className="w-full h-full" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
       </div>
     </div>
