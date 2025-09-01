@@ -432,12 +432,12 @@ export function HotelDetailsPage() {
             </div>
 
             {/* View More Photos button */}
-            {hotelPhotos.length > 1 && (
-              <div className="absolute top-6 right-6">
+            {hotelPhotos.length > 0 && (
+              <div className="absolute top-6 right-6 z-10">
                 <Button 
                   variant="ghost" 
                   size="sm"
-                  className="h-8 px-3 rounded-full bg-black/20 backdrop-blur-sm text-white hover:bg-black/30 border border-white/20 text-xs font-medium"
+                  className="h-9 px-4 rounded-full bg-white/90 backdrop-blur-sm text-gray-900 hover:bg-white border border-white/20 text-sm font-medium shadow-lg"
                   onClick={() => {
                     setShowPhotoGallery(true);
                     setGalleryPhotoIndex(0);
