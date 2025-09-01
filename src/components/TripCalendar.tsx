@@ -1,5 +1,5 @@
 import { format, eachDayOfInterval, isSameDay } from 'date-fns';
-import { Plus, MapPin, Clock, Utensils, MapPinIcon, MoreVertical, Trash2, Edit, Compass, ExternalLink, Phone, ChevronDown, Hotel, Calendar } from 'lucide-react';
+import { Plus, MapPin, Clock, Utensils, MapPinIcon, MoreVertical, Trash2, Edit, Compass, ExternalLink, Phone, ChevronDown, Hotel, Calendar, Globe, DollarSign } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ItineraryEvent, HotelBooking } from '@/components/ItineraryBuilder';
 import { useState } from 'react';
 interface TripLocation {
@@ -53,6 +54,8 @@ export function TripCalendar({
     return new Set(allDays.map(day => format(day, 'yyyy-MM-dd')));
   });
   const [changingEventId, setChangingEventId] = useState<string | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<ItineraryEvent | null>(null);
+  const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const toggleDayCollapse = (dateStr: string) => {
@@ -255,7 +258,13 @@ export function TripCalendar({
                   <CardContent className="pt-0">
                     {dayEvents.length > 0 ? <div className="space-y-3">
                         {dayEvents.map((event, eventIndex) => <div key={event.id}>
-                            <div className={`p-3 lg:p-4 rounded-lg border transition-all duration-200 hover:shadow-sm ${getEventColor(event.type)} w-full`}>
+                            <div 
+                              className={`p-3 lg:p-4 rounded-lg border transition-all duration-200 hover:shadow-sm ${getEventColor(event.type)} w-full cursor-pointer hover:bg-opacity-80`}
+                              onClick={() => {
+                                setSelectedEvent(event);
+                                setIsEventDialogOpen(true);
+                              }}
+                            >
                               <div className="space-y-3">
                                 <div className="flex items-start justify-between gap-2">
                                   <div className="flex-1 min-w-0">
@@ -461,5 +470,203 @@ export function TripCalendar({
              </Collapsible>
            </div>;
       })}
-    </div>;
+    
+    {/* Event Details Dialog */}
+    <Dialog open={isEventDialogOpen} onOpenChange={setIsEventDialogOpen}>
+      <DialogContent className="max-w-md mx-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            {selectedEvent && getEventIcon(selectedEvent.type)}
+            {selectedEvent?.title}
+          </DialogTitle>
+        </DialogHeader>
+        
+        {selectedEvent && (
+          <div className="space-y-4">
+            {/* Time and Type */}
+            <div className="flex items-center gap-3">
+              <Clock className="w-4 h-4 text-muted-foreground" />
+              <span className="font-medium">{selectedEvent.time}</span>
+              <Badge variant="secondary" className="text-xs">
+                {selectedEvent.type}
+              </Badge>
+            </div>
+            
+            {/* Description */}
+            {selectedEvent.description && (
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {selectedEvent.description}
+                </p>
+              </div>
+            )}
+            
+            {/* Price */}
+            {selectedEvent.price && (
+              <div className="flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-green-600" />
+                <span className="font-semibold text-green-600">{selectedEvent.price}</span>
+              </div>
+            )}
+            
+            {/* Location for other events */}
+            {selectedEvent.type === 'other' && selectedEvent.location && (
+              <div className="space-y-2">
+                <div className="flex items-start gap-2">
+                  <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
+                  <p className="text-sm text-muted-foreground">
+                    {selectedEvent.location}
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            {/* Restaurant Data */}
+            {selectedEvent.restaurantData && (
+              <div className="space-y-3 border-t pt-3">
+                <h4 className="font-medium text-sm">Restaurant Details</h4>
+                <div className="space-y-2">
+                  <div className="flex items-start gap-2">
+                    <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
+                    <p className="text-sm text-muted-foreground">
+                      {selectedEvent.restaurantData.address}
+                    </p>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        const query = encodeURIComponent(selectedEvent.restaurantData?.address || selectedEvent.title);
+                        window.open(`https://www.google.com/maps/dir/?api=1&destination=${query}`, '_blank');
+                      }}
+                      className="flex items-center gap-1 h-8 px-3 text-xs"
+                    >
+                      <Compass className="w-3 h-3" />
+                      Directions
+                    </Button>
+                    
+                    {selectedEvent.restaurantData.website && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => window.open(selectedEvent.restaurantData!.website, '_blank')}
+                        className="flex items-center gap-1 h-8 px-3 text-xs"
+                      >
+                        <Globe className="w-3 h-3" />
+                        Website
+                      </Button>
+                    )}
+                    
+                    {selectedEvent.restaurantData.phone && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => window.open(`tel:${selectedEvent.restaurantData!.phone}`, '_self')}
+                        className="flex items-center gap-1 h-8 px-3 text-xs"
+                      >
+                        <Phone className="w-3 h-3" />
+                        Call
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Attraction Data */}
+            {selectedEvent.attractionData && (
+              <div className="space-y-3 border-t pt-3">
+                <h4 className="font-medium text-sm">Attraction Details</h4>
+                <div className="space-y-2">
+                  <div className="flex items-start gap-2">
+                    <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
+                    <p className="text-sm text-muted-foreground">
+                      {selectedEvent.attractionData.address}
+                    </p>
+                  </div>
+                  
+                  {selectedEvent.attractionData.category && (
+                    <Badge variant="outline" className="text-xs">
+                      {selectedEvent.attractionData.category}
+                    </Badge>
+                  )}
+                  
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        const { latitude, longitude, address } = selectedEvent.attractionData!;
+                        const query = latitude && longitude 
+                          ? `${latitude},${longitude}` 
+                          : encodeURIComponent(address || selectedEvent.attractionData!.name);
+                        window.open(`https://www.google.com/maps/dir/?api=1&destination=${query}`, '_blank');
+                      }}
+                      className="flex items-center gap-1 h-8 px-3 text-xs"
+                    >
+                      <Compass className="w-3 h-3" />
+                      Directions
+                    </Button>
+                    
+                    {selectedEvent.attractionData.website && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => window.open(selectedEvent.attractionData!.website, '_blank')}
+                        className="flex items-center gap-1 h-8 px-3 text-xs"
+                      >
+                        <Globe className="w-3 h-3" />
+                        Website
+                      </Button>
+                    )}
+                    
+                    {selectedEvent.attractionData.phone && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => window.open(`tel:${selectedEvent.attractionData!.phone}`, '_self')}
+                        className="flex items-center gap-1 h-8 px-3 text-xs"
+                      >
+                        <Phone className="w-3 h-3" />
+                        Call
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Action Buttons */}
+            <div className="flex gap-2 pt-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  setIsEventDialogOpen(false);
+                  onEditEvent(selectedEvent);
+                }}
+                className="flex-1"
+              >
+                <Edit className="w-4 h-4 mr-1" />
+                Edit Event
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  setIsEventDialogOpen(false);
+                  onDeleteEvent(selectedEvent.id);
+                }}
+                className="text-destructive hover:text-destructive"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  </div>;
 }
