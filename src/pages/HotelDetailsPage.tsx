@@ -711,25 +711,16 @@ export function HotelDetailsPage() {
                         <div className="text-sm text-muted-foreground leading-relaxed">
                           {hotel.stayDetails.specialRequests.split('\n').map((line, index) => {
                             const trimmedLine = line.trim();
-                            if (trimmedLine.startsWith('http://') || trimmedLine.startsWith('https://')) {
+                            if (trimmedLine) {
                               return (
                                 <div key={index} className="mb-2 last:mb-0">
-                                  <a
-                                    href={trimmedLine}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-block text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline decoration-1 underline-offset-2 transition-colors break-all"
-                                  >
+                                  <a href={trimmedLine} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline">
                                     {trimmedLine}
                                   </a>
                                 </div>
                               );
                             }
-                            return (
-                              <div key={index} className="mb-1 last:mb-0">
-                                {trimmedLine}
-                              </div>
-                            );
+                            return null;
                           })}
                         </div>
                       </div>
