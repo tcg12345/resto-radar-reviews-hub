@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -168,7 +167,6 @@ export function HotelDetailsPage() {
         } catch (error) {
           console.error('Error fetching hotel photos:', error);
         }
-
       } else {
         toast.error('Hotel not found');
         navigate('/travel');
@@ -771,7 +769,7 @@ export function HotelDetailsPage() {
             )}
             
             {/* Secondary action buttons */}
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               {hotel.phone && (
                 <Button 
                   variant="outline" 
@@ -795,17 +793,6 @@ export function HotelDetailsPage() {
                   <span className="hidden sm:inline">Website</span>
                 </Button>
               )}
-              
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => hotel.website && window.open(hotel.website, '_blank')}
-                className="flex items-center gap-2 h-11 rounded-lg text-xs font-medium"
-                disabled={!hotel.website}
-              >
-                <MessageSquare className="w-4 h-4" />
-                <span className="hidden sm:inline">Contact</span>
-              </Button>
               
               <Button 
                 variant="outline" 
@@ -928,7 +915,6 @@ export function HotelDetailsPage() {
           )}
         </div>
       )}
-
     </div>
   );
 }
