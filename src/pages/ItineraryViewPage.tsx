@@ -742,6 +742,9 @@ export function ItineraryViewPage() {
                                           />
                                         </div>
                                       </div>
+                                      <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getEventTypeColor(event.type)}`}>
+                                        {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
