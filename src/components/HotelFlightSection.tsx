@@ -118,10 +118,8 @@ export function HotelFlightSection({
   });
 
   function openEdit(booking: HotelBooking) {
-    // Store booking data in sessionStorage for the edit page
-    sessionStorage.setItem('editingHotelBooking', JSON.stringify(booking));
-    // Navigate to the edit page
-    navigate(`/edit-hotel/${booking.id}`);
+    setEditingHotel(booking);
+    setShowEditModal(true);
   }
 
   useEffect(() => {
@@ -1646,99 +1644,37 @@ export function HotelFlightSection({
   return (
     <>
       {content}
-      <Dialog
-        open={showEditModal}
-        onOpenChange={(open) => {
-          setShowEditModal(open);
-          if (!open) setEditingHotel(null);
-        }}
-      >
-        <DialogContent className="sm:max-w-[520px]">
-          <DialogHeader>
-            <DialogTitle>Edit Hotel Details</DialogTitle>
-            <DialogDescription>
-              {editingHotel?.hotel.name}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="totalCost">Total Cost</Label>
-              <Input
-                id="totalCost"
-                value={editForm.totalCost}
-                onChange={(e) => setEditForm(f => ({ ...f, totalCost: e.target.value }))}
-                placeholder="e.g., $500/night"
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="confirmationNumber">Confirmation Number</Label>
-              <Input
-                id="confirmationNumber"
-                value={editForm.confirmationNumber}
-                onChange={(e) => setEditForm(f => ({ ...f, confirmationNumber: e.target.value }))}
-                placeholder="Booking confirmation"
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="roomType">Room Type</Label>
-              <Input
-                id="roomType"
-                value={editForm.roomType}
-                onChange={(e) => setEditForm(f => ({ ...f, roomType: e.target.value }))}
-                placeholder="e.g., Deluxe King"
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="specialRequests">Special Requests</Label>
-              <Input
-                id="specialRequests"
-                value={editForm.specialRequests}
-                onChange={(e) => setEditForm(f => ({ ...f, specialRequests: e.target.value }))}
-                placeholder="Any special requests..."
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Input
-                id="notes"
-                value={editForm.notes}
-                onChange={(e) => setEditForm(f => ({ ...f, notes: e.target.value }))}
-                placeholder="Personal notes..."
-              />
-            </div>
-          </div>
-
-          <div className="flex gap-2 pt-2">
-            <Button
-              className="flex-1"
-              onClick={() => {
-                if (editingHotel && onUpdateHotel) {
-                  onUpdateHotel(editingHotel.id, { ...editForm });
-                }
-                setShowEditModal(false);
-                setEditingHotel(null);
-              }}
-            >
-              Save Changes
-            </Button>
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => {
-                setShowEditModal(false);
-                setEditingHotel(null);
-              }}
-            >
-              Cancel
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* EDIT HOTEL DIALOG — always in the tree */}
+      {editingHotel && (
+        <HotelStayDetailsDialog
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setEditingHotel(null);
+          }}
+          onConfirm={(stayDetails) => {
+            if (onUpdateHotel) {
+              onUpdateHotel(editingHotel.id, {
+                checkIn: stayDetails.checkIn,
+                checkOut: stayDetails.checkOut,
+                guests: stayDetails.guests,
+                rooms: stayDetails.rooms,
+                roomType: stayDetails.roomType,
+                confirmationNumber: stayDetails.confirmationNumber,
+                totalCost: stayDetails.totalCost,
+                specialRequests: stayDetails.specialRequests,
+                notes: stayDetails.notes,
+              });
+            }
+            setShowEditModal(false);
+            setEditingHotel(null);
+          }}
+          hotel={editingHotel.hotel}
+          checkInDate={editingHotel.checkIn ? new Date(editingHotel.checkIn) : undefined}
+          checkOutDate={editingHotel.checkOut ? new Date(editingHotel.checkOut) : undefined}
+          selectedLocation={editingHotel.location}
+        />
+      )}
     </>
   );
 }
