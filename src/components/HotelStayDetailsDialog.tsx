@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { Calendar, MapPin, Users, Clock, Bed, Car, Coffee, X, ArrowLeft } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, Bed, Car, Coffee, X, ArrowLeft, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -136,21 +136,28 @@ export function HotelStayDetailsDialog({
 
   const formContent = (
     <div className="space-y-6">
-      {/* Hotel Summary */}
-      <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg">{hotel.name}</CardTitle>
-              <CardDescription className="flex items-center gap-1 mt-1">
-                <MapPin className="w-3 h-3" />
-                {hotel.address}
+      {/* Hotel Summary - Premium Design */}
+      <Card className="border border-border/20 bg-gradient-to-br from-background via-background to-accent/5 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden group">
+        <CardHeader className="p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 space-y-2">
+              <CardTitle className="text-xl font-bold text-foreground leading-tight tracking-tight">
+                {hotel.name}
+              </CardTitle>
+              <CardDescription className="flex items-center gap-2 text-muted-foreground text-sm font-medium">
+                <MapPin className="w-4 h-4 flex-shrink-0 text-muted-foreground/70" />
+                <span className="line-clamp-2">{hotel.address}</span>
               </CardDescription>
             </div>
             {hotel.rating && (
-              <Badge variant="secondary" className="bg-primary/10 text-primary">
-                ⭐ {hotel.rating}
-              </Badge>
+              <div className="flex-shrink-0">
+                <Badge className="bg-gradient-to-r from-primary/10 to-primary/5 text-primary border border-primary/20 rounded-full px-3 py-1.5 shadow-sm hover:shadow-md transition-all duration-200">
+                  <div className="flex items-center gap-1.5">
+                    <Star className="w-3.5 h-3.5 fill-current text-primary" />
+                    <span className="font-semibold text-sm">{hotel.rating}</span>
+                  </div>
+                </Badge>
+              </div>
             )}
           </div>
         </CardHeader>
