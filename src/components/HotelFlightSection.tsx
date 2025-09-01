@@ -13,6 +13,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { HotelSearchDialog } from '@/components/HotelSearchDialog';
 import { FlightSearchDialog } from '@/components/FlightSearchDialog';
+import { StayDetails } from '@/components/HotelStayDetailsDialog';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Hotel as HotelType } from '@/hooks/useGooglePlacesHotelSearch';
 interface TripLocation {
@@ -96,8 +97,9 @@ export function HotelFlightSection({
   const [guests, setGuests] = useState(2);
   const [isHotelsExpanded, setIsHotelsExpanded] = useState(false);
   const [isFlightsExpanded, setIsFlightsExpanded] = useState(false);
-  const handleHotelSelect = (hotel: HotelType, location?: string, checkIn?: Date, checkOut?: Date) => {
-    onAddHotel(hotel, location, checkIn, checkOut);
+  const handleHotelSelect = (stayDetails: StayDetails) => {
+    // Convert StayDetails back to the old format for now
+    onAddHotel(stayDetails.hotel, undefined, stayDetails.checkIn, stayDetails.checkOut);
   };
   const handleFlightSelect = (flight: any) => {
     onAddFlight(flight);

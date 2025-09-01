@@ -12,6 +12,7 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useGooglePlacesHotelSearch, Hotel as HotelType } from '@/hooks/useGooglePlacesHotelSearch';
 import { SearchResultSkeleton } from '@/components/skeletons/SearchResultSkeleton';
+import { HotelStayDetailsDialog, StayDetails } from '@/components/HotelStayDetailsDialog';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -30,7 +31,7 @@ interface TripLocation {
 interface HotelSearchDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelect: (hotel: HotelType, selectedLocation?: string, checkIn?: Date, checkOut?: Date) => void;
+  onSelect: (stayDetails: StayDetails) => void;
   locations: TripLocation[];
   isMultiCity: boolean;
 }
@@ -49,7 +50,8 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
   const [isCheckInOpen, setIsCheckInOpen] = useState(false);
   const [isCheckOutOpen, setIsCheckOutOpen] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  
+  const [selectedHotel, setSelectedHotel] = useState<HotelType | null>(null);
+  const [showStayDetails, setShowStayDetails] = useState(false);
   const isMobile = useIsMobile();
   const [showFilters, setShowFilters] = useState(!isMobile);
   
@@ -112,8 +114,13 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
   };
 
   const handleHotelSelect = (hotel: HotelType) => {
-    onSelect(hotel, selectedLocation, checkInDate, checkOutDate);
-    toast.success('Hotel added to your itinerary!');
+    setSelectedHotel(hotel);
+    setShowResults(false);
+    setShowStayDetails(true);
+  };
+
+  const handleStayDetailsConfirm = (stayDetails: StayDetails) => {
+    onSelect(stayDetails);
     handleClose();
   };
 
@@ -126,6 +133,8 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
     setIsCheckInOpen(false);
     setIsCheckOutOpen(false);
     setShowResults(false);
+    setSelectedHotel(null);
+    setShowStayDetails(false);
     onClose();
   };
 
@@ -789,6 +798,22 @@ return (
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* Hotel Stay Details Dialog */}
+      {selectedHotel && (
+        <HotelStayDetailsDialog
+          isOpen={showStayDetails}
+          onClose={() => {
+            setShowStayDetails(false);
+            setSelectedHotel(null);
+          }}
+          onConfirm={handleStayDetailsConfirm}
+          hotel={selectedHotel}
+          checkInDate={checkInDate}
+          checkOutDate={checkOutDate}
+          selectedLocation={selectedLocation}
+        />
+      )}
     </>
   );
 }
