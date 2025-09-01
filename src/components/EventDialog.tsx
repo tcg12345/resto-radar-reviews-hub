@@ -606,8 +606,18 @@ export function EventDialog({
         <Input 
           id="price" 
           value={price} 
-          onChange={e => setPrice(e.target.value)} 
-          placeholder="e.g., $25, €30, ¥200..." 
+          onChange={e => {
+            const value = e.target.value;
+            // Remove non-numeric characters except decimal point
+            const numericValue = value.replace(/[^0-9.]/g, '');
+            // Format with dollar sign if there's a numeric value
+            if (numericValue) {
+              setPrice(`$${numericValue}`);
+            } else {
+              setPrice('');
+            }
+          }} 
+          placeholder="Enter amount..." 
           className="w-full" 
         />
       </div>
