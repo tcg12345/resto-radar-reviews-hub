@@ -369,13 +369,31 @@ export function HotelFlightSection({
                           <div className="flex items-center gap-3 pb-2 border-b border-border/10">
                             <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
                             <span className="text-sm text-foreground font-medium">
-                              {booking.checkIn && booking.checkOut 
-                                ? `${formatDate(booking.checkIn)} - ${formatDate(booking.checkOut)}` 
-                                : booking.checkIn 
-                                ? `Check-in: ${formatDate(booking.checkIn)}` 
-                                : booking.checkOut 
-                                ? `Check-out: ${formatDate(booking.checkOut)}` 
-                                : null}
+                              {wasCreatedWithLengthOfStay ? (
+                                // Day mode - show nights
+                                booking.checkIn && booking.checkOut 
+                                  ? (() => {
+                                      const checkInDate = new Date(booking.checkIn);
+                                      const checkOutDate = new Date(booking.checkOut);
+                                      const timeDiff = checkOutDate.getTime() - checkInDate.getTime();
+                                      const nights = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                                      return `${nights} night${nights !== 1 ? 's' : ''}`;
+                                    })()
+                                  : booking.checkIn 
+                                  ? `Check-in: Day ${booking.checkIn}` 
+                                  : booking.checkOut 
+                                  ? `Check-out: Day ${booking.checkOut}` 
+                                  : null
+                              ) : (
+                                // Date mode - show specific dates
+                                booking.checkIn && booking.checkOut 
+                                  ? `${formatDate(booking.checkIn)} - ${formatDate(booking.checkOut)}` 
+                                  : booking.checkIn 
+                                  ? `Check-in: ${formatDate(booking.checkIn)}` 
+                                  : booking.checkOut 
+                                  ? `Check-out: ${formatDate(booking.checkOut)}` 
+                                  : null
+                              )}
                             </span>
                           </div>
                         )}
