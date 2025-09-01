@@ -176,52 +176,65 @@ if (isMobile) {
     <>
       <Drawer open={isOpen && !showResults} onOpenChange={handleClose}>
         <DrawerContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-0">
-          <div className="w-full">
-            <div className="sticky top-0 z-10 border-b border-border/50 bg-gradient-to-b from-background/95 via-background to-background/80 px-5 pt-4 pb-3">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <DrawerTitle className="text-base font-semibold">Hotel Search</DrawerTitle>
-                  <DrawerDescription className="text-xs text-muted-foreground">Find the perfect accommodation for your trip</DrawerDescription>
+          <div className="w-full h-[85vh] flex flex-col">
+            {/* Header Section */}
+            <div className="sticky top-0 z-10 bg-gradient-to-b from-background via-background to-background/95 px-6 pt-5 pb-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="space-y-1">
+                  <DrawerTitle className="text-xl font-bold text-foreground">Hotel Search</DrawerTitle>
+                  <DrawerDescription className="text-sm text-muted-foreground font-medium">Find the perfect accommodation for your trip</DrawerDescription>
                 </div>
-                <Button variant="ghost" size="icon" onClick={handleClose} className="h-9 w-9 rounded-full bg-muted/50 hover:bg-muted">
+                <Button variant="ghost" size="icon" onClick={handleClose} className="h-8 w-8 rounded-full bg-muted/30 hover:bg-muted/50 transition-colors">
                   <X className="h-4 w-4" />
                 </Button>
               </div>
-            </div>
-
-            <div className="max-h-[70vh] overflow-y-auto px-5 py-4">
-              {/* Compact Mobile Search Bar */}
-              <div className="space-y-2 border-b pb-3">
-                <div className="flex gap-2">
+              
+              {/* Prominent Search Bar */}
+              <div className="space-y-3">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                    <Search className="h-4 w-4 text-muted-foreground" />
+                  </div>
                   <Input
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder="Search hotels..."
-                    className="h-10"
+                    placeholder="Search hotels by name or type..."
+                    className="pl-10 h-12 rounded-full border-2 border-border/20 bg-muted/10 shadow-sm focus:shadow-md transition-all"
                   />
                   <Button
                     onClick={handleSearch}
                     disabled={isSearching || !searchQuery.trim()}
-                    className="h-10 px-4"
+                    size="icon"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-primary hover:bg-primary/90 shadow-sm"
                   >
-                    <Search className="w-4 h-4 mr-1" />
-                    Go
+                    <Search className="w-4 h-4" />
                   </Button>
                 </div>
-                <div className="flex justify-between">
-                  <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
+                
+                {/* Filter Toggle */}
+                <div className="flex justify-center">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="rounded-full px-4 bg-muted/20 border-muted hover:bg-muted/40 transition-colors"
+                  >
                     {showFilters ? "Hide filters" : "Show filters"}
                   </Button>
                 </div>
               </div>
+            </div>
 
-              {/* Filters */}
-              <div className={cn("space-y-6", showFilters ? "border-b pb-3" : "hidden")}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium flex items-center gap-2">
-                      <Search className="w-4 h-4" />
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto px-6">
+              {/* Filter Cards */}
+              <div className={cn("space-y-4 pb-6", showFilters ? "block" : "hidden")}>
+                {/* Hotel Name Card */}
+                <Card className="p-4 bg-muted/5 border-muted/20 shadow-sm">
+                  <div className="space-y-3">
+                    <Label className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                      <Search className="w-4 h-4 text-primary" />
                       Hotel Name or Type
                     </Label>
                     <Input
@@ -229,17 +242,20 @@ if (isMobile) {
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onKeyPress={handleKeyPress}
                       placeholder="Hilton, boutique hotel, luxury resort..."
-                      className="bg-background/60"
+                      className="bg-background border-border/30 focus:border-primary/50"
                     />
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium flex items-center gap-2">
-                      <MapPin className="w-4 h-4" />
+                </Card>
+                
+                {/* Location Card */}
+                <Card className="p-4 bg-muted/5 border-muted/20 shadow-sm">
+                  <div className="space-y-3">
+                    <Label className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                      <MapPin className="w-4 h-4 text-primary" />
                       Location
                     </Label>
                     <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-                      <SelectTrigger className="bg-background/60">
+                      <SelectTrigger className="bg-background border-border/30 focus:border-primary/50">
                         <SelectValue placeholder={isMultiCity ? "Select location" : locations[0]?.name || "Select location"} />
                       </SelectTrigger>
                       <SelectContent>
@@ -252,71 +268,95 @@ if (isMobile) {
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
+                </Card>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      Check-in Date
+                {/* Dates Card */}
+                <Card className="p-4 bg-muted/5 border-muted/20 shadow-sm">
+                  <div className="space-y-4">
+                    <Label className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                      <Calendar className="w-4 h-4 text-primary" />
+                      Stay Dates
                     </Label>
-                    <Popover open={isCheckInOpen} onOpenChange={setIsCheckInOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal bg-background/60",
-                            !checkInDate && "text-muted-foreground"
-                          )}
-                        >
-                          <Calendar className="mr-2 h-4 w-4" />
-                          {checkInDate ? format(checkInDate, "MMM dd") : "Select date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 z-[9999]" align="start">
-                        <CalendarComponent
-                          mode="single"
-                          selected={checkInDate}
-                          onSelect={handleCheckInSelect}
-                          initialFocus
-                          className={cn("p-3 pointer-events-auto")}
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground font-medium">Check-in</Label>
+                        <Popover open={isCheckInOpen} onOpenChange={setIsCheckInOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal bg-background border-border/30 h-10",
+                                !checkInDate && "text-muted-foreground"
+                              )}
+                            >
+                              <Calendar className="mr-2 h-3 w-3" />
+                              {checkInDate ? format(checkInDate, "MMM dd") : "Select"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0 z-[9999]" align="start">
+                            <CalendarComponent
+                              mode="single"
+                              selected={checkInDate}
+                              onSelect={handleCheckInSelect}
+                              initialFocus
+                              className={cn("p-3 pointer-events-auto")}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground font-medium">Check-out</Label>
+                        <Popover open={isCheckOutOpen} onOpenChange={setIsCheckOutOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal bg-background border-border/30 h-10",
+                                !checkOutDate && "text-muted-foreground"
+                              )}
+                            >
+                              <Calendar className="mr-2 h-3 w-3" />
+                              {checkOutDate ? format(checkOutDate, "MMM dd") : "Select"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0 z-[9999]" align="start">
+                            <CalendarComponent
+                              mode="single"
+                              selected={checkOutDate}
+                              onSelect={handleCheckOutSelect}
+                              initialFocus
+                              disabled={(date) => checkInDate ? date <= checkInDate : false}
+                              className={cn("p-3 pointer-events-auto")}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      Check-out Date
-                    </Label>
-                    <Popover open={isCheckOutOpen} onOpenChange={setIsCheckOutOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal bg-background/60",
-                            !checkOutDate && "text-muted-foreground"
-                          )}
-                        >
-                          <Calendar className="mr-2 h-4 w-4" />
-                          {checkOutDate ? format(checkOutDate, "MMM dd") : "Select date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 z-[9999]" align="start">
-                        <CalendarComponent
-                          mode="single"
-                          selected={checkOutDate}
-                          onSelect={handleCheckOutSelect}
-                          initialFocus
-                          disabled={(date) => checkInDate ? date <= checkInDate : false}
-                          className={cn("p-3 pointer-events-auto")}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </div>
+                </Card>
               </div>
+            </div>
+
+            {/* Sticky Bottom CTA */}
+            <div className="sticky bottom-0 bg-gradient-to-t from-background via-background to-background/95 p-6 border-t border-border/20">
+              <Button
+                onClick={handleSearch}
+                disabled={isSearching || !searchQuery.trim()}
+                className="w-full h-12 text-base font-semibold rounded-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all"
+              >
+                {isSearching ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-background border-t-transparent mr-2" />
+                    Searching...
+                  </>
+                ) : (
+                  <>
+                    <Search className="w-4 h-4 mr-2" />
+                    Search Hotels
+                  </>
+                )}
+              </Button>
             </div>
           </div>
         </DrawerContent>
