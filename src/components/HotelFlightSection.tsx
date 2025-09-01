@@ -1438,44 +1438,100 @@ export function HotelFlightSection({
       />
 
       {/* Edit Hotel Stay Details Dialog */}
-      {editingHotel && (
-        <HotelStayDetailsDialog
-          isOpen={isEditStayDetailsOpen}
-          onClose={() => {
-            setIsEditStayDetailsOpen(false);
-            setEditingHotel(null);
-          }}
-          onConfirm={(stayDetails) => {
-            if (onUpdateHotel) {
-              onUpdateHotel(editingHotel.id, {
-                checkIn: stayDetails.checkIn,
-                checkOut: stayDetails.checkOut,
-                guests: stayDetails.guests,
-                rooms: stayDetails.rooms,
-                roomType: stayDetails.roomType,
-                specialRequests: stayDetails.specialRequests,
-                confirmationNumber: stayDetails.confirmationNumber,
-                totalCost: stayDetails.totalCost,
-                notes: stayDetails.notes
-              });
-            }
-            setIsEditStayDetailsOpen(false);
-            setEditingHotel(null);
-          }}
-          hotel={editingHotel.hotel}
-          checkInDate={editingHotel.checkIn ? new Date(editingHotel.checkIn) : undefined}
-          checkOutDate={editingHotel.checkOut ? new Date(editingHotel.checkOut) : undefined}
-          existingBookingData={{
-            guests: editingHotel.guests,
-            rooms: editingHotel.rooms,
-            roomType: editingHotel.roomType,
-            specialRequests: editingHotel.specialRequests,
-            confirmationNumber: editingHotel.confirmationNumber,
-            totalCost: editingHotel.totalCost,
-            notes: editingHotel.notes
-          }}
-          isEditMode={true}
-        />
+      {editingHotel && isEditStayDetailsOpen && (
+        <>
+          {/* Temporary test overlay */}
+          <div 
+            className="fixed inset-0 bg-black/50 z-[10000] flex items-center justify-center"
+            onClick={() => {
+              console.log('Overlay clicked, closing dialog');
+              setIsEditStayDetailsOpen(false);
+              setEditingHotel(null);
+            }}
+          >
+            <div 
+              className="bg-white p-6 rounded-lg max-w-md w-full mx-4 relative z-[10001]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold">Edit Hotel Details</h2>
+                <button 
+                  onClick={() => {
+                    setIsEditStayDetailsOpen(false);
+                    setEditingHotel(null);
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="mb-4">Hotel: {editingHotel.hotel.name}</p>
+              <p className="mb-4">This is a test overlay to verify modal functionality works.</p>
+              <div className="flex gap-2">
+                <button 
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  onClick={() => {
+                    console.log('Test save clicked');
+                    setIsEditStayDetailsOpen(false);
+                    setEditingHotel(null);
+                  }}
+                >
+                  Test Save
+                </button>
+                <button 
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                  onClick={() => {
+                    setIsEditStayDetailsOpen(false);
+                    setEditingHotel(null);
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          {/* Original dialog (hidden for now) */}
+          <div style={{ display: 'none' }}>
+            <HotelStayDetailsDialog
+              isOpen={isEditStayDetailsOpen}
+              onClose={() => {
+                setIsEditStayDetailsOpen(false);
+                setEditingHotel(null);
+              }}
+              onConfirm={(stayDetails) => {
+                if (onUpdateHotel) {
+                  onUpdateHotel(editingHotel.id, {
+                    checkIn: stayDetails.checkIn,
+                    checkOut: stayDetails.checkOut,
+                    guests: stayDetails.guests,
+                    rooms: stayDetails.rooms,
+                    roomType: stayDetails.roomType,
+                    specialRequests: stayDetails.specialRequests,
+                    confirmationNumber: stayDetails.confirmationNumber,
+                    totalCost: stayDetails.totalCost,
+                    notes: stayDetails.notes
+                  });
+                }
+                setIsEditStayDetailsOpen(false);
+                setEditingHotel(null);
+              }}
+              hotel={editingHotel.hotel}
+              checkInDate={editingHotel.checkIn ? new Date(editingHotel.checkIn) : undefined}
+              checkOutDate={editingHotel.checkOut ? new Date(editingHotel.checkOut) : undefined}
+              existingBookingData={{
+                guests: editingHotel.guests,
+                rooms: editingHotel.rooms,
+                roomType: editingHotel.roomType,
+                specialRequests: editingHotel.specialRequests,
+                confirmationNumber: editingHotel.confirmationNumber,
+                totalCost: editingHotel.totalCost,
+                notes: editingHotel.notes
+              }}
+              isEditMode={true}
+            />
+          </div>
+        </>
       )}
     </div>;
 }
