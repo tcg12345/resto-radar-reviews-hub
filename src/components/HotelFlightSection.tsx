@@ -305,9 +305,18 @@ export function HotelFlightSection({
                             onClick={(e) => {
                               e.stopPropagation();
                               console.log('NEW Edit button clicked!');
+                              console.log('Before state update - showEditModal:', showEditModal);
+                              console.log('Setting editingHotel to:', booking);
                               setEditingHotel(booking);
                               setShowEditModal(true);
                               console.log('Modal should appear now');
+                              console.log('State should now be - showEditModal: true, editingHotel:', booking);
+                              
+                              // Force a re-render check
+                              setTimeout(() => {
+                                console.log('After timeout - showEditModal:', showEditModal);
+                                console.log('After timeout - editingHotel:', editingHotel);
+                              }, 100);
                             }}
                             size="sm" 
                             variant="ghost" 
