@@ -607,7 +607,7 @@ export function EventDialog({
               <DrawerDescription>{`Adding event for ${formattedDate}`}</DrawerDescription>
             )}
           </DrawerHeader>
-          <div className="px-4 pb-4 h-[75vh] overflow-y-auto">
+          <div className="px-4 pb-4 h-[65vh] overflow-y-auto">
             {formContent}
           </div>
           <DrawerFooter>
@@ -628,7 +628,7 @@ export function EventDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px] h-[85vh] flex flex-col">
+      <DialogContent className="sm:max-w-[500px] h-[75vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>
             {editingEvent ? 'Edit Event' : 'Add New Event'}
