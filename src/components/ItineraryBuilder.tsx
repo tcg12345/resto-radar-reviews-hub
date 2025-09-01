@@ -1556,14 +1556,16 @@ export function ItineraryBuilder({
                         </button>
                       </div>
                       
-                      {/* Total Price Calculator */}
-                      <button 
-                        onClick={calculateTotalPrice} 
-                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors duration-200"
-                      >
-                        <DollarSign className="w-4 h-4" />
-                        Calculate Total Price
-                      </button>
+                      {/* Total Price Calculator - Only show if there are events with prices */}
+                      {events.some(event => event.price && event.price.trim() !== '') && (
+                        <button 
+                          onClick={calculateTotalPrice} 
+                          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors duration-200"
+                        >
+                          <DollarSign className="w-4 h-4" />
+                          Calculate Total Price
+                        </button>
+                      )}
                       
                       {totalPrice && (
                         <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
