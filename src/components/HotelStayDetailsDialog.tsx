@@ -360,12 +360,14 @@ export function HotelStayDetailsDialog({
                        selected={checkIn}
                        onSelect={handleCheckInSelect}
                        initialFocus
-                       disabled={(date) => {
-                         // Disable dates outside itinerary range
-                         if (itineraryStartDate && date < itineraryStartDate) return true;
-                         if (itineraryEndDate && date > itineraryEndDate) return true;
-                         return false;
-                       }}
+                        disabled={(date) => {
+                          // Disable dates outside itinerary range
+                          const startDate = itineraryStartDate ? new Date(itineraryStartDate) : null;
+                          const endDate = itineraryEndDate ? new Date(itineraryEndDate) : null;
+                          if (startDate && date < startDate) return true;
+                          if (endDate && date > endDate) return true;
+                          return false;
+                        }}
                        className={cn("p-3 pointer-events-auto")}
                      />
                    </PopoverContent>
@@ -393,13 +395,15 @@ export function HotelStayDetailsDialog({
                        selected={checkOut}
                        onSelect={handleCheckOutSelect}
                        initialFocus
-                       disabled={(date) => {
-                         // Disable dates outside itinerary range and before check-in
-                         if (checkIn && date <= checkIn) return true;
-                         if (itineraryStartDate && date < itineraryStartDate) return true;
-                         if (itineraryEndDate && date > itineraryEndDate) return true;
-                         return false;
-                       }}
+                        disabled={(date) => {
+                          // Disable dates outside itinerary range and before check-in
+                          if (checkIn && date <= checkIn) return true;
+                          const startDate = itineraryStartDate ? new Date(itineraryStartDate) : null;
+                          const endDate = itineraryEndDate ? new Date(itineraryEndDate) : null;
+                          if (startDate && date < startDate) return true;
+                          if (endDate && date > endDate) return true;
+                          return false;
+                        }}
                        className={cn("p-3 pointer-events-auto")}
                      />
                    </PopoverContent>
