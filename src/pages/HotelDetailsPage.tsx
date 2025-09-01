@@ -542,15 +542,6 @@ export function HotelDetailsPage() {
               ) : (
                 <div className="space-y-3">
                   <p className="text-muted-foreground leading-relaxed text-sm">{aiOverview}</p>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => navigate(`/hotel/${hotelId}/overview`)}
-                    className="flex items-center gap-2 rounded-full text-xs h-8"
-                  >
-                    <ExternalLink className="w-3 h-3" />
-                    View Detailed Overview
-                  </Button>
                 </div>
               )}
             </div>
