@@ -824,11 +824,11 @@ export function HotelDetailsPage() {
           </div>
 
           {/* Main photo */}
-          <div className="relative w-full h-full flex items-center justify-center px-16">
+          <div className="relative w-full h-full flex items-center justify-center px-8">
             <img
               src={hotelPhotos[galleryPhotoIndex]}
               alt={`${hotel.name} - Photo ${galleryPhotoIndex + 1}`}
-              className="max-w-full max-h-full object-contain"
+              className="w-full h-full object-contain"
               onError={(e) => {
                 e.currentTarget.src = '';
                 e.currentTarget.style.display = 'none';
