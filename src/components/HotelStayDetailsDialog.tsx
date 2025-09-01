@@ -510,14 +510,21 @@ export function HotelStayDetailsDialog({
           </Label>
           <div className="space-y-3">
             <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground font-medium">Special Requests</Label>
-              <Textarea
-                value={specialRequests}
-                onChange={(e) => setSpecialRequests(e.target.value)}
-                placeholder="Late check-in, room preferences, accessibility needs..."
-                rows={2}
-                className="bg-background border-border/30 resize-none"
-              />
+              <Label className="text-xs text-muted-foreground font-medium">Custom Links</Label>
+              <div className="space-y-2">
+                <Input
+                  value={specialRequests}
+                  onChange={(e) => setSpecialRequests(e.target.value)}
+                  placeholder="Add useful links (booking confirmation, restaurant reservations, etc.)"
+                  className="bg-background border-border/30"
+                />
+                {specialRequests && (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="w-2 h-2 rounded-full bg-primary/60"></div>
+                    <span>Link will be clickable in your itinerary</span>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground font-medium">Notes</Label>
