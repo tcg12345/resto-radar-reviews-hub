@@ -468,6 +468,7 @@ export function ItineraryViewPage() {
                             guests: hotel.guests,
                             rooms: hotel.rooms,
                             roomType: hotel.roomType,
+                            specialRequests: hotel.specialRequests,
                             confirmationNumber: hotel.confirmationNumber,
                             totalCost: hotel.totalCost,
                             notes: hotel.notes
