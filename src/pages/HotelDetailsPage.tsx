@@ -451,13 +451,7 @@ export function HotelDetailsPage() {
                         {hotel.rating.toFixed(1)}
                       </Badge>
                     )}
-                    {hotel.priceRange && (
-                      <div className="text-white">
-                        <span className="text-xl font-bold">{hotel.priceRange}</span>
-                        <span className="text-white/80 text-xs ml-1">per night</span>
-                      </div>
-                    )}
-                  </div>
+                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-white/90">
                   <MapPin className="w-4 h-4" />
