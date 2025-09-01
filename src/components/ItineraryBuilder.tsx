@@ -226,6 +226,7 @@ export function ItineraryBuilder({
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("builder");
   const [totalPrice, setTotalPrice] = useState<string | null>(null);
+  const [isMobileSectionOpen, setIsMobileSectionOpen] = useState(false);
 
   // Auto-collapse hooks for dropdowns when they scroll off screen
   const extensionRef = useScrollAutoCollapse({
@@ -1445,7 +1446,10 @@ export function ItineraryBuilder({
           <div className="lg:rounded-lg lg:border lg:shadow-sm rounded-none border-0 shadow-none relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen lg:left-auto lg:right-auto lg:ml-0 lg:mr-0 lg:w-auto">
             {/* Mobile: Collapsible Dropdown */}
             <div className="lg:hidden relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen px-4">
-              <Collapsible>
+              <Collapsible open={isMobileSectionOpen} onOpenChange={(open) => {
+                setIsMobileSectionOpen(open);
+                if (!open) setTotalPrice(null); // Clear total price when closed
+              }}>
                 <CollapsibleTrigger className="modern-accordion-trigger">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -1579,7 +1583,10 @@ export function ItineraryBuilder({
 
             {/* Desktop: Compact Row Design */}
             <div className="hidden lg:block">
-              <Collapsible open={isDesktopSectionOpen} onOpenChange={setIsDesktopSectionOpen}>
+              <Collapsible open={isDesktopSectionOpen} onOpenChange={(open) => {
+                setIsDesktopSectionOpen(open);
+                if (!open) setTotalPrice(null); // Clear total price when closed
+              }}>
                   <div ref={itineraryDetailsRef} className="relative rounded-xl md:rounded-2xl bg-card/80 supports-[backdrop-filter]:bg-card/60 backdrop-blur-md border border-border/60 shadow-lg ring-1 ring-border/40 animate-enter">
                 
                 {/* Header Section */}
