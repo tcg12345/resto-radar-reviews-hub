@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { ArrowLeft, MapPin, Clock, Phone, Globe, Star, ExternalLink, Navigation, Bed, Wifi, Car, Users, Coffee, ChevronLeft, ChevronRight, Calendar, Copy, CreditCard } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Phone, Globe, Star, ExternalLink, Navigation, Bed, Wifi, Car, Users, Coffee, ChevronLeft, ChevronRight, Calendar, Copy, CreditCard, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -53,6 +53,8 @@ export function HotelDetailsPage() {
   const [isLoadingOverview, setIsLoadingOverview] = useState(false);
   const [mapError, setMapError] = useState<string>('');
   const [isMapLoading, setIsMapLoading] = useState(true);
+  const [showPhotoGallery, setShowPhotoGallery] = useState(false);
+  const [galleryPhotoIndex, setGalleryPhotoIndex] = useState(0);
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
 
@@ -428,8 +430,8 @@ export function HotelDetailsPage() {
                   size="sm"
                   className="h-8 px-3 rounded-full bg-black/20 backdrop-blur-sm text-white hover:bg-black/30 border border-white/20 text-xs font-medium"
                   onClick={() => {
-                    // TODO: Open photo gallery modal
-                    console.log('Open photo gallery with', hotelPhotos.length, 'photos');
+                    setShowPhotoGallery(true);
+                    setGalleryPhotoIndex(0);
                   }}
                 >
                   <span>View Photos ({hotelPhotos.length})</span>
@@ -804,6 +806,80 @@ export function HotelDetailsPage() {
           </div>
         )}
       </div>
+
+      {/* Photo Gallery Modal */}
+      {showPhotoGallery && hotelPhotos.length > 0 && (
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center">
+          {/* Close button */}
+          <button
+            onClick={() => setShowPhotoGallery(false)}
+            className="absolute top-6 right-6 z-10 w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          {/* Photo counter */}
+          <div className="absolute top-6 left-6 z-10 px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 text-white text-sm font-medium">
+            {galleryPhotoIndex + 1} of {hotelPhotos.length}
+          </div>
+
+          {/* Main photo */}
+          <div className="relative w-full h-full flex items-center justify-center px-16">
+            <img
+              src={hotelPhotos[galleryPhotoIndex]}
+              alt={`${hotel.name} - Photo ${galleryPhotoIndex + 1}`}
+              className="max-w-full max-h-full object-contain"
+              onError={(e) => {
+                e.currentTarget.src = '';
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+
+            {/* Navigation arrows */}
+            {hotelPhotos.length > 1 && (
+              <>
+                <button
+                  onClick={() => setGalleryPhotoIndex((prev) => prev === 0 ? hotelPhotos.length - 1 : prev - 1)}
+                  className="absolute left-6 top-1/2 transform -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+                <button
+                  onClick={() => setGalleryPhotoIndex((prev) => prev === hotelPhotos.length - 1 ? 0 : prev + 1)}
+                  className="absolute right-6 top-1/2 transform -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Thumbnail strip */}
+          {hotelPhotos.length > 1 && (
+            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex gap-2 px-6 py-3 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 max-w-full overflow-x-auto">
+              {hotelPhotos.map((photo, index) => (
+                <button
+                  key={index}
+                  onClick={() => setGalleryPhotoIndex(index)}
+                  className={`flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden border-2 transition-all ${
+                    index === galleryPhotoIndex ? 'border-white' : 'border-white/30 opacity-70 hover:opacity-100'
+                  }`}
+                >
+                  <img
+                    src={photo}
+                    alt={`Thumbnail ${index + 1}`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = '';
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
