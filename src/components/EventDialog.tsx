@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { Clock, MapPin, Search, Utensils, MapPinIcon, ExternalLink, Phone } from 'lucide-react';
+import { Clock, MapPin, Search, Utensils, MapPinIcon, ExternalLink, Phone, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -16,6 +16,7 @@ import { Switch } from '@/components/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import { InlineRestaurantSearch } from '@/components/InlineRestaurantSearch';
 import { AttractionsSearch } from '@/components/AttractionsSearch';
 import { ItineraryEvent } from '@/components/ItineraryBuilder';
@@ -80,6 +81,30 @@ export function EventDialog({
   
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [isMultiDayEvent, setIsMultiDayEvent] = useState(false);
+  
+  // Custom links state
+  const [customLinks, setCustomLinks] = useState<string[]>([]);
+  const [newLinkInput, setNewLinkInput] = useState('');
+
+  // URL validation function
+  const isValidUrl = (url: string) => {
+    try {
+      const trimmedUrl = url.trim();
+      if (!trimmedUrl) return false;
+      
+      // Check if it starts with http:// or https://
+      if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
+        new URL(trimmedUrl);
+        return true;
+      }
+      
+      // Check if it's a valid domain without protocol
+      const domainPattern = /^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.[a-zA-Z]{2,}([\/\w\-._~:/?#[\]@!$&'()*+,;=]*)?$/;
+      return domainPattern.test(trimmedUrl);
+    } catch {
+      return false;
+    }
+  };
 
   // Reset form when dialog opens/closes or editing event changes
   useEffect(() => {
@@ -94,6 +119,17 @@ export function EventDialog({
       setAttractionData(editingEvent.attractionData || null);
       setSelectedDates([editingEvent.date]);
       setIsMultiDayEvent(false);
+      // Handle custom links - parse from description if stored there
+      if (editingEvent.description) {
+        const linkPattern = /^https?:\/\/[^\s]+$/gm;
+        const foundLinks = editingEvent.description.match(linkPattern) || [];
+        const cleanDescription = editingEvent.description.replace(linkPattern, '').trim();
+        setCustomLinks(foundLinks);
+        setDescription(cleanDescription);
+      } else {
+        setCustomLinks([]);
+      }
+      setNewLinkInput('');
     } else if (isOpen) {
       setTitle('');
       setDescription('');
@@ -102,6 +138,8 @@ export function EventDialog({
       setType('other');
       setRestaurantData(null);
       setAttractionData(null);
+      setCustomLinks([]);
+      setNewLinkInput('');
       // If selectedDate is empty, this is a main add event (multi-day capable)
       if (!selectedDate) {
         setSelectedDates([]);
@@ -121,9 +159,12 @@ export function EventDialog({
     // For single-day events, require the selectedDate
     if (!isMultiDayEvent && !selectedDate) return;
     
+    // Combine description and links
+    const combinedDescription = [description.trim(), ...customLinks].filter(Boolean).join('\n').trim() || undefined;
+    
     const eventData: Omit<ItineraryEvent, 'id'> = {
       title: title.trim(),
-      description: description.trim() || undefined,
+      description: combinedDescription,
       price: price.trim() || undefined,
       time,
       date: isMultiDayEvent ? selectedDates[0] : selectedDate!, // Default to first selected date
@@ -145,6 +186,8 @@ export function EventDialog({
     setType('other');
     setRestaurantData(null);
     setAttractionData(null);
+    setCustomLinks([]);
+    setNewLinkInput('');
     onClose();
   };
   const handleAttractionSelect = (attraction: AttractionData | null) => {
@@ -620,6 +663,98 @@ export function EventDialog({
           placeholder="Enter amount..." 
           className="w-full" 
         />
+      </div>
+
+      {/* Custom Links */}
+      <div className="space-y-2">
+        <Label className="text-xs text-muted-foreground font-medium">Custom Links</Label>
+        <div className="space-y-3">
+          {/* Add new link input */}
+          <div className="space-y-2">
+            <div className="relative">
+              <Input
+                value={newLinkInput}
+                onChange={(e) => setNewLinkInput(e.target.value)}
+                placeholder="Add a link (e.g., https://example.com or example.com)"
+                className={cn(
+                  "bg-background border-border/30 pr-20",
+                  newLinkInput && isValidUrl(newLinkInput) && "border-green-500 dark:border-green-400",
+                  newLinkInput && !isValidUrl(newLinkInput) && newLinkInput.trim() && "border-red-500 dark:border-red-400"
+                )}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const trimmedLink = newLinkInput.trim();
+                    if (trimmedLink && isValidUrl(trimmedLink)) {
+                      setCustomLinks([...customLinks, trimmedLink]);
+                      setNewLinkInput('');
+                    } else if (trimmedLink) {
+                      toast.error('Please enter a valid URL');
+                    }
+                  }
+                }}
+              />
+              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
+                {newLinkInput && (
+                  <div className="flex items-center">
+                    {isValidUrl(newLinkInput) ? (
+                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                    ) : newLinkInput.trim() ? (
+                      <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                    ) : null}
+                  </div>
+                )}
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    const trimmedLink = newLinkInput.trim();
+                    if (trimmedLink && isValidUrl(trimmedLink)) {
+                      setCustomLinks([...customLinks, trimmedLink]);
+                      setNewLinkInput('');
+                    } else if (trimmedLink) {
+                      toast.error('Please enter a valid URL');
+                    }
+                  }}
+                  disabled={!newLinkInput.trim() || !isValidUrl(newLinkInput)}
+                  className="h-7 px-3 text-xs"
+                >
+                  Add
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Display existing links */}
+          {customLinks.length > 0 && (
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground font-medium">Added Links ({customLinks.length})</Label>
+              {customLinks.map((link, index) => (
+                <div key={index} className="flex items-center gap-2 p-2 bg-muted/20 rounded-lg border border-border/20">
+                  <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></div>
+                  <span className="text-sm text-foreground flex-1 truncate">{link}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setCustomLinks(customLinks.filter((_, i) => i !== index));
+                    }}
+                    className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {customLinks.length === 0 && (
+            <div className="text-xs text-muted-foreground">
+              No links added yet. Add links to tickets, reservations, websites, etc.
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
