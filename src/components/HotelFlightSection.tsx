@@ -1438,11 +1438,31 @@ export function HotelFlightSection({
       />
 
       {/* Edit Hotel Stay Details Dialog */}
-      {editingHotel && isEditStayDetailsOpen && (
+      {(() => {
+        console.log('Render check - editingHotel:', !!editingHotel, 'isEditStayDetailsOpen:', isEditStayDetailsOpen);
+        return null;
+      })()}
+      {isEditStayDetailsOpen && (
         <>
-          {/* Temporary test overlay */}
+          {(() => {
+            console.log('Rendering test modal - this should appear in console');
+            return null;
+          })()}
+          {/* Temporary test overlay - FORCED VISIBLE */}
           <div 
-            className="fixed inset-0 bg-black/50 z-[10000] flex items-center justify-center"
+            className="fixed inset-0 bg-red-500 z-[99999] flex items-center justify-center"
+            style={{ 
+              position: 'fixed', 
+              top: 0, 
+              left: 0, 
+              right: 0, 
+              bottom: 0, 
+              backgroundColor: 'rgba(255, 0, 0, 0.8)', 
+              zIndex: 99999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
             onClick={() => {
               console.log('Overlay clicked, closing dialog');
               setIsEditStayDetailsOpen(false);
@@ -1450,7 +1470,18 @@ export function HotelFlightSection({
             }}
           >
             <div 
-              className="bg-white p-6 rounded-lg max-w-md w-full mx-4 relative z-[10001]"
+              className="bg-white p-6 rounded-lg max-w-md w-full mx-4 relative z-[100000] border-4 border-blue-500"
+              style={{
+                backgroundColor: 'white',
+                padding: '24px',
+                borderRadius: '8px',
+                maxWidth: '400px',
+                width: '100%',
+                margin: '0 16px',
+                position: 'relative',
+                zIndex: 100000,
+                border: '4px solid blue'
+              }}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex justify-between items-center mb-4">
@@ -1465,8 +1496,8 @@ export function HotelFlightSection({
                   ✕
                 </button>
               </div>
-              <p className="mb-4">Hotel: {editingHotel.hotel.name}</p>
-              <p className="mb-4">This is a test overlay to verify modal functionality works.</p>
+              <p className="mb-4">Hotel: {editingHotel?.hotel?.name || 'No hotel data'}</p>
+              <p className="mb-4 text-red-600 font-bold">THIS IS A TEST MODAL - IF YOU SEE THIS, THE LOGIC WORKS!</p>
               <div className="flex gap-2">
                 <button 
                   className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
