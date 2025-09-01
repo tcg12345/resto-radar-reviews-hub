@@ -56,6 +56,7 @@ import FriendsRatingsPage from "./pages/FriendsRatingsPage";
 import ExpertRatingsPage from "./pages/ExpertRatingsPage";
 import ApplyExpertPage from "./pages/ApplyExpertPage";
 import AdminExpertApplicationsPage from "./pages/AdminExpertApplicationsPage";
+import EditHotelBookingPage from "./pages/EditHotelBookingPage";
 
 const queryClient = new QueryClient();
 
@@ -85,6 +86,7 @@ const App = () => (
                 <Route path="/map" element={<RequireAuth><MapPageWrapper /></RequireAuth>} />
                 <Route path="/travel" element={<RequireAuth><Layout activeTab="travel"><TravelPage /></Layout></RequireAuth>} />
                 <Route path="/saved-itineraries" element={<RequireAuth><SavedItinerariesPage /></RequireAuth>} />
+                <Route path="/edit-hotel/:bookingId" element={<RequireAuth><EditHotelBookingPage /></RequireAuth>} />
                 <Route path="/hotel/:hotelId" element={<RequireAuth><HotelDetailsPage /></RequireAuth>} />
                 <Route path="/hotel/:hotelId/overview" element={<RequireAuth><HotelDetailedOverviewPage /></RequireAuth>} />
                 <Route path="/trip/:tripId" element={<RequireAuth><TripDetailPage /></RequireAuth>} />

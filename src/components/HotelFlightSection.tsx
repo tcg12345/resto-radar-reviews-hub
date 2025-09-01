@@ -118,15 +118,10 @@ export function HotelFlightSection({
   });
 
   function openEdit(booking: HotelBooking) {
-    setEditingHotel(booking);
-    setEditForm({
-      totalCost: booking.totalCost || "",
-      confirmationNumber: booking.confirmationNumber || "",
-      roomType: booking.roomType || "",
-      specialRequests: booking.specialRequests || "",
-      notes: booking.notes || "",
-    });
-    setShowEditModal(true);
+    // Store booking data in sessionStorage for the edit page
+    sessionStorage.setItem('editingHotelBooking', JSON.stringify(booking));
+    // Navigate to the edit page
+    navigate(`/edit-hotel/${booking.id}`);
   }
 
   useEffect(() => {
