@@ -641,7 +641,7 @@ export function HotelDetailsPage() {
                     {hotel.stayDetails.totalCost && (
                       <div className="text-center pb-3 border-b border-border/30">
                         <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Total Cost</div>
-                        <div className="text-2xl font-bold text-primary">{hotel.stayDetails.totalCost}</div>
+                        <div className="text-2xl font-bold text-primary">${hotel.stayDetails.totalCost}</div>
                       </div>
                     )}
                     {hotel.stayDetails.confirmationNumber && (
