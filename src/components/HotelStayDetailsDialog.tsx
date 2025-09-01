@@ -89,6 +89,10 @@ export function HotelStayDetailsDialog({
   const [rooms, setRooms] = useState(existingBookingData?.rooms || 1);
   const [roomType, setRoomType] = useState(existingBookingData?.roomType || '');
   const [specialRequests, setSpecialRequests] = useState(existingBookingData?.specialRequests || '');
+  const [customLinks, setCustomLinks] = useState<string[]>(
+    existingBookingData?.specialRequests ? existingBookingData.specialRequests.split('\n').filter(link => link.trim()) : []
+  );
+  const [newLinkInput, setNewLinkInput] = useState('');
   const [confirmationNumber, setConfirmationNumber] = useState(existingBookingData?.confirmationNumber || '');
   const [totalCost, setTotalCost] = useState(existingBookingData?.totalCost || '');
   const [notes, setNotes] = useState(existingBookingData?.notes || '');
@@ -123,6 +127,8 @@ export function HotelStayDetailsDialog({
       setGuests(existingBookingData.guests || 2);
       setRooms(existingBookingData.rooms || 1);
       setRoomType(existingBookingData.roomType || '');
+      const links = existingBookingData.specialRequests ? existingBookingData.specialRequests.split('\n').filter(link => link.trim()) : [];
+      setCustomLinks(links);
       setSpecialRequests(existingBookingData.specialRequests || '');
       setConfirmationNumber(existingBookingData.confirmationNumber || '');
       setTotalCost(existingBookingData.totalCost || '');
@@ -168,7 +174,7 @@ export function HotelStayDetailsDialog({
       guests,
       rooms,
       roomType: roomType || undefined,
-      specialRequests: specialRequests || undefined,
+      specialRequests: customLinks.join('\n') || undefined,
       confirmationNumber: confirmationNumber || undefined,
       totalCost: totalCost || undefined,
       notes: notes || undefined,
@@ -186,6 +192,8 @@ export function HotelStayDetailsDialog({
     setGuests(2);
     setRooms(1);
     setRoomType('');
+    setCustomLinks([]);
+    setNewLinkInput('');
     setSpecialRequests('');
     setConfirmationNumber('');
     setTotalCost('');
@@ -541,55 +549,90 @@ export function HotelStayDetailsDialog({
             </div>
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground font-medium">Custom Links</Label>
-              <div className="space-y-2">
-                <div className="relative">
-                  <Input
-                    value={specialRequests}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setSpecialRequests(value);
-                    }}
-                    onBlur={(e) => {
-                      const value = e.target.value.trim();
-                      if (value && !isValidUrl(value)) {
-                        toast.error('Please enter a valid URL (e.g., https://example.com or example.com)');
-                      }
-                    }}
-                    placeholder="Add useful links (booking confirmation, restaurant reservations, etc.)"
-                    className={cn(
-                      "bg-background border-border/30 pr-10",
-                      specialRequests && isValidUrl(specialRequests) && "border-green-500 dark:border-green-400",
-                      specialRequests && !isValidUrl(specialRequests) && specialRequests.trim() && "border-red-500 dark:border-red-400"
-                    )}
-                  />
-                  {specialRequests && (
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      {isValidUrl(specialRequests) ? (
-                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                      ) : specialRequests.trim() ? (
-                        <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                      ) : null}
+              <div className="space-y-3">
+                {/* Add new link input */}
+                <div className="space-y-2">
+                  <div className="relative">
+                    <Input
+                      value={newLinkInput}
+                      onChange={(e) => setNewLinkInput(e.target.value)}
+                      placeholder="Add a link (e.g., https://example.com or example.com)"
+                      className={cn(
+                        "bg-background border-border/30 pr-20",
+                        newLinkInput && isValidUrl(newLinkInput) && "border-green-500 dark:border-green-400",
+                        newLinkInput && !isValidUrl(newLinkInput) && newLinkInput.trim() && "border-red-500 dark:border-red-400"
+                      )}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const trimmedLink = newLinkInput.trim();
+                          if (trimmedLink && isValidUrl(trimmedLink)) {
+                            setCustomLinks([...customLinks, trimmedLink]);
+                            setNewLinkInput('');
+                          } else if (trimmedLink) {
+                            toast.error('Please enter a valid URL');
+                          }
+                        }
+                      }}
+                    />
+                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
+                      {newLinkInput && (
+                        <div className="flex items-center">
+                          {isValidUrl(newLinkInput) ? (
+                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                          ) : newLinkInput.trim() ? (
+                            <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                          ) : null}
+                        </div>
+                      )}
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => {
+                          const trimmedLink = newLinkInput.trim();
+                          if (trimmedLink && isValidUrl(trimmedLink)) {
+                            setCustomLinks([...customLinks, trimmedLink]);
+                            setNewLinkInput('');
+                          } else if (trimmedLink) {
+                            toast.error('Please enter a valid URL');
+                          }
+                        }}
+                        disabled={!newLinkInput.trim() || !isValidUrl(newLinkInput)}
+                        className="h-7 px-3 text-xs"
+                      >
+                        Add
+                      </Button>
                     </div>
-                  )}
+                  </div>
                 </div>
-                {specialRequests && (
-                  <div className="flex items-center gap-2 text-xs">
-                    {isValidUrl(specialRequests) ? (
-                      <>
-                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                        <span className="text-green-600 dark:text-green-400">Valid URL - will be clickable in your itinerary</span>
-                      </>
-                    ) : specialRequests.trim() ? (
-                      <>
-                        <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                        <span className="text-red-600 dark:text-red-400">Invalid URL format</span>
-                      </>
-                    ) : (
-                      <>
-                        <div className="w-2 h-2 rounded-full bg-primary/60"></div>
-                        <span className="text-muted-foreground">Link will be clickable in your itinerary</span>
-                      </>
-                    )}
+
+                {/* Display existing links */}
+                {customLinks.length > 0 && (
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground font-medium">Added Links ({customLinks.length})</Label>
+                    {customLinks.map((link, index) => (
+                      <div key={index} className="flex items-center gap-2 p-2 bg-muted/20 rounded-lg border border-border/20">
+                        <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></div>
+                        <span className="text-sm text-foreground flex-1 truncate">{link}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setCustomLinks(customLinks.filter((_, i) => i !== index));
+                          }}
+                          className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {customLinks.length === 0 && (
+                  <div className="text-xs text-muted-foreground">
+                    No links added yet. Add links to booking confirmations, restaurant reservations, etc.
                   </div>
                 )}
               </div>
