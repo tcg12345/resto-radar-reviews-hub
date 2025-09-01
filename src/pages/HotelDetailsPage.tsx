@@ -77,6 +77,8 @@ export function HotelDetailsPage() {
       const storedHotel = sessionStorage.getItem(`hotel_${hotelId}`);
       if (storedHotel) {
         const hotelData = JSON.parse(storedHotel);
+        console.log('Hotel data from sessionStorage:', hotelData);
+        console.log('Stay details:', hotelData.stayDetails);
         setHotel(hotelData);
         
         // Fetch photos from TripAdvisor API
