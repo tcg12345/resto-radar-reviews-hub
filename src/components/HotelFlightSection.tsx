@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { Hotel, Plane, Plus, MapPin, ExternalLink, Phone, Navigation, Eye, Radar, Star, Camera, Calendar, Users, ChevronDown, ChevronUp } from 'lucide-react';
+import { Hotel, Plane, Plus, MapPin, ExternalLink, Phone, Navigation, Eye, Radar, Star, Camera, Calendar, Users, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -239,75 +239,133 @@ export function HotelFlightSection({
           
           {isHotelsExpanded && <div className="pb-4 animate-fade-in">
               {hotels.length > 0 ? <div className="space-y-3">
-                  {hotels.map(booking => <div key={booking.id} className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-2xl px-3 py-3 shadow-lg border border-white/20 overflow-hidden">
-                      <div className="flex items-start gap-3">
-                        <div className="p-2.5 rounded-lg bg-blue-100 dark:bg-blue-900/50 shrink-0">
-                          <Hotel className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-bold text-gray-900 dark:text-white text-lg leading-tight break-words">{booking.hotel.name}</h4>
-                              <div className="flex items-center gap-2 mt-1">
-                                {booking.hotel.rating && <div className="flex items-center bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded-lg">
-                                    <Star className="w-3 h-3 text-amber-500 mr-1" />
-                                    <span className="text-xs font-medium text-amber-700 dark:text-amber-300">{booking.hotel.rating}</span>
-                                  </div>}
-                                 <Button 
-                                   onClick={(e) => {
-                                     e.stopPropagation();
-                                     handleHotelCardClick(booking);
-                                   }} 
-                                   size="sm" 
-                                   variant="ghost" 
-                                   className="h-6 px-2 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50"
-                                 >
-                                   <Eye className="w-3 h-3 mr-1" />
-                                   Details
-                                 </Button>
-                              </div>
-                            </div>
-                            <Button onClick={() => onRemoveHotel(booking.id)} size="sm" variant="ghost" className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 p-1">
-                              ×
-                            </Button>
+                  {hotels.map(booking => <div key={booking.id} className="bg-background/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-border/20 hover:shadow-xl transition-all duration-300 group">
+                      {/* Header Section */}
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-start gap-3 flex-1">
+                          <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+                            <Hotel className="w-5 h-5 text-primary" />
                           </div>
-                          
-                          <div className="space-y-2">
-                            <div className="flex items-center text-gray-600 dark:text-gray-400">
-                              <MapPin className="w-4 h-4 mr-2 shrink-0" />
-                              <span className="text-sm break-words">{booking.hotel.address}</span>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-foreground text-xl leading-tight tracking-tight mb-2">{booking.hotel.name}</h4>
+                            {/* Rating & Details Row */}
+                            <div className="flex items-center gap-3">
+                              {booking.hotel.rating && (
+                                <div className="flex items-center bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 px-3 py-1.5 rounded-full border border-amber-200 dark:border-amber-700/30">
+                                  <Star className="w-3.5 h-3.5 text-amber-500 fill-current mr-1.5" />
+                                  <span className="text-sm font-semibold text-amber-700 dark:text-amber-300">{booking.hotel.rating}</span>
+                                </div>
+                              )}
+                              <Button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleHotelCardClick(booking);
+                                }} 
+                                size="sm" 
+                                variant="ghost" 
+                                className="h-7 px-3 text-xs text-muted-foreground hover:text-primary hover:bg-primary/5 font-medium"
+                              >
+                                <Eye className="w-3 h-3 mr-1" />
+                                Details
+                              </Button>
                             </div>
-                            
-                            {(booking.checkIn || booking.checkOut) && <div className="flex items-center text-gray-600 dark:text-gray-400">
-                                <Calendar className="w-4 h-4 mr-2 shrink-0" />
-                                <span className="text-sm">
-                                  {booking.checkIn && booking.checkOut ? `${formatDate(booking.checkIn)} - ${formatDate(booking.checkOut)}` : booking.checkIn ? `Check-in: ${formatDate(booking.checkIn)}` : booking.checkOut ? `Check-out: ${formatDate(booking.checkOut)}` : null}
-                                </span>
-                              </div>}
-                            
-                            {booking.location && <Badge variant="outline" className="text-xs w-fit">
-                                📍 {booking.location}
-                              </Badge>}
-                          </div>
-                          
-              <div className="grid grid-cols-2 gap-2 mt-3">
-                            <Button size="sm" variant="outline" onClick={() => window.open(getDirectionsUrl(booking.hotel.address), '_blank')} className="h-9 text-xs px-3 whitespace-nowrap bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 w-full">
-                              <Navigation className="w-3 h-3 mr-1" />
-                              Directions
-                            </Button>
-                            {booking.hotel.website && <Button size="sm" variant="outline" onClick={() => window.open(booking.hotel.website, '_blank')} className="h-9 text-xs px-3 whitespace-nowrap bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 w-full">
-                                <ExternalLink className="w-3 h-3 mr-1" />
-                                Website
-                              </Button>}
-                            {booking.hotel.phone && <Button size="sm" variant="outline" onClick={() => window.open(`tel:${booking.hotel.phone}`, '_blank')} className="h-9 text-xs px-3 whitespace-nowrap bg-green-50 border-green-200 text-green-700 hover:bg-green-100 w-full">
-                                <Phone className="w-3 h-3 mr-1" />
-                                Call
-                              </Button>}
-                            {booking.hotel.bookingUrl && <Button size="sm" onClick={() => window.open(booking.hotel.bookingUrl, '_blank')} className="h-9 text-xs px-3 whitespace-nowrap bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 w-full">
-                                Book Hotel
-                              </Button>}
                           </div>
                         </div>
+                        {/* Close Button */}
+                        <Button 
+                          onClick={() => onRemoveHotel(booking.id)} 
+                          size="sm" 
+                          variant="ghost" 
+                          className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full shrink-0"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      
+                      {/* Info Section */}
+                      <div className="space-y-3 mb-5">
+                        {/* Location */}
+                        <div className="flex items-start gap-3 pb-2 border-b border-border/10">
+                          <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                          <span className="text-sm text-muted-foreground leading-relaxed">{booking.hotel.address}</span>
+                        </div>
+                        
+                        {/* Dates */}
+                        {(booking.checkIn || booking.checkOut) && (
+                          <div className="flex items-center gap-3 pb-2 border-b border-border/10">
+                            <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
+                            <span className="text-sm text-foreground font-medium">
+                              {booking.checkIn && booking.checkOut 
+                                ? `${formatDate(booking.checkIn)} - ${formatDate(booking.checkOut)}` 
+                                : booking.checkIn 
+                                ? `Check-in: ${formatDate(booking.checkIn)}` 
+                                : booking.checkOut 
+                                ? `Check-out: ${formatDate(booking.checkOut)}` 
+                                : null}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {/* Trip Location */}
+                        {booking.location && (
+                          <div className="flex items-center gap-3">
+                            <div className="w-4 h-4 flex items-center justify-center">
+                              <div className="w-2 h-2 bg-primary rounded-full"></div>
+                            </div>
+                            <Badge variant="outline" className="text-xs font-medium border-border/30">
+                              {booking.location}
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Action Buttons */}
+                      <div className="grid grid-cols-2 gap-3">
+                        {/* Primary Action */}
+                        {booking.hotel.bookingUrl && (
+                          <Button 
+                            size="sm" 
+                            onClick={() => window.open(booking.hotel.bookingUrl, '_blank')} 
+                            className="h-10 font-medium bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground shadow-sm hover:shadow-md transition-all col-span-2"
+                          >
+                            Book Hotel
+                          </Button>
+                        )}
+                        
+                        {/* Secondary Actions */}
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => window.open(getDirectionsUrl(booking.hotel.address), '_blank')} 
+                          className="h-10 font-medium border-border/30 hover:bg-muted/50 transition-all"
+                        >
+                          <Navigation className="w-4 h-4 mr-2" />
+                          Directions
+                        </Button>
+                        
+                        {booking.hotel.website && (
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => window.open(booking.hotel.website, '_blank')} 
+                            className="h-10 font-medium border-border/30 hover:bg-muted/50 transition-all"
+                          >
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            Website
+                          </Button>
+                        )}
+                        
+                        {booking.hotel.phone && (
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => window.open(`tel:${booking.hotel.phone}`, '_blank')} 
+                            className="h-10 font-medium border-border/30 hover:bg-muted/50 transition-all"
+                          >
+                            <Phone className="w-4 h-4 mr-2" />
+                            Call
+                          </Button>
+                        )}
                       </div>
                     </div>)}
                 </div> : <div className="text-center py-6 text-white/90">
