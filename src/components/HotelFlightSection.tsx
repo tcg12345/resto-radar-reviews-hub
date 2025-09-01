@@ -1474,6 +1474,7 @@ export function HotelFlightSection({
             totalCost: editingHotel.totalCost,
             notes: editingHotel.notes
           }}
+          isEditMode={true}
         />
       )}
     </div>;

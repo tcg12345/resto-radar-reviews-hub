@@ -43,6 +43,7 @@ interface HotelStayDetailsDialogProps {
     totalCost?: string;
     notes?: string;
   };
+  isEditMode?: boolean;
 }
 
 export interface StayDetails {
@@ -66,7 +67,8 @@ export function HotelStayDetailsDialog({
   checkInDate,
   checkOutDate,
   selectedLocation,
-  existingBookingData
+  existingBookingData,
+  isEditMode = false
 }: HotelStayDetailsDialogProps) {
   const [checkIn, setCheckIn] = useState<Date>(checkInDate || new Date());
   const [checkOut, setCheckOut] = useState<Date>(checkOutDate || new Date(Date.now() + 24 * 60 * 60 * 1000));
@@ -102,6 +104,12 @@ export function HotelStayDetailsDialog({
   }, [isOpen, hotel]);
 
   const handleConfirm = () => {
+    console.log('Saving hotel stay details:', {
+      guests, rooms, roomType, specialRequests, 
+      confirmationNumber, totalCost, notes, 
+      checkIn, checkOut, isEditMode
+    });
+    
     if (!checkIn || !checkOut) {
       toast.error('Please select check-in and check-out dates');
       return;
@@ -125,8 +133,9 @@ export function HotelStayDetailsDialog({
       notes: notes || undefined,
     };
 
+    console.log('Calling onConfirm with stayDetails:', stayDetails);
     onConfirm(stayDetails);
-    toast.success('Hotel stay added to your itinerary!');
+    toast.success(isEditMode ? 'Hotel details updated!' : 'Hotel stay added to your itinerary!');
     handleClose();
   };
 
@@ -387,10 +396,10 @@ export function HotelStayDetailsDialog({
             <div className="sticky top-0 z-10 bg-gradient-to-b from-background via-background to-background/95 px-6 pt-5 pb-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="space-y-1">
-                  <DrawerTitle className="text-xl font-bold text-foreground">Stay Details</DrawerTitle>
-                  <DrawerDescription className="text-sm text-muted-foreground font-medium">
-                    Add details about your hotel stay
-                  </DrawerDescription>
+                   <DrawerTitle className="text-xl font-bold text-foreground">{isEditMode ? 'Edit Stay Details' : 'Stay Details'}</DrawerTitle>
+                   <DrawerDescription className="text-sm text-muted-foreground font-medium">
+                     {isEditMode ? 'Update your hotel booking information' : 'Add details about your hotel stay'}
+                   </DrawerDescription>
                 </div>
                 <Button variant="ghost" size="icon" onClick={handleClose} className="h-8 w-8 rounded-full bg-muted/30 hover:bg-muted/50">
                   <X className="h-4 w-4" />
@@ -409,12 +418,12 @@ export function HotelStayDetailsDialog({
                 <Button variant="outline" onClick={handleClose} className="flex-1">
                   Cancel
                 </Button>
-                <Button 
-                  onClick={handleConfirm}
-                  className="flex-1 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
-                >
-                  Add to Itinerary
-                </Button>
+                 <Button 
+                   onClick={handleConfirm}
+                   className="flex-1 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
+                 >
+                   {isEditMode ? 'Save Changes' : 'Add to Itinerary'}
+                 </Button>
               </div>
             </div>
           </div>
@@ -427,10 +436,10 @@ export function HotelStayDetailsDialog({
     <Dialog open={isOpen} onOpenChange={handleClose} modal>
       <DialogContent className="sm:max-w-[600px] h-[85vh] flex flex-col z-[9999] fixed bg-background" style={{ zIndex: 9999 }}>
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Stay Details</DialogTitle>
-          <DialogDescription>
-            Add details about your hotel stay
-          </DialogDescription>
+          <DialogTitle className="text-xl font-bold">{isEditMode ? 'Edit Stay Details' : 'Stay Details'}</DialogTitle>
+               <DialogDescription>
+                 {isEditMode ? 'Update your hotel booking information' : 'Add details about your hotel stay'}
+               </DialogDescription>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto px-1">
@@ -441,12 +450,12 @@ export function HotelStayDetailsDialog({
           <Button variant="outline" onClick={handleClose} className="flex-1">
             Cancel
           </Button>
-          <Button 
-            onClick={handleConfirm}
-            className="flex-1 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
-          >
-            Add to Itinerary
-          </Button>
+               <Button 
+                 onClick={handleConfirm}
+                 className="flex-1 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
+               >
+                 {isEditMode ? 'Save Changes' : 'Add to Itinerary'}
+               </Button>
         </div>
       </DialogContent>
     </Dialog>
