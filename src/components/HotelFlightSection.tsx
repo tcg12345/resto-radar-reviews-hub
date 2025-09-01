@@ -319,54 +319,53 @@ export function HotelFlightSection({
                         )}
                       </div>
                       
-                      {/* Action Buttons */}
-                      <div className="grid grid-cols-2 gap-3">
-                        {/* Primary Action */}
-                        {booking.hotel.bookingUrl && (
-                          <Button 
-                            size="sm" 
-                            onClick={() => window.open(booking.hotel.bookingUrl, '_blank')} 
-                            className="h-10 font-medium bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground shadow-sm hover:shadow-md transition-all col-span-2"
-                          >
-                            Book Hotel
-                          </Button>
-                        )}
-                        
-                        {/* Secondary Actions */}
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          onClick={() => window.open(getDirectionsUrl(booking.hotel.address), '_blank')} 
-                          className="h-10 font-medium border-border/30 hover:bg-muted/50 transition-all"
-                        >
-                          <Navigation className="w-4 h-4 mr-2" />
-                          Directions
-                        </Button>
-                        
-                        {booking.hotel.website && (
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            onClick={() => window.open(booking.hotel.website, '_blank')} 
-                            className="h-10 font-medium border-border/30 hover:bg-muted/50 transition-all"
-                          >
-                            <ExternalLink className="w-4 h-4 mr-2" />
-                            Website
-                          </Button>
-                        )}
-                        
-                        {booking.hotel.phone && (
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            onClick={() => window.open(`tel:${booking.hotel.phone}`, '_blank')} 
-                            className="h-10 font-medium border-border/30 hover:bg-muted/50 transition-all"
-                          >
-                            <Phone className="w-4 h-4 mr-2" />
-                            Call
-                          </Button>
-                        )}
-                      </div>
+                       {/* Action Buttons - 2x2 Grid */}
+                       <div className="grid grid-cols-2 gap-3">
+                         {/* Book Hotel */}
+                         {booking.hotel.bookingUrl && (
+                           <Button 
+                             size="sm" 
+                             onClick={() => window.open(booking.hotel.bookingUrl, '_blank')} 
+                             className="h-10 font-medium bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground shadow-sm hover:shadow-md transition-all"
+                           >
+                             Book Hotel
+                           </Button>
+                         )}
+                         
+                         {/* Directions */}
+                         <Button 
+                           size="sm" 
+                           onClick={() => window.open(getDirectionsUrl(booking.hotel.address), '_blank')} 
+                           className="h-10 font-medium bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground shadow-sm hover:shadow-md transition-all"
+                         >
+                           <Navigation className="w-4 h-4 mr-2" />
+                           Directions
+                         </Button>
+                         
+                         {/* Website */}
+                         {booking.hotel.website && (
+                           <Button 
+                             size="sm" 
+                             onClick={() => window.open(booking.hotel.website, '_blank')} 
+                             className="h-10 font-medium bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground shadow-sm hover:shadow-md transition-all"
+                           >
+                             <ExternalLink className="w-4 h-4 mr-2" />
+                             Website
+                           </Button>
+                         )}
+                         
+                         {/* Call */}
+                         {booking.hotel.phone && (
+                           <Button 
+                             size="sm" 
+                             onClick={() => window.open(`tel:${booking.hotel.phone}`, '_blank')} 
+                             className="h-10 font-medium bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground shadow-sm hover:shadow-md transition-all"
+                           >
+                             <Phone className="w-4 h-4 mr-2" />
+                             Call
+                           </Button>
+                         )}
+                       </div>
                     </div>)}
                 </div> : <div className="text-center py-6 text-white/90">
                   <Hotel className="w-12 h-12 mx-auto mb-3 opacity-50" />
