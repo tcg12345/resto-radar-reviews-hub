@@ -81,7 +81,7 @@ export function HotelDetailsPage() {
         console.log('Stay details:', hotelData.stayDetails);
         setHotel(hotelData);
         
-        // Fetch photos from TripAdvisor API
+        // First try to fetch photos from TripAdvisor API
         try {
           const { data: tripAdvisorData, error } = await supabase.functions.invoke('tripadvisor-api', {
             body: {
@@ -90,6 +90,7 @@ export function HotelDetailsPage() {
             }
           });
 
+          let photosFound = false;
           if (!error && tripAdvisorData?.data?.length > 0) {
             const locationId = tripAdvisorData.data[0].location_id;
             
@@ -103,9 +104,37 @@ export function HotelDetailsPage() {
 
             if (!photosError && photosData?.data?.length > 0) {
               const photoUrls = photosData.data.map((photo: any) => photo.images.large.url);
-              setHotelPhotos(photoUrls.slice(0, 8)); // Increased to 8 photos
+              setHotelPhotos(photoUrls.slice(0, 8));
+              photosFound = true;
             }
           }
+
+          // If no TripAdvisor photos, try Google Places
+          if (!photosFound) {
+            try {
+              const { data: googlePhotosData, error: googleError } = await supabase.functions.invoke('google-places-search', {
+                body: {
+                  query: `${hotelData.name} ${hotelData.address}`,
+                  type: 'lodging'
+                }
+              });
+
+              if (!googleError && googlePhotosData?.results?.length > 0) {
+                const place = googlePhotosData.results[0];
+                if (place.photos && place.photos.length > 0) {
+                  // Get photo URLs from Google Places
+                  const googlePhotoUrls = place.photos.slice(0, 8).map((photo: any) => 
+                    `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${photo.photo_reference}&key=${googlePhotosData.apiKey || 'YOUR_GOOGLE_PLACES_API_KEY'}`
+                  );
+                  setHotelPhotos(googlePhotoUrls);
+                  photosFound = true;
+                }
+              }
+            } catch (googleError) {
+              console.error('Error fetching Google Places photos:', googleError);
+            }
+          }
+
         } catch (error) {
           console.error('Error fetching hotel photos:', error);
         }
@@ -424,8 +453,26 @@ export function HotelDetailsPage() {
             )}
           </>
         ) : (
-          <div className="bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 flex items-center justify-center h-full relative">
-            <Bed className="w-24 h-24 text-white/30" />
+          <div className="relative h-full">
+            {/* Try to fetch a generic hotel image or use a hotel placeholder */}
+            <img 
+              src={`https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop&crop=entropy&q=80`}
+              alt={`${hotel.name} hotel`}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // If the image fails to load, replace with another fallback
+                e.currentTarget.src = 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&h=600&fit=crop&crop=entropy&q=80';
+                e.currentTarget.onerror = () => {
+                  // Final fallback to gradient background
+                  e.currentTarget.style.display = 'none';
+                  const fallbackDiv = e.currentTarget.nextElementSibling as HTMLElement;
+                  if (fallbackDiv) fallbackDiv.style.display = 'flex';
+                };
+              }}
+            />
+            <div className="bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 flex items-center justify-center h-full absolute inset-0" style={{display: 'none'}}>
+              <Bed className="w-24 h-24 text-white/30" />
+            </div>
             
             {/* Back button for fallback */}
             <div className="absolute top-6 left-6">
@@ -440,22 +487,24 @@ export function HotelDetailsPage() {
             </div>
 
             {/* Hotel info overlay for fallback */}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent px-6 py-8">
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent px-4 py-6">
               <div className="max-w-4xl mx-auto">
-                <h1 className="text-3xl font-bold text-white mb-2">{hotel.name}</h1>
-                <div className="flex items-center gap-4 mb-3">
-                  {hotel.rating && (
-                    <Badge className="bg-amber-500/90 text-amber-50 border-0 px-3 py-1 font-semibold">
-                      <Star className="w-4 h-4 fill-current mr-1" />
-                      {hotel.rating.toFixed(1)}
-                    </Badge>
-                  )}
-                  {hotel.priceRange && (
-                    <div className="text-white">
-                      <span className="text-2xl font-bold">{hotel.priceRange}</span>
-                      <span className="text-white/80 text-sm ml-1">per night</span>
-                    </div>
-                  )}
+                <div className="flex items-center justify-between mb-3">
+                  <h1 className="text-2xl font-bold text-white">{hotel.name}</h1>
+                  <div className="flex items-center gap-3">
+                    {hotel.rating && (
+                      <Badge className="bg-amber-500/90 text-amber-50 border-0 px-2 py-1 text-sm font-semibold">
+                        <Star className="w-3 h-3 fill-current mr-1" />
+                        {hotel.rating.toFixed(1)}
+                      </Badge>
+                    )}
+                    {hotel.priceRange && (
+                      <div className="text-white">
+                        <span className="text-xl font-bold">{hotel.priceRange}</span>
+                        <span className="text-white/80 text-xs ml-1">per night</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 text-white/90">
                   <MapPin className="w-4 h-4" />
