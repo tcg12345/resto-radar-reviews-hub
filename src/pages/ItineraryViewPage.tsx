@@ -720,33 +720,36 @@ export function ItineraryViewPage() {
                                   className="p-4 cursor-pointer hover:bg-accent/5 transition-colors"
                                   onClick={() => toggleEvent(event.id)}
                                 >
-                                  <div className="flex items-start gap-3">
-                                    <div className="flex-shrink-0 mt-1">
-                                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                                        <EventIcon className="w-5 h-5 text-primary" />
-                                      </div>
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex items-start justify-between gap-3 mb-2">
-                                        <h5 className="font-semibold text-foreground text-base leading-tight">
-                                          {event.title}
-                                        </h5>
-                                        <div className="flex items-center gap-2 flex-shrink-0">
-                                          <div className="bg-accent/10 text-accent px-2 py-1 rounded text-xs font-medium">
-                                            {event.time}
-                                          </div>
-                                          <ChevronDown 
-                                            className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${
-                                              collapsedEvents[event.id] ? 'rotate-180' : ''
-                                            }`} 
-                                          />
+                                  <div className="flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                                      <div className="flex-shrink-0">
+                                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                                          <EventIcon className="w-5 h-5 text-primary" />
                                         </div>
                                       </div>
+                                      <h5 className="font-semibold text-foreground text-base leading-tight truncate">
+                                        {event.title}
+                                      </h5>
+                                    </div>
+                                    <div className="flex items-center gap-2 flex-shrink-0">
+                                      <div className="bg-accent/10 text-accent px-2 py-1 rounded text-xs font-medium">
+                                        {event.time}
+                                      </div>
+                                      <ChevronDown 
+                                        className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${
+                                          collapsedEvents[event.id] ? 'rotate-180' : ''
+                                        }`} 
+                                      />
+                                    </div>
+                                  </div>
+                                  {/* Event type badge - only show when expanded */}
+                                  {!collapsedEvents[event.id] && (
+                                    <div className="mt-3">
                                       <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getEventTypeColor(event.type)}`}>
                                         {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
                                       </div>
                                     </div>
-                                  </div>
+                                  )}
                                 </div>
 
                                 {/* Collapsible Content */}
