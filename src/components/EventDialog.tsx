@@ -677,7 +677,7 @@ export function EventDialog({
                 onChange={(e) => setNewLinkInput(e.target.value)}
                 placeholder="Add a link (e.g., https://example.com or example.com)"
                 className={cn(
-                  "bg-background border-border/30 pr-20",
+                  "bg-background border-2 border-border/30 pr-20",
                   newLinkInput && isValidUrl(newLinkInput) && "border-green-500 dark:border-green-400",
                   newLinkInput && !isValidUrl(newLinkInput) && newLinkInput.trim() && "border-red-500 dark:border-red-400"
                 )}
