@@ -427,7 +427,7 @@ export function ItineraryViewPage() {
                 
                 <div className="space-y-3">
                   {itinerary.hotels.map((hotel: any) => (
-                    <Card key={hotel.id} className="hover:shadow-md transition-shadow">
+                    <Card key={hotel.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/hotel/${hotel.hotel?.place_id || hotel.id}`)}>
                       <CardContent className="p-4">
                         <div className="flex items-start gap-4">
                           <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center flex-shrink-0">
