@@ -67,6 +67,8 @@ interface HotelFlightSectionProps {
   onRemoveHotel: (hotelId: string) => void;
   onRemoveFlight: (flightId: string) => void;
   onUpdateHotel?: (hotelId: string, updates: Partial<HotelBooking>) => void;
+  itineraryDuration?: number;
+  wasCreatedWithLengthOfStay?: boolean;
 }
 export function HotelFlightSection({
   locations,
@@ -77,7 +79,9 @@ export function HotelFlightSection({
   onAddFlight,
   onRemoveHotel,
   onRemoveFlight,
-  onUpdateHotel
+  onUpdateHotel,
+  itineraryDuration,
+  wasCreatedWithLengthOfStay
 }: HotelFlightSectionProps) {
   const isMobile = useIsMobile();
   const [isHotelDialogOpen, setIsHotelDialogOpen] = useState(false);
@@ -912,6 +916,10 @@ export function HotelFlightSection({
         onSelect={handleHotelSelect}
         locations={locations}
         isMultiCity={isMultiCity}
+        itineraryStartDate={locations[0]?.startDate}
+        itineraryEndDate={locations[0]?.endDate}
+        itineraryDuration={itineraryDuration}
+        wasCreatedWithLengthOfStay={wasCreatedWithLengthOfStay}
       />
 
       <FlightSearchDialog
@@ -1099,7 +1107,11 @@ export function HotelFlightSection({
         }} 
         onSelect={handleHotelSelect} 
         locations={locations} 
-        isMultiCity={isMultiCity} 
+        isMultiCity={isMultiCity}
+        itineraryStartDate={locations[0]?.startDate}
+        itineraryEndDate={locations[0]?.endDate}
+        itineraryDuration={itineraryDuration}
+        wasCreatedWithLengthOfStay={wasCreatedWithLengthOfStay}
       />
 
       {/* Flight Search Dialog */}
@@ -1506,6 +1518,10 @@ export function HotelFlightSection({
         onSelect={handleHotelSelect}
         locations={locations}
         isMultiCity={isMultiCity}
+        itineraryStartDate={locations[0]?.startDate}
+        itineraryEndDate={locations[0]?.endDate}
+        itineraryDuration={itineraryDuration}
+        wasCreatedWithLengthOfStay={wasCreatedWithLengthOfStay}
       />
 
       {/* Flight Search Dialog */}

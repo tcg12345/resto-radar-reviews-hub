@@ -114,7 +114,11 @@ export function HotelStayDetailsDialog({
   useEffect(() => {
     console.log('HotelStayDetailsDialog render - isOpen:', isOpen);
     console.log('HotelStayDetailsDialog render - hotel:', hotel);
-  }, [isOpen, hotel]);
+    console.log('HotelStayDetailsDialog render - wasCreatedWithLengthOfStay:', wasCreatedWithLengthOfStay);
+    console.log('HotelStayDetailsDialog render - itineraryDuration:', itineraryDuration);
+    console.log('HotelStayDetailsDialog render - itineraryStartDate:', itineraryStartDate);
+    console.log('HotelStayDetailsDialog render - itineraryEndDate:', itineraryEndDate);
+  }, [isOpen, hotel, wasCreatedWithLengthOfStay, itineraryDuration, itineraryStartDate, itineraryEndDate]);
 
   const handleConfirm = () => {
     console.log('Saving hotel stay details:', {

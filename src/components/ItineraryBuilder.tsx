@@ -2287,6 +2287,8 @@ export function ItineraryBuilder({
             onRemoveHotel={handleRemoveHotel} 
             onRemoveFlight={handleRemoveFlight}
             onUpdateHotel={handleUpdateHotel}
+            itineraryDuration={locationNights[Object.keys(locationNights)[0]] || numberOfNights}
+            wasCreatedWithLengthOfStay={wasCreatedWithLengthOfStay}
           />
 
           {/* Map Button - Desktop */}
