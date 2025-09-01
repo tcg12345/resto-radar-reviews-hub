@@ -275,7 +275,27 @@ export function PhotoGallery({
                     src={photos[currentIndex]}
                     alt={`${restaurantName || 'Restaurant'} photo ${currentIndex + 1}`}
                     className="max-w-full max-h-full object-contain"
+                    onError={(e) => {
+                      console.error('Photo failed to load:', photos[currentIndex]);
+                      e.currentTarget.style.display = 'none';
+                      // Show placeholder or fallback
+                      const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                    onLoad={() => {
+                      console.log('Photo loaded successfully:', photos[currentIndex]);
+                    }}
                   />
+                  {/* Fallback placeholder */}
+                  <div 
+                    className="hidden w-full h-64 bg-muted/30 border-2 border-dashed border-muted-foreground/20 rounded-lg flex items-center justify-center"
+                    style={{display: 'none'}}
+                  >
+                    <div className="text-center">
+                      <div className="text-muted-foreground text-sm">Photo unavailable</div>
+                      <div className="text-xs text-muted-foreground/60 mt-1">Image failed to load</div>
+                    </div>
+                  </div>
                   
                   {photos.length > 1 && (
                     <>
