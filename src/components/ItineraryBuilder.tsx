@@ -789,17 +789,38 @@ export function ItineraryBuilder({
       // Check if this is an existing itinerary (has an ID)
       const isExistingItinerary = !!currentItinerary.id;
       let saved;
+      
       if (isExistingItinerary) {
-        // Update existing itinerary
-        console.log('Updating existing itinerary with ID:', currentItinerary.id);
-        saved = await updateItinerary(currentItinerary.id, itineraryToSave);
+        try {
+          // Try to update existing itinerary
+          console.log('Updating existing itinerary with ID:', currentItinerary.id);
+          saved = await updateItinerary(currentItinerary.id, itineraryToSave);
+        } catch (updateError: any) {
+          // If update fails (e.g., itinerary was deleted), create a new one instead
+          if (updateError?.code === 'PGRST116' || updateError?.details === 'The result contains 0 rows') {
+            console.log('Original itinerary was deleted, creating new one instead');
+            toast.info('Original itinerary not found, creating a new one');
+            
+            // Remove the ID so it creates a new itinerary
+            const newItineraryToSave = {
+              ...itineraryToSave,
+              id: crypto.randomUUID()
+            };
+            
+            saved = await saveItinerary(newItineraryToSave);
+          } else {
+            throw updateError; // Re-throw if it's a different error
+          }
+        }
       } else {
         // Create new itinerary
         console.log('Creating new itinerary');
         saved = await saveItinerary(itineraryToSave);
       }
+      
       if (saved) {
         setCurrentItinerary(saved);
+        toast.success(isExistingItinerary ? 'Itinerary updated successfully!' : 'Itinerary saved successfully!');
       }
     } catch (error) {
       console.error('Error saving itinerary:', error);
