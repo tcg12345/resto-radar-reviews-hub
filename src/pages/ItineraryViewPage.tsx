@@ -735,6 +735,27 @@ export function ItineraryViewPage() {
                                       {event.description}
                                     </div>
                                   )}
+                                  
+                                  {/* Links */}
+                                  {event.links && event.links.length > 0 && (
+                                    <div className="mt-3 space-y-2">
+                                      <h6 className="text-sm font-medium">Links</h6>
+                                      <div className="space-y-2">
+                                        {event.links.map((link, index) => (
+                                          <a
+                                            key={index}
+                                            href={link.startsWith('http') ? link : `https://${link}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 underline break-all"
+                                          >
+                                            <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                                            {link}
+                                          </a>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
 
                                 {/* Restaurant Details */}
