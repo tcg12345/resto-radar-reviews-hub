@@ -450,6 +450,8 @@ export function ItineraryViewPage() {
                         }
                       };
                       sessionStorage.setItem(`hotel_${hotel.hotel?.place_id || hotel.id}`, JSON.stringify(hotelData));
+                      // Store the current itinerary page as the referrer
+                      sessionStorage.setItem('hotel_referrer', window.location.pathname);
                       navigate(`/hotel/${hotel.hotel?.place_id || hotel.id}`);
                     };
                     
