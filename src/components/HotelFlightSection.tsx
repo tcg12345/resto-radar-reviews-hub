@@ -1089,94 +1089,67 @@ export function HotelFlightSection({
       {/* Flight Search Dialog */}
       <FlightSearchDialog isOpen={isFlightDialogOpen} onClose={() => setIsFlightDialogOpen(false)} onSelect={handleFlightSelect} locations={locations} />
 
-      {/* Edit Hotel Modal */}
-      {showEditModal && editingHotel && (
-        <div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Edit Hotel Booking</h3>
+      {/* Edit Hotel Modal - BRIGHT RED TEST VERSION */}
+      {(() => {
+        console.log('Checking modal render conditions:', {showEditModal, editingHotel: !!editingHotel});
+        return showEditModal && editingHotel ? (
+          <div 
+            style={{ 
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'red',
+              zIndex: 999999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <div 
+              style={{
+                backgroundColor: 'white',
+                border: '10px solid blue',
+                padding: '20px',
+                borderRadius: '10px',
+                width: '90%',
+                maxWidth: '500px',
+                fontSize: '20px',
+                color: 'black'
+              }}
+            >
+              <h2 style={{color: 'black', fontSize: '24px', marginBottom: '20px'}}>
+                🎉 EDIT MODAL IS WORKING! 🎉
+              </h2>
+              <p style={{color: 'black', marginBottom: '10px'}}>
+                Hotel: {editingHotel.hotel.name}
+              </p>
+              <p style={{color: 'black', marginBottom: '20px'}}>
+                Check-in: {editingHotel.checkIn ? new Date(editingHotel.checkIn).toLocaleDateString() : 'Not set'}
+              </p>
+              
               <button 
-                onClick={() => setShowEditModal(false)}
-                className="text-gray-500 hover:text-gray-700"
+                onClick={() => {
+                  console.log('Close button clicked!');
+                  setShowEditModal(false);
+                }}
+                style={{
+                  backgroundColor: 'blue',
+                  color: 'white',
+                  padding: '10px 20px',
+                  border: 'none',
+                  borderRadius: '5px',
+                  fontSize: '16px',
+                  cursor: 'pointer'
+                }}
               >
-                <X className="w-5 h-5" />
+                CLOSE MODAL
               </button>
             </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Check-in Date</label>
-                <input 
-                  type="date" 
-                  defaultValue={editingHotel.checkIn ? new Date(editingHotel.checkIn).toISOString().split('T')[0] : ''}
-                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
-                  id="edit-checkin"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1">Check-out Date</label>
-                <input 
-                  type="date" 
-                  defaultValue={editingHotel.checkOut ? new Date(editingHotel.checkOut).toISOString().split('T')[0] : ''}
-                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
-                  id="edit-checkout"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1">Guests</label>
-                <input 
-                  type="number" 
-                  defaultValue={editingHotel.guests || 2}
-                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
-                  id="edit-guests"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1">Notes</label>
-                <textarea 
-                  defaultValue={editingHotel.notes || ''}
-                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
-                  rows={3}
-                  id="edit-notes"
-                />
-              </div>
-              
-              <div className="flex gap-2 pt-4">
-                <button 
-                  onClick={() => setShowEditModal(false)}
-                  className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
-                >
-                  Cancel
-                </button>
-                <button 
-                  onClick={() => {
-                    const checkIn = (document.getElementById('edit-checkin') as HTMLInputElement)?.value;
-                    const checkOut = (document.getElementById('edit-checkout') as HTMLInputElement)?.value;
-                    const guests = parseInt((document.getElementById('edit-guests') as HTMLInputElement)?.value || '2');
-                    const notes = (document.getElementById('edit-notes') as HTMLTextAreaElement)?.value;
-                    
-                    if (onUpdateHotel && editingHotel) {
-                      onUpdateHotel(editingHotel.id, {
-                        checkIn: checkIn ? new Date(checkIn) : undefined,
-                        checkOut: checkOut ? new Date(checkOut) : undefined,
-                        guests,
-                        notes
-                      });
-                    }
-                    setShowEditModal(false);
-                  }}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </div>
           </div>
-        </div>
-      )}
+        ) : null;
+      })()}
 
       {/* Hotel Details Modal */}
       <Dialog 
