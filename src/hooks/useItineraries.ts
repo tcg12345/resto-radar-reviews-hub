@@ -140,7 +140,30 @@ export function useItineraries() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // If the itinerary doesn't exist (was deleted), create a new one instead
+        if (error.code === 'PGRST116') {
+          console.log('Original itinerary was deleted, creating new one instead');
+          toast.success('Original itinerary not found, creating a new one');
+          
+          // Create new itinerary with the update data
+          const newItinerary: Itinerary = {
+            id: crypto.randomUUID(),
+            title: updates.title || 'Untitled Itinerary',
+            startDate: updates.startDate || new Date(),
+            endDate: updates.endDate || new Date(),
+            events: updates.events || [],
+            locations: updates.locations || [],
+            hotels: updates.hotels || [],
+            flights: updates.flights || [],
+            wasCreatedWithLengthOfStay: updates.wasCreatedWithLengthOfStay || false,
+            isMultiCity: updates.isMultiCity || false
+          };
+          
+          return await saveItinerary(newItinerary);
+        }
+        throw error;
+      }
       
       // Convert back to Itinerary format
       const converted: Itinerary = {
