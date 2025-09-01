@@ -108,7 +108,7 @@ export function HotelFlightSection({
   const [isHotelsExpanded, setIsHotelsExpanded] = useState(false);
   const [isFlightsExpanded, setIsFlightsExpanded] = useState(false);
   const [editingHotel, setEditingHotel] = useState<HotelBooking | null>(null);
-  const [isEditStayDetailsOpen, setIsEditStayDetailsOpen] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const handleHotelSelect = (stayDetails: StayDetails) => {
     // Convert StayDetails back to the old format for now
     onAddHotel(stayDetails.hotel, undefined, stayDetails.checkIn, stayDetails.checkOut);
@@ -304,18 +304,10 @@ export function HotelFlightSection({
                           <Button 
                             onClick={(e) => {
                               e.stopPropagation();
-                              console.log('Edit button clicked! Opening dialog...');
-                              console.log('Current editing hotel before:', editingHotel);
-                              console.log('Current dialog open state before:', isEditStayDetailsOpen);
+                              console.log('NEW Edit button clicked!');
                               setEditingHotel(booking);
-                              setIsEditStayDetailsOpen(true);
-                              console.log('Dialog state set to open');
-                              console.log('Booking data being set:', booking);
-                              // Force re-render after state update
-                              setTimeout(() => {
-                                console.log('After timeout - editing hotel:', editingHotel);
-                                console.log('After timeout - dialog open:', isEditStayDetailsOpen);
-                              }, 100);
+                              setShowEditModal(true);
+                              console.log('Modal should appear now');
                             }}
                             size="sm" 
                             variant="ghost" 
@@ -1436,133 +1428,133 @@ export function HotelFlightSection({
         onSelect={handleFlightSelect}
         locations={locations}
       />
-
-      {/* Edit Hotel Stay Details Dialog */}
-      {(() => {
-        console.log('Render check - editingHotel:', !!editingHotel, 'isEditStayDetailsOpen:', isEditStayDetailsOpen);
-        return null;
-      })()}
-      {isEditStayDetailsOpen && (
-        <>
-          {(() => {
-            console.log('Rendering test modal - this should appear in console');
-            return null;
-          })()}
-          {/* Temporary test overlay - FORCED VISIBLE */}
+      
+      {/* SIMPLE EDIT MODAL - COMPLETELY NEW APPROACH */}
+      {showEditModal && editingHotel && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999 }}
+        >
           <div 
-            className="fixed inset-0 bg-red-500 z-[99999] flex items-center justify-center"
-            style={{ 
-              position: 'fixed', 
-              top: 0, 
-              left: 0, 
-              right: 0, 
-              bottom: 0, 
-              backgroundColor: 'rgba(255, 0, 0, 0.8)', 
-              zIndex: 99999,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-            onClick={() => {
-              console.log('Overlay clicked, closing dialog');
-              setIsEditStayDetailsOpen(false);
-              setEditingHotel(null);
-            }}
+            className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
           >
-            <div 
-              className="bg-white p-6 rounded-lg max-w-md w-full mx-4 relative z-[100000] border-4 border-blue-500"
-              style={{
-                backgroundColor: 'white',
-                padding: '24px',
-                borderRadius: '8px',
-                maxWidth: '400px',
-                width: '100%',
-                margin: '0 16px',
-                position: 'relative',
-                zIndex: 100000,
-                border: '4px solid blue'
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">Edit Hotel Details</h2>
-                <button 
-                  onClick={() => {
-                    setIsEditStayDetailsOpen(false);
-                    setEditingHotel(null);
-                  }}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  ✕
-                </button>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Edit Hotel Details</h2>
+              <button 
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingHotel(null);
+                }}
+                className="text-gray-500 hover:text-gray-700 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Hotel</label>
+                <p className="text-sm text-gray-600">{editingHotel.hotel.name}</p>
               </div>
-              <p className="mb-4">Hotel: {editingHotel?.hotel?.name || 'No hotel data'}</p>
-              <p className="mb-4 text-red-600 font-bold">THIS IS A TEST MODAL - IF YOU SEE THIS, THE LOGIC WORKS!</p>
-              <div className="flex gap-2">
-                <button 
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                  onClick={() => {
-                    console.log('Test save clicked');
-                    setIsEditStayDetailsOpen(false);
-                    setEditingHotel(null);
-                  }}
-                >
-                  Test Save
-                </button>
-                <button 
-                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-                  onClick={() => {
-                    setIsEditStayDetailsOpen(false);
-                    setEditingHotel(null);
-                  }}
-                >
-                  Cancel
-                </button>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">Total Cost</label>
+                <input 
+                  type="text"
+                  defaultValue={editingHotel.totalCost || ''}
+                  placeholder="e.g., $500/night"
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  id="totalCost"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">Confirmation Number</label>
+                <input 
+                  type="text"
+                  defaultValue={editingHotel.confirmationNumber || ''}
+                  placeholder="Booking confirmation"
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  id="confirmationNumber"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">Room Type</label>
+                <input 
+                  type="text"
+                  defaultValue={editingHotel.roomType || ''}
+                  placeholder="e.g., Deluxe King"
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  id="roomType"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">Special Requests</label>
+                <textarea 
+                  defaultValue={editingHotel.specialRequests || ''}
+                  placeholder="Any special requests..."
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  rows={2}
+                  id="specialRequests"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">Notes</label>
+                <textarea 
+                  defaultValue={editingHotel.notes || ''}
+                  placeholder="Personal notes..."
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  rows={2}
+                  id="notes"
+                />
               </div>
             </div>
+            
+            <div className="flex gap-3 mt-6">
+              <button 
+                onClick={() => {
+                  // Get values from inputs
+                  const totalCost = (document.getElementById('totalCost') as HTMLInputElement)?.value || '';
+                  const confirmationNumber = (document.getElementById('confirmationNumber') as HTMLInputElement)?.value || '';
+                  const roomType = (document.getElementById('roomType') as HTMLInputElement)?.value || '';
+                  const specialRequests = (document.getElementById('specialRequests') as HTMLTextAreaElement)?.value || '';
+                  const notes = (document.getElementById('notes') as HTMLTextAreaElement)?.value || '';
+                  
+                  console.log('Saving hotel updates:', { totalCost, confirmationNumber, roomType, specialRequests, notes });
+                  
+                  if (onUpdateHotel) {
+                    onUpdateHotel(editingHotel.id, {
+                      totalCost,
+                      confirmationNumber,
+                      roomType,
+                      specialRequests,
+                      notes
+                    });
+                  }
+                  
+                  setShowEditModal(false);
+                  setEditingHotel(null);
+                }}
+                className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600"
+              >
+                Save Changes
+              </button>
+              <button 
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingHotel(null);
+                }}
+                className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
-          
-          {/* Original dialog (hidden for now) */}
-          <div style={{ display: 'none' }}>
-            <HotelStayDetailsDialog
-              isOpen={isEditStayDetailsOpen}
-              onClose={() => {
-                setIsEditStayDetailsOpen(false);
-                setEditingHotel(null);
-              }}
-              onConfirm={(stayDetails) => {
-                if (onUpdateHotel) {
-                  onUpdateHotel(editingHotel.id, {
-                    checkIn: stayDetails.checkIn,
-                    checkOut: stayDetails.checkOut,
-                    guests: stayDetails.guests,
-                    rooms: stayDetails.rooms,
-                    roomType: stayDetails.roomType,
-                    specialRequests: stayDetails.specialRequests,
-                    confirmationNumber: stayDetails.confirmationNumber,
-                    totalCost: stayDetails.totalCost,
-                    notes: stayDetails.notes
-                  });
-                }
-                setIsEditStayDetailsOpen(false);
-                setEditingHotel(null);
-              }}
-              hotel={editingHotel.hotel}
-              checkInDate={editingHotel.checkIn ? new Date(editingHotel.checkIn) : undefined}
-              checkOutDate={editingHotel.checkOut ? new Date(editingHotel.checkOut) : undefined}
-              existingBookingData={{
-                guests: editingHotel.guests,
-                rooms: editingHotel.rooms,
-                roomType: editingHotel.roomType,
-                specialRequests: editingHotel.specialRequests,
-                confirmationNumber: editingHotel.confirmationNumber,
-                totalCost: editingHotel.totalCost,
-                notes: editingHotel.notes
-              }}
-              isEditMode={true}
-            />
-          </div>
-        </>
+        </div>
       )}
     </div>;
 }
