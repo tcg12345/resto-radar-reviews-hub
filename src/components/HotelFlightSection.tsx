@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { Hotel, Plane, Plus, MapPin, ExternalLink, Phone, Navigation, Eye, Radar, Star, Camera, Calendar, Users, ChevronDown, ChevronUp, X, Edit3 } from 'lucide-react';
+import { Hotel, Plane, Plus, MapPin, ExternalLink, Phone, Navigation, Eye, Radar, Star, Camera, Calendar, Users, ChevronDown, ChevronUp, X, Edit3, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -15,6 +15,7 @@ import { HotelSearchDialog } from '@/components/HotelSearchDialog';
 import { FlightSearchDialog } from '@/components/FlightSearchDialog';
 import { StayDetails, HotelStayDetailsDialog } from '@/components/HotelStayDetailsDialog';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Hotel as HotelType } from '@/hooks/useGooglePlacesHotelSearch';
 interface TripLocation {
   id: string;
@@ -116,6 +117,7 @@ export function HotelFlightSection({
     specialRequests: "",
     notes: "",
   });
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   function openEdit(booking: HotelBooking) {
     setEditingHotel(booking);
@@ -337,12 +339,15 @@ export function HotelFlightSection({
                             <Edit3 className="w-4 h-4" />
                           </Button>
                           <Button 
-                            onClick={() => onRemoveHotel(booking.id)} 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteConfirmId(booking.id);
+                            }}
                             size="sm" 
                             variant="ghost" 
                             className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full shrink-0"
                           >
-                            <X className="w-4 h-4" />
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
                       </div>
@@ -1685,6 +1690,32 @@ export function HotelFlightSection({
           }}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmId !== null} onOpenChange={() => setDeleteConfirmId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Hotel Booking</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this hotel booking? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteConfirmId) {
+                  onRemoveHotel(deleteConfirmId);
+                  setDeleteConfirmId(null);
+                }
+              }}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
