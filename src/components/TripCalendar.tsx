@@ -274,7 +274,7 @@ export function TripCalendar({
                                     
                                     {/* Address and directions for other events */}
                                     {event.type === 'other' && event.location && (
-                                      <div className="space-y-2 mt-3 p-3 bg-black/5 dark:bg-white/5 rounded-lg border border-black/10 dark:border-white/10">
+                                      <div className="space-y-2 mt-2">
                                         <div className="flex items-start gap-2">
                                           <MapPin className="w-4 h-4 mt-0.5 text-muted-foreground shrink-0" />
                                           <p className="text-xs lg:text-sm text-muted-foreground">
@@ -285,7 +285,7 @@ export function TripCalendar({
                                           <Button
                                             size="sm"
                                             variant="outline"
-                                            className="text-xs h-8 px-3 bg-background/50 hover:bg-background border-border/50"
+                                            className="text-xs h-8 px-3"
                                             onClick={() => window.open(`https://maps.google.com/maps?q=${encodeURIComponent(event.location!)}`, '_blank')}
                                           >
                                             <Compass className="w-3 h-3 mr-1" />
