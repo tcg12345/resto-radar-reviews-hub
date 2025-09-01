@@ -58,7 +58,7 @@ export function HotelDetailsPage() {
   const [galleryPhotoIndex, setGalleryPhotoIndex] = useState(0);
   const [isStayDetailsExpanded, setIsStayDetailsExpanded] = useState(true);
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
-  const [hotelEmail, setHotelEmail] = useState<string>('');
+  const [hotelEmail, setHotelEmail] = useState<string | null>(null);
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
 
@@ -172,6 +172,7 @@ export function HotelDetailsPage() {
         }
 
         // Try to get hotel email from Google Places API
+        // Note: Google Places API typically doesn't provide email addresses
         try {
           const { data: googleDetailsData, error: googleDetailsError } = await supabase.functions.invoke('google-places-search', {
             body: {
@@ -180,18 +181,17 @@ export function HotelDetailsPage() {
             }
           });
 
-          if (!googleDetailsError && googleDetailsData?.result?.email) {
+          // Only set email if it's actually available and valid
+          if (!googleDetailsError && googleDetailsData?.result?.email && googleDetailsData.result.email.includes('@')) {
             setHotelEmail(googleDetailsData.result.email);
           } else {
-            // Fallback: try to get email from TripAdvisor or other sources
-            // For demo purposes, we'll set a placeholder email for hotels
-            // In a real app, you'd have a database of hotel contact information
-            setHotelEmail(`contact@${hotelData.name.toLowerCase().replace(/\s+/g, '')}.com`);
+            // No valid email found - don't set a fake email
+            setHotelEmail(null);
+            console.log('No email available for hotel in Google Places API');
           }
         } catch (error) {
           console.error('Error fetching hotel email:', error);
-          // Set a placeholder email for demo
-          setHotelEmail(`contact@${hotelData.name.toLowerCase().replace(/\s+/g, '')}.com`);
+          setHotelEmail(null);
         }
       } else {
         toast.error('Hotel not found');
@@ -820,12 +820,23 @@ export function HotelDetailsPage() {
                 </Button>
               )}
               
-              {hotelEmail && (
+              {hotelEmail ? (
                 <Button 
                   variant="outline" 
                   size="sm"
                   onClick={() => setIsEmailDialogOpen(true)}
                   className="flex items-center gap-2 h-11 rounded-lg text-xs font-medium"
+                >
+                  <Mail className="w-4 h-4" />
+                  <span className="hidden sm:inline">Email</span>
+                </Button>
+              ) : (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="flex items-center gap-2 h-11 rounded-lg text-xs font-medium opacity-50 cursor-not-allowed"
+                  disabled
+                  title="Hotel email not available"
                 >
                   <Mail className="w-4 h-4" />
                   <span className="hidden sm:inline">Email</span>
