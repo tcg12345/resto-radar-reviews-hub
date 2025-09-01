@@ -97,6 +97,26 @@ export function HotelStayDetailsDialog({
 
   const isMobile = useIsMobile();
 
+  // URL validation function
+  const isValidUrl = (url: string) => {
+    try {
+      const trimmedUrl = url.trim();
+      if (!trimmedUrl) return false;
+      
+      // Check if it starts with http:// or https://
+      if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
+        new URL(trimmedUrl);
+        return true;
+      }
+      
+      // Check if it's a valid domain without protocol
+      const domainPattern = /^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.[a-zA-Z]{2,}([\/\w\-._~:/?#[\]@!$&'()*+,;=]*)?$/;
+      return domainPattern.test(trimmedUrl);
+    } catch {
+      return false;
+    }
+  };
+
   // Reset form fields when existing booking data changes (for editing mode)
   useEffect(() => {
     if (existingBookingData) {
@@ -512,16 +532,54 @@ export function HotelStayDetailsDialog({
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground font-medium">Custom Links</Label>
               <div className="space-y-2">
-                <Input
-                  value={specialRequests}
-                  onChange={(e) => setSpecialRequests(e.target.value)}
-                  placeholder="Add useful links (booking confirmation, restaurant reservations, etc.)"
-                  className="bg-background border-border/30"
-                />
+                <div className="relative">
+                  <Input
+                    value={specialRequests}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setSpecialRequests(value);
+                    }}
+                    onBlur={(e) => {
+                      const value = e.target.value.trim();
+                      if (value && !isValidUrl(value)) {
+                        toast.error('Please enter a valid URL (e.g., https://example.com or example.com)');
+                      }
+                    }}
+                    placeholder="Add useful links (booking confirmation, restaurant reservations, etc.)"
+                    className={cn(
+                      "bg-background border-border/30 pr-10",
+                      specialRequests && isValidUrl(specialRequests) && "border-green-500 dark:border-green-400",
+                      specialRequests && !isValidUrl(specialRequests) && specialRequests.trim() && "border-red-500 dark:border-red-400"
+                    )}
+                  />
+                  {specialRequests && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      {isValidUrl(specialRequests) ? (
+                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      ) : specialRequests.trim() ? (
+                        <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                      ) : null}
+                    </div>
+                  )}
+                </div>
                 {specialRequests && (
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <div className="w-2 h-2 rounded-full bg-primary/60"></div>
-                    <span>Link will be clickable in your itinerary</span>
+                  <div className="flex items-center gap-2 text-xs">
+                    {isValidUrl(specialRequests) ? (
+                      <>
+                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                        <span className="text-green-600 dark:text-green-400">Valid URL - will be clickable in your itinerary</span>
+                      </>
+                    ) : specialRequests.trim() ? (
+                      <>
+                        <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                        <span className="text-red-600 dark:text-red-400">Invalid URL format</span>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-2 h-2 rounded-full bg-primary/60"></div>
+                        <span className="text-muted-foreground">Link will be clickable in your itinerary</span>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
