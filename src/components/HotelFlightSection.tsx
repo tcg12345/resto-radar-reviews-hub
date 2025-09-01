@@ -109,6 +109,37 @@ export function HotelFlightSection({
   const [isFlightsExpanded, setIsFlightsExpanded] = useState(false);
   const [editingHotel, setEditingHotel] = useState<HotelBooking | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState({
+    totalCost: "",
+    confirmationNumber: "",
+    roomType: "",
+    specialRequests: "",
+    notes: "",
+  });
+
+  function openEdit(booking: HotelBooking) {
+    setEditingHotel(booking);
+    setEditForm({
+      totalCost: booking.totalCost || "",
+      confirmationNumber: booking.confirmationNumber || "",
+      roomType: booking.roomType || "",
+      specialRequests: booking.specialRequests || "",
+      notes: booking.notes || "",
+    });
+    setShowEditModal(true);
+  }
+
+  useEffect(() => {
+    if (editingHotel && showEditModal) {
+      setEditForm({
+        totalCost: editingHotel.totalCost || "",
+        confirmationNumber: editingHotel.confirmationNumber || "",
+        roomType: editingHotel.roomType || "",
+        specialRequests: editingHotel.specialRequests || "",
+        notes: editingHotel.notes || "",
+      });
+    }
+  }, [editingHotel, showEditModal]);
   const handleHotelSelect = (stayDetails: StayDetails) => {
     // Convert StayDetails back to the old format for now
     onAddHotel(stayDetails.hotel, undefined, stayDetails.checkIn, stayDetails.checkOut);
@@ -232,8 +263,8 @@ export function HotelFlightSection({
   const getPhotoUrls = () => {
     return tripAdvisorPhotos.map(photo => photo.images?.large?.url || photo.images?.medium?.url || photo.images?.small?.url || photo.images?.thumbnail?.url).filter(Boolean);
   };
-  if (isMobile) {
-    return <div className="space-y-1">
+  const content = isMobile ? (
+    <div className="space-y-1">
         {/* Hotels Section - Mobile */}
         <div className="bg-gradient-to-r from-blue-400/60 to-blue-500/60 dark:from-blue-500/40 dark:to-blue-600/40 -mx-6 px-6 rounded-xl my-[19px]">
           <div className="flex items-center justify-between py-4 cursor-pointer" onClick={() => setIsHotelsExpanded(!isHotelsExpanded)}>
@@ -304,19 +335,7 @@ export function HotelFlightSection({
                           <Button 
                             onClick={(e) => {
                               e.stopPropagation();
-                              console.log('NEW Edit button clicked!');
-                              console.log('Before state update - showEditModal:', showEditModal);
-                              console.log('Setting editingHotel to:', booking);
-                              setEditingHotel(booking);
-                              setShowEditModal(true);
-                              console.log('Modal should appear now');
-                              console.log('State should now be - showEditModal: true, editingHotel:', booking);
-                              
-                              // Force a re-render check
-                              setTimeout(() => {
-                                console.log('After timeout - showEditModal:', showEditModal);
-                                console.log('After timeout - editingHotel:', editingHotel);
-                              }, 100);
+                              openEdit(booking);
                             }}
                             size="sm" 
                             variant="ghost" 
@@ -903,10 +922,9 @@ export function HotelFlightSection({
         onSelect={handleFlightSelect}
         locations={locations}
       />
-    </div>;
-
-  }
-  return <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:contents">
+     </div>
+  ) : (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:contents">
       {/* Hotels Section - Desktop */}
       <div className="lg:contents">
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800/30 lg:rounded-lg lg:border lg:shadow-sm rounded-none border-0 border-t border-b shadow-none relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen lg:left-auto lg:right-auto lg:ml-0 lg:mr-0 lg:w-auto mb-6">
@@ -1627,5 +1645,105 @@ export function HotelFlightSection({
           </div>
         </div>
       )}
-    </div>;
+    </div>
+  );
+
+  return (
+    <>
+      {content}
+      <Dialog
+        open={showEditModal}
+        onOpenChange={(open) => {
+          setShowEditModal(open);
+          if (!open) setEditingHotel(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-[520px]">
+          <DialogHeader>
+            <DialogTitle>Edit Hotel Details</DialogTitle>
+            <DialogDescription>
+              {editingHotel?.hotel.name}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="totalCost">Total Cost</Label>
+              <Input
+                id="totalCost"
+                value={editForm.totalCost}
+                onChange={(e) => setEditForm(f => ({ ...f, totalCost: e.target.value }))}
+                placeholder="e.g., $500/night"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="confirmationNumber">Confirmation Number</Label>
+              <Input
+                id="confirmationNumber"
+                value={editForm.confirmationNumber}
+                onChange={(e) => setEditForm(f => ({ ...f, confirmationNumber: e.target.value }))}
+                placeholder="Booking confirmation"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="roomType">Room Type</Label>
+              <Input
+                id="roomType"
+                value={editForm.roomType}
+                onChange={(e) => setEditForm(f => ({ ...f, roomType: e.target.value }))}
+                placeholder="e.g., Deluxe King"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="specialRequests">Special Requests</Label>
+              <Input
+                id="specialRequests"
+                value={editForm.specialRequests}
+                onChange={(e) => setEditForm(f => ({ ...f, specialRequests: e.target.value }))}
+                placeholder="Any special requests..."
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Input
+                id="notes"
+                value={editForm.notes}
+                onChange={(e) => setEditForm(f => ({ ...f, notes: e.target.value }))}
+                placeholder="Personal notes..."
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <Button
+              className="flex-1"
+              onClick={() => {
+                if (editingHotel && onUpdateHotel) {
+                  onUpdateHotel(editingHotel.id, { ...editForm });
+                }
+                setShowEditModal(false);
+                setEditingHotel(null);
+              }}
+            >
+              Save Changes
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => {
+                setShowEditModal(false);
+                setEditingHotel(null);
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
 }
