@@ -480,10 +480,20 @@ export function TripCalendar({
     <Dialog open={isEventDialogOpen} onOpenChange={setIsEventDialogOpen}>
       <DialogContent className="max-w-md mx-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            {selectedEvent && getEventIcon(selectedEvent.type)}
-            {selectedEvent?.title}
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-2">
+              {selectedEvent && getEventIcon(selectedEvent.type)}
+              {selectedEvent?.title}
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsEventDialogOpen(false)}
+              className="h-6 w-6 rounded-full"
+            >
+              <Plus className="h-4 w-4 rotate-45" />
+            </Button>
+          </div>
         </DialogHeader>
         
         {selectedEvent && (
