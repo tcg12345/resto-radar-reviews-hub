@@ -657,6 +657,19 @@ export function HotelDetailsPage() {
                       <div className="text-center pb-3 border-b border-border/30">
                         <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Total Cost</div>
                         <div className="text-2xl font-bold text-primary">${hotel.stayDetails.totalCost}</div>
+                        {hotel.stayDetails.checkIn && hotel.stayDetails.checkOut && (() => {
+                          const checkInDate = new Date(hotel.stayDetails.checkIn);
+                          const checkOutDate = new Date(hotel.stayDetails.checkOut);
+                          const timeDiff = checkOutDate.getTime() - checkInDate.getTime();
+                          const numberOfNights = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                          const pricePerNight = (parseFloat(hotel.stayDetails.totalCost.toString()) / numberOfNights).toFixed(2);
+                          
+                          return numberOfNights > 0 ? (
+                            <div className="text-sm text-muted-foreground mt-2">
+                              ${pricePerNight} per night × {numberOfNights} night{numberOfNights !== 1 ? 's' : ''}
+                            </div>
+                          ) : null;
+                        })()}
                       </div>
                     )}
                     {hotel.stayDetails.confirmationNumber && (
