@@ -704,11 +704,36 @@ export function HotelDetailsPage() {
                   {hotel.stayDetails.specialRequests && (
                     <div>
                       <div className="flex items-center gap-2 mb-3">
-                        <MessageSquare className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                        <h5 className="font-semibold text-sm text-foreground">Special Requests</h5>
+                        <ExternalLink className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                        <h5 className="font-semibold text-sm text-foreground">Links</h5>
                       </div>
                       <div className="bg-muted/30 rounded-lg p-4 border border-border/20">
-                        <p className="text-sm text-muted-foreground leading-relaxed">{hotel.stayDetails.specialRequests}</p>
+                        <div className="text-sm text-muted-foreground leading-relaxed">
+                          {hotel.stayDetails.specialRequests.split('\n').map((line, index) => {
+                            const urlRegex = /(https?:\/\/[^\s]+)/g;
+                            const parts = line.split(urlRegex);
+                            return (
+                              <div key={index} className="mb-1 last:mb-0">
+                                {parts.map((part, partIndex) => {
+                                  if (urlRegex.test(part)) {
+                                    return (
+                                      <a
+                                        key={partIndex}
+                                        href={part}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline decoration-1 underline-offset-2 transition-colors"
+                                      >
+                                        {part}
+                                      </a>
+                                    );
+                                  }
+                                  return <span key={partIndex}>{part}</span>;
+                                })}
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
                   )}
