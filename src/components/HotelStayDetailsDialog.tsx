@@ -151,7 +151,7 @@ export function HotelStayDetailsDialog({
             </div>
             {hotel.rating && (
               <div className="flex-shrink-0">
-                <Badge className="bg-gradient-to-r from-primary/10 to-primary/5 text-primary border border-primary/20 rounded-full px-3 py-1.5 shadow-sm hover:shadow-md transition-all duration-200">
+                <Badge className="bg-primary/20 text-primary-foreground border-primary/30 rounded-full px-3 py-1.5 shadow-md hover:shadow-lg transition-all duration-200 font-medium">
                   <div className="flex items-center gap-1.5">
                     <Star className="w-3.5 h-3.5 fill-current text-primary" />
                     <span className="font-semibold text-sm">{hotel.rating}</span>
