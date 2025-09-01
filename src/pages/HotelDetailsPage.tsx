@@ -85,7 +85,7 @@ export function HotelDetailsPage() {
         try {
           const { data: tripAdvisorData, error } = await supabase.functions.invoke('tripadvisor-api', {
             body: {
-              action: 'searchLocation',
+              action: 'search',
               searchQuery: `${hotelData.name} ${hotelData.address}`,
             }
           });
@@ -97,7 +97,7 @@ export function HotelDetailsPage() {
             // Get photos from TripAdvisor
             const { data: photosData, error: photosError } = await supabase.functions.invoke('tripadvisor-api', {
               body: {
-                action: 'getPhotos',
+                action: 'photos',
                 locationId: locationId,
               }
             });
@@ -109,29 +109,55 @@ export function HotelDetailsPage() {
             }
           }
 
-          // If no TripAdvisor photos, try Google Places
-          if (!photosFound) {
+          // If no TripAdvisor photos, try Google Places using the hotel ID
+          if (!photosFound && hotelData.id) {
             try {
               const { data: googlePhotosData, error: googleError } = await supabase.functions.invoke('google-places-search', {
                 body: {
-                  query: `${hotelData.name} ${hotelData.address}`,
-                  type: 'lodging'
+                  placeId: hotelData.id,
+                  type: 'details'
                 }
               });
 
-              if (!googleError && googlePhotosData?.results?.length > 0) {
-                const place = googlePhotosData.results[0];
-                if (place.photos && place.photos.length > 0) {
-                  // Get photo URLs from Google Places
+              if (!googleError && googlePhotosData?.result?.photos?.length > 0) {
+                // Get photo URLs from Google Places
+                const googlePhotoUrls = googlePhotosData.result.photos.slice(0, 8).map((photo: any) => 
+                  `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${photo.photo_reference}&key=AIzaSyDGyJd_l_BZAnseiAx5a5n4a1nSBqnS4dA`
+                );
+                setHotelPhotos(googlePhotoUrls);
+                photosFound = true;
+              }
+            } catch (googleError) {
+              console.error('Error fetching Google Places photos:', googleError);
+            }
+          }
+
+          // If still no photos, try a general search
+          if (!photosFound) {
+            try {
+              const { data: googleSearchData, error: googleSearchError } = await supabase.functions.invoke('google-places-search', {
+                body: {
+                  query: `${hotelData.name} hotel`,
+                  type: 'search'
+                }
+              });
+
+              if (!googleSearchError && googleSearchData?.results?.length > 0) {
+                const place = googleSearchData.results.find((p: any) => 
+                  p.name.toLowerCase().includes(hotelData.name.toLowerCase()) && 
+                  p.photos && p.photos.length > 0
+                );
+                
+                if (place && place.photos) {
                   const googlePhotoUrls = place.photos.slice(0, 8).map((photo: any) => 
-                    `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${photo.photo_reference}&key=${googlePhotosData.apiKey || 'YOUR_GOOGLE_PLACES_API_KEY'}`
+                    `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${photo.photo_reference}&key=AIzaSyDGyJd_l_BZAnseiAx5a5n4a1nSBqnS4dA`
                   );
                   setHotelPhotos(googlePhotoUrls);
                   photosFound = true;
                 }
               }
             } catch (googleError) {
-              console.error('Error fetching Google Places photos:', googleError);
+              console.error('Error fetching Google Places search photos:', googleError);
             }
           }
 
