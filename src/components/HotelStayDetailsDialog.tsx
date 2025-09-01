@@ -530,6 +530,16 @@ export function HotelStayDetailsDialog({
           </Label>
           <div className="space-y-3">
             <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground font-medium">Notes</Label>
+              <Textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Any additional notes about your stay..."
+                rows={2}
+                className="bg-background border-border/30 resize-none"
+              />
+            </div>
+            <div className="space-y-2">
               <Label className="text-xs text-muted-foreground font-medium">Custom Links</Label>
               <div className="space-y-2">
                 <div className="relative">
@@ -583,16 +593,6 @@ export function HotelStayDetailsDialog({
                   </div>
                 )}
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground font-medium">Notes</Label>
-              <Textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Any additional notes about your stay..."
-                rows={2}
-                className="bg-background border-border/30 resize-none"
-              />
             </div>
           </div>
         </div>
