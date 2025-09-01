@@ -715,14 +715,18 @@ export function HotelDetailsPage() {
                             return (
                               <div key={index} className="mb-1 last:mb-0">
                                 {parts.map((part, partIndex) => {
-                                  if (urlRegex.test(part)) {
+                                  if (part.match(/^https?:\/\//)) {
                                     return (
                                       <a
                                         key={partIndex}
                                         href={part}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline decoration-1 underline-offset-2 transition-colors"
+                                        className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline decoration-1 underline-offset-2 transition-colors cursor-pointer"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          window.open(part, '_blank', 'noopener,noreferrer');
+                                        }}
                                       >
                                         {part}
                                       </a>
