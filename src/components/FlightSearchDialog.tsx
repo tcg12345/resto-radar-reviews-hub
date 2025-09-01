@@ -163,159 +163,218 @@ if (isMobile) {
       {/* Main Search Drawer */}
       <Drawer open={isOpen && !showResults} onOpenChange={handleClose}>
         <DrawerContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-0">
-          <div className="w-full">
-            <div className="sticky top-0 z-10 border-b border-border/50 bg-gradient-to-b from-background/95 via-background to-background/80 px-5 pt-4 pb-3">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <DrawerTitle className="text-base font-semibold">Flight Search</DrawerTitle>
-                  <DrawerDescription className="text-xs text-muted-foreground">Find and book flights for your trip</DrawerDescription>
+          <div className="w-full h-[85vh] flex flex-col">
+            {/* Header Section */}
+            <div className="sticky top-0 z-10 bg-gradient-to-b from-background via-background to-background/95 px-6 pt-5 pb-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="space-y-1">
+                  <DrawerTitle className="text-xl font-bold text-foreground">Flight Search</DrawerTitle>
+                  <DrawerDescription className="text-sm text-muted-foreground font-medium">Find and book flights for your trip</DrawerDescription>
                 </div>
-                <Button variant="ghost" size="icon" onClick={handleClose} className="h-9 w-9 rounded-full bg-muted/50 hover:bg-muted">
+                <Button variant="ghost" size="icon" onClick={handleClose} className="h-8 w-8 rounded-full bg-muted/30 hover:bg-muted/50 transition-colors">
                   <X className="h-4 w-4" />
                 </Button>
               </div>
-            </div>
-
-            <div className="max-h-[70vh] overflow-y-auto px-5 py-4">
-              {/* Compact Mobile Search Bar */}
-              <div className="space-y-2 border-b pb-3">
-                <div className="grid grid-cols-2 gap-2">
-                  <AirportSearch
-                    value={departureAirport}
-                    onChange={setDepartureAirport}
-                    placeholder="From..."
-                    className="h-10"
-                  />
-                  <AirportSearch
-                    value={arrivalAirport}
-                    onChange={setArrivalAirport}
-                    placeholder="To..."
-                    className="h-10"
-                  />
+              
+              {/* Prominent Search Section */}
+              <div className="space-y-4">
+                {/* Route Selection */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                      <Plane className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <AirportSearch
+                      value={departureAirport}
+                      onChange={setDepartureAirport}
+                      placeholder="From"
+                      className="pl-10 h-12 rounded-2xl border-2 border-border/20 bg-muted/10 shadow-sm focus:shadow-md transition-all"
+                    />
+                  </div>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <AirportSearch
+                      value={arrivalAirport}
+                      onChange={setArrivalAirport}
+                      placeholder="To"
+                      className="pl-10 h-12 rounded-2xl border-2 border-border/20 bg-muted/10 shadow-sm focus:shadow-md transition-all"
+                    />
+                  </div>
                 </div>
-                <div className="flex gap-2">
+                
+                {/* Date and Search */}
+                <div className="flex gap-3">
                   <Input
                     type="date"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
-                    className="h-10"
+                    className="flex-1 h-12 rounded-2xl border-2 border-border/20 bg-muted/10 shadow-sm focus:shadow-md transition-all"
                   />
                   <Button
                     onClick={handleSearch}
                     disabled={isSearching || !departureAirport || !arrivalAirport}
-                    className="h-10 px-4"
+                    size="icon"
+                    className="h-12 w-12 rounded-2xl bg-primary hover:bg-primary/90 shadow-sm"
                   >
-                    <Search className="w-4 h-4 mr-1" />
-                    Go
+                    <Search className="w-5 h-5" />
                   </Button>
                 </div>
-                <div className="flex justify-between">
-                  <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
+                
+                {/* Filter Toggle */}
+                <div className="flex justify-center">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="rounded-full px-4 bg-muted/20 border-muted hover:bg-muted/40 transition-colors"
+                  >
                     {showFilters ? "Hide filters" : "Show filters"}
                   </Button>
                 </div>
               </div>
+            </div>
 
-              {/* Desktop & Mobile Filters */}
-              <div className={cn("space-y-6", showFilters ? "border-b pb-3" : "hidden")}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium flex items-center gap-2">
-                      <MapPin className="w-4 h-4" />
-                      From
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto px-6">
+              {/* Filter Cards */}
+              <div className={cn("space-y-4 pb-6", showFilters ? "block" : "hidden")}>
+                {/* Route Details Card */}
+                <Card className="p-4 bg-muted/5 border-muted/20 shadow-sm">
+                  <div className="space-y-4">
+                    <Label className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                      <Plane className="w-4 h-4 text-primary" />
+                      Flight Route
                     </Label>
-                    <AirportSearch
-                      value={departureAirport}
-                      onChange={setDepartureAirport}
-                      placeholder="New York (JFK), London (LHR)..."
-                    />
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground font-medium">From</Label>
+                        <AirportSearch
+                          value={departureAirport}
+                          onChange={setDepartureAirport}
+                          placeholder="New York (JFK)..."
+                          className="bg-background border-border/30 focus:border-primary/50"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground font-medium">To</Label>
+                        <AirportSearch
+                          value={arrivalAirport}
+                          onChange={setArrivalAirport}
+                          placeholder="Paris (CDG)..."
+                          className="bg-background border-border/30 focus:border-primary/50"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium flex items-center gap-2">
-                      <MapPin className="w-4 h-4" />
-                      To
+                </Card>
+                
+                {/* Flight Details Card */}
+                <Card className="p-4 bg-muted/5 border-muted/20 shadow-sm">
+                  <div className="space-y-4">
+                    <Label className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                      <Filter className="w-4 h-4 text-primary" />
+                      Flight Preferences
                     </Label>
-                    <AirportSearch
-                      value={arrivalAirport}
-                      onChange={setArrivalAirport}
-                      placeholder="Paris (CDG), Tokyo (NRT)..."
-                    />
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground font-medium">Departure Date</Label>
+                        <Input
+                          type="date"
+                          value={selectedDate}
+                          onChange={(e) => setSelectedDate(e.target.value)}
+                          className="bg-background border-border/30 focus:border-primary/50"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground font-medium">Flight Type</Label>
+                        <Select value={flightType} onValueChange={(value: 'nonstop' | 'onestop' | 'any') => setFlightType(value)}>
+                          <SelectTrigger className="bg-background border-border/30 focus:border-primary/50">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="any">Any Flight</SelectItem>
+                            <SelectItem value="nonstop">Nonstop Only</SelectItem>
+                            <SelectItem value="onestop">One Stop</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                </Card>
 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Departure Date</Label>
-                    <Input
-                      type="date"
-                      value={selectedDate}
-                      onChange={(e) => setSelectedDate(e.target.value)}
-                      className="bg-background/60"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium flex items-center gap-2">
-                      <Filter className="w-4 h-4" />
-                      Flight Type
+                {/* Advanced Options Card */}
+                <Card className="p-4 bg-muted/5 border-muted/20 shadow-sm">
+                  <div className="space-y-4">
+                    <Label className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                      <Clock className="w-4 h-4 text-primary" />
+                      Advanced Options
                     </Label>
-                    <Select value={flightType} onValueChange={(value: 'nonstop' | 'onestop' | 'any') => setFlightType(value)}>
-                      <SelectTrigger className="bg-background/60">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="any">Any Flight</SelectItem>
-                        <SelectItem value="nonstop">Nonstop Only</SelectItem>
-                        <SelectItem value="onestop">One Stop</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground font-medium">Flight Number (Optional)</Label>
+                        <Input
+                          value={flightNumber}
+                          onChange={(e) => setFlightNumber(e.target.value)}
+                          placeholder="AA123, BA456..."
+                          className="bg-background border-border/30 focus:border-primary/50"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground font-medium">Airline (Optional)</Label>
+                        <Input
+                          value={airline}
+                          onChange={(e) => setAirline(e.target.value)}
+                          placeholder="American, British Airways..."
+                          className="bg-background border-border/30 focus:border-primary/50"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label className="text-xs text-muted-foreground font-medium">Depart After</Label>
+                          <Input
+                            type="time"
+                            value={departureTimeFrom}
+                            onChange={(e) => setDepartureTimeFrom(e.target.value)}
+                            className="bg-background border-border/30 focus:border-primary/50"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs text-muted-foreground font-medium">Depart Before</Label>
+                          <Input
+                            type="time"
+                            value={departureTimeTo}
+                            onChange={(e) => setDepartureTimeTo(e.target.value)}
+                            className="bg-background border-border/30 focus:border-primary/50"
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Flight Number (Optional)</Label>
-                    <Input
-                      value={flightNumber}
-                      onChange={(e) => setFlightNumber(e.target.value)}
-                      placeholder="AA123, BA456..."
-                      className="bg-background/60"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Airline (Optional)</Label>
-                    <Input
-                      value={airline}
-                      onChange={(e) => setAirline(e.target.value)}
-                      placeholder="American, British Airways..."
-                      className="bg-background/60"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
-                      Departure Time From
-                    </Label>
-                    <Input
-                      type="time"
-                      value={departureTimeFrom}
-                      onChange={(e) => setDepartureTimeFrom(e.target.value)}
-                      className="bg-background/60"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
-                      Departure Time To
-                    </Label>
-                    <Input
-                      type="time"
-                      value={departureTimeTo}
-                      onChange={(e) => setDepartureTimeTo(e.target.value)}
-                      className="bg-background/60"
-                    />
-                  </div>
-                </div>
+                </Card>
               </div>
+            </div>
+
+            {/* Sticky Bottom CTA */}
+            <div className="sticky bottom-0 bg-gradient-to-t from-background via-background to-background/95 p-6 border-t border-border/20">
+              <Button
+                onClick={handleSearch}
+                disabled={isSearching || !departureAirport || !arrivalAirport || !selectedDate}
+                className="w-full h-12 text-base font-semibold rounded-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all"
+              >
+                {isSearching ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-background border-t-transparent mr-2" />
+                    Searching...
+                  </>
+                ) : (
+                  <>
+                    <Search className="w-4 h-4 mr-2" />
+                    Search Flights
+                  </>
+                )}
+              </Button>
             </div>
           </div>
         </DrawerContent>
