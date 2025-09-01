@@ -818,7 +818,7 @@ export function HotelDetailsPage() {
           </div>
 
           {/* Main photo */}
-          <div className="relative w-full h-full flex items-center justify-center px-8">
+          <div className="relative w-full h-full flex items-center justify-center px-4">
             <img
               src={hotelPhotos[galleryPhotoIndex]}
               alt={`${hotel.name} - Photo ${galleryPhotoIndex + 1}`}
