@@ -82,6 +82,14 @@ export interface HotelBooking {
   checkIn?: Date;
   checkOut?: Date;
   location?: string;
+  // Additional stay details from booking process
+  guests?: number;
+  rooms?: number;
+  roomType?: string;
+  specialRequests?: string;
+  confirmationNumber?: string;
+  totalCost?: string;
+  notes?: string;
 }
 export interface FlightBooking {
   id: string;
@@ -776,7 +784,15 @@ export function ItineraryBuilder({
       hotel,
       checkIn,
       checkOut,
-      location
+      location,
+      // Default values for additional fields
+      guests: 2,
+      rooms: 1,
+      roomType: '',
+      specialRequests: '',
+      confirmationNumber: '',
+      totalCost: '',
+      notes: ''
     };
     setHotels(prev => [...prev, newBooking]);
   };
@@ -792,11 +808,39 @@ export function ItineraryBuilder({
   };
   
   const handleUpdateHotel = (hotelId: string, updates: Partial<HotelBooking>) => {
-    setHotels(prev => prev.map(hotel => 
-      hotel.id === hotelId 
-        ? { ...hotel, ...updates }
-        : hotel
-    ));
+    console.log('Updating hotel:', hotelId, 'with updates:', updates);
+    setHotels(prev => {
+      const updatedHotels = prev.map(hotel => 
+        hotel.id === hotelId 
+          ? { ...hotel, ...updates }
+          : hotel
+      );
+      console.log('Updated hotels array:', updatedHotels);
+      
+      // Find the updated hotel and update sessionStorage
+      const updatedHotel = updatedHotels.find(h => h.id === hotelId);
+      if (updatedHotel) {
+        const hotelDetailsData = {
+          ...updatedHotel.hotel,
+          stayDetails: {
+            checkIn: updatedHotel.checkIn,
+            checkOut: updatedHotel.checkOut,
+            location: updatedHotel.location,
+            guests: updatedHotel.guests,
+            rooms: updatedHotel.rooms,
+            roomType: updatedHotel.roomType,
+            specialRequests: updatedHotel.specialRequests,
+            confirmationNumber: updatedHotel.confirmationNumber,
+            totalCost: updatedHotel.totalCost,
+            notes: updatedHotel.notes
+          }
+        };
+        console.log('Storing updated hotel data in sessionStorage:', hotelDetailsData);
+        sessionStorage.setItem(`hotel_${updatedHotel.hotel.id}`, JSON.stringify(hotelDetailsData));
+      }
+      
+      return updatedHotels;
+    });
   };
   
   const handleRemoveFlight = (flightId: string) => {
