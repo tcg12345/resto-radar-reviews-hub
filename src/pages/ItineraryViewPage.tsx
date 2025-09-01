@@ -515,12 +515,24 @@ export function ItineraryViewPage() {
                               {(hotel.checkIn || hotel.checkOut) && (
                                 <div className="mb-3 p-2 bg-blue-50/50 dark:bg-blue-900/10 rounded-lg">
                                   <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">
-                                    {hotel.checkIn && hotel.checkOut 
-                                      ? `${new Date(hotel.checkIn).toLocaleDateString()} - ${new Date(hotel.checkOut).toLocaleDateString()}`
-                                      : hotel.checkIn 
-                                      ? `Check-in: ${new Date(hotel.checkIn).toLocaleDateString()}`
-                                      : `Check-out: ${new Date(hotel.checkOut).toLocaleDateString()}`
-                                    }
+                                    {itinerary.wasCreatedWithLengthOfStay ? (
+                                      // Show nights when in day mode
+                                      hotel.checkIn && hotel.checkOut 
+                                        ? (() => {
+                                            const nights = Math.ceil((new Date(hotel.checkOut).getTime() - new Date(hotel.checkIn).getTime()) / (1000 * 60 * 60 * 24));
+                                            return `${nights} ${nights === 1 ? 'night' : 'nights'}`;
+                                          })()
+                                        : hotel.checkIn 
+                                        ? `Check-in: ${new Date(hotel.checkIn).toLocaleDateString()}`
+                                        : `Check-out: ${new Date(hotel.checkOut).toLocaleDateString()}`
+                                    ) : (
+                                      // Show dates when not in day mode
+                                      hotel.checkIn && hotel.checkOut 
+                                        ? `${new Date(hotel.checkIn).toLocaleDateString()} - ${new Date(hotel.checkOut).toLocaleDateString()}`
+                                        : hotel.checkIn 
+                                        ? `Check-in: ${new Date(hotel.checkIn).toLocaleDateString()}`
+                                        : `Check-out: ${new Date(hotel.checkOut).toLocaleDateString()}`
+                                    )}
                                   </p>
                                 </div>
                               )}
