@@ -95,6 +95,12 @@ export function HotelStayDetailsDialog({
     }
   }, [existingBookingData]);
 
+  // Debug logging for dialog state
+  useEffect(() => {
+    console.log('HotelStayDetailsDialog render - isOpen:', isOpen);
+    console.log('HotelStayDetailsDialog render - hotel:', hotel);
+  }, [isOpen, hotel]);
+
   const handleConfirm = () => {
     if (!checkIn || !checkOut) {
       toast.error('Please select check-in and check-out dates');
@@ -418,8 +424,8 @@ export function HotelStayDetailsDialog({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px] h-[85vh] flex flex-col z-[9999] fixed">
+    <Dialog open={isOpen} onOpenChange={handleClose} modal>
+      <DialogContent className="sm:max-w-[600px] h-[85vh] flex flex-col z-[9999] fixed bg-background" style={{ zIndex: 9999 }}>
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">Stay Details</DialogTitle>
           <DialogDescription>

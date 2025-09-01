@@ -305,9 +305,17 @@ export function HotelFlightSection({
                             onClick={(e) => {
                               e.stopPropagation();
                               console.log('Edit button clicked! Opening dialog...');
+                              console.log('Current editing hotel before:', editingHotel);
+                              console.log('Current dialog open state before:', isEditStayDetailsOpen);
                               setEditingHotel(booking);
                               setIsEditStayDetailsOpen(true);
                               console.log('Dialog state set to open');
+                              console.log('Booking data being set:', booking);
+                              // Force re-render after state update
+                              setTimeout(() => {
+                                console.log('After timeout - editing hotel:', editingHotel);
+                                console.log('After timeout - dialog open:', isEditStayDetailsOpen);
+                              }, 100);
                             }}
                             size="sm" 
                             variant="ghost" 
