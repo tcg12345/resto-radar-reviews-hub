@@ -5,6 +5,7 @@ import { ArrowLeft, Calendar, MapPin, Clock, Users, Globe, Star, Phone, External
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { Itinerary } from '@/components/ItineraryBuilder';
@@ -425,117 +426,139 @@ export function ItineraryViewPage() {
                   <Badge variant="secondary" className="ml-auto">{itinerary.hotels.length}</Badge>
                 </div>
                 
-                <div className="space-y-3">
-                  {itinerary.hotels.map((hotel: any) => {
-                    const handleHotelClick = () => {
-                      // Store hotel data in sessionStorage for the HotelDetailsPage
-                      const hotelData = {
-                        id: hotel.hotel?.place_id || hotel.id,
-                        name: hotel.hotel?.name || 'Hotel',
-                        address: hotel.hotel?.address || '',
-                        latitude: hotel.hotel?.latitude,
-                        longitude: hotel.hotel?.longitude,
-                        phone: hotel.hotel?.phone,
-                        website: hotel.hotel?.website,
-                        stayDetails: {
-                          checkIn: hotel.checkIn,
-                          checkOut: hotel.checkOut,
-                          location: hotel.location,
-                          guests: hotel.guests,
-                          rooms: hotel.rooms,
-                          roomType: hotel.roomType,
-                          confirmationNumber: hotel.confirmationNumber,
-                          totalCost: hotel.totalCost,
-                          notes: hotel.notes
-                        }
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full justify-between bg-background hover:bg-accent/50">
+                      <div className="flex items-center gap-2">
+                        <Hotel className="w-4 h-4 text-blue-600" />
+                        <span>View Hotels ({itinerary.hotels.length})</span>
+                      </div>
+                      <ChevronDown className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-full min-w-[400px] bg-background border border-border shadow-lg z-50">
+                    {itinerary.hotels.map((hotel: any) => {
+                      const handleHotelClick = () => {
+                        // Store hotel data in sessionStorage for the HotelDetailsPage
+                        const hotelData = {
+                          id: hotel.hotel?.place_id || hotel.id,
+                          name: hotel.hotel?.name || 'Hotel',
+                          address: hotel.hotel?.address || '',
+                          latitude: hotel.hotel?.latitude,
+                          longitude: hotel.hotel?.longitude,
+                          phone: hotel.hotel?.phone,
+                          website: hotel.hotel?.website,
+                          stayDetails: {
+                            checkIn: hotel.checkIn,
+                            checkOut: hotel.checkOut,
+                            location: hotel.location,
+                            guests: hotel.guests,
+                            rooms: hotel.rooms,
+                            roomType: hotel.roomType,
+                            confirmationNumber: hotel.confirmationNumber,
+                            totalCost: hotel.totalCost,
+                            notes: hotel.notes
+                          }
+                        };
+                        sessionStorage.setItem(`hotel_${hotel.hotel?.place_id || hotel.id}`, JSON.stringify(hotelData));
+                        // Store the current itinerary page as the referrer
+                        sessionStorage.setItem('hotel_referrer', window.location.pathname);
+                        navigate(`/hotel/${hotel.hotel?.place_id || hotel.id}`);
                       };
-                      sessionStorage.setItem(`hotel_${hotel.hotel?.place_id || hotel.id}`, JSON.stringify(hotelData));
-                      // Store the current itinerary page as the referrer
-                      sessionStorage.setItem('hotel_referrer', window.location.pathname);
-                      navigate(`/hotel/${hotel.hotel?.place_id || hotel.id}`);
-                    };
-                    
-                    return (
-                    <Card key={hotel.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={handleHotelClick}>
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-4">
-                          <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                            <Hotel className="w-6 h-6 text-blue-600" />
-                          </div>
-                          
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between mb-2">
+
+                      return (
+                        <DropdownMenuItem
+                          key={hotel.id}
+                          className="p-0 focus:bg-accent/10"
+                          onSelect={(e) => e.preventDefault()}
+                        >
+                          <div className="w-full p-4 cursor-pointer hover:bg-accent/10" onClick={handleHotelClick}>
+                            <div className="flex items-start gap-4">
+                              <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <Hotel className="w-6 h-6 text-blue-600" />
+                              </div>
+                              
                               <div className="flex-1 min-w-0">
-                                <h4 className="font-semibold text-foreground text-base truncate">{hotel.hotel?.name || 'Hotel'}</h4>
-                                <p className="text-sm text-muted-foreground truncate">{hotel.hotel?.address}</p>
-                              </div>
-                              {hotel.location && (
-                                <Badge variant="outline" className="ml-2 shrink-0">
-                                  📍 {hotel.location}
-                                </Badge>
-                              )}
-                            </div>
-                            
-                            {(hotel.checkIn || hotel.checkOut) && (
-                              <div className="mb-3 p-2 bg-blue-50/50 dark:bg-blue-900/10 rounded-lg">
-                                <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">
-                                  {hotel.checkIn && hotel.checkOut 
-                                    ? `${new Date(hotel.checkIn).toLocaleDateString()} - ${new Date(hotel.checkOut).toLocaleDateString()}`
-                                    : hotel.checkIn 
-                                    ? `Check-in: ${new Date(hotel.checkIn).toLocaleDateString()}`
-                                    : `Check-out: ${new Date(hotel.checkOut).toLocaleDateString()}`
-                                  }
-                                </p>
-                              </div>
-                            )}
-                            
-                            <div className="flex flex-wrap gap-2">
-                              {hotel.hotel?.address && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="flex-1 min-w-fit"
-                                  onClick={() => {
-                                    const query = encodeURIComponent(hotel.hotel.address);
-                                    window.open(`https://maps.google.com/?q=${query}`, '_blank');
-                                  }}
-                                >
-                                  <Navigation className="w-4 h-4 mr-1" />
-                                  Directions
-                                </Button>
-                              )}
-                              
-                              {hotel.hotel?.phone && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="flex-1 min-w-fit"
-                                  onClick={() => window.open(`tel:${hotel.hotel.phone}`, '_self')}
-                                >
-                                  <Phone className="w-4 h-4 mr-1" />
-                                  Call
-                                </Button>
-                              )}
-                              
-                              {hotel.hotel?.website && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="flex-1 min-w-fit"
-                                  onClick={() => window.open(hotel.hotel.website, '_blank')}
-                                >
-                                  <ExternalLink className="w-4 h-4 mr-1" />
-                                  Website
-                                </Button>
-                              )}
+                                <div className="flex items-start justify-between mb-2">
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="font-semibold text-foreground text-base truncate">{hotel.hotel?.name || 'Hotel'}</h4>
+                                    <p className="text-sm text-muted-foreground truncate">{hotel.hotel?.address}</p>
+                                  </div>
+                                  {hotel.location && (
+                                    <Badge variant="outline" className="ml-2 shrink-0">
+                                      📍 {hotel.location}
+                                    </Badge>
+                                  )}
+                                </div>
+                                
+                                {(hotel.checkIn || hotel.checkOut) && (
+                                  <div className="mb-3 p-2 bg-blue-50/50 dark:bg-blue-900/10 rounded-lg">
+                                    <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">
+                                      {hotel.checkIn && hotel.checkOut 
+                                        ? `${new Date(hotel.checkIn).toLocaleDateString()} - ${new Date(hotel.checkOut).toLocaleDateString()}`
+                                        : hotel.checkIn 
+                                        ? `Check-in: ${new Date(hotel.checkIn).toLocaleDateString()}`
+                                        : `Check-out: ${new Date(hotel.checkOut).toLocaleDateString()}`
+                                      }
+                                    </p>
+                                  </div>
+                                )}
+                                
+                                <div className="flex flex-wrap gap-2">
+                                  {hotel.hotel?.address && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="flex-1 min-w-fit"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        const query = encodeURIComponent(hotel.hotel.address);
+                                        window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+                                      }}
+                                    >
+                                      <MapPin className="w-3 h-3 mr-1" />
+                                      <span className="text-xs">Map</span>
+                                    </Button>
+                                  )}
+                                  
+                                  {hotel.hotel?.address && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="flex-1 min-w-fit"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(hotel.hotel.address)}`, '_blank');
+                                      }}
+                                    >
+                                      <Navigation className="w-3 h-3 mr-1" />
+                                      <span className="text-xs">Directions</span>
+                                    </Button>
+                                  )}
+                                  
+                                  {hotel.hotel?.website && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="flex-1 min-w-fit"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        window.open(hotel.hotel.website, '_blank');
+                                      }}
+                                    >
+                                      <ExternalLink className="w-3 h-3 mr-1" />
+                                      <span className="text-xs">Website</span>
+                                    </Button>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
+                        </DropdownMenuItem>
+                      );
+                    })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             )}
 
