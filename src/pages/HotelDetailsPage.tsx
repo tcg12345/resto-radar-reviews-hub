@@ -716,9 +716,10 @@ export function HotelDetailsPage() {
                                 ? trimmedLine 
                                 : `https://${trimmedLine}`;
                               return (
-                                <div key={index} className="mb-2 last:mb-0">
-                                  <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline">
-                                    {trimmedLine}
+                                <div key={index} className="mb-3 last:mb-0">
+                                  <a href={href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 border border-blue-200 dark:border-blue-700/50 rounded-lg text-blue-700 dark:text-blue-300 hover:from-blue-100 hover:to-blue-200 dark:hover:from-blue-800/40 dark:hover:to-blue-700/40 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200 shadow-sm hover:shadow-md font-medium text-sm group">
+                                    <ExternalLink className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
+                                    <span className="truncate">{trimmedLine}</span>
                                   </a>
                                 </div>
                               );
