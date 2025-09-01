@@ -399,8 +399,8 @@ export function HotelDetailsPage() {
         {hotelPhotos.length > 0 ? (
           <>
             <img
-              src={hotelPhotos[currentPhotoIndex]} 
-              alt={`${hotel.name} - Photo ${currentPhotoIndex + 1}`}
+              src={hotelPhotos[0]} 
+              alt={`${hotel.name}`}
               className="w-full h-full object-cover"
               onError={(e) => {
                 e.currentTarget.src = '';
@@ -419,6 +419,23 @@ export function HotelDetailsPage() {
                 <ArrowLeft className="w-5 h-5" />
               </Button>
             </div>
+
+            {/* View More Photos button */}
+            {hotelPhotos.length > 1 && (
+              <div className="absolute top-6 right-6">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="h-8 px-3 rounded-full bg-black/20 backdrop-blur-sm text-white hover:bg-black/30 border border-white/20 text-xs font-medium"
+                  onClick={() => {
+                    // TODO: Open photo gallery modal
+                    console.log('Open photo gallery with', hotelPhotos.length, 'photos');
+                  }}
+                >
+                  <span>View Photos ({hotelPhotos.length})</span>
+                </Button>
+              </div>
+            )}
 
             {/* Hotel info overlay with gradient - reduced margins */}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent px-4 py-6">
@@ -447,36 +464,6 @@ export function HotelDetailsPage() {
               </div>
             </div>
 
-            {/* Photo carousel controls */}
-            {hotelPhotos.length > 1 && (
-              <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute left-6 top-1/2 transform -translate-y-1/2 w-10 h-10 p-0 rounded-full bg-black/20 backdrop-blur-sm text-white hover:bg-black/30 border border-white/20"
-                  onClick={() => setCurrentPhotoIndex((prev) => prev === 0 ? hotelPhotos.length - 1 : prev - 1)}
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-6 top-1/2 transform -translate-y-1/2 w-10 h-10 p-0 rounded-full bg-black/20 backdrop-blur-sm text-white hover:bg-black/30 border border-white/20"
-                  onClick={() => setCurrentPhotoIndex((prev) => prev === hotelPhotos.length - 1 ? 0 : prev + 1)}
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </Button>
-                <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex gap-2">
-                  {hotelPhotos.map((_, index) => (
-                    <button
-                      key={index}
-                      className={`w-2 h-2 rounded-full transition-all ${index === currentPhotoIndex ? 'bg-white' : 'bg-white/50'}`}
-                      onClick={() => setCurrentPhotoIndex(index)}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
           </>
         ) : (
           <div className="relative h-full">
