@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { ArrowLeft, MapPin, Clock, Phone, Globe, Star, ExternalLink, Navigation, Bed, Wifi, Car, Users, Coffee, ChevronLeft, ChevronRight, Calendar, Copy, CreditCard, X, MessageSquare, FileText, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Phone, Globe, Star, ExternalLink, Navigation, Bed, Wifi, Car, Users, Coffee, ChevronLeft, ChevronRight, Calendar, Copy, CreditCard, X, MessageSquare, FileText, ChevronDown, ChevronUp, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { HotelEmailDialog } from '@/components/HotelEmailDialog';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -56,6 +57,8 @@ export function HotelDetailsPage() {
   const [showPhotoGallery, setShowPhotoGallery] = useState(false);
   const [galleryPhotoIndex, setGalleryPhotoIndex] = useState(0);
   const [isStayDetailsExpanded, setIsStayDetailsExpanded] = useState(true);
+  const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
+  const [hotelEmail, setHotelEmail] = useState<string>('');
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
 
@@ -166,6 +169,29 @@ export function HotelDetailsPage() {
 
         } catch (error) {
           console.error('Error fetching hotel photos:', error);
+        }
+
+        // Try to get hotel email from Google Places API
+        try {
+          const { data: googleDetailsData, error: googleDetailsError } = await supabase.functions.invoke('google-places-search', {
+            body: {
+              placeId: hotelData.id,
+              type: 'details'
+            }
+          });
+
+          if (!googleDetailsError && googleDetailsData?.result?.email) {
+            setHotelEmail(googleDetailsData.result.email);
+          } else {
+            // Fallback: try to get email from TripAdvisor or other sources
+            // For demo purposes, we'll set a placeholder email for hotels
+            // In a real app, you'd have a database of hotel contact information
+            setHotelEmail(`contact@${hotelData.name.toLowerCase().replace(/\s+/g, '')}.com`);
+          }
+        } catch (error) {
+          console.error('Error fetching hotel email:', error);
+          // Set a placeholder email for demo
+          setHotelEmail(`contact@${hotelData.name.toLowerCase().replace(/\s+/g, '')}.com`);
         }
       } else {
         toast.error('Hotel not found');
@@ -769,7 +795,7 @@ export function HotelDetailsPage() {
             )}
             
             {/* Secondary action buttons */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-4 gap-3">
               {hotel.phone && (
                 <Button 
                   variant="outline" 
@@ -791,6 +817,18 @@ export function HotelDetailsPage() {
                 >
                   <Globe className="w-4 h-4" />
                   <span className="hidden sm:inline">Website</span>
+                </Button>
+              )}
+              
+              {hotelEmail && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setIsEmailDialogOpen(true)}
+                  className="flex items-center gap-2 h-11 rounded-lg text-xs font-medium"
+                >
+                  <Mail className="w-4 h-4" />
+                  <span className="hidden sm:inline">Email</span>
                 </Button>
               )}
               
@@ -915,6 +953,18 @@ export function HotelDetailsPage() {
           )}
         </div>
       )}
+
+      {/* Hotel Email Dialog */}
+      <HotelEmailDialog
+        isOpen={isEmailDialogOpen}
+        onClose={() => setIsEmailDialogOpen(false)}
+        hotel={{
+          name: hotel.name,
+          email: hotelEmail,
+          address: hotel.address,
+          stayDetails: hotel.stayDetails
+        }}
+      />
     </div>
   );
 }

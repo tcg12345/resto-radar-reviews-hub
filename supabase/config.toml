@@ -63,3 +63,6 @@ verify_jwt = false
 
 [edge_functions.google-photo-proxy]
 verify_jwt = false
+
+[edge_functions.send-hotel-email]
+verify_jwt = true
