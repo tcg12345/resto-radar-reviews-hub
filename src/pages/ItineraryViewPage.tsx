@@ -426,8 +426,35 @@ export function ItineraryViewPage() {
                 </div>
                 
                 <div className="space-y-3">
-                  {itinerary.hotels.map((hotel: any) => (
-                    <Card key={hotel.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/hotel/${hotel.hotel?.place_id || hotel.id}`)}>
+                  {itinerary.hotels.map((hotel: any) => {
+                    const handleHotelClick = () => {
+                      // Store hotel data in sessionStorage for the HotelDetailsPage
+                      const hotelData = {
+                        id: hotel.hotel?.place_id || hotel.id,
+                        name: hotel.hotel?.name || 'Hotel',
+                        address: hotel.hotel?.address || '',
+                        latitude: hotel.hotel?.latitude,
+                        longitude: hotel.hotel?.longitude,
+                        phone: hotel.hotel?.phone,
+                        website: hotel.hotel?.website,
+                        stayDetails: {
+                          checkIn: hotel.checkIn,
+                          checkOut: hotel.checkOut,
+                          location: hotel.location,
+                          guests: hotel.guests,
+                          rooms: hotel.rooms,
+                          roomType: hotel.roomType,
+                          confirmationNumber: hotel.confirmationNumber,
+                          totalCost: hotel.totalCost,
+                          notes: hotel.notes
+                        }
+                      };
+                      sessionStorage.setItem(`hotel_${hotel.hotel?.place_id || hotel.id}`, JSON.stringify(hotelData));
+                      navigate(`/hotel/${hotel.hotel?.place_id || hotel.id}`);
+                    };
+                    
+                    return (
+                    <Card key={hotel.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={handleHotelClick}>
                       <CardContent className="p-4">
                         <div className="flex items-start gap-4">
                           <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -499,12 +526,13 @@ export function ItineraryViewPage() {
                                   Website
                                 </Button>
                               )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               </div>
             )}
