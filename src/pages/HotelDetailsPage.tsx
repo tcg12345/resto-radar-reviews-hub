@@ -108,6 +108,7 @@ export function HotelDetailsPage() {
 
             if (!photosError && photosData?.data?.length > 0) {
               const photoUrls = photosData.data.map((photo: any) => photo.images.large.url);
+              console.log('TripAdvisor photos found:', photoUrls.length);
               setHotelPhotos(photoUrls.slice(0, 8));
               photosFound = true;
             }
@@ -124,10 +125,11 @@ export function HotelDetailsPage() {
               });
 
               if (!googleError && googlePhotosData?.result?.photos?.length > 0) {
-                // Get photo URLs from Google Places
+                // Get photo URLs from Google Places - take up to 8 photos
                 const googlePhotoUrls = googlePhotosData.result.photos.slice(0, 8).map((photo: any) => 
                   `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${photo.photo_reference}&key=AIzaSyDGyJd_l_BZAnseiAx5a5n4a1nSBqnS4dA`
                 );
+                console.log('Google Places photos found:', googlePhotoUrls.length);
                 setHotelPhotos(googlePhotoUrls);
                 photosFound = true;
               }
@@ -156,6 +158,7 @@ export function HotelDetailsPage() {
                   const googlePhotoUrls = place.photos.slice(0, 8).map((photo: any) => 
                     `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${photo.photo_reference}&key=AIzaSyDGyJd_l_BZAnseiAx5a5n4a1nSBqnS4dA`
                   );
+                  console.log('Google Places search photos found:', googlePhotoUrls.length);
                   setHotelPhotos(googlePhotoUrls);
                   photosFound = true;
                 }
@@ -163,6 +166,22 @@ export function HotelDetailsPage() {
             } catch (googleError) {
               console.error('Error fetching Google Places search photos:', googleError);
             }
+          }
+
+          // If still no photos found, add some fallback hotel images
+          if (!photosFound) {
+            const fallbackPhotos = [
+              `https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop&crop=entropy&q=80`,
+              `https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&h=600&fit=crop&crop=entropy&q=80`,
+              `https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&h=600&fit=crop&crop=entropy&q=80`,
+              `https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&h=600&fit=crop&crop=entropy&q=80`,
+              `https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&h=600&fit=crop&crop=entropy&q=80`,
+              `https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=800&h=600&fit=crop&crop=entropy&q=80`,
+              `https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&h=600&fit=crop&crop=entropy&q=80`,
+              `https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800&h=600&fit=crop&crop=entropy&q=80`
+            ];
+            console.log('Using fallback photos:', fallbackPhotos.length);
+            setHotelPhotos(fallbackPhotos);
           }
 
         } catch (error) {
