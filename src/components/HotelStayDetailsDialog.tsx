@@ -375,7 +375,7 @@ export function HotelStayDetailsDialog({
   if (isMobile) {
     return (
       <Drawer open={isOpen} onOpenChange={handleClose}>
-        <DrawerContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-0">
+        <DrawerContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-0 z-[9999]">
           <div className="w-full h-[90vh] flex flex-col">
             {/* Header */}
             <div className="sticky top-0 z-10 bg-gradient-to-b from-background via-background to-background/95 px-6 pt-5 pb-4">
@@ -419,7 +419,7 @@ export function HotelStayDetailsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px] h-[85vh] flex flex-col">
+      <DialogContent className="sm:max-w-[600px] h-[85vh] flex flex-col z-[9999] fixed">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">Stay Details</DialogTitle>
           <DialogDescription>

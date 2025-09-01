@@ -304,8 +304,10 @@ export function HotelFlightSection({
                           <Button 
                             onClick={(e) => {
                               e.stopPropagation();
+                              console.log('Edit button clicked! Opening dialog...');
                               setEditingHotel(booking);
                               setIsEditStayDetailsOpen(true);
+                              console.log('Dialog state set to open');
                             }}
                             size="sm" 
                             variant="ghost" 
