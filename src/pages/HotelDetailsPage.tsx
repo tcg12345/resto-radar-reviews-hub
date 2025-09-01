@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { ArrowLeft, MapPin, Clock, Phone, Globe, Star, ExternalLink, Navigation, Bed, Wifi, Car, Users, Coffee, ChevronLeft, ChevronRight, Calendar, Copy, CreditCard, X, MessageSquare, FileText } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Phone, Globe, Star, ExternalLink, Navigation, Bed, Wifi, Car, Users, Coffee, ChevronLeft, ChevronRight, Calendar, Copy, CreditCard, X, MessageSquare, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -55,6 +55,7 @@ export function HotelDetailsPage() {
   const [isMapLoading, setIsMapLoading] = useState(true);
   const [showPhotoGallery, setShowPhotoGallery] = useState(false);
   const [galleryPhotoIndex, setGalleryPhotoIndex] = useState(0);
+  const [isStayDetailsExpanded, setIsStayDetailsExpanded] = useState(true);
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
 
@@ -549,16 +550,30 @@ export function HotelDetailsPage() {
           </CardContent>
         </Card>
 
-        {/* Stay Details Card */}
+        {/* Stay Details Dropdown Card */}
         {hotel.stayDetails && (
           <Card className="shadow-sm border-border/50">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-3 mb-5">
+            {/* Clickable Header */}
+            <div 
+              className="flex items-center justify-between p-5 cursor-pointer hover:bg-muted/30 transition-colors"
+              onClick={() => setIsStayDetailsExpanded(!isStayDetailsExpanded)}
+            >
+              <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
                   <Calendar className="w-4 h-4 text-green-600 dark:text-green-400" />
                 </div>
                 <h3 className="text-lg font-bold">Your Stay Details</h3>
               </div>
+              {isStayDetailsExpanded ? (
+                <ChevronUp className="w-5 h-5 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-muted-foreground" />
+              )}
+            </div>
+
+            {/* Collapsible Content */}
+            {isStayDetailsExpanded && (
+              <CardContent className="p-5 pt-0 bg-background border-t border-border/30 z-10">
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Dates Section */}
@@ -689,7 +704,8 @@ export function HotelDetailsPage() {
                   )}
                 </div>
               )}
-            </CardContent>
+              </CardContent>
+            )}
           </Card>
         )}
 
