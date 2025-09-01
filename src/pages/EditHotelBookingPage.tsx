@@ -1,20 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { format, differenceInCalendarDays, isAfter } from "date-fns";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
   ArrowLeft, 
   Hotel, 
-  Calendar, 
-  Users, 
+  Calendar as CalendarIcon, 
   MapPin, 
   X,
-  Bed,
   Star
 } from 'lucide-react';
+import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 interface HotelBooking {
   id: string;
@@ -38,18 +42,22 @@ interface HotelBooking {
 export default function EditHotelBookingPage() {
   const navigate = useNavigate();
   const { bookingId } = useParams();
+  const isMobile = useIsMobile();
   const [booking, setBooking] = useState<HotelBooking | null>(null);
-  const [editForm, setEditForm] = useState({
-    checkIn: '',
-    checkOut: '',
-    guests: 2,
-    rooms: 1,
-    roomType: '',
-    specialRequests: '',
-    confirmationNumber: '',
-    totalCost: '',
-    notes: '',
-  });
+  
+  // Form state using Date objects like the original dialog
+  const [checkIn, setCheckIn] = useState<Date | undefined>();
+  const [checkOut, setCheckOut] = useState<Date | undefined>();
+  const [guests, setGuests] = useState<number>(2);
+  const [rooms, setRooms] = useState<number>(1);
+  const [roomType, setRoomType] = useState<string>("");
+  const [confirmationNumber, setConfirmationNumber] = useState<string>("");
+  const [totalCost, setTotalCost] = useState<string>("");
+  const [specialRequests, setSpecialRequests] = useState<string>("");
+  const [notes, setNotes] = useState<string>("");
+
+  const [openCI, setOpenCI] = useState(false);
+  const [openCO, setOpenCO] = useState(false);
 
   useEffect(() => {
     // Load booking data from sessionStorage
@@ -57,56 +65,52 @@ export default function EditHotelBookingPage() {
     if (storedData) {
       const bookingData = JSON.parse(storedData);
       setBooking(bookingData);
-      setEditForm({
-        checkIn: bookingData.checkIn ? new Date(bookingData.checkIn).toISOString().split('T')[0] : '',
-        checkOut: bookingData.checkOut ? new Date(bookingData.checkOut).toISOString().split('T')[0] : '',
-        guests: bookingData.guests || 2,
-        rooms: bookingData.rooms || 1,
-        roomType: bookingData.roomType || '',
-        specialRequests: bookingData.specialRequests || '',
-        confirmationNumber: bookingData.confirmationNumber || '',
-        totalCost: bookingData.totalCost || '',
-        notes: bookingData.notes || '',
-      });
+      
+      // Set form state from booking data
+      setCheckIn(bookingData.checkIn ? new Date(bookingData.checkIn) : undefined);
+      setCheckOut(bookingData.checkOut ? new Date(bookingData.checkOut) : undefined);
+      setGuests(bookingData.guests || 2);
+      setRooms(bookingData.rooms || 1);
+      setRoomType(bookingData.roomType || '');
+      setSpecialRequests(bookingData.specialRequests || '');
+      setConfirmationNumber(bookingData.confirmationNumber || '');
+      setTotalCost(bookingData.totalCost || '');
+      setNotes(bookingData.notes || '');
     }
   }, [bookingId]);
+
+  const nights = useMemo(() => {
+    if (!checkIn || !checkOut) return 0;
+    const diff = differenceInCalendarDays(checkOut, checkIn);
+    return diff > 0 ? diff : 0;
+  }, [checkIn, checkOut]);
+
+  const ratingColor = (rating?: number) => {
+    if (!rating) return "bg-muted text-foreground/80";
+    if (rating >= 4.5) return "bg-blue-600/15 text-blue-200 border-blue-500/40";
+    if (rating >= 4.0) return "bg-blue-600/10 text-blue-200 border-blue-500/30";
+    return "bg-muted text-foreground/80";
+  };
 
   const handleSave = () => {
     if (booking) {
       const updatedBooking = {
         ...booking,
-        checkIn: editForm.checkIn ? new Date(editForm.checkIn) : undefined,
-        checkOut: editForm.checkOut ? new Date(editForm.checkOut) : undefined,
-        guests: editForm.guests,
-        rooms: editForm.rooms,
-        roomType: editForm.roomType,
-        specialRequests: editForm.specialRequests,
-        confirmationNumber: editForm.confirmationNumber,
-        totalCost: editForm.totalCost,
-        notes: editForm.notes,
+        checkIn: checkIn,
+        checkOut: checkOut,
+        guests,
+        rooms,
+        roomType,
+        specialRequests,
+        confirmationNumber,
+        totalCost,
+        notes,
       };
       
       sessionStorage.setItem('updatedHotelBooking', JSON.stringify(updatedBooking));
     }
     
     navigate('/travel');
-  };
-
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: '2-digit', 
-      year: 'numeric' 
-    });
-  };
-
-  const calculateNights = () => {
-    if (!editForm.checkIn || !editForm.checkOut) return 0;
-    const checkIn = new Date(editForm.checkIn);
-    const checkOut = new Date(editForm.checkOut);
-    return Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
   };
 
   if (!booking) {
@@ -121,226 +125,236 @@ export default function EditHotelBookingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-10 bg-gradient-to-b from-background via-background to-background/95 px-6 pt-5 pb-4">
-        <div className="flex items-center justify-between mb-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/travel')}
-            className="h-8 w-8 p-0 rounded-full"
-          >
-            <ArrowLeft className="w-4 h-4" />
+    <div className="min-h-screen bg-gradient-to-b from-background to-background/95">
+      {/* Top bar */}
+      <div className="sticky top-0 z-10 px-6 pt-5 pb-4 bg-gradient-to-b from-background via-background to-background/80">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold text-foreground">Stay Details</h1>
+            <p className="text-sm text-muted-foreground">
+              Add details about your hotel stay
+            </p>
+          </div>
+          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-muted/30" onClick={() => navigate('/travel')}>
+            <X className="h-4 w-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/travel')}
-            className="h-8 w-8 p-0 rounded-full"
-          >
-            <X className="w-4 h-4" />
-          </Button>
-        </div>
-        
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold tracking-tight mb-2">Stay Details</h1>
-          <p className="text-muted-foreground text-sm">Add details about your hotel stay</p>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="px-6 pb-32">
-        {/* Hotel Summary */}
-        <Card className="border border-border/20 bg-gradient-to-br from-background via-background to-accent/5 shadow-lg rounded-2xl overflow-hidden mb-8">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between gap-4 mb-4">
-              <div className="flex items-start gap-3 flex-1">
-                <div className="p-2.5 rounded-xl bg-primary/10 shrink-0">
-                  <Hotel className="w-6 h-6 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-lg leading-tight tracking-tight mb-1">
-                    {booking.hotel.name}
-                  </h3>
-                  <div className="flex items-center gap-2 text-muted-foreground text-sm mb-3">
-                    <MapPin className="w-4 h-4 shrink-0" />
-                    <span className="leading-relaxed">{booking.hotel.address}</span>
-                  </div>
-                  {booking.hotel.rating && (
-                    <Badge variant="secondary" className="bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-700/30">
-                      <Star className="w-3 h-3 fill-current mr-1" />
-                      {booking.hotel.rating}
-                    </Badge>
-                  )}
+      {/* Scrollable content */}
+      <div className="px-6 pb-24 pt-2 overflow-y-auto">
+        {/* Hotel summary */}
+        <Card className="mb-5 bg-muted/10 border-border/30 shadow-sm">
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-2 min-w-0">
+                <h3 className="text-xl font-extrabold leading-6">{booking.hotel.name}</h3>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <MapPin className="w-4 h-4 flex-shrink-0" />
+                  <span className="line-clamp-2">{booking.hotel.address}</span>
                 </div>
               </div>
+              {booking.hotel.rating && (
+                <Badge className={cn("border px-3 py-1.5 text-sm font-semibold rounded-full", ratingColor(booking.hotel.rating))}>
+                  <Star className="w-3.5 h-3.5 mr-1 fill-current" />
+                  {booking.hotel.rating}
+                </Badge>
+              )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Stay Dates Section */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-lg bg-blue-500/10">
-              <Calendar className="w-5 h-5 text-blue-600" />
-            </div>
-            <h2 className="text-xl font-bold">Stay Dates</h2>
+        {/* Stay Dates */}
+        <section className="mb-5 rounded-2xl border border-border/30 bg-muted/5 p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <CalendarIcon className="w-4 h-4 text-primary" />
+            <h4 className="font-semibold">Stay Dates</h4>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="space-y-3">
-              <Label className="text-sm font-medium text-muted-foreground">Check-in</Label>
-              <div className="space-y-2">
-                <Input
-                  type="date"
-                  value={editForm.checkIn}
-                  onChange={(e) => setEditForm(f => ({ ...f, checkIn: e.target.value }))}
-                  className="text-base"
-                />
-                {editForm.checkIn && (
-                  <div className="flex items-center gap-2 text-sm font-medium">
-                    <Calendar className="w-4 h-4" />
-                    {formatDate(editForm.checkIn)}
-                  </div>
-                )}
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Check-in */}
+            <div className="space-y-2">
+              <Label>Check-in</Label>
+              <Popover open={openCI} onOpenChange={setOpenCI}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn("w-full justify-start text-left font-normal", !checkIn && "text-muted-foreground")}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {checkIn ? format(checkIn, "PP") : "Select date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 z-[9999]" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={checkIn}
+                    onSelect={(d) => {
+                      setCheckIn(d);
+                      setOpenCI(false);
+                      // auto-fix checkout if before/eq check-in
+                      if (d && checkOut && !isAfter(checkOut, d)) setCheckOut(undefined);
+                    }}
+                    initialFocus
+                    className="p-2 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
-            <div className="space-y-3">
-              <Label className="text-sm font-medium text-muted-foreground">Check-out</Label>
-              <div className="space-y-2">
-                <Input
-                  type="date"
-                  value={editForm.checkOut}
-                  onChange={(e) => setEditForm(f => ({ ...f, checkOut: e.target.value }))}
-                  className="text-base"
-                />
-                {editForm.checkOut && (
-                  <div className="flex items-center gap-2 text-sm font-medium">
-                    <Calendar className="w-4 h-4" />
-                    {formatDate(editForm.checkOut)}
-                  </div>
-                )}
-              </div>
+            {/* Check-out */}
+            <div className="space-y-2">
+              <Label>Check-out</Label>
+              <Popover open={openCO} onOpenChange={setOpenCO}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn("w-full justify-start text-left font-normal", !checkOut && "text-muted-foreground")}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {checkOut ? format(checkOut, "PP") : "Select date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 z-[9999]" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={checkOut}
+                    onSelect={(d) => {
+                      setCheckOut(d);
+                      setOpenCO(false);
+                    }}
+                    disabled={(date) => (checkIn ? !isAfter(date, checkIn) : false)}
+                    initialFocus
+                    className="p-2 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 
-          {calculateNights() > 0 && (
-            <div className="text-center py-4">
-              <span className="text-lg font-semibold text-muted-foreground">
-                {calculateNights()} night{calculateNights() !== 1 ? 's' : ''}
-              </span>
+          <div className="mt-4">
+            <div className="rounded-xl bg-muted/10 px-4 py-2 text-center text-muted-foreground font-medium">
+              {nights > 0 ? `${nights} night${nights > 1 ? "s" : ""}` : "Select valid dates"}
             </div>
-          )}
-        </div>
+          </div>
+        </section>
 
-        {/* Room Details Section */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-lg bg-green-500/10">
-              <Bed className="w-5 h-5 text-green-600" />
-            </div>
-            <h2 className="text-xl font-bold">Room Details</h2>
+        {/* Room Details */}
+        <section className="mb-5 rounded-2xl border border-border/30 bg-muted/5 p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-primary">🛏️</span>
+            <h4 className="font-semibold">Room Details</h4>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="space-y-3">
-              <Label className="text-sm font-medium text-muted-foreground">Guests</Label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Guests</Label>
+              <Select value={String(guests)} onValueChange={(v) => setGuests(parseInt(v))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Guests" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3, 4, 5, 6].map((n) => (
+                    <SelectItem key={n} value={String(n)}>
+                      {n} Guest{n > 1 ? "s" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Rooms</Label>
+              <Select value={String(rooms)} onValueChange={(v) => setRooms(parseInt(v))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Rooms" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3, 4].map((n) => (
+                    <SelectItem key={n} value={String(n)}>
+                      {n} Room{n > 1 ? "s" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Room Type (Optional)</Label>
               <Input
-                type="number"
-                min="1"
-                value={editForm.guests}
-                onChange={(e) => setEditForm(f => ({ ...f, guests: parseInt(e.target.value) || 1 }))}
-                className="text-base"
+                placeholder="Standard, Deluxe, Suite..."
+                value={roomType}
+                onChange={(e) => setRoomType(e.target.value)}
               />
             </div>
+          </div>
+        </section>
 
-            <div className="space-y-3">
-              <Label className="text-sm font-medium text-muted-foreground">Rooms</Label>
+        {/* Booking Information */}
+        <section className="mb-5 rounded-2xl border border-border/30 bg-muted/5 p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-primary">🕒</span>
+            <h4 className="font-semibold">Booking Information</h4>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Confirmation Number</Label>
               <Input
-                type="number"
-                min="1"
-                value={editForm.rooms}
-                onChange={(e) => setEditForm(f => ({ ...f, rooms: parseInt(e.target.value) || 1 }))}
-                className="text-base"
+                placeholder="ABC123456"
+                value={confirmationNumber}
+                onChange={(e) => setConfirmationNumber(e.target.value)}
               />
             </div>
+            <div className="space-y-2">
+              <Label>Total Cost</Label>
+              <Input placeholder="$500" value={totalCost} onChange={(e) => setTotalCost(e.target.value)} />
+            </div>
+          </div>
+        </section>
+
+        {/* Additional Information */}
+        <section className="mb-2 rounded-2xl border border-border/30 bg-muted/5 p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-primary">🍹</span>
+            <h4 className="font-semibold">Additional Information</h4>
           </div>
 
-          <div className="space-y-3 mb-6">
-            <Label className="text-sm font-medium text-muted-foreground">Room Type</Label>
-            <Input
-              value={editForm.roomType}
-              onChange={(e) => setEditForm(f => ({ ...f, roomType: e.target.value }))}
-              placeholder="e.g., Deluxe King, Ocean View Suite"
-              className="text-base"
-            />
-          </div>
-        </div>
-
-        {/* Booking Information Section */}
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold mb-4">Booking Information</h3>
-          
           <div className="space-y-4">
-            <div className="space-y-3">
-              <Label className="text-sm font-medium text-muted-foreground">Total Cost</Label>
+            <div className="space-y-2">
+              <Label>Special Requests</Label>
               <Input
-                value={editForm.totalCost}
-                onChange={(e) => setEditForm(f => ({ ...f, totalCost: e.target.value }))}
-                placeholder="e.g., $500/night or $1,500 total"
-                className="text-base"
+                placeholder="Late check-in, room preferences, accessibility needs..."
+                value={specialRequests}
+                onChange={(e) => setSpecialRequests(e.target.value)}
               />
             </div>
 
-            <div className="space-y-3">
-              <Label className="text-sm font-medium text-muted-foreground">Confirmation Number</Label>
+            <div className="space-y-2">
+              <Label>Notes</Label>
               <Input
-                value={editForm.confirmationNumber}
-                onChange={(e) => setEditForm(f => ({ ...f, confirmationNumber: e.target.value }))}
-                placeholder="Booking confirmation"
-                className="text-base"
-              />
-            </div>
-
-            <div className="space-y-3">
-              <Label className="text-sm font-medium text-muted-foreground">Special Requests</Label>
-              <Input
-                value={editForm.specialRequests}
-                onChange={(e) => setEditForm(f => ({ ...f, specialRequests: e.target.value }))}
-                placeholder="e.g., Late check-in, high floor"
-                className="text-base"
-              />
-            </div>
-
-            <div className="space-y-3">
-              <Label className="text-sm font-medium text-muted-foreground">Personal Notes</Label>
-              <textarea
-                value={editForm.notes}
-                onChange={(e) => setEditForm(f => ({ ...f, notes: e.target.value }))}
-                placeholder="Any personal notes about this booking..."
-                className="w-full px-3 py-2 border border-border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-ring text-base"
-                rows={3}
+                placeholder="Any additional notes about your stay..."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
               />
             </div>
           </div>
-        </div>
+        </section>
       </div>
 
-      {/* Fixed Bottom Actions */}
-      <div className="fixed bottom-0 left-0 right-0 p-6 bg-background border-t border-border/20">
-        <div className="flex gap-3 max-w-md mx-auto">
+      {/* Sticky footer */}
+      <div className="pointer-events-auto sticky bottom-0 z-10 bg-gradient-to-t from-background via-background to-background/60 px-6 py-4 border-t border-border/30">
+        <div className={cn("flex gap-3", isMobile ? "flex-col-reverse" : "")}>
           <Button
             variant="outline"
+            className={cn("h-11 w-full", !isMobile && "max-w-[220px]")}
             onClick={() => navigate('/travel')}
-            className="flex-1 h-12 text-base"
           >
             Cancel
           </Button>
           <Button
+            className="h-11 w-full"
             onClick={handleSave}
-            className="flex-1 h-12 text-base bg-blue-600 hover:bg-blue-700"
           >
             Save Changes
           </Button>
