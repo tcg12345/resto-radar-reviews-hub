@@ -1704,6 +1704,10 @@ export function HotelFlightSection({
             totalCost: editingHotel.totalCost,
             notes: editingHotel.notes,
           }}
+          wasCreatedWithLengthOfStay={wasCreatedWithLengthOfStay}
+          itineraryDuration={itineraryDuration}
+          itineraryStartDate={locations[0]?.startDate}
+          itineraryEndDate={locations[locations.length - 1]?.endDate}
         />
       )}
 
