@@ -1455,6 +1455,15 @@ export function HotelFlightSection({
           hotel={editingHotel.hotel}
           checkInDate={editingHotel.checkIn ? new Date(editingHotel.checkIn) : undefined}
           checkOutDate={editingHotel.checkOut ? new Date(editingHotel.checkOut) : undefined}
+          existingBookingData={{
+            guests: editingHotel.guests,
+            rooms: editingHotel.rooms,
+            roomType: editingHotel.roomType,
+            specialRequests: editingHotel.specialRequests,
+            confirmationNumber: editingHotel.confirmationNumber,
+            totalCost: editingHotel.totalCost,
+            notes: editingHotel.notes
+          }}
         />
       )}
     </div>;

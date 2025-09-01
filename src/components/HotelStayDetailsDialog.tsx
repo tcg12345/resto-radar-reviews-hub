@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Calendar, MapPin, Users, Clock, Bed, Car, Coffee, X, ArrowLeft, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -34,6 +34,15 @@ interface HotelStayDetailsDialogProps {
   checkInDate?: Date;
   checkOutDate?: Date;
   selectedLocation?: string;
+  existingBookingData?: {
+    guests?: number;
+    rooms?: number;
+    roomType?: string;
+    specialRequests?: string;
+    confirmationNumber?: string;
+    totalCost?: string;
+    notes?: string;
+  };
 }
 
 export interface StayDetails {
@@ -56,21 +65,35 @@ export function HotelStayDetailsDialog({
   hotel,
   checkInDate,
   checkOutDate,
-  selectedLocation
+  selectedLocation,
+  existingBookingData
 }: HotelStayDetailsDialogProps) {
   const [checkIn, setCheckIn] = useState<Date>(checkInDate || new Date());
   const [checkOut, setCheckOut] = useState<Date>(checkOutDate || new Date(Date.now() + 24 * 60 * 60 * 1000));
-  const [guests, setGuests] = useState(2);
-  const [rooms, setRooms] = useState(1);
-  const [roomType, setRoomType] = useState('');
-  const [specialRequests, setSpecialRequests] = useState('');
-  const [confirmationNumber, setConfirmationNumber] = useState('');
-  const [totalCost, setTotalCost] = useState('');
-  const [notes, setNotes] = useState('');
+  const [guests, setGuests] = useState(existingBookingData?.guests || 2);
+  const [rooms, setRooms] = useState(existingBookingData?.rooms || 1);
+  const [roomType, setRoomType] = useState(existingBookingData?.roomType || '');
+  const [specialRequests, setSpecialRequests] = useState(existingBookingData?.specialRequests || '');
+  const [confirmationNumber, setConfirmationNumber] = useState(existingBookingData?.confirmationNumber || '');
+  const [totalCost, setTotalCost] = useState(existingBookingData?.totalCost || '');
+  const [notes, setNotes] = useState(existingBookingData?.notes || '');
   const [isCheckInOpen, setIsCheckInOpen] = useState(false);
   const [isCheckOutOpen, setIsCheckOutOpen] = useState(false);
 
   const isMobile = useIsMobile();
+
+  // Reset form fields when existing booking data changes (for editing mode)
+  useEffect(() => {
+    if (existingBookingData) {
+      setGuests(existingBookingData.guests || 2);
+      setRooms(existingBookingData.rooms || 1);
+      setRoomType(existingBookingData.roomType || '');
+      setSpecialRequests(existingBookingData.specialRequests || '');
+      setConfirmationNumber(existingBookingData.confirmationNumber || '');
+      setTotalCost(existingBookingData.totalCost || '');
+      setNotes(existingBookingData.notes || '');
+    }
+  }, [existingBookingData]);
 
   const handleConfirm = () => {
     if (!checkIn || !checkOut) {
