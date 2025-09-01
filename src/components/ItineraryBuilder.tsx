@@ -790,6 +790,15 @@ export function ItineraryBuilder({
   const handleRemoveHotel = (hotelId: string) => {
     setHotels(prev => prev.filter(hotel => hotel.id !== hotelId));
   };
+  
+  const handleUpdateHotel = (hotelId: string, updates: Partial<HotelBooking>) => {
+    setHotels(prev => prev.map(hotel => 
+      hotel.id === hotelId 
+        ? { ...hotel, ...updates }
+        : hotel
+    ));
+  };
+  
   const handleRemoveFlight = (flightId: string) => {
     setFlights(prev => prev.filter(flight => flight.id !== flightId));
   };
@@ -2156,7 +2165,17 @@ export function ItineraryBuilder({
             </div>}
 
           {/* Hotels and Flights Section - Moved to top */}
-          <HotelFlightSection locations={currentItinerary?.locations || []} isMultiCity={currentItinerary?.isMultiCity || false} hotels={hotels} flights={flights} onAddHotel={handleAddHotel} onAddFlight={handleAddFlight} onRemoveHotel={handleRemoveHotel} onRemoveFlight={handleRemoveFlight} />
+          <HotelFlightSection 
+            locations={currentItinerary?.locations || []} 
+            isMultiCity={currentItinerary?.isMultiCity || false} 
+            hotels={hotels} 
+            flights={flights} 
+            onAddHotel={handleAddHotel} 
+            onAddFlight={handleAddFlight} 
+            onRemoveHotel={handleRemoveHotel} 
+            onRemoveFlight={handleRemoveFlight}
+            onUpdateHotel={handleUpdateHotel}
+          />
 
           {/* Map Button - Desktop */}
           <div className="hidden lg:block mb-6">
