@@ -773,7 +773,6 @@ export function ItineraryViewPage() {
                                         {/* Links */}
                                         {event.links && event.links.length > 0 && (
                                           <div className="space-y-2">
-                                            <h6 className="text-sm font-medium">Links</h6>
                                             <div className="space-y-2">
                                               {event.links.map((link, index) => (
                                                 <a
