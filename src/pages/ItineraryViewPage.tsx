@@ -352,7 +352,7 @@ export function ItineraryViewPage() {
         {/* Trip Overview Card */}
         <Card className="overflow-hidden border-0 shadow-lg bg-card">
           <CardContent className="p-0">
-            <div className="text-primary-foreground p-4">
+            <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground p-4">
               <div className="flex flex-col gap-2">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
