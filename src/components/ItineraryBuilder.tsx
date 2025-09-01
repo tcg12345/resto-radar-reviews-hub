@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { addDays, format, startOfDay, differenceInDays, eachDayOfInterval } from 'date-fns';
-import { Calendar, Plus, Download, Share2, Save, CalendarDays, MapPin, X, CalendarIcon, BookOpen, GripVertical, ChevronDown } from 'lucide-react';
+import { Calendar, Plus, Download, Share2, Save, CalendarDays, MapPin, X, CalendarIcon, BookOpen, GripVertical, ChevronDown, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -225,6 +225,7 @@ export function ItineraryBuilder({
   const [pendingStartDate, setPendingStartDate] = useState<Date | null>(dateRange.start);
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("builder");
+  const [totalPrice, setTotalPrice] = useState<string | null>(null);
 
   // Auto-collapse hooks for dropdowns when they scroll off screen
   const extensionRef = useScrollAutoCollapse({
@@ -677,6 +678,43 @@ export function ItineraryBuilder({
   const handleDeleteEvent = (eventId: string) => {
     setEvents(prev => prev.filter(event => event.id !== eventId));
     toast.success('Event deleted successfully');
+  };
+
+  // Function to parse price strings and convert to numbers
+  const parsePrice = (priceString: string): number => {
+    if (!priceString) return 0;
+    // Remove all non-digit characters except decimal points
+    const numericString = priceString.replace(/[^\d.]/g, '');
+    return parseFloat(numericString) || 0;
+  };
+
+  // Function to calculate total price from all events and hotels
+  const calculateTotalPrice = () => {
+    let total = 0;
+
+    // Add prices from all events
+    events.forEach(event => {
+      if (event.price) {
+        total += parsePrice(event.price);
+      }
+    });
+
+    // Add prices from hotels
+    hotels.forEach(hotel => {
+      if (hotel.totalCost) {
+        total += parsePrice(hotel.totalCost.toString());
+      }
+    });
+
+    // Add prices from flights (if they have costs)
+    flights.forEach(flight => {
+      if (flight.price) {
+        total += parsePrice(flight.price.toString());
+      }
+    });
+
+    setTotalPrice(total.toFixed(2));
+    toast.success(`Total price calculated: $${total.toFixed(2)}`);
   };
   const checkLocalStorageUsage = () => {
     let totalSize = 0;
@@ -1513,6 +1551,26 @@ export function ItineraryBuilder({
                           New
                         </button>
                       </div>
+                      
+                      {/* Total Price Calculator */}
+                      <button 
+                        onClick={calculateTotalPrice} 
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors duration-200"
+                      >
+                        <DollarSign className="w-4 h-4" />
+                        Calculate Total Price
+                      </button>
+                      
+                      {totalPrice && (
+                        <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                          <div className="text-2xl font-bold text-green-700 dark:text-green-300">
+                            ${totalPrice}
+                          </div>
+                          <div className="text-sm text-green-600 dark:text-green-400 mt-1">
+                            Total estimated cost
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CollapsibleContent>
