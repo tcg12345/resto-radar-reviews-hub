@@ -140,6 +140,29 @@ export function TripCalendar({
         return <Clock className="w-4 h-4" />;
     }
   };
+
+  const getEventGradient = (type: string) => {
+    switch (type) {
+      case 'restaurant':
+        return 'bg-gradient-to-br from-orange-50 to-orange-100/50 border-orange-200/50 dark:from-orange-900/20 dark:to-orange-900/10 dark:border-orange-800/30';
+      case 'attraction':
+        return 'bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-emerald-200/50 dark:from-emerald-900/20 dark:to-emerald-900/10 dark:border-emerald-800/30';
+      default:
+        return 'bg-gradient-to-br from-slate-50 to-slate-100/50 border-slate-200/50 dark:from-slate-900/20 dark:to-slate-900/10 dark:border-slate-800/30';
+    }
+  };
+
+  const getCategoryBadgeColor = (type: string) => {
+    switch (type) {
+      case 'restaurant':
+        return 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700';
+      case 'attraction':
+        return 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700';
+      default:
+        return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-900/30 dark:text-slate-300 dark:border-slate-700';
+    }
+  };
+
   const getEventColor = (type: string) => {
     switch (type) {
       case 'restaurant':
@@ -178,7 +201,7 @@ export function TripCalendar({
       const isCollapsed = collapsedDays.has(dateStr);
       return <div key={day.toISOString()} className="lg:contents">
             <Collapsible open={!isCollapsed} onOpenChange={() => toggleDayCollapse(dateStr)}>
-              <Card className="w-[calc(100vw-1rem)] max-w-full lg:w-full lg:max-w-none lg:mb-6 transition-all duration-200 hover:shadow-md rounded-xl shadow-sm bg-card border lg:rounded-lg lg:border-border/50 lg:shadow-lg lg:hover:shadow-xl lg:hover:border-primary/20 lg:bg-gradient-to-br lg:from-card lg:to-muted/30">
+              <Card className="w-[calc(100vw-1rem)] max-w-full lg:w-full lg:max-w-none lg:mb-6 transition-all duration-300 hover:shadow-lg rounded-2xl shadow-sm bg-gradient-to-br from-card to-card/80 border border-border/30 backdrop-blur-sm lg:hover:shadow-xl lg:hover:border-primary/30 lg:hover:-translate-y-0.5 animate-fade-in">
                 <CollapsibleTrigger asChild>
                   <CardHeader className="p-4 cursor-pointer hover:bg-muted/30 transition-all duration-200 rounded-t-xl lg:rounded-t-lg active:scale-[0.98]">
                     {isCollapsed ? <div className="flex items-center justify-between w-full min-h-[3rem]">
@@ -253,59 +276,30 @@ export function TripCalendar({
                 
                 <CollapsibleContent>
                   <CardContent className="pt-0">
-                    {dayEvents.length > 0 ? <div className="space-y-3">
+                    {dayEvents.length > 0 ? <div className="space-y-4">
                         {dayEvents.map((event, eventIndex) => <div key={event.id}>
-                            <div className={`p-3 lg:p-4 rounded-lg border transition-all duration-200 hover:shadow-sm ${getEventColor(event.type)} w-full`}>
-                              <div className="space-y-3">
-                                <div className="flex items-start justify-between gap-2">
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                      <span className="font-medium text-sm shrink-0">{event.time}</span>
-                                      <Badge variant="secondary" className="text-xs shrink-0">
-                                        {event.type}
-                                      </Badge>
+                            <div className={`p-6 rounded-2xl border transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 ${getEventGradient(event.type)} w-full backdrop-blur-sm`}>
+                              <div className="space-y-4">
+                                {/* Header with time and category */}
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    <div className="text-2xl font-bold text-foreground">
+                                      {event.time}
                                     </div>
-                                    <h4 className="font-semibold text-sm lg:text-base mb-2">
-                                      {event.title}
-                                    </h4>
-                                    {event.description && <p className="text-xs lg:text-sm opacity-90 mb-2">
-                                        {event.description}
-                                      </p>}
-                                    
-                                    {/* Address and directions for other events */}
-                                    {event.type === 'other' && event.location && (
-                                      <div className="space-y-2 mt-2">
-                                        <div className="flex items-start gap-2">
-                                          <MapPin className="w-4 h-4 mt-0.5 text-muted-foreground shrink-0" />
-                                          <p className="text-xs lg:text-sm text-muted-foreground">
-                                            {event.location}
-                                          </p>
-                                        </div>
-                                        <div className="flex gap-2">
-                                          <Button
-                                            size="sm"
-                                            variant="outline"
-                                            className="text-xs h-8 px-3"
-                                            onClick={() => window.open(`https://maps.google.com/maps?q=${encodeURIComponent(event.location!)}`, '_blank')}
-                                          >
-                                            <Compass className="w-3 h-3 mr-1" />
-                                            Directions
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    )}
+                                    <Badge className={`px-3 py-1 text-xs font-medium rounded-full border ${getCategoryBadgeColor(event.type)}`}>
+                                      {event.type}
+                                    </Badge>
                                   </div>
                                   
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 shrink-0">
+                                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-background/50">
                                         <MoreVertical className="w-4 h-4" />
                                       </Button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="bg-background border shadow-md z-50">
+                                    <DropdownMenuContent align="end" className="bg-background border shadow-lg rounded-xl z-50">
                                       {event.type === 'restaurant' && event.restaurantData && <DropdownMenuItem onClick={() => {
                               if (isMobile) {
-                                // For mobile, navigate to mobile search restaurant details page
                                 const googlePlaceData = {
                                   place_id: event.restaurantData?.placeId || `generated_${Date.now()}`,
                                   name: event.restaurantData?.name || event.title,
@@ -316,7 +310,6 @@ export function TripCalendar({
                                 const placeData = encodeURIComponent(JSON.stringify(googlePlaceData));
                                 navigate(`/mobile/search/restaurant?data=${placeData}`);
                               } else {
-                                // For desktop, navigate to unified search page with restaurant data
                                 const searchQuery = encodeURIComponent(event.restaurantData?.name || event.title);
                                 navigate(`/search?q=${searchQuery}`);
                               }
@@ -324,16 +317,6 @@ export function TripCalendar({
                                         <ExternalLink className="w-4 h-4" />
                                         View Details
                                       </DropdownMenuItem>}
-                                       {/* Directions button for events with location */}
-                                       {event.location && (
-                                         <DropdownMenuItem 
-                                           onClick={() => window.open(`https://maps.google.com/maps?q=${encodeURIComponent(event.location!)}`, '_blank')} 
-                                           className="flex items-center gap-2"
-                                         >
-                                           <Compass className="w-4 h-4" />
-                                           Get Directions
-                                         </DropdownMenuItem>
-                                       )}
                                        <DropdownMenuItem onClick={() => onEditEvent(event)} className="flex items-center gap-2">
                                          <Edit className="w-4 h-4" />
                                          Edit Event
@@ -355,14 +338,109 @@ export function TripCalendar({
                                    </DropdownMenu>
                                  </div>
 
+                                 {/* Event name and description */}
+                                 <div className="space-y-2">
+                                   <h4 className="text-lg font-bold text-foreground leading-tight">
+                                     {event.title}
+                                   </h4>
+                                   {event.description && <p className="text-sm text-muted-foreground leading-relaxed">
+                                       {event.description}
+                                     </p>}
+                                 </div>
+
+                                 {/* Location for other events */}
+                                 {event.type === 'other' && event.location && (
+                                   <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                                     <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
+                                     <span className="break-words">{event.location}</span>
+                                   </div>
+                                 )}
+
+                                 {/* Restaurant data */}
+                                 {event.restaurantData && (
+                                   <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                                     <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
+                                     <span className="break-words">{event.restaurantData.address}</span>
+                                   </div>
+                                 )}
+
+                                 {/* Attraction data */}
+                                 {event.attractionData && (
+                                   <div className="space-y-2">
+                                     <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                                       <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
+                                       <span className="break-words">{event.attractionData.address}</span>
+                                     </div>
+                                     {event.attractionData.category && (
+                                       <Badge variant="outline" className="text-xs px-2 py-1 rounded-full">
+                                         {event.attractionData.category}
+                                       </Badge>
+                                     )}
+                                   </div>
+                                 )}
+
+                                 {/* Action buttons */}
+                                 <div className="flex flex-wrap gap-2 pt-2">
+                                   {/* Directions button */}
+                                   {(event.location || event.restaurantData || event.attractionData) && (
+                                     <Button 
+                                       variant="outline" 
+                                       size="sm" 
+                                       onClick={() => {
+                                         let query = '';
+                                         if (event.attractionData) {
+                                           const { latitude, longitude, address } = event.attractionData;
+                                           query = latitude && longitude ? `${latitude},${longitude}` : encodeURIComponent(address || event.attractionData.name);
+                                         } else if (event.restaurantData) {
+                                           query = encodeURIComponent(event.restaurantData.address || event.title);
+                                         } else if (event.location) {
+                                           query = encodeURIComponent(event.location);
+                                         }
+                                         window.open(`https://www.google.com/maps/dir/?api=1&destination=${query}`, '_blank');
+                                       }} 
+                                       className="h-9 px-4 rounded-full bg-background/80 hover:bg-background border-border/50 hover:border-border transition-all duration-200"
+                                     >
+                                       <Compass className="w-4 h-4 mr-2" />
+                                       Directions
+                                     </Button>
+                                   )}
+
+                                   {/* Website button */}
+                                   {(event.restaurantData?.website || event.attractionData?.website) && (
+                                     <Button 
+                                       variant="outline" 
+                                       size="sm" 
+                                       onClick={() => window.open(event.restaurantData?.website || event.attractionData?.website, '_blank')} 
+                                       className="h-9 px-4 rounded-full bg-background/80 hover:bg-background border-border/50 hover:border-border transition-all duration-200"
+                                     >
+                                       <ExternalLink className="w-4 h-4 mr-2" />
+                                       Website
+                                     </Button>
+                                   )}
+
+                                   {/* Phone button */}
+                                   {(event.restaurantData?.phone || event.attractionData?.phone) && (
+                                     <Button 
+                                       variant="outline" 
+                                       size="sm" 
+                                       onClick={() => window.open(`tel:${event.restaurantData?.phone || event.attractionData?.phone}`, '_self')} 
+                                       className="h-9 px-4 rounded-full bg-background/80 hover:bg-background border-border/50 hover:border-border transition-all duration-200"
+                                     >
+                                       <Phone className="w-4 h-4 mr-2" />
+                                       Call
+                                     </Button>
+                                   )}
+                                 </div>
+
+                                 {/* Move event selector */}
                                  {changingEventId === event.id && onMoveEvent && (
-                                   <div className="mt-3 p-3 bg-muted/50 rounded-lg border">
-                                     <p className="text-sm font-medium mb-2">Move to:</p>
+                                   <div className="mt-4 p-4 bg-background/50 rounded-xl border border-border/50 backdrop-blur-sm">
+                                     <p className="text-sm font-medium mb-3">Move to:</p>
                                      <Select onValueChange={(newDate) => {
                                        onMoveEvent(event.id, newDate);
                                        setChangingEventId(null);
                                      }}>
-                                       <SelectTrigger className="w-full">
+                                       <SelectTrigger className="w-full rounded-lg">
                                          <SelectValue placeholder="Select a day" />
                                        </SelectTrigger>
                                        <SelectContent>
@@ -386,73 +464,17 @@ export function TripCalendar({
                                        variant="ghost" 
                                        size="sm" 
                                        onClick={() => setChangingEventId(null)}
-                                       className="mt-2 w-full"
+                                       className="mt-3 w-full rounded-lg"
                                      >
                                        Cancel
                                      </Button>
                                    </div>
                                  )}
-
-                                {event.restaurantData && <div className="space-y-3">
-                                    <div className="flex items-start gap-2 text-sm opacity-90">
-                                      <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
-                                      <span className="break-words text-xs lg:text-sm">{event.restaurantData.address}</span>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                      <Button variant="outline" size="sm" onClick={() => {
-                                const query = encodeURIComponent(event.restaurantData?.address || event.title);
-                                window.open(`https://www.google.com/maps/dir/?api=1&destination=${query}`, '_blank');
-                              }} className="flex items-center gap-1 h-8 px-3 text-xs">
-                                        <Compass className="w-3 h-3" />
-                                        Directions
-                                      </Button>
-                                      {event.restaurantData.website && <Button variant="outline" size="sm" onClick={() => window.open(event.restaurantData.website, '_blank')} className="flex items-center gap-1 h-8 px-3 text-xs">
-                                          <ExternalLink className="w-3 h-3" />
-                                          Website
-                                        </Button>}
-                                      {event.restaurantData.phone && <Button variant="outline" size="sm" onClick={() => window.open(`tel:${event.restaurantData.phone}`, '_self')} className="flex items-center gap-1 h-8 px-3 text-xs">
-                                          <Phone className="w-3 h-3" />
-                                          Call
-                                        </Button>}
-                                    </div>
-                                  </div>}
-                                 
-                                 {event.attractionData && <div className="space-y-3">
-                                     <div className="flex items-start gap-2 text-sm opacity-90">
-                                       <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
-                                       <span className="break-words text-xs lg:text-sm">{event.attractionData.address}</span>
-                                     </div>
-                                     {event.attractionData.category && <Badge variant="outline" className="text-xs">
-                                         {event.attractionData.category}
-                                       </Badge>}
-                                     <div className="flex flex-wrap gap-2">
-                                       <Button variant="outline" size="sm" onClick={() => {
-                                const {
-                                  latitude,
-                                  longitude,
-                                  address
-                                } = event.attractionData;
-                                const query = latitude && longitude ? `${latitude},${longitude}` : encodeURIComponent(address || event.attractionData.name);
-                                window.open(`https://www.google.com/maps/dir/?api=1&destination=${query}`, '_blank');
-                              }} className="flex items-center gap-1 h-8 px-3 text-xs">
-                                         <Compass className="w-3 h-3" />
-                                         Directions
-                                       </Button>
-                                       {event.attractionData.website && <Button variant="outline" size="sm" onClick={() => window.open(event.attractionData.website, '_blank')} className="flex items-center gap-1 h-8 px-3 text-xs">
-                                           <ExternalLink className="w-3 h-3" />
-                                           Website
-                                         </Button>}
-                                       {event.attractionData.phone && <Button variant="outline" size="sm" onClick={() => window.open(`tel:${event.attractionData.phone}`, '_self')} className="flex items-center gap-1 h-8 px-3 text-xs">
-                                           <Phone className="w-3 h-3" />
-                                           Call
-                                         </Button>}
-                                     </div>
-                                   </div>}
                                </div>
                              </div>
-                             {eventIndex < dayEvents.length - 1 && <Separator className="my-3" />}
+                             {eventIndex < dayEvents.length - 1 && <div className="h-px bg-border/30 my-4" />}
                            </div>)}
-                       </div> : <div className="text-center py-4 text-muted-foreground">
+                       </div> : <div className="text-center py-8 text-muted-foreground">
                          <p className="text-sm">No events scheduled</p>
                        </div>}
                    </CardContent>
