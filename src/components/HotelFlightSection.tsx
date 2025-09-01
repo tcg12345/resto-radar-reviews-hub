@@ -13,7 +13,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { HotelSearchDialog } from '@/components/HotelSearchDialog';
 import { FlightSearchDialog } from '@/components/FlightSearchDialog';
-import { StayDetails } from '@/components/HotelStayDetailsDialog';
+import { StayDetails, HotelStayDetailsDialog } from '@/components/HotelStayDetailsDialog';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Hotel as HotelType } from '@/hooks/useGooglePlacesHotelSearch';
 interface TripLocation {
@@ -108,7 +108,7 @@ export function HotelFlightSection({
   const [isHotelsExpanded, setIsHotelsExpanded] = useState(false);
   const [isFlightsExpanded, setIsFlightsExpanded] = useState(false);
   const [editingHotel, setEditingHotel] = useState<HotelBooking | null>(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isEditStayDetailsOpen, setIsEditStayDetailsOpen] = useState(false);
   const handleHotelSelect = (stayDetails: StayDetails) => {
     // Convert StayDetails back to the old format for now
     onAddHotel(stayDetails.hotel, undefined, stayDetails.checkIn, stayDetails.checkOut);
@@ -305,7 +305,7 @@ export function HotelFlightSection({
                             onClick={(e) => {
                               e.stopPropagation();
                               setEditingHotel(booking);
-                              setIsEditDialogOpen(true);
+                              setIsEditStayDetailsOpen(true);
                             }}
                             size="sm" 
                             variant="ghost" 
@@ -1427,176 +1427,35 @@ export function HotelFlightSection({
         locations={locations}
       />
 
-      {/* Edit Hotel Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Hotel Details</DialogTitle>
-            <DialogDescription>
-              Update your hotel booking information
-            </DialogDescription>
-          </DialogHeader>
-          {editingHotel && (
-            <HotelEditForm 
-              hotel={editingHotel}
-              onSave={(updates) => {
-                if (onUpdateHotel) {
-                  onUpdateHotel(editingHotel.id, updates);
-                }
-                setIsEditDialogOpen(false);
-                setEditingHotel(null);
-              }}
-              onCancel={() => {
-                setIsEditDialogOpen(false);
-                setEditingHotel(null);
-              }}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Edit Hotel Stay Details Dialog */}
+      {editingHotel && (
+        <HotelStayDetailsDialog
+          isOpen={isEditStayDetailsOpen}
+          onClose={() => {
+            setIsEditStayDetailsOpen(false);
+            setEditingHotel(null);
+          }}
+          onConfirm={(stayDetails) => {
+            if (onUpdateHotel) {
+              onUpdateHotel(editingHotel.id, {
+                checkIn: stayDetails.checkIn,
+                checkOut: stayDetails.checkOut,
+                guests: stayDetails.guests,
+                rooms: stayDetails.rooms,
+                roomType: stayDetails.roomType,
+                specialRequests: stayDetails.specialRequests,
+                confirmationNumber: stayDetails.confirmationNumber,
+                totalCost: stayDetails.totalCost,
+                notes: stayDetails.notes
+              });
+            }
+            setIsEditStayDetailsOpen(false);
+            setEditingHotel(null);
+          }}
+          hotel={editingHotel.hotel}
+          checkInDate={editingHotel.checkIn ? new Date(editingHotel.checkIn) : undefined}
+          checkOutDate={editingHotel.checkOut ? new Date(editingHotel.checkOut) : undefined}
+        />
+      )}
     </div>;
-}
-
-// Hotel Edit Form Component
-function HotelEditForm({ 
-  hotel, 
-  onSave, 
-  onCancel 
-}: { 
-  hotel: HotelBooking; 
-  onSave: (updates: Partial<HotelBooking>) => void; 
-  onCancel: () => void; 
-}) {
-  const [formData, setFormData] = useState({
-    guests: hotel.guests || 2,
-    rooms: hotel.rooms || 1,
-    roomType: hotel.roomType || '',
-    specialRequests: hotel.specialRequests || '',
-    confirmationNumber: hotel.confirmationNumber || '',
-    totalCost: hotel.totalCost || '',
-    notes: hotel.notes || '',
-    checkIn: hotel.checkIn ? new Date(hotel.checkIn).toISOString().split('T')[0] : '',
-    checkOut: hotel.checkOut ? new Date(hotel.checkOut).toISOString().split('T')[0] : ''
-  });
-
-  const handleSave = () => {
-    onSave({
-      ...formData,
-      checkIn: formData.checkIn ? new Date(formData.checkIn) : undefined,
-      checkOut: formData.checkOut ? new Date(formData.checkOut) : undefined
-    });
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <Label htmlFor="guests">Guests</Label>
-          <Select value={formData.guests.toString()} onValueChange={(value) => setFormData(prev => ({...prev, guests: parseInt(value)}))}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {[1,2,3,4,5,6,7,8].map(num => (
-                <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="rooms">Rooms</Label>
-          <Select value={formData.rooms.toString()} onValueChange={(value) => setFormData(prev => ({...prev, rooms: parseInt(value)}))}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {[1,2,3,4,5].map(num => (
-                <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <Label htmlFor="checkIn">Check-in</Label>
-          <Input
-            id="checkIn"
-            type="date"
-            value={formData.checkIn}
-            onChange={(e) => setFormData(prev => ({...prev, checkIn: e.target.value}))}
-          />
-        </div>
-        <div>
-          <Label htmlFor="checkOut">Check-out</Label>
-          <Input
-            id="checkOut"
-            type="date"
-            value={formData.checkOut}
-            onChange={(e) => setFormData(prev => ({...prev, checkOut: e.target.value}))}
-          />
-        </div>
-      </div>
-
-      <div>
-        <Label htmlFor="roomType">Room Type</Label>
-        <Input
-          id="roomType"
-          value={formData.roomType}
-          onChange={(e) => setFormData(prev => ({...prev, roomType: e.target.value}))}
-          placeholder="e.g., Deluxe King, Twin Room"
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="totalCost">Total Cost</Label>
-        <Input
-          id="totalCost"
-          value={formData.totalCost}
-          onChange={(e) => setFormData(prev => ({...prev, totalCost: e.target.value}))}
-          placeholder="e.g., $299/night"
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="confirmationNumber">Confirmation Number</Label>
-        <Input
-          id="confirmationNumber"
-          value={formData.confirmationNumber}
-          onChange={(e) => setFormData(prev => ({...prev, confirmationNumber: e.target.value}))}
-          placeholder="Booking confirmation number"
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="specialRequests">Special Requests</Label>
-        <Input
-          id="specialRequests"
-          value={formData.specialRequests}
-          onChange={(e) => setFormData(prev => ({...prev, specialRequests: e.target.value}))}
-          placeholder="e.g., High floor, early check-in"
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="notes">Notes</Label>
-        <Input
-          id="notes"
-          value={formData.notes}
-          onChange={(e) => setFormData(prev => ({...prev, notes: e.target.value}))}
-          placeholder="Personal notes about this booking"
-        />
-      </div>
-
-      <div className="flex gap-3 pt-2">
-        <Button onClick={handleSave} className="flex-1">
-          Save Changes
-        </Button>
-        <Button onClick={onCancel} variant="outline" className="flex-1">
-          Cancel
-        </Button>
-      </div>
-    </div>
-  );
 }
