@@ -41,6 +41,7 @@ export interface ItineraryEvent {
   id: string;
   title: string;
   description?: string;
+  price?: string;
   time: string;
   date: string;
   type: 'restaurant' | 'hotel' | 'attraction' | 'museum' | 'park' | 'monument' | 'shopping' | 'entertainment' | 'other';

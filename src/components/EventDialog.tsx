@@ -62,6 +62,7 @@ export function EventDialog({
 }: EventDialogProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [price, setPrice] = useState('');
   const [time, setTime] = useState('');
   const [selectedHour, setSelectedHour] = useState('12');
   const [selectedMinute, setSelectedMinute] = useState('00');
@@ -86,6 +87,7 @@ export function EventDialog({
       // Handle all event types
       setTitle(editingEvent.title);
       setDescription(editingEvent.description || '');
+      setPrice(editingEvent.price || '');
       setTime(editingEvent.time);
       setType(editingEvent.type);
       setRestaurantData(editingEvent.restaurantData || null);
@@ -95,6 +97,7 @@ export function EventDialog({
     } else if (isOpen) {
       setTitle('');
       setDescription('');
+      setPrice('');
       setTime('');
       setType('other');
       setRestaurantData(null);
@@ -121,6 +124,7 @@ export function EventDialog({
     const eventData: Omit<ItineraryEvent, 'id'> = {
       title: title.trim(),
       description: description.trim() || undefined,
+      price: price.trim() || undefined,
       time,
       date: isMultiDayEvent ? selectedDates[0] : selectedDate!, // Default to first selected date
       type,
@@ -136,6 +140,7 @@ export function EventDialog({
   const handleClose = () => {
     setTitle('');
     setDescription('');
+    setPrice('');
     setTime('');
     setType('other');
     setRestaurantData(null);
@@ -593,6 +598,18 @@ export function EventDialog({
       <div className="space-y-2">
         <Label htmlFor="description">Description</Label>
         <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Add notes or additional details..." rows={3} />
+      </div>
+
+      {/* Price */}
+      <div className="space-y-2">
+        <Label htmlFor="price">Price (optional)</Label>
+        <Input 
+          id="price" 
+          value={price} 
+          onChange={e => setPrice(e.target.value)} 
+          placeholder="e.g., $25, €30, ¥200..." 
+          className="w-full" 
+        />
       </div>
     </div>
   );
