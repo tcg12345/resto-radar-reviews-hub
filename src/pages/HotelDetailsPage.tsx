@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { ArrowLeft, MapPin, Clock, Phone, Globe, Star, ExternalLink, Navigation, Bed, Wifi, Car, Users, Coffee, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Phone, Globe, Star, ExternalLink, Navigation, Bed, Wifi, Car, Users, Coffee, ChevronLeft, ChevronRight, Calendar, Copy, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -103,7 +103,7 @@ export function HotelDetailsPage() {
 
             if (!photosError && photosData?.data?.length > 0) {
               const photoUrls = photosData.data.map((photo: any) => photo.images.large.url);
-              setHotelPhotos(photoUrls.slice(0, 5)); // Limit to 5 photos
+              setHotelPhotos(photoUrls.slice(0, 8)); // Increased to 8 photos
             }
           }
         } catch (error) {
@@ -266,18 +266,38 @@ export function HotelDetailsPage() {
     navigate('/travel');
   };
 
+  const copyConfirmationNumber = (confirmationNumber: string) => {
+    navigator.clipboard.writeText(confirmationNumber);
+    toast.success('Confirmation number copied!');
+  };
+
   const getAmenityIcon = (amenity: string) => {
     switch (amenity.toLowerCase()) {
       case 'wifi':
+      case 'wi-fi':
+      case 'internet':
         return <Wifi className="w-4 h-4" />;
       case 'restaurant':
+      case 'dining':
+      case 'breakfast':
         return <Coffee className="w-4 h-4" />;
       case 'parking':
       case 'car':
+      case 'valet':
         return <Car className="w-4 h-4" />;
       case 'room service':
       case 'concierge':
+      case 'service':
         return <Users className="w-4 h-4" />;
+      case 'spa':
+      case 'wellness':
+        return <Star className="w-4 h-4" />;
+      case 'gym':
+      case 'fitness':
+        return <Users className="w-4 h-4" />;
+      case 'pool':
+      case 'swimming':
+        return <Star className="w-4 h-4" />;
       default:
         return <Star className="w-4 h-4" />;
     }
@@ -285,15 +305,20 @@ export function HotelDetailsPage() {
 
   if (isLoading) {
     return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 py-6 pt-12">{/* Reduced to pt-12 for less spacing */}
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-muted rounded w-1/3"></div>
-            <div className="h-64 bg-muted rounded"></div>
-            <div className="space-y-4">
-              <div className="h-6 bg-muted rounded w-3/4"></div>
-              <div className="h-4 bg-muted rounded w-1/2"></div>
-              <div className="h-4 bg-muted rounded w-2/3"></div>
+      <div className="min-h-screen bg-background">
+        <div className="animate-pulse">
+          {/* Hero skeleton */}
+          <div className="h-80 bg-muted"></div>
+          
+          <div className="max-w-4xl mx-auto px-6 py-8">
+            <div className="space-y-6">
+              <div className="h-8 bg-muted rounded w-1/3"></div>
+              <div className="h-64 bg-muted rounded-2xl"></div>
+              <div className="space-y-4">
+                <div className="h-6 bg-muted rounded w-3/4"></div>
+                <div className="h-4 bg-muted rounded w-1/2"></div>
+                <div className="h-4 bg-muted rounded w-2/3"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -314,357 +339,412 @@ export function HotelDetailsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 py-6 pt-12">{/* Reduced to pt-12 for less spacing */}
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={handleBack}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Button>
-        </div>
+      {/* Hero Section - Edge-to-edge photo carousel */}
+      <div className="relative h-80 overflow-hidden">
+        {hotelPhotos.length > 0 ? (
+          <>
+            <img 
+              src={hotelPhotos[currentPhotoIndex]} 
+              alt={`${hotel.name} - Photo ${currentPhotoIndex + 1}`}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.src = '';
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+            
+            {/* Back button with translucent background */}
+            <div className="absolute top-6 left-6">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleBack}
+                className="w-10 h-10 p-0 rounded-full bg-black/20 backdrop-blur-sm text-white hover:bg-black/30 border border-white/20"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            </div>
 
-        {/* Hotel Image Gallery */}
-        <Card className="mb-6 overflow-hidden">
-          <div className="relative aspect-[16/9]">
-            {hotelPhotos.length > 0 ? (
-              <>
-                <img 
-                  src={hotelPhotos[currentPhotoIndex]} 
-                  alt={`${hotel.name} - Photo ${currentPhotoIndex + 1}`}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.src = '';
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-                {hotelPhotos.length > 1 && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/50 text-white hover:bg-black/70"
-                      onClick={() => setCurrentPhotoIndex((prev) => prev === 0 ? hotelPhotos.length - 1 : prev - 1)}
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/50 text-white hover:bg-black/70"
-                      onClick={() => setCurrentPhotoIndex((prev) => prev === hotelPhotos.length - 1 ? 0 : prev + 1)}
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                    <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-2">
-                      {hotelPhotos.map((_, index) => (
-                        <button
-                          key={index}
-                          className={`w-2 h-2 rounded-full ${index === currentPhotoIndex ? 'bg-white' : 'bg-white/50'}`}
-                          onClick={() => setCurrentPhotoIndex(index)}
-                        />
-                      ))}
+            {/* Hotel info overlay with gradient */}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent px-6 py-8">
+              <div className="max-w-4xl mx-auto">
+                <h1 className="text-3xl font-bold text-white mb-2">{hotel.name}</h1>
+                <div className="flex items-center gap-4 mb-3">
+                  {hotel.rating && (
+                    <Badge className="bg-amber-500/90 text-amber-50 border-0 px-3 py-1 font-semibold">
+                      <Star className="w-4 h-4 fill-current mr-1" />
+                      {hotel.rating.toFixed(1)}
+                    </Badge>
+                  )}
+                  {hotel.priceRange && (
+                    <div className="text-white">
+                      <span className="text-2xl font-bold">{hotel.priceRange}</span>
+                      <span className="text-white/80 text-sm ml-1">per night</span>
                     </div>
-                  </>
-                )}
-              </>
-            ) : (
-              <div className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 flex items-center justify-center h-full">
-                <Bed className="w-24 h-24 text-muted-foreground/30" />
-              </div>
-            )}
-          </div>
-        </Card>
-
-        {/* Hotel Info */}
-        <div className="space-y-6">
-          <div>
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <h1 className="text-3xl font-bold mb-2">{hotel.name}</h1>
-                <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-white/90">
                   <MapPin className="w-4 h-4" />
                   <span className="text-sm">{hotel.address}</span>
                 </div>
-                {hotel.rating && (
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="font-semibold">{hotel.rating.toFixed(1)}</span>
-                    </div>
-                  </div>
-                )}
-                {hotel.priceRange && (
-                  <Badge variant="secondary" className="text-sm">
-                    {hotel.priceRange}
-                  </Badge>
-                )}
               </div>
             </div>
 
-            {isLoadingOverview ? (
-              <div className="space-y-2 mb-4">
-                <div className="h-4 bg-muted rounded animate-pulse w-full"></div>
-                <div className="h-4 bg-muted rounded animate-pulse w-5/6"></div>
-              </div>
-            ) : (
-              <div className="mb-4">
-                <p className="text-muted-foreground leading-relaxed mb-3">{aiOverview}</p>
-                <Button 
-                  variant="outline" 
+            {/* Photo carousel controls */}
+            {hotelPhotos.length > 1 && (
+              <>
+                <Button
+                  variant="ghost"
                   size="sm"
-                  onClick={() => navigate(`/hotel/${hotelId}/overview`)}
-                  className="flex items-center gap-2"
+                  className="absolute left-6 top-1/2 transform -translate-y-1/2 w-10 h-10 p-0 rounded-full bg-black/20 backdrop-blur-sm text-white hover:bg-black/30 border border-white/20"
+                  onClick={() => setCurrentPhotoIndex((prev) => prev === 0 ? hotelPhotos.length - 1 : prev - 1)}
                 >
-                  <ExternalLink className="w-4 h-4" />
-                  View Detailed Overview
+                  <ChevronLeft className="w-5 h-5" />
                 </Button>
-              </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-6 top-1/2 transform -translate-y-1/2 w-10 h-10 p-0 rounded-full bg-black/20 backdrop-blur-sm text-white hover:bg-black/30 border border-white/20"
+                  onClick={() => setCurrentPhotoIndex((prev) => prev === hotelPhotos.length - 1 ? 0 : prev + 1)}
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </Button>
+                <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex gap-2">
+                  {hotelPhotos.map((_, index) => (
+                    <button
+                      key={index}
+                      className={`w-2 h-2 rounded-full transition-all ${index === currentPhotoIndex ? 'bg-white' : 'bg-white/50'}`}
+                      onClick={() => setCurrentPhotoIndex(index)}
+                    />
+                  ))}
+                </div>
+              </>
             )}
+          </>
+        ) : (
+          <div className="bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 flex items-center justify-center h-full relative">
+            <Bed className="w-24 h-24 text-white/30" />
+            
+            {/* Back button for fallback */}
+            <div className="absolute top-6 left-6">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleBack}
+                className="w-10 h-10 p-0 rounded-full bg-black/20 backdrop-blur-sm text-white hover:bg-black/30 border border-white/20"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            </div>
+
+            {/* Hotel info overlay for fallback */}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent px-6 py-8">
+              <div className="max-w-4xl mx-auto">
+                <h1 className="text-3xl font-bold text-white mb-2">{hotel.name}</h1>
+                <div className="flex items-center gap-4 mb-3">
+                  {hotel.rating && (
+                    <Badge className="bg-amber-500/90 text-amber-50 border-0 px-3 py-1 font-semibold">
+                      <Star className="w-4 h-4 fill-current mr-1" />
+                      {hotel.rating.toFixed(1)}
+                    </Badge>
+                  )}
+                  {hotel.priceRange && (
+                    <div className="text-white">
+                      <span className="text-2xl font-bold">{hotel.priceRange}</span>
+                      <span className="text-white/80 text-sm ml-1">per night</span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-white/90">
+                  <MapPin className="w-4 h-4" />
+                  <span className="text-sm">{hotel.address}</span>
+                </div>
+              </div>
+            </div>
           </div>
+        )}
+      </div>
 
-          <Separator />
+      {/* Content Section */}
+      <div className="max-w-4xl mx-auto px-6 py-8 space-y-8">
+        
+        {/* Hotel Overview Card */}
+        <Card className="overflow-hidden shadow-lg border-0 bg-gradient-to-br from-background to-background/80">
+          <CardContent className="p-8">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold mb-4">About this hotel</h2>
+              {isLoadingOverview ? (
+                <div className="space-y-3">
+                  <div className="h-4 bg-muted rounded animate-pulse w-full"></div>
+                  <div className="h-4 bg-muted rounded animate-pulse w-5/6"></div>
+                  <div className="h-4 bg-muted rounded animate-pulse w-4/6"></div>
+                </div>
+              ) : (
+                <p className="text-muted-foreground leading-relaxed text-lg">{aiOverview}</p>
+              )}
+            </div>
+            
+            <Button 
+              variant="outline" 
+              size="lg"
+              onClick={() => navigate(`/hotel/${hotelId}/overview`)}
+              className="flex items-center gap-2 rounded-full"
+            >
+              <ExternalLink className="w-4 h-4" />
+              View Detailed Overview
+            </Button>
+          </CardContent>
+        </Card>
 
-          {/* Stay Details */}
-          {hotel.stayDetails && (
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Your Stay Details</h3>
-              <Card className="p-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Dates & Duration */}
-                  {(hotel.stayDetails.checkIn || hotel.stayDetails.checkOut) && (
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-foreground flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-primary" />
-                        Dates
-                      </h4>
+        {/* Stay Details Card */}
+        {hotel.stayDetails && (
+          <Card className="overflow-hidden shadow-lg border-0">
+            <CardContent className="p-8">
+              <h3 className="text-2xl font-bold mb-6">Your Stay Details</h3>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Dates Section */}
+                {(hotel.stayDetails.checkIn || hotel.stayDetails.checkOut) && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                        <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <h4 className="font-semibold text-lg">Dates</h4>
+                    </div>
+                    <div className="space-y-3 pl-11">
                       {hotel.stayDetails.checkIn && (
-                        <div className="flex justify-between">
-                          <span className="text-sm text-muted-foreground">Check-in:</span>
-                          <span className="text-sm font-medium">
-                            {new Date(hotel.stayDetails.checkIn).toLocaleDateString()}
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">Check-in</span>
+                          <span className="font-medium">
+                            {new Date(hotel.stayDetails.checkIn).toLocaleDateString('en-US', { 
+                              weekday: 'short', 
+                              month: 'short', 
+                              day: 'numeric' 
+                            })}
                           </span>
                         </div>
                       )}
                       {hotel.stayDetails.checkOut && (
-                        <div className="flex justify-between">
-                          <span className="text-sm text-muted-foreground">Check-out:</span>
-                          <span className="text-sm font-medium">
-                            {new Date(hotel.stayDetails.checkOut).toLocaleDateString()}
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">Check-out</span>
+                          <span className="font-medium">
+                            {new Date(hotel.stayDetails.checkOut).toLocaleDateString('en-US', { 
+                              weekday: 'short', 
+                              month: 'short', 
+                              day: 'numeric' 
+                            })}
                           </span>
                         </div>
                       )}
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  {/* Room Details */}
-                  {(hotel.stayDetails.guests || hotel.stayDetails.rooms || hotel.stayDetails.roomType) && (
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-foreground flex items-center gap-2">
-                        <Bed className="w-4 h-4 text-primary" />
-                        Room Details
-                      </h4>
+                {/* Room Details Section */}
+                {(hotel.stayDetails.guests || hotel.stayDetails.rooms || hotel.stayDetails.roomType) && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
+                        <Bed className="w-5 h-5 text-green-600 dark:text-green-400" />
+                      </div>
+                      <h4 className="font-semibold text-lg">Room Details</h4>
+                    </div>
+                    <div className="space-y-3 pl-11">
                       {hotel.stayDetails.guests && (
-                        <div className="flex justify-between">
-                          <span className="text-sm text-muted-foreground">Guests:</span>
-                          <span className="text-sm font-medium">{hotel.stayDetails.guests}</span>
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">Guests</span>
+                          <span className="font-medium">{hotel.stayDetails.guests}</span>
                         </div>
                       )}
                       {hotel.stayDetails.rooms && (
-                        <div className="flex justify-between">
-                          <span className="text-sm text-muted-foreground">Rooms:</span>
-                          <span className="text-sm font-medium">{hotel.stayDetails.rooms}</span>
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">Rooms</span>
+                          <span className="font-medium">{hotel.stayDetails.rooms}</span>
                         </div>
                       )}
                       {hotel.stayDetails.roomType && (
-                        <div className="flex justify-between">
-                          <span className="text-sm text-muted-foreground">Room Type:</span>
-                          <span className="text-sm font-medium">{hotel.stayDetails.roomType}</span>
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">Room Type</span>
+                          <span className="font-medium">{hotel.stayDetails.roomType}</span>
                         </div>
                       )}
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  {/* Booking Information */}
-                  {(hotel.stayDetails.confirmationNumber || hotel.stayDetails.totalCost) && (
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-foreground flex items-center gap-2">
-                        <Star className="w-4 h-4 text-primary" />
-                        Booking Info
-                      </h4>
+                {/* Booking Info Section */}
+                {(hotel.stayDetails.confirmationNumber || hotel.stayDetails.totalCost) && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
+                        <CreditCard className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                      </div>
+                      <h4 className="font-semibold text-lg">Booking Info</h4>
+                    </div>
+                    <div className="space-y-3 pl-11">
                       {hotel.stayDetails.confirmationNumber && (
-                        <div className="flex justify-between">
-                          <span className="text-sm text-muted-foreground">Confirmation:</span>
-                          <span className="text-sm font-mono bg-muted px-2 py-1 rounded">
-                            {hotel.stayDetails.confirmationNumber}
-                          </span>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Confirmation</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => copyConfirmationNumber(hotel.stayDetails!.confirmationNumber!)}
+                              className="h-auto p-1 text-sm font-medium hover:bg-muted/50"
+                            >
+                              <Copy className="w-3 h-3 mr-1" />
+                              {hotel.stayDetails.confirmationNumber}
+                            </Button>
+                          </div>
                         </div>
                       )}
                       {hotel.stayDetails.totalCost && (
-                        <div className="flex justify-between">
-                          <span className="text-sm text-muted-foreground">Total Cost:</span>
-                          <Badge variant="secondary" className="font-semibold">
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">Total Cost</span>
+                          <Badge variant="secondary" className="bg-primary/10 text-primary font-bold text-sm px-3 py-1">
                             {hotel.stayDetails.totalCost}
                           </Badge>
                         </div>
                       )}
                     </div>
-                  )}
+                  </div>
+                )}
+              </div>
 
-                  {/* Trip Location */}
-                  {hotel.stayDetails.location && (
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-foreground flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-primary" />
-                        Trip Location
-                      </h4>
-                      <Badge variant="outline" className="text-sm w-fit">
-                        {hotel.stayDetails.location}
-                      </Badge>
+              {/* Special Requests & Notes */}
+              {(hotel.stayDetails.specialRequests || hotel.stayDetails.notes) && (
+                <div className="mt-8 pt-6 border-t border-border/50">
+                  {hotel.stayDetails.specialRequests && (
+                    <div className="mb-4">
+                      <h5 className="font-medium mb-2">Special Requests</h5>
+                      <p className="text-muted-foreground text-sm bg-muted/30 rounded-lg p-3">
+                        {hotel.stayDetails.specialRequests}
+                      </p>
+                    </div>
+                  )}
+                  {hotel.stayDetails.notes && (
+                    <div>
+                      <h5 className="font-medium mb-2">Notes</h5>
+                      <p className="text-muted-foreground text-sm bg-muted/30 rounded-lg p-3">
+                        {hotel.stayDetails.notes}
+                      </p>
                     </div>
                   )}
                 </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
-                {/* Special Requests & Notes */}
-                {(hotel.stayDetails.specialRequests || hotel.stayDetails.notes) && (
-                  <div className="mt-6 pt-6 border-t border-border/20">
-                    {hotel.stayDetails.specialRequests && (
-                      <div className="mb-4">
-                        <h4 className="font-semibold text-foreground mb-2">Special Requests</h4>
-                        <p className="text-sm text-muted-foreground bg-background/50 p-3 rounded-lg">
-                          {hotel.stayDetails.specialRequests}
-                        </p>
-                      </div>
-                    )}
-                    {hotel.stayDetails.notes && (
-                      <div>
-                        <h4 className="font-semibold text-foreground mb-2">Notes</h4>
-                        <p className="text-sm text-muted-foreground bg-background/50 p-3 rounded-lg">
-                          {hotel.stayDetails.notes}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </Card>
-            </div>
-          )}
-
-          <Separator />
-
-          {/* Amenities */}
-          {hotel.amenities && hotel.amenities.length > 0 && (
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Amenities</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        {/* Amenities */}
+        {hotel.amenities && hotel.amenities.length > 0 && (
+          <Card className="overflow-hidden shadow-lg border-0">
+            <CardContent className="p-8">
+              <h3 className="text-2xl font-bold mb-6">Amenities</h3>
+              <div className="flex flex-wrap gap-3 overflow-x-auto pb-2">
                 {hotel.amenities.map((amenity, index) => (
-                  <div key={index} className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+                  <Badge 
+                    key={index} 
+                    variant="secondary" 
+                    className="flex items-center gap-2 px-4 py-2 bg-muted/50 hover:bg-muted/70 transition-colors rounded-full text-sm font-medium whitespace-nowrap"
+                  >
                     {getAmenityIcon(amenity)}
-                    <span className="text-sm">{amenity}</span>
-                  </div>
+                    {amenity}
+                  </Badge>
                 ))}
               </div>
-            </div>
-          )}
+            </CardContent>
+          </Card>
+        )}
 
-          <Separator />
-
-          {/* Contact & Booking */}
-          <div>
-            <h3 className="text-lg font-semibold mb-3">Contact & Booking</h3>
-            <div className="flex flex-wrap gap-3">
+        {/* Contact & Booking Actions */}
+        <Card className="overflow-hidden shadow-lg border-0">
+          <CardContent className="p-8">
+            <h3 className="text-2xl font-bold mb-6">Contact & Booking</h3>
+            
+            {/* Primary booking button */}
+            {hotel.bookingUrl && (
+              <Button 
+                size="lg"
+                onClick={() => window.open(hotel.bookingUrl, '_blank')}
+                className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary rounded-full mb-6"
+              >
+                Book Now
+              </Button>
+            )}
+            
+            {/* Secondary actions grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {hotel.phone && (
                 <Button 
                   variant="outline" 
-                  size="sm" 
-                  onClick={() => window.open(`tel:${hotel.phone}`, '_blank')}
+                  size="lg"
+                  onClick={() => window.open(`tel:${hotel.phone}`, '_self')}
+                  className="flex items-center gap-3 h-12 rounded-full"
                 >
-                  <Phone className="w-4 h-4 mr-2" />
+                  <Phone className="w-5 h-5" />
                   Call Hotel
                 </Button>
               )}
+              
               {hotel.website && (
                 <Button 
                   variant="outline" 
-                  size="sm" 
+                  size="lg"
                   onClick={() => window.open(hotel.website, '_blank')}
+                  className="flex items-center gap-3 h-12 rounded-full"
                 >
-                  <Globe className="w-4 h-4 mr-2" />
+                  <Globe className="w-5 h-5" />
                   Website
                 </Button>
               )}
-              {hotel.bookingUrl && (
-                <Button 
-                  size="sm" 
-                  onClick={() => window.open(hotel.bookingUrl, '_blank')}
-                  className="bg-primary hover:bg-primary/90"
-                >
-                  Book Now
-                </Button>
-              )}
-              {hotel.latitude && hotel.longitude && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => window.open(
-                    `https://www.google.com/maps/dir/?api=1&destination=${hotel.latitude},${hotel.longitude}`,
-                    '_blank'
-                  )}
-                >
-                  <Navigation className="w-4 h-4 mr-2" />
-                  Directions
-                </Button>
-              )}
+              
+              <Button 
+                variant="outline" 
+                size="lg"
+                onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(hotel.address)}`, '_blank')}
+                className="flex items-center gap-3 h-12 rounded-full"
+              >
+                <Navigation className="w-5 h-5" />
+                Directions
+              </Button>
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* Map */}
-          {hotel.latitude && hotel.longitude && (
-            <>
-              <Separator />
-              <div>
-                <h3 className="text-lg font-semibold mb-3">Location</h3>
-                <Card className="overflow-hidden">
-                  <CardContent className="p-0 relative">
-                    {/* Map Container */}
-                    <div 
-                      ref={mapContainer} 
-                      className="w-full h-64 rounded-lg"
-                      style={{ minHeight: '300px' }}
-                    />
-                    
-                    {/* Loading Overlay */}
-                    {isMapLoading && (
-                      <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-lg">
-                        <div className="text-center">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-                          <p className="text-sm text-muted-foreground">Loading map...</p>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Error Overlay */}
-                    {mapError && (
-                      <div className="absolute inset-0 bg-background/90 flex items-center justify-center rounded-lg">
-                        <div className="text-center p-6">
-                          <MapPin className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                          <p className="text-sm text-muted-foreground mb-3">{mapError}</p>
-                          <Button size="sm" onClick={retryMap} variant="outline">
-                            Try Again
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+        {/* Location Map */}
+        {hotel.latitude && hotel.longitude && (
+          <Card className="overflow-hidden shadow-lg border-0 rounded-2xl">
+            <CardContent className="p-0">
+              <div className="p-8 pb-4">
+                <h3 className="text-2xl font-bold">Location</h3>
               </div>
-            </>
-          )}
-        </div>
+              
+              <div className="px-8 pb-8">
+                <div className="relative h-80 rounded-xl overflow-hidden border border-border/20 shadow-sm">
+                  {isMapLoading && (
+                    <div className="absolute inset-0 bg-muted flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    </div>
+                  )}
+                  
+                  {mapError && (
+                    <div className="absolute inset-0 bg-muted flex flex-col items-center justify-center text-center p-4">
+                      <MapPin className="w-8 h-8 text-muted-foreground mb-2" />
+                      <p className="text-sm text-muted-foreground mb-3">{mapError}</p>
+                      <Button onClick={retryMap} variant="outline" size="sm">
+                        Retry
+                      </Button>
+                    </div>
+                  )}
+                  
+                  <div ref={mapContainer} className="w-full h-full" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
