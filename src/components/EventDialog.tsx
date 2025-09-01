@@ -117,18 +117,9 @@ export function EventDialog({
       setType(editingEvent.type);
       setRestaurantData(editingEvent.restaurantData || null);
       setAttractionData(editingEvent.attractionData || null);
+      setCustomLinks(editingEvent.links || []); // Load existing links
       setSelectedDates([editingEvent.date]);
       setIsMultiDayEvent(false);
-      // Handle custom links - parse from description if stored there
-      if (editingEvent.description) {
-        const linkPattern = /^https?:\/\/[^\s]+$/gm;
-        const foundLinks = editingEvent.description.match(linkPattern) || [];
-        const cleanDescription = editingEvent.description.replace(linkPattern, '').trim();
-        setCustomLinks(foundLinks);
-        setDescription(cleanDescription);
-      } else {
-        setCustomLinks([]);
-      }
       setNewLinkInput('');
     } else if (isOpen) {
       setTitle('');
@@ -159,12 +150,10 @@ export function EventDialog({
     // For single-day events, require the selectedDate
     if (!isMultiDayEvent && !selectedDate) return;
     
-    // Combine description and links
-    const combinedDescription = [description.trim(), ...customLinks].filter(Boolean).join('\n').trim() || undefined;
-    
     const eventData: Omit<ItineraryEvent, 'id'> = {
       title: title.trim(),
-      description: combinedDescription,
+      description: description.trim() || undefined, // Keep description separate
+      links: customLinks.length > 0 ? customLinks : undefined, // Save links separately
       price: price.trim() || undefined,
       time,
       date: isMultiDayEvent ? selectedDates[0] : selectedDate!, // Default to first selected date

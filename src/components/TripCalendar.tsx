@@ -516,6 +516,27 @@ export function TripCalendar({
               </div>
             )}
             
+            {/* Links */}
+            {selectedEvent.links && selectedEvent.links.length > 0 && (
+              <div className="space-y-2">
+                <h5 className="text-sm font-medium">Links</h5>
+                <div className="space-y-2">
+                  {selectedEvent.links.map((link, index) => (
+                    <a
+                      key={index}
+                      href={link.startsWith('http') ? link : `https://${link}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 underline break-all"
+                    >
+                      <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                      {link}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+            
             {/* Price */}
             {selectedEvent.price && (
               <div className="flex items-center gap-2">

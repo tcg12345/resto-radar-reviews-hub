@@ -41,6 +41,7 @@ export interface ItineraryEvent {
   id: string;
   title: string;
   description?: string;
+  links?: string[]; // Separate field for clickable links
   price?: string;
   time: string;
   date: string;
