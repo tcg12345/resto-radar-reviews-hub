@@ -295,7 +295,10 @@ export function TripCalendar({
                                             size="sm"
                                             variant="outline"
                                             className="text-xs h-8 px-3"
-                                            onClick={() => window.open(`https://maps.google.com/maps?q=${encodeURIComponent(event.location!)}`, '_blank')}
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              window.open(`https://maps.google.com/maps?q=${encodeURIComponent(event.location!)}`, '_blank');
+                                            }}
                                           >
                                             <Compass className="w-3 h-3 mr-1" />
                                             Directions
@@ -408,18 +411,19 @@ export function TripCalendar({
                                       <span className="break-words text-xs lg:text-sm">{event.restaurantData.address}</span>
                                     </div>
                                     <div className="flex flex-wrap gap-2">
-                                      <Button variant="outline" size="sm" onClick={() => {
-                                const query = encodeURIComponent(event.restaurantData?.address || event.title);
-                                window.open(`https://www.google.com/maps/dir/?api=1&destination=${query}`, '_blank');
-                              }} className="flex items-center gap-1 h-8 px-3 text-xs">
+                                      <Button variant="outline" size="sm" onClick={(e) => {
+                                        e.stopPropagation();
+                                        const query = encodeURIComponent(event.restaurantData?.address || event.title);
+                                        window.open(`https://www.google.com/maps/dir/?api=1&destination=${query}`, '_blank');
+                                      }} className="flex items-center gap-1 h-8 px-3 text-xs">
                                         <Compass className="w-3 h-3" />
                                         Directions
                                       </Button>
-                                      {event.restaurantData.website && <Button variant="outline" size="sm" onClick={() => window.open(event.restaurantData.website, '_blank')} className="flex items-center gap-1 h-8 px-3 text-xs">
+                                      {event.restaurantData.website && <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); window.open(event.restaurantData.website, '_blank'); }} className="flex items-center gap-1 h-8 px-3 text-xs">
                                           <ExternalLink className="w-3 h-3" />
                                           Website
                                         </Button>}
-                                      {event.restaurantData.phone && <Button variant="outline" size="sm" onClick={() => window.open(`tel:${event.restaurantData.phone}`, '_self')} className="flex items-center gap-1 h-8 px-3 text-xs">
+                                      {event.restaurantData.phone && <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); window.open(`tel:${event.restaurantData.phone}`, '_self'); }} className="flex items-center gap-1 h-8 px-3 text-xs">
                                           <Phone className="w-3 h-3" />
                                           Call
                                         </Button>}
@@ -435,23 +439,24 @@ export function TripCalendar({
                                          {event.attractionData.category}
                                        </Badge>}
                                      <div className="flex flex-wrap gap-2">
-                                       <Button variant="outline" size="sm" onClick={() => {
-                                const {
-                                  latitude,
-                                  longitude,
-                                  address
-                                } = event.attractionData;
-                                const query = latitude && longitude ? `${latitude},${longitude}` : encodeURIComponent(address || event.attractionData.name);
-                                window.open(`https://www.google.com/maps/dir/?api=1&destination=${query}`, '_blank');
-                              }} className="flex items-center gap-1 h-8 px-3 text-xs">
+                                       <Button variant="outline" size="sm" onClick={(e) => {
+                                         e.stopPropagation();
+                                         const {
+                                           latitude,
+                                           longitude,
+                                           address
+                                         } = event.attractionData;
+                                         const query = latitude && longitude ? `${latitude},${longitude}` : encodeURIComponent(address || event.attractionData.name);
+                                         window.open(`https://www.google.com/maps/dir/?api=1&destination=${query}`, '_blank');
+                                       }} className="flex items-center gap-1 h-8 px-3 text-xs">
                                          <Compass className="w-3 h-3" />
                                          Directions
                                        </Button>
-                                       {event.attractionData.website && <Button variant="outline" size="sm" onClick={() => window.open(event.attractionData.website, '_blank')} className="flex items-center gap-1 h-8 px-3 text-xs">
+                                       {event.attractionData.website && <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); window.open(event.attractionData.website, '_blank'); }} className="flex items-center gap-1 h-8 px-3 text-xs">
                                            <ExternalLink className="w-3 h-3" />
                                            Website
                                          </Button>}
-                                       {event.attractionData.phone && <Button variant="outline" size="sm" onClick={() => window.open(`tel:${event.attractionData.phone}`, '_self')} className="flex items-center gap-1 h-8 px-3 text-xs">
+                                       {event.attractionData.phone && <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); window.open(`tel:${event.attractionData.phone}`, '_self'); }} className="flex items-center gap-1 h-8 px-3 text-xs">
                                            <Phone className="w-3 h-3" />
                                            Call
                                          </Button>}
