@@ -339,11 +339,11 @@ export function HotelDetailsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section - Edge-to-edge photo carousel */}
-      <div className="relative h-80 overflow-hidden">
+      {/* Hero Section - Reduced height and tighter layout */}
+      <div className="relative h-64 overflow-hidden">
         {hotelPhotos.length > 0 ? (
           <>
-            <img 
+            <img
               src={hotelPhotos[currentPhotoIndex]} 
               alt={`${hotel.name} - Photo ${currentPhotoIndex + 1}`}
               className="w-full h-full object-cover"
@@ -365,23 +365,25 @@ export function HotelDetailsPage() {
               </Button>
             </div>
 
-            {/* Hotel info overlay with gradient */}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent px-6 py-8">
+            {/* Hotel info overlay with gradient - tighter layout */}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent px-6 py-6">
               <div className="max-w-4xl mx-auto">
-                <h1 className="text-3xl font-bold text-white mb-2">{hotel.name}</h1>
-                <div className="flex items-center gap-4 mb-3">
-                  {hotel.rating && (
-                    <Badge className="bg-amber-500/90 text-amber-50 border-0 px-3 py-1 font-semibold">
-                      <Star className="w-4 h-4 fill-current mr-1" />
-                      {hotel.rating.toFixed(1)}
-                    </Badge>
-                  )}
-                  {hotel.priceRange && (
-                    <div className="text-white">
-                      <span className="text-2xl font-bold">{hotel.priceRange}</span>
-                      <span className="text-white/80 text-sm ml-1">per night</span>
-                    </div>
-                  )}
+                <div className="flex items-center justify-between mb-3">
+                  <h1 className="text-2xl font-bold text-white">{hotel.name}</h1>
+                  <div className="flex items-center gap-3">
+                    {hotel.rating && (
+                      <Badge className="bg-amber-500/90 text-amber-50 border-0 px-2 py-1 text-sm font-semibold">
+                        <Star className="w-3 h-3 fill-current mr-1" />
+                        {hotel.rating.toFixed(1)}
+                      </Badge>
+                    )}
+                    {hotel.priceRange && (
+                      <div className="text-white">
+                        <span className="text-xl font-bold">{hotel.priceRange}</span>
+                        <span className="text-white/80 text-xs ml-1">per night</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 text-white/90">
                   <MapPin className="w-4 h-4" />
@@ -465,60 +467,59 @@ export function HotelDetailsPage() {
         )}
       </div>
 
-      {/* Content Section */}
-      <div className="max-w-4xl mx-auto px-6 py-8 space-y-8">
+      {/* Content Section - Tighter spacing */}
+      <div className="max-w-4xl mx-auto px-6 py-5 space-y-5">
         
-        {/* Hotel Overview Card */}
-        <Card className="overflow-hidden shadow-lg border-0 bg-gradient-to-br from-background to-background/80">
-          <CardContent className="p-8">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold mb-4">About this hotel</h2>
+        {/* Hotel Overview Card - More compact */}
+        <Card className="overflow-hidden shadow-sm border-0 bg-gradient-to-br from-background to-muted/10">
+          <CardContent className="p-6">
+            <div className="mb-4">
+              <h2 className="text-xl font-bold mb-3">About this hotel</h2>
               {isLoadingOverview ? (
-                <div className="space-y-3">
-                  <div className="h-4 bg-muted rounded animate-pulse w-full"></div>
-                  <div className="h-4 bg-muted rounded animate-pulse w-5/6"></div>
-                  <div className="h-4 bg-muted rounded animate-pulse w-4/6"></div>
+                <div className="space-y-2">
+                  <div className="h-3 bg-muted rounded animate-pulse w-full"></div>
+                  <div className="h-3 bg-muted rounded animate-pulse w-5/6"></div>
+                  <div className="h-3 bg-muted rounded animate-pulse w-4/6"></div>
                 </div>
               ) : (
-                <p className="text-muted-foreground leading-relaxed text-lg">{aiOverview}</p>
+                <p className="text-muted-foreground leading-relaxed">{aiOverview}</p>
               )}
             </div>
             
             <Button 
               variant="outline" 
-              size="lg"
+              size="sm"
               onClick={() => navigate(`/hotel/${hotelId}/overview`)}
-              className="flex items-center gap-2 rounded-full"
+              className="flex items-center gap-2 rounded-full text-sm"
             >
-              <ExternalLink className="w-4 h-4" />
+              <ExternalLink className="w-3 h-3" />
               View Detailed Overview
             </Button>
           </CardContent>
         </Card>
 
-        {/* Stay Details Card */}
+        {/* Stay Details Card - More compact */}
         {hotel.stayDetails && (
-          <Card className="overflow-hidden shadow-lg border-0">
-            <CardContent className="p-8">
-              <h3 className="text-2xl font-bold mb-6">Your Stay Details</h3>
+          <Card className="overflow-hidden shadow-sm border-0 bg-gradient-to-br from-background to-muted/5">
+            <CardContent className="p-6">
+              <h3 className="text-xl font-bold mb-4">Your Stay Details</h3>
               
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* Dates Section */}
                 {(hotel.stayDetails.checkIn || hotel.stayDetails.checkOut) && (
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-                        <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                        <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                       </div>
-                      <h4 className="font-semibold text-lg">Dates</h4>
+                      <h4 className="font-semibold">Dates</h4>
                     </div>
-                    <div className="space-y-3 pl-11">
+                    <div className="space-y-2 pl-7">
                       {hotel.stayDetails.checkIn && (
-                        <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-center text-sm">
                           <span className="text-muted-foreground">Check-in</span>
                           <span className="font-medium">
                             {new Date(hotel.stayDetails.checkIn).toLocaleDateString('en-US', { 
-                              weekday: 'short', 
                               month: 'short', 
                               day: 'numeric' 
                             })}
@@ -526,11 +527,10 @@ export function HotelDetailsPage() {
                         </div>
                       )}
                       {hotel.stayDetails.checkOut && (
-                        <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-center text-sm">
                           <span className="text-muted-foreground">Check-out</span>
                           <span className="font-medium">
                             {new Date(hotel.stayDetails.checkOut).toLocaleDateString('en-US', { 
-                              weekday: 'short', 
                               month: 'short', 
                               day: 'numeric' 
                             })}
@@ -543,66 +543,64 @@ export function HotelDetailsPage() {
 
                 {/* Room Details Section */}
                 {(hotel.stayDetails.guests || hotel.stayDetails.rooms || hotel.stayDetails.roomType) && (
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
-                        <Bed className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-lg bg-green-100 dark:bg-green-900/30">
+                        <Bed className="w-4 h-4 text-green-600 dark:text-green-400" />
                       </div>
-                      <h4 className="font-semibold text-lg">Room Details</h4>
+                      <h4 className="font-semibold">Room Details</h4>
                     </div>
-                    <div className="space-y-3 pl-11">
+                    <div className="space-y-2 pl-7">
                       {hotel.stayDetails.guests && (
-                        <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-center text-sm">
                           <span className="text-muted-foreground">Guests</span>
                           <span className="font-medium">{hotel.stayDetails.guests}</span>
                         </div>
                       )}
                       {hotel.stayDetails.rooms && (
-                        <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-center text-sm">
                           <span className="text-muted-foreground">Rooms</span>
                           <span className="font-medium">{hotel.stayDetails.rooms}</span>
                         </div>
                       )}
                       {hotel.stayDetails.roomType && (
-                        <div className="flex justify-between items-center">
-                          <span className="text-muted-foreground">Room Type</span>
-                          <span className="font-medium">{hotel.stayDetails.roomType}</span>
+                        <div className="text-sm">
+                          <div className="text-muted-foreground mb-1">Room Type</div>
+                          <div className="font-medium">{hotel.stayDetails.roomType}</div>
                         </div>
                       )}
                     </div>
                   </div>
                 )}
 
-                {/* Booking Info Section */}
+                {/* Booking Info Section - Confirmation and Total Cost together */}
                 {(hotel.stayDetails.confirmationNumber || hotel.stayDetails.totalCost) && (
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
-                        <CreditCard className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-lg bg-purple-100 dark:bg-purple-900/30">
+                        <CreditCard className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                       </div>
-                      <h4 className="font-semibold text-lg">Booking Info</h4>
+                      <h4 className="font-semibold">Booking Info</h4>
                     </div>
-                    <div className="space-y-3 pl-11">
+                    <div className="space-y-2 pl-7">
                       {hotel.stayDetails.confirmationNumber && (
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Confirmation</span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => copyConfirmationNumber(hotel.stayDetails!.confirmationNumber!)}
-                              className="h-auto p-1 text-sm font-medium hover:bg-muted/50"
-                            >
-                              <Copy className="w-3 h-3 mr-1" />
-                              {hotel.stayDetails.confirmationNumber}
-                            </Button>
-                          </div>
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground">Confirmation</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => copyConfirmationNumber(hotel.stayDetails!.confirmationNumber!)}
+                            className="h-auto p-1 text-xs font-medium hover:bg-muted/50"
+                          >
+                            <Copy className="w-3 h-3 mr-1" />
+                            {hotel.stayDetails.confirmationNumber.slice(0, 8)}...
+                          </Button>
                         </div>
                       )}
                       {hotel.stayDetails.totalCost && (
-                        <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-center text-sm">
                           <span className="text-muted-foreground">Total Cost</span>
-                          <Badge variant="secondary" className="bg-primary/10 text-primary font-bold text-sm px-3 py-1">
+                          <Badge variant="secondary" className="bg-primary/10 text-primary font-bold text-xs px-2 py-1">
                             {hotel.stayDetails.totalCost}
                           </Badge>
                         </div>
@@ -612,45 +610,47 @@ export function HotelDetailsPage() {
                 )}
               </div>
 
-              {/* Special Requests & Notes */}
+              {/* Special Requests & Notes - More compact */}
               {(hotel.stayDetails.specialRequests || hotel.stayDetails.notes) && (
-                <div className="mt-8 pt-6 border-t border-border/50">
-                  {hotel.stayDetails.specialRequests && (
-                    <div className="mb-4">
-                      <h5 className="font-medium mb-2">Special Requests</h5>
-                      <p className="text-muted-foreground text-sm bg-muted/30 rounded-lg p-3">
-                        {hotel.stayDetails.specialRequests}
-                      </p>
-                    </div>
-                  )}
-                  {hotel.stayDetails.notes && (
-                    <div>
-                      <h5 className="font-medium mb-2">Notes</h5>
-                      <p className="text-muted-foreground text-sm bg-muted/30 rounded-lg p-3">
-                        {hotel.stayDetails.notes}
-                      </p>
-                    </div>
-                  )}
+                <div className="mt-5 pt-4 border-t border-border/30">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {hotel.stayDetails.specialRequests && (
+                      <div>
+                        <h5 className="font-medium mb-2 text-sm">Special Requests</h5>
+                        <p className="text-muted-foreground text-xs bg-muted/30 rounded-lg p-2">
+                          {hotel.stayDetails.specialRequests}
+                        </p>
+                      </div>
+                    )}
+                    {hotel.stayDetails.notes && (
+                      <div>
+                        <h5 className="font-medium mb-2 text-sm">Notes</h5>
+                        <p className="text-muted-foreground text-xs bg-muted/30 rounded-lg p-2">
+                          {hotel.stayDetails.notes}
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </CardContent>
           </Card>
         )}
 
-        {/* Amenities */}
+        {/* Amenities - Compact grid layout */}
         {hotel.amenities && hotel.amenities.length > 0 && (
-          <Card className="overflow-hidden shadow-lg border-0">
-            <CardContent className="p-8">
-              <h3 className="text-2xl font-bold mb-6">Amenities</h3>
-              <div className="flex flex-wrap gap-3 overflow-x-auto pb-2">
+          <Card className="overflow-hidden shadow-sm border-0">
+            <CardContent className="p-6">
+              <h3 className="text-xl font-bold mb-4">Amenities</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                 {hotel.amenities.map((amenity, index) => (
                   <Badge 
                     key={index} 
                     variant="secondary" 
-                    className="flex items-center gap-2 px-4 py-2 bg-muted/50 hover:bg-muted/70 transition-colors rounded-full text-sm font-medium whitespace-nowrap"
+                    className="flex items-center gap-1.5 px-3 py-2 bg-muted/40 hover:bg-muted/60 transition-colors rounded-full text-xs font-medium justify-center"
                   >
                     {getAmenityIcon(amenity)}
-                    {amenity}
+                    <span className="truncate">{amenity}</span>
                   </Badge>
                 ))}
               </div>
@@ -658,81 +658,81 @@ export function HotelDetailsPage() {
           </Card>
         )}
 
-        {/* Contact & Booking Actions */}
-        <Card className="overflow-hidden shadow-lg border-0">
-          <CardContent className="p-8">
-            <h3 className="text-2xl font-bold mb-6">Contact & Booking</h3>
+        {/* Contact & Booking Actions - More compact */}
+        <Card className="overflow-hidden shadow-sm border-0">
+          <CardContent className="p-6">
+            <h3 className="text-xl font-bold mb-4">Contact & Booking</h3>
             
-            {/* Primary booking button */}
+            {/* Primary booking button - reduced padding */}
             {hotel.bookingUrl && (
               <Button 
                 size="lg"
                 onClick={() => window.open(hotel.bookingUrl, '_blank')}
-                className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary rounded-full mb-6"
+                className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary rounded-full mb-4"
               >
                 Book Now
               </Button>
             )}
             
-            {/* Secondary actions grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Secondary actions grid - one row underneath */}
+            <div className="grid grid-cols-3 gap-3">
               {hotel.phone && (
                 <Button 
                   variant="outline" 
-                  size="lg"
+                  size="sm"
                   onClick={() => window.open(`tel:${hotel.phone}`, '_self')}
-                  className="flex items-center gap-3 h-12 rounded-full"
+                  className="flex items-center gap-2 h-10 rounded-full text-xs"
                 >
-                  <Phone className="w-5 h-5" />
-                  Call Hotel
+                  <Phone className="w-4 h-4" />
+                  Call
                 </Button>
               )}
               
               {hotel.website && (
                 <Button 
                   variant="outline" 
-                  size="lg"
+                  size="sm"
                   onClick={() => window.open(hotel.website, '_blank')}
-                  className="flex items-center gap-3 h-12 rounded-full"
+                  className="flex items-center gap-2 h-10 rounded-full text-xs"
                 >
-                  <Globe className="w-5 h-5" />
+                  <Globe className="w-4 h-4" />
                   Website
                 </Button>
               )}
               
               <Button 
                 variant="outline" 
-                size="lg"
+                size="sm"
                 onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(hotel.address)}`, '_blank')}
-                className="flex items-center gap-3 h-12 rounded-full"
+                className="flex items-center gap-2 h-10 rounded-full text-xs"
               >
-                <Navigation className="w-5 h-5" />
+                <Navigation className="w-4 h-4" />
                 Directions
               </Button>
             </div>
           </CardContent>
         </Card>
 
-        {/* Location Map */}
+        {/* Location Map - Reduced height */}
         {hotel.latitude && hotel.longitude && (
-          <Card className="overflow-hidden shadow-lg border-0 rounded-2xl">
+          <Card className="overflow-hidden shadow-sm border-0 rounded-2xl">
             <CardContent className="p-0">
-              <div className="p-8 pb-4">
-                <h3 className="text-2xl font-bold">Location</h3>
+              <div className="p-6 pb-3">
+                <h3 className="text-xl font-bold">Location</h3>
               </div>
               
-              <div className="px-8 pb-8">
-                <div className="relative h-80 rounded-xl overflow-hidden border border-border/20 shadow-sm">
+              <div className="px-6 pb-6">
+                <div className="relative h-48 rounded-xl overflow-hidden border border-border/20 shadow-sm bg-muted/10">
                   {isMapLoading && (
                     <div className="absolute inset-0 bg-muted flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                     </div>
                   )}
                   
                   {mapError && (
                     <div className="absolute inset-0 bg-muted flex flex-col items-center justify-center text-center p-4">
-                      <MapPin className="w-8 h-8 text-muted-foreground mb-2" />
-                      <p className="text-sm text-muted-foreground mb-3">{mapError}</p>
+                      <MapPin className="w-6 h-6 text-muted-foreground mb-2" />
+                      <p className="text-xs text-muted-foreground mb-3">{mapError}</p>
                       <Button onClick={retryMap} variant="outline" size="sm">
                         Retry
                       </Button>
