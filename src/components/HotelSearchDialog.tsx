@@ -497,6 +497,22 @@ if (isMobile) {
           </div>
         </DrawerContent>
       </Drawer>
+
+      {/* Hotel Stay Details Dialog - Mobile Version */}
+      {selectedHotel && (
+        <HotelStayDetailsDialog
+          isOpen={showStayDetails}
+          onClose={() => {
+            setShowStayDetails(false);
+            setSelectedHotel(null);
+          }}
+          onConfirm={handleStayDetailsConfirm}
+          hotel={selectedHotel}
+          checkInDate={checkInDate}
+          checkOutDate={checkOutDate}
+          selectedLocation={selectedLocation}
+        />
+      )}
     </>
   );
 }
@@ -799,7 +815,7 @@ return (
         </DialogContent>
       </Dialog>
       
-      {/* Hotel Stay Details Dialog */}
+      {/* Hotel Stay Details Dialog - Works for both mobile and desktop */}
       {selectedHotel && (
         <HotelStayDetailsDialog
           isOpen={showStayDetails}
