@@ -504,71 +504,74 @@ export function ItineraryViewPage() {
                           className="group bg-card rounded-2xl border border-border/40 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden active:scale-[0.98]"
                           onClick={handleHotelClick}
                         >
-                          {/* Unified Hotel Content */}
-                          <div className="p-4">
-                            <div className="flex items-start gap-3 mb-3">
+                          {/* Unified Hotel Content - Single Section */}
+                          <div className="p-4 space-y-3">
+                            {/* Hotel Header Row */}
+                            <div className="flex items-start gap-3">
                               {/* Compact Hotel Icon */}
                               <div className={`w-12 h-12 bg-gradient-to-br ${gradients[index % gradients.length]} rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm group-hover:scale-105 transition-transform duration-200`}>
                                 <Hotel className="w-6 h-6 text-white drop-shadow-sm" />
                               </div>
                               
-                              {/* Hotel Information */}
+                              {/* Hotel Name & Address Column */}
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-start justify-between gap-2 mb-1">
-                                  <h3 className="text-lg font-bold text-foreground leading-tight line-clamp-1">
+                                  <h3 className="text-base font-bold text-foreground leading-tight line-clamp-1">
                                     {hotel.hotel?.name || 'Hotel'}
                                   </h3>
                                   
-                                  {/* Compact Nights Badge */}
+                                  {/* Full Nights Badge */}
                                   {itinerary.wasCreatedWithLengthOfStay && nights && (
-                                    <div className="bg-primary text-primary-foreground px-2 py-1 rounded-full text-xs font-bold shadow-sm shrink-0">
-                                      {nights}N
+                                    <div className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold shadow-sm shrink-0 whitespace-nowrap">
+                                      {nights} {nights === 1 ? 'Night' : 'Nights'}
                                     </div>
                                   )}
                                 </div>
                                 
-                                {/* Compact Address */}
-                                <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed mb-2">
+                                {/* Address directly below name */}
+                                <p className="text-sm text-muted-foreground/80 line-clamp-2 leading-relaxed">
                                   {hotel.hotel?.address}
                                 </p>
-                                
-                                {/* Compact Tags */}
-                                <div className="flex flex-wrap gap-1.5 mb-3">
-                                  {hotel.location && (
-                                    <div className="inline-flex items-center gap-1 bg-accent/20 text-accent px-2 py-1 rounded-lg text-xs font-medium">
-                                      <MapPin className="w-3 h-3" />
-                                      {hotel.location}
-                                    </div>
-                                  )}
-                                  
-                                  {!itinerary.wasCreatedWithLengthOfStay && (hotel.checkIn || hotel.checkOut) && (
-                                    <div className="inline-flex items-center bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-lg text-xs font-medium">
-                                      {hotel.checkIn && hotel.checkOut 
-                                        ? `${new Date(hotel.checkIn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(hotel.checkOut).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-                                        : hotel.checkIn 
-                                        ? `Check-in: ${new Date(hotel.checkIn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-                                        : `Check-out: ${new Date(hotel.checkOut).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-                                      }
-                                    </div>
-                                  )}
-                                </div>
                               </div>
                             </div>
                             
-                            {/* Compact Action Buttons - Single Row */}
-                            <div className="grid grid-cols-3 gap-2">
+                            {/* Location & Date Tags */}
+                            {(hotel.location || (!itinerary.wasCreatedWithLengthOfStay && (hotel.checkIn || hotel.checkOut))) && (
+                              <div className="flex flex-wrap gap-1.5">
+                                {hotel.location && (
+                                  <div className="inline-flex items-center gap-1 bg-accent/20 text-accent px-2 py-1 rounded-full text-xs font-medium">
+                                    <MapPin className="w-3 h-3" />
+                                    {hotel.location}
+                                  </div>
+                                )}
+                                
+                                {!itinerary.wasCreatedWithLengthOfStay && (hotel.checkIn || hotel.checkOut) && (
+                                  <div className="inline-flex items-center bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full text-xs font-medium">
+                                    {hotel.checkIn && hotel.checkOut 
+                                      ? `${new Date(hotel.checkIn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(hotel.checkOut).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+                                      : hotel.checkIn 
+                                      ? `Check-in: ${new Date(hotel.checkIn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+                                      : `Check-out: ${new Date(hotel.checkOut).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+                                    }
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            
+                            {/* Compact Action Buttons - Integrated in same section */}
+                            <div className="grid grid-cols-3 gap-2 pt-1">
                               {hotel.hotel?.address && (
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="h-9 rounded-xl border-border/60 hover:border-border hover:bg-accent/20 transition-all text-xs font-medium"
+                                  className="h-8 rounded-full border-border/60 hover:border-border hover:bg-accent/20 transition-all text-xs font-medium px-3"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     const query = encodeURIComponent(hotel.hotel.address);
                                     window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
                                   }}
                                 >
-                                  <MapPin className="w-3.5 h-3.5 mr-1.5 text-blue-600" />
+                                  <MapPin className="w-3 h-3 mr-1 text-blue-600" />
                                   Map
                                 </Button>
                               )}
@@ -577,13 +580,13 @@ export function ItineraryViewPage() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="h-9 rounded-xl border-border/60 hover:border-border hover:bg-accent/20 transition-all text-xs font-medium"
+                                  className="h-8 rounded-full border-border/60 hover:border-border hover:bg-accent/20 transition-all text-xs font-medium px-3"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(hotel.hotel.address)}`, '_blank');
                                   }}
                                 >
-                                  <Navigation className="w-3.5 h-3.5 mr-1.5 text-emerald-600" />
+                                  <Navigation className="w-3 h-3 mr-1 text-emerald-600" />
                                   Directions
                                 </Button>
                               )}
@@ -592,17 +595,17 @@ export function ItineraryViewPage() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="h-9 rounded-xl border-border/60 hover:border-border hover:bg-accent/20 transition-all text-xs font-medium"
+                                  className="h-8 rounded-full border-border/60 hover:border-border hover:bg-accent/20 transition-all text-xs font-medium px-3"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     window.open(hotel.hotel.website, '_blank');
                                   }}
                                 >
-                                  <ExternalLink className="w-3.5 h-3.5 mr-1.5 text-purple-600" />
+                                  <ExternalLink className="w-3 h-3 mr-1 text-purple-600" />
                                   Website
                                 </Button>
                               ) : (
-                                <div className="h-9 flex items-center justify-center text-muted-foreground/50 text-xs rounded-xl border border-border/30">
+                                <div className="h-8 flex items-center justify-center text-muted-foreground/50 text-xs rounded-full border border-border/30">
                                   No website
                                 </div>
                               )}
