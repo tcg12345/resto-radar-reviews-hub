@@ -504,7 +504,7 @@ export function UnifiedRestaurantDetails({
                 }}
                 className="bg-black/40 backdrop-blur-sm border-0 hover:bg-black/50 text-white text-xs px-3 py-2 h-8 rounded-full"
               >
-                View photos ({heroCandidates.length})
+                View photos ({photos.length})
               </Button>
             )}
           </div>
