@@ -2316,10 +2316,6 @@ export function ItineraryBuilder({
             wasCreatedWithLengthOfStay={wasCreatedWithLengthOfStay}
           />
 
-          {/* Map Button - Desktop */}
-          <div className="hidden lg:block mb-6">
-            <ItineraryMapButton events={events} onOpenMap={() => setIsMapOpen(true)} />
-          </div>
 
           {/* Trip Calendar */}
           <TripCalendar startDate={dateRange.start!} endDate={dateRange.end!} events={events} locations={currentItinerary?.locations || []} hotels={hotels} isMultiCity={currentItinerary?.isMultiCity || false} useLengthOfStay={wasCreatedWithLengthOfStay || useLengthOfStay || Object.keys(locationLengthOfStay).some(id => locationLengthOfStay[id])} onAddEvent={handleAddEvent} onEditEvent={handleEditEvent} onDeleteEvent={handleDeleteEvent} />
@@ -2355,7 +2351,7 @@ export function ItineraryBuilder({
       {/* Map View */}
       <ItineraryMapView events={events} hotels={hotels} isOpen={isMapOpen} onClose={() => setIsMapOpen(false)} />
 
-      {/* Mobile Map Button - Only show on builder tab and when map is not open */}
+      {/* Floating Map Button - Always visible when on builder tab and map is not open */}
       {activeTab === "builder" && !isMapOpen && <ItineraryMapButton events={events} onOpenMap={() => setIsMapOpen(true)} />}
     </div>;
 }
