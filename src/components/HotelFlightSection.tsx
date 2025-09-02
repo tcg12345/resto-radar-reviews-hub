@@ -265,14 +265,14 @@ export function HotelFlightSection({
   const content = isMobile ? (
     <div className="space-y-1">
         {/* Hotels Section - Mobile */}
-        <div className="bg-gradient-to-r from-blue-400/60 to-blue-500/60 dark:from-blue-500/40 dark:to-blue-600/40 -mx-6 px-6 rounded-xl my-[19px]">
-          <div className="flex items-center justify-between py-4 cursor-pointer" onClick={() => setIsHotelsExpanded(!isHotelsExpanded)}>
+        <div className="bg-card border border-border rounded-xl p-4 shadow-lg backdrop-blur-sm my-4 hover:shadow-xl transition-all duration-300">
+          <div className="flex items-center justify-between py-2 cursor-pointer" onClick={() => setIsHotelsExpanded(!isHotelsExpanded)}>
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-white/20 backdrop-blur-sm">
-                <Hotel className="w-6 h-6 text-white" />
+              <div className="p-2.5 rounded-xl bg-primary/10">
+                <Hotel className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <h3 className="font-bold text-white text-lg">Hotels</h3>
+                <h3 className="font-bold text-foreground text-lg">Hotels</h3>
                 
               </div>
             </div>
@@ -285,19 +285,19 @@ export function HotelFlightSection({
                   setIsHotelDialogOpen(true);
                 }} 
                 size="sm" 
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm" 
+                className="bg-primary/10 hover:bg-primary/20 text-primary border-primary/20" 
                 variant="outline"
               >
                 <Plus className="w-4 h-4 mr-1" />
                 Add
               </Button>
-              {isHotelsExpanded ? <ChevronUp className="w-6 h-6 text-white" /> : <ChevronDown className="w-6 h-6 text-white" />}
+              {isHotelsExpanded ? <ChevronUp className="w-6 h-6 text-muted-foreground" /> : <ChevronDown className="w-6 h-6 text-muted-foreground" />}
             </div>
           </div>
           
           {isHotelsExpanded && <div className="pb-4 animate-fade-in">
               {hotels.length > 0 ? <div className="space-y-3">
-                  {hotels.map(booking => <div key={booking.id} className="bg-background/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-border/20 hover:shadow-xl transition-all duration-300 group">
+                  {hotels.map(booking => <div key={booking.id} className="bg-card border border-border rounded-lg p-4 shadow-md hover:shadow-lg transition-all duration-300 group">
                       {/* Header Section */}
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-start gap-3 flex-1">
@@ -468,15 +468,15 @@ export function HotelFlightSection({
         </div>
 
         {/* Flights Section - Mobile */}
-        <div className="bg-gradient-to-r from-purple-400/60 to-purple-500/60 dark:from-purple-500/40 dark:to-purple-600/40 -mx-6 px-6 rounded-xl">
-          <div className="flex items-center justify-between py-4 cursor-pointer" onClick={() => setIsFlightsExpanded(!isFlightsExpanded)}>
+        <div className="bg-card border border-border rounded-xl p-4 shadow-lg backdrop-blur-sm hover:shadow-xl transition-all duration-300">
+          <div className="flex items-center justify-between py-2 cursor-pointer" onClick={() => setIsFlightsExpanded(!isFlightsExpanded)}>
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-white/20 backdrop-blur-sm">
-                <Plane className="w-6 h-6 text-white" />
+              <div className="p-2.5 rounded-xl bg-primary/10">
+                <Plane className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <h3 className="font-bold text-white text-lg">Flights</h3>
-                <p className="text-white/90 text-sm">{flights.length} flight{flights.length !== 1 ? 's' : ''} added</p>
+                <h3 className="font-bold text-foreground text-lg">Flights</h3>
+                <p className="text-muted-foreground text-sm">{flights.length} flight{flights.length !== 1 ? 's' : ''} added</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -487,22 +487,22 @@ export function HotelFlightSection({
                   setIsFlightDialogOpen(true);
                 }} 
                 size="sm" 
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm" 
+                className="bg-primary/10 hover:bg-primary/20 text-primary border-primary/20" 
                 variant="outline"
               >
                 <Plus className="w-4 h-4 mr-1" />
                 Add
               </Button>
-              {isFlightsExpanded ? <ChevronUp className="w-6 h-6 text-white" /> : <ChevronDown className="w-6 h-6 text-white" />}
+              {isFlightsExpanded ? <ChevronUp className="w-6 h-6 text-muted-foreground" /> : <ChevronDown className="w-6 h-6 text-muted-foreground" />}
             </div>
           </div>
           
           {isFlightsExpanded && <div className="pb-4 animate-fade-in">
               {flights.length > 0 ? <div className="space-y-3">
-                  {flights.map(flight => <div key={flight.id} className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-white/20">
+                  {flights.map(flight => <div key={flight.id} className="bg-card border border-border rounded-lg p-4 shadow-md hover:shadow-lg transition-all duration-300">
                       <div className="flex items-start gap-4">
-                        <div className="p-3 rounded-xl bg-purple-100 dark:bg-purple-900/50 shrink-0">
-                          <Plane className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                        <div className="p-3 rounded-xl bg-primary/10 shrink-0">
+                          <Plane className="w-5 h-5 text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between mb-2">
@@ -1034,8 +1034,8 @@ export function HotelFlightSection({
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-purple-100 dark:bg-purple-900/50">
-                  <Plane className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                <div className="p-1.5 rounded-lg bg-primary/10">
+                  <Plane className="w-4 h-4 text-primary" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-sm text-purple-900 dark:text-purple-100">Flights</h3>
