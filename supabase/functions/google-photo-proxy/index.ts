@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const photoRef = url.searchParams.get('photoreference') || url.searchParams.get('photo_reference') || url.searchParams.get('ref');
+    const photoRef = url.searchParams.get('photoreference') || url.searchParams.get('photo_reference') || url.searchParams.get('photo') || url.searchParams.get('ref');
     const maxwidth = url.searchParams.get('maxwidth') || '400';
     const maxheight = url.searchParams.get('maxheight');
 
