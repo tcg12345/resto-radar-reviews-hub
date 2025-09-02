@@ -493,20 +493,27 @@ export function UnifiedRestaurantDetails({
               {restaurantData.name}
             </h1>
             {/* View photos button */}
-            {(photos.length > 0 || (communityStats?.recentPhotos?.length || 0) > 0) && (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => {
-                  if (restaurantData.place_id) {
-                    navigate(`/restaurant/${restaurantData.place_id}/community-photos?name=${encodeURIComponent(restaurantData.name || 'Restaurant')}`);
-                  }
-                }}
-                className="bg-black/40 backdrop-blur-sm border-0 hover:bg-black/50 text-white text-xs px-3 py-2 h-8 rounded-full"
-              >
-                View photos ({photos.length})
-              </Button>
-            )}
+            {(() => {
+              const displayPhotos = (photos.length > 0 
+                ? photos 
+                : (communityStats?.recentPhotos || []).flatMap(r => r.photos || [])
+              ).map(p => resolveImageUrl(p)).filter(p => p && p.trim() !== '');
+              
+              return displayPhotos.length > 0 && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    if (restaurantData.place_id) {
+                      navigate(`/restaurant/${restaurantData.place_id}/community-photos?name=${encodeURIComponent(restaurantData.name || 'Restaurant')}`);
+                    }
+                  }}
+                  className="bg-black/40 backdrop-blur-sm border-0 hover:bg-black/50 text-white text-xs px-3 py-2 h-8 rounded-full"
+                >
+                  View photos ({displayPhotos.length})
+                </Button>
+              );
+            })()}
           </div>
         </div>
 
