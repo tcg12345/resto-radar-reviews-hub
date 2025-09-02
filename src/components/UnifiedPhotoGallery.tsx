@@ -82,8 +82,11 @@ export function UnifiedPhotoGallery({
   }, [allCommunityPhotos]);
 
   const handleViewAllPhotos = () => {
-    if (restaurantPlaceId && restaurantId) {
+    console.log('handleViewAllPhotos debug:', { restaurantPlaceId, restaurantId, restaurantName });
+    if (restaurantPlaceId) {
       navigate(`/restaurant/${restaurantPlaceId}/community-photos?name=${encodeURIComponent(restaurantName || 'Restaurant')}`);
+    } else {
+      console.warn('No restaurantPlaceId available for navigation');
     }
   };
 

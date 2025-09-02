@@ -637,6 +637,9 @@ export function UnifiedRestaurantDetails({
                 stats={communityStats} 
                 isLoading={isLoadingReviews} 
                 onPhotoClick={() => setIsPhotoGalleryOpen(true)} 
+                restaurantPlaceId={restaurantData.place_id}
+                restaurantId={restaurantData.id}
+                restaurantName={restaurantData.name}
                 friendPhotos={restaurantData.isSharedRestaurant && restaurantData.photos && restaurantData.photos.length > 0 ? 
                   restaurantData.photos.map((url, index) => ({
                     url,
@@ -646,9 +649,6 @@ export function UnifiedRestaurantDetails({
                 } 
                 friendName={restaurantData.isSharedRestaurant ? restaurantData.sharedBy?.name : undefined} 
                 friendId={restaurantData.isSharedRestaurant ? restaurantData.sharedBy?.id : undefined} 
-                restaurantId={restaurantData.id} 
-                restaurantPlaceId={restaurantData.place_id} 
-                restaurantName={restaurantData.name} 
               />
             </div>
           )}
