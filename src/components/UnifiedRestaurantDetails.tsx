@@ -806,8 +806,17 @@ export function UnifiedRestaurantDetails({
 
       {/* Photo Gallery Modal */}
       <PhotoGallery 
-        photos={photos.map(p => resolveImageUrl(p))} 
-        photoCaptions={restaurantData.photoCaptions || restaurantData.photo_captions} 
+        photos={
+          (photos.length > 0 
+            ? photos 
+            : (communityStats?.recentPhotos || []).flatMap(r => r.photos || [])
+          ).map(p => resolveImageUrl(p))
+        }
+        photoCaptions={
+          photos.length > 0 
+            ? (restaurantData.photoCaptions || restaurantData.photo_captions) 
+            : []
+        }
         isOpen={isPhotoGalleryOpen} 
         onClose={() => setIsPhotoGalleryOpen(false)} 
         restaurantName={restaurantData.name} 
