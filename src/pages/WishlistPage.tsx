@@ -40,7 +40,7 @@ export function WishlistPage({
   const wishlistRestaurants = restaurants.filter((r) => r.isWishlist);
   
   // Get unique cities and sort alphabetically
-  const cities = Array.from(new Set(wishlistRestaurants.map(r => r.city))).sort();
+  const cities = Array.from(new Set(wishlistRestaurants.map(r => r.city).filter(city => city && city.trim() !== ''))).sort();
 
   // Filter restaurants
   const filteredRestaurants = wishlistRestaurants

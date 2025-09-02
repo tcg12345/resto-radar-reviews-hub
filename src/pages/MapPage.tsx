@@ -229,7 +229,7 @@ export function MapPage({ restaurants, onEditRestaurant, onDeleteRestaurant }: M
   }, [searchQuery, restaurantsWithCoords]);
 
   // Get unique cuisines and price ranges for filter options
-  const uniqueCuisines = [...new Set(restaurants.map(r => r.cuisine))].sort();
+  const uniqueCuisines = [...new Set(restaurants.map(r => r.cuisine).filter(cuisine => cuisine && cuisine.trim() !== ''))].sort();
   const uniquePriceRanges = [...new Set(restaurants.map(r => r.priceRange).filter(Boolean))].sort();
 
   return (

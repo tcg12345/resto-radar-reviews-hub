@@ -177,7 +177,7 @@ export function FriendsActivityPage() {
     if (!friendsRestaurants || friendsRestaurants.length === 0) {
       return [];
     }
-    return [...new Set(friendsRestaurants.map(r => r.cuisine))].sort();
+    return [...new Set(friendsRestaurants.map(r => r.cuisine).filter(cuisine => cuisine && cuisine.trim() !== ''))].sort();
   }, [restaurantMetadata, friendsRestaurants]);
   const uniqueCities = React.useMemo(() => {
     if (restaurantMetadata) {
@@ -186,7 +186,7 @@ export function FriendsActivityPage() {
     if (!friendsRestaurants || friendsRestaurants.length === 0) {
       return [];
     }
-    return [...new Set(friendsRestaurants.map(r => r.city))].sort();
+    return [...new Set(friendsRestaurants.map(r => r.city).filter(city => city && city.trim() !== ''))].sort();
   }, [restaurantMetadata, friendsRestaurants]);
   const uniqueFriends = React.useMemo(() => {
     if (!friendsRestaurants || friendsRestaurants.length === 0) {
