@@ -279,8 +279,17 @@ export function PhotoGallery({
                     className="max-w-full max-h-full object-contain"
                     onError={(e) => {
                       console.error('Photo failed to load:', photos[currentIndex]);
+                      
+                      // Try loading with a different maxwidth parameter
+                      const currentSrc = e.currentTarget.src;
+                      if (currentSrc.includes('maxwidth=640')) {
+                        console.log('Trying alternative image size...');
+                        e.currentTarget.src = currentSrc.replace('maxwidth=640', 'maxwidth=400');
+                        return;
+                      }
+                      
+                      // If alternative size also fails, show fallback
                       e.currentTarget.style.display = 'none';
-                      // Show placeholder or fallback
                       const fallback = e.currentTarget.nextElementSibling as HTMLElement;
                       if (fallback) fallback.style.display = 'flex';
                     }}
@@ -294,8 +303,25 @@ export function PhotoGallery({
                     style={{display: 'none'}}
                   >
                     <div className="text-center">
-                      <div className="text-muted-foreground text-sm">Photo unavailable</div>
-                      <div className="text-xs text-muted-foreground/60 mt-1">Image failed to load</div>
+                      <div className="text-muted-foreground text-sm">Photo temporarily unavailable</div>
+                      <div className="text-xs text-muted-foreground/60 mt-1">Try refreshing or check your connection</div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-2"
+                        onClick={() => {
+                          // Retry loading the original image
+                          const img = document.querySelector('img[alt*="photo"]') as HTMLImageElement;
+                          const fallback = document.querySelector('[style*="display: flex"]') as HTMLElement;
+                          if (img && fallback) {
+                            fallback.style.display = 'none';
+                            img.style.display = 'block';
+                            img.src = photos[currentIndex];
+                          }
+                        }}
+                      >
+                        Retry
+                      </Button>
                     </div>
                   </div>
                   
