@@ -205,7 +205,7 @@ export function UnifiedPhotoGallery({
                 onClick={() => handleViewAllPhotos()}
               >
                 <div className="text-center text-muted-foreground">
-                  <div className="text-lg font-bold">+{Math.max(0, allCommunityPhotos.length - displayPhotos.length)}</div>
+                  <div className="text-lg font-bold">+{Math.max(0, (allCommunityPhotos.length + (friendPhotos?.length || 0)) - displayPhotos.length)}</div>
                   <div className="text-xs">more</div>
                 </div>
               </div>
