@@ -1772,6 +1772,9 @@ export function ItineraryBuilder({
               </div>
             </div>
 
+          {/* Divider */}
+          <div className="w-full h-px bg-border my-6"></div>
+
           {/* Trip Extension Section - Show for all trips */}
           {currentItinerary && <div className="mb-6 relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen px-4">
               <Collapsible open={isExtensionOpen} onOpenChange={setIsExtensionOpen}>
@@ -2297,6 +2300,9 @@ export function ItineraryBuilder({
                 </CollapsibleContent>
               </Collapsible>
             </div>}
+
+          {/* Divider */}
+          <div className="w-full h-px bg-border my-6"></div>
 
           {/* Hotels and Flights Section - Moved to top */}
           <HotelFlightSection 
