@@ -57,6 +57,7 @@ import ExpertRatingsPage from "./pages/ExpertRatingsPage";
 import ApplyExpertPage from "./pages/ApplyExpertPage";
 import AdminExpertApplicationsPage from "./pages/AdminExpertApplicationsPage";
 import EditHotelBookingPage from "./pages/EditHotelBookingPage";
+import RatedRestaurantsRankingPage from "./pages/RatedRestaurantsRankingPage";
 
 const queryClient = new QueryClient();
 
@@ -81,8 +82,9 @@ const App = () => (
                 {/* Individual section routes */}
                 <Route path="/home" element={<RequireAuth><Layout activeTab="home"><FeedPage /></Layout></RequireAuth>} />
                 <Route path="/places" element={<RequireAuth><Layout activeTab="places"><SavedPlacesPageWrapper /></Layout></RequireAuth>} />
-                <Route path="/rated" element={<RequireAuth><Layout activeTab="places"><SavedPlacesPageWrapper activeSubTab="rated" /></Layout></RequireAuth>} />
+                 <Route path="/rated" element={<RequireAuth><Layout activeTab="places"><SavedPlacesPageWrapper activeSubTab="rated" /></Layout></RequireAuth>} />
                 <Route path="/wishlist" element={<RequireAuth><Layout activeTab="places"><SavedPlacesPageWrapper activeSubTab="wishlist" /></Layout></RequireAuth>} />
+                <Route path="/restaurant-rankings" element={<RequireAuth><Layout showNavbar={false} showChatbot={false}><RatedRestaurantsRankingPage /></Layout></RequireAuth>} />
                 <Route path="/map" element={<RequireAuth><MapPageWrapper /></RequireAuth>} />
                 <Route path="/travel" element={<RequireAuth><Layout activeTab="travel"><TravelPage /></Layout></RequireAuth>} />
                 <Route path="/saved-itineraries" element={<RequireAuth><SavedItinerariesPage /></RequireAuth>} />

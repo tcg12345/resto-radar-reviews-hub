@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 import { SavedPlacesPage } from './SavedPlacesPage';
+import { RestaurantFormData } from '@/types/restaurant';
 
 interface SavedPlacesPageWrapperProps {
   shouldOpenAddDialog?: boolean;
@@ -16,10 +17,18 @@ export default function SavedPlacesPageWrapper({
   const navigate = useNavigate();
   const { restaurants, addRestaurant, updateRestaurant, deleteRestaurant } = useRestaurants();
 
+  const handleAddRestaurant = async (data: RestaurantFormData) => {
+    await addRestaurant(data);
+    // If it's a rated restaurant (not wishlist), navigate to rankings page
+    if (!data.isWishlist && data.rating && data.rating > 0) {
+      navigate('/restaurant-rankings');
+    }
+  };
+
   return (
     <SavedPlacesPage
       restaurants={restaurants}
-      onAddRestaurant={addRestaurant}
+      onAddRestaurant={handleAddRestaurant}
       onEditRestaurant={updateRestaurant}
       onDeleteRestaurant={deleteRestaurant}
       shouldOpenAddDialog={shouldOpenAddDialog}

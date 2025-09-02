@@ -31,6 +31,7 @@ export interface Restaurant {
   latitude?: number;
   longitude?: number;
   isWishlist: boolean;
+  customRank?: number;
   createdAt: string;
   updatedAt: string;
   userId: string;
@@ -53,6 +54,7 @@ export interface RestaurantFormData {
   notes?: string;
   dateVisited?: string;
   isWishlist: boolean;
+  customRank?: number;
   removedPhotoIndexes?: number[];
   phone_number?: string;
 }
