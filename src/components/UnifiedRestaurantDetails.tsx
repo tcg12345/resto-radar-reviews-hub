@@ -140,13 +140,19 @@ export function UnifiedRestaurantDetails({
     reviews,
     isLoading: isLoadingReviews,
     submitReview
-  } = useRestaurantReviews(deferCommunity && hasValidPlaceId ? restaurantData.place_id : undefined, restaurantData.name);
+  } = useRestaurantReviews(
+    deferCommunity && hasValidPlaceId ? restaurantData.place_id : undefined,
+    hasValidPlaceId ? restaurantData.name : undefined
+  );
 
   const {
     friendStats,
     expertStats,
     loading: isLoadingStats
-  } = useRatingStats(deferCommunity && hasValidPlaceId ? restaurantData.place_id : undefined, restaurantData.name);
+  } = useRatingStats(
+    deferCommunity && hasValidPlaceId ? restaurantData.place_id : undefined,
+    hasValidPlaceId ? restaurantData.name : undefined
+  );
 
   // Build hero image candidates: community photos first, then restaurant photos
   const heroCandidates = useMemo(() => {
