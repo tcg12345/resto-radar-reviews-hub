@@ -104,6 +104,8 @@ export function PhotoGallery({
     return caption.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
+  console.log('PhotoGallery debug:', { photos, photosLength: photos.length, isOpen });
+  
   if (!isOpen || photos.length === 0) return null;
 
   // Mobile version with full-page grid
