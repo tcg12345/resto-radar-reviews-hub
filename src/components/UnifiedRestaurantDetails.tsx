@@ -164,20 +164,27 @@ export function UnifiedRestaurantDetails({
   const [heroIndex, setHeroIndex] = useState(0);
   useEffect(() => {
     setHeroIndex(0);
+    setHeroLoadError(false); // Reset error state when hero candidates change
   }, [heroCandidates.length]);
 
   const heroSrc = heroCandidates[heroIndex];
   const hasHeroPhoto = !!heroSrc;
 
   useEffect(() => {
-    console.log('Hero candidates', {
+    console.log('Hero candidates debug:', {
       placeId: restaurantData.place_id,
+      restaurantPhotos: restaurantData.photos,
+      photosState: photos,
       communityCount: communityStats?.recentPhotos?.length,
+      communityPhotos: communityStats?.recentPhotos,
       photosCount: photos.length,
       heroCount: heroCandidates.length,
-      first: heroCandidates[0]
+      heroCandidates: heroCandidates.slice(0, 3),
+      first: heroCandidates[0],
+      hasHeroPhoto,
+      heroLoadError
     });
-  }, [heroCandidates.length]);
+  }, [heroCandidates.length, restaurantData.photos, photos, communityStats?.recentPhotos, hasHeroPhoto, heroLoadError]);
 
   // Save community stats to context for preloading (once per place)
   useEffect(() => {
@@ -189,6 +196,7 @@ export function UnifiedRestaurantDetails({
   useEffect(() => {
     setRestaurantData(restaurant);
     setPhotos(restaurant.photos || []);
+    setHeroLoadError(false); // Reset error state when restaurant changes
 
     // Fetch additional details if we have a place_id and missing info (deferred)
     if (deferHeavy && restaurant.place_id && !restaurant.website && !(restaurant.formatted_phone_number || restaurant.phone || restaurant.phone_number) && !fetchedDetailsPlaceIdsRef.current.has(restaurant.place_id)) {
