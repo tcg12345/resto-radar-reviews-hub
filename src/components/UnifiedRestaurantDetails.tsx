@@ -105,6 +105,7 @@ export function UnifiedRestaurantDetails({
   const [showMap, setShowMap] = useState(false);
   const [isHoursExpanded, setIsHoursExpanded] = useState(false);
   const [hasLoadedHeroImage, setHasLoadedHeroImage] = useState(false);
+  const [heroLoadError, setHeroLoadError] = useState(false);
   const mapRef = useRef<HTMLDivElement | null>(null);
   const enhancedPlaceIdsRef = useRef<Set<string>>(new Set());
   const linkedPlaceIdsRef = useRef<Set<string>>(new Set());
@@ -428,13 +429,14 @@ export function UnifiedRestaurantDetails({
       <div className="min-h-screen bg-gray-950">
         {/* Hero Section with Cover Photo */}
         <div className="relative h-[300px] w-full overflow-hidden">
-          {hasHeroPhoto ? (
+          {hasHeroPhoto && !heroLoadError ? (
             <div className="relative h-full w-full">
               <img 
                 src={resolveImageUrl(heroSrc)}
                 alt={restaurantData.name}
                 className="h-full w-full object-cover"
                 onLoad={() => setHasLoadedHeroImage(true)}
+                onError={() => setHeroLoadError(true)}
               />
             </div>
           ) : (
