@@ -233,59 +233,101 @@ export function HotelDetailsPage() {
 
   // Initialize map when token and hotel data are available
   useEffect(() => {
-    if (!mapboxToken || !hotel || !hotel.latitude || !hotel.longitude || !mapContainer.current || map.current) return;
+    if (!mapboxToken || !hotel || !hotel.latitude || !hotel.longitude || !mapContainer.current) return;
+    
+    // Prevent multiple initializations
+    if (map.current) {
+      map.current.remove();
+      map.current = null;
+    }
+
+    console.log('Initializing map with:', { 
+      token: mapboxToken ? 'Available' : 'Missing',
+      coords: [hotel.longitude, hotel.latitude],
+      container: mapContainer.current ? 'Available' : 'Missing'
+    });
 
     setIsMapLoading(true);
     setMapError('');
 
-    try {
-      mapboxgl.accessToken = mapboxToken;
-      
-      map.current = new mapboxgl.Map({
-        container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/streets-v12',
-        center: [hotel.longitude, hotel.latitude],
-        zoom: 15
-      });
+    // Add small delay to ensure container is properly mounted
+    const initializeMap = () => {
+      try {
+        mapboxgl.accessToken = mapboxToken;
+        
+        map.current = new mapboxgl.Map({
+          container: mapContainer.current!,
+          style: 'mapbox://styles/mapbox/streets-v12',
+          center: [hotel.longitude, hotel.latitude],
+          zoom: 15,
+          attributionControl: false // Remove attribution for cleaner look
+        });
 
-      // Handle map load success
-      map.current.on('load', () => {
+        // Handle map load success
+        map.current.on('load', () => {
+          console.log('Map loaded successfully');
+          setIsMapLoading(false);
+          setMapError('');
+        });
+
+        // Handle map load errors
+        map.current.on('error', (e) => {
+          console.error('Mapbox error:', e);
+          setMapError('Failed to load map. Please check your connection.');
+          setIsMapLoading(false);
+        });
+
+        // Handle style load errors specifically
+        map.current.on('style.load', () => {
+          console.log('Map style loaded');
+        });
+
+        // Add timeout fallback
+        const timeout = setTimeout(() => {
+          if (isMapLoading) {
+            console.warn('Map loading timeout');
+            setMapError('Map is taking too long to load. Please try refreshing.');
+            setIsMapLoading(false);
+          }
+        }, 10000); // 10 second timeout
+
+        // Add navigation controls
+        map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+        // Add marker for hotel location
+        new mapboxgl.Marker({
+          color: '#ef4444'
+        })
+        .setLngLat([hotel.longitude, hotel.latitude])
+        .setPopup(
+          new mapboxgl.Popup({ offset: 25 })
+            .setHTML(`<h3 style="margin: 0; font-weight: bold;">${hotel.name}</h3><p style="margin: 4px 0 0 0; font-size: 14px;">${hotel.address}</p>`)
+        )
+        .addTo(map.current);
+
+        // Clear timeout when component unmounts
+        return () => {
+          clearTimeout(timeout);
+          map.current?.remove();
+          map.current = null;
+        };
+
+      } catch (error) {
+        console.error('Error initializing map:', error);
+        setMapError('Unable to initialize map. Please check your connection and try again.');
         setIsMapLoading(false);
-        console.log('Map loaded successfully');
-      });
+      }
+    };
 
-      // Handle map load errors
-      map.current.on('error', (e) => {
-        console.error('Mapbox error:', e);
-        setMapError('Failed to load map. Please try refreshing the page.');
-        setIsMapLoading(false);
-      });
-
-      // Add navigation controls
-      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-      // Add marker for hotel location
-      new mapboxgl.Marker({
-        color: '#ef4444'
-      })
-      .setLngLat([hotel.longitude, hotel.latitude])
-      .setPopup(
-        new mapboxgl.Popup({ offset: 25 })
-          .setHTML(`<h3 style="margin: 0; font-weight: bold;">${hotel.name}</h3><p style="margin: 4px 0 0 0; font-size: 14px;">${hotel.address}</p>`)
-      )
-      .addTo(map.current);
-
-    } catch (error) {
-      console.error('Error initializing map:', error);
-      setMapError('Unable to initialize map. Please check your connection and try again.');
-      setIsMapLoading(false);
-    }
+    // Small delay to ensure DOM is ready
+    const timeoutId = setTimeout(initializeMap, 100);
 
     return () => {
+      clearTimeout(timeoutId);
       map.current?.remove();
       map.current = null;
     };
-  }, [mapboxToken, hotel]);
+  }, [mapboxToken, hotel, isMapLoading]); // Add isMapLoading to dependencies to prevent loops
 
   const retryMap = () => {
     setMapError('');
