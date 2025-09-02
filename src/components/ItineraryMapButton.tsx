@@ -37,7 +37,7 @@ export function ItineraryMapButton({ events, onOpenMap }: ItineraryMapButtonProp
 
   // Make the button sticky at the bottom for all screen sizes
   return (
-    <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+76px)] left-1/2 transform -translate-x-1/2 z-40">
+    <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+20px)] left-1/2 transform -translate-x-1/2 z-50">
       <Button 
         onClick={onOpenMap}
         className="h-10 px-4 rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all hover:scale-105 text-sm font-medium"
