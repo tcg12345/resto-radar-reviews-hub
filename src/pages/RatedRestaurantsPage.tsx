@@ -93,13 +93,14 @@ export function RatedRestaurantsPage({
     }
   }, [restaurants.length, ratedRestaurants.length]);
 
-  // Aggressively preload cover photos for faster perceived load, without external context calls
+  // Preload cover photos for faster perceived load, limited to first 10 for performance
   useEffect(() => {
     if (ratedRestaurants.length > 0 && !photosLoadedRef.current) {
       photosLoadedRef.current = true;
 const preloadImages = async () => {
   const coverPhotos = ratedRestaurants
     .filter(r => r.photos && r.photos.length > 0)
+    .slice(0, 10)  // only preload first 10 images for performance
     .map(r => resolveImageUrl(r.photos[0], { width: 800 }))
     .filter(Boolean);
   const preloadPromises = coverPhotos.map(url => new Promise<void>((resolve) => {

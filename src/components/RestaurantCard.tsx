@@ -199,7 +199,7 @@ export function RestaurantCard({
               className="h-full w-full object-cover cursor-pointer transition-transform duration-700 group-hover:scale-[1.02]"
               onLoad={() => setImageLoading(false)}
               onError={() => setImageLoading(false)}
-              loading="eager"
+              loading="lazy"
             />
             
             {/* Subtle gradient overlay for depth */}
