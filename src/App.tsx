@@ -23,7 +23,7 @@ import FriendProfilePage from "./pages/FriendProfilePage";
 import { ChatListPage } from "./pages/ChatListPage";
 import { ChatPage } from "./pages/ChatPage";
 import { ProfilePageWrapper } from "@/components/ProfilePageWrapper";
-import HomePageWrapper from "./pages/HomePageWrapper";
+import FeedPage from "./pages/FeedPage";
 import { MobileProfileEditPage } from "./pages/MobileProfileEditPage";
 import { MobileProfileEditNamePage } from "./pages/MobileProfileEditNamePage";
 import { MobileProfileEditUsernamePage } from "./pages/MobileProfileEditUsernamePage";
@@ -79,7 +79,7 @@ const App = () => (
                 <Route path="/demo" element={<DemoPage />} />
                 
                 {/* Individual section routes */}
-                <Route path="/home" element={<RequireAuth><Layout activeTab="home"><HomePageWrapper /></Layout></RequireAuth>} />
+                <Route path="/home" element={<RequireAuth><Layout activeTab="home"><FeedPage /></Layout></RequireAuth>} />
                 <Route path="/places" element={<RequireAuth><Layout activeTab="places"><SavedPlacesPageWrapper /></Layout></RequireAuth>} />
                 <Route path="/rated" element={<RequireAuth><Layout activeTab="places"><SavedPlacesPageWrapper activeSubTab="rated" /></Layout></RequireAuth>} />
                 <Route path="/wishlist" element={<RequireAuth><Layout activeTab="places"><SavedPlacesPageWrapper activeSubTab="wishlist" /></Layout></RequireAuth>} />
@@ -115,6 +115,7 @@ const App = () => (
                  <Route path="/profile" element={<RequireAuth><Layout activeTab="profile"><ProfilePageWrapper /></Layout></RequireAuth>} />
                  <Route path="/user/:userId" element={<RequireAuth><MobileFriendProfilePage /></RequireAuth>} />
                 <Route path="/profile/:userId" element={<RequireAuth><MobileFriendProfilePage /></RequireAuth>} />
+                <Route path="/friend-profile/:userId" element={<RequireAuth><MobileFriendProfilePage /></RequireAuth>} />
                 
                 {/* Legacy friends activity route - redirect to search/friends */}
                 <Route path="/friends-activity" element={<RequireAuth><Layout activeTab="search"><SearchTabsPage /></Layout></RequireAuth>} />
@@ -137,6 +138,7 @@ const App = () => (
 
                 {/* Expert application */}
                 <Route path="/apply-expert" element={<RequireAuth><ApplyExpertPage /></RequireAuth>} />
+                <Route path="/admin/expert-applications" element={<RequireAuth><AdminExpertApplicationsPage /></RequireAuth>} />
                 
                 {/* Main route - shows landing page or dashboard based on auth */}
                 <Route path="/" element={<Index />} />
