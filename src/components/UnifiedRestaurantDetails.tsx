@@ -497,7 +497,11 @@ export function UnifiedRestaurantDetails({
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => setIsPhotoGalleryOpen(true)}
+                onClick={() => {
+                  if (restaurantData.place_id) {
+                    navigate(`/restaurant/${restaurantData.place_id}/community-photos?name=${encodeURIComponent(restaurantData.name || 'Restaurant')}`);
+                  }
+                }}
                 className="bg-black/40 backdrop-blur-sm border-0 hover:bg-black/50 text-white text-xs px-3 py-2 h-8 rounded-full"
               >
                 View photos ({heroCandidates.length})
