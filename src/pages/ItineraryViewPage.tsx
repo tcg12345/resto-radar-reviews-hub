@@ -430,16 +430,18 @@ export function ItineraryViewPage() {
             {itinerary.hotels.length > 0 && (
               <div className="space-y-3">
                 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <button
                     onClick={() => setCollapsedHotels(!collapsedHotels)}
-                    className="w-full flex items-center justify-between p-3 bg-background hover:bg-accent/50 border border-border rounded-lg transition-colors"
+                    className="w-full flex items-center justify-between p-4 bg-card hover:bg-accent/30 border border-border/60 rounded-xl transition-all duration-200 shadow-sm"
                   >
-                    <div className="flex items-center gap-2">
-                      <Hotel className="w-4 h-4 text-blue-600" />
-                      <span className="font-medium">View Hotels ({itinerary.hotels.length})</span>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                        <Hotel className="w-5 h-5 text-white" />
+                      </div>
+                      <span className="font-semibold text-foreground">Hotels ({itinerary.hotels.length})</span>
                     </div>
-                    <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${
+                    <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${
                       collapsedHotels ? 'rotate-180' : ''
                     }`} />
                   </button>
@@ -452,7 +454,7 @@ export function ItineraryViewPage() {
                         : 'max-h-[9999px] opacity-100'
                     }`}
                   >
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                     {itinerary.hotels.map((hotel: any) => {
                       const handleHotelClick = () => {
                         // Store hotel data in sessionStorage for the HotelDetailsPage
@@ -490,110 +492,108 @@ export function ItineraryViewPage() {
                       return (
                         <div
                           key={hotel.id}
-                          className="group bg-card rounded-2xl border border-border/50 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden"
+                          className="group bg-card rounded-2xl border border-border/40 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden active:scale-[0.98]"
                           onClick={handleHotelClick}
                         >
-                          {/* Hotel Header */}
-                          <div className="p-4 pb-3">
-                            <div className="flex items-start gap-3">
-                              {/* Hotel Icon/Image Placeholder */}
-                              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                                <Hotel className="w-7 h-7 text-white" />
+                          {/* Main Content */}
+                          <div className="p-5">
+                            <div className="flex gap-4">
+                              {/* Hotel Icon */}
+                              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                                <Hotel className="w-8 h-8 text-white drop-shadow-sm" />
                               </div>
                               
-                              {/* Hotel Details */}
+                              {/* Hotel Info */}
                               <div className="flex-1 min-w-0">
-                                <div className="flex items-start justify-between gap-3 mb-1">
-                                  <h4 className="text-lg font-bold text-foreground leading-tight truncate">
+                                <div className="flex items-start justify-between gap-3 mb-2">
+                                  <h3 className="text-xl font-bold text-foreground leading-tight line-clamp-2">
                                     {hotel.hotel?.name || 'Hotel'}
-                                  </h4>
-                                  {/* Nights Badge */}
+                                  </h3>
+                                  {/* Nights Badge - Top Right */}
                                   {itinerary.wasCreatedWithLengthOfStay && nights && (
-                                    <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-semibold shrink-0">
-                                      {nights} {nights === 1 ? 'night' : 'nights'}
+                                    <div className="bg-primary text-primary-foreground px-3 py-1.5 rounded-full text-sm font-bold shadow-sm shrink-0">
+                                      {nights}N
                                     </div>
                                   )}
                                 </div>
                                 
                                 {/* Address */}
-                                <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed mb-2">
+                                <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed mb-3">
                                   {hotel.hotel?.address}
                                 </p>
                                 
-                                {/* Location Badge */}
-                                {hotel.location && (
-                                  <div className="inline-flex items-center gap-1 bg-accent/10 text-accent px-2 py-1 rounded-lg text-xs font-medium">
-                                    <MapPin className="w-3 h-3" />
-                                    {hotel.location}
-                                  </div>
-                                )}
+                                {/* Location & Date Info */}
+                                <div className="flex flex-wrap gap-2">
+                                  {hotel.location && (
+                                    <div className="inline-flex items-center gap-1.5 bg-accent/20 text-accent px-3 py-1.5 rounded-full text-xs font-medium">
+                                      <MapPin className="w-3 h-3" />
+                                      {hotel.location}
+                                    </div>
+                                  )}
+                                  {!itinerary.wasCreatedWithLengthOfStay && (hotel.checkIn || hotel.checkOut) && (
+                                    <div className="inline-flex items-center bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-1.5 rounded-full text-xs font-medium">
+                                      {hotel.checkIn && hotel.checkOut 
+                                        ? `${new Date(hotel.checkIn).toLocaleDateString()} - ${new Date(hotel.checkOut).toLocaleDateString()}`
+                                        : hotel.checkIn 
+                                        ? `Check-in: ${new Date(hotel.checkIn).toLocaleDateString()}`
+                                        : `Check-out: ${new Date(hotel.checkOut).toLocaleDateString()}`
+                                      }
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>
-
-                          {/* Date Info - Only for non-day mode */}
-                          {!itinerary.wasCreatedWithLengthOfStay && (hotel.checkIn || hotel.checkOut) && (
-                            <div className="px-4 pb-3">
-                              <div className="bg-blue-50/80 dark:bg-blue-900/20 rounded-xl p-3">
-                                <p className="text-sm text-blue-700 dark:text-blue-300 font-medium text-center">
-                                  {hotel.checkIn && hotel.checkOut 
-                                    ? `${new Date(hotel.checkIn).toLocaleDateString()} - ${new Date(hotel.checkOut).toLocaleDateString()}`
-                                    : hotel.checkIn 
-                                    ? `Check-in: ${new Date(hotel.checkIn).toLocaleDateString()}`
-                                    : `Check-out: ${new Date(hotel.checkOut).toLocaleDateString()}`
-                                  }
-                                </p>
-                              </div>
-                            </div>
-                          )}
                           
-                          {/* Action Buttons */}
-                          <div className="px-4 pb-4">
-                            <div className="grid grid-cols-3 gap-2">
+                          {/* Action Buttons - Full Width */}
+                          <div className="border-t border-border/30 bg-muted/10 p-4">
+                            <div className="grid grid-cols-3 gap-3">
                               {hotel.hotel?.address && (
                                 <Button
                                   size="sm"
-                                  variant="outline"
-                                  className="h-10 rounded-xl border-border/60 hover:border-border hover:bg-accent/20 transition-all"
+                                  variant="ghost"
+                                  className="h-12 rounded-xl hover:bg-accent/40 transition-all flex-col gap-1 text-xs font-medium"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     const query = encodeURIComponent(hotel.hotel.address);
                                     window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
                                   }}
                                 >
-                                  <MapPin className="w-4 h-4 mr-1.5" />
-                                  <span className="text-sm font-medium">Map</span>
+                                  <MapPin className="w-4 h-4" />
+                                  Map
                                 </Button>
                               )}
                               
                               {hotel.hotel?.address && (
                                 <Button
                                   size="sm"
-                                  variant="outline"
-                                  className="h-10 rounded-xl border-border/60 hover:border-border hover:bg-accent/20 transition-all"
+                                  variant="ghost"
+                                  className="h-12 rounded-xl hover:bg-accent/40 transition-all flex-col gap-1 text-xs font-medium"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(hotel.hotel.address)}`, '_blank');
                                   }}
                                 >
-                                  <Navigation className="w-4 h-4 mr-1.5" />
-                                  <span className="text-sm font-medium">Directions</span>
+                                  <Navigation className="w-4 h-4" />
+                                  Directions
                                 </Button>
                               )}
                               
-                              {hotel.hotel?.website && (
+                              {hotel.hotel?.website ? (
                                 <Button
                                   size="sm"
-                                  variant="outline"
-                                  className="h-10 rounded-xl border-border/60 hover:border-border hover:bg-accent/20 transition-all"
+                                  variant="ghost"
+                                  className="h-12 rounded-xl hover:bg-accent/40 transition-all flex-col gap-1 text-xs font-medium"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     window.open(hotel.hotel.website, '_blank');
                                   }}
                                 >
-                                  <ExternalLink className="w-4 h-4 mr-1.5" />
-                                  <span className="text-sm font-medium">Website</span>
+                                  <ExternalLink className="w-4 h-4" />
+                                  Website
                                 </Button>
+                              ) : (
+                                <div></div>
                               )}
                             </div>
                           </div>
