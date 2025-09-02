@@ -57,6 +57,7 @@ export function HotelDetailsPage() {
   const [showPhotoGallery, setShowPhotoGallery] = useState(false);
   const [galleryPhotoIndex, setGalleryPhotoIndex] = useState(0);
   const [isStayDetailsExpanded, setIsStayDetailsExpanded] = useState(true);
+  const [showAboutSection, setShowAboutSection] = useState(true);
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
 
@@ -557,25 +558,37 @@ export function HotelDetailsPage() {
       <div className="w-full px-3 py-3 space-y-5">
         
         {/* Hotel Overview Card */}
-        <Card className="shadow-sm border-border/50">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-                <Star className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+        {showAboutSection && (
+          <Card className="shadow-sm border-border/50">
+            <CardContent className="p-5 relative">
+              {/* Close button in top right */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAboutSection(false)}
+                className="absolute top-3 right-3 w-6 h-6 p-0 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+              
+              <div className="flex items-center gap-3 mb-4 pr-8">
+                <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                  <Star className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                </div>
+                <h2 className="text-lg font-bold">About this hotel</h2>
               </div>
-              <h2 className="text-lg font-bold">About this hotel</h2>
-            </div>
-            {isLoadingOverview ? (
-              <div className="space-y-3">
-                <div className="h-3 bg-muted rounded animate-pulse w-full"></div>
-                <div className="h-3 bg-muted rounded animate-pulse w-4/5"></div>
-                <div className="h-3 bg-muted rounded animate-pulse w-3/5"></div>
-              </div>
-            ) : (
-              <p className="text-muted-foreground leading-relaxed text-sm">{aiOverview}</p>
-            )}
-          </CardContent>
-        </Card>
+              {isLoadingOverview ? (
+                <div className="space-y-3">
+                  <div className="h-3 bg-muted rounded animate-pulse w-full"></div>
+                  <div className="h-3 bg-muted rounded animate-pulse w-4/5"></div>
+                  <div className="h-3 bg-muted rounded animate-pulse w-3/5"></div>
+                </div>
+              ) : (
+                <p className="text-muted-foreground leading-relaxed text-sm">{aiOverview}</p>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Stay Details Dropdown Card */}
         {hotel.stayDetails && (
