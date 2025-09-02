@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { FeedItem, FilterChip, ProfilePreview } from '@/types/feed';
 import { PopularRestaurantsCarousel } from '@/components/PopularRestaurantsCarousel';
+import { checkExpertStatus } from '@/hooks/useUserRole';
 
 export default function FeedPage() {
   const { user } = useAuth();
