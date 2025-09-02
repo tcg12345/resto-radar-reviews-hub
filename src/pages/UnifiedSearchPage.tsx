@@ -466,7 +466,7 @@ const performLiveSearch = async () => {
           {/* Search Form */}
           <div className="space-y-4">
             <div className="w-full">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 items-center px-4 max-w-full overflow-hidden">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 items-center">
                 {/* Main Search Input */}
                 <div className="lg:col-span-2 relative" ref={searchRef}>
                   <div className="relative group w-full">
