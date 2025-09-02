@@ -9,6 +9,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useFriends } from '@/hooks/useFriends';
 import { useItineraries } from '@/hooks/useItineraries';
 import { supabase } from '@/integrations/supabase/client';
+import { useUserRole } from '@/hooks/useUserRole';
+import { ExpertBadge } from '@/components/ExpertBadge';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 interface ProfileStats {
@@ -35,6 +37,7 @@ export function MobileProfilePage() {
     profile
   } = useAuth();
   const navigate = useNavigate();
+  const { isExpert } = useUserRole(user?.id);
   const {
     friends
   } = useFriends();
@@ -127,6 +130,7 @@ export function MobileProfilePage() {
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center gap-3">
               <h1 className="text-2xl font-bold">{profile.name || profile.username}</h1>
+              {isExpert && <ExpertBadge size="md" />}
               <Button size="sm" variant="ghost" className="h-6 w-6 p-0 hover:bg-muted" onClick={() => navigate('/profile/edit')}>
                 <Edit2 className="h-4 w-4 stroke-[1.5]" />
               </Button>

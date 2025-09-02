@@ -8,6 +8,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { cn } from '@/lib/utils';
 import { useFriendProfiles } from '@/contexts/FriendProfilesContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useUserRole } from '@/hooks/useUserRole';
+import { ExpertBadge } from '@/components/ExpertBadge';
 
 interface FriendCardProps {
   friend: {
@@ -30,6 +32,7 @@ function FriendCardComponent({ friend, onViewProfile, onChat, onRemove, classNam
   const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef<HTMLDivElement | null>(null);
   const { getFriendProfile } = useFriendProfiles();
+  const { isExpert } = useUserRole(friend.id);
   const [counts, setCounts] = useState({
     rated: friend.restaurant_count ?? 0,
     wishlist: friend.wishlist_count ?? 0,
@@ -85,9 +88,12 @@ function FriendCardComponent({ friend, onViewProfile, onChat, onRemove, classNam
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-background"></div>
             </div>
             <div>
-              <h3 className="font-semibold text-lg text-foreground group-hover:text-primary transition-colors">
-                @{friend.username}
-              </h3>
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="font-semibold text-lg text-foreground group-hover:text-primary transition-colors">
+                  @{friend.username}
+                </h3>
+                {isExpert && <ExpertBadge size="sm" />}
+              </div>
               {friend.name && (
                 <p className="text-sm text-muted-foreground">{friend.name}</p>
               )}

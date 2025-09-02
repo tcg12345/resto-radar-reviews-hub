@@ -551,7 +551,14 @@ export function UnifiedRestaurantDetails({
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gray-900/50 border-gray-800 cursor-pointer hover:bg-gray-900/70 transition-colors">
+                <Card 
+                  className="bg-gray-900/50 border-gray-800 cursor-pointer hover:bg-gray-900/70 transition-colors"
+                  onClick={() => {
+                    if (expertStats.count > 0) {
+                      navigate(`/restaurant/${restaurantData.place_id || restaurantData.id}/expert-ratings?name=${encodeURIComponent(restaurantData.name)}`);
+                    }
+                  }}
+                >
                   <CardContent className="p-4 text-center">
                     <div className="flex items-center justify-center gap-2 mb-2">
                       <Award className="h-4 w-4 text-amber-400" />

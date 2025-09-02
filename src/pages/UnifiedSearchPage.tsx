@@ -17,6 +17,7 @@ import { DiscoverPage } from '@/pages/DiscoverPage';
 import { SearchResultSkeleton } from '@/components/skeletons/SearchResultSkeleton';
 import { InfiniteScrollLoader } from '@/components/InfiniteScrollLoader';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { ExpertIndicator } from '@/components/ExpertIndicator';
 interface GooglePlaceResult {
   place_id: string;
   name: string;
@@ -742,9 +743,9 @@ export default function UnifiedSearchPage() {
                               </>}
                           </div>
                           
-                          {/* Third Row: City + State/Country and Status */}
+                           {/* Third Row: City + State/Country and Status */}
                           <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-xs text-muted-foreground">
                                 {(() => {
                           const parts = place.formatted_address?.split(', ') || [];
@@ -766,6 +767,11 @@ export default function UnifiedSearchPage() {
                               {place.opening_hours?.open_now !== undefined && <div className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${place.opening_hours.open_now ? 'bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-300' : 'bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300'}`}>
                                   {place.opening_hours.open_now ? 'Open' : 'Closed'}
                                 </div>}
+                              <ExpertIndicator 
+                                placeId={place.place_id} 
+                                restaurantName={place.name}
+                                size="sm"
+                              />
                             </div>
                             
                             <Button size="sm" className="h-6 px-3 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-xs" onClick={e => {
