@@ -394,7 +394,7 @@ export default function MobileSearchRestaurantDetailsPage() {
     latitude: restaurant.geometry?.location?.lat,
     longitude: restaurant.geometry?.location?.lng,
     michelinStars: restaurant.michelinStars,
-    photos: restaurant.photos?.map((p: any) => p.photo_reference) || [],
+    photos: restaurant.photos?.map((p: any) => getPhotoUrl(p.photo_reference)) || [],
   } as any;
 
   return (
