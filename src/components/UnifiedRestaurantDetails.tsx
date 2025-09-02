@@ -693,16 +693,9 @@ export function UnifiedRestaurantDetails({
                         {(() => {
                           const todayIndex = new Date().getDay();
                           const hoursArray = getOpeningHours();
-                          if (!hoursArray || !Array.isArray(hoursArray) || hoursArray.length === 0) {
-                            return 'Hours unavailable';
-                          }
-                          if (todayIndex >= hoursArray.length) {
-                            return 'Hours unavailable';
-                          }
+                          if (!hoursArray) return 'Hours unavailable';
                           const todayHours = hoursArray[todayIndex];
-                          if (!todayHours || typeof todayHours !== 'string') {
-                            return 'Hours unavailable';
-                          }
+                          if (!todayHours) return 'Hours unavailable';
                           const parts = todayHours.split(':');
                           return parts.length > 1 ? parts.slice(1).join(':').trim() : 'Closed';
                         })()}
@@ -713,49 +706,34 @@ export function UnifiedRestaurantDetails({
                   {/* Full week schedule */}
                   {isHoursExpanded && (
                     <div className="space-y-2">
-                      {(() => {
-                        const hoursArray = getOpeningHours();
-                        if (!hoursArray || !Array.isArray(hoursArray) || hoursArray.length === 0) {
-                          return (
-                            <div className="text-sm text-muted-foreground text-center py-2">
-                              Hours unavailable
-                            </div>
-                          );
-                        }
+                      {getOpeningHours()?.map((hours, index) => {
+                        const todayIndex = new Date().getDay();
+                        const isToday = index === todayIndex;
+                        const parts = hours.split(':');
+                        const dayName = parts[0]?.trim();
+                        const timeRange = parts.length > 1 ? parts.slice(1).join(':').trim() : 'Closed';
                         
-                        return hoursArray.map((hours, index) => {
-                          if (!hours || typeof hours !== 'string') {
-                            return null;
-                          }
-                          
-                          const todayIndex = new Date().getDay();
-                          const isToday = index === todayIndex;
-                          const parts = hours.split(':');
-                          const dayName = parts[0]?.trim() || `Day ${index + 1}`;
-                          const timeRange = parts.length > 1 ? parts.slice(1).join(':').trim() : 'Closed';
-                          
-                          return (
-                            <div 
-                              key={index} 
-                              className={`flex justify-between items-center py-1 ${
-                                isToday ? 'font-medium' : ''
-                              }`}
-                            >
-                              <span className={`text-sm min-w-[70px] ${
-                                isToday ? 'text-primary' : 'text-foreground'
-                              }`}>
-                                {dayName}
-                              </span>
-                              
-                              <span className={`text-sm text-right ${
-                                isToday ? 'text-primary font-medium' : 'text-muted-foreground'
-                              }`}>
-                                {timeRange}
-                              </span>
-                            </div>
-                          );
-                        }).filter(Boolean);
-                      })()}
+                        return (
+                          <div 
+                            key={index} 
+                            className={`flex justify-between items-center py-1 ${
+                              isToday ? 'font-medium' : ''
+                            }`}
+                          >
+                            <span className={`text-sm min-w-[70px] ${
+                              isToday ? 'text-primary' : 'text-foreground'
+                            }`}>
+                              {dayName}
+                            </span>
+                            
+                            <span className={`text-sm text-right ${
+                              isToday ? 'text-primary font-medium' : 'text-muted-foreground'
+                            }`}>
+                              {timeRange}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </CardContent>

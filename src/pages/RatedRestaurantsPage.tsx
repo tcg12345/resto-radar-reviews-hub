@@ -124,7 +124,7 @@ const preloadImages = async () => {
   }, [ratedRestaurants.length]);
 
   // Get unique cuisines
-  const cuisines = Array.from(new Set(ratedRestaurants.map(r => r.cuisine).filter(cuisine => cuisine && cuisine.trim() !== '')));
+  const cuisines = Array.from(new Set(ratedRestaurants.map(r => r.cuisine)));
 
   // Helper functions for multi-select
   const toggleCuisine = (cuisine: string) => {
