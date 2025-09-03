@@ -30,7 +30,10 @@ export default function RatedRestaurantsRankingPage() {
       return (b.rating || 0) - (a.rating || 0);
     });
 
-    setRankedRestaurants(sorted);
+    // Only update if the order has actually changed to prevent infinite loops
+    if (JSON.stringify(sorted.map(r => r.id)) !== JSON.stringify(rankedRestaurants.map(r => r.id))) {
+      setRankedRestaurants(sorted);
+    }
   }, [restaurants]);
 
   const handleDragEnd = async (event: DragEndEvent) => {
