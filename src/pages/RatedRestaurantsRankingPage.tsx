@@ -78,8 +78,8 @@ export default function RatedRestaurantsRankingPage() {
             priceRange: restaurant.priceRange,
             michelinStars: restaurant.michelinStars,
             photos: [], // Empty since we're not updating photos
-            photoDishNames: restaurant.photoDishNames,
-            photoNotes: restaurant.photoNotes,
+            photoDishNames: restaurant.photoDishNames?.slice(0, 50) || [], // Limit to prevent massive arrays
+            photoNotes: restaurant.photoNotes?.slice(0, 50) || [], // Limit to prevent massive arrays
             notes: restaurant.notes,
             dateVisited: restaurant.dateVisited,
             isWishlist: restaurant.isWishlist,
@@ -121,6 +121,58 @@ export default function RatedRestaurantsRankingPage() {
     // Optimistic UI first
     const next = arrayMove(rankedRestaurants, oldIndex, newIndex);
     setRankedRestaurants(next);
+
+    // Calculate new rating based on position
+    const draggedRestaurant = rankedRestaurants[oldIndex];
+    if (newlyAddedRestaurantId && draggedRestaurant.id === newlyAddedRestaurantId) {
+      const prevRestaurant = next[newIndex - 1];
+      const nextRestaurant = next[newIndex + 1];
+      
+      let newRating = draggedRestaurant.rating || 0;
+      
+      if (prevRestaurant && nextRestaurant) {
+        // Between two restaurants - average their ratings
+        newRating = ((prevRestaurant.rating || 0) + (nextRestaurant.rating || 0)) / 2;
+      } else if (prevRestaurant && !nextRestaurant) {
+        // Moved to last position - slightly lower than the previous
+        newRating = Math.max((prevRestaurant.rating || 0) - 0.1, 1);
+      } else if (!prevRestaurant && nextRestaurant) {
+        // Moved to first position - slightly higher than the next
+        newRating = Math.min((nextRestaurant.rating || 0) + 0.1, 10);
+      }
+      
+      // Update the restaurant with new rating
+      const updatedRestaurant = { ...draggedRestaurant, rating: newRating };
+      next[newIndex] = updatedRestaurant;
+      setRankedRestaurants([...next]);
+      
+      // Update the restaurant in the context
+      try {
+        const updatedData = {
+          name: updatedRestaurant.name,
+          address: updatedRestaurant.address,
+          city: updatedRestaurant.city,
+          country: updatedRestaurant.country,
+          cuisine: updatedRestaurant.cuisine,
+          rating: newRating,
+          categoryRatings: updatedRestaurant.categoryRatings,
+          useWeightedRating: updatedRestaurant.useWeightedRating,
+          priceRange: updatedRestaurant.priceRange,
+          michelinStars: updatedRestaurant.michelinStars,
+          photos: [], // Empty since we're not updating photos
+          photoDishNames: updatedRestaurant.photoDishNames || [], // Ensure it's an array, not undefined
+          photoNotes: updatedRestaurant.photoNotes || [], // Ensure it's an array, not undefined
+          notes: updatedRestaurant.notes,
+          dateVisited: updatedRestaurant.dateVisited,
+          isWishlist: updatedRestaurant.isWishlist,
+          customRank: newIndex + 1,
+          phone_number: updatedRestaurant.phone_number,
+        };
+        await updateRestaurant(updatedRestaurant.id, updatedData, true);
+      } catch (error) {
+        console.error('Error updating restaurant rating:', error);
+      }
+    }
 
     // Then persist only the changed ranks
     persistCustomRanks(next).catch(console.error);
