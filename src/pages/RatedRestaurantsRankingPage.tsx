@@ -32,6 +32,10 @@ export default function RatedRestaurantsRankingPage() {
 
   // A *local* ordered list we can optimistically update
   const [rankedRestaurants, setRankedRestaurants] = useState<Restaurant[]>([]);
+  // Track original state for cancel functionality
+  const [originalRestaurants, setOriginalRestaurants] = useState<Restaurant[]>([]);
+  const [originalRating, setOriginalRating] = useState<number | null>(null);
+  const [hasChanges, setHasChanges] = useState(false);
   // While we're pushing ranks to the server/context, don't let remote refresh overwrite the local order
   const isSyncingRef = useRef(false);
   const isDraggingRef = useRef(false);
@@ -39,18 +43,29 @@ export default function RatedRestaurantsRankingPage() {
   // Compute the canonical "remote" order for when we want to refresh local state
   const remoteOrdered = useMemo(() => sortByRankThenRating(restaurants), [restaurants]);
 
-  // Initialize/refresh local order, but *not* while we're in the middle of a drag/save cycle
+  // Initialize/refresh local order and store original state
   useEffect(() => {
     if (isSyncingRef.current || isDraggingRef.current) return;
 
     const localIds = rankedRestaurants.map(r => r.id);
     const remoteIds = remoteOrdered.map(r => r.id);
+    
     // Only replace if different to avoid unnecessary rerenders
     if (JSON.stringify(localIds) !== JSON.stringify(remoteIds)) {
       setRankedRestaurants(remoteOrdered);
+      setOriginalRestaurants(remoteOrdered);
+      
+      // Store original rating of newly added restaurant
+      if (newlyAddedRestaurantId) {
+        const newlyAdded = remoteOrdered.find(r => r.id === newlyAddedRestaurantId);
+        if (newlyAdded) {
+          setOriginalRating(newlyAdded.rating || null);
+        }
+      }
+      setHasChanges(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [remoteOrdered]); // intentionally not depending on rankedRestaurants
+  }, [remoteOrdered, newlyAddedRestaurantId]); // intentionally not depending on rankedRestaurants
 
   const persistCustomRanks = async (ordered: Restaurant[]) => {
     // Persist only rows whose rank actually changed
@@ -103,7 +118,7 @@ export default function RatedRestaurantsRankingPage() {
     isDraggingRef.current = true;
   };
 
-  const handleDragEnd = async (event: DragEndEvent) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     isDraggingRef.current = false;
 
@@ -118,11 +133,10 @@ export default function RatedRestaurantsRankingPage() {
     const newIndex = rankedRestaurants.findIndex(r => r.id === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
 
-    // Optimistic UI first
+    // Update local state only (don't save yet)
     const next = arrayMove(rankedRestaurants, oldIndex, newIndex);
-    setRankedRestaurants(next);
 
-    // Calculate new rating based on position
+    // Calculate new rating based on position for newly added restaurant
     const draggedRestaurant = rankedRestaurants[oldIndex];
     if (newlyAddedRestaurantId && draggedRestaurant.id === newlyAddedRestaurantId) {
       const prevRestaurant = next[newIndex - 1];
@@ -141,41 +155,96 @@ export default function RatedRestaurantsRankingPage() {
         newRating = Math.min((nextRestaurant.rating || 0) + 0.1, 10);
       }
       
-      // Update the restaurant with new rating
+      // Update the restaurant with new rating in local state only
       const updatedRestaurant = { ...draggedRestaurant, rating: newRating };
       next[newIndex] = updatedRestaurant;
-      setRankedRestaurants([...next]);
-      
-      // Update the restaurant in the context
-      try {
-        const updatedData = {
-          name: updatedRestaurant.name,
-          address: updatedRestaurant.address,
-          city: updatedRestaurant.city,
-          country: updatedRestaurant.country,
-          cuisine: updatedRestaurant.cuisine,
-          rating: newRating,
-          categoryRatings: updatedRestaurant.categoryRatings,
-          useWeightedRating: updatedRestaurant.useWeightedRating,
-          priceRange: updatedRestaurant.priceRange,
-          michelinStars: updatedRestaurant.michelinStars,
-          photos: [], // Empty since we're not updating photos
-          photoDishNames: updatedRestaurant.photoDishNames || [], // Ensure it's an array, not undefined
-          photoNotes: updatedRestaurant.photoNotes || [], // Ensure it's an array, not undefined
-          notes: updatedRestaurant.notes,
-          dateVisited: updatedRestaurant.dateVisited,
-          isWishlist: updatedRestaurant.isWishlist,
-          customRank: newIndex + 1,
-          phone_number: updatedRestaurant.phone_number,
-        };
-        await updateRestaurant(updatedRestaurant.id, updatedData, true);
-      } catch (error) {
-        console.error('Error updating restaurant rating:', error);
-      }
     }
 
-    // Then persist only the changed ranks
-    persistCustomRanks(next).catch(console.error);
+    setRankedRestaurants(next);
+    setHasChanges(true);
+  };
+
+  const handleSave = async () => {
+    if (!hasChanges || !newlyAddedRestaurantId) return;
+
+    isSyncingRef.current = true;
+    try {
+      // Find the newly added restaurant in current state
+      const newlyAddedRestaurant = rankedRestaurants.find(r => r.id === newlyAddedRestaurantId);
+      if (newlyAddedRestaurant) {
+        // Save the updated rating and position
+        const updatedData = {
+          name: newlyAddedRestaurant.name,
+          address: newlyAddedRestaurant.address,
+          city: newlyAddedRestaurant.city,
+          country: newlyAddedRestaurant.country,
+          cuisine: newlyAddedRestaurant.cuisine,
+          rating: newlyAddedRestaurant.rating,
+          categoryRatings: newlyAddedRestaurant.categoryRatings,
+          useWeightedRating: newlyAddedRestaurant.useWeightedRating,
+          priceRange: newlyAddedRestaurant.priceRange,
+          michelinStars: newlyAddedRestaurant.michelinStars,
+          photos: [], // Empty since we're not updating photos
+          photoDishNames: newlyAddedRestaurant.photoDishNames?.slice(0, 50) || [],
+          photoNotes: newlyAddedRestaurant.photoNotes?.slice(0, 50) || [],
+          notes: newlyAddedRestaurant.notes,
+          dateVisited: newlyAddedRestaurant.dateVisited,
+          isWishlist: newlyAddedRestaurant.isWishlist,
+          customRank: rankedRestaurants.findIndex(r => r.id === newlyAddedRestaurantId) + 1,
+          phone_number: newlyAddedRestaurant.phone_number,
+        };
+        await updateRestaurant(newlyAddedRestaurant.id, updatedData, false);
+      }
+
+      // Save custom ranks for all restaurants
+      await persistCustomRanks(rankedRestaurants);
+      
+      setHasChanges(false);
+      navigate('/places');
+    } catch (error) {
+      console.error('Error saving changes:', error);
+    } finally {
+      isSyncingRef.current = false;
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!newlyAddedRestaurantId || !originalRating) return;
+
+    // Restore original rating and navigate back
+    isSyncingRef.current = true;
+    try {
+      const originalRestaurant = originalRestaurants.find(r => r.id === newlyAddedRestaurantId);
+      if (originalRestaurant) {
+        const updatedData = {
+          name: originalRestaurant.name,
+          address: originalRestaurant.address,
+          city: originalRestaurant.city,
+          country: originalRestaurant.country,
+          cuisine: originalRestaurant.cuisine,
+          rating: originalRating,
+          categoryRatings: originalRestaurant.categoryRatings,
+          useWeightedRating: originalRestaurant.useWeightedRating,
+          priceRange: originalRestaurant.priceRange,
+          michelinStars: originalRestaurant.michelinStars,
+          photos: [], // Empty since we're not updating photos
+          photoDishNames: originalRestaurant.photoDishNames?.slice(0, 50) || [],
+          photoNotes: originalRestaurant.photoNotes?.slice(0, 50) || [],
+          notes: originalRestaurant.notes,
+          dateVisited: originalRestaurant.dateVisited,
+          isWishlist: originalRestaurant.isWishlist,
+          customRank: undefined, // Remove custom rank to revert to rating-based ordering
+          phone_number: originalRestaurant.phone_number,
+        };
+        await updateRestaurant(newlyAddedRestaurantId, updatedData, false);
+      }
+      
+      navigate('/places');
+    } catch (error) {
+      console.error('Error cancelling changes:', error);
+    } finally {
+      isSyncingRef.current = false;
+    }
   };
 
   return (
@@ -246,8 +315,20 @@ export default function RatedRestaurantsRankingPage() {
           </DndContext>
         )}
 
+        {/* Save/Cancel buttons for newly added restaurant */}
+        {newlyAddedRestaurantId && hasChanges && (
+          <div className="mt-6 flex gap-3 justify-center">
+            <Button variant="outline" onClick={handleCancel}>
+              Cancel Changes
+            </Button>
+            <Button onClick={handleSave}>
+              Save Ranking
+            </Button>
+          </div>
+        )}
+
         {/* Footer */}
-        {rankedRestaurants.length > 0 && (
+        {rankedRestaurants.length > 0 && !newlyAddedRestaurantId && (
           <div className="mt-8 text-center">
             <Button variant="outline" onClick={() => navigate('/places')}>
               Rate More Restaurants
