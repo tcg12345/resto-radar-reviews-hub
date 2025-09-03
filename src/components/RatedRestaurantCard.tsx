@@ -8,9 +8,16 @@ import { format } from 'date-fns';
 interface RatedRestaurantCardProps {
   restaurant: Restaurant;
   rank: number;
+  isNewlyAdded?: boolean;
+  isDraggable?: boolean;
 }
 
-export function RatedRestaurantCard({ restaurant, rank }: RatedRestaurantCardProps) {
+export function RatedRestaurantCard({ 
+  restaurant, 
+  rank, 
+  isNewlyAdded = false, 
+  isDraggable = true 
+}: RatedRestaurantCardProps) {
   const {
     attributes,
     listeners,
@@ -18,7 +25,10 @@ export function RatedRestaurantCard({ restaurant, rank }: RatedRestaurantCardPro
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: restaurant.id });
+  } = useSortable({ 
+    id: restaurant.id,
+    disabled: !isDraggable
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -34,26 +44,53 @@ export function RatedRestaurantCard({ restaurant, rank }: RatedRestaurantCardPro
     return 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground';
   };
 
+  const getCardClassName = () => {
+    let baseClasses = 'p-4 transition-all duration-200 border border-border/50 bg-gradient-to-r from-card to-card/50';
+    
+    if (isNewlyAdded) {
+      baseClasses += ' border-primary border-2 shadow-lg bg-gradient-to-r from-primary/5 to-primary/10';
+    }
+    
+    if (isDraggable) {
+      baseClasses += ' cursor-grab active:cursor-grabbing hover:shadow-lg hover:scale-[1.02]';
+    } else {
+      baseClasses += ' cursor-not-allowed opacity-60';
+    }
+    
+    if (isDragging) {
+      baseClasses += ' opacity-60 shadow-xl scale-105 rotate-1';
+    }
+    
+    return baseClasses;
+  };
+
   return (
     <Card
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
-      className={`p-4 cursor-grab active:cursor-grabbing transition-all duration-200 hover:shadow-lg hover:scale-[1.02] border border-border/50 bg-gradient-to-r from-card to-card/50 ${
-        isDragging ? 'opacity-60 shadow-xl scale-105 rotate-1' : ''
-      }`}
+      {...(isDraggable ? attributes : {})}
+      {...(isDraggable ? listeners : {})}
+      className={getCardClassName()}
     >
       <div className="flex items-center gap-4">
         {/* Rank Badge */}
-        <div className={`flex items-center justify-center w-10 h-10 rounded-full text-sm font-bold shadow-md ${getRankColor(rank)}`}>
+        <div className={`flex items-center justify-center w-10 h-10 rounded-full text-sm font-bold shadow-md ${getRankColor(rank)} ${
+          isNewlyAdded ? 'ring-2 ring-primary ring-offset-2' : ''
+        }`}>
           {rank}
         </div>
 
         {/* Restaurant Info */}
         <div className="flex-1 min-w-0 space-y-2">
           <div className="flex items-start justify-between">
-            <h3 className="font-semibold text-base">{restaurant.name}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-base">{restaurant.name}</h3>
+              {isNewlyAdded && (
+                <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded-full font-medium animate-pulse">
+                  NEW
+                </span>
+              )}
+            </div>
           </div>
           
           <div className="flex items-center gap-3 text-sm text-muted-foreground">

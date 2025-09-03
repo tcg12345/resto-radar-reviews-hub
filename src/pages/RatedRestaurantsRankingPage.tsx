@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Trophy, Target } from 'lucide-react';
@@ -24,7 +24,11 @@ function sortByRankThenRating(list: Restaurant[]) {
 
 export default function RatedRestaurantsRankingPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { restaurants, updateRestaurant } = useRestaurants();
+
+  // Get newly added restaurant ID from navigation state
+  const newlyAddedRestaurantId = location.state?.newlyAddedRestaurantId;
 
   // A *local* ordered list we can optimistically update
   const [rankedRestaurants, setRankedRestaurants] = useState<Restaurant[]>([]);
@@ -91,13 +95,22 @@ export default function RatedRestaurantsRankingPage() {
     }
   };
 
-  const handleDragStart = (_evt: DragStartEvent) => {
+  const handleDragStart = (evt: DragStartEvent) => {
+    // Only allow dragging if it's the newly added restaurant
+    if (newlyAddedRestaurantId && evt.active.id !== newlyAddedRestaurantId) {
+      return;
+    }
     isDraggingRef.current = true;
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     isDraggingRef.current = false;
+
+    // Only allow reordering if it's the newly added restaurant
+    if (newlyAddedRestaurantId && active.id !== newlyAddedRestaurantId) {
+      return;
+    }
 
     if (!over || active.id === over.id) return;
 
@@ -132,9 +145,14 @@ export default function RatedRestaurantsRankingPage() {
             <div className="flex items-start gap-3">
               <Target className="w-5 h-5 text-primary mt-0.5" />
               <div>
-                <p className="text-sm font-medium mb-1">Drag to Reorder</p>
+                <p className="text-sm font-medium mb-1">
+                  {newlyAddedRestaurantId ? 'Drag to Reorder Your New Restaurant' : 'Drag to Reorder'}
+                </p>
                 <p className="text-xs text-muted-foreground">
-                  Your restaurants are initially sorted by rating. Drag and drop to reorder them based on your personal preference.
+                  {newlyAddedRestaurantId 
+                    ? 'You can now reorder your newly rated restaurant. The highlighted restaurant can be moved to your preferred position.'
+                    : 'Your restaurants are initially sorted by rating. Drag and drop to reorder them based on your personal preference.'
+                  }
                 </p>
               </div>
             </div>
@@ -167,6 +185,8 @@ export default function RatedRestaurantsRankingPage() {
                     key={restaurant.id}
                     restaurant={restaurant}
                     rank={index + 1}
+                    isNewlyAdded={restaurant.id === newlyAddedRestaurantId}
+                    isDraggable={!newlyAddedRestaurantId || restaurant.id === newlyAddedRestaurantId}
                   />
                 ))}
               </div>
