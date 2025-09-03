@@ -3,11 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Star, Gem, MapPin } from 'lucide-react';
+import { Sparkles, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { MichelinStars } from '@/components/MichelinStars';
 
-interface HiddenGem {
+interface GemRestaurant {
   place_id: string;
   name: string;
   cuisine?: string;
@@ -18,10 +17,11 @@ interface HiddenGem {
   price_range?: number;
   michelin_stars?: number;
   photo_url?: string;
+  has_expert_reviews: boolean;
 }
 
 export function HiddenGemsCarousel() {
-  const [gems, setGems] = useState<HiddenGem[]>([]);
+  const [gems, setGems] = useState<GemRestaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -31,19 +31,24 @@ export function HiddenGemsCarousel() {
 
   const loadHiddenGems = async () => {
     try {
-      // Find restaurants with high ratings but low review counts (hidden gems)
-      const { data: gemCandidates } = await supabase
+      // Fetch top candidates (high ratings)
+      const { data: topCandidates } = await supabase
         .from('restaurants')
-        .select('google_place_id, name, cuisine, city, country, rating, price_range, michelin_stars, photos, created_at')
+        .select('google_place_id, name, cuisine, city, country, rating, price_range, michelin_stars, photos, user_id')
         .not('google_place_id', 'is', null)
         .not('rating', 'is', null)
-        .gte('rating', 8) // High rated
+        .gte('rating', 8)
         .eq('is_wishlist', false)
-        .order('created_at', { ascending: false })
-        .limit(50);
+        .order('rating', { ascending: false })
+        .limit(200);
+      const { data: expertRoles } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'expert');
+      const expertUserIds = expertRoles?.map(e => e.user_id) || [];
 
-      // Group by place and count reviews
-      const gemMap = new Map<string, {
+      // Group by place_id and compute review counts
+      const stats = new Map<string, {
         place_id: string;
         name: string;
         cuisine?: string;
@@ -53,20 +58,16 @@ export function HiddenGemsCarousel() {
         price_range?: number;
         michelin_stars?: number;
         photo_url?: string;
-        latest_date: string;
+        expert_count: number;
       }>();
-
-      (gemCandidates || []).forEach(r => {
+      (topCandidates || []).forEach(r => {
         if (!r.google_place_id) return;
         const pid = r.google_place_id;
-        const existing = gemMap.get(pid);
+        const existing = stats.get(pid);
         if (existing) {
           existing.ratings.push(r.rating);
-          if (new Date(r.created_at).getTime() > new Date(existing.latest_date).getTime()) {
-            existing.latest_date = r.created_at;
-          }
         } else {
-          gemMap.set(pid, {
+          stats.set(pid, {
             place_id: pid,
             name: r.name,
             cuisine: r.cuisine,
@@ -76,14 +77,18 @@ export function HiddenGemsCarousel() {
             price_range: r.price_range,
             michelin_stars: r.michelin_stars,
             photo_url: r.photos?.[0] || undefined,
-            latest_date: r.created_at
+            expert_count: 0
           });
+        }
+        if (expertUserIds.includes(r.user_id)) {
+          const entry = stats.get(pid);
+          if (entry) entry.expert_count++;
         }
       });
 
-      // Filter for true hidden gems (few reviews but high quality)
-      let gemsList: HiddenGem[] = Array.from(gemMap.values())
-        .filter(item => item.ratings.length >= 1 && item.ratings.length <= 5) // Limited exposure
+      // Filter to hidden gems: 2-3 total reviews and high average
+      let gemsList = Array.from(stats.values())
+        .filter(item => item.ratings.length >= 2 && item.ratings.length <= 3)
         .map(item => ({
           place_id: item.place_id,
           name: item.name,
@@ -94,11 +99,17 @@ export function HiddenGemsCarousel() {
           review_count: item.ratings.length,
           price_range: item.price_range,
           michelin_stars: item.michelin_stars,
-          photo_url: item.photo_url
+          photo_url: item.photo_url,
+          has_expert_reviews: item.expert_count > 0
         }))
-        .sort((a, b) => b.avg_rating - a.avg_rating) // Sort by rating quality
-        .slice(0, 10);
-
+        .filter(place => place.avg_rating >= 8);
+      gemsList.sort((a, b) => {
+        if (a.has_expert_reviews !== b.has_expert_reviews) {
+          return a.has_expert_reviews ? -1 : 1;
+        }
+        return b.avg_rating - a.avg_rating;
+      });
+      gemsList = gemsList.slice(0, 10);
       setGems(gemsList);
     } catch (error) {
       console.error('Error loading hidden gems:', error);
@@ -108,8 +119,8 @@ export function HiddenGemsCarousel() {
     }
   };
 
-  const handleNavigate = (placeId: string, name: string) => {
-    navigate(`/restaurant/${placeId}?name=${encodeURIComponent(name)}`);
+  const handleClick = (place: GemRestaurant) => {
+    navigate(`/restaurant/${place.place_id}?name=${encodeURIComponent(place.name)}`);
   };
 
   if (loading) {
@@ -135,7 +146,7 @@ export function HiddenGemsCarousel() {
     <div className="px-4 py-3 border-b border-border/50">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
-          <Gem className="h-4 w-4" />
+          <Sparkles className="h-4 w-4" />
           Hidden Gems
         </h2>
         <Button
@@ -152,16 +163,11 @@ export function HiddenGemsCarousel() {
           <Card
             key={place.place_id}
             className="min-w-[240px] cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02]"
-            onClick={() => handleNavigate(place.place_id, place.name)}
+            onClick={() => handleClick(place)}
           >
             {place.photo_url && (
               <div className="relative h-24 overflow-hidden rounded-t-lg">
                 <img src={place.photo_url} alt={place.name} className="w-full h-full object-cover" />
-                <div className="absolute top-2 right-2">
-                  <Badge variant="secondary" className="text-xs px-2 py-1 bg-amber-500/90 text-white">
-                    Hidden Gem
-                  </Badge>
-                </div>
               </div>
             )}
             <CardHeader className="pb-2">
@@ -189,16 +195,15 @@ export function HiddenGemsCarousel() {
                   </Badge>
                 )}
                 {place.michelin_stars && place.michelin_stars > 0 && (
-                  <MichelinStars stars={place.michelin_stars} size="sm" />
+                  <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                    {place.michelin_stars}★
+                  </Badge>
                 )}
               </div>
               {(place.city || place.country) && (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <MapPin className="h-3 w-3 flex-shrink-0" />
-                  <span className="truncate">
-                    {place.city && place.country ? `${place.city}, ${place.country}` : place.city || place.country}
-                  </span>
-                </div>
+                <p className="text-xs text-muted-foreground">
+                  {place.city && place.country ? `${place.city}, ${place.country}` : place.city || place.country}
+                </p>
               )}
             </CardContent>
           </Card>

@@ -20,7 +20,7 @@ export function ProfileCarousel({ profiles, title, onProfileClick }: ProfileCaro
     if (onProfileClick) {
       onProfileClick(profileId);
     } else {
-      navigate(`/friend-profile/${profileId}`);
+      navigate(`/friends/${profileId}`);
     }
   };
 
