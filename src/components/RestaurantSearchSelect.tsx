@@ -101,10 +101,10 @@ export function RestaurantSearchSelect({
       clearTimeout(searchTimeoutRef.current);
     }
 
-    // Set new timeout
+    // Set new timeout with longer delay for better batching
     searchTimeoutRef.current = setTimeout(() => {
       performSearch(searchQuery.trim());
-    }, 300);
+    }, 500); // Increased from 300ms to 500ms to reduce API calls
   }, [searchQuery]);
 
   const performSearch = useCallback(async (query: string) => {
@@ -115,36 +115,53 @@ export function RestaurantSearchSelect({
     abortControllerRef.current = controller;
     
     setIsSearching(true);
+    console.log(`Starting search for: "${query}"`);
     
     try {
+      const startTime = Date.now();
       const { data, error } = await supabase.functions.invoke('google-places-search', {
         body: {
           query: `${query} restaurant`,
           type: 'search'
         }
       });
+      const duration = Date.now() - startTime;
+      console.log(`Search completed in ${duration}ms`);
 
       // Check if request was aborted
-      if (controller.signal.aborted) return;
-
-      if (error) {
-        console.error('Search error:', error);
-        toast.error('Failed to search restaurants');
+      if (controller.signal.aborted) {
+        console.log('Search was aborted');
         return;
       }
 
+      if (error) {
+        console.error('Search error:', error);
+        toast.error('Failed to search restaurants. Please try again.');
+        return;
+      }
+
+      console.log('Search response:', data);
       if (data.status === 'OK') {
+        console.log(`Found ${data.results?.length || 0} results`);
         setSearchResults(data.results || []);
         setShowResults(true);
         setSelectedIndex(-1);
+      } else if (data.status === 'ZERO_RESULTS') {
+        console.log('No results found');
+        setSearchResults([]);
+        setShowResults(true);
       } else {
+        console.warn('Unexpected response status:', data.status);
         setSearchResults([]);
         setShowResults(false);
       }
     } catch (error) {
-      if (controller.signal.aborted) return;
+      if (controller.signal.aborted) {
+        console.log('Search was aborted due to error');
+        return;
+      }
       console.error('Search error:', error);
-      toast.error('Failed to search restaurants');
+      toast.error('Search failed. Please check your connection and try again.');
     } finally {
       if (!controller.signal.aborted) {
         setIsSearching(false);
