@@ -1,7 +1,6 @@
 import { Restaurant } from '@/types/restaurant';
 import { Card } from '@/components/ui/card';
-import { MapPin, Calendar, Star } from 'lucide-react';
-import { LazyImage } from '@/components/LazyImage';
+import { MapPin, Calendar } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { format } from 'date-fns';
@@ -26,37 +25,7 @@ export function RatedRestaurantCard({ restaurant, rank }: RatedRestaurantCardPro
     transition,
   };
 
-  const firstPhoto = restaurant.photos?.[0];
   const rating = restaurant.rating || 0;
-
-  // Generate star display
-  const renderStars = () => {
-    const stars = [];
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 >= 0.5;
-    
-    for (let i = 0; i < 5; i++) {
-      if (i < fullStars) {
-        stars.push(
-          <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-        );
-      } else if (i === fullStars && hasHalfStar) {
-        stars.push(
-          <div key={i} className="relative w-3 h-3">
-            <Star className="w-3 h-3 text-gray-300 absolute" />
-            <div className="overflow-hidden w-1/2">
-              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-            </div>
-          </div>
-        );
-      } else {
-        stars.push(
-          <Star key={i} className="w-3 h-3 text-gray-300" />
-        );
-      }
-    }
-    return stars;
-  };
 
   const getRankColor = (rank: number) => {
     if (rank === 1) return 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900';
@@ -81,28 +50,10 @@ export function RatedRestaurantCard({ restaurant, rank }: RatedRestaurantCardPro
           {rank}
         </div>
 
-        {/* Photo */}
-        <div className="w-16 h-16 rounded-xl overflow-hidden bg-muted/30 flex-shrink-0 shadow-sm">
-          {firstPhoto ? (
-            <LazyImage
-              src={firstPhoto}
-              alt={restaurant.name}
-              className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
-            />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
-              <span className="text-xs text-muted-foreground">No photo</span>
-            </div>
-          )}
-        </div>
-
         {/* Restaurant Info */}
         <div className="flex-1 min-w-0 space-y-2">
           <div className="flex items-start justify-between">
-            <h3 className="font-semibold text-base truncate pr-2">{restaurant.name}</h3>
-            <div className="flex items-center gap-1 flex-shrink-0">
-              {renderStars()}
-            </div>
+            <h3 className="font-semibold text-base">{restaurant.name}</h3>
           </div>
           
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
