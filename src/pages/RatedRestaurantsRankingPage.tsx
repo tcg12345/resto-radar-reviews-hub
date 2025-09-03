@@ -1,81 +1,116 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRestaurants } from '@/contexts/RestaurantContext';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Trophy, Target } from 'lucide-react';
 import { RatedRestaurantCard } from '@/components/RatedRestaurantCard';
-import { DndContext, closestCenter, DragEndEvent } from '@dnd-kit/core';
+import { DndContext, closestCenter, DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { Restaurant } from '@/types/restaurant';
+
+function sortByRankThenRating(list: Restaurant[]) {
+  // never mutate the input
+  return [...list]
+    .filter(r => !r.isWishlist && r.rating && r.rating > 0)
+    .sort((a, b) => {
+      const aRank = a.customRank;
+      const bRank = b.customRank;
+      if (aRank != null && bRank != null) return aRank - bRank;
+      if (aRank != null) return -1;
+      if (bRank != null) return 1;
+      return (b.rating || 0) - (a.rating || 0); // highest rating first
+    });
+}
 
 export default function RatedRestaurantsRankingPage() {
   const navigate = useNavigate();
   const { restaurants, updateRestaurant } = useRestaurants();
+
+  // A *local* ordered list we can optimistically update
   const [rankedRestaurants, setRankedRestaurants] = useState<Restaurant[]>([]);
+  // While we're pushing ranks to the server/context, don't let remote refresh overwrite the local order
+  const isSyncingRef = useRef(false);
+  const isDraggingRef = useRef(false);
 
-  // Filter and sort rated restaurants
+  // Compute the canonical "remote" order for when we want to refresh local state
+  const remoteOrdered = useMemo(() => sortByRankThenRating(restaurants), [restaurants]);
+
+  // Initialize/refresh local order, but *not* while we're in the middle of a drag/save cycle
   useEffect(() => {
-    const ratedRestaurants = restaurants.filter(r => !r.isWishlist && r.rating && r.rating > 0);
-    
-    // Sort by custom rank first, then by rating (highest to lowest)
-    const sorted = ratedRestaurants.sort((a, b) => {
-      // If both have custom ranks, sort by rank
-      if (a.customRank !== undefined && b.customRank !== undefined) {
-        return a.customRank - b.customRank;
-      }
-      // If only one has custom rank, it goes first
-      if (a.customRank !== undefined) return -1;
-      if (b.customRank !== undefined) return 1;
-      // Otherwise sort by rating (highest first)
-      return (b.rating || 0) - (a.rating || 0);
-    });
+    if (isSyncingRef.current || isDraggingRef.current) return;
 
-    // Only update if the order has actually changed to prevent infinite loops
-    if (JSON.stringify(sorted.map(r => r.id)) !== JSON.stringify(rankedRestaurants.map(r => r.id))) {
-      setRankedRestaurants(sorted);
+    const localIds = rankedRestaurants.map(r => r.id);
+    const remoteIds = remoteOrdered.map(r => r.id);
+    // Only replace if different to avoid unnecessary rerenders
+    if (JSON.stringify(localIds) !== JSON.stringify(remoteIds)) {
+      setRankedRestaurants(remoteOrdered);
     }
-  }, [restaurants]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remoteOrdered]); // intentionally not depending on rankedRestaurants
+
+  const persistCustomRanks = async (ordered: Restaurant[]) => {
+    // Persist only rows whose rank actually changed
+    const updates = ordered.map((r, idx) => {
+      const nextRank = idx + 1;
+      return r.customRank === nextRank ? null : { restaurant: r, customRank: nextRank };
+    }).filter(Boolean) as { restaurant: Restaurant; customRank: number }[];
+
+    if (updates.length === 0) return;
+
+    // Mark syncing so incoming context updates won't clobber our local order
+    isSyncingRef.current = true;
+    try {
+      await Promise.all(
+        updates.map(({ restaurant, customRank }) => {
+          const updatedData = {
+            name: restaurant.name,
+            address: restaurant.address,
+            city: restaurant.city,
+            country: restaurant.country,
+            cuisine: restaurant.cuisine,
+            rating: restaurant.rating,
+            categoryRatings: restaurant.categoryRatings,
+            useWeightedRating: restaurant.useWeightedRating,
+            priceRange: restaurant.priceRange,
+            michelinStars: restaurant.michelinStars,
+            photos: [], // Empty since we're not updating photos
+            photoDishNames: restaurant.photoDishNames,
+            photoNotes: restaurant.photoNotes,
+            notes: restaurant.notes,
+            dateVisited: restaurant.dateVisited,
+            isWishlist: restaurant.isWishlist,
+            customRank: customRank,
+            phone_number: restaurant.phone_number,
+          };
+          return updateRestaurant(restaurant.id, updatedData);
+        })
+      );
+      // when context pushes fresh data, our effect will reconcile (because isSyncingRef is about to be false)
+    } finally {
+      isSyncingRef.current = false;
+    }
+  };
+
+  const handleDragStart = (_evt: DragStartEvent) => {
+    isDraggingRef.current = true;
+  };
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
+    isDraggingRef.current = false;
 
     if (!over || active.id === over.id) return;
 
     const oldIndex = rankedRestaurants.findIndex(r => r.id === active.id);
     const newIndex = rankedRestaurants.findIndex(r => r.id === over.id);
-
     if (oldIndex === -1 || newIndex === -1) return;
 
-    const newRankedRestaurants = arrayMove(rankedRestaurants, oldIndex, newIndex);
-    setRankedRestaurants(newRankedRestaurants);
+    // Optimistic UI first
+    const next = arrayMove(rankedRestaurants, oldIndex, newIndex);
+    setRankedRestaurants(next);
 
-    // Update custom ranks in background without blocking UI
-    const updates = newRankedRestaurants.map((restaurant, index) => {
-      const updatedData = {
-        name: restaurant.name,
-        address: restaurant.address,
-        city: restaurant.city,
-        country: restaurant.country,
-        cuisine: restaurant.cuisine,
-        rating: restaurant.rating,
-        categoryRatings: restaurant.categoryRatings,
-        useWeightedRating: restaurant.useWeightedRating,
-        priceRange: restaurant.priceRange,
-        michelinStars: restaurant.michelinStars,
-        photos: [], // Empty since we're not updating photos
-        photoDishNames: restaurant.photoDishNames,
-        photoNotes: restaurant.photoNotes,
-        notes: restaurant.notes,
-        dateVisited: restaurant.dateVisited,
-        isWishlist: restaurant.isWishlist,
-        customRank: index + 1,
-        phone_number: restaurant.phone_number,
-      };
-      return updateRestaurant(restaurant.id, updatedData);
-    });
-
-    // Don't await - let it run in background
-    Promise.all(updates).catch(console.error);
+    // Then persist only the changed ranks
+    persistCustomRanks(next).catch(console.error);
   };
 
   return (
@@ -84,12 +119,7 @@ export default function RatedRestaurantsRankingPage() {
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(-1)}
-              className="p-1 h-8 w-8"
-            >
+            <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="p-1 h-8 w-8">
               <ArrowLeft className="w-4 h-4" />
             </Button>
             <div className="flex items-center gap-2">
@@ -97,7 +127,7 @@ export default function RatedRestaurantsRankingPage() {
               <h1 className="text-2xl font-bold">Your Restaurant Rankings</h1>
             </div>
           </div>
-          
+
           <div className="bg-muted/50 rounded-lg p-4 border border-dashed">
             <div className="flex items-start gap-3">
               <Target className="w-5 h-5 text-primary mt-0.5" />
@@ -119,13 +149,12 @@ export default function RatedRestaurantsRankingPage() {
             <p className="text-muted-foreground mb-4">
               Start rating restaurants to see your personal rankings here.
             </p>
-            <Button onClick={() => navigate('/places')}>
-              Rate Your First Restaurant
-            </Button>
+            <Button onClick={() => navigate('/places')}>Rate Your First Restaurant</Button>
           </div>
         ) : (
           <DndContext
             collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
           >
             <SortableContext
@@ -148,10 +177,7 @@ export default function RatedRestaurantsRankingPage() {
         {/* Footer */}
         {rankedRestaurants.length > 0 && (
           <div className="mt-8 text-center">
-            <Button
-              variant="outline"
-              onClick={() => navigate('/places')}
-            >
+            <Button variant="outline" onClick={() => navigate('/places')}>
               Rate More Restaurants
             </Button>
           </div>
