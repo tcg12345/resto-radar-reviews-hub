@@ -46,8 +46,8 @@ export default function RatedRestaurantsRankingPage() {
     const newRankedRestaurants = arrayMove(rankedRestaurants, oldIndex, newIndex);
     setRankedRestaurants(newRankedRestaurants);
 
-    // Update custom ranks for all restaurants
-    const updates = newRankedRestaurants.map(async (restaurant, index) => {
+    // Update custom ranks in background without blocking UI
+    const updates = newRankedRestaurants.map((restaurant, index) => {
       const updatedData = {
         name: restaurant.name,
         address: restaurant.address,
@@ -71,7 +71,8 @@ export default function RatedRestaurantsRankingPage() {
       return updateRestaurant(restaurant.id, updatedData);
     });
 
-    await Promise.all(updates);
+    // Don't await - let it run in background
+    Promise.all(updates).catch(console.error);
   };
 
   return (
