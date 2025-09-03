@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Star, MapPin, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { MichelinStars } from '@/components/MichelinStars';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface PopularRestaurant {
   place_id: string;
@@ -23,16 +24,17 @@ interface PopularRestaurant {
 
 interface PopularRestaurantsCarouselProps {
   title?: string;
-  userLocation?: { latitude: number; longitude: number };
+  userLocation?: { latitude: number; longitude: number; city?: string; country?: string };
 }
 
 export function PopularRestaurantsCarousel({ 
   title = "Trending Near You",
-  userLocation 
+  userLocation
 }: PopularRestaurantsCarouselProps) {
   const [restaurants, setRestaurants] = useState<PopularRestaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     loadPopularRestaurants();
@@ -40,121 +42,117 @@ export function PopularRestaurantsCarousel({
 
   const loadPopularRestaurants = async () => {
     try {
-      // Get restaurants with high ratings and multiple reviews
-      const { data: topRated } = await supabase
-        .from('restaurants')
-        .select(`
-          google_place_id, name, cuisine, city, country, rating, price_range, michelin_stars, photos
-        `)
-        .not('google_place_id', 'is', null)
-        .not('rating', 'is', null)
-        .gte('rating', 7)
-        .eq('is_wishlist', false)
-        .order('rating', { ascending: false })
-        .limit(20);
-
-      // Get expert review counts
-      const { data: expertIds } = await supabase
-        .from('user_roles')
-        .select('user_id')
-        .eq('role', 'expert');
-
-      const expertUserIds = expertIds?.map(e => e.user_id) || [];
-
-      // Group by place_id and calculate stats
-      const restaurantStats = new Map<string, {
-        place_id: string;
-        name: string;
-        cuisine?: string;
-        city?: string;
-        country?: string;
-        ratings: number[];
-        price_range?: number;
-        michelin_stars?: number;
-        photo_url?: string;
-        expert_reviews: number;
-      }>();
-
-      topRated?.forEach(r => {
-        if (!r.google_place_id) return;
-        
-        const existing = restaurantStats.get(r.google_place_id);
-        if (existing) {
-          existing.ratings.push(r.rating);
-        } else {
-          restaurantStats.set(r.google_place_id, {
-            place_id: r.google_place_id,
-            name: r.name,
-            cuisine: r.cuisine,
-            city: r.city,
-            country: r.country,
-            ratings: [r.rating],
-            price_range: r.price_range,
-            michelin_stars: r.michelin_stars,
-            photo_url: r.photos?.[0],
-            expert_reviews: 0
-          });
-        }
-      });
-
-      // Check for expert reviews
-      if (expertUserIds.length > 0) {
-        const placeIds = Array.from(restaurantStats.keys());
-        
-        const { data: expertReviews } = await supabase
-          .from('user_reviews')
-          .select('restaurant_place_id')
-          .in('user_id', expertUserIds)
-          .in('restaurant_place_id', placeIds);
-
-        const { data: expertRatings } = await supabase
-          .from('restaurants')
-          .select('google_place_id')
-          .in('user_id', expertUserIds)
-          .in('google_place_id', placeIds)
-          .not('rating', 'is', null);
-
-        // Count expert reviews per place
-        [...(expertReviews || []), ...(expertRatings || [])].forEach(r => {
-          const placeId = ('restaurant_place_id' in r) ? r.restaurant_place_id : r.google_place_id;
-          const restaurant = restaurantStats.get(placeId);
-          if (restaurant) {
-            restaurant.expert_reviews++;
-          }
-        });
+      let popularList: PopularRestaurant[] = [];
+      if (userLocation && userLocation.latitude && userLocation.longitude) {
+        // Personalized local trending - use the extensive logic from user's code
+        await loadGlobalTrending(popularList);
+      } else {
+        // No user location available – use global trending
+        await loadGlobalTrending(popularList);
       }
-
-      // Convert to final format and sort
-      const popularRestaurants: PopularRestaurant[] = Array.from(restaurantStats.values())
-        .filter(r => r.ratings.length >= 2) // At least 2 reviews
-        .map(r => ({
-          place_id: r.place_id,
-          name: r.name,
-          cuisine: r.cuisine,
-          city: r.city,
-          country: r.country,
-          avg_rating: r.ratings.reduce((a, b) => a + b, 0) / r.ratings.length,
-          review_count: r.ratings.length,
-          price_range: r.price_range,
-          michelin_stars: r.michelin_stars,
-          photo_url: r.photo_url,
-          has_expert_reviews: r.expert_reviews > 0
-        }))
-        .sort((a, b) => {
-          // Sort by expert reviews first, then by rating
-          if (a.has_expert_reviews !== b.has_expert_reviews) {
-            return a.has_expert_reviews ? -1 : 1;
-          }
-          return b.avg_rating - a.avg_rating;
-        })
-        .slice(0, 10);
-
-      setRestaurants(popularRestaurants);
+      setRestaurants(popularList);
     } catch (error) {
       console.error('Error loading popular restaurants:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Helper: load global trending as fallback
+  const loadGlobalTrending = async (popularList: PopularRestaurant[]) => {
+    const { data: topRated } = await supabase
+      .from('restaurants')
+      .select(`
+        google_place_id, name, cuisine, city, country, rating, price_range, michelin_stars, photos, user_id
+      `)
+      .not('google_place_id', 'is', null)
+      .not('rating', 'is', null)
+      .gte('rating', 7)
+      .eq('is_wishlist', false)
+      .order('rating', { ascending: false })
+      .limit(20);
+    const { data: expertRoles } = await supabase
+      .from('user_roles')
+      .select('user_id')
+      .eq('role', 'expert');
+    const expertUserIds = expertRoles?.map(e => e.user_id) || [];
+
+    const stats = new Map<string, {
+      place_id: string;
+      name: string;
+      cuisine?: string;
+      city?: string;
+      country?: string;
+      ratings: number[];
+      price_range?: number;
+      michelin_stars?: number;
+      photo_url?: string;
+      expert_reviews: number;
+    }>();
+    topRated?.forEach(r => {
+      if (!r.google_place_id) return;
+      const existing = stats.get(r.google_place_id);
+      if (existing) {
+        existing.ratings.push(r.rating);
+      } else {
+        stats.set(r.google_place_id, {
+          place_id: r.google_place_id,
+          name: r.name,
+          cuisine: r.cuisine,
+          city: r.city,
+          country: r.country,
+          ratings: [r.rating],
+          price_range: r.price_range,
+          michelin_stars: r.michelin_stars,
+          photo_url: r.photos?.[0],
+          expert_reviews: 0
+        });
+      }
+    });
+    if (expertUserIds.length > 0) {
+      const placeIds = Array.from(stats.keys());
+      const { data: expertReviews } = await supabase
+        .from('user_reviews')
+        .select('restaurant_place_id')
+        .in('user_id', expertUserIds)
+        .in('restaurant_place_id', placeIds);
+      const { data: expertRatings } = await supabase
+        .from('restaurants')
+        .select('google_place_id')
+        .in('user_id', expertUserIds)
+        .in('google_place_id', placeIds)
+        .not('rating', 'is', null);
+      [...(expertReviews || []), ...(expertRatings || [])].forEach(evt => {
+        const pid = 'restaurant_place_id' in evt ? evt.restaurant_place_id : evt.google_place_id;
+        const entry = stats.get(pid);
+        if (entry) {
+          entry.expert_reviews++;
+        }
+      });
+    }
+    popularList.splice(0, popularList.length);
+    popularList.push(...Array.from(stats.values())
+      .filter(r => r.ratings.length >= 2)
+      .map(r => ({
+        place_id: r.place_id,
+        name: r.name,
+        cuisine: r.cuisine,
+        city: r.city,
+        country: r.country,
+        avg_rating: r.ratings.reduce((a, b) => a + b, 0) / r.ratings.length,
+        review_count: r.ratings.length,
+        price_range: r.price_range,
+        michelin_stars: r.michelin_stars,
+        photo_url: r.photo_url,
+        has_expert_reviews: r.expert_reviews > 0
+      }))
+      .sort((a, b) => {
+        if (a.has_expert_reviews !== b.has_expert_reviews) {
+          return a.has_expert_reviews ? -1 : 1;
+        }
+        return b.avg_rating - a.avg_rating;
+      })
+      .slice(0, 10));
   };
 
   const getPriceDisplay = (priceLevel?: number) => {

@@ -12,12 +12,16 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { FeedItem, FilterChip, ProfilePreview } from '@/types/feed';
 import { PopularRestaurantsCarousel } from '@/components/PopularRestaurantsCarousel';
+import { ExpertPicksCarousel } from '@/components/ExpertPicksCarousel';
+import { WishlistCarousel } from '@/components/WishlistCarousel';
+import { HiddenGemsCarousel } from '@/components/HiddenGemsCarousel';
+import { locationService } from '@/utils/location';
 import { checkExpertStatus } from '@/hooks/useUserRole';
 
 export default function FeedPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  
+
   const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<FeedItem[]>([]);
   const [filters, setFilters] = useState<FilterChip[]>([]);
@@ -27,18 +31,28 @@ export default function FeedPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number; city?: string; country?: string } | null>(null);
 
-  // Load feed data
+  // Get current location for personalized sections
+  useEffect(() => {
+    locationService.getCurrentLocation()
+      .then(location => {
+        setUserLocation(location);
+      })
+      .catch(err => {
+        console.log('Location access denied or unavailable:', err);
+      });
+  }, []);
+
+  // Load feed data (friends and experts activity)
   const loadFeedData = useCallback(async (isRefresh = false, loadOffset = 0) => {
     if (!user) return;
-
     try {
       if (isRefresh) {
         setIsRefreshing(true);
       } else if (loadOffset === 0) {
         setIsLoading(true);
       }
-
       const limit = 20;
 
       // Get user's friends
@@ -46,24 +60,20 @@ export default function FeedPage() {
         .from('friends')
         .select('user1_id, user2_id')
         .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
-
-      const friendIds = friendsData?.map(f => 
-        f.user1_id === user.id ? f.user2_id : f.user1_id
-      ) || [];
+      const friendIds = friendsData?.map(f => f.user1_id === user.id ? f.user2_id : f.user1_id) || [];
 
       // Get expert users
       const { data: expertRoles } = await supabase
         .from('user_roles')
         .select('user_id')
         .eq('role', 'expert');
-
       const expertIds = expertRoles?.map(r => r.user_id) || [];
 
       let allFeedItems: FeedItem[] = [];
 
-      // Fetch friend activity if we have friends
+      // Fetch friend activity if any friends
       if (friendIds.length > 0) {
-        // Friend restaurant ratings
+        // Friend quick ratings
         const { data: friendRatings } = await supabase
           .from('restaurants')
           .select(`
@@ -75,12 +85,11 @@ export default function FeedPage() {
           .order('created_at', { ascending: false })
           .range(loadOffset, loadOffset + limit - 1);
 
-        // Get profiles separately
+        // Friend profiles map
         const { data: friendProfiles } = await supabase
           .from('profiles')
           .select('id, username, name, avatar_url')
           .in('id', friendIds);
-
         const profileMap = new Map(friendProfiles?.map(p => [p.id, p]) || []);
 
         // Friend reviews
@@ -91,8 +100,8 @@ export default function FeedPage() {
           .order('created_at', { ascending: false })
           .range(loadOffset, loadOffset + limit - 1);
 
-        // Transform friend data
-        const friendRatingItems: FeedItem[] = (friendRatings || []).map(r => {
+        // Transform friend data into feed items
+        const friendRatingItems = (friendRatings || []).map(r => {
           const profile = profileMap.get(r.user_id);
           return {
             id: `friend-rating-${r.id}`,
@@ -122,8 +131,7 @@ export default function FeedPage() {
             longitude: r.longitude
           };
         });
-
-        const friendReviewItems: FeedItem[] = (friendReviews || []).map(r => {
+        const friendReviewItems = (friendReviews || []).map(r => {
           const profile = profileMap.get(r.user_id);
           const categoryRatings = r.category_ratings as any;
           return {
@@ -145,13 +153,12 @@ export default function FeedPage() {
             place_id: r.restaurant_place_id
           };
         });
-
         allFeedItems.push(...friendRatingItems, ...friendReviewItems);
       }
 
       // Fetch expert activity
       if (expertIds.length > 0) {
-        // Expert restaurant ratings
+        // Expert quick ratings
         const { data: expertRatings } = await supabase
           .from('restaurants')
           .select(`
@@ -163,12 +170,11 @@ export default function FeedPage() {
           .order('created_at', { ascending: false })
           .range(loadOffset, loadOffset + limit - 1);
 
-        // Get expert profiles separately
+        // Expert profiles map
         const { data: expertProfiles } = await supabase
           .from('profiles')
           .select('id, username, name, avatar_url')
           .in('id', expertIds);
-
         const expertProfileMap = new Map(expertProfiles?.map(p => [p.id, p]) || []);
 
         // Expert reviews
@@ -179,8 +185,8 @@ export default function FeedPage() {
           .order('created_at', { ascending: false })
           .range(loadOffset, loadOffset + limit - 1);
 
-        // Transform expert data
-        const expertRatingItems: FeedItem[] = (expertRatings || []).map(r => {
+        // Transform expert data into feed items
+        const expertRatingItems = (expertRatings || []).map(r => {
           const profile = expertProfileMap.get(r.user_id);
           return {
             id: `expert-rating-${r.id}`,
@@ -210,8 +216,7 @@ export default function FeedPage() {
             longitude: r.longitude
           };
         });
-
-        const expertReviewItems: FeedItem[] = (expertReviews || []).map(r => {
+        const expertReviewItems = (expertReviews || []).map(r => {
           const profile = expertProfileMap.get(r.user_id);
           const categoryRatings = r.category_ratings as any;
           return {
@@ -233,15 +238,12 @@ export default function FeedPage() {
             place_id: r.restaurant_place_id
           };
         });
-
         allFeedItems.push(...expertRatingItems, ...expertReviewItems);
       }
 
-      // Sort by date and deduplicate
+      // Sort by date and remove duplicate entries
       allFeedItems.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      
-      // Remove duplicates based on id
-      const uniqueItems = allFeedItems.filter((item, index, self) => 
+      const uniqueItems = allFeedItems.filter((item, index, self) =>
         index === self.findIndex(t => t.id === item.id)
       );
 
@@ -250,20 +252,18 @@ export default function FeedPage() {
       } else {
         setFeedItems(prev => [...prev, ...uniqueItems]);
       }
-
       setHasMore(uniqueItems.length === limit);
       setOffset(loadOffset + uniqueItems.length);
 
-      // Generate filters from the data
+      // Generate filters from feed data
       if (isRefresh || loadOffset === 0) {
         generateFilters(uniqueItems);
       }
 
-      // Load profile previews
+      // Load profile previews for "Active Today" carousel
       if (isRefresh || loadOffset === 0) {
         await loadProfilePreviews([...friendIds, ...expertIds]);
       }
-
     } catch (error) {
       console.error('Error loading feed:', error);
       toast.error('Failed to load feed');
@@ -273,7 +273,7 @@ export default function FeedPage() {
     }
   }, [user]);
 
-  // Generate filter chips from feed data
+  // Generate filter chips based on feed content
   const generateFilters = (items: FeedItem[]) => {
     const cuisineCounts: Record<string, number> = {};
     const cityCounts: Record<string, number> = {};
@@ -281,23 +281,24 @@ export default function FeedPage() {
     const priceCounts = { expensive: 0, moderate: 0, affordable: 0 };
 
     items.forEach(item => {
-      if (item.cuisine) {
-        cuisineCounts[item.cuisine] = (cuisineCounts[item.cuisine] || 0) + 1;
+      if ((item as any).cuisine) {
+        const cuisine = (item as any).cuisine;
+        cuisineCounts[cuisine] = (cuisineCounts[cuisine] || 0) + 1;
       }
-      if (item.city) {
-        cityCounts[item.city] = (cityCounts[item.city] || 0) + 1;
+      if ((item as any).city) {
+        const city = (item as any).city;
+        cityCounts[city] = (cityCounts[city] || 0) + 1;
       }
-      
-      const rating = item.overall_rating || item.rating;
+      const rating = (item as any).overall_rating ?? (item as any).rating;
       if (rating) {
         if (rating >= 8) ratingCounts.high++;
         else if (rating >= 6) ratingCounts.medium++;
         else ratingCounts.low++;
       }
-
-      if (item.price_range) {
-        if (item.price_range >= 3) priceCounts.expensive++;
-        else if (item.price_range === 2) priceCounts.moderate++;
+      if ((item as any).price_range) {
+        const price = (item as any).price_range;
+        if (price >= 3) priceCounts.expensive++;
+        else if (price === 2) priceCounts.moderate++;
         else priceCounts.affordable++;
       }
     });
@@ -305,7 +306,7 @@ export default function FeedPage() {
     const newFilters: FilterChip[] = [
       // Top cuisines
       ...Object.entries(cuisineCounts)
-        .sort(([,a], [,b]) => b - a)
+        .sort(([, a], [, b]) => b - a)
         .slice(0, 5)
         .map(([cuisine, count]) => ({
           id: `cuisine-${cuisine}`,
@@ -314,10 +315,9 @@ export default function FeedPage() {
           value: cuisine,
           count
         })),
-      
       // Top cities
       ...Object.entries(cityCounts)
-        .sort(([,a], [,b]) => b - a)
+        .sort(([, a], [, b]) => b - a)
         .slice(0, 3)
         .map(([city, count]) => ({
           id: `city-${city}`,
@@ -326,47 +326,37 @@ export default function FeedPage() {
           value: city,
           count
         })),
-
       // Rating filters
       { id: 'rating-high', label: 'Highly Rated (8+)', type: 'rating' as const, value: 'high', count: ratingCounts.high },
-      { id: 'rating-medium', label: 'Good (6-8)', type: 'rating' as const, value: 'medium', count: ratingCounts.medium },
-
+      { id: 'rating-medium', label: 'Good (6-7)', type: 'rating' as const, value: 'medium', count: ratingCounts.medium },
+      { id: 'rating-low', label: 'Needs Work (<6)', type: 'rating' as const, value: 'low', count: ratingCounts.low },
       // Price filters
-      { id: 'price-expensive', label: 'Fine Dining ($$$+)', type: 'price' as const, value: 'expensive', count: priceCounts.expensive },
-      { id: 'price-affordable', label: 'Budget Friendly ($)', type: 'price' as const, value: 'affordable', count: priceCounts.affordable }
-    ].filter(f => f.count > 0);
-
+      { id: 'price-expensive', label: '$$$$', type: 'price' as const, value: 'expensive', count: priceCounts.expensive },
+      { id: 'price-moderate', label: '$$', type: 'price' as const, value: 'moderate', count: priceCounts.moderate },
+      { id: 'price-affordable', label: '$', type: 'price' as const, value: 'affordable', count: priceCounts.affordable }
+    ];
     setFilters(newFilters);
+    setSelectedFilters([]);
   };
 
-  // Load profile previews
+  // Load profile preview data for "Active Today" carousel
   const loadProfilePreviews = async (userIds: string[]) => {
-    if (userIds.length === 0) return;
-
     try {
+      const uniqueIds = Array.from(new Set(userIds)).slice(0, 10);
       const { data: profilesData } = await supabase
         .from('profiles')
         .select('id, username, name, avatar_url')
-        .in('id', userIds.slice(0, 10)); // Limit to 10 for performance
-
+        .in('id', uniqueIds);
       if (profilesData) {
-        const expertStatuses = await checkExpertStatus(userIds);
-        
+        const expertStatuses = await checkExpertStatus(uniqueIds);
         const profilePreviews: ProfilePreview[] = profilesData.map(profile => ({
           id: profile.id,
-          username: profile.username || '',
+          username: profile.username,
           name: profile.name,
           avatar_url: profile.avatar_url,
           isExpert: expertStatuses[profile.id] || false,
           recentActivityCount: feedItems.filter(item => item.user_id === profile.id).length
         }));
-
-        // Sort experts first, then by activity count
-        profilePreviews.sort((a, b) => {
-          if (a.isExpert !== b.isExpert) return a.isExpert ? -1 : 1;
-          return b.recentActivityCount - a.recentActivityCount;
-        });
-
         setProfiles(profilePreviews);
       }
     } catch (error) {
@@ -374,7 +364,12 @@ export default function FeedPage() {
     }
   };
 
-  // Filter feed items
+  // Initial load on mount
+  useEffect(() => {
+    loadFeedData();
+  }, [loadFeedData]);
+
+  // Apply filters to feed items
   useEffect(() => {
     if (selectedFilters.length === 0) {
       setFilteredItems(feedItems);
@@ -388,21 +383,21 @@ export default function FeedPage() {
 
         switch (filter.type) {
           case 'cuisine':
-            return item.cuisine === filter.value;
+            return (item as any).cuisine === filter.value;
           case 'city':
-            return item.city === filter.value;
+            return (item as any).city === filter.value;
           case 'rating':
-            const rating = item.overall_rating || item.rating;
+            const rating = (item as any).overall_rating ?? (item as any).rating;
             if (!rating) return false;
             if (filter.value === 'high') return rating >= 8;
             if (filter.value === 'medium') return rating >= 6 && rating < 8;
             if (filter.value === 'low') return rating < 6;
             return true;
           case 'price':
-            if (!item.price_range) return false;
-            if (filter.value === 'expensive') return item.price_range >= 3;
-            if (filter.value === 'moderate') return item.price_range === 2;
-            if (filter.value === 'affordable') return item.price_range === 1;
+            if (!(item as any).price_range) return false;
+            if (filter.value === 'expensive') return (item as any).price_range >= 3;
+            if (filter.value === 'moderate') return (item as any).price_range === 2;
+            if (filter.value === 'affordable') return (item as any).price_range === 1;
             return true;
           default:
             return true;
@@ -412,11 +407,6 @@ export default function FeedPage() {
 
     setFilteredItems(filtered);
   }, [feedItems, selectedFilters, filters]);
-
-  // Initial load
-  useEffect(() => {
-    loadFeedData();
-  }, [loadFeedData]);
 
   const handleRefresh = () => {
     setOffset(0);
@@ -430,10 +420,8 @@ export default function FeedPage() {
   };
 
   const handleFilterToggle = (filterId: string) => {
-    setSelectedFilters(prev => 
-      prev.includes(filterId)
-        ? prev.filter(id => id !== filterId)
-        : [...prev, filterId]
+    setSelectedFilters(prev =>
+      prev.includes(filterId) ? prev.filter(id => id !== filterId) : [...prev, filterId]
     );
   };
 
@@ -458,12 +446,8 @@ export default function FeedPage() {
           Follow friends and experts to see their restaurant discoveries and reviews here.
         </p>
         <div className="flex gap-3">
-          <Button onClick={() => navigate('/friends')}>
-            Find Friends
-          </Button>
-          <Button variant="outline" onClick={() => navigate('/search/experts')}>
-            Discover Experts
-          </Button>
+          <Button onClick={() => navigate('/friends')}>Find Friends</Button>
+          <Button variant="outline" onClick={() => navigate('/search/experts')}>Discover Experts</Button>
         </div>
       </div>
     );
@@ -487,16 +471,30 @@ export default function FeedPage() {
         </div>
       </div>
 
-      {/* Popular Restaurants Carousel */}
-      <PopularRestaurantsCarousel />
+      {/* Trending Near You */}
+      <PopularRestaurantsCarousel 
+        title="Trending Near You" 
+        userLocation={userLocation ? { 
+          latitude: userLocation.latitude, 
+          longitude: userLocation.longitude, 
+          city: userLocation.city, 
+          country: userLocation.country 
+        } : undefined} 
+      />
 
-      {/* Profile Carousel */}
+      {/* Active Today Carousel */}
       {profiles.length > 0 && (
-        <ProfileCarousel
-          profiles={profiles}
-          title="Active Today"
-        />
+        <ProfileCarousel profiles={profiles} title="Active Today" />
       )}
+
+      {/* Expert Picks Carousel */}
+      <ExpertPicksCarousel />
+
+      {/* Your Wishlist Carousel */}
+      <WishlistCarousel />
+
+      {/* Hidden Gems Carousel */}
+      <HiddenGemsCarousel />
 
       {/* Filter Chips */}
       <HorizontalFilterChips
@@ -509,13 +507,9 @@ export default function FeedPage() {
       {/* Feed Content */}
       <ScrollArea className="flex-1">
         <div className="pb-20">
-          {filteredItems.map((item) => (
-            <FeedItemCard
-              key={item.id}
-              item={item}
-            />
+          {filteredItems.map(item => (
+            <FeedItemCard key={item.id} item={item} />
           ))}
-          
           <InfiniteScrollLoader
             hasMore={hasMore}
             isLoading={isLoading}
