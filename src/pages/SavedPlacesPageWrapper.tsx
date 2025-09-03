@@ -18,10 +18,12 @@ export default function SavedPlacesPageWrapper({
   const { restaurants, addRestaurant, updateRestaurant, deleteRestaurant } = useRestaurants();
 
   const handleAddRestaurant = async (data: RestaurantFormData) => {
-    await addRestaurant(data);
+    const restaurantId = await addRestaurant(data);
     // If it's a rated restaurant (not wishlist), navigate to rankings page
     if (!data.isWishlist && data.rating && data.rating > 0) {
-      navigate('/restaurant-rankings');
+      navigate('/restaurant-rankings', { 
+        state: { newlyAddedRestaurantId: restaurantId } 
+      });
     }
   };
 
