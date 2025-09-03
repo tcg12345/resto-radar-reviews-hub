@@ -82,7 +82,7 @@ export default function RatedRestaurantsRankingPage() {
             customRank: customRank,
             phone_number: restaurant.phone_number,
           };
-          return updateRestaurant(restaurant.id, updatedData);
+          return updateRestaurant(restaurant.id, updatedData, true); // suppress toast notifications
         })
       );
       // when context pushes fresh data, our effect will reconcile (because isSyncingRef is about to be false)

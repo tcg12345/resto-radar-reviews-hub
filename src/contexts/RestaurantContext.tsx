@@ -39,7 +39,7 @@ interface DbRestaurant {
 interface RestaurantContextType {
   restaurants: Restaurant[];
   addRestaurant: (data: RestaurantFormData) => Promise<string>;
-  updateRestaurant: (id: string, data: RestaurantFormData) => Promise<void>;
+  updateRestaurant: (id: string, data: RestaurantFormData, suppressToast?: boolean) => Promise<void>;
   deleteRestaurant: (id: string) => void;
   getRestaurant: (id: string) => Restaurant | undefined;
   loadRestaurantPhotos: (id: string) => Promise<void>;
@@ -441,7 +441,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
     }
   }, [uploadCompressedPhotos, geocodeAddress]);
 
-  const updateRestaurant = useCallback(async (id: string, data: RestaurantFormData) => {
+  const updateRestaurant = useCallback(async (id: string, data: RestaurantFormData, suppressToast = false) => {
     try {
       setIsLoading(true);
       
@@ -575,12 +575,14 @@ const { data: updated, error } = await supabase
       // Update local state
       setRestaurants((prev) => prev.map((r) => (r.id === id ? restaurant : r)));
       
-      if (coordinates.latitude && coordinates.longitude) {
-        toast.success('Restaurant updated and placed on map!');
-      } else if (data.address && data.city) {
-        toast.warning('Restaurant updated but couldn\'t be placed on map. Check your Mapbox token in the Map tab.');
-      } else {
-        toast.success('Restaurant updated successfully!');
+      if (!suppressToast) {
+        if (coordinates.latitude && coordinates.longitude) {
+          toast.success('Restaurant updated and placed on map!');
+        } else if (data.address && data.city) {
+          toast.warning('Restaurant updated but couldn\'t be placed on map. Check your Mapbox token in the Map tab.');
+        } else {
+          toast.success('Restaurant updated successfully!');
+        }
       }
     } catch (error) {
       console.error('Error updating restaurant:', error);
