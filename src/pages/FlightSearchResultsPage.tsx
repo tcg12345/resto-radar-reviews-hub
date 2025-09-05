@@ -276,7 +276,19 @@ export default function FlightSearchResultsPage() {
                 <CardContent className="p-8 text-center">
                   <Plane className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-lg font-semibold mb-2">No flights found</h3>
-                  <p className="text-muted-foreground">Try adjusting your search criteria or dates.</p>
+                  <p className="text-muted-foreground mb-4">
+                    We couldn't find any flights for {fromAirport} → {toAirport} on {departureDate && format(new Date(departureDate), 'MMM dd, yyyy')}.
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Try adjusting your search criteria, dates, or check if the airport codes are correct.
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    className="mt-4"
+                    onClick={() => navigate('/travel')}
+                  >
+                    Search Again
+                  </Button>
                 </CardContent>
               </Card>
             )}
