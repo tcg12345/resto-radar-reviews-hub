@@ -42,6 +42,7 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
   const [flightNumber, setFlightNumber] = useState<string>("");
   const [airline, setAirline] = useState<string>("");
   const [searchType, setSearchType] = useState<'route' | 'flight'>('route');
+  const [stops, setStops] = useState<string>('all');
   const [showResults, setShowResults] = useState(false);
   const [flightResults, setFlightResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -83,7 +84,8 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
           departureDate: format(departureDate, 'yyyy-MM-dd'),
           adults: parseInt(passengers),
           currencyCode: 'USD',
-          max: 100
+          max: 100,
+          nonStop: stops === 'nonstop' ? true : undefined
         };
       }
 
@@ -96,7 +98,24 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
       }
 
       if (data?.data) {
-        setFlightResults(data.data);
+        let filteredResults = data.data;
+        
+        // Filter by stops if not "all"
+        if (searchType === 'route' && stops !== 'all') {
+          filteredResults = data.data.filter((flight: any) => {
+            const segments = flight.itineraries?.[0]?.segments || [];
+            const stopCount = segments.length - 1;
+            
+            switch (stops) {
+              case 'nonstop': return stopCount === 0;
+              case 'onestop': return stopCount === 1;
+              case 'twostops': return stopCount === 2;
+              default: return true;
+            }
+          });
+        }
+        
+        setFlightResults(filteredResults);
         setShowResults(true);
       } else {
         setFlightResults([]);
@@ -368,12 +387,26 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                             <SelectTrigger className="w-full">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="bg-background border border-border z-50">
                               {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
                                 <SelectItem key={num} value={num.toString()}>
                                   {num} passenger{num > 1 ? 's' : ''}
                                 </SelectItem>
                               ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-muted-foreground mb-2">Stops</label>
+                          <Select value={stops} onValueChange={setStops}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-background border border-border z-50">
+                              <SelectItem value="all">All flights</SelectItem>
+                              <SelectItem value="nonstop">Nonstop only</SelectItem>
+                              <SelectItem value="onestop">1 stop max</SelectItem>
+                              <SelectItem value="twostops">2 stops max</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -553,14 +586,14 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                     </PopoverContent>
                   </Popover>
                 </div>
-                {searchType === 'route' && (
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-muted-foreground mb-2">Passengers</label>
                     <Select value={passengers} onValueChange={setPassengers}>
                       <SelectTrigger className="w-full">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-background border border-border z-50">
                         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
                           <SelectItem key={num} value={num.toString()}>
                             {num} passenger{num > 1 ? 's' : ''}
@@ -569,7 +602,21 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                       </SelectContent>
                     </Select>
                   </div>
-                )}
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Stops</label>
+                    <Select value={stops} onValueChange={setStops}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background border border-border z-50">
+                        <SelectItem value="all">All flights</SelectItem>
+                        <SelectItem value="nonstop">Nonstop only</SelectItem>
+                        <SelectItem value="onestop">1 stop max</SelectItem>
+                        <SelectItem value="twostops">2 stops max</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
               
               <Button 
