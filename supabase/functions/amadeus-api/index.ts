@@ -5,45 +5,64 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-interface FlightAPIResponse {
-  itineraries?: Array<{
-    id: string;
-    leg_ids: string[];
-    pricing_options: Array<{
-      price: {
-        amount: number;
-        update_status: string;
+interface AmadeusTokenResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+}
+
+interface AmadeusFlightOffer {
+  id: string;
+  itineraries: Array<{
+    duration: string;
+    segments: Array<{
+      departure: {
+        iataCode: string;
+        at: string;
       };
-      items: Array<{
-        url: string;
-      }>;
+      arrival: {
+        iataCode: string;
+        at: string;
+      };
+      carrierCode: string;
+      number: string;
+      aircraft: {
+        code: string;
+      };
+      numberOfStops: number;
     }>;
   }>;
-  legs?: Array<{
-    id: string;
-    origin_place_id: number;
-    destination_place_id: number;
-    departure: string;
-    arrival: string;
-    duration: number;
-    stop_count: number;
-    marketing_carrier_ids: number[];
-  }>;
-  segments?: Array<{
-    id: string;
-    marketing_flight_number: string;
-    marketing_carrier_id: number;
-  }>;
-  places?: Array<{
-    id: number;
-    iata_code: string;
-    name: string;
-  }>;
-  carriers?: Array<{
-    id: number;
-    name: string;
-    iata_code: string;
-  }>;
+  price: {
+    currency: string;
+    total: string;
+    base: string;
+  };
+  validatingAirlineCodes: string[];
+}
+
+interface AmadeusFlightResponse {
+  data: AmadeusFlightOffer[];
+  dictionaries?: {
+    carriers: Record<string, string>;
+    aircraft: Record<string, string>;
+    locations: Record<string, any>;
+  };
+}
+
+interface AmadeusLocation {
+  id: string;
+  name: string;
+  address: {
+    cityName: string;
+    countryName: string;
+    countryCode: string;
+  };
+  geoCode: {
+    latitude: number;
+    longitude: number;
+  };
+  iataCode?: string;
+  type: string;
 }
 
 interface FlightSearchRequest {
@@ -65,24 +84,117 @@ interface HotelSearchRequest {
   priceRange?: string;
 }
 
-// Get FlightAPI.io API access
-function getFlightAPIKey(): string {
-  const apiKey = Deno.env.get('FLIGHTAPI_IO_API_KEY');
+// Get Amadeus API credentials
+function getAmadeusCredentials(): { apiKey: string; apiSecret: string } {
+  const apiKey = Deno.env.get('AMADEUS_API_KEY');
+  const apiSecret = Deno.env.get('AMADEUS_API_SECRET');
   
-  console.log('🔑 FlightAPI.io API Key exists:', !!apiKey);
-  console.log('🔑 API Key length:', apiKey ? apiKey.length : 0);
+  console.log('🔑 Amadeus API Key exists:', !!apiKey);
+  console.log('🔑 Amadeus API Secret exists:', !!apiSecret);
   
-  if (!apiKey) {
-    console.error('❌ Missing FlightAPI.io API key');
-    throw new Error('FlightAPI.io API key not configured');
+  if (!apiKey || !apiSecret) {
+    console.error('❌ Missing Amadeus API credentials');
+    throw new Error('Amadeus API credentials not configured');
   }
 
-  return apiKey;
+  return { apiKey, apiSecret };
 }
 
-// Simple airport search fallback (FlightAPI.io doesn't have airport search)
+// Get Amadeus access token
+async function getAmadeusToken(): Promise<string> {
+  const { apiKey, apiSecret } = getAmadeusCredentials();
+  
+  const tokenUrl = 'https://api.amadeus.com/v1/security/oauth2/token';
+  
+  const response = await fetch(tokenUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: apiKey,
+      client_secret: apiSecret,
+    }),
+  });
+
+  if (!response.ok) {
+    console.error('❌ Failed to get Amadeus token:', response.status, await response.text());
+    throw new Error(`Failed to authenticate with Amadeus API: ${response.status}`);
+  }
+
+  const tokenData: AmadeusTokenResponse = await response.json();
+  console.log('✅ Amadeus token obtained successfully');
+  return tokenData.access_token;
+}
+
+// Search cities and airports using Amadeus API
 async function searchAirportsAndCities(keyword: string) {
   console.log('🏙️ Searching airports/cities with keyword:', keyword);
+  
+  try {
+    const token = await getAmadeusToken();
+    
+    const searchParams = new URLSearchParams({
+      keyword: keyword,
+      max: '20'
+    });
+
+    const url = `https://api.amadeus.com/v1/reference-data/locations?${searchParams.toString()}`;
+    console.log('🌐 Amadeus locations API request URL:', url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      console.log('❌ Amadeus locations API failed, falling back to static list');
+      return searchAirportsAndCitiesStatic(keyword);
+    }
+
+    const data = await response.json();
+    
+    if (!data.data || data.data.length === 0) {
+      console.log('ℹ️ No locations found in Amadeus API, falling back to static list');
+      return searchAirportsAndCitiesStatic(keyword);
+    }
+
+    // Transform Amadeus location data
+    const transformedData = data.data
+      .filter((location: AmadeusLocation) => location.type === 'AIRPORT' || location.type === 'CITY')
+      .map((location: AmadeusLocation) => ({
+        id: location.id,
+        name: location.name,
+        iataCode: location.iataCode || location.id,
+        geoCode: {
+          latitude: location.geoCode.latitude,
+          longitude: location.geoCode.longitude
+        },
+        address: {
+          countryCode: location.address.countryCode,
+          countryName: location.address.countryName,
+          stateCode: '',
+          cityName: location.address.cityName
+        }
+      }));
+
+    console.log('✅ Amadeus locations search successful:', transformedData.length);
+    return transformedData;
+    
+  } catch (error) {
+    console.error('❌ Amadeus locations search error:', error);
+    console.log('🔄 Falling back to static airport list');
+    return searchAirportsAndCitiesStatic(keyword);
+  }
+}
+
+// Static airport search fallback
+async function searchAirportsAndCitiesStatic(keyword: string) {
+  console.log('🏙️ Using static airports/cities search with keyword:', keyword);
   
   // Extended airport list for better search coverage with city mappings
   const commonAirports = [
@@ -365,9 +477,9 @@ async function searchHotels(params: HotelSearchRequest) {
   return { data: filteredHotels };
 }
 
-// Search flights using FlightAPI.io
-async function searchFlights(apiKey: string, params: FlightSearchRequest) {
-  console.log('✈️ Starting flight search with FlightAPI.io');
+// Search flights using Amadeus API
+async function searchFlights(params: FlightSearchRequest) {
+  console.log('✈️ Starting flight search with Amadeus API');
   console.log('📊 Search params:', JSON.stringify(params, null, 2));
   
   // Validate parameters
@@ -380,114 +492,97 @@ async function searchFlights(apiKey: string, params: FlightSearchRequest) {
     throw new Error('Missing required search parameters');
   }
   
-  // FlightAPI.io URL structure: 
-  // /onewaytrip/{api-key}/{departure_code}/{arrival_code}/{departure_date}/{adults}/{children}/{infants}/{cabin_class}/{currency}
-  const url = `https://api.flightapi.io/onewaytrip/${apiKey}/${params.origin}/${params.destination}/${params.departureDate}/1/0/0/Economy/USD`;
-  
-  console.log('🌐 FlightAPI.io request URL:', url.replace(apiKey, '[API_KEY]'));
-  
   try {
-    console.log('📡 Making API request to FlightAPI.io...');
-    const response = await fetch(url);
+    const token = await getAmadeusToken();
+    
+    // Build request parameters
+    const searchParams = new URLSearchParams({
+      originLocationCode: params.origin,
+      destinationLocationCode: params.destination,
+      departureDate: params.departureDate,
+      adults: '1',
+      currencyCode: 'USD',
+      max: '10' // Limit results for performance
+    });
+
+    if (params.flightType === 'nonstop') {
+      searchParams.append('nonStop', 'true');
+    }
+
+    const url = `https://api.amadeus.com/v2/shopping/flight-offers?${searchParams.toString()}`;
+    console.log('🌐 Amadeus API request URL:', url);
+    
+    console.log('📡 Making API request to Amadeus...');
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
     console.log('📨 Response received - Status:', response.status);
-    console.log('📨 Response headers:', JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2));
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ FlightAPI.io request failed');
+      console.error('❌ Amadeus API request failed');
       console.error('❌ Status:', response.status);
       console.error('❌ Error response body:', errorText);
       
-      if (response.status === 404 || response.status === 410) {
+      if (response.status === 404) {
         console.log('ℹ️ No flights found for this route/date - returning empty results');
         return { data: [] };
       }
       
       if (response.status === 429) {
-        console.error('❌ FlightAPI.io: Rate limit exceeded');
+        console.error('❌ Amadeus API: Rate limit exceeded');
         throw new Error('Rate limit exceeded - please try again later');
       }
       
       if (response.status === 401) {
-        console.error('❌ FlightAPI.io: Unauthorized - check API key');
-        throw new Error('Invalid API key - please check your FlightAPI.io credentials');
+        console.error('❌ Amadeus API: Unauthorized - check credentials');
+        throw new Error('Invalid API credentials - please check your Amadeus API settings');
       }
       
-      if (response.status === 403) {
-        console.error('❌ FlightAPI.io: Quota exceeded - returning mock data');
-        return getMockFlightData(params);
-      }
-      
-      throw new Error(`FlightAPI.io API error: ${response.status} - ${errorText}`);
+      throw new Error(`Amadeus API error: ${response.status} - ${errorText}`);
     }
 
     console.log('✅ Response OK, parsing JSON...');
-    const data: FlightAPIResponse = await response.json();
-    console.log('📊 FlightAPI.io data received successfully');
+    const data: AmadeusFlightResponse = await response.json();
+    console.log('📊 Amadeus data received successfully');
     console.log('📊 Response data structure:', {
-      itineraries: data.itineraries?.length || 0,
-      legs: data.legs?.length || 0,
-      carriers: data.carriers?.length || 0,
-      places: data.places?.length || 0,
-      segments: data.segments?.length || 0
+      flightOffers: data.data?.length || 0,
+      carriers: data.dictionaries?.carriers ? Object.keys(data.dictionaries.carriers).length : 0,
+      locations: data.dictionaries?.locations ? Object.keys(data.dictionaries.locations).length : 0
     });
     
-    if (!data.itineraries || data.itineraries.length === 0) {
-      console.log('ℹ️ No flight itineraries found in response');
+    if (!data.data || data.data.length === 0) {
+      console.log('ℹ️ No flight offers found in response');
       return { data: [] };
     }
 
-    // Create lookup maps for efficient data access
-    const placesMap = new Map(data.places?.map(p => [p.id, p]) || []);
-    const carriersMap = new Map(data.carriers?.map(c => [c.id, c]) || []);
-    const legsMap = new Map(data.legs?.map(l => [l.id, l]) || []);
-    const segmentsMap = new Map(data.segments?.map(s => [s.id, s]) || []);
-    
-    // Transform FlightAPI.io data to our format
-    const transformedFlights = data.itineraries
-      .map((itinerary, index) => {
-        if (!itinerary.leg_ids || itinerary.leg_ids.length === 0) return null;
-        
-        const legId = itinerary.leg_ids[0]; // First leg for one-way trip
-        const leg = legsMap.get(legId);
-        
-        if (!leg) return null;
-        
-        const originPlace = placesMap.get(leg.origin_place_id);
-        const destPlace = placesMap.get(leg.destination_place_id);
-        const carrier = carriersMap.get(leg.marketing_carrier_ids[0]);
-        
-        // Get the correct segment for this specific leg
-        // Try to find segments that belong to this specific leg by matching the leg's route
-        const legSegments = data.segments?.filter(s => {
-          const segmentCarrier = carriersMap.get(s.marketing_carrier_id);
-          const legCarrier = carriersMap.get(leg.marketing_carrier_ids[0]);
-          return segmentCarrier && legCarrier && 
-                 segmentCarrier.iata_code === legCarrier.iata_code &&
-                 leg.marketing_carrier_ids.includes(s.marketing_carrier_id);
-        }) || [];
-        
-        // If multiple segments for this carrier, try to pick the one that best matches this leg
-        const primarySegment = legSegments.length > 0 ? legSegments[0] : 
-                              data.segments?.find(s => leg.marketing_carrier_ids.includes(s.marketing_carrier_id));
+    // Transform Amadeus data to our format
+    const transformedFlights = data.data
+      .map((offer) => {
+        const itinerary = offer.itineraries[0]; // First itinerary for one-way trip
+        const segment = itinerary.segments[0]; // First segment
         
         // Apply airline filter
-        if (params.airline && carrier) {
-          const airlineMatch = carrier.name?.toLowerCase().includes(params.airline.toLowerCase()) ||
-                             carrier.iata_code?.toLowerCase() === params.airline.toLowerCase();
+        if (params.airline) {
+          const carrierName = data.dictionaries?.carriers?.[segment.carrierCode];
+          const airlineMatch = carrierName?.toLowerCase().includes(params.airline.toLowerCase()) ||
+                             segment.carrierCode?.toLowerCase() === params.airline.toLowerCase();
           if (!airlineMatch) return null;
-        } else if (params.airline && !carrier) {
-          // If airline filter is specified but no carrier info available, skip this flight
-          return null;
         }
         
         // Apply flight type filter
-        if (params.flightType === 'nonstop' && leg.stop_count > 0) return null;
-        if (params.flightType === 'onestop' && leg.stop_count !== 1) return null;
+        if (params.flightType === 'nonstop' && segment.numberOfStops > 0) return null;
+        if (params.flightType === 'onestop' && segment.numberOfStops !== 1) return null;
         
         // Apply time filter if specified
         if (params.departureTimeFrom || params.departureTimeTo) {
-          const depTime = new Date(leg.departure).getHours() * 60 + new Date(leg.departure).getMinutes();
+          const depDateTime = new Date(segment.departure.at);
+          const depTime = depDateTime.getHours() * 60 + depDateTime.getMinutes();
           
           if (params.departureTimeFrom) {
             const [fromHours, fromMinutes] = params.departureTimeFrom.split(':').map(Number);
@@ -503,34 +598,34 @@ async function searchFlights(apiKey: string, params: FlightSearchRequest) {
         }
         
         // Format times
-        const depTime = new Date(leg.departure).toLocaleTimeString('en-US', { 
+        const depDateTime = new Date(segment.departure.at);
+        const arrDateTime = new Date(segment.arrival.at);
+        
+        const depTime = depDateTime.toLocaleTimeString('en-US', { 
           hour12: false, 
           hour: '2-digit', 
           minute: '2-digit' 
         });
-        const arrTime = new Date(leg.arrival).toLocaleTimeString('en-US', { 
+        const arrTime = arrDateTime.toLocaleTimeString('en-US', { 
           hour12: false, 
           hour: '2-digit', 
           minute: '2-digit' 
         });
         
-        // Format duration
-        const durationHours = Math.floor(leg.duration / 60);
-        const durationMinutes = leg.duration % 60;
-        const durationString = `${durationHours}h ${durationMinutes}m`;
+        // Format date (in case arrival is next day)
+        const depDate = depDateTime.toISOString().split('T')[0];
+        const arrDate = arrDateTime.toISOString().split('T')[0];
         
-        // Get price from pricing options
-        const price = itinerary.pricing_options[0]?.price?.amount || 0;
-        const bookingUrl = itinerary.pricing_options[0]?.items[0]?.url || '';
+        const carrierName = data.dictionaries?.carriers?.[segment.carrierCode] || 'Unknown Airline';
         
         return {
-          id: itinerary.id,
-          flightNumber: primarySegment?.marketing_flight_number || `${carrier?.iata_code || 'XX'}000`,
-          airline: carrier?.name || 'Unknown Airline',
+          id: offer.id,
+          flightNumber: `${segment.carrierCode}${segment.number}`,
+          airline: carrierName,
           departure: {
-            airport: originPlace?.iata_code || params.origin,
+            airport: segment.departure.iataCode,
             time: depTime,
-            date: params.departureDate
+            date: depDate
           },
           arrival: {
             airport: destPlace?.iata_code || params.destination,
@@ -581,18 +676,7 @@ serve(async (req) => {
     const { endpoint } = requestBody;
     console.log('🎯 Endpoint requested:', endpoint);
     
-    // Get FlightAPI.io API key with detailed logging
-    let apiKey;
-    try {
-      apiKey = getFlightAPIKey();
-      console.log('✅ FlightAPI.io API key obtained successfully');
-    } catch (keyError) {
-      console.error('❌ API key error:', keyError.message);
-      return new Response(
-        JSON.stringify({ error: 'API key configuration error', details: keyError.message }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    // Amadeus API is configured via environment variables
 
     switch (endpoint) {
       case 'search-flights': {
@@ -608,7 +692,7 @@ serve(async (req) => {
 
         try {
           console.log('🔍 Starting flight search...');
-          const data = await searchFlights(apiKey, { origin, destination, departureDate, flightNumber, airline, flightType, departureTimeFrom, departureTimeTo });
+          const data = await searchFlights({ origin, destination, departureDate, flightNumber, airline, flightType, departureTimeFrom, departureTimeTo });
           console.log('✅ Flight search completed successfully');
           
           return new Response(
