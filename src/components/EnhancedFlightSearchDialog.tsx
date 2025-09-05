@@ -31,6 +31,73 @@ interface EnhancedFlightSearchDialogProps {
   locations: TripLocation[];
 }
 
+// Helper function to get airline name from code
+const getAirlineName = (code: string): string => {
+  const airlines: Record<string, string> = {
+    'AA': 'American Airlines',
+    'DL': 'Delta Air Lines',
+    'UA': 'United Airlines',
+    'B6': 'JetBlue Airways',
+    'AS': 'Alaska Airlines',
+    'WN': 'Southwest Airlines',
+    'NK': 'Spirit Airlines',
+    'F9': 'Frontier Airlines',
+    'G4': 'Allegiant Air',
+    'SY': 'Sun Country Airlines',
+    'BA': 'British Airways',
+    'VS': 'Virgin Atlantic',
+    'AF': 'Air France',
+    'KL': 'KLM Royal Dutch Airlines',
+    'LH': 'Lufthansa',
+    'LX': 'Swiss International Air Lines',
+    'OS': 'Austrian Airlines',
+    'SN': 'Brussels Airlines',
+    'TP': 'TAP Air Portugal',
+    'IB': 'Iberia',
+    'AZ': 'ITA Airways',
+    'EI': 'Aer Lingus',
+    'SK': 'SAS Scandinavian Airlines',
+    'AY': 'Finnair',
+    'AC': 'Air Canada',
+    'WS': 'WestJet',
+    'EK': 'Emirates',
+    'QR': 'Qatar Airways',
+    'EY': 'Etihad Airways',
+    'TK': 'Turkish Airlines',
+    'SV': 'Saudia',
+    'MS': 'EgyptAir',
+    'ET': 'Ethiopian Airlines',
+    'KE': 'Kenya Airways',
+    'SA': 'South African Airways',
+    'NH': 'All Nippon Airways',
+    'JL': 'Japan Airlines',
+    'CX': 'Cathay Pacific',
+    'SQ': 'Singapore Airlines',
+    'TG': 'Thai Airways',
+    'MH': 'Malaysia Airlines',
+    'PR': 'Philippine Airlines',
+    'CI': 'China Airlines',
+    'BR': 'EVA Air',
+    'CZ': 'China Southern Airlines',
+    'MU': 'China Eastern Airlines',
+    'CA': 'Air China',
+    'AI': 'Air India',
+    'QF': 'Qantas',
+    'JQ': 'Jetstar Airways',
+    'VA': 'Virgin Australia',
+    'NZ': 'Air New Zealand',
+    'LA': 'LATAM Airlines',
+    'AR': 'Aerolíneas Argentinas',
+    'AM': 'Aeroméxico',
+    'CM': 'Copa Airlines',
+    'AV': 'Avianca',
+    'G3': 'Gol Linhas Aéreas',
+    'JJ': 'TAM Airlines'
+  };
+  
+  return airlines[code] || code;
+};
+
 export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, locations }: EnhancedFlightSearchDialogProps) {
   console.log('🛩️ EnhancedFlightSearchDialog DEFINITELY RENDERING - isOpen:', isOpen);
   console.log('🛩️ Locations:', locations);
@@ -231,9 +298,10 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                       {flight.validatingAirlineCodes?.[0] || 'N/A'} {flight.itineraries?.[0]?.segments?.[0]?.carrierCode || ''}{flight.itineraries?.[0]?.segments?.[0]?.number || 'N/A'}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {flight.itineraries?.[0]?.segments?.[0]?.operating?.carrierCode ? 
-                        `Operated by ${flight.itineraries[0].segments[0].operating.carrierCode}` : 
-                        `${flight.validatingAirlineCodes?.[0] || 'Airline'} Flight`}
+                      {getAirlineName(flight.validatingAirlineCodes?.[0] || flight.itineraries?.[0]?.segments?.[0]?.carrierCode || 'N/A')}
+                      {flight.itineraries?.[0]?.segments?.[0]?.operating?.carrierCode && 
+                        flight.itineraries?.[0]?.segments?.[0]?.operating?.carrierCode !== flight.validatingAirlineCodes?.[0] &&
+                        ` • Operated by ${getAirlineName(flight.itineraries[0].segments[0].operating.carrierCode)}`}
                     </div>
                   </div>
                 </div>
@@ -291,7 +359,7 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Badge variant="secondary" className="bg-gradient-to-r from-secondary/80 to-secondary/60 text-secondary-foreground font-semibold px-3 py-1">
-                    {flight.validatingAirlineCodes?.[0] || 'N/A'}
+                    {getAirlineName(flight.validatingAirlineCodes?.[0] || 'N/A')}
                   </Badge>
                   {flight.itineraries?.[0]?.segments?.length > 1 && (
                     <Badge variant="outline" className="border-amber-200 text-amber-700 bg-amber-50 dark:border-amber-700 dark:text-amber-300 dark:bg-amber-900/20">
