@@ -71,13 +71,15 @@ export function AirportSearch({
           return;
         }
 
-        const transformedAirports: AirportSuggestion[] = (data?.data || []).map((airport: any) => ({
-          id: airport.id,
-          iataCode: airport.iataCode || airport.id,
-          name: airport.name,
-          cityName: airport.address?.cityName || airport.name,
-          countryName: airport.address?.countryName || '',
-          description: `${airport.name} (${airport.iataCode || airport.id})`
+        // The enhanced API returns data in a different format
+        const locations = data || [];
+        const transformedAirports: AirportSuggestion[] = locations.map((location: any) => ({
+          id: location.iataCode || location.id || searchQuery.toUpperCase(),
+          iataCode: location.iataCode || location.id || searchQuery.toUpperCase(),
+          name: location.name,
+          cityName: location.address?.cityName || location.cityName || location.name,
+          countryName: location.address?.countryName || location.countryName || '',
+          description: `${location.name} (${location.iataCode || location.id || searchQuery.toUpperCase()})`
         }));
 
         setAirports(transformedAirports);
