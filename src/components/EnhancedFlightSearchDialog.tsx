@@ -63,7 +63,7 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
           departureDate: format(departureDate, 'yyyy-MM-dd'),
           adults: parseInt(passengers),
           currencyCode: 'USD',
-          max: 20
+          max: 100
         }
       });
 
@@ -150,8 +150,13 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
         </Card>
       )}
 
-      {/* Flight results list */}
-      <div className="space-y-4">
+      {/* Flight results list - Scrollable container for up to 100 results */}
+      <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2 scroll-smooth">
+        <div className="text-sm text-muted-foreground mb-4 bg-muted/30 px-3 py-2 rounded-lg">
+          {flightResults.length > 0 && (
+            <span>Showing {flightResults.length} flight{flightResults.length !== 1 ? 's' : ''} for this route</span>
+          )}
+        </div>
         {flightResults.map((flight, index) => (
           <Card key={index} className="border-border/20 bg-gradient-to-r from-card to-card/95 hover:shadow-md transition-all duration-300 cursor-pointer group overflow-hidden">
             <CardContent className="p-5" onClick={() => handleSelectFlight(flight)}>

@@ -206,7 +206,7 @@ async function searchFlights(params: FlightSearchRequest) {
       departureDate: params.departureDate,
       adults: (params.adults || 1).toString(),
       currencyCode: params.currency || 'USD',
-      max: (params.max || 20).toString()
+      max: (params.max || 100).toString() // Increased default from 20 to 100 for comprehensive results
     });
 
     if (params.returnDate) {
