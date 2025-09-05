@@ -150,7 +150,8 @@ export function AirportSearch({
       </div>
 
       {showResults && airports.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
+        <div className="absolute z-[9999] w-full mt-1 bg-background border border-border rounded-md shadow-xl max-h-60 overflow-y-auto backdrop-blur-sm"
+             style={{ backgroundColor: 'hsl(var(--background))' }}>
           {airports.map((airport) => (
             <div
               key={airport.id}
@@ -183,7 +184,8 @@ export function AirportSearch({
       )}
 
       {showResults && searchQuery.length >= 2 && airports.length === 0 && !isLoading && (
-        <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg p-3">
+        <div className="absolute z-[9999] w-full mt-1 bg-background border border-border rounded-md shadow-xl p-3"
+             style={{ backgroundColor: 'hsl(var(--background))' }}>
           <div className="text-sm text-muted-foreground text-center">
             No airports found. Try searching by city name or IATA code.
           </div>
