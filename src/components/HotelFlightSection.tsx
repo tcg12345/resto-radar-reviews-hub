@@ -54,7 +54,7 @@ interface FlightBooking {
     time: string;
     date: string;
   };
-  price?: string;
+  price?: string | { currency: string; total: string; base?: string; fees?: string; grandTotal?: string; };
   bookingUrl?: string;
 }
 interface HotelFlightSectionProps {
@@ -122,6 +122,16 @@ export function HotelFlightSection({
     notes: "",
   });
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  // Helper function to format flight price
+  const formatFlightPrice = (price: string | { currency: string; total: string; base?: string; fees?: string; grandTotal?: string; } | undefined) => {
+    if (!price) return '';
+    if (typeof price === 'string') return price;
+    if (typeof price === 'object' && price.currency && price.total) {
+      return `${price.currency} ${price.total}`;
+    }
+    return '';
+  };
 
   function openEdit(booking: HotelBooking) {
     setEditingHotel(booking);
@@ -512,7 +522,7 @@ export function HotelFlightSection({
                               </h4>
                               <div className="flex items-center gap-2 mt-1">
                                 {flight.price && <div className="flex items-center bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-lg">
-                                    <span className="text-xs font-medium text-green-700 dark:text-green-300">💰 {flight.price}</span>
+                                    <span className="text-xs font-medium text-green-700 dark:text-green-300">💰 {formatFlightPrice(flight.price)}</span>
                                   </div>}
                                 <Button onClick={() => handleFlightCardClick(flight)} size="sm" variant="ghost" className="h-6 px-2 text-xs text-purple-600 dark:text-purple-400 hover:bg-purple-50">
                                   <Eye className="w-3 h-3 mr-1" />
@@ -902,7 +912,7 @@ export function HotelFlightSection({
                 {selectedFlight.price && (
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">Price:</span>
-                    <span className="text-sm">{selectedFlight.price}</span>
+                    <span className="text-sm">{formatFlightPrice(selectedFlight.price)}</span>
                   </div>
                 )}
               </div>
@@ -1056,7 +1066,7 @@ export function HotelFlightSection({
                           {flight.airline} {flight.flightNumber}
                         </h4>
                         {flight.price && <Badge variant="secondary" className="text-xs px-2 py-1">
-                            💰 {flight.price}
+                            💰 {formatFlightPrice(flight.price)}
                           </Badge>}
                         <Badge variant="outline" className="text-xs">
                           <Eye className="w-3 h-3 mr-1" />
@@ -1496,7 +1506,7 @@ export function HotelFlightSection({
                 </div>
                 {selectedFlight.price && <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">Price:</span>
-                    <Badge variant="secondary">{selectedFlight.price}</Badge>
+                    <Badge variant="secondary">{formatFlightPrice(selectedFlight.price)}</Badge>
                   </div>}
               </div>
 
