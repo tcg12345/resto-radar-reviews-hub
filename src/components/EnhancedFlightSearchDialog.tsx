@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { AirportSearch } from '@/components/AirportSearch';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { supabase } from '@/integrations/supabase/client';
-import { CalendarIcon, ArrowLeft, Plane, Clock, ArrowRight } from 'lucide-react';
+import { CalendarIcon, ArrowLeft, Plane, Clock, ArrowRight, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -96,6 +96,75 @@ const getAirlineName = (code: string): string => {
   };
   
   return airlines[code] || code;
+};
+
+// Get sorted list of airlines for dropdown
+const getAirlineOptions = () => {
+  const airlines = {
+    'AA': 'American Airlines',
+    'DL': 'Delta Air Lines',
+    'UA': 'United Airlines',
+    'B6': 'JetBlue Airways',
+    'AS': 'Alaska Airlines',
+    'WN': 'Southwest Airlines',
+    'NK': 'Spirit Airlines',
+    'F9': 'Frontier Airlines',
+    'G4': 'Allegiant Air',
+    'SY': 'Sun Country Airlines',
+    'BA': 'British Airways',
+    'VS': 'Virgin Atlantic',
+    'AF': 'Air France',
+    'KL': 'KLM Royal Dutch Airlines',
+    'LH': 'Lufthansa',
+    'LX': 'Swiss International Air Lines',
+    'OS': 'Austrian Airlines',
+    'SN': 'Brussels Airlines',
+    'TP': 'TAP Air Portugal',
+    'IB': 'Iberia',
+    'AZ': 'ITA Airways',
+    'EI': 'Aer Lingus',
+    'SK': 'SAS Scandinavian Airlines',
+    'AY': 'Finnair',
+    'AC': 'Air Canada',
+    'WS': 'WestJet',
+    'EK': 'Emirates',
+    'QR': 'Qatar Airways',
+    'EY': 'Etihad Airways',
+    'TK': 'Turkish Airlines',
+    'SV': 'Saudia',
+    'MS': 'EgyptAir',
+    'ET': 'Ethiopian Airlines',
+    'KE': 'Kenya Airways',
+    'SA': 'South African Airways',
+    'NH': 'All Nippon Airways',
+    'JL': 'Japan Airlines',
+    'CX': 'Cathay Pacific',
+    'SQ': 'Singapore Airlines',
+    'TG': 'Thai Airways',
+    'MH': 'Malaysia Airlines',
+    'PR': 'Philippine Airlines',
+    'CI': 'China Airlines',
+    'BR': 'EVA Air',
+    'CZ': 'China Southern Airlines',
+    'MU': 'China Eastern Airlines',
+    'CA': 'Air China',
+    'AI': 'Air India',
+    'QF': 'Qantas',
+    'JQ': 'Jetstar Airways',
+    'VA': 'Virgin Australia',
+    'NZ': 'Air New Zealand',
+    'LA': 'LATAM Airlines',
+    'AR': 'Aerolíneas Argentinas',
+    'AM': 'Aeroméxico',
+    'CM': 'Copa Airlines',
+    'AV': 'Avianca',
+    'G3': 'Gol Linhas Aéreas',
+    'JJ': 'TAM Airlines'
+  };
+  
+  return Object.entries(airlines)
+    .map(([code, name]) => ({ code, name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 };
 
 export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, locations }: EnhancedFlightSearchDialogProps) {
@@ -483,14 +552,44 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                       <>
                         <div>
                           <label className="block text-sm font-medium text-muted-foreground mb-2">Airline Code</label>
-                          <input
-                            type="text"
-                            value={airline}
-                            onChange={(e) => setAirline(e.target.value.toUpperCase())}
-                            placeholder="e.g., BA, AA, DL"
-                            className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                            maxLength={3}
-                          />
+                          <div className="relative">
+                            <input
+                              type="text"
+                              value={airline}
+                              onChange={(e) => setAirline(e.target.value.toUpperCase())}
+                              placeholder="e.g., BA, AA, DL"
+                              className="w-full px-3 py-2 pr-12 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                              maxLength={3}
+                            />
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <button
+                                  type="button"
+                                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:bg-muted rounded-md transition-colors"
+                                >
+                                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                </button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-80 p-0 z-50 bg-background border border-border" align="end">
+                                <div className="max-h-60 overflow-y-auto">
+                                  <div className="p-2 border-b border-border">
+                                    <div className="text-sm font-medium text-foreground">Select Airline</div>
+                                  </div>
+                                  {getAirlineOptions().map((option) => (
+                                    <button
+                                      key={option.code}
+                                      type="button"
+                                      onClick={() => setAirline(option.code)}
+                                      className="w-full px-3 py-2 text-left hover:bg-muted transition-colors flex items-center justify-between"
+                                    >
+                                      <span className="text-sm text-foreground">{option.name}</span>
+                                      <span className="text-xs text-muted-foreground font-mono">{option.code}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              </PopoverContent>
+                            </Popover>
+                          </div>
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-muted-foreground mb-2">Flight Number</label>
@@ -612,14 +711,44 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-muted-foreground mb-2">Airline Code</label>
-                    <input
-                      type="text"
-                      value={airline}
-                      onChange={(e) => setAirline(e.target.value.toUpperCase())}
-                      placeholder="e.g., BA, AA, DL"
-                      className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                      maxLength={3}
-                    />
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={airline}
+                        onChange={(e) => setAirline(e.target.value.toUpperCase())}
+                        placeholder="e.g., BA, AA, DL"
+                        className="w-full px-3 py-2 pr-12 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                        maxLength={3}
+                      />
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button
+                            type="button"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:bg-muted rounded-md transition-colors"
+                          >
+                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80 p-0 z-50 bg-background border border-border" align="end">
+                          <div className="max-h-60 overflow-y-auto">
+                            <div className="p-2 border-b border-border">
+                              <div className="text-sm font-medium text-foreground">Select Airline</div>
+                            </div>
+                            {getAirlineOptions().map((option) => (
+                              <button
+                                key={option.code}
+                                type="button"
+                                onClick={() => setAirline(option.code)}
+                                className="w-full px-3 py-2 text-left hover:bg-muted transition-colors flex items-center justify-between"
+                              >
+                                <span className="text-sm text-foreground">{option.name}</span>
+                                <span className="text-xs text-muted-foreground font-mono">{option.code}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-muted-foreground mb-2">Flight Number</label>
