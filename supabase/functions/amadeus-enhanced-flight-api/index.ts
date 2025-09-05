@@ -365,9 +365,9 @@ async function getAirlineInfo(airlineCode: string) {
   }
 }
 
-// Get flight status
+// Get flight status and transform to flight search format
 async function getFlightStatus(params: FlightStatusRequest) {
-  console.log('📡 Getting flight status');
+  console.log('📡 Getting flight status for', params.carrierCode, params.flightNumber);
   
   try {
     const token = await getAmadeusToken();
@@ -379,6 +379,7 @@ async function getFlightStatus(params: FlightStatusRequest) {
     });
 
     const url = `https://api.amadeus.com/v2/schedule/flights?${searchParams.toString()}`;
+    console.log('🌐 Flight status API URL:', url);
     
     const response = await fetch(url, {
       method: 'GET',
@@ -389,17 +390,197 @@ async function getFlightStatus(params: FlightStatusRequest) {
     });
     
     if (!response.ok) {
-      console.log('❌ Flight status not available');
-      return { data: [] };
+      const errorText = await response.text();
+      console.log('❌ Flight status not available:', response.status, errorText);
+      
+      // If flight not found, try to find alternative flights on same route
+      return await findAlternativeFlights(params, token);
     }
 
     const data = await response.json();
-    console.log('✅ Flight status retrieved successfully');
-    return data;
+    console.log('✅ Flight status retrieved successfully:', data.data?.length || 0, 'flights');
+    
+    // Transform flight status data to flight search format
+    if (data.data && data.data.length > 0) {
+      const transformedData = {
+        data: data.data.map(flight => transformFlightStatusToSearchFormat(flight, params)),
+        meta: data.meta
+      };
+      return transformedData;
+    }
+    
+    // If no data, try alternatives
+    return await findAlternativeFlights(params, token);
   } catch (error) {
     console.error('❌ Flight status error:', error);
-    return { data: [] };
+    return await findAlternativeFlights(params, error.token || await getAmadeusToken());
   }
+}
+
+// Transform flight status format to flight search format
+function transformFlightStatusToSearchFormat(flightStatus: any, params: FlightStatusRequest) {
+  const departure = flightStatus.flightPoints?.[0];
+  const arrival = flightStatus.flightPoints?.[flightStatus.flightPoints.length - 1];
+  const leg = flightStatus.legs?.[0];
+  
+  return {
+    id: `${params.carrierCode}${params.flightNumber}_${params.scheduledDepartureDate}`,
+    validatingAirlineCodes: [params.carrierCode],
+    itineraries: [{
+      duration: leg?.scheduledLegDuration || 'PT0H',
+      segments: [{
+        departure: {
+          iataCode: departure?.iataCode || '',
+          at: departure?.departure?.timings?.[0]?.value || '',
+          terminal: null
+        },
+        arrival: {
+          iataCode: arrival?.iataCode || '',
+          at: arrival?.arrival?.timings?.[0]?.value || '',
+          terminal: null
+        },
+        carrierCode: params.carrierCode,
+        number: params.flightNumber,
+        aircraft: {
+          code: leg?.aircraftEquipment?.aircraftType || 'N/A'
+        },
+        numberOfStops: 0,
+        duration: leg?.scheduledLegDuration || 'PT0H',
+        operating: {
+          carrierCode: params.carrierCode
+        }
+      }]
+    }],
+    price: {
+      currency: 'USD',
+      total: 'N/A',
+      base: 'N/A'
+    },
+    pricingOptions: {
+      fareType: ['PUBLISHED'],
+      includedCheckedBagsOnly: false
+    },
+    travelerPricings: [{
+      travelerId: '1',
+      fareOption: 'STANDARD',
+      travelerType: 'ADULT',
+      price: {
+        currency: 'USD',
+        total: 'N/A',
+        base: 'N/A'
+      },
+      fareDetailsBySegment: [{
+        segmentId: '1',
+        cabin: 'ECONOMY',
+        fareBasis: 'N/A',
+        class: 'Y',
+        includedCheckedBags: {
+          quantity: 0
+        }
+      }]
+    }]
+  };
+}
+
+// Find alternative flights when specific flight number is not found
+async function findAlternativeFlights(params: FlightStatusRequest, token: string) {
+  console.log('🔍 Searching for alternative flights on same route');
+  
+  try {
+    // First, try to get airport info to find the route
+    const departure = await inferDepartureAirport(params.carrierCode);
+    const arrival = await inferArrivalAirport(params.carrierCode);
+    
+    if (departure && arrival) {
+      // Search for flights on the same route and date
+      const alternativeParams = {
+        origin: departure,
+        destination: arrival,
+        departureDate: params.scheduledDepartureDate,
+        adults: 1,
+        currency: 'USD',
+        max: 20
+      };
+      
+      console.log('🔍 Searching alternatives with params:', alternativeParams);
+      
+      const searchParams = new URLSearchParams({
+        originLocationCode: alternativeParams.origin,
+        destinationLocationCode: alternativeParams.destination,
+        departureDate: alternativeParams.departureDate,
+        adults: alternativeParams.adults.toString(),
+        currencyCode: alternativeParams.currency,
+        max: alternativeParams.max.toString()
+      });
+
+      const url = `https://api.amadeus.com/v2/shopping/flight-offers?${searchParams.toString()}`;
+      console.log('🌐 Alternative flights URL:', url);
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        // Filter to same airline if possible
+        if (data.data) {
+          const sameAirlineFlights = data.data.filter((flight: any) => 
+            flight.validatingAirlineCodes?.[0] === params.carrierCode ||
+            flight.itineraries?.[0]?.segments?.[0]?.carrierCode === params.carrierCode
+          );
+          
+          if (sameAirlineFlights.length > 0) {
+            console.log(`✅ Found ${sameAirlineFlights.length} alternative flights for ${params.carrierCode}`);
+            return { data: sameAirlineFlights, meta: data.meta };
+          }
+        }
+        
+        console.log(`✅ Found ${data.data?.length || 0} alternative flights on route`);
+        return data;
+      }
+    }
+    
+    console.log('❌ No alternative flights found');
+    return { data: [], meta: { count: 0 } };
+  } catch (error) {
+    console.error('❌ Error finding alternatives:', error);
+    return { data: [], meta: { count: 0 } };
+  }
+}
+
+// Helper function to infer common routes for airlines
+async function inferDepartureAirport(carrierCode: string): Promise<string | null> {
+  const commonRoutes: Record<string, string> = {
+    'B6': 'JFK', // JetBlue hub
+    'AA': 'DFW', // American Airlines
+    'DL': 'ATL', // Delta
+    'UA': 'ORD', // United
+    'BA': 'LHR', // British Airways
+    'AF': 'CDG', // Air France
+    'LH': 'FRA', // Lufthansa
+    'KL': 'AMS', // KLM
+  };
+  
+  return commonRoutes[carrierCode] || 'JFK';
+}
+
+async function inferArrivalAirport(carrierCode: string): Promise<string | null> {
+  const commonDestinations: Record<string, string> = {
+    'B6': 'LHR', // JetBlue often flies to London
+    'AA': 'LHR', 
+    'DL': 'CDG',
+    'UA': 'LHR',
+    'BA': 'JFK',
+    'AF': 'JFK',
+    'LH': 'JFK',
+    'KL': 'JFK',
+  };
+  
+  return commonDestinations[carrierCode] || 'LHR';
 }
 
 // Search locations (airports and cities)

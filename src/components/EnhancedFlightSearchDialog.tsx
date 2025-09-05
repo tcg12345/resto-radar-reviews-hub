@@ -169,10 +169,12 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
             <p className="text-muted-foreground mb-4">
               {searchType === 'route' ? 
                 `We couldn't find any flights for this route on ${departureDate && format(new Date(departureDate), 'MMM dd, yyyy')}.` :
-                `We couldn't find flight ${airline} ${flightNumber} on ${departureDate && format(new Date(departureDate), 'MMM dd, yyyy')}.`}
+                `Flight ${airline} ${flightNumber} was not found for ${departureDate && format(new Date(departureDate), 'MMM dd, yyyy')}.`}
             </p>
             <p className="text-sm text-muted-foreground">
-              Try adjusting your search criteria or check if the details are correct.
+              {searchType === 'route' ? 
+                'Try adjusting your search criteria or check if the details are correct.' :
+                'The flight may not operate on this date, or the flight number might be incorrect. Alternative flights on similar routes are shown above if available.'}
             </p>
           </CardContent>
         </Card>
@@ -182,7 +184,18 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
       <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2 scroll-smooth">
         <div className="text-sm text-muted-foreground mb-4 bg-muted/30 px-3 py-2 rounded-lg">
           {flightResults.length > 0 && (
-            <span>Showing {flightResults.length} flight{flightResults.length !== 1 ? 's' : ''} for this {searchType === 'route' ? 'route' : 'flight'}</span>
+            <span>
+              {searchType === 'flight' ? (
+                flightResults.some(flight => 
+                  flight.itineraries?.[0]?.segments?.[0]?.carrierCode === airline &&
+                  flight.itineraries?.[0]?.segments?.[0]?.number === flightNumber
+                ) 
+                ? `Found flight ${airline} ${flightNumber}`
+                : `Flight ${airline} ${flightNumber} not found. Showing ${flightResults.length} alternative flight${flightResults.length !== 1 ? 's' : ''} on similar routes`
+              ) : (
+                `Showing ${flightResults.length} flight${flightResults.length !== 1 ? 's' : ''} for this route`
+              )}
+            </span>
           )}
         </div>
         {flightResults.map((flight, index) => (
