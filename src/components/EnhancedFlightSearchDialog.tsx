@@ -701,39 +701,40 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                             onChange={(e) => setMaxPrice(e.target.value ? Number(e.target.value) : undefined)}
                           />
                         </div>
-                      </div>
-                    </Card>
-                  </div>
+                       </div>
+                     </Card>
 
-                  {/* Fixed Search Actions at Bottom */}
-                  <div className="border-t bg-background p-4 space-y-3">
-                    <Button
-                      onClick={handleSearch}
-                      disabled={isSearching || !departureAirport || !arrivalAirport || !departureDate}
-                      className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg"
-                      size="lg"
-                    >
-                      {isSearching ? (
-                        <>
-                          <div className="animate-spin rounded-full h-5 w-5 border-2 border-background border-t-transparent mr-3" />
-                          Searching for flights...
-                        </>
-                      ) : (
-                        <>
-                          <Search className="w-5 h-5 mr-3" />
-                          Search Flights & View Results
-                        </>
-                      )}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={handleGetPriceCalendar}
-                      disabled={!departureAirport || !arrivalAirport || !departureDate}
-                      className="w-full"
-                    >
-                      <Calendar className="w-4 h-4 mr-2" />
-                      View Price Calendar
-                    </Button>
+                     {/* Search Button */}
+                     <Card className="p-4">
+                       <Button
+                         onClick={handleSearch}
+                         disabled={isSearching || !departureAirport || !arrivalAirport || !departureDate}
+                         className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg"
+                         size="lg"
+                       >
+                         {isSearching ? (
+                           <>
+                             <div className="animate-spin rounded-full h-5 w-5 border-2 border-background border-t-transparent mr-3" />
+                             Searching for flights...
+                           </>
+                         ) : (
+                           <>
+                             <Search className="w-5 h-5 mr-3" />
+                             Search Flights & View Results
+                           </>
+                         )}
+                       </Button>
+                       
+                       <Button
+                         variant="outline"
+                         onClick={handleGetPriceCalendar}
+                         disabled={!departureAirport || !arrivalAirport || !departureDate}
+                         className="w-full mt-2"
+                       >
+                         <Calendar className="w-4 h-4 mr-2" />
+                         View Price Calendar
+                       </Button>
+                     </Card>
                   </div>
                 </TabsContent>
 
