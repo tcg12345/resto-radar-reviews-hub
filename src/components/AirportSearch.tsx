@@ -58,9 +58,9 @@ export function AirportSearch({
     const searchTimer = setTimeout(async () => {
       setIsLoading(true);
       try {
-        const { data, error } = await supabase.functions.invoke('amadeus-api', {
+        const { data, error } = await supabase.functions.invoke('amadeus-enhanced-flight-api', {
           body: {
-            endpoint: 'search-cities',
+            endpoint: 'searchLocations',
             keyword: searchQuery
           }
         });
