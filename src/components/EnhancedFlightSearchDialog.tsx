@@ -267,7 +267,7 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
     }
   };
 
-  const FlightCard = ({ flight }: { flight: EnhancedFlightOffer }) => (
+  const FlightCard = ({ flight, onSelect }: { flight: EnhancedFlightOffer; onSelect?: () => void }) => (
     <Card className="p-4 hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-primary">
       <div className="space-y-4">
         {/* Flight Header */}
@@ -701,40 +701,30 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                             onChange={(e) => setMaxPrice(e.target.value ? Number(e.target.value) : undefined)}
                           />
                         </div>
-                       </div>
-                     </Card>
+                      </div>
+                    </Card>
+                  </div>
 
-                     {/* Search Button */}
-                     <Card className="p-4">
-                       <Button
-                         onClick={handleSearch}
-                         disabled={isSearching || !departureAirport || !arrivalAirport || !departureDate}
-                         className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg"
-                         size="lg"
-                       >
-                         {isSearching ? (
-                           <>
-                             <div className="animate-spin rounded-full h-5 w-5 border-2 border-background border-t-transparent mr-3" />
-                             Searching for flights...
-                           </>
-                         ) : (
-                           <>
-                             <Search className="w-5 h-5 mr-3" />
-                             Search Flights & View Results
-                           </>
-                         )}
-                       </Button>
-                       
-                       <Button
-                         variant="outline"
-                         onClick={handleGetPriceCalendar}
-                         disabled={!departureAirport || !arrivalAirport || !departureDate}
-                         className="w-full mt-2"
-                       >
-                         <Calendar className="w-4 h-4 mr-2" />
-                         View Price Calendar
-                       </Button>
-                     </Card>
+                  {/* Fixed Search Button at Bottom */}
+                  <div className="border-t bg-background p-4">
+                    <Button
+                      onClick={handleSearch}
+                      disabled={isSearching || !departureAirport || !arrivalAirport || !departureDate}
+                      className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg text-white"
+                      size="lg"
+                    >
+                      {isSearching ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-3" />
+                          Searching for flights...
+                        </>
+                      ) : (
+                        <>
+                          <Search className="w-5 h-5 mr-3" />
+                          Search Flights
+                        </>
+                      )}
+                    </Button>
                   </div>
                 </TabsContent>
 
@@ -752,55 +742,61 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                         ))}
                       </div>
                     ) : (
-                      <Card className="p-8 text-center">
+                      <div className="text-center py-8">
                         <Calendar className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                         <p className="text-muted-foreground">No price calendar data available</p>
-                        <Button 
-                          variant="outline" 
-                          className="mt-4"
-                          onClick={handleGetPriceCalendar}
-                        >
-                          Try Again
-                        </Button>
-                      </Card>
+                        <p className="text-sm text-muted-foreground">Search for flights first to see price calendar</p>
+                      </div>
                     )}
                   </div>
                 </TabsContent>
 
                 <TabsContent value="results" className="h-full overflow-y-auto p-4">
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold">{flights.length} Flights Found</h3>
-                      <Button variant="ghost" size="sm" onClick={() => setActiveTab('search')}>
-                        <Filter className="w-4 h-4 mr-2" />
-                        Filter
-                      </Button>
+                    <div className="text-center">
+                      <h3 className="text-lg font-semibold">Flight Search Results</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {flights.length > 0 ? `Found ${flights.length} flights` : 'No flights found'}
+                      </p>
                     </div>
-                    
+
                     {flights.length > 0 ? (
-                      <div className="space-y-4">
-                        {flights.map((flight) => (
-                          <FlightCard key={flight.id} flight={flight} />
+                      <div className="space-y-3">
+                        {flights.map((flight, index) => (
+                          <FlightCard 
+                            key={index} 
+                            flight={flight} 
+                            onSelect={() => handleFlightSelect(flight)}
+                          />
                         ))}
                       </div>
                     ) : (
-                      <Card className="p-8 text-center">
+                      <div className="text-center py-8">
                         <Plane className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                        <p className="text-muted-foreground">No flights found</p>
-                        <Button 
-                          variant="outline" 
-                          className="mt-4"
-                          onClick={() => setActiveTab('search')}
-                        >
-                          Modify Search
-                        </Button>
-                      </Card>
+                        <p className="text-muted-foreground">No flight results to display</p>
+                        <p className="text-sm text-muted-foreground">Use the search tab to find flights</p>
+                      </div>
                     )}
                   </div>
                 </TabsContent>
 
                 <TabsContent value="details" className="h-full overflow-y-auto p-4">
-                  <FlightDetailsView />
+                  <div className="space-y-4">
+                    <div className="text-center">
+                      <h3 className="text-lg font-semibold">Flight Details</h3>
+                      <p className="text-sm text-muted-foreground">Detailed information about your selected flight</p>
+                    </div>
+
+                    {selectedFlight ? (
+                      <FlightDetailsView />
+                    ) : (
+                      <div className="text-center py-8">
+                        <Info className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                        <p className="text-muted-foreground">No flight selected</p>
+                        <p className="text-sm text-muted-foreground">Select a flight from the results to view details</p>
+                      </div>
+                    )}
+                  </div>
                 </TabsContent>
               </div>
             </Tabs>
