@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { HotelSearchDialog } from '@/components/HotelSearchDialog';
-import { FlightSearchDialog } from '@/components/FlightSearchDialog';
+import { EnhancedFlightSearchDialog } from '@/components/EnhancedFlightSearchDialog';
 import { StayDetails, HotelStayDetailsDialog } from '@/components/HotelStayDetailsDialog';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -940,7 +940,7 @@ export function HotelFlightSection({
         wasCreatedWithLengthOfStay={wasCreatedWithLengthOfStay}
       />
 
-      <FlightSearchDialog
+      <EnhancedFlightSearchDialog
         isOpen={isFlightDialogOpen}
         onClose={() => setIsFlightDialogOpen(false)}
         onSelect={handleFlightSelect}
@@ -1133,7 +1133,7 @@ export function HotelFlightSection({
       />
 
       {/* Flight Search Dialog */}
-      <FlightSearchDialog isOpen={isFlightDialogOpen} onClose={() => setIsFlightDialogOpen(false)} onSelect={handleFlightSelect} locations={locations} />
+      <EnhancedFlightSearchDialog isOpen={isFlightDialogOpen} onClose={() => setIsFlightDialogOpen(false)} onSelect={handleFlightSelect} locations={locations} />
 
       {/* Edit Hotel Modal - BRIGHT RED TEST VERSION */}
       {(() => {
@@ -1543,7 +1543,7 @@ export function HotelFlightSection({
       />
 
       {/* Flight Search Dialog */}
-      <FlightSearchDialog
+      <EnhancedFlightSearchDialog
         isOpen={isFlightDialogOpen}
         onClose={() => setIsFlightDialogOpen(false)}
         onSelect={handleFlightSelect}
