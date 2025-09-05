@@ -151,81 +151,73 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
       )}
 
       {/* Flight results list */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         {flightResults.map((flight, index) => (
-          <Card key={index} className="border-border bg-card hover:shadow-lg transition-all duration-200 cursor-pointer group">
-            <CardContent className="p-6" onClick={() => handleSelectFlight(flight)}>
+          <Card key={index} className="border-border/20 bg-gradient-to-r from-card to-card/95 hover:shadow-md transition-all duration-300 cursor-pointer group overflow-hidden">
+            <CardContent className="p-5" onClick={() => handleSelectFlight(flight)}>
               {/* Flight route and timing */}
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-6 flex-1">
+                <div className="flex items-center gap-8 flex-1">
                   {/* Departure */}
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-foreground">
+                  <div className="text-center space-y-1">
+                    <div className="text-xl font-bold text-foreground tracking-tight">
                       {flight.itineraries?.[0]?.segments?.[0]?.departure?.at ? 
                         format(new Date(flight.itineraries[0].segments[0].departure.at), 'HH:mm') : 'N/A'}
                     </div>
-                    <div className="text-sm text-muted-foreground font-medium">
+                    <div className="text-sm text-muted-foreground font-semibold bg-muted/50 px-2 py-1 rounded-md">
                       {flight.itineraries?.[0]?.segments?.[0]?.departure?.iataCode || fromAirport}
                     </div>
                   </div>
                   
                   {/* Flight path */}
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <div className="flex-1 border-t-2 border-dashed border-muted"></div>
-                    <div className="flex flex-col items-center gap-1 px-2">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Plane className="h-4 w-4 text-primary transform rotate-90" />
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="flex-1 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
+                    <div className="flex flex-col items-center gap-2 px-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center border border-primary/20">
+                        <Plane className="h-5 w-5 text-primary transform rotate-90" />
                       </div>
-                      <div className="text-xs text-muted-foreground flex items-center gap-1">
+                      <div className="text-xs text-muted-foreground flex items-center gap-1.5 bg-muted/30 px-2 py-1 rounded-full">
                         <Clock className="h-3 w-3" />
-                        <span className="font-medium">{flight.itineraries?.[0]?.duration || 'N/A'}</span>
+                        <span className="font-medium">{flight.itineraries?.[0]?.duration?.replace('PT', '').replace('H', 'h ').replace('M', 'm') || 'N/A'}</span>
                       </div>
                     </div>
-                    <div className="flex-1 border-t-2 border-dashed border-muted"></div>
+                    <div className="flex-1 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
                   </div>
                   
                   {/* Arrival */}
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-foreground">
+                  <div className="text-center space-y-1">
+                    <div className="text-xl font-bold text-foreground tracking-tight">
                       {flight.itineraries?.[0]?.segments?.[flight.itineraries[0].segments.length - 1]?.arrival?.at ? 
                         format(new Date(flight.itineraries[0].segments[flight.itineraries[0].segments.length - 1].arrival.at), 'HH:mm') : 'N/A'}
                     </div>
-                    <div className="text-sm text-muted-foreground font-medium">
+                    <div className="text-sm text-muted-foreground font-semibold bg-muted/50 px-2 py-1 rounded-md">
                       {flight.itineraries?.[0]?.segments?.[flight.itineraries[0].segments.length - 1]?.arrival?.iataCode || toAirport}
                     </div>
                   </div>
                 </div>
-                
-                {/* Price */}
-                <div className="text-right ml-6">
-                  <div className="text-2xl font-bold text-primary">
-                    ${flight.price?.total || 'N/A'}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {flight.price?.currency || 'USD'}
-                  </div>
-                </div>
               </div>
               
-              <Separator className="my-4" />
+              <Separator className="my-4 bg-border/30" />
               
               {/* Flight details */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Badge variant="secondary" className="bg-secondary/80 text-secondary-foreground">
+                  <Badge variant="secondary" className="bg-gradient-to-r from-secondary/80 to-secondary/60 text-secondary-foreground font-semibold px-3 py-1">
                     {flight.validatingAirlineCodes?.[0] || 'N/A'}
                   </Badge>
                   {flight.itineraries?.[0]?.segments?.length > 1 && (
-                    <Badge variant="outline" className="border-muted-foreground/20">
+                    <Badge variant="outline" className="border-amber-200 text-amber-700 bg-amber-50 dark:border-amber-700 dark:text-amber-300 dark:bg-amber-900/20">
                       {flight.itineraries[0].segments.length - 1} stop{flight.itineraries[0].segments.length > 2 ? 's' : ''}
                     </Badge>
                   )}
-                  <span className="text-sm text-muted-foreground">
-                    {flight.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.cabin || 'Economy'}
-                  </span>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 px-3 py-1 rounded-full">
+                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                    <span className="font-medium">{flight.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.cabin || 'Economy'}</span>
+                  </div>
                 </div>
-                <div className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
-                  Select flight →
+                <div className="flex items-center gap-2 text-sm text-primary group-hover:text-primary/80 transition-colors font-medium">
+                  <span>Select flight</span>
+                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
             </CardContent>
