@@ -6,6 +6,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { AirportSearch } from '@/components/AirportSearch';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { useNavigate } from 'react-router-dom';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -33,8 +34,27 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
   const [departureDate, setDepartureDate] = useState<Date>();
   const [fromAirport, setFromAirport] = useState<string>("");
   const [toAirport, setToAirport] = useState<string>("");
+  const [passengers, setPassengers] = useState<string>("1");
   
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+
+  const handleSearch = () => {
+    if (!fromAirport || !toAirport || !departureDate) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    const searchParams = new URLSearchParams({
+      from: fromAirport,
+      to: toAirport,
+      date: format(departureDate, 'yyyy-MM-dd'),
+      passengers: passengers
+    });
+
+    navigate(`/flight-search?${searchParams.toString()}`);
+    onClose();
+  };
   
   if (isMobile) {
     console.log('🛩️ Rendering MOBILE version');
@@ -105,11 +125,9 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                 
                 <div className="space-y-3">
                   <Button 
-                    onClick={() => {
-                      console.log('🛩️ SEARCH BUTTON CLICKED!');
-                      alert('Search button clicked! This proves the component is working.');
-                    }}
+                    onClick={handleSearch}
                     className="w-full h-12"
+                    disabled={!fromAirport || !toAirport || !departureDate}
                   >
                     ✈️ Search Flights
                   </Button>
@@ -199,11 +217,9 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
           
           <div className="space-y-3">
             <Button 
-              onClick={() => {
-                console.log('🛩️ SEARCH BUTTON CLICKED!');
-                alert('Search button clicked! This proves the component is working.');
-              }}
+              onClick={handleSearch}
               className="w-full h-12"
+              disabled={!fromAirport || !toAirport || !departureDate}
             >
               ✈️ Search Flights
             </Button>

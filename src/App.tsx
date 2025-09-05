@@ -42,6 +42,7 @@ import MobileFriendProfilePage from "./pages/mobile/MobileFriendProfilePage";
 import MobileRestaurantDetailsPage from "./pages/mobile/MobileRestaurantDetailsPage";
 import MobileSearchRestaurantDetailsPage from "./pages/mobile/MobileSearchRestaurantDetailsPage";
 import TravelPage from "./pages/TravelPage";
+import FlightSearchResultsPage from "./pages/FlightSearchResultsPage";
 import TripDetailPage from "./pages/TripDetailPage";
 import { SharedTripPage } from "./pages/SharedTripPage";
 import { SharedItineraryPage } from "./pages/SharedItineraryPage";
@@ -86,7 +87,8 @@ const App = () => (
                 <Route path="/wishlist" element={<RequireAuth><Layout activeTab="places"><SavedPlacesPageWrapper activeSubTab="wishlist" /></Layout></RequireAuth>} />
                 <Route path="/restaurant-rankings" element={<RequireAuth><Layout showNavbar={false} showChatbot={false}><RatedRestaurantsRankingPage /></Layout></RequireAuth>} />
                 <Route path="/map" element={<RequireAuth><MapPageWrapper /></RequireAuth>} />
-                <Route path="/travel" element={<RequireAuth><Layout activeTab="travel"><TravelPage /></Layout></RequireAuth>} />
+                 <Route path="/travel" element={<RequireAuth><Layout activeTab="travel"><TravelPage /></Layout></RequireAuth>} />
+                 <Route path="/flight-search" element={<RequireAuth><FlightSearchResultsPage /></RequireAuth>} />
                 <Route path="/saved-itineraries" element={<RequireAuth><SavedItinerariesPage /></RequireAuth>} />
                 <Route path="/edit-hotel/:bookingId" element={<RequireAuth><EditHotelBookingPage /></RequireAuth>} />
                 <Route path="/hotel/:hotelId" element={<RequireAuth><HotelDetailsPage /></RequireAuth>} />
