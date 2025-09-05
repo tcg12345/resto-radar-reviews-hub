@@ -34,6 +34,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Progress } from '@/components/ui/progress';
 import { useEnhancedAmadeusApi, type EnhancedFlightOffer, type PriceCalendar } from '@/hooks/useEnhancedAmadeusApi';
 import { AirportSearch } from '@/components/AirportSearch';
@@ -556,20 +558,68 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <Label className="text-xs text-muted-foreground">Departure</Label>
-                          <Input
-                            type="date"
-                            value={departureDate}
-                            onChange={(e) => setDepartureDate(e.target.value)}
-                          />
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "w-full justify-start text-left font-normal",
+                                  !departureDate && "text-muted-foreground"
+                                )}
+                              >
+                                <Calendar className="mr-2 h-4 w-4" />
+                                {departureDate ? format(new Date(departureDate), "PPP") : "Select departure date"}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <CalendarComponent
+                                mode="single"
+                                selected={departureDate ? new Date(departureDate) : undefined}
+                                onSelect={(date) => {
+                                  if (date) {
+                                    setDepartureDate(format(date, 'yyyy-MM-dd'));
+                                  }
+                                }}
+                                disabled={(date) =>
+                                  date < new Date() || date < new Date("1900-01-01")
+                                }
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
                         </div>
                         {isRoundTrip && (
                           <div>
                             <Label className="text-xs text-muted-foreground">Return</Label>
-                            <Input
-                              type="date"
-                              value={returnDate}
-                              onChange={(e) => setReturnDate(e.target.value)}
-                            />
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    "w-full justify-start text-left font-normal",
+                                    !returnDate && "text-muted-foreground"
+                                  )}
+                                >
+                                  <Calendar className="mr-2 h-4 w-4" />
+                                  {returnDate ? format(new Date(returnDate), "PPP") : "Select return date"}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <CalendarComponent
+                                  mode="single"
+                                  selected={returnDate ? new Date(returnDate) : undefined}
+                                  onSelect={(date) => {
+                                    if (date) {
+                                      setReturnDate(format(date, 'yyyy-MM-dd'));
+                                    }
+                                  }}
+                                  disabled={(date) =>
+                                    date < new Date(departureDate || new Date()) || date < new Date("1900-01-01")
+                                  }
+                                  initialFocus
+                                />
+                              </PopoverContent>
+                            </Popover>
                           </div>
                         )}
                       </div>
