@@ -30,16 +30,16 @@ export function AirportSearch({
 }: AirportSearchProps) {
   const [airports, setAirports] = useState<AirportSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [showResults, setShowResults] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(value);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [searchTerm, setSearchTerm] = useState(value);
+  const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowResults(false);
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
       }
     };
 
@@ -47,148 +47,197 @@ export function AirportSearch({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Debounced search
+  // Search for airports
   useEffect(() => {
-    if (!searchQuery || searchQuery.length < 2) {
+    if (!searchTerm || searchTerm.length < 2) {
       setAirports([]);
-      setShowResults(false);
+      setShowDropdown(false);
       return;
     }
 
     const searchTimer = setTimeout(async () => {
       setIsLoading(true);
       try {
+        console.log('Searching for airports:', searchTerm);
+        
         const { data, error } = await supabase.functions.invoke('amadeus-enhanced-flight-api', {
           body: {
             endpoint: 'searchLocations',
-            keyword: searchQuery
+            keyword: searchTerm
           }
         });
 
+        console.log('Airport search response:', { data, error });
+
         if (error) {
           console.error('Error searching airports:', error);
-          setAirports([]);
+          // Fallback to static results for common codes
+          handleFallbackSearch(searchTerm);
           return;
         }
 
-        // The enhanced API returns data in a different format
-        const locations = data || [];
-        const transformedAirports: AirportSuggestion[] = locations.map((location: any) => ({
-          id: location.iataCode || location.id || searchQuery.toUpperCase(),
-          iataCode: location.iataCode || location.id || searchQuery.toUpperCase(),
-          name: location.name,
-          cityName: location.address?.cityName || location.cityName || location.name,
-          countryName: location.address?.countryName || location.countryName || '',
-          description: `${location.name} (${location.iataCode || location.id || searchQuery.toUpperCase()})`
-        }));
+        if (data && Array.isArray(data)) {
+          const transformedAirports: AirportSuggestion[] = data.map((location: any) => ({
+            id: location.iataCode || location.id || searchTerm.toUpperCase(),
+            iataCode: location.iataCode || location.id || searchTerm.toUpperCase(),
+            name: location.name || `${searchTerm.toUpperCase()} Airport`,
+            cityName: location.address?.cityName || location.cityName || location.name || searchTerm,
+            countryName: location.address?.countryName || location.countryName || '',
+            description: `${location.name || searchTerm.toUpperCase()} (${location.iataCode || location.id || searchTerm.toUpperCase()})`
+          }));
 
-        setAirports(transformedAirports);
-        setShowResults(true);
+          setAirports(transformedAirports);
+          setShowDropdown(true);
+        } else {
+          handleFallbackSearch(searchTerm);
+        }
       } catch (error) {
         console.error('Airport search failed:', error);
-        setAirports([]);
+        handleFallbackSearch(searchTerm);
       } finally {
         setIsLoading(false);
       }
     }, 300);
 
     return () => clearTimeout(searchTimer);
-  }, [searchQuery]);
+  }, [searchTerm]);
+
+  const handleFallbackSearch = (term: string) => {
+    // Fallback with common airports
+    const commonAirports = [
+      { code: 'JFK', name: 'John F. Kennedy International Airport', city: 'New York', country: 'USA' },
+      { code: 'LAX', name: 'Los Angeles International Airport', city: 'Los Angeles', country: 'USA' },
+      { code: 'LHR', name: 'London Heathrow Airport', city: 'London', country: 'UK' },
+      { code: 'CDG', name: 'Charles de Gaulle Airport', city: 'Paris', country: 'France' },
+      { code: 'NRT', name: 'Narita International Airport', city: 'Tokyo', country: 'Japan' },
+      { code: 'SFO', name: 'San Francisco International Airport', city: 'San Francisco', country: 'USA' },
+      { code: 'ORD', name: 'O\'Hare International Airport', city: 'Chicago', country: 'USA' },
+      { code: 'LGA', name: 'LaGuardia Airport', city: 'New York', country: 'USA' },
+      { code: 'EWR', name: 'Newark Liberty International Airport', city: 'Newark', country: 'USA' },
+      { code: 'BOS', name: 'Logan International Airport', city: 'Boston', country: 'USA' },
+    ];
+
+    const filtered = commonAirports.filter(airport => 
+      airport.code.toLowerCase().includes(term.toLowerCase()) ||
+      airport.name.toLowerCase().includes(term.toLowerCase()) ||
+      airport.city.toLowerCase().includes(term.toLowerCase())
+    );
+
+    if (filtered.length > 0) {
+      const fallbackAirports: AirportSuggestion[] = filtered.map(airport => ({
+        id: airport.code,
+        iataCode: airport.code,
+        name: airport.name,
+        cityName: airport.city,
+        countryName: airport.country,
+        description: `${airport.name} (${airport.code})`
+      }));
+
+      setAirports(fallbackAirports);
+      setShowDropdown(true);
+    } else if (/^[A-Z]{3}$/i.test(term)) {
+      // If it looks like an IATA code, create a fallback option
+      const iataCode = term.toUpperCase();
+      const fallbackAirport: AirportSuggestion = {
+        id: iataCode,
+        iataCode: iataCode,
+        name: `${iataCode} Airport`,
+        cityName: iataCode,
+        countryName: '',
+        description: `${iataCode} (IATA Code)`
+      };
+      setAirports([fallbackAirport]);
+      setShowDropdown(true);
+    } else {
+      setAirports([]);
+      setShowDropdown(false);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    setSearchQuery(newValue);
+    setSearchTerm(newValue);
     onChange(newValue);
-    
-    // If user types exactly 3 capital letters, treat as IATA code
-    if (/^[A-Z]{3}$/.test(newValue)) {
-      const iataAirport: AirportSuggestion = {
-        id: newValue,
-        iataCode: newValue,
-        name: `${newValue} Airport`,
-        cityName: newValue,
-        countryName: '',
-        description: `${newValue} (IATA Code)`
-      };
-      setAirports([iataAirport]);
-      setShowResults(true);
-    }
   };
 
   const handleAirportSelect = (airport: AirportSuggestion) => {
     const displayValue = `${airport.name} (${airport.iataCode})`;
-    setSearchQuery(displayValue);
+    setSearchTerm(displayValue);
     onChange(displayValue);
-    setShowResults(false);
+    setShowDropdown(false);
     onAirportSelect?.(airport);
   };
 
   const handleInputFocus = () => {
     if (airports.length > 0) {
-      setShowResults(true);
+      setShowDropdown(true);
     }
   };
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative" ref={containerRef}>
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 z-10" />
         <Input
           ref={inputRef}
           type="text"
-          value={searchQuery}
+          value={searchTerm}
           onChange={handleInputChange}
           onFocus={handleInputFocus}
           placeholder={placeholder}
           className={cn("pl-10", className)}
         />
         {isLoading && (
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 z-10">
             <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
       </div>
 
-      {showResults && airports.length > 0 && (
-        <div className="absolute z-[9999] w-full mt-1 bg-background border border-border rounded-md shadow-xl max-h-60 overflow-y-auto backdrop-blur-sm"
-             style={{ backgroundColor: 'hsl(var(--background))' }}>
-          {airports.map((airport) => (
-            <div
-              key={airport.id}
-              onClick={() => handleAirportSelect(airport)}
-              className="flex items-center gap-3 p-3 hover:bg-accent cursor-pointer transition-colors"
-            >
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Plane className="w-4 h-4 text-primary" />
+      {/* Dropdown Results */}
+      {showDropdown && (
+        <div 
+          className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-2xl max-h-60 overflow-y-auto z-[10000]"
+          style={{ 
+            backgroundColor: 'var(--background)', 
+            borderColor: 'var(--border)',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+          }}
+        >
+          {airports.length > 0 ? (
+            airports.map((airport) => (
+              <div
+                key={airport.id}
+                onClick={() => handleAirportSelect(airport)}
+                className="flex items-center gap-3 p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors first:rounded-t-md last:rounded-b-md"
+              >
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Plane className="w-4 h-4 text-primary" />
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-sm text-foreground">{airport.name}</span>
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded font-mono">
+                      {airport.iataCode}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <MapPin className="w-3 h-3" />
+                    <span>{airport.cityName}</span>
+                    {airport.cityName !== airport.countryName && airport.countryName && (
+                      <span>• {airport.countryName}</span>
+                    )}
+                  </div>
                 </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-sm">{airport.name}</span>
-                  <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded font-mono">
-                    {airport.iataCode}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <MapPin className="w-3 h-3" />
-                  <span>{airport.cityName}</span>
-                  {airport.cityName !== airport.countryName && (
-                    <span>• {airport.countryName}</span>
-                  )}
-                </div>
-              </div>
+            ))
+          ) : (
+            <div className="p-3 text-sm text-muted-foreground text-center">
+              No airports found. Try searching by city name or IATA code.
             </div>
-          ))}
-        </div>
-      )}
-
-      {showResults && searchQuery.length >= 2 && airports.length === 0 && !isLoading && (
-        <div className="absolute z-[9999] w-full mt-1 bg-background border border-border rounded-md shadow-xl p-3"
-             style={{ backgroundColor: 'hsl(var(--background))' }}>
-          <div className="text-sm text-muted-foreground text-center">
-            No airports found. Try searching by city name or IATA code.
-          </div>
+          )}
         </div>
       )}
     </div>
