@@ -99,101 +99,139 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
   
   const renderFlightResults = () => (
     <div className="space-y-4">
-      <div className="flex items-center gap-3 mb-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleBack}
-          className="flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Search
-        </Button>
+      {/* Header with route and date info */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleBack}
+            className="flex items-center gap-2 hover:bg-accent"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+        </div>
+        <div className="text-right">
+          <div className="text-sm font-medium text-foreground">
+            {fromAirport} → {toAirport}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {departureDate && format(departureDate, 'EEE, MMM dd, yyyy')}
+          </div>
+        </div>
       </div>
 
-      <div className="text-sm text-muted-foreground mb-4">
-        {fromAirport} → {toAirport} on {departureDate && format(departureDate, 'MMM dd, yyyy')}
-      </div>
-
+      {/* Error state */}
       {error && (
-        <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
-          {error}
+        <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm mb-4">
+          <div className="flex items-center gap-2">
+            <Plane className="h-4 w-4" />
+            {error}
+          </div>
         </div>
       )}
 
+      {/* No results state */}
       {flightResults.length === 0 && !error && (
-        <Card>
+        <Card className="border-border bg-card">
           <CardContent className="p-8 text-center">
-            <Plane className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold mb-2">No flights found</h3>
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+              <Plane className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2 text-foreground">No flights found</h3>
             <p className="text-muted-foreground mb-4">
-              We couldn't find any flights for {fromAirport} → {toAirport} on {departureDate && format(new Date(departureDate), 'MMM dd, yyyy')}.
+              We couldn't find any flights for this route on {departureDate && format(new Date(departureDate), 'MMM dd, yyyy')}.
             </p>
             <p className="text-sm text-muted-foreground">
-              Try adjusting your search criteria, dates, or check if the airport codes are correct.
+              Try adjusting your search criteria or check if the airport codes are correct.
             </p>
           </CardContent>
         </Card>
       )}
 
-      {flightResults.map((flight, index) => (
-        <Card key={index} className="cursor-pointer hover:shadow-md transition-shadow">
-          <CardContent className="p-4" onClick={() => handleSelectFlight(flight)}>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-4">
-                <div className="text-center">
-                  <div className="font-semibold text-lg">{flight.itineraries?.[0]?.segments?.[0]?.departure?.at ? format(new Date(flight.itineraries[0].segments[0].departure.at), 'HH:mm') : 'N/A'}</div>
-                  <div className="text-sm text-muted-foreground">{flight.itineraries?.[0]?.segments?.[0]?.departure?.iataCode || fromAirport}</div>
-                </div>
-                
-                <div className="flex items-center gap-2 flex-1">
-                  <div className="flex-1 border-t border-muted"></div>
+      {/* Flight results list */}
+      <div className="space-y-3">
+        {flightResults.map((flight, index) => (
+          <Card key={index} className="border-border bg-card hover:shadow-lg transition-all duration-200 cursor-pointer group">
+            <CardContent className="p-6" onClick={() => handleSelectFlight(flight)}>
+              {/* Flight route and timing */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-6 flex-1">
+                  {/* Departure */}
                   <div className="text-center">
-                    <div className="text-sm text-muted-foreground flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {flight.itineraries?.[0]?.duration || 'N/A'}
+                    <div className="text-lg font-bold text-foreground">
+                      {flight.itineraries?.[0]?.segments?.[0]?.departure?.at ? 
+                        format(new Date(flight.itineraries[0].segments[0].departure.at), 'HH:mm') : 'N/A'}
                     </div>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground mx-auto" />
+                    <div className="text-sm text-muted-foreground font-medium">
+                      {flight.itineraries?.[0]?.segments?.[0]?.departure?.iataCode || fromAirport}
+                    </div>
                   </div>
-                  <div className="flex-1 border-t border-muted"></div>
+                  
+                  {/* Flight path */}
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <div className="flex-1 border-t-2 border-dashed border-muted"></div>
+                    <div className="flex flex-col items-center gap-1 px-2">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Plane className="h-4 w-4 text-primary transform rotate-90" />
+                      </div>
+                      <div className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        <span className="font-medium">{flight.itineraries?.[0]?.duration || 'N/A'}</span>
+                      </div>
+                    </div>
+                    <div className="flex-1 border-t-2 border-dashed border-muted"></div>
+                  </div>
+                  
+                  {/* Arrival */}
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-foreground">
+                      {flight.itineraries?.[0]?.segments?.[flight.itineraries[0].segments.length - 1]?.arrival?.at ? 
+                        format(new Date(flight.itineraries[0].segments[flight.itineraries[0].segments.length - 1].arrival.at), 'HH:mm') : 'N/A'}
+                    </div>
+                    <div className="text-sm text-muted-foreground font-medium">
+                      {flight.itineraries?.[0]?.segments?.[flight.itineraries[0].segments.length - 1]?.arrival?.iataCode || toAirport}
+                    </div>
+                  </div>
                 </div>
                 
-                <div className="text-center">
-                  <div className="font-semibold text-lg">{flight.itineraries?.[0]?.segments?.[flight.itineraries[0].segments.length - 1]?.arrival?.at ? format(new Date(flight.itineraries[0].segments[flight.itineraries[0].segments.length - 1].arrival.at), 'HH:mm') : 'N/A'}</div>
-                  <div className="text-sm text-muted-foreground">{flight.itineraries?.[0]?.segments?.[flight.itineraries[0].segments.length - 1]?.arrival?.iataCode || toAirport}</div>
+                {/* Price */}
+                <div className="text-right ml-6">
+                  <div className="text-2xl font-bold text-primary">
+                    ${flight.price?.total || 'N/A'}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {flight.price?.currency || 'USD'}
+                  </div>
                 </div>
               </div>
               
-              <div className="text-right">
-                <div className="text-2xl font-bold text-primary">
-                  ${flight.price?.total || 'N/A'}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  {flight.price?.currency || 'USD'}
-                </div>
-              </div>
-            </div>
-            
-            <Separator className="my-3" />
-            
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">
-                  {flight.validatingAirlineCodes?.[0] || 'N/A'}
-                </Badge>
-                {flight.itineraries?.[0]?.segments?.length > 1 && (
-                  <Badge variant="outline">
-                    {flight.itineraries[0].segments.length - 1} stop{flight.itineraries[0].segments.length > 2 ? 's' : ''}
+              <Separator className="my-4" />
+              
+              {/* Flight details */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Badge variant="secondary" className="bg-secondary/80 text-secondary-foreground">
+                    {flight.validatingAirlineCodes?.[0] || 'N/A'}
                   </Badge>
-                )}
+                  {flight.itineraries?.[0]?.segments?.length > 1 && (
+                    <Badge variant="outline" className="border-muted-foreground/20">
+                      {flight.itineraries[0].segments.length - 1} stop{flight.itineraries[0].segments.length > 2 ? 's' : ''}
+                    </Badge>
+                  )}
+                  <span className="text-sm text-muted-foreground">
+                    {flight.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.cabin || 'Economy'}
+                  </span>
+                </div>
+                <div className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                  Select flight →
+                </div>
               </div>
-              <div className="text-muted-foreground">
-                {flight.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.cabin || 'Economy'}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 
