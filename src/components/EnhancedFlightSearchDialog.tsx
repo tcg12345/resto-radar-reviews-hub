@@ -503,158 +503,160 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
               </TabsList>
 
               <div className="flex-1 overflow-hidden">
-                <TabsContent value="search" className="h-full overflow-y-auto p-4 space-y-4">
-                  {/* Trip Type */}
-                  <Card className="p-4">
-                    <div className="flex items-center gap-4">
-                      <Label className="text-sm font-medium">Trip Type:</Label>
-                      <div className="flex gap-2">
-                        <Button
-                          variant={!isRoundTrip ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setIsRoundTrip(false)}
-                        >
-                          One Way
-                        </Button>
-                        <Button
-                          variant={isRoundTrip ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setIsRoundTrip(true)}
-                        >
-                          Round Trip
-                        </Button>
+                <TabsContent value="search" className="h-full flex flex-col">
+                  <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                    {/* Trip Type */}
+                    <Card className="p-4">
+                      <div className="flex items-center gap-4">
+                        <Label className="text-sm font-medium">Trip Type:</Label>
+                        <div className="flex gap-2">
+                          <Button
+                            variant={!isRoundTrip ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setIsRoundTrip(false)}
+                          >
+                            One Way
+                          </Button>
+                          <Button
+                            variant={isRoundTrip ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setIsRoundTrip(true)}
+                          >
+                            Round Trip
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  </Card>
+                    </Card>
 
-                  {/* Route */}
-                  <Card className="p-4 space-y-4">
-                    <Label className="text-sm font-semibold">Route</Label>
-                    <div className="space-y-3">
-                      <AirportSearch
-                        value={departureAirport}
-                        onChange={setDepartureAirport}
-                        placeholder="From (Airport or City)"
-                      />
-                      <div className="flex justify-center">
-                        <Button variant="ghost" size="icon" className="rounded-full">
-                          <ArrowUpDown className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      <AirportSearch
-                        value={arrivalAirport}
-                        onChange={setArrivalAirport}
-                        placeholder="To (Airport or City)"
-                      />
-                    </div>
-                  </Card>
-
-                  {/* Dates */}
-                  <Card className="p-4 space-y-4">
-                    <Label className="text-sm font-semibold">Travel Dates</Label>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Departure</Label>
-                        <Input
-                          type="date"
-                          value={departureDate}
-                          onChange={(e) => setDepartureDate(e.target.value)}
+                    {/* Route */}
+                    <Card className="p-4 space-y-4">
+                      <Label className="text-sm font-semibold">Route</Label>
+                      <div className="space-y-3">
+                        <AirportSearch
+                          value={departureAirport}
+                          onChange={setDepartureAirport}
+                          placeholder="From (Airport or City)"
+                        />
+                        <div className="flex justify-center">
+                          <Button variant="ghost" size="icon" className="rounded-full">
+                            <ArrowUpDown className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <AirportSearch
+                          value={arrivalAirport}
+                          onChange={setArrivalAirport}
+                          placeholder="To (Airport or City)"
                         />
                       </div>
-                      {isRoundTrip && (
+                    </Card>
+
+                    {/* Dates */}
+                    <Card className="p-4 space-y-4">
+                      <Label className="text-sm font-semibold">Travel Dates</Label>
+                      <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <Label className="text-xs text-muted-foreground">Return</Label>
+                          <Label className="text-xs text-muted-foreground">Departure</Label>
                           <Input
                             type="date"
-                            value={returnDate}
-                            onChange={(e) => setReturnDate(e.target.value)}
+                            value={departureDate}
+                            onChange={(e) => setDepartureDate(e.target.value)}
                           />
                         </div>
-                      )}
-                    </div>
-                  </Card>
-
-                  {/* Travelers */}
-                  <Card className="p-4 space-y-4">
-                    <Label className="text-sm font-semibold">Travelers ({getTotalTravelers()})</Label>
-                    <div className="space-y-3">
-                      {(['adults', 'children', 'infants'] as const).map((type) => (
-                        <div key={type} className="flex items-center justify-between">
+                        {isRoundTrip && (
                           <div>
-                            <p className="text-sm font-medium capitalize">{type}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {type === 'adults' && '12+ years'}
-                              {type === 'children' && '2-11 years'}
-                              {type === 'infants' && 'Under 2 years'}
-                            </p>
+                            <Label className="text-xs text-muted-foreground">Return</Label>
+                            <Input
+                              type="date"
+                              value={returnDate}
+                              onChange={(e) => setReturnDate(e.target.value)}
+                            />
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => updateTravelers(type, false)}
-                              disabled={travelers[type] === 0 || (type === 'adults' && travelers[type] === 1)}
-                            >
-                              <Minus className="h-4 w-4" />
-                            </Button>
-                            <span className="w-8 text-center">{travelers[type]}</span>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => updateTravelers(type, true)}
-                            >
-                              <Plus className="h-4 w-4" />
-                            </Button>
+                        )}
+                      </div>
+                    </Card>
+
+                    {/* Travelers */}
+                    <Card className="p-4 space-y-4">
+                      <Label className="text-sm font-semibold">Travelers ({getTotalTravelers()})</Label>
+                      <div className="space-y-3">
+                        {(['adults', 'children', 'infants'] as const).map((type) => (
+                          <div key={type} className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm font-medium capitalize">{type}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {type === 'adults' && '12+ years'}
+                                {type === 'children' && '2-11 years'}
+                                {type === 'infants' && 'Under 2 years'}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => updateTravelers(type, false)}
+                                disabled={travelers[type] === 0 || (type === 'adults' && travelers[type] === 1)}
+                              >
+                                <Minus className="h-4 w-4" />
+                              </Button>
+                              <span className="w-8 text-center">{travelers[type]}</span>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => updateTravelers(type, true)}
+                              >
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
+                        ))}
+                      </div>
+                    </Card>
+
+                    {/* Class & Options */}
+                    <Card className="p-4 space-y-4">
+                      <Label className="text-sm font-semibold">Preferences</Label>
+                      <div className="space-y-3">
+                        <div>
+                          <Label className="text-xs text-muted-foreground">Travel Class</Label>
+                          <Select value={travelClass} onValueChange={(value: any) => setTravelClass(value)}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="ECONOMY">Economy</SelectItem>
+                              <SelectItem value="PREMIUM_ECONOMY">Premium Economy</SelectItem>
+                              <SelectItem value="BUSINESS">Business</SelectItem>
+                              <SelectItem value="FIRST">First Class</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
-                      ))}
-                    </div>
-                  </Card>
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm">Direct flights only</Label>
+                          <Button
+                            variant={nonStop ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setNonStop(!nonStop)}
+                          >
+                            {nonStop ? "Yes" : "No"}
+                          </Button>
+                        </div>
+                        <div>
+                          <Label className="text-xs text-muted-foreground">Max Price ({currency})</Label>
+                          <Input
+                            type="number"
+                            placeholder="Optional"
+                            value={maxPrice || ''}
+                            onChange={(e) => setMaxPrice(e.target.value ? Number(e.target.value) : undefined)}
+                          />
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
 
-                  {/* Class & Options */}
-                  <Card className="p-4 space-y-4">
-                    <Label className="text-sm font-semibold">Preferences</Label>
-                    <div className="space-y-3">
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Travel Class</Label>
-                        <Select value={travelClass} onValueChange={(value: any) => setTravelClass(value)}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="ECONOMY">Economy</SelectItem>
-                            <SelectItem value="PREMIUM_ECONOMY">Premium Economy</SelectItem>
-                            <SelectItem value="BUSINESS">Business</SelectItem>
-                            <SelectItem value="FIRST">First Class</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <Label className="text-sm">Direct flights only</Label>
-                        <Button
-                          variant={nonStop ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setNonStop(!nonStop)}
-                        >
-                          {nonStop ? "Yes" : "No"}
-                        </Button>
-                      </div>
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Max Price ({currency})</Label>
-                        <Input
-                          type="number"
-                          placeholder="Optional"
-                          value={maxPrice || ''}
-                          onChange={(e) => setMaxPrice(e.target.value ? Number(e.target.value) : undefined)}
-                        />
-                      </div>
-                    </div>
-                  </Card>
-
-                  {/* Search Actions */}
-                  <div className="space-y-2">
+                  {/* Fixed Search Actions at Bottom */}
+                  <div className="border-t bg-background p-4 space-y-2">
                     <Button
                       onClick={handleSearch}
                       disabled={isSearching || !departureAirport || !arrivalAirport || !departureDate}
