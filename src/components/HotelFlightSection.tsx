@@ -529,24 +529,24 @@ export function HotelFlightSection({
                             <div className="bg-purple-50 dark:bg-purple-900/30 rounded-lg p-3">
                               <div className="flex items-center justify-between mb-2">
                                 <div className="text-center flex-1">
-                                  <div className="font-bold text-purple-900 dark:text-purple-100">{flight.departure.airport}</div>
-                                  <div className="text-xs text-purple-600 dark:text-purple-400 mt-1">{flight.departure.time}</div>
-                                  <div className="text-xs text-purple-500 dark:text-purple-400">{flight.departure.date}</div>
+                                  <div className="font-bold text-purple-900 dark:text-purple-100">{flight.departure?.airport || 'N/A'}</div>
+                                  <div className="text-xs text-purple-600 dark:text-purple-400 mt-1">{flight.departure?.time || 'N/A'}</div>
+                                  <div className="text-xs text-purple-500 dark:text-purple-400">{flight.departure?.date || 'N/A'}</div>
                                 </div>
                                 <div className="px-3">
                                   <Plane className="w-5 h-5 text-purple-400 rotate-90" />
                                 </div>
                                 <div className="text-center flex-1">
-                                  <div className="font-bold text-purple-900 dark:text-purple-100">{flight.arrival.airport}</div>
-                                  <div className="text-xs text-purple-600 dark:text-purple-400 mt-1">{flight.arrival.time}</div>
-                                  <div className="text-xs text-purple-500 dark:text-purple-400">{flight.arrival.date}</div>
+                                  <div className="font-bold text-purple-900 dark:text-purple-100">{flight.arrival?.airport || 'N/A'}</div>
+                                  <div className="text-xs text-purple-600 dark:text-purple-400 mt-1">{flight.arrival?.time || 'N/A'}</div>
+                                  <div className="text-xs text-purple-500 dark:text-purple-400">{flight.arrival?.date || 'N/A'}</div>
                                 </div>
                               </div>
                             </div>
                           </div>
                           
                           <div className="flex flex-wrap gap-2 mt-3">
-                            <Button size="sm" variant="outline" onClick={() => window.open(getAirportDirectionsUrl(flight.departure.airport), '_blank')} className="h-9 text-xs px-3 whitespace-nowrap bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 flex-none w-auto">
+                            <Button size="sm" variant="outline" onClick={() => window.open(getAirportDirectionsUrl(flight.departure?.airport || ''), '_blank')} className="h-9 text-xs px-3 whitespace-nowrap bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 flex-none w-auto" disabled={!flight.departure?.airport}>
                               <Navigation className="w-3 h-3 mr-1" />
                               To Airport
                             </Button>
@@ -875,18 +875,18 @@ export function HotelFlightSection({
               <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div className="text-center">
-                    <div className="font-bold text-lg">{selectedFlight.departure.time}</div>
-                    <div className="text-sm text-muted-foreground">{selectedFlight.departure.airport}</div>
-                    <div className="text-xs text-muted-foreground">{selectedFlight.departure.date}</div>
+                    <div className="font-bold text-lg">{selectedFlight.departure?.time || 'N/A'}</div>
+                    <div className="text-sm text-muted-foreground">{selectedFlight.departure?.airport || 'N/A'}</div>
+                    <div className="text-xs text-muted-foreground">{selectedFlight.departure?.date || 'N/A'}</div>
                   </div>
                   <div className="flex-1 flex flex-col items-center mx-4">
                     <Plane className="w-6 h-6 text-purple-600 mb-1" />
                     <div className="w-full h-px bg-purple-300"></div>
                   </div>
                   <div className="text-center">
-                    <div className="font-bold text-lg">{selectedFlight.arrival.time}</div>
-                    <div className="text-sm text-muted-foreground">{selectedFlight.arrival.airport}</div>
-                    <div className="text-xs text-muted-foreground">{selectedFlight.arrival.date}</div>
+                    <div className="font-bold text-lg">{selectedFlight.arrival?.time || 'N/A'}</div>
+                    <div className="text-sm text-muted-foreground">{selectedFlight.arrival?.airport || 'N/A'}</div>
+                    <div className="text-xs text-muted-foreground">{selectedFlight.arrival?.date || 'N/A'}</div>
                   </div>
                 </div>
               </div>
@@ -907,7 +907,7 @@ export function HotelFlightSection({
                 )}
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button variant="outline" size="sm" onClick={() => window.open(getAirportDirectionsUrl(selectedFlight.departure.airport), '_blank')}>
+                <Button variant="outline" size="sm" onClick={() => window.open(getAirportDirectionsUrl(selectedFlight.departure?.airport || ''), '_blank')} disabled={!selectedFlight.departure?.airport}>
                   <Navigation className="w-4 h-4 mr-2" />
                   Directions to Airport
                 </Button>
@@ -1065,26 +1065,26 @@ export function HotelFlightSection({
                       </div>
                       
                       <div className="text-xs text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/30 px-2 py-1 rounded">
-                        ✈️ {flight.departure.airport} → {flight.arrival.airport}
+                        ✈️ {flight.departure?.airport || 'N/A'} → {flight.arrival?.airport || 'N/A'}
                       </div>
                       
                       <div className="flex items-center gap-4 text-xs text-purple-700 dark:text-purple-300">
                         <div>
-                          <span className="font-medium">Departure:</span> {flight.departure.time}
+                          <span className="font-medium">Departure:</span> {flight.departure?.time || 'N/A'}
                         </div>
                         <div>
-                          <span className="font-medium">Arrival:</span> {flight.arrival.time}
+                          <span className="font-medium">Arrival:</span> {flight.arrival?.time || 'N/A'}
                         </div>
                       </div>
                       
-                      {flight.departure.date && <div className="text-xs text-purple-600 dark:text-purple-400">
+                      {flight.departure?.date && <div className="text-xs text-purple-600 dark:text-purple-400">
                           📅 {flight.departure.date}
-                          {flight.arrival.date && flight.arrival.date !== flight.departure.date && ` → ${flight.arrival.date}`}
+                          {flight.arrival?.date && flight.arrival.date !== flight.departure.date && ` → ${flight.arrival.date}`}
                         </div>}
 
                       {/* Quick Action Buttons */}
                       <div className="flex items-center gap-1 pt-1" onClick={e => e.stopPropagation()}>
-                        <Button size="sm" variant="ghost" onClick={() => window.open(getAirportDirectionsUrl(flight.departure.airport), '_blank')} className="h-6 px-2 text-xs text-purple-600 hover:text-purple-800 dark:text-purple-400">
+                        <Button size="sm" variant="ghost" onClick={() => window.open(getAirportDirectionsUrl(flight.departure?.airport || ''), '_blank')} className="h-6 px-2 text-xs text-purple-600 hover:text-purple-800 dark:text-purple-400" disabled={!flight.departure?.airport}>
                           <Navigation className="w-3 h-3 mr-1" />
                           To Airport
                         </Button>
@@ -1468,18 +1468,18 @@ export function HotelFlightSection({
               <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div className="text-center">
-                    <div className="font-bold text-lg">{selectedFlight.departure.time}</div>
-                    <div className="text-sm text-muted-foreground">{selectedFlight.departure.airport}</div>
-                    <div className="text-xs text-muted-foreground">{selectedFlight.departure.date}</div>
+                    <div className="font-bold text-lg">{selectedFlight.departure?.time || 'N/A'}</div>
+                    <div className="text-sm text-muted-foreground">{selectedFlight.departure?.airport || 'N/A'}</div>
+                    <div className="text-xs text-muted-foreground">{selectedFlight.departure?.date || 'N/A'}</div>
                   </div>
                   <div className="flex-1 flex flex-col items-center mx-4">
                     <Plane className="w-6 h-6 text-purple-600 mb-1" />
                     <div className="w-full h-px bg-purple-300"></div>
                   </div>
                   <div className="text-center">
-                    <div className="font-bold text-lg">{selectedFlight.arrival.time}</div>
-                    <div className="text-sm text-muted-foreground">{selectedFlight.arrival.airport}</div>
-                    <div className="text-xs text-muted-foreground">{selectedFlight.arrival.date}</div>
+                    <div className="font-bold text-lg">{selectedFlight.arrival?.time || 'N/A'}</div>
+                    <div className="text-sm text-muted-foreground">{selectedFlight.arrival?.airport || 'N/A'}</div>
+                    <div className="text-xs text-muted-foreground">{selectedFlight.arrival?.date || 'N/A'}</div>
                   </div>
                 </div>
               </div>
@@ -1502,7 +1502,7 @@ export function HotelFlightSection({
 
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-2">
-                <Button variant="outline" size="sm" onClick={() => window.open(getAirportDirectionsUrl(selectedFlight.departure.airport), '_blank')}>
+                <Button variant="outline" size="sm" onClick={() => window.open(getAirportDirectionsUrl(selectedFlight.departure?.airport || ''), '_blank')} disabled={!selectedFlight.departure?.airport}>
                   <Navigation className="w-4 h-4 mr-2" />
                   Directions to Airport
                 </Button>
