@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -38,6 +39,9 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
   const [fromAirport, setFromAirport] = useState<string>("");
   const [toAirport, setToAirport] = useState<string>("");
   const [passengers, setPassengers] = useState<string>("1");
+  const [flightNumber, setFlightNumber] = useState<string>("");
+  const [airline, setAirline] = useState<string>("");
+  const [searchType, setSearchType] = useState<'route' | 'flight'>('route');
   const [showResults, setShowResults] = useState(false);
   const [flightResults, setFlightResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -46,8 +50,13 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
   const isMobile = useIsMobile();
 
   const handleSearch = async () => {
-    if (!fromAirport || !toAirport || !departureDate) {
-      alert('Please fill in all required fields');
+    if (searchType === 'route' && (!fromAirport || !toAirport || !departureDate)) {
+      alert('Please fill in origin, destination, and departure date for route search');
+      return;
+    }
+    
+    if (searchType === 'flight' && (!flightNumber || !airline || !departureDate)) {
+      alert('Please fill in flight number, airline, and departure date for flight search');
       return;
     }
 
@@ -55,8 +64,19 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
     setError(null);
     
     try {
-      const { data, error } = await supabase.functions.invoke('amadeus-enhanced-flight-api', {
-        body: {
+      let requestBody;
+      
+      if (searchType === 'flight') {
+        // Search by specific flight number and airline
+        requestBody = {
+          endpoint: 'getFlightStatus',
+          carrierCode: airline,
+          flightNumber: flightNumber,
+          scheduledDepartureDate: format(departureDate, 'yyyy-MM-dd')
+        };
+      } else {
+        // Search by route (origin/destination)
+        requestBody = {
           endpoint: 'searchFlights',
           originLocationCode: fromAirport,
           destinationLocationCode: toAirport,
@@ -64,7 +84,11 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
           adults: parseInt(passengers),
           currencyCode: 'USD',
           max: 100
-        }
+        };
+      }
+
+      const { data, error } = await supabase.functions.invoke('amadeus-enhanced-flight-api', {
+        body: requestBody
       });
 
       if (error) {
@@ -109,12 +133,14 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
             className="flex items-center gap-2 hover:bg-accent"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back
+            Back to search
           </Button>
         </div>
         <div className="text-right">
-          <div className="text-sm font-medium text-foreground">
-            {fromAirport} → {toAirport}
+          <div className="text-sm text-muted-foreground">
+            {searchType === 'route' ? 
+              `${fromAirport} → ${toAirport}` : 
+              `${airline} ${flightNumber}`}
           </div>
           <div className="text-xs text-muted-foreground">
             {departureDate && format(departureDate, 'EEE, MMM dd, yyyy')}
@@ -141,10 +167,12 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
             </div>
             <h3 className="text-lg font-semibold mb-2 text-foreground">No flights found</h3>
             <p className="text-muted-foreground mb-4">
-              We couldn't find any flights for this route on {departureDate && format(new Date(departureDate), 'MMM dd, yyyy')}.
+              {searchType === 'route' ? 
+                `We couldn't find any flights for this route on ${departureDate && format(new Date(departureDate), 'MMM dd, yyyy')}.` :
+                `We couldn't find flight ${airline} ${flightNumber} on ${departureDate && format(new Date(departureDate), 'MMM dd, yyyy')}.`}
             </p>
             <p className="text-sm text-muted-foreground">
-              Try adjusting your search criteria or check if the airport codes are correct.
+              Try adjusting your search criteria or check if the details are correct.
             </p>
           </CardContent>
         </Card>
@@ -154,7 +182,7 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
       <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2 scroll-smooth">
         <div className="text-sm text-muted-foreground mb-4 bg-muted/30 px-3 py-2 rounded-lg">
           {flightResults.length > 0 && (
-            <span>Showing {flightResults.length} flight{flightResults.length !== 1 ? 's' : ''} for this route</span>
+            <span>Showing {flightResults.length} flight{flightResults.length !== 1 ? 's' : ''} for this {searchType === 'route' ? 'route' : 'flight'}</span>
           )}
         </div>
         {flightResults.map((flight, index) => (
@@ -268,46 +296,108 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
             <div className="flex-1 overflow-y-auto">
               {showResults ? renderFlightResults() : (
                 <div className="space-y-6">
+                  {/* Search Type Toggle */}
+                  <div className="flex bg-muted rounded-lg p-1">
+                    <button
+                      onClick={() => setSearchType('route')}
+                      className={cn(
+                        "flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors",
+                        searchType === 'route' 
+                          ? "bg-background text-foreground shadow-sm" 
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      Search by Route
+                    </button>
+                    <button
+                      onClick={() => setSearchType('flight')}
+                      className={cn(
+                        "flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors",
+                        searchType === 'flight' 
+                          ? "bg-background text-foreground shadow-sm" 
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      Search by Flight Number
+                    </button>
+                  </div>
+
                   <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-muted-foreground mb-2">From Airport</label>
-                      <AirportSearch
-                        value={fromAirport}
-                        onChange={setFromAirport}
-                        onAirportSelect={(airport) => {
-                          setFromAirport(airport.iataCode);
-                        }}
-                        placeholder="Search departure airport..."
-                        className="w-full"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-muted-foreground mb-2">To Airport</label>
-                      <AirportSearch
-                        value={toAirport}
-                        onChange={setToAirport}
-                        onAirportSelect={(airport) => {
-                          setToAirport(airport.iataCode);
-                        }}
-                        placeholder="Search destination airport..."
-                        className="w-full"
-                      />
-                    </div>
+                    {searchType === 'route' ? (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-muted-foreground mb-2">From Airport</label>
+                          <AirportSearch
+                            value={fromAirport}
+                            onChange={setFromAirport}
+                            onAirportSelect={(airport) => {
+                              setFromAirport(airport.iataCode);
+                            }}
+                            placeholder="Search departure airport..."
+                            className="w-full"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-muted-foreground mb-2">To Airport</label>
+                          <AirportSearch
+                            value={toAirport}
+                            onChange={setToAirport}
+                            onAirportSelect={(airport) => {
+                              setToAirport(airport.iataCode);
+                            }}
+                            placeholder="Search destination airport..."
+                            className="w-full"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-muted-foreground mb-2">Passengers</label>
+                          <Select value={passengers} onValueChange={setPassengers}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                                <SelectItem key={num} value={num.toString()}>
+                                  {num} passenger{num > 1 ? 's' : ''}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-muted-foreground mb-2">Airline Code</label>
+                          <input
+                            type="text"
+                            value={airline}
+                            onChange={(e) => setAirline(e.target.value.toUpperCase())}
+                            placeholder="e.g., BA, AA, DL"
+                            className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            maxLength={3}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-muted-foreground mb-2">Flight Number</label>
+                          <input
+                            type="text"
+                            value={flightNumber}
+                            onChange={(e) => setFlightNumber(e.target.value)}
+                            placeholder="e.g., 123, 1847"
+                            className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                          />
+                        </div>
+                      </>
+                    )}
                     
                     <div>
                       <label className="block text-sm font-medium text-muted-foreground mb-2">Departure Date</label>
                       <Popover>
                         <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full h-12 justify-start text-left font-normal",
-                              !departureDate && "text-muted-foreground"
-                            )}
-                          >
+                          <Button variant="outline" className="w-full justify-start text-left font-normal">
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {departureDate ? format(departureDate, "PPP") : <span>Pick a date</span>}
+                            {departureDate ? format(departureDate, "PPP") : "Select departure date"}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
@@ -316,30 +406,19 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                             selected={departureDate}
                             onSelect={setDepartureDate}
                             initialFocus
-                            className={cn("p-3 pointer-events-auto")}
                           />
                         </PopoverContent>
                       </Popover>
                     </div>
                   </div>
                   
-                  <div className="space-y-3">
-                    <Button 
-                      onClick={handleSearch}
-                      className="w-full h-12"
-                      disabled={!fromAirport || !toAirport || !departureDate || isLoading}
-                    >
-                      {isLoading ? "Searching..." : "✈️ Search Flights"}
-                    </Button>
-                    
-                    <Button 
-                      onClick={onClose}
-                      variant="outline"
-                      className="w-full"
-                    >
-                      Cancel
-                    </Button>
-                  </div>
+                  <Button 
+                    onClick={handleSearch} 
+                    className="w-full" 
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Searching...' : 'Search Flights'}
+                  </Button>
                 </div>
               )}
             </div>
@@ -349,7 +428,6 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
     );
   }
 
-  // Desktop version
   console.log('🛩️ Rendering DESKTOP version');
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -363,78 +441,131 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
         <div className="overflow-y-auto max-h-[70vh]">
           {showResults ? renderFlightResults() : (
             <div className="space-y-6">
+              {/* Search Type Toggle */}
+              <div className="flex bg-muted rounded-lg p-1">
+                <button
+                  onClick={() => setSearchType('route')}
+                  className={cn(
+                    "flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors",
+                    searchType === 'route' 
+                      ? "bg-background text-foreground shadow-sm" 
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  Search by Route
+                </button>
+                <button
+                  onClick={() => setSearchType('flight')}
+                  className={cn(
+                    "flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors",
+                    searchType === 'flight' 
+                      ? "bg-background text-foreground shadow-sm" 
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  Search by Flight Number
+                </button>
+              </div>
+
+              {searchType === 'route' ? (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">From Airport</label>
+                    <AirportSearch
+                      value={fromAirport}
+                      onChange={setFromAirport}
+                      onAirportSelect={(airport) => {
+                        setFromAirport(airport.iataCode);
+                      }}
+                      placeholder="Search departure airport..."
+                      className="w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">To Airport</label>
+                    <AirportSearch
+                      value={toAirport}
+                      onChange={setToAirport}
+                      onAirportSelect={(airport) => {
+                        setToAirport(airport.iataCode);
+                      }}
+                      placeholder="Search destination airport..."
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Airline Code</label>
+                    <input
+                      type="text"
+                      value={airline}
+                      onChange={(e) => setAirline(e.target.value.toUpperCase())}
+                      placeholder="e.g., BA, AA, DL"
+                      className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                      maxLength={3}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Flight Number</label>
+                    <input
+                      type="text"
+                      value={flightNumber}
+                      onChange={(e) => setFlightNumber(e.target.value)}
+                      placeholder="e.g., 123, 1847"
+                      className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  </div>
+                </div>
+              )}
+              
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-muted-foreground mb-2">From Airport</label>
-                  <AirportSearch
-                    value={fromAirport}
-                    onChange={setFromAirport}
-                    onAirportSelect={(airport) => {
-                      setFromAirport(airport.iataCode);
-                    }}
-                    placeholder="Search departure airport..."
-                    className="w-full"
-                  />
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">Departure Date</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start text-left font-normal">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {departureDate ? format(departureDate, "PPP") : "Select departure date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={departureDate}
+                        onSelect={setDepartureDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-muted-foreground mb-2">To Airport</label>
-                  <AirportSearch
-                    value={toAirport}
-                    onChange={setToAirport}
-                    onAirportSelect={(airport) => {
-                      setToAirport(airport.iataCode);
-                    }}
-                    placeholder="Search destination airport..."
-                    className="w-full"
-                  />
-                </div>
+                {searchType === 'route' && (
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Passengers</label>
+                    <Select value={passengers} onValueChange={setPassengers}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                          <SelectItem key={num} value={num.toString()}>
+                            {num} passenger{num > 1 ? 's' : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
               
-              <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-2">Departure Date</label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full h-12 justify-start text-left font-normal",
-                        !departureDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {departureDate ? format(departureDate, "PPP") : <span>Pick a date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={departureDate}
-                      onSelect={setDepartureDate}
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              
-              <div className="space-y-3">
-                <Button 
-                  onClick={handleSearch}
-                  className="w-full h-12"
-                  disabled={!fromAirport || !toAirport || !departureDate || isLoading}
-                >
-                  {isLoading ? "Searching..." : "✈️ Search Flights"}
-                </Button>
-                
-                <Button 
-                  onClick={onClose}
-                  variant="outline"
-                  className="w-full"
-                >
-                  Cancel
-                </Button>
-              </div>
+              <Button 
+                onClick={handleSearch} 
+                className="w-full" 
+                disabled={isLoading}
+              >
+                {isLoading ? 'Searching...' : 'Search Flights'}
+              </Button>
             </div>
           )}
         </div>
