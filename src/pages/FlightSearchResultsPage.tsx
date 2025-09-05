@@ -68,7 +68,12 @@ export default function FlightSearchResultsPage() {
       
       setIsLoading(true);
       try {
-        console.log('🛩️ Searching flights:', { fromAirport, toAirport, departureDate, passengers });
+        console.log('🛩️ Searching flights with params:', { 
+          fromAirport, 
+          toAirport, 
+          departureDate, 
+          passengers 
+        });
         
         const { data, error } = await supabase.functions.invoke('amadeus-enhanced-flight-api', {
           body: {
@@ -77,59 +82,30 @@ export default function FlightSearchResultsPage() {
             destinationLocationCode: toAirport,
             departureDate: departureDate,
             adults: parseInt(passengers),
-            max: 10
+            currencyCode: 'USD',
+            max: 20 // Request more results
           }
         });
 
         console.log('✈️ Flight search response:', { data, error });
 
         if (error) {
-          console.error('Error searching flights:', error);
-          // Mock data for demonstration
-          setFlights([
-            {
-              id: '1',
-              price: { total: '299.99', currency: 'USD' },
-              itineraries: [{
-                duration: 'PT5H30M',
-                segments: [{
-                  departure: { iataCode: fromAirport || 'JFK', at: '2025-09-02T08:00:00' },
-                  arrival: { iataCode: toAirport || 'LAX', at: '2025-09-02T13:30:00' },
-                  carrierCode: 'AA',
-                  number: '123',
-                  aircraft: { code: '738' },
-                  duration: 'PT5H30M'
-                }]
-              }],
-              travelerPricings: [{ travelerId: '1', fareOption: 'STANDARD', travelerType: 'ADULT', price: { total: '299.99', currency: 'USD' } }],
-              validatingAirlineCodes: ['AA']
-            }
-          ]);
-        } else if (data?.flights) {
+          console.error('❌ Error searching flights:', error);
+          setFlights([]);
+        } else if (data?.data && Array.isArray(data.data)) {
+          console.log('✅ Found flights:', data.data.length);
+          setFlights(data.data);
+        } else if (data?.flights && Array.isArray(data.flights)) {
+          console.log('✅ Found flights (alternate format):', data.flights.length);
           setFlights(data.flights);
+        } else {
+          console.log('⚠️ No flights found in response, using empty array');
+          console.log('Response structure:', data);
+          setFlights([]);
         }
       } catch (error) {
-        console.error('Flight search failed:', error);
-        // Mock data fallback
-        setFlights([
-          {
-            id: '1',
-            price: { total: '299.99', currency: 'USD' },
-            itineraries: [{
-              duration: 'PT5H30M',
-              segments: [{
-                departure: { iataCode: fromAirport || 'JFK', at: '2025-09-02T08:00:00' },
-                arrival: { iataCode: toAirport || 'LAX', at: '2025-09-02T13:30:00' },
-                carrierCode: 'AA',
-                number: '123',
-                aircraft: { code: '738' },
-                duration: 'PT5H30M'
-              }]
-            }],
-            travelerPricings: [{ travelerId: '1', fareOption: 'STANDARD', travelerType: 'ADULT', price: { total: '299.99', currency: 'USD' } }],
-            validatingAirlineCodes: ['AA']
-          }
-        ]);
+        console.error('💥 Flight search failed:', error);
+        setFlights([]);
       } finally {
         setIsLoading(false);
       }

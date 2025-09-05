@@ -485,8 +485,24 @@ serve(async (req) => {
     console.log('🎯 Endpoint requested:', endpoint);
 
     switch (endpoint) {
+      case 'searchFlights':
       case 'search-flights': {
-        const searchParams: FlightSearchRequest = requestBody;
+        const searchParams: FlightSearchRequest = {
+          origin: requestBody.originLocationCode,
+          destination: requestBody.destinationLocationCode,
+          departureDate: requestBody.departureDate,
+          returnDate: requestBody.returnDate,
+          adults: requestBody.adults || 1,
+          children: requestBody.children || 0,
+          infants: requestBody.infants || 0,
+          travelClass: requestBody.travelClass,
+          nonStop: requestBody.nonStop,
+          maxPrice: requestBody.maxPrice,
+          currency: requestBody.currencyCode || 'USD',
+          max: requestBody.max || 20
+        };
+        
+        console.log('🔍 Parsed search params:', searchParams);
         const data = await searchFlights(searchParams);
         
         return new Response(
