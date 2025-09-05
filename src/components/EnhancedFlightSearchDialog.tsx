@@ -160,6 +160,29 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
         {flightResults.map((flight, index) => (
           <Card key={index} className="border-border/20 bg-gradient-to-r from-card to-card/95 hover:shadow-md transition-all duration-300 cursor-pointer group overflow-hidden">
             <CardContent className="p-5" onClick={() => handleSelectFlight(flight)}>
+              {/* Flight Number and Airline Header */}
+              <div className="flex items-center justify-between mb-4 pb-3 border-b border-border/10">
+                <div className="flex items-center gap-3">
+                  <div className="bg-primary/10 p-2 rounded-lg">
+                    <Plane className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-foreground">
+                      {flight.validatingAirlineCodes?.[0] || 'N/A'} {flight.itineraries?.[0]?.segments?.[0]?.carrierCode || ''}{flight.itineraries?.[0]?.segments?.[0]?.number || 'N/A'}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {flight.itineraries?.[0]?.segments?.[0]?.operating?.carrierCode ? 
+                        `Operated by ${flight.itineraries[0].segments[0].operating.carrierCode}` : 
+                        `${flight.validatingAirlineCodes?.[0] || 'Airline'} Flight`}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm text-muted-foreground">Aircraft</div>
+                  <div className="text-sm font-medium">{flight.itineraries?.[0]?.segments?.[0]?.aircraft?.code || 'N/A'}</div>
+                </div>
+              </div>
+              
               {/* Flight route and timing */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-8 flex-1">
