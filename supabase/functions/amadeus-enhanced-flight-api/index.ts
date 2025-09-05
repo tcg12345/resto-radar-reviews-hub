@@ -551,6 +551,7 @@ serve(async (req) => {
         );
       }
 
+      case 'searchLocations':
       case 'search-locations': {
         const { keyword } = requestBody;
         const data = await searchLocations(keyword);
