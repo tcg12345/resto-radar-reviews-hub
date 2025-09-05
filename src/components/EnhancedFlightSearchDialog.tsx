@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AirportSearch } from '@/components/AirportSearch';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
@@ -36,21 +36,6 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
   
   const isMobile = useIsMobile();
   
-  const popularAirports = [
-    { code: 'JFK', name: 'John F. Kennedy International Airport', city: 'New York' },
-    { code: 'LAX', name: 'Los Angeles International Airport', city: 'Los Angeles' },
-    { code: 'LHR', name: 'London Heathrow Airport', city: 'London' },
-    { code: 'CDG', name: 'Charles de Gaulle Airport', city: 'Paris' },
-    { code: 'DXB', name: 'Dubai International Airport', city: 'Dubai' },
-    { code: 'NRT', name: 'Narita International Airport', city: 'Tokyo' },
-    { code: 'SFO', name: 'San Francisco International Airport', city: 'San Francisco' },
-    { code: 'ORD', name: 'Chicago O\'Hare International Airport', city: 'Chicago' },
-    { code: 'ATL', name: 'Hartsfield-Jackson Atlanta International Airport', city: 'Atlanta' },
-    { code: 'MIA', name: 'Miami International Airport', city: 'Miami' },
-    { code: 'LAS', name: 'Harry Reid International Airport', city: 'Las Vegas' },
-    { code: 'SEA', name: 'Seattle-Tacoma International Airport', city: 'Seattle' },
-  ];
-  
   if (isMobile) {
     console.log('🛩️ Rendering MOBILE version');
     return (
@@ -66,40 +51,28 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-muted-foreground mb-2">From Airport</label>
-                    <Select value={fromAirport} onValueChange={setFromAirport}>
-                      <SelectTrigger className="w-full h-12">
-                        <SelectValue placeholder="Select departure airport" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60">
-                        {popularAirports.map((airport) => (
-                          <SelectItem key={airport.code} value={airport.code}>
-                            <div className="flex flex-col items-start">
-                              <span className="font-medium">{airport.code} - {airport.city}</span>
-                              <span className="text-xs text-muted-foreground">{airport.name}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <AirportSearch
+                      value={fromAirport}
+                      onChange={setFromAirport}
+                      onAirportSelect={(airport) => {
+                        setFromAirport(airport.iataCode);
+                      }}
+                      placeholder="Search departure airport..."
+                      className="w-full"
+                    />
                   </div>
                   
                   <div>
                     <label className="block text-sm font-medium text-muted-foreground mb-2">To Airport</label>
-                    <Select value={toAirport} onValueChange={setToAirport}>
-                      <SelectTrigger className="w-full h-12">
-                        <SelectValue placeholder="Select destination airport" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60">
-                        {popularAirports.map((airport) => (
-                          <SelectItem key={airport.code} value={airport.code}>
-                            <div className="flex flex-col items-start">
-                              <span className="font-medium">{airport.code} - {airport.city}</span>
-                              <span className="text-xs text-muted-foreground">{airport.name}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <AirportSearch
+                      value={toAirport}
+                      onChange={setToAirport}
+                      onAirportSelect={(airport) => {
+                        setToAirport(airport.iataCode);
+                      }}
+                      placeholder="Search destination airport..."
+                      className="w-full"
+                    />
                   </div>
                   
                   <div>
@@ -172,40 +145,28 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-muted-foreground mb-2">From Airport</label>
-              <Select value={fromAirport} onValueChange={setFromAirport}>
-                <SelectTrigger className="w-full h-12">
-                  <SelectValue placeholder="Select departure airport" />
-                </SelectTrigger>
-                <SelectContent className="max-h-60">
-                  {popularAirports.map((airport) => (
-                    <SelectItem key={airport.code} value={airport.code}>
-                      <div className="flex flex-col items-start">
-                        <span className="font-medium">{airport.code} - {airport.city}</span>
-                        <span className="text-xs text-muted-foreground">{airport.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <AirportSearch
+                value={fromAirport}
+                onChange={setFromAirport}
+                onAirportSelect={(airport) => {
+                  setFromAirport(airport.iataCode);
+                }}
+                placeholder="Search departure airport..."
+                className="w-full"
+              />
             </div>
             
             <div>
               <label className="block text-sm font-medium text-muted-foreground mb-2">To Airport</label>
-              <Select value={toAirport} onValueChange={setToAirport}>
-                <SelectTrigger className="w-full h-12">
-                  <SelectValue placeholder="Select destination airport" />
-                </SelectTrigger>
-                <SelectContent className="max-h-60">
-                  {popularAirports.map((airport) => (
-                    <SelectItem key={airport.code} value={airport.code}>
-                      <div className="flex flex-col items-start">
-                        <span className="font-medium">{airport.code} - {airport.city}</span>
-                        <span className="text-xs text-muted-foreground">{airport.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <AirportSearch
+                value={toAirport}
+                onChange={setToAirport}
+                onAirportSelect={(airport) => {
+                  setToAirport(airport.iataCode);
+                }}
+                placeholder="Search destination airport..."
+                className="w-full"
+              />
             </div>
           </div>
           
