@@ -69,7 +69,7 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
       if (searchType === 'flight') {
         // Search by specific flight number and airline
         requestBody = {
-          endpoint: 'getFlightStatus',
+          endpoint: 'flight-status',
           carrierCode: airline,
           flightNumber: flightNumber,
           scheduledDepartureDate: format(departureDate, 'yyyy-MM-dd')
