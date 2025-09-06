@@ -214,8 +214,10 @@ export function AirportSearch({
           // Combine city suggestions with individual airports
           const allSuggestions = [...suggestions, ...transformedAirports];
           setAirports(allSuggestions);
-          updateDropdownPosition();
-          setShowDropdown(true);
+          setTimeout(() => {
+            updateDropdownPosition();
+            setShowDropdown(true);
+          }, 0);
         } else {
           handleFallbackSearch(searchTerm, suggestions);
         }
