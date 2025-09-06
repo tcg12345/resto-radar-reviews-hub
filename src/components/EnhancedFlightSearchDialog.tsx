@@ -440,10 +440,6 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                     </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-xs text-muted-foreground uppercase tracking-wide">Price</div>
-                  <div className="text-lg font-bold text-foreground">{flight.price?.total || 'N/A'}</div>
-                </div>
               </div>
               
               {/* Main: Times & Route */}
