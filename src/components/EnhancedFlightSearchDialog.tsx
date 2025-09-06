@@ -452,6 +452,11 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                           <span> • Operated by {getAirlineName(flight.itineraries[0].segments[0].operating.carrierCode)}</span>
                         )}
                       </div>
+                      {flight.itineraries?.[0]?.segments?.[0]?.aircraft?.code && (
+                        <div className="text-xs text-muted-foreground bg-muted/30 px-2 py-0.5 rounded-md inline-block">
+                          ✈️ {flight.itineraries[0].segments[0].aircraft.code}
+                        </div>
+                      )}
                     </div>
                   </div>
                   <button className="px-3 py-1.5 text-xs font-medium text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors min-h-[44px]">
