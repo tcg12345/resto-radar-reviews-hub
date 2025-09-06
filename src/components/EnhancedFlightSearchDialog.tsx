@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
@@ -179,13 +179,30 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
   const [airline, setAirline] = useState<string>("");
   const [searchType, setSearchType] = useState<'route' | 'flight'>('route');
   const [stops, setStops] = useState<string>('all');
+  const [selectedAirlines, setSelectedAirlines] = useState<string[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [flightResults, setFlightResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showAirlineDropdown, setShowAirlineDropdown] = useState(false);
+  const [showAirlineFilter, setShowAirlineFilter] = useState(false);
   
   const isMobile = useIsMobile();
+
+  // Close airline filter when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.airline-filter-container')) {
+        setShowAirlineFilter(false);
+      }
+    };
+
+    if (showAirlineFilter) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showAirlineFilter]);
 
   const handleSearch = async () => {
     if (searchType === 'route' && (!fromAirport || !toAirport || !departureDate)) {
@@ -278,6 +295,20 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
             const flightNumberMatch = firstSegment?.number === flightNumber;
             
             return carrierMatch && flightNumberMatch;
+          });
+        }
+        
+        // Filter by selected airlines if any are selected
+        if (selectedAirlines.length > 0) {
+          filteredResults = filteredResults.filter((flight: any) => {
+            const segments = flight.itineraries?.[0]?.segments || [];
+            const flightAirlines = segments.map((segment: any) => segment.carrierCode);
+            const validatingAirlines = flight.validatingAirlineCodes || [];
+            
+            // Check if any of the flight's airlines match the selected airlines
+            return [...flightAirlines, ...validatingAirlines].some((airlineCode: string) => 
+              selectedAirlines.includes(airlineCode)
+            );
           });
         }
         
@@ -577,6 +608,61 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                             </SelectContent>
                           </Select>
                         </div>
+                        <div>
+                          <label className="block text-sm font-medium text-muted-foreground mb-2">Airline Filter</label>
+                          <div className="relative airline-filter-container">
+                            <Button
+                              variant="outline"
+                              onClick={() => setShowAirlineFilter(!showAirlineFilter)}
+                              className="w-full justify-between"
+                            >
+                              <span className="text-sm">
+                                {selectedAirlines.length === 0 
+                                  ? "All airlines" 
+                                  : `${selectedAirlines.length} selected`}
+                              </span>
+                              <ChevronDown className="h-4 w-4" />
+                            </Button>
+                            {showAirlineFilter && (
+                              <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
+                                <div className="p-2 space-y-1">
+                                  {getAirlineOptions().slice(0, 15).map((airline) => (
+                                    <label key={airline.code} className="flex items-center gap-2 p-2 hover:bg-muted rounded-sm cursor-pointer">
+                                      <input
+                                        type="checkbox"
+                                        checked={selectedAirlines.includes(airline.code)}
+                                        onChange={(e) => {
+                                          if (e.target.checked) {
+                                            setSelectedAirlines([...selectedAirlines, airline.code]);
+                                          } else {
+                                            setSelectedAirlines(selectedAirlines.filter(code => code !== airline.code));
+                                          }
+                                        }}
+                                        className="rounded border-border"
+                                      />
+                                      <div className="flex-1 flex items-center justify-between">
+                                        <span className="text-sm text-foreground">{airline.name}</span>
+                                        <span className="text-xs text-muted-foreground font-mono">{airline.code}</span>
+                                      </div>
+                                    </label>
+                                  ))}
+                                  {selectedAirlines.length > 0 && (
+                                    <div className="border-t border-border pt-2 mt-2">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setSelectedAirlines([])}
+                                        className="w-full text-xs"
+                                      >
+                                        Clear All
+                                      </Button>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </>
                     ) : (
                       <>
@@ -858,6 +944,61 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                         <SelectItem value="twostops">2 stops max</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Airline Filter</label>
+                    <div className="relative airline-filter-container">
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowAirlineFilter(!showAirlineFilter)}
+                        className="w-full justify-between"
+                      >
+                        <span className="text-sm">
+                          {selectedAirlines.length === 0 
+                            ? "All airlines" 
+                            : `${selectedAirlines.length} selected`}
+                        </span>
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                      {showAirlineFilter && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
+                          <div className="p-2 space-y-1">
+                            {getAirlineOptions().slice(0, 15).map((airline) => (
+                              <label key={airline.code} className="flex items-center gap-2 p-2 hover:bg-muted rounded-sm cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedAirlines.includes(airline.code)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedAirlines([...selectedAirlines, airline.code]);
+                                    } else {
+                                      setSelectedAirlines(selectedAirlines.filter(code => code !== airline.code));
+                                    }
+                                  }}
+                                  className="rounded border-border"
+                                />
+                                <div className="flex-1 flex items-center justify-between">
+                                  <span className="text-sm text-foreground">{airline.name}</span>
+                                  <span className="text-xs text-muted-foreground font-mono">{airline.code}</span>
+                                </div>
+                              </label>
+                            ))}
+                            {selectedAirlines.length > 0 && (
+                              <div className="border-t border-border pt-2 mt-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setSelectedAirlines([])}
+                                  className="w-full text-xs"
+                                >
+                                  Clear All
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
