@@ -601,7 +601,7 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                       <>
                         {/* From Airport Card */}
                         <div 
-                          className="glass-card rounded-2xl p-4 border border-border/50 shadow-premium transition-all duration-200 hover:shadow-premium-glow focus-within:border-primary/50 focus-within:shadow-premium-glow cursor-pointer"
+                          className="glass-card rounded-2xl p-4 border border-border/50 shadow-premium transition-all duration-200 hover:shadow-premium-glow focus-within:border-primary/50 focus-within:shadow-premium-glow cursor-pointer relative z-10"
                           onClick={() => {
                             const input = document.querySelector('[placeholder="Choose departure airport"]') as HTMLInputElement;
                             input?.focus();
@@ -629,7 +629,7 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
 
                         {/* To Airport Card */}
                         <div 
-                          className="glass-card rounded-2xl p-4 border border-border/50 shadow-premium transition-all duration-200 hover:shadow-premium-glow focus-within:border-primary/50 focus-within:shadow-premium-glow cursor-pointer"
+                          className="glass-card rounded-2xl p-4 border border-border/50 shadow-premium transition-all duration-200 hover:shadow-premium-glow focus-within:border-primary/50 focus-within:shadow-premium-glow cursor-pointer relative z-10"
                           onClick={() => {
                             const input = document.querySelector('[placeholder="Choose destination airport"]') as HTMLInputElement;
                             input?.focus();
