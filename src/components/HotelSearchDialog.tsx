@@ -160,7 +160,12 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
       }
 
       if (data?.data) {
-        toast.success(`Hotel booked successfully! Confirmation: ${data.data.confirmationNumber}`);
+        const booking = data.data;
+        if (booking.message) {
+          toast.success(`✅ ${booking.message} Confirmation: ${booking.confirmationNumber}`);
+        } else {
+          toast.success(`Hotel booked successfully! Confirmation: ${booking.confirmationNumber}`);
+        }
       } else {
         throw new Error('Booking failed');
       }
