@@ -875,16 +875,23 @@ export function HotelFlightSection({
       <Drawer open={isFlightDetailsOpen} onOpenChange={setIsFlightDetailsOpen}>
         <DrawerContent className="h-[80vh] bg-background border-border">
           <div className="flex flex-col h-[80vh]">
-            <div className="flex items-center justify-between p-4 pb-3">
-              <DrawerTitle className="text-xl font-bold text-foreground flex items-center gap-2">
-                <Plane className="w-5 h-5 text-purple-600" />
-                {selectedFlight?.airline} {selectedFlight?.flightNumber}
-              </DrawerTitle>
+            <div className="flex items-center justify-between p-3 border-b border-border/20 bg-gradient-to-r from-purple-50/50 to-blue-50/50 dark:from-purple-950/30 dark:to-blue-950/30">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center">
+                  <Plane className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground leading-tight">
+                    {selectedFlight?.airline} {selectedFlight?.flightNumber}
+                  </h2>
+                  <p className="text-xs text-muted-foreground">Flight Details</p>
+                </div>
+              </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsFlightDetailsOpen(false)}
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 p-0 rounded-full hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/50"
               >
                 <X className="h-4 w-4" />
               </Button>
