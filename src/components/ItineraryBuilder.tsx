@@ -859,11 +859,56 @@ export function ItineraryBuilder({
     setHotels(prev => [...prev, newBooking]);
   };
   const handleAddFlight = (flight: any) => {
-    const newFlight: FlightBooking = {
-      id: crypto.randomUUID(),
-      ...flight
-    };
-    setFlights(prev => [...prev, newFlight]);
+    console.log('Adding flight with data:', flight);
+    
+    // Transform the flight data to match FlightBooking interface
+    let transformedFlight: FlightBooking;
+    
+    if (flight.itineraries && flight.itineraries[0]?.segments) {
+      // This is Amadeus API format
+      const segment = flight.itineraries[0].segments[0];
+      const price = flight.price?.total || flight.price?.grandTotal || 'N/A';
+      
+      transformedFlight = {
+        id: crypto.randomUUID(),
+        airline: segment.carrier?.name || segment.carrierCode || 'Unknown',
+        flightNumber: `${segment.carrierCode || ''}${segment.number || ''}`,
+        departure: {
+          airport: segment.departure?.iataCode || 'N/A',
+          time: segment.departure?.at ? new Date(segment.departure.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A',
+          date: segment.departure?.at ? new Date(segment.departure.at).toLocaleDateString() : 'N/A'
+        },
+        arrival: {
+          airport: segment.arrival?.iataCode || 'N/A', 
+          time: segment.arrival?.at ? new Date(segment.arrival.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A',
+          date: segment.arrival?.at ? new Date(segment.arrival.at).toLocaleDateString() : 'N/A'
+        },
+        price: price,
+        bookingUrl: flight.bookingUrl
+      };
+    } else {
+      // This is already in the correct format or manual input
+      transformedFlight = {
+        id: crypto.randomUUID(),
+        airline: flight.airline || 'Unknown',
+        flightNumber: flight.flightNumber || 'N/A',
+        departure: {
+          airport: flight.departure?.airport || flight.from || 'N/A',
+          time: flight.departure?.time || flight.departureTime || 'N/A',
+          date: flight.departure?.date || flight.departureDate || 'N/A'
+        },
+        arrival: {
+          airport: flight.arrival?.airport || flight.to || 'N/A',
+          time: flight.arrival?.time || flight.arrivalTime || 'N/A', 
+          date: flight.arrival?.date || flight.arrivalDate || 'N/A'
+        },
+        price: flight.price,
+        bookingUrl: flight.bookingUrl
+      };
+    }
+    
+    console.log('Transformed flight:', transformedFlight);
+    setFlights(prev => [...prev, transformedFlight]);
   };
   const handleRemoveHotel = (hotelId: string) => {
     setHotels(prev => prev.filter(hotel => hotel.id !== hotelId));
