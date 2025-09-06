@@ -341,18 +341,8 @@ export function AirportSearch({
       {/* Dropdown Results */}
       {showDropdown && (
         <div 
-          className="fixed left-0 right-0 bg-card border border-border rounded-lg shadow-premium max-h-60 overflow-y-auto z-[99999]"
-          style={{
-            top: containerRef.current ? 
-              containerRef.current.getBoundingClientRect().bottom + window.scrollY + 4 : 
-              'auto',
-            left: containerRef.current ? 
-              containerRef.current.getBoundingClientRect().left + window.scrollX : 
-              'auto',
-            width: containerRef.current ? 
-              containerRef.current.getBoundingClientRect().width : 
-              'auto'
-          }}
+          className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-premium max-h-60 overflow-y-auto z-[99999]"
+          style={{ position: 'absolute' }}
         >
           {airports.length > 0 ? (
             airports.map((airport) => (
