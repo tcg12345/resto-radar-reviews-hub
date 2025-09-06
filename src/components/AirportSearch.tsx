@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import { Search, Plane, MapPin, Building2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -137,7 +136,7 @@ export function AirportSearch({
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Close dropdown when clicking outside and handle scroll updates
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -145,28 +144,9 @@ export function AirportSearch({
       }
     };
 
-    const handleScroll = () => {
-      if (showDropdown) {
-        updateDropdownPosition();
-      }
-    };
-
-    const handleResize = () => {
-      if (showDropdown) {
-        updateDropdownPosition();
-      }
-    };
-
     document.addEventListener('mousedown', handleClickOutside);
-    window.addEventListener('scroll', handleScroll, true);
-    window.addEventListener('resize', handleResize);
-    
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      window.removeEventListener('scroll', handleScroll, true);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [showDropdown]);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Enhanced search with city code support
   useEffect(() => {
@@ -234,7 +214,6 @@ export function AirportSearch({
           // Combine city suggestions with individual airports
           const allSuggestions = [...suggestions, ...transformedAirports];
           setAirports(allSuggestions);
-          updateDropdownPosition();
           setShowDropdown(true);
         } else {
           handleFallbackSearch(searchTerm, suggestions);
@@ -335,7 +314,6 @@ export function AirportSearch({
   };
 
   const handleInputFocus = () => {
-    updateDropdownPosition();
     if (airports.length > 0) {
       setShowDropdown(true);
     }
@@ -372,18 +350,11 @@ export function AirportSearch({
         )}
       </div>
 
-      {/* Dropdown Results - Rendered as Portal */}
-      {showDropdown && createPortal(
+      {/* Dropdown Results */}
+      {showDropdown && (
         <div 
-          className="fixed bg-card border border-border rounded-lg shadow-premium max-h-60 overflow-y-auto z-[9999]"
-          style={{
-            top: dropdownPosition.top + 4,
-            left: dropdownPosition.left,
-            width: dropdownPosition.width,
-            minWidth: '300px'
-          }}
-          onWheel={(e) => e.stopPropagation()}
-          onScroll={(e) => e.stopPropagation()}
+          className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-premium max-h-60 overflow-y-auto z-[99999]"
+          style={{ position: 'absolute' }}
         >
           {airports.length > 0 ? (
             airports.map((airport) => (
@@ -447,8 +418,7 @@ export function AirportSearch({
               No airports found. Try searching by city name (e.g., "New York", "London") or IATA code.
             </div>
           )}
-        </div>,
-        document.body
+        </div>
       )}
     </div>
   );
