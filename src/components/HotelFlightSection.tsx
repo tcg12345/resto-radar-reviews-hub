@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { Hotel, Plane, Plus, MapPin, ExternalLink, Phone, Navigation, Eye, Radar, Star, Camera, Calendar, Users, ChevronDown, ChevronUp, X, Edit3, Trash2, TrendingUp, AlertCircle, CheckCircle, Info, UserCheck } from 'lucide-react';
+import { Hotel, Plane, Plus, MapPin, ExternalLink, Phone, Navigation, Eye, Radar, Star, Camera, Calendar, Users, ChevronDown, ChevronUp, X, Edit3, Trash2, TrendingUp, AlertCircle, CheckCircle, Info } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -314,44 +314,6 @@ export function HotelFlightSection({
     const normalizedAirline = airline.toLowerCase().trim();
     return airlineWebsites[normalizedAirline] || `https://www.google.com/search?q=${encodeURIComponent(airline + ' official website')}`;
   };
-
-  const getFlightCheckInUrl = (airline: string, flightNumber: string) => {
-    const checkInUrls: { [key: string]: string } = {
-      'delta': 'https://www.delta.com/us/en/check-in/start',
-      'delta air lines': 'https://www.delta.com/us/en/check-in/start',
-      'american': 'https://www.aa.com/checkin/showCheckin.do',
-      'american airlines': 'https://www.aa.com/checkin/showCheckin.do',
-      'united': 'https://www.united.com/ual/en/us/account/checkin',
-      'united airlines': 'https://www.united.com/ual/en/us/account/checkin',
-      'southwest': 'https://www.southwest.com/air/check-in/',
-      'southwest airlines': 'https://www.southwest.com/air/check-in/',
-      'jetblue': 'https://www.jetblue.com/magnoliapublic/irop/CheckIn',
-      'jetblue airways': 'https://www.jetblue.com/magnoliapublic/irop/CheckIn',
-      'alaska': 'https://www.alaskaair.com/checkin',
-      'alaska airlines': 'https://www.alaskaair.com/checkin',
-      'spirit': 'https://www.spirit.com/OptionalServices/CheckIn',
-      'spirit airlines': 'https://www.spirit.com/OptionalServices/CheckIn',
-      'frontier': 'https://www.flyfrontier.com/travel/check-in/',
-      'frontier airlines': 'https://www.flyfrontier.com/travel/check-in/',
-      'hawaiian': 'https://www.hawaiianairlines.com/check-in',
-      'hawaiian airlines': 'https://www.hawaiianairlines.com/check-in',
-      'lufthansa': 'https://www.lufthansa.com/us/en/online-check-in',
-      'british airways': 'https://www.britishairways.com/travel/olcilandingpageauthreq/public/en_us',
-      'air france': 'https://www.airfrance.us/US/en/local/guidevoyageur/classedelareservation/enregistrement_en_ligne.htm',
-      'klm': 'https://www.klm.com/travel/us_en/prepare_for_travel/checkin_options/internet_checkin/start_checkin.htm',
-      'emirates': 'https://www.emirates.com/us/english/before-you-fly/check-in-online/',
-      'qatar airways': 'https://checkin.qatarairways.com/',
-      'singapore airlines': 'https://www.singaporeair.com/en_UK/us/travel-info/check-in/',
-      'cathay pacific': 'https://www.cathaypacific.com/cx/en_US/travel-info/check-in.html',
-      'virgin atlantic': 'https://checkin.virgin-atlantic.com/',
-      'virgin america': 'https://www.alaskaair.com/checkin',
-      'air canada': 'https://www.aircanada.com/ca/en/aco/home/plan/check-in.html',
-      'westjet': 'https://www.westjet.com/en-us/travel-info/check-in'
-    };
-    
-    const normalizedAirline = airline.toLowerCase().trim();
-    return checkInUrls[normalizedAirline] || `https://www.google.com/search?q=${encodeURIComponent(airline + ' check in')}`;
-  };
   const handlePhotoClick = (index: number) => {
     setPhotoGalleryIndex(index);
     setIsPhotoGalleryOpen(true);
@@ -647,14 +609,10 @@ export function HotelFlightSection({
                               <Navigation className="w-3 h-3 mr-1" />
                               To Airport
                             </Button>
-                             <Button size="sm" variant="outline" onClick={() => window.open(getFlightTrackingUrl(flight.airline, flight.flightNumber), '_blank')} className="h-9 text-xs px-3 whitespace-nowrap bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 flex-none w-auto">
-                               <Radar className="w-3 h-3 mr-1" />
-                               Track
-                             </Button>
-                             <Button size="sm" variant="outline" onClick={() => window.open(getFlightCheckInUrl(flight.airline, flight.flightNumber), '_blank')} className="h-9 text-xs px-3 whitespace-nowrap bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 flex-none w-auto">
-                               <UserCheck className="w-3 h-3 mr-1" />
-                               Check In
-                             </Button>
+                            <Button size="sm" variant="outline" onClick={() => window.open(getFlightTrackingUrl(flight.airline, flight.flightNumber), '_blank')} className="h-9 text-xs px-3 whitespace-nowrap bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 flex-none w-auto">
+                              <Radar className="w-3 h-3 mr-1" />
+                              Track
+                            </Button>
                             {flight.bookingUrl && <Button size="sm" onClick={() => window.open(flight.bookingUrl, '_blank')} className="w-full h-9 text-xs bg-purple-600 hover:bg-purple-700 text-white mt-1">
                                 View Booking
                               </Button>}
@@ -1166,15 +1124,6 @@ export function HotelFlightSection({
                       <ExternalLink className="w-4 h-4 mr-2" />
                       Airline Website
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => window.open(getFlightCheckInUrl(selectedFlight.airline, selectedFlight.flightNumber), '_blank')}
-                      className="w-full bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 dark:bg-blue-950/50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/50"
-                    >
-                      <UserCheck className="w-4 h-4 mr-2" />
-                      Check In Online
-                    </Button>
                     {selectedFlight.bookingUrl && (
                       <Button 
                         size="sm" 
@@ -1359,14 +1308,10 @@ export function HotelFlightSection({
                           <Radar className="w-3 h-3 mr-1" />
                           Track
                         </Button>
-                         <Button size="sm" variant="ghost" onClick={() => window.open(getAirlineWebsite(flight.airline), '_blank')} className="h-6 px-2 text-xs text-purple-600 hover:text-purple-800 dark:text-purple-400">
-                           <ExternalLink className="w-3 h-3 mr-1" />
-                           Airline
-                         </Button>
-                         <Button size="sm" variant="ghost" onClick={() => window.open(getFlightCheckInUrl(flight.airline, flight.flightNumber), '_blank')} className="h-6 px-2 text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400">
-                           <UserCheck className="w-3 h-3 mr-1" />
-                           Check In
-                         </Button>
+                        <Button size="sm" variant="ghost" onClick={() => window.open(getAirlineWebsite(flight.airline), '_blank')} className="h-6 px-2 text-xs text-purple-600 hover:text-purple-800 dark:text-purple-400">
+                          <ExternalLink className="w-3 h-3 mr-1" />
+                          Airline
+                        </Button>
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-2 ml-3" onClick={e => e.stopPropagation()}>
@@ -1783,15 +1728,10 @@ export function HotelFlightSection({
                     Track Flight
                   </Button>
                   
-                   <Button variant="outline" size="sm" onClick={() => window.open(getAirlineWebsite(selectedFlight.airline), '_blank')}>
-                     <ExternalLink className="w-4 h-4 mr-2" />
-                     Airline Website
-                   </Button>
-                   
-                   <Button variant="outline" size="sm" onClick={() => window.open(getFlightCheckInUrl(selectedFlight.airline, selectedFlight.flightNumber), '_blank')} className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 dark:bg-blue-950/50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/50">
-                     <UserCheck className="w-4 h-4 mr-2" />
-                     Check In Online
-                   </Button>
+                  <Button variant="outline" size="sm" onClick={() => window.open(getAirlineWebsite(selectedFlight.airline), '_blank')}>
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Airline Website
+                  </Button>
                   
                   {selectedFlight.bookingUrl && <Button size="sm" onClick={() => window.open(selectedFlight.bookingUrl, '_blank')}>
                       Book Now
