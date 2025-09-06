@@ -12,7 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { AirportSearch } from '@/components/AirportSearch';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { supabase } from '@/integrations/supabase/client';
-import { CalendarIcon, ArrowLeft, Plane, Clock, ArrowRight, ChevronDown, Search } from 'lucide-react';
+import { CalendarIcon, ArrowLeft, Plane, Clock, ArrowRight, ChevronDown, Search, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 import { cn } from '@/lib/utils';
@@ -550,9 +550,19 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
         <DrawerContent className="max-h-[90vh] bg-background border-border">
           <div className="flex flex-col max-h-[90vh]">
             {!showResults && (
-              <DrawerTitle className="text-xl font-bold text-foreground p-4 pb-3">
-                ✈️ Flight Search
-              </DrawerTitle>
+              <div className="flex items-center justify-between p-4 pb-3">
+                <DrawerTitle className="text-xl font-bold text-foreground">
+                  ✈️ Flight Search
+                </DrawerTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onClose}
+                  className="h-8 w-8 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
             )}
             
             <div className="flex-1 overflow-y-auto min-h-0">

@@ -149,6 +149,11 @@ export function AirportSearch({
 
   // Enhanced search with city code support
   useEffect(() => {
+    // Skip search if searchTerm looks like a selected value (contains parentheses)
+    if (searchTerm && searchTerm.includes('(')) {
+      return;
+    }
+    
     if (!searchTerm || searchTerm.length < 1) {
       setAirports([]);
       setShowDropdown(false);
@@ -302,6 +307,9 @@ export function AirportSearch({
     
     setShowDropdown(false);
     onAirportSelect?.(airport);
+    
+    // Blur the input to close keyboard (especially on mobile)
+    inputRef.current?.blur();
   };
 
   const handleInputFocus = () => {
