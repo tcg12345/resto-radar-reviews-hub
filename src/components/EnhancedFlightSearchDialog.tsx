@@ -724,36 +724,38 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                         </div>
 
                         {/* Airline Filter Card */}
-                        <div className="bg-[#1A1A1A] rounded-2xl p-4 border border-[#2A2A2A] shadow-lg">
-                          <div className="flex items-center gap-3 mb-2">
-                            <Plane className="h-4 w-4 text-blue-400 opacity-70" />
-                            <label className="text-xs font-medium text-gray-400 uppercase tracking-wide">Airlines</label>
+                        <div className="glass-card rounded-2xl p-4 border border-border/50 shadow-premium transition-all duration-200 hover:shadow-premium-glow focus-within:border-primary/50">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center">
+                              <Plane className="h-3.5 w-3.5 text-primary" />
+                            </div>
+                            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">AIRLINES</label>
                           </div>
                           <div className="relative airline-filter-container">
                             <button
                               onClick={() => setShowAirlineFilter(!showAirlineFilter)}
-                              className="w-full flex items-center justify-between text-left"
+                              className="w-full flex items-center justify-between text-left hover-scale transition-transform duration-200"
                             >
-                              <div className="text-base text-gray-100">
+                              <div className="text-base text-foreground">
                                 {selectedAirlines.length === 0 ? (
                                   <span>All airlines</span>
                                 ) : (
                                   <div className="flex flex-wrap gap-1">
                                     {selectedAirlines.slice(0, 2).map((code) => (
-                                      <span key={code} className="inline-block bg-blue-500/20 text-blue-300 text-xs px-2 py-1 rounded-full">
+                                      <span key={code} className="inline-block bg-primary/20 text-primary text-xs px-2 py-1 rounded-full">
                                         {code}
                                       </span>
                                     ))}
                                     {selectedAirlines.length > 2 && (
-                                      <span className="text-xs text-gray-400">+{selectedAirlines.length - 2}</span>
+                                      <span className="text-xs text-muted-foreground">+{selectedAirlines.length - 2}</span>
                                     )}
                                   </div>
                                 )}
                               </div>
-                              <ChevronDown className="h-4 w-4 text-gray-400" />
+                              <ChevronDown className="h-4 w-4 text-muted-foreground" />
                             </button>
                             {selectedAirlines.length === 0 && (
-                              <p className="text-xs text-gray-500 mt-1">No airlines selected</p>
+                              <p className="text-xs text-muted-foreground/70 mt-2">No airlines selected</p>
                             )}
                             {showAirlineFilter && (
                               <div className="absolute top-full left-0 right-0 mt-2 bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto">
