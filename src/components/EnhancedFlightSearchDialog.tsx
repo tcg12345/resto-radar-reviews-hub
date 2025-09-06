@@ -940,12 +940,23 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl bg-card border-border max-h-[90vh] overflow-hidden">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-foreground">
-            {showResults ? "✈️ Flight Results" : "✈️ Flight Search"}
-          </DialogTitle>
+        <DialogHeader className="px-6 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              <Plane className="h-5 w-5" />
+              {showResults ? 'Flight Results' : 'Search Flights'}
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="text-white hover:bg-white/20"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </DialogHeader>
-        
+
         <div className="overflow-y-auto max-h-[70vh]">
           {showResults ? renderFlightResults() : (
             <div className="space-y-6">
@@ -1196,19 +1207,21 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                   </div>
                 </div>
               </div>
-              
-              <div className="sticky bottom-0 bg-background pt-4 pb-2 border-t border-border/10">
-                <Button 
-                  onClick={handleSearch} 
-                  className="w-full" 
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Searching...' : 'Search Flights'}
-                </Button>
-              </div>
             </div>
           )}
         </div>
+
+        {!showResults && (
+          <div className="sticky bottom-0 bg-background pt-4 pb-2 border-t border-border/10">
+            <Button
+              onClick={handleSearch}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-500 hover:to-purple-500"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Searching...' : 'Search Flights'}
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
