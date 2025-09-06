@@ -520,15 +520,15 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
     console.log('🛩️ Rendering MOBILE version');
     return (
       <Drawer open={isOpen} onOpenChange={onClose}>
-        <DrawerContent className="h-[90vh] bg-background border-border overflow-x-hidden">
-          <div className="h-full flex flex-col overflow-x-hidden">
+        <DrawerContent className="max-h-[90vh] bg-background border-border">
+          <div className="flex flex-col max-h-[90vh]">
             {!showResults && (
               <DrawerTitle className="text-xl font-bold text-foreground p-4 pb-3">
                 ✈️ Flight Search
               </DrawerTitle>
             )}
             
-            <div className="flex-1 overflow-y-auto overflow-x-hidden">
+            <div className="flex-1 overflow-y-auto min-h-0">
               {showResults ? renderFlightResults() : (
                 <div className="p-4 space-y-6">
                   {/* Search Type Toggle */}
