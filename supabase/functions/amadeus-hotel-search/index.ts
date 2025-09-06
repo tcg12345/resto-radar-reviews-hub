@@ -11,28 +11,38 @@ interface AmadeusTokenResponse {
   expires_in: number;
 }
 
-// Get Amadeus API credentials
+// Get Amadeus API credentials with extensive debugging
 function getAmadeusCredentials(): { apiKey: string; apiSecret: string } {
+  console.log('🔧 DEBUG: Getting Amadeus credentials...');
+  
   const apiKey = Deno.env.get('AMADEUS_API_KEY');
   const apiSecret = Deno.env.get('AMADEUS_API_SECRET');
   
-  console.log('🔑 Checking Amadeus credentials...');
-  console.log('API Key available:', !!apiKey);
-  console.log('API Secret available:', !!apiSecret);
+  console.log('🔧 DEBUG: Environment check:');
+  console.log('🔧 DEBUG: - API Key exists:', !!apiKey);
+  console.log('🔧 DEBUG: - API Secret exists:', !!apiSecret);
+  console.log('🔧 DEBUG: - API Key length:', apiKey ? apiKey.length : 0);
+  console.log('🔧 DEBUG: - API Secret length:', apiSecret ? apiSecret.length : 0);
+  console.log('🔧 DEBUG: - API Key first 10 chars:', apiKey ? apiKey.substring(0, 10) + '...' : 'null');
   
   if (!apiKey || !apiSecret) {
-    console.error('❌ Amadeus credentials missing!');
+    console.error('❌ CREDENTIALS MISSING!');
+    console.error('❌ API Key missing:', !apiKey);
+    console.error('❌ API Secret missing:', !apiSecret);
     throw new Error('Amadeus API credentials not configured');
   }
 
-  console.log('✅ Amadeus credentials found');
+  console.log('✅ Credentials found and valid');
   return { apiKey, apiSecret };
 }
 
-// Get Amadeus access token
+// Get Amadeus access token with debugging
 async function getAmadeusToken(): Promise<string> {
+  console.log('🔧 DEBUG: Getting Amadeus token...');
+  
   const { apiKey, apiSecret } = getAmadeusCredentials();
   
+  console.log('🔧 DEBUG: Making token request to Amadeus...');
   const response = await fetch('https://api.amadeus.com/v1/security/oauth2/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -43,26 +53,40 @@ async function getAmadeusToken(): Promise<string> {
     }),
   });
 
+  console.log('🔧 DEBUG: Token response status:', response.status);
+  console.log('🔧 DEBUG: Token response ok:', response.ok);
+
   if (!response.ok) {
-    throw new Error(`Failed to get Amadeus token: ${response.status}`);
+    const errorText = await response.text();
+    console.error('❌ Token request failed:', response.status);
+    console.error('❌ Error details:', errorText);
+    throw new Error(`Failed to get Amadeus token: ${response.status} - ${errorText}`);
   }
 
   const tokenData: AmadeusTokenResponse = await response.json();
+  console.log('✅ Token obtained successfully');
+  console.log('🔧 DEBUG: Token type:', tokenData.token_type);
+  console.log('🔧 DEBUG: Expires in:', tokenData.expires_in);
+  
   return tokenData.access_token;
 }
 
-// Search hotels using Amadeus API
+// Search hotels using Amadeus API with extensive debugging
 async function searchAmadeusHotels(location: string, checkInDate: string, checkOutDate: string, guests: number) {
-  console.log('🏨 Starting hotel search for:', location, 'dates:', checkInDate, 'to', checkOutDate, 'guests:', guests);
+  console.log('🔧 DEBUG: === STARTING HOTEL SEARCH ===');
+  console.log('🔧 DEBUG: Parameters:', { location, checkInDate, checkOutDate, guests });
   
   try {
-    const { apiKey, apiSecret } = getAmadeusCredentials();
+    // Step 1: Get token
+    console.log('🔧 DEBUG: Step 1 - Getting token...');
     const token = await getAmadeusToken();
-    console.log('✅ Successfully obtained Amadeus token');
+    console.log('✅ Token obtained for hotel search');
     
-    // Step 1: Get location details using Amadeus Locations API
-    console.log('🔍 Step 1: Searching for location details...');
+    // Step 2: Search for location
+    console.log('🔧 DEBUG: Step 2 - Searching for location:', location);
     const locationUrl = `https://api.amadeus.com/v1/reference-data/locations?keyword=${encodeURIComponent(location)}&max=5&subType=CITY`;
+    console.log('🔧 DEBUG: Location URL:', locationUrl);
+    
     const locationResponse = await fetch(locationUrl, {
       headers: { 
         'Authorization': `Bearer ${token}`,
@@ -70,48 +94,42 @@ async function searchAmadeusHotels(location: string, checkInDate: string, checkO
       }
     });
     
+    console.log('🔧 DEBUG: Location response status:', locationResponse.status);
+    
     if (!locationResponse.ok) {
-      console.error('❌ Location search failed:', locationResponse.status, await locationResponse.text());
+      const errorText = await locationResponse.text();
+      console.error('❌ LOCATION SEARCH FAILED:', locationResponse.status, errorText);
       throw new Error(`Location search failed: ${locationResponse.status}`);
     }
     
     const locationData = await locationResponse.json();
-    console.log('📍 Location search results:', JSON.stringify(locationData, null, 2));
+    console.log('🔧 DEBUG: Location data received:', JSON.stringify(locationData, null, 2));
     
     if (!locationData.data || locationData.data.length === 0) {
-      console.error('❌ No location data found for:', location);
+      console.error('❌ NO LOCATION DATA FOUND');
       throw new Error(`No location found for: ${location}`);
     }
     
     const bestLocation = locationData.data[0];
-    const iataCode = bestLocation.iataCode;
-    const cityCode = bestLocation.address?.cityCode;
-    const geoCode = bestLocation.geoCode;
+    console.log('🔧 DEBUG: Best location selected:', JSON.stringify(bestLocation, null, 2));
     
-    console.log('🎯 Best location match:', {
-      name: bestLocation.name,
-      iataCode,
-      cityCode,
-      geoCode
-    });
-    
-    // Step 2: Search for hotel offers using the location data
-    console.log('🏨 Step 2: Searching for hotel offers...');
+    // Step 3: Search for hotels
+    console.log('🔧 DEBUG: Step 3 - Searching for hotels...');
     
     let hotelSearchUrl;
-    if (geoCode?.latitude && geoCode?.longitude) {
-      // Use geographic search with coordinates
-      hotelSearchUrl = `https://api.amadeus.com/v3/shopping/hotel-offers?latitude=${geoCode.latitude}&longitude=${geoCode.longitude}&radius=20&radiusUnit=KM&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}&adults=${guests}&max=20&currency=USD`;
-      console.log('🌍 Using geographic search with coordinates');
-    } else if (cityCode) {
-      // Use city code search
-      hotelSearchUrl = `https://api.amadeus.com/v3/shopping/hotel-offers?destinationCode=${cityCode}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}&adults=${guests}&max=20&currency=USD`;
-      console.log('🏙️ Using city code search:', cityCode);
+    if (bestLocation.geoCode?.latitude && bestLocation.geoCode?.longitude) {
+      hotelSearchUrl = `https://api.amadeus.com/v3/shopping/hotel-offers?latitude=${bestLocation.geoCode.latitude}&longitude=${bestLocation.geoCode.longitude}&radius=20&radiusUnit=KM&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}&adults=${guests}&max=20&currency=USD`;
+      console.log('🔧 DEBUG: Using geographic search');
+    } else if (bestLocation.address?.cityCode || bestLocation.iataCode) {
+      const destinationCode = bestLocation.address?.cityCode || bestLocation.iataCode;
+      hotelSearchUrl = `https://api.amadeus.com/v3/shopping/hotel-offers?destinationCode=${destinationCode}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}&adults=${guests}&max=20&currency=USD`;
+      console.log('🔧 DEBUG: Using city code search:', destinationCode);
     } else {
+      console.error('❌ NO SUITABLE SEARCH PARAMETERS');
       throw new Error('No suitable search parameters found');
     }
     
-    console.log('🔗 Hotel search URL:', hotelSearchUrl);
+    console.log('🔧 DEBUG: Hotel search URL:', hotelSearchUrl);
     
     const hotelResponse = await fetch(hotelSearchUrl, {
       headers: { 
@@ -120,57 +138,40 @@ async function searchAmadeusHotels(location: string, checkInDate: string, checkO
       }
     });
     
+    console.log('🔧 DEBUG: Hotel response status:', hotelResponse.status);
+    
     if (!hotelResponse.ok) {
       const errorText = await hotelResponse.text();
-      console.error('❌ Hotel search failed:', hotelResponse.status, errorText);
-      throw new Error(`Hotel search failed: ${hotelResponse.status} - ${errorText}`);
+      console.error('❌ HOTEL SEARCH FAILED:', hotelResponse.status, errorText);
+      throw new Error(`Hotel search failed: ${hotelResponse.status}`);
     }
     
     const hotelData = await hotelResponse.json();
-    console.log('🏨 Raw hotel data received:', JSON.stringify(hotelData, null, 2));
+    console.log('🔧 DEBUG: Hotel data length:', hotelData.data?.length || 0);
+    console.log('🔧 DEBUG: Sample hotel:', JSON.stringify(hotelData.data?.[0], null, 2));
     
     if (!hotelData.data || hotelData.data.length === 0) {
-      console.error('❌ No hotels found in API response');
+      console.error('❌ NO HOTELS FOUND IN RESPONSE');
       throw new Error('No hotels found for the specified criteria');
     }
     
-    console.log(`✅ Found ${hotelData.data.length} real hotels from Amadeus API`);
+    // Step 4: Transform real data
+    console.log('🔧 DEBUG: Step 4 - Transforming', hotelData.data.length, 'real hotels');
     
-    // Step 3: Transform the real hotel data into our format
-    const transformedHotels = hotelData.data.map((hotelOffer: any, index: number) => {
+    const realHotels = hotelData.data.map((hotelOffer: any, index: number) => {
       const hotel = hotelOffer.hotel;
       const offers = hotelOffer.offers || [];
       const bestOffer = offers[0];
       
-      console.log(`🏨 Processing hotel ${index + 1}:`, {
-        name: hotel.name,
-        hotelId: hotel.hotelId,
-        chainCode: hotel.chainCode,
-        rating: hotel.rating,
-        offerCount: offers.length
-      });
+      console.log(`🔧 DEBUG: Processing hotel ${index + 1}:`, hotel.name);
       
-      // Calculate real price range from offers
       let priceRange = 'Contact for rates';
       if (bestOffer?.price?.total) {
         const currency = bestOffer.price.currency || 'USD';
         const total = parseFloat(bestOffer.price.total);
         priceRange = `${currency} ${Math.round(total)}`;
-        
-        if (offers.length > 1) {
-          const maxPrice = Math.max(...offers.map((o: any) => parseFloat(o.price?.total || '0')));
-          if (maxPrice > total) {
-            priceRange = `${currency} ${Math.round(total)}-${Math.round(maxPrice)}`;
-          }
-        }
       }
       
-      // Get real amenities
-      const realAmenities = hotel.amenities?.map((amenity: any) => 
-        amenity.description || amenity
-      ).filter(Boolean).slice(0, 8) || ['Contact hotel for amenities'];
-      
-      // Format real address
       let address = location;
       if (hotel.address) {
         const addressParts = [
@@ -185,58 +186,37 @@ async function searchAmadeusHotels(location: string, checkInDate: string, checkO
         id: hotel.hotelId || `amadeus-${Date.now()}-${index}`,
         name: hotel.name || `Hotel in ${location}`,
         address: address,
-        description: hotel.description || `${hotel.name} offers comfortable accommodations in ${location}. Book your stay today for a memorable experience.`,
+        description: `${hotel.name} offers comfortable accommodations in ${location}.`,
         rating: hotel.rating || (4 + Math.random() * 1),
         priceRange: priceRange,
-        amenities: realAmenities,
-        photos: [getHotelPhoto(hotel.name, hotel.chainCode)],
-        latitude: hotel.latitude || geoCode?.latitude,
-        longitude: hotel.longitude || geoCode?.longitude,
+        amenities: hotel.amenities?.map((a: any) => a.description || a).slice(0, 6) || ['Contact hotel for amenities'],
+        photos: [getHotelPhoto(hotel.name)],
+        latitude: hotel.latitude || bestLocation.geoCode?.latitude,
+        longitude: hotel.longitude || bestLocation.geoCode?.longitude,
         website: 'https://www.amadeus.com',
         phone: hotel.contact?.phone || 'Contact hotel directly',
-        chainCode: hotel.chainCode,
-        hotelId: hotel.hotelId,
-        checkInDate,
-        checkOutDate,
-        guests,
-        realData: true, // Flag to indicate this is real data
-        bookingInfo: bestOffer ? {
-          roomType: bestOffer.room?.typeEstimated?.category || 'Standard Room',
-          bedType: bestOffer.room?.typeEstimated?.bedType || 'Standard',
-          currency: bestOffer.price?.currency,
-          totalPrice: bestOffer.price?.total,
-          cancellationPolicy: bestOffer.policies?.cancellations?.[0]?.type || 'See hotel policy'
-        } : null
+        realData: true,
+        source: 'AMADEUS_API'
       };
     });
     
-    console.log(`🎉 Successfully transformed ${transformedHotels.length} real hotels`);
-    return transformedHotels;
+    console.log('✅ SUCCESS: Returning', realHotels.length, 'REAL hotels from Amadeus API');
+    console.log('🔧 DEBUG: === HOTEL SEARCH COMPLETED SUCCESSFULLY ===');
+    return realHotels;
     
   } catch (error) {
-    console.error('💥 Critical error in hotel search:', error);
-    console.error('Error details:', error.message);
-    console.error('Stack trace:', error.stack);
+    console.error('💥 CRITICAL ERROR in hotel search:', error);
+    console.error('💥 Error name:', error.name);
+    console.error('💥 Error message:', error.message);
+    console.error('💥 Error stack:', error.stack);
     
-    // Always return some data, never crash the function
-    console.log('🎭 Returning mock hotels due to error:', error.message);
+    console.log('🎭 FALLBACK: Returning mock hotels due to error');
     return getMockHotels(location);
   }
 }
 
-// Helper function to get hotel photos based on chain or name
-function getHotelPhoto(hotelName?: string, chainCode?: string): string {
-  const chainPhotos: { [key: string]: string } = {
-    'HI': 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=400&q=80', // Holiday Inn
-    'AC': 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=80', // AC Hotels
-    'MA': 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=80', // Marriott
-    'HY': 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&q=80', // Hyatt
-  };
-  
-  if (chainCode && chainPhotos[chainCode]) {
-    return chainPhotos[chainCode];
-  }
-  
+// Helper function to get hotel photos
+function getHotelPhoto(hotelName?: string): string {
   const defaultPhotos = [
     'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=80',
     'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=80',
@@ -252,10 +232,10 @@ function getHotelPhoto(hotelName?: string, chainCode?: string): string {
   return defaultPhotos[0];
 }
 
-// Generate mock hotels when API fails
+// Generate mock hotels when API fails - CLEARLY MARKED
 function getMockHotels(location: string) {
-  console.log('🎭 Generating enhanced mock hotels for:', location);
-  console.log('⚠️ WARNING: Using mock data - this should only happen if Amadeus API is unavailable');
+  console.log('🎭 WARNING: Generating MOCK hotels for:', location);
+  console.log('🎭 WARNING: This should only happen if Amadeus API is unavailable');
   
   const locationName = location.split(',')[0].trim();
   
@@ -271,7 +251,8 @@ function getMockHotels(location: string) {
       photos: ['https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=80'],
       website: 'https://example.com',
       phone: '+1-555-0123',
-      realData: false
+      realData: false,
+      source: 'MOCK_DATA'
     },
     {
       id: `mock-hotel-2-${Date.now()}`,
@@ -284,7 +265,8 @@ function getMockHotels(location: string) {
       photos: ['https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=80'],
       website: 'https://example.com',
       phone: '+1-555-0124',
-      realData: false
+      realData: false,
+      source: 'MOCK_DATA'
     },
     {
       id: `mock-hotel-3-${Date.now()}`,
@@ -296,14 +278,20 @@ function getMockHotels(location: string) {
       amenities: ['Free WiFi', 'Kitchenette', 'Family Rooms', 'Pool', 'Laundry Service'],
       photos: ['https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=400&q=80'],
       phone: '+1-555-0125',
-      realData: false
+      realData: false,
+      source: 'MOCK_DATA'
     }
   ];
 }
 
 serve(async (req) => {
+  console.log('🔧 DEBUG: === EDGE FUNCTION CALLED ===');
+  console.log('🔧 DEBUG: Method:', req.method);
+  console.log('🔧 DEBUG: URL:', req.url);
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('🔧 DEBUG: Handling OPTIONS request');
     return new Response('ok', { 
       status: 200,
       headers: {
@@ -314,18 +302,18 @@ serve(async (req) => {
   }
 
   try {
-    console.log('🏨 Hotel search function called')
+    console.log('🔧 DEBUG: Processing POST request');
     
     const body = await req.json()
-    console.log('📝 Search request:', JSON.stringify(body, null, 2))
+    console.log('🔧 DEBUG: Request body:', JSON.stringify(body, null, 2))
     
     const { location, checkInDate, checkOutDate, guests } = body;
     
     // Validate required parameters
     if (!location) {
-      console.error('❌ Missing location parameter')
+      console.error('❌ Missing location parameter');
       return new Response(
-        JSON.stringify({ error: 'Location is required' }),
+        JSON.stringify({ error: 'Location is required', timestamp: new Date().toISOString() }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -338,9 +326,10 @@ serve(async (req) => {
       guests: guests || 1
     };
     
-    console.log('🔍 Searching with params:', searchParams);
+    console.log('🔧 DEBUG: Final search params:', searchParams);
     
     // Perform the hotel search
+    console.log('🔧 DEBUG: Calling searchAmadeusHotels...');
     const hotels = await searchAmadeusHotels(
       searchParams.location, 
       searchParams.checkInDate, 
@@ -348,14 +337,21 @@ serve(async (req) => {
       searchParams.guests
     );
     
-    console.log('✅ Search completed, returning', hotels.length, 'hotels');
+    console.log('🔧 DEBUG: Search completed, hotel count:', hotels.length);
+    console.log('🔧 DEBUG: First hotel sample:', JSON.stringify(hotels[0], null, 2));
+    
+    const response = {
+      data: hotels,
+      searchParams: searchParams,
+      timestamp: new Date().toISOString(),
+      totalHotels: hotels.length,
+      dataSource: hotels[0]?.source || 'unknown'
+    };
+    
+    console.log('✅ Returning successful response with', hotels.length, 'hotels');
     
     return new Response(
-      JSON.stringify({ 
-        data: hotels,
-        searchParams: searchParams,
-        timestamp: new Date().toISOString()
-      }),
+      JSON.stringify(response),
       { 
         status: 200, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -363,17 +359,18 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('💥 Critical error in hotel search function:', error)
-    console.error('Error name:', error.name)
-    console.error('Error message:', error.message)
-    console.error('Error stack:', error.stack)
+    console.error('💥 EDGE FUNCTION ERROR:', error);
+    console.error('💥 Error name:', error.name);
+    console.error('💥 Error message:', error.message);
+    console.error('💥 Error stack:', error.stack);
     
     // Return a safe error response
     return new Response(
       JSON.stringify({ 
         error: 'Hotel search failed', 
         details: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        type: 'EDGE_FUNCTION_ERROR'
       }),
       { 
         status: 500, 
