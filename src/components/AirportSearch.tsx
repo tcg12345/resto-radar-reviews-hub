@@ -132,6 +132,7 @@ export function AirportSearch({
   const [isLoading, setIsLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchTerm, setSearchTerm] = useState(value);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -213,6 +214,7 @@ export function AirportSearch({
           // Combine city suggestions with individual airports
           const allSuggestions = [...suggestions, ...transformedAirports];
           setAirports(allSuggestions);
+          updateDropdownPosition();
           setShowDropdown(true);
         } else {
           handleFallbackSearch(searchTerm, suggestions);
@@ -314,7 +316,19 @@ export function AirportSearch({
 
   const handleInputFocus = () => {
     if (airports.length > 0) {
+      updateDropdownPosition();
       setShowDropdown(true);
+    }
+  };
+
+  const updateDropdownPosition = () => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+        width: rect.width
+      });
     }
   };
 
@@ -341,8 +355,12 @@ export function AirportSearch({
       {/* Dropdown Results */}
       {showDropdown && (
         <div 
-          className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-premium max-h-60 overflow-y-auto z-[99999]"
-          style={{ position: 'absolute' }}
+          className="fixed bg-card border border-border rounded-lg shadow-premium max-h-60 overflow-y-auto z-[99999]"
+          style={{
+            top: dropdownPosition.top + 4,
+            left: dropdownPosition.left,
+            width: dropdownPosition.width
+          }}
         >
           {airports.length > 0 ? (
             airports.map((airport) => (
