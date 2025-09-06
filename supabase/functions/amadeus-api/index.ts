@@ -1031,7 +1031,7 @@ serve(async (req) => {
   }
 
   try {
-    console.log('🚀 FlightAPI.io function called, method:', req.method);
+    console.log('🚀 Amadeus API function called, method:', req.method);
     
     // Parse request body to get endpoint type
     let requestBody;
@@ -1048,8 +1048,6 @@ serve(async (req) => {
     
     const { endpoint } = requestBody;
     console.log('🎯 Endpoint requested:', endpoint);
-    
-    // Amadeus API is configured via environment variables
 
     switch (endpoint) {
       case 'search-flights': {
@@ -1215,7 +1213,7 @@ serve(async (req) => {
     }
 
   } catch (error) {
-    console.error('Error in FlightAPI.io function:', error)
+    console.error('Error in Amadeus API function:', error)
     return new Response(
       JSON.stringify({ error: 'Internal server error', details: error.message }),
       { 
