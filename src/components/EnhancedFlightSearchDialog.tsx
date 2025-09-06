@@ -103,91 +103,6 @@ const getAirportTimezone = (iataCode: string): string => {
   return timezones[iataCode] || 'UTC';
 };
 
-// Helper function to get readable aircraft name from code
-const getAircraftName = (aircraftCode: string): string => {
-  const aircraftMap: Record<string, string> = {
-    // Airbus A320 Family
-    '32A': 'Airbus A320',
-    '32B': 'Airbus A320',
-    '32S': 'Airbus A320',
-    '320': 'Airbus A320',
-    '321': 'Airbus A321',
-    '32Q': 'Airbus A321neo',
-    '23Q': 'Airbus A321neo',
-    '319': 'Airbus A319',
-    
-    // Airbus A330/A340 Family
-    '330': 'Airbus A330',
-    '333': 'Airbus A330-300',
-    '332': 'Airbus A330-200',
-    '33X': 'Airbus A330neo',
-    '339': 'Airbus A330-900neo',
-    '340': 'Airbus A340',
-    '343': 'Airbus A340-300',
-    '346': 'Airbus A340-600',
-    
-    // Airbus A350/A380
-    '350': 'Airbus A350',
-    '359': 'Airbus A350-900',
-    '351': 'Airbus A350-1000',
-    '380': 'Airbus A380',
-    
-    // Boeing 737 Family
-    '737': 'Boeing 737',
-    '73G': 'Boeing 737-700',
-    '73H': 'Boeing 737-800',
-    '739': 'Boeing 737-900',
-    '738': 'Boeing 737-800',
-    '7M8': 'Boeing 737 MAX 8',
-    '7M9': 'Boeing 737 MAX 9',
-    '7MX': 'Boeing 737 MAX',
-    
-    // Boeing 747 Family
-    '747': 'Boeing 747',
-    '744': 'Boeing 747-400',
-    '748': 'Boeing 747-8',
-    
-    // Boeing 757/767 Family
-    '757': 'Boeing 757',
-    '752': 'Boeing 757-200',
-    '753': 'Boeing 757-300',
-    '767': 'Boeing 767',
-    '762': 'Boeing 767-200',
-    '763': 'Boeing 767-300',
-    '764': 'Boeing 767-400',
-    
-    // Boeing 777 Family
-    '777': 'Boeing 777',
-    '772': 'Boeing 777-200',
-    '773': 'Boeing 777-300',
-    '77W': 'Boeing 777-300ER',
-    '77L': 'Boeing 777-200LR',
-    
-    // Boeing 787 Family
-    '787': 'Boeing 787',
-    '788': 'Boeing 787-8',
-    '789': 'Boeing 787-9',
-    '781': 'Boeing 787-10',
-    
-    // Regional Jets
-    'CR9': 'Bombardier CRJ-900',
-    'CRJ': 'Bombardier CRJ',
-    'CR7': 'Bombardier CRJ-700',
-    'E90': 'Embraer E190',
-    'E75': 'Embraer E175',
-    'ERJ': 'Embraer ERJ',
-    
-    // Other Common Aircraft
-    'DH4': 'De Havilland Dash 8-400',
-    'AT7': 'ATR 72',
-    'AT5': 'ATR 42',
-    'SF3': 'Saab 340',
-    'BEC': 'Beechcraft',
-  };
-  
-  return aircraftMap[aircraftCode] || aircraftCode;
-};
-
 // Helper function to format flight time with proper timezone
 const formatFlightTime = (timeString: string, airportCode: string, use24HourFormat: boolean): string => {
   if (!timeString) return 'N/A';
@@ -537,11 +452,6 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                           <span> • Operated by {getAirlineName(flight.itineraries[0].segments[0].operating.carrierCode)}</span>
                         )}
                       </div>
-                      {flight.itineraries?.[0]?.segments?.[0]?.aircraft?.code && (
-                        <div className="text-xs text-muted-foreground bg-muted/30 px-2 py-0.5 rounded-md inline-block">
-                          {getAircraftName(flight.itineraries[0].segments[0].aircraft.code)}
-                        </div>
-                      )}
                     </div>
                   </div>
                   <button className="px-3 py-1.5 text-xs font-medium text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors min-h-[44px]">
