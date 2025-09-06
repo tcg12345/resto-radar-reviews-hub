@@ -96,7 +96,7 @@ async function searchAmadeusHotels(location: string, checkInDate: string, checkO
     }
     
     const locationData = await locationResponse.json();
-    console.log('📍 Location search results:', JSON.stringify(locationData, null, 2));
+    console.log('📍 Location search results:', locationData.data?.length || 0, 'locations found');
     
     if (!locationData.data || locationData.data.length === 0) {
       console.error('❌ No location data found for:', location);
@@ -144,70 +144,74 @@ async function searchAmadeusHotels(location: string, checkInDate: string, checkO
     
     const hotelData = await hotelResponse.json();
     console.log('🏨 Hotels found:', hotelData.data?.length || 0);
-    console.log('🏨 Sample hotel data:', JSON.stringify(hotelData.data?.[0], null, 2));
     
     if (!hotelData.data || hotelData.data.length === 0) {
       console.log('⚠️ No hotels found, but API call succeeded');
       throw new Error(`No hotels found for ${location} on the specified dates`);
     }
   
-  // Step 4: Transform production hotel data
-  const realHotels = hotelData.data.map((hotelOffer: any, index: number) => {
-    const hotel = hotelOffer.hotel;
-    const offers = hotelOffer.offers || [];
-    const bestOffer = offers[0];
+    // Step 4: Transform production hotel data
+    const realHotels = hotelData.data.map((hotelOffer: any, index: number) => {
+      const hotel = hotelOffer.hotel;
+      const offers = hotelOffer.offers || [];
+      const bestOffer = offers[0];
+      
+      console.log(`🏨 Processing hotel ${index + 1}: ${hotel.name}`);
+      
+      let priceRange = 'Contact for rates';
+      if (bestOffer?.price?.total) {
+        const currency = bestOffer.price.currency || 'USD';
+        const total = parseFloat(bestOffer.price.total);
+        priceRange = `${currency} ${Math.round(total)} per night`;
+      }
+      
+      let address = hotel.address?.lines?.[0] || location;
+      if (hotel.address) {
+        const addressParts = [
+          hotel.address.lines?.[0],
+          hotel.address.cityName,
+          hotel.address.countryCode
+        ].filter(Boolean);
+        address = addressParts.join(', ') || location;
+      }
+      
+      // Extract amenities from hotel data
+      const amenities = [];
+      if (hotel.amenities) {
+        amenities.push(...hotel.amenities.map((a: any) => a.description || a).slice(0, 6));
+      }
+      if (amenities.length === 0) {
+        amenities.push('Contact hotel for amenities');
+      }
+      
+      return {
+        id: hotel.hotelId || `amadeus-${Date.now()}-${index}`,
+        name: hotel.name || `Hotel in ${location}`,
+        address: address,
+        description: bestOffer?.room?.description || `${hotel.name} offers comfortable accommodations in ${location}.`,
+        rating: hotel.rating || 4.0,
+        priceRange: priceRange,
+        amenities: amenities,
+        photos: [`https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=80&auto=format&fit=crop`],
+        latitude: hotel.latitude || bestLocation.geoCode?.latitude,
+        longitude: hotel.longitude || bestLocation.geoCode?.longitude,
+        website: 'https://www.amadeus.com',
+        phone: hotel.contact?.phone || 'Contact hotel directly',
+        realData: true,
+        source: 'AMADEUS_PRODUCTION_API',
+        checkInDate: checkInDate,
+        checkOutDate: checkOutDate,
+        adults: guests
+      };
+    });
     
-    console.log(`🏨 Processing hotel ${index + 1}: ${hotel.name}`);
+    console.log('✅ Successfully processed', realHotels.length, 'REAL hotels from production Amadeus API');
+    return realHotels;
     
-    let priceRange = 'Contact for rates';
-    if (bestOffer?.price?.total) {
-      const currency = bestOffer.price.currency || 'USD';
-      const total = parseFloat(bestOffer.price.total);
-      priceRange = `${currency} ${Math.round(total)} per night`;
-    }
-    
-    let address = hotel.address?.lines?.[0] || location;
-    if (hotel.address) {
-      const addressParts = [
-        hotel.address.lines?.[0],
-        hotel.address.cityName,
-        hotel.address.countryCode
-      ].filter(Boolean);
-      address = addressParts.join(', ') || location;
-    }
-    
-    // Extract amenities from hotel data
-    const amenities = [];
-    if (hotel.amenities) {
-      amenities.push(...hotel.amenities.map((a: any) => a.description || a).slice(0, 6));
-    }
-    if (amenities.length === 0) {
-      amenities.push('Contact hotel for amenities');
-    }
-    
-    return {
-      id: hotel.hotelId || `amadeus-${Date.now()}-${index}`,
-      name: hotel.name || `Hotel in ${location}`,
-      address: address,
-      description: bestOffer?.room?.description || `${hotel.name} offers comfortable accommodations in ${location}.`,
-      rating: hotel.rating || 4.0,
-      priceRange: priceRange,
-      amenities: amenities,
-      photos: [`https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=80&auto=format&fit=crop`],
-      latitude: hotel.latitude || bestLocation.geoCode?.latitude,
-      longitude: hotel.longitude || bestLocation.geoCode?.longitude,
-      website: 'https://www.amadeus.com',
-      phone: hotel.contact?.phone || 'Contact hotel directly',
-      realData: true,
-      source: 'AMADEUS_PRODUCTION_API',
-      checkInDate: checkInDate,
-      checkOutDate: checkOutDate,
-      adults: guests
-    };
-  });
-  
-  console.log('✅ Successfully processed', realHotels.length, 'REAL hotels from production Amadeus API');
-  return realHotels;
+  } catch (error) {
+    console.error('💥 Production API Error:', error);
+    throw error;
+  }
 }
 
 serve(async (req) => {
@@ -224,13 +228,13 @@ serve(async (req) => {
         ...corsHeaders,
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
       }
-    })
+    });
   }
 
   try {
     console.log('📝 Processing POST request...');
-    const body = await req.json()
-    console.log('📋 Request body:', JSON.stringify(body, null, 2))
+    const body = await req.json();
+    console.log('📋 Request body:', JSON.stringify(body, null, 2));
     
     const { location, checkInDate, checkOutDate, guests } = body;
     
@@ -281,7 +285,7 @@ serve(async (req) => {
         status: 200, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
-    )
+    );
 
   } catch (error) {
     console.error('💥 === PRODUCTION API ERROR ===');
@@ -332,6 +336,6 @@ serve(async (req) => {
         status: statusCode, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
-    )
+    );
   }
-})
+});
