@@ -188,18 +188,59 @@ async function bookHotelViaAmadeus(params: HotelBookingRequest) {
 }
 
 serve(async (req) => {
+  console.log('🏨 Hotel booking function called - method:', req.method)
+  
   if (req.method === 'OPTIONS') {
+    console.log('✅ Handling OPTIONS request')
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    console.log('🏨 Hotel booking function called')
+    console.log('📋 Starting hotel booking process...')
     
     const body = await req.json()
-    console.log('📝 Request:', JSON.stringify(body, null, 2))
+    console.log('📝 Request body received:', JSON.stringify(body, null, 2))
     
+    // Check if we have credentials
+    const apiKey = Deno.env.get('AMADEUS_CLIENT_ID');
+    const apiSecret = Deno.env.get('AMADEUS_CLIENT_SECRET');
+    
+    console.log('🔑 Credentials check:', {
+      hasApiKey: !!apiKey,
+      hasApiSecret: !!apiSecret
+    })
+    
+    if (!apiKey || !apiSecret) {
+      console.log('⚠️ Missing credentials, returning demo booking')
+      const demoBooking = {
+        success: true,
+        bookingId: `demo-${Date.now()}`,
+        confirmationNumber: `DEMO-${Math.random().toString(36).substr(2, 8).toUpperCase()}`,
+        status: 'confirmed',
+        message: `✅ Demo booking for ${body.hotelName || 'Hotel'}. Add Amadeus credentials for real bookings.`,
+        totalPrice: body.totalPrice || 'USD 350',
+        checkIn: body.checkInDate || new Date().toISOString(),
+        checkOut: body.checkOutDate || new Date(Date.now() + 86400000).toISOString(),
+        hotelInfo: {
+          name: body.hotelName || 'Demo Hotel',
+          address: `${body.location || 'Unknown'} - Demo booking`
+        },
+        apiUsed: 'Demo Mode (No Credentials)',
+        note: 'Please add AMADEUS_CLIENT_ID and AMADEUS_CLIENT_SECRET to enable real bookings.'
+      }
+      
+      return new Response(
+        JSON.stringify({ data: demoBooking }),
+        { 
+          status: 200, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+    
+    console.log('🚀 Attempting real Amadeus booking...')
     const booking = await bookHotelViaAmadeus(body);
-    console.log('✅ Booking completed:', booking)
+    console.log('✅ Booking completed successfully:', booking)
     
     return new Response(
       JSON.stringify({ data: booking }),
@@ -210,9 +251,16 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('❌ Error:', error)
+    console.error('❌ Function error:', error)
+    console.error('❌ Error stack:', error.stack)
+    
+    // Return a more user-friendly error response
     return new Response(
-      JSON.stringify({ error: 'Booking failed', details: error.message }),
+      JSON.stringify({ 
+        error: 'Booking failed', 
+        details: error.message,
+        note: 'Check function logs for more details'
+      }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
