@@ -1011,18 +1011,8 @@ export function HotelFlightSection({
                           </div>
                         </div>
                       </div>
-                      {selectedFlight.price && (
-                        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Price:</span>
-                            <span className="text-lg font-bold text-green-600 dark:text-green-400">
-                              {formatFlightPrice(selectedFlight.price)}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                     </div>
-                   </div>
+                      </div>
+                    </div>
 
                    {/* On-Time Performance */}
                    {flightStats && (
