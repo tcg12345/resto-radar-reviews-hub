@@ -93,6 +93,15 @@ export function HotelFlightSection({
   const [selectedFlight, setSelectedFlight] = useState<FlightBooking | null>(null);
   const [isHotelDetailsOpen, setIsHotelDetailsOpen] = useState(false);
   const [isFlightDetailsOpen, setIsFlightDetailsOpen] = useState(false);
+
+  // Flight stats hook - called at top level
+  const { flightStats, isLoading: isStatsLoading } = useFlightStats({
+    carrierCode: selectedFlight?.airline?.split(' ')[0] || '',
+    flightNumber: selectedFlight?.flightNumber || '',
+    departureAirport: selectedFlight?.departure?.airport || '',
+    arrivalAirport: selectedFlight?.arrival?.airport || '',
+    enabled: !!(selectedFlight?.airline && selectedFlight?.flightNumber && selectedFlight?.departure?.airport && selectedFlight?.arrival?.airport)
+  });
   const [tripAdvisorPhotos, setTripAdvisorPhotos] = useState<any[]>([]);
   const [tripAdvisorReviews, setTripAdvisorReviews] = useState<any[]>([]);
   const [tripAdvisorLocationId, setTripAdvisorLocationId] = useState<string | null>(null);
@@ -936,16 +945,7 @@ export function HotelFlightSection({
               </Button>
             </div>
              <div className="flex-1 overflow-y-auto p-4">
-               {selectedFlight && (() => {
-                 const { flightStats, isLoading: isStatsLoading } = useFlightStats({
-                   carrierCode: selectedFlight.airline?.split(' ')[0] || '',
-                   flightNumber: selectedFlight.flightNumber || '',
-                   departureAirport: selectedFlight.departure?.airport || '',
-                   arrivalAirport: selectedFlight.arrival?.airport || '',
-                   enabled: !!(selectedFlight.airline && selectedFlight.flightNumber && selectedFlight.departure?.airport && selectedFlight.arrival?.airport)
-                 });
-
-                 return (
+               {selectedFlight && (
                  <div className="space-y-6">
                   {/* Flight Route Display */}
                   <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border border-purple-200 dark:border-purple-700">
@@ -1136,8 +1136,7 @@ export function HotelFlightSection({
                     )}
                    </div>
                  </div>
-                 );
-               })()}
+               )}
              </div>
           </div>
         </DrawerContent>
