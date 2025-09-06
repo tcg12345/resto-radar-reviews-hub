@@ -153,8 +153,9 @@ async function searchAmadeusHotels(location: string, checkInDate: string, checkO
     
     let hotelListUrl;
     if (bestLocation.geoCode?.latitude && bestLocation.geoCode?.longitude) {
-      hotelListUrl = `${AMADEUS_API_BASE}/v1/reference-data/locations/hotels/by-geocode?latitude=${bestLocation.geoCode.latitude}&longitude=${bestLocation.geoCode.longitude}&radius=50&radiusUnit=KM`;
-      console.log('📍 Using geographic hotel search (lat/lng)');
+      // Use a smaller radius for more precise results
+      hotelListUrl = `${AMADEUS_API_BASE}/v1/reference-data/locations/hotels/by-geocode?latitude=${bestLocation.geoCode.latitude}&longitude=${bestLocation.geoCode.longitude}&radius=15&radiusUnit=KM`;
+      console.log('📍 Using geographic hotel search (lat/lng) with 15km radius');
     } else if (bestLocation.address?.cityCode || bestLocation.iataCode) {
       const destinationCode = bestLocation.address?.cityCode || bestLocation.iataCode;
       hotelListUrl = `${AMADEUS_API_BASE}/v1/reference-data/locations/hotels/by-city?cityCode=${destinationCode}`;
