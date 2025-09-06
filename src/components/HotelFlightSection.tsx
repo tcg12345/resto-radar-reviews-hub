@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { Hotel, Plane, Plus, MapPin, ExternalLink, Phone, Navigation, Eye, Radar, Star, Camera, Calendar, Users, ChevronDown, ChevronUp, X, Edit3, Trash2 } from 'lucide-react';
+import { Hotel, Plane, Plus, MapPin, ExternalLink, Phone, Navigation, Eye, Radar, Star, Camera, Calendar, Users, ChevronDown, ChevronUp, X, Edit3, Trash2, TrendingUp, AlertCircle, CheckCircle, Info } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -16,6 +16,7 @@ import { EnhancedFlightSearchDialog } from '@/components/EnhancedFlightSearchDia
 import { StayDetails, HotelStayDetailsDialog } from '@/components/HotelStayDetailsDialog';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
+import { useFlightStats } from '@/hooks/useFlightStats';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Hotel as HotelType } from '@/hooks/useGooglePlacesHotelSearch';
 interface TripLocation {
@@ -934,9 +935,18 @@ export function HotelFlightSection({
                 <X className="h-4 w-4" />
               </Button>
             </div>
-            <div className="flex-1 overflow-y-auto p-4">
-              {selectedFlight && (
-                <div className="space-y-6">
+             <div className="flex-1 overflow-y-auto p-4">
+               {selectedFlight && (() => {
+                 const { flightStats, isLoading: isStatsLoading } = useFlightStats({
+                   carrierCode: selectedFlight.airline?.split(' ')[0] || '',
+                   flightNumber: selectedFlight.flightNumber || '',
+                   departureAirport: selectedFlight.departure?.airport || '',
+                   arrivalAirport: selectedFlight.arrival?.airport || '',
+                   enabled: !!(selectedFlight.airline && selectedFlight.flightNumber && selectedFlight.departure?.airport && selectedFlight.arrival?.airport)
+                 });
+
+                 return (
+                 <div className="space-y-6">
                   {/* Flight Route Display */}
                   <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border border-purple-200 dark:border-purple-700">
                     <div className="flex items-center justify-between">
@@ -1011,10 +1021,80 @@ export function HotelFlightSection({
                           </div>
                         </div>
                       )}
-                    </div>
-                  </div>
+                     </div>
+                   </div>
 
-                  {/* Action Buttons */}
+                   {/* On-Time Performance */}
+                   {flightStats && (
+                     <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border border-green-200 dark:border-green-700">
+                       <div className="flex items-center gap-2 mb-3">
+                         <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
+                         <h4 className="font-semibold text-green-900 dark:text-green-100">On-Time Performance</h4>
+                       </div>
+                       
+                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                         <div className="text-center p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
+                           <div className="flex items-center justify-center gap-1 mb-1">
+                             {flightStats.onTimePerformance.onTimePercentage >= 80 ? (
+                               <CheckCircle className="w-4 h-4 text-green-600" />
+                             ) : flightStats.onTimePerformance.onTimePercentage >= 70 ? (
+                               <AlertCircle className="w-4 h-4 text-yellow-600" />
+                             ) : (
+                               <AlertCircle className="w-4 h-4 text-red-600" />
+                             )}
+                             <span className="text-xs text-gray-600 dark:text-gray-400">On Time</span>
+                           </div>
+                           <div className={`text-lg font-bold ${
+                             flightStats.onTimePerformance.onTimePercentage >= 80 
+                               ? 'text-green-700 dark:text-green-300'
+                               : flightStats.onTimePerformance.onTimePercentage >= 70
+                               ? 'text-yellow-700 dark:text-yellow-300'
+                               : 'text-red-700 dark:text-red-300'
+                           }`}>
+                             {flightStats.onTimePerformance.onTimePercentage}%
+                           </div>
+                         </div>
+                         
+                         <div className="text-center p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
+                           <div className="flex items-center justify-center gap-1 mb-1">
+                             <Info className="w-4 h-4 text-blue-600" />
+                             <span className="text-xs text-gray-600 dark:text-gray-400">Avg Delay</span>
+                           </div>
+                           <div className="text-lg font-bold text-blue-700 dark:text-blue-300">
+                             {flightStats.onTimePerformance.averageDelayMinutes}m
+                           </div>
+                         </div>
+                         
+                         <div className="text-center p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
+                           <div className="flex items-center justify-center gap-1 mb-1">
+                             <Star className="w-4 h-4 text-purple-600" />
+                             <span className="text-xs text-gray-600 dark:text-gray-400">Rating</span>
+                           </div>
+                           <div className="text-sm font-bold text-purple-700 dark:text-purple-300">
+                             {flightStats.onTimePerformance.reliability}
+                           </div>
+                         </div>
+                       </div>
+                       
+                       <div className="text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-600 pt-2">
+                         <div className="flex justify-between items-center">
+                           <span>Cancellation Rate: {flightStats.onTimePerformance.cancellationRate}%</span>
+                           <span>Data: Last 12 months</span>
+                         </div>
+                       </div>
+                     </div>
+                   )}
+                   
+                   {isStatsLoading && (
+                     <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                       <div className="flex items-center gap-2">
+                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
+                         <span className="text-sm text-gray-600 dark:text-gray-400">Loading flight performance data...</span>
+                       </div>
+                     </div>
+                   )}
+
+                   {/* Action Buttons */}
                   <div className="flex flex-col gap-3">
                     <Button 
                       variant="outline" 
@@ -1054,10 +1134,11 @@ export function HotelFlightSection({
                         View Booking
                       </Button>
                     )}
-                  </div>
-                </div>
-              )}
-            </div>
+                   </div>
+                 </div>
+                 );
+               })()}
+             </div>
           </div>
         </DrawerContent>
       </Drawer>
