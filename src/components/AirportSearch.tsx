@@ -341,7 +341,7 @@ export function AirportSearch({
       {/* Dropdown Results */}
       {showDropdown && (
         <div 
-          className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-premium max-h-60 overflow-y-auto z-[10000]"
+          className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-premium max-h-60 overflow-y-auto z-[99999]"
         >
           {airports.length > 0 ? (
             airports.map((airport) => (
