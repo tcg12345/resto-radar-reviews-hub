@@ -214,10 +214,7 @@ export function AirportSearch({
           // Combine city suggestions with individual airports
           const allSuggestions = [...suggestions, ...transformedAirports];
           setAirports(allSuggestions);
-          setTimeout(() => {
-            updateDropdownPosition();
-            setShowDropdown(true);
-          }, 0);
+          setShowDropdown(true);
         } else {
           handleFallbackSearch(searchTerm, suggestions);
         }
@@ -357,12 +354,7 @@ export function AirportSearch({
       {/* Dropdown Results */}
       {showDropdown && (
         <div 
-          className="fixed bg-card border border-border rounded-lg shadow-premium max-h-60 overflow-y-auto z-[99999]"
-          style={{
-            top: dropdownPosition.top + 4,
-            left: dropdownPosition.left,
-            width: dropdownPosition.width
-          }}
+          className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-premium max-h-60 overflow-y-auto z-[999999]"
         >
           {airports.length > 0 ? (
             airports.map((airport) => (
