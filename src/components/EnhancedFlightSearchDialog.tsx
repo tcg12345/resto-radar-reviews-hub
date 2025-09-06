@@ -819,10 +819,12 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                     ) : (
                       <>
                         {/* Airline Card */}
-                        <div className="bg-[#1A1A1A] rounded-2xl p-4 border border-[#2A2A2A] shadow-lg">
-                          <div className="flex items-center gap-3 mb-2">
-                            <Plane className="h-4 w-4 text-blue-400 opacity-70" />
-                            <label className="text-xs font-medium text-gray-400 uppercase tracking-wide">Airline</label>
+                        <div className="glass-card rounded-2xl p-4 border border-border/50 shadow-premium transition-all duration-200 hover:shadow-premium-glow focus-within:border-primary/50 focus-within:shadow-premium-glow">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center">
+                              <Plane className="h-3.5 w-3.5 text-primary" />
+                            </div>
+                            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">AIRLINE</label>
                           </div>
                           <div className="relative">
                             <input
@@ -835,10 +837,10 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                               onFocus={() => setShowAirlineDropdown(airline.length > 0)}
                               onBlur={() => setTimeout(() => setShowAirlineDropdown(false), 200)}
                               placeholder="Search by name or code"
-                              className="w-full bg-transparent border-none text-gray-100 text-base placeholder:text-gray-500 focus:outline-none focus:ring-0"
+                              className="w-full bg-transparent border-none text-foreground text-base placeholder:text-muted-foreground/60 focus:outline-none focus:ring-0"
                             />
                             {!airline && (
-                              <p className="text-xs text-gray-500 mt-1">Search by name or code</p>
+                              <p className="text-xs text-muted-foreground/70 mt-2">Search by name or code</p>
                             )}
                             {showAirlineDropdown && airline.length > 0 && (
                               <div className="absolute top-full left-0 right-0 mt-2 bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto">
@@ -875,28 +877,32 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                         </div>
 
                         {/* Flight Number Card */}
-                        <div className="bg-[#1A1A1A] rounded-2xl p-4 border border-[#2A2A2A] shadow-lg">
-                          <div className="flex items-center gap-3 mb-2">
-                            <Search className="h-4 w-4 text-blue-400 opacity-70" />
-                            <label className="text-xs font-medium text-gray-400 uppercase tracking-wide">Flight Number</label>
+                        <div className="glass-card rounded-2xl p-4 border border-border/50 shadow-premium transition-all duration-200 hover:shadow-premium-glow focus-within:border-primary/50 focus-within:shadow-premium-glow">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center">
+                              <Search className="h-3.5 w-3.5 text-primary" />
+                            </div>
+                            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">FLIGHT NUMBER</label>
                           </div>
                           <input
                             type="text"
                             value={flightNumber}
                             onChange={(e) => setFlightNumber(e.target.value)}
                             placeholder="e.g., 123, 1847"
-                            className="w-full bg-transparent border-none text-gray-100 text-base placeholder:text-gray-500 focus:outline-none focus:ring-0"
+                            className="w-full bg-transparent border-none text-foreground text-base placeholder:text-muted-foreground/60 focus:outline-none focus:ring-0"
                           />
                           {!flightNumber && (
-                            <p className="text-xs text-gray-500 mt-1">Enter flight number</p>
+                            <p className="text-xs text-muted-foreground/70 mt-2">Enter flight number</p>
                           )}
                         </div>
 
                         {/* Date Card */}
-                        <div className="bg-[#1A1A1A] rounded-2xl p-4 border border-[#2A2A2A] shadow-lg">
-                          <div className="flex items-center gap-3 mb-2">
-                            <CalendarIcon className="h-4 w-4 text-blue-400 opacity-70" />
-                            <label className="text-xs font-medium text-gray-400 uppercase tracking-wide">Date</label>
+                        <div className="glass-card rounded-2xl p-4 border border-border/50 shadow-premium transition-all duration-200 hover:shadow-premium-glow focus-within:border-primary/50">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center">
+                              <CalendarIcon className="h-3.5 w-3.5 text-primary" />
+                            </div>
+                            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">DATE</label>
                           </div>
                           <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                             <PopoverTrigger asChild>
