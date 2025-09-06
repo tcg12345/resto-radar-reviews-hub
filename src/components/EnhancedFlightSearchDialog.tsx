@@ -303,10 +303,12 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
           filteredResults = filteredResults.filter((flight: any) => {
             const segments = flight.itineraries?.[0]?.segments || [];
             const flightAirlines = segments.map((segment: any) => segment.carrierCode);
+            const operatingAirlines = segments.map((segment: any) => segment.operating?.carrierCode).filter(Boolean);
             const validatingAirlines = flight.validatingAirlineCodes || [];
             
-            // Check if any of the flight's airlines match the selected airlines
-            return [...flightAirlines, ...validatingAirlines].some((airlineCode: string) => 
+            // Check if any of the flight's airlines (carrier, operating, or validating) match the selected airlines
+            const allAirlineCodes = [...flightAirlines, ...operatingAirlines, ...validatingAirlines];
+            return allAirlineCodes.some((airlineCode: string) => 
               selectedAirlines.includes(airlineCode)
             );
           });
