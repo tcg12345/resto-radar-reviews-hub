@@ -14,6 +14,7 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import { supabase } from '@/integrations/supabase/client';
 import { CalendarIcon, ArrowLeft, Plane, Clock, ArrowRight, ChevronDown, Search } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 import { cn } from '@/lib/utils';
 
 interface TripLocation {
@@ -31,6 +32,94 @@ interface EnhancedFlightSearchDialogProps {
   onSelect: (flight: any) => void;
   locations: TripLocation[];
 }
+
+// Helper function to get timezone for airport IATA code
+const getAirportTimezone = (iataCode: string): string => {
+  const timezones: Record<string, string> = {
+    // North America
+    'JFK': 'America/New_York', 'LGA': 'America/New_York', 'EWR': 'America/New_York',
+    'LAX': 'America/Los_Angeles', 'SFO': 'America/Los_Angeles', 'SAN': 'America/Los_Angeles',
+    'ORD': 'America/Chicago', 'DFW': 'America/Chicago', 'IAH': 'America/Chicago',
+    'ATL': 'America/New_York', 'MIA': 'America/New_York', 'BOS': 'America/New_York',
+    'SEA': 'America/Los_Angeles', 'DEN': 'America/Denver', 'PHX': 'America/Phoenix',
+    'LAS': 'America/Los_Angeles', 'MCO': 'America/New_York', 'CLT': 'America/New_York',
+    'MSP': 'America/Chicago', 'DTW': 'America/New_York', 'PHL': 'America/New_York',
+    'BWI': 'America/New_York', 'DCA': 'America/New_York', 'IAD': 'America/New_York',
+    'YYZ': 'America/Toronto', 'YVR': 'America/Vancouver', 'YUL': 'America/Montreal',
+    
+    // Europe
+    'LHR': 'Europe/London', 'LGW': 'Europe/London', 'STN': 'Europe/London',
+    'CDG': 'Europe/Paris', 'ORY': 'Europe/Paris',
+    'FRA': 'Europe/Berlin', 'MUC': 'Europe/Berlin',
+    'AMS': 'Europe/Amsterdam',
+    'BCN': 'Europe/Madrid', 'MAD': 'Europe/Madrid',
+    'FCO': 'Europe/Rome', 'MXP': 'Europe/Rome',
+    'VIE': 'Europe/Vienna',
+    'ZUR': 'Europe/Zurich',
+    'CPH': 'Europe/Copenhagen',
+    'ARN': 'Europe/Stockholm',
+    'HEL': 'Europe/Helsinki',
+    'OSL': 'Europe/Oslo',
+    'DUB': 'Europe/Dublin',
+    'BRU': 'Europe/Brussels',
+    'LIS': 'Europe/Lisbon',
+    'ATH': 'Europe/Athens',
+    'IST': 'Europe/Istanbul',
+    
+    // Asia Pacific
+    'NRT': 'Asia/Tokyo', 'HND': 'Asia/Tokyo',
+    'ICN': 'Asia/Seoul',
+    'PVG': 'Asia/Shanghai', 'PEK': 'Asia/Shanghai',
+    'HKG': 'Asia/Hong_Kong',
+    'SIN': 'Asia/Singapore',
+    'BKK': 'Asia/Bangkok',
+    'KUL': 'Asia/Kuala_Lumpur',
+    'CGK': 'Asia/Jakarta',
+    'MNL': 'Asia/Manila',
+    'TPE': 'Asia/Taipei',
+    'BOM': 'Asia/Kolkata', 'DEL': 'Asia/Kolkata',
+    'SYD': 'Australia/Sydney', 'MEL': 'Australia/Melbourne',
+    'AKL': 'Pacific/Auckland',
+    
+    // Middle East & Africa
+    'DXB': 'Asia/Dubai', 'AUH': 'Asia/Dubai',
+    'DOH': 'Asia/Qatar',
+    'JNB': 'Africa/Johannesburg',
+    'CAI': 'Africa/Cairo',
+    'ADD': 'Africa/Addis_Ababa',
+    'NBO': 'Africa/Nairobi',
+    
+    // South America
+    'GRU': 'America/Sao_Paulo', 'GIG': 'America/Sao_Paulo',
+    'EZE': 'America/Argentina/Buenos_Aires',
+    'SCL': 'America/Santiago',
+    'BOG': 'America/Bogota',
+    'LIM': 'America/Lima',
+    'PTY': 'America/Panama',
+    'MEX': 'America/Mexico_City'
+  };
+  
+  return timezones[iataCode] || 'UTC';
+};
+
+// Helper function to format flight time with proper timezone
+const formatFlightTime = (timeString: string, airportCode: string, use24HourFormat: boolean): string => {
+  if (!timeString) return 'N/A';
+  
+  try {
+    const timezone = getAirportTimezone(airportCode);
+    const timeFormat = use24HourFormat ? 'HH:mm' : 'h:mm a';
+    
+    // The API returns times in ISO format with timezone info
+    // We need to format them in the local timezone of the airport
+    return formatInTimeZone(new Date(timeString), timezone, timeFormat);
+  } catch (error) {
+    console.error('Error formatting flight time:', error);
+    // Fallback to simple format if timezone formatting fails
+    const timeFormat = use24HourFormat ? 'HH:mm' : 'h:mm a';
+    return format(new Date(timeString), timeFormat);
+  }
+};
 
 // Helper function to get airline name from code
 const getAirlineName = (code: string): string => {
@@ -479,11 +568,11 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                    <div className="text-center space-y-1">
                      <div className="text-xl font-bold text-foreground tracking-tight">
                        {flight.itineraries?.[0]?.segments?.[0]?.departure?.at ? 
-                         (() => {
-                           const departureTime = flight.itineraries[0].segments[0].departure.at;
-                           const timeFormat = use24HourFormat ? 'HH:mm' : 'h:mm a';
-                           return format(new Date(departureTime), timeFormat);
-                         })() : 'N/A'}
+                         formatFlightTime(
+                           flight.itineraries[0].segments[0].departure.at,
+                           flight.itineraries[0].segments[0].departure.iataCode,
+                           use24HourFormat
+                         ) : 'N/A'}
                      </div>
                      <div className="text-sm text-muted-foreground font-semibold bg-muted/50 px-2 py-1 rounded-md">
                        {flight.itineraries?.[0]?.segments?.[0]?.departure?.iataCode || fromAirport}
@@ -509,11 +598,11 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                    <div className="text-center space-y-1">
                      <div className="text-xl font-bold text-foreground tracking-tight">
                        {flight.itineraries?.[0]?.segments?.[flight.itineraries[0].segments.length - 1]?.arrival?.at ? 
-                         (() => {
-                           const arrivalTime = flight.itineraries[0].segments[flight.itineraries[0].segments.length - 1].arrival.at;
-                           const timeFormat = use24HourFormat ? 'HH:mm' : 'h:mm a';
-                           return format(new Date(arrivalTime), timeFormat);
-                         })() : 'N/A'}
+                         formatFlightTime(
+                           flight.itineraries[0].segments[flight.itineraries[0].segments.length - 1].arrival.at,
+                           flight.itineraries[0].segments[flight.itineraries[0].segments.length - 1].arrival.iataCode,
+                           use24HourFormat
+                         ) : 'N/A'}
                      </div>
                      <div className="text-sm text-muted-foreground font-semibold bg-muted/50 px-2 py-1 rounded-md">
                        {flight.itineraries?.[0]?.segments?.[flight.itineraries[0].segments.length - 1]?.arrival?.iataCode || toAirport}
