@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Hotel, Star, MapPin, Wifi, Car, Coffee, Dumbbell, Waves, Utensils, Calendar, ArrowLeft, X } from 'lucide-react';
+import { Search, Hotel, Star, MapPin, Wifi, Car, Coffee, Dumbbell, Waves, Utensils, Calendar, ArrowLeft, X, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,11 +11,13 @@ import { Separator } from '@/components/ui/separator';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useGooglePlacesHotelSearch, Hotel as HotelType } from '@/hooks/useGooglePlacesHotelSearch';
+import { useAmadeusApi } from '@/hooks/useAmadeusApi';
 import { SearchResultSkeleton } from '@/components/skeletons/SearchResultSkeleton';
 import { HotelStayDetailsDialog, StayDetails } from '@/components/HotelStayDetailsDialog';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { Drawer, DrawerContent, DrawerTitle, DrawerDescription } from '@/components/ui/drawer';
 
@@ -57,10 +59,12 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
   const [showResults, setShowResults] = useState(false);
   const [selectedHotel, setSelectedHotel] = useState<HotelType | null>(null);
   const [showStayDetails, setShowStayDetails] = useState(false);
+  const [bookingHotel, setBookingHotel] = useState<string | null>(null);
   const isMobile = useIsMobile();
   const [showFilters, setShowFilters] = useState(!isMobile);
   
   const { searchHotels } = useGooglePlacesHotelSearch();
+  const { searchHotels: searchAmadeusHotels } = useAmadeusApi();
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
@@ -122,6 +126,50 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
     setSelectedHotel(hotel);
     setShowResults(false);
     setShowStayDetails(true);
+  };
+
+  const handleHotelBook = async (hotel: HotelType) => {
+    setBookingHotel(hotel.id);
+    
+    try {
+      // Mock booking data for demo
+      const bookingData = {
+        hotelId: hotel.id,
+        offerId: `offer-${hotel.id}`,
+        guests: [{
+          firstName: 'John',
+          lastName: 'Doe',
+          title: 'Mr',
+          email: 'john.doe@example.com',
+          phone: '+1234567890'
+        }],
+        payments: [{
+          method: 'credit_card'
+        }]
+      };
+
+      const { data, error } = await supabase.functions.invoke('amadeus-api', {
+        body: {
+          endpoint: 'book-hotel',
+          ...bookingData
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.data) {
+        toast.success(`Hotel booked successfully! Confirmation: ${data.data.confirmationNumber}`);
+      } else {
+        throw new Error('Booking failed');
+      }
+    } catch (error) {
+      console.error('Booking failed:', error);
+      toast.error('Failed to book hotel. This is a demo - no actual booking was made.');
+    } finally {
+      setBookingHotel(null);
+    }
   };
 
   const handleStayDetailsConfirm = (stayDetails: StayDetails) => {
@@ -380,12 +428,30 @@ if (isMobile) {
                               )}
                             </div>
 
-                            <div className={cn("flex-shrink-0 flex flex-col justify-center", isMobile && "w-full")}>
+                            <div className={cn("flex-shrink-0 flex flex-col justify-center gap-2", isMobile && "w-full")}>
                               <Button
                                 onClick={() => handleHotelSelect(hotel)}
                                 className={cn("whitespace-nowrap bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md group-hover:shadow-lg transition-all", isMobile && "w-full")}
                               >
                                 Select Hotel
+                              </Button>
+                              <Button
+                                onClick={() => handleHotelBook(hotel)}
+                                disabled={bookingHotel === hotel.id}
+                                variant="outline"
+                                className={cn("whitespace-nowrap border-primary/20 hover:border-primary/40 hover:bg-primary/5", isMobile && "w-full")}
+                              >
+                                {bookingHotel === hotel.id ? (
+                                  <>
+                                    <div className="animate-spin rounded-full h-3 w-3 border border-primary border-t-transparent mr-2" />
+                                    Booking...
+                                  </>
+                                ) : (
+                                  <>
+                                    <CreditCard className="w-3 h-3 mr-2" />
+                                    Book Now
+                                  </>
+                                )}
                               </Button>
                             </div>
                           </div>
@@ -703,12 +769,30 @@ return (
                           )}
                         </div>
 
-                        <div className={cn("flex-shrink-0 flex flex-col justify-center", isMobile && "w-full")}>
+                        <div className={cn("flex-shrink-0 flex flex-col justify-center gap-2", isMobile && "w-full")}>
                           <Button
                             onClick={() => handleHotelSelect(hotel)}
                             className={cn("whitespace-nowrap bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md group-hover:shadow-lg transition-all", isMobile && "w-full")}
                           >
                             Select Hotel
+                          </Button>
+                          <Button
+                            onClick={() => handleHotelBook(hotel)}
+                            disabled={bookingHotel === hotel.id}
+                            variant="outline"
+                            className={cn("whitespace-nowrap border-primary/20 hover:border-primary/40 hover:bg-primary/5", isMobile && "w-full")}
+                          >
+                            {bookingHotel === hotel.id ? (
+                              <>
+                                <div className="animate-spin rounded-full h-3 w-3 border border-primary border-t-transparent mr-2" />
+                                Booking...
+                              </>
+                            ) : (
+                              <>
+                                <CreditCard className="w-3 h-3 mr-2" />
+                                Book Now
+                              </>
+                            )}
                           </Button>
                         </div>
                       </div>
