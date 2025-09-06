@@ -646,31 +646,36 @@ export function HotelStayDetailsDialog({
   if (isMobile) {
     return (
       <Drawer open={isOpen} onOpenChange={handleClose}>
-        <DrawerContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-0 z-[9999]">
-          <div className="w-full h-[90vh] flex flex-col">
-            {/* Header */}
-            <div className="sticky top-0 z-10 bg-gradient-to-b from-background via-background to-background/95 px-6 pt-5 pb-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="space-y-1">
-                   <DrawerTitle className="text-xl font-bold text-foreground">{isEditMode ? 'Edit Stay Details' : 'Stay Details'}</DrawerTitle>
-                   <DrawerDescription className="text-sm text-muted-foreground font-medium">
-                     {isEditMode ? 'Update your hotel booking information' : 'Add details about your hotel stay'}
-                   </DrawerDescription>
-                </div>
-                <Button variant="ghost" size="icon" onClick={handleClose} className="h-8 w-8 rounded-full bg-muted/30 hover:bg-muted/50">
-                  <X className="h-4 w-4" />
-                </Button>
+        <DrawerContent className="h-[80vh] bg-background border-border">
+          <div className="flex flex-col h-[80vh]">
+            {/* Header - matching flight search style */}
+            <div className="flex items-center justify-between p-4 pb-3">
+              <div className="space-y-1">
+                 <DrawerTitle className="text-xl font-bold text-foreground">{isEditMode ? '✏️ Edit Stay Details' : '🏨 Stay Details'}</DrawerTitle>
+                 <div className="text-sm text-muted-foreground font-medium">
+                   {isEditMode ? 'Update your hotel booking information' : 'Add details about your hotel stay'}
+                 </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClose}
+                className="h-8 w-8 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Scrollable Content - matching flight search background */}
+            <div className="flex-1 overflow-y-auto min-h-0 bg-[#0A0A0A]">
+              <div className="px-3 pt-1 pb-24 space-y-3">
+                {formContent}
               </div>
             </div>
 
-            {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto px-6">
-              {formContent}
-            </div>
-
-            {/* Sticky Bottom Actions */}
-            <div className="sticky bottom-0 bg-gradient-to-t from-background via-background to-background/95 p-6 border-t border-border/20">
-              <div className="flex gap-3">
+            {/* Action Buttons - Fixed at bottom matching flight search style */}
+            <div className="p-4 bg-background border-t border-border">
+              <div className="flex gap-2">
                 <Button variant="outline" onClick={handleClose} className="flex-1">
                   Cancel
                 </Button>
