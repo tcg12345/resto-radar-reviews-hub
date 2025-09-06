@@ -244,7 +244,7 @@ if (isMobile) {
 
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto px-6">
-              {/* Location Filter Only */}
+              {/* Filters Section */}
               <div className="space-y-4 pb-6">
                 {/* Location Card */}
                 <Card className="p-4 bg-muted/5 border-muted/20 shadow-sm">
@@ -268,6 +268,75 @@ if (isMobile) {
                     </Select>
                   </div>
                 </Card>
+
+                {/* Date Selection Cards */}
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Check-in Date */}
+                  <Card className="p-4 bg-muted/5 border-muted/20 shadow-sm">
+                    <div className="space-y-3">
+                      <Label className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                        <Calendar className="w-4 h-4 text-primary" />
+                        Check-in
+                      </Label>
+                      <Popover open={isCheckInOpen} onOpenChange={setIsCheckInOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal bg-background border-border/30",
+                              !checkInDate && "text-muted-foreground"
+                            )}
+                          >
+                            {checkInDate ? format(checkInDate, "MMM dd") : "Select date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <CalendarComponent
+                            mode="single"
+                            selected={checkInDate}
+                            onSelect={handleCheckInSelect}
+                            disabled={(date) => date < new Date()}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </Card>
+
+                  {/* Check-out Date */}
+                  <Card className="p-4 bg-muted/5 border-muted/20 shadow-sm">
+                    <div className="space-y-3">
+                      <Label className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                        <Calendar className="w-4 h-4 text-primary" />
+                        Check-out
+                      </Label>
+                      <Popover open={isCheckOutOpen} onOpenChange={setIsCheckOutOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal bg-background border-border/30",
+                              !checkOutDate && "text-muted-foreground"
+                            )}
+                          >
+                            {checkOutDate ? format(checkOutDate, "MMM dd") : "Select date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <CalendarComponent
+                            mode="single"
+                            selected={checkOutDate}
+                            onSelect={handleCheckOutSelect}
+                            disabled={(date) => !checkInDate || date <= checkInDate}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </Card>
+                </div>
               </div>
             </div>
 
@@ -275,7 +344,7 @@ if (isMobile) {
             <div className="sticky bottom-0 bg-gradient-to-t from-background via-background to-background/95 p-6 border-t border-border/20">
               <Button
                 onClick={handleSearch}
-                disabled={isSearching || !searchQuery.trim()}
+                disabled={isSearching || !searchQuery.trim() || !checkInDate || !checkOutDate}
                 className="w-full h-12 text-base font-semibold rounded-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all"
               >
                 {isSearching ? (
@@ -564,8 +633,9 @@ return (
                     mode="single"
                     selected={checkInDate}
                     onSelect={handleCheckInSelect}
+                    disabled={(date) => date < new Date()}
                     initialFocus
-                    className={cn("p-3 pointer-events-auto")}
+                    className="p-3 pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>
@@ -594,9 +664,9 @@ return (
                     mode="single"
                     selected={checkOutDate}
                     onSelect={handleCheckOutSelect}
+                    disabled={(date) => !checkInDate || date <= checkInDate}
                     initialFocus
-                    disabled={(date) => checkInDate ? date <= checkInDate : false}
-                    className={cn("p-3 pointer-events-auto")}
+                    className="p-3 pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>
@@ -606,7 +676,7 @@ return (
           {!isMobile && (
             <Button
               onClick={handleSearch}
-              disabled={isSearching || !searchQuery.trim()}
+              disabled={isSearching || !searchQuery.trim() || !checkInDate || !checkOutDate}
               className="w-full h-12 text-lg bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg"
             >
               <Search className="w-5 h-5 mr-2" />
