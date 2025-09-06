@@ -136,6 +136,7 @@ async function searchAmadeusHotels(location: string, checkInDate: string, checkO
       if (autocompleteResponse.ok) {
         const autocompleteData = await autocompleteResponse.json();
         console.log('🏨 Hotels found via autocomplete:', autocompleteData.data?.length || 0);
+        console.log('🏨 Raw autocomplete data:', JSON.stringify(autocompleteData.data?.slice(0, 3), null, 2));
         
         if (autocompleteData.data && autocompleteData.data.length > 0) {
           // Transform autocomplete results into our hotel format
@@ -162,6 +163,9 @@ async function searchAmadeusHotels(location: string, checkInDate: string, checkO
           console.log('✅ Successfully processed', hotels.length, 'hotels from Amadeus Hotel Autocomplete API');
           return hotels;
         }
+      } else {
+        const errorText = await autocompleteResponse.text();
+        console.error('❌ Autocomplete API failed:', autocompleteResponse.status, errorText);
       }
       
       console.log('⚠️ Autocomplete failed or no results, falling back to location search');
@@ -234,12 +238,33 @@ async function searchAmadeusHotels(location: string, checkInDate: string, checkO
     console.log('🏨 Hotels in list:', hotelListData.data?.length || 0);
     
     if (!hotelListData.data || hotelListData.data.length === 0) {
-      console.warn('⚠️ No hotels found in list, using mock data');
+      console.warn('⚠️ No hotels found in list');
+      if (hotelName) {
+        console.warn('⚠️ Specific hotel search failed, using mock data with hotel name');
+        return generateMockHotels(location, checkInDate, checkOutDate, guests).map(hotel => ({
+          ...hotel,
+          name: hotel.name.includes(hotelName) ? hotel.name : `${hotelName} ${location}`,
+          description: `${hotelName} - Located in ${location}, offering premium accommodations and services.`
+        }));
+      }
       return generateMockHotels(location, checkInDate, checkOutDate, guests);
     }
     
-    // Step 5: Transform hotel list (no client-side filtering since API doesn't support it)
-    const hotels = hotelListData.data.slice(0, 10).map((hotel: any, index: number) => ({
+    // Step 5: Transform hotel list and filter by hotel name if provided
+    let filteredHotels = hotelListData.data;
+    
+    // Client-side filtering by hotel name if provided
+    if (hotelName) {
+      console.log('🔍 Filtering hotels by name:', hotelName);
+      const nameKeywords = hotelName.toLowerCase().split(' ');
+      filteredHotels = hotelListData.data.filter((hotel: any) => {
+        const hotelNameLower = (hotel.name || '').toLowerCase();
+        return nameKeywords.some(keyword => hotelNameLower.includes(keyword));
+      });
+      console.log('🏨 Hotels after name filtering:', filteredHotels.length, 'out of', hotelListData.data.length);
+    }
+    
+    const hotels = filteredHotels.slice(0, 10).map((hotel: any, index: number) => ({
       id: hotel.hotelId || hotel.id || `amadeus-${Date.now()}-${index}`,
       name: hotel.name || `Hotel in ${location}`,
       address: hotel.address ? `${hotel.address.lines?.[0] || ''}, ${hotel.address.cityName || location}` : `${location}`,
@@ -258,6 +283,16 @@ async function searchAmadeusHotels(location: string, checkInDate: string, checkO
       checkOutDate: checkOutDate,
       adults: guests
     }));
+    
+    if (hotels.length === 0 && hotelName) {
+      console.warn('⚠️ No hotels matched the name filter, using mock data with hotel name');
+      return generateMockHotels(location, checkInDate, checkOutDate, guests).map(hotel => ({
+        ...hotel,
+        name: hotel.name.includes(hotelName) ? hotel.name : `${hotelName} ${location}`,
+        description: `${hotelName} - Located in ${location}, offering premium accommodations and services.`,
+        source: 'MOCK_DATA_NAME_FALLBACK'
+      }));
+    }
     
     console.log('✅ Successfully processed', hotels.length, 'hotels from Amadeus Hotel List API');
     return hotels;

@@ -95,7 +95,8 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
               location: location,
               checkInDate: '2025-01-15',
               checkOutDate: '2025-01-16',
-              guests: 1
+              guests: 1,
+              hotelName: searchQuery.trim() // Pass the search query as hotel name
             }
           });
           
