@@ -1,8 +1,106 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, Plane, MapPin } from 'lucide-react';
+import { Search, Plane, MapPin, Building2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+
+// City to IATA city code mapping for multi-airport searches
+const cityToCodeMap: Record<string, string> = {
+  // North America
+  "New York": "NYC",
+  "New York City": "NYC", 
+  "NYC": "NYC",
+  "Manhattan": "NYC",
+  "Los Angeles": "LAX",
+  "LA": "LAX",
+  "Chicago": "CHI",
+  "Washington": "WAS",
+  "Washington DC": "WAS",
+  "Washington D.C.": "WAS",
+  "Miami": "MIA",
+  "San Francisco": "SFO",
+  "SF": "SFO",
+  "Bay Area": "SFO",
+  "Boston": "BOS",
+  
+  // Europe
+  "London": "LON",
+  "Paris": "PAR",
+  "Milan": "MIL",
+  "Rome": "ROM",
+  "Berlin": "BER",
+  "Brussels": "BRU",
+  "Stockholm": "STO",
+  "Oslo": "OSL",
+  "Moscow": "MOW",
+  
+  // Asia Pacific
+  "Tokyo": "TYO",
+  "Seoul": "SEL",
+  "Shanghai": "SHA",
+  "Beijing": "BJS",
+  "Taipei": "TPE",
+  "Bangkok": "BKK",
+  "Jakarta": "JKT",
+  "Manila": "MNL",
+  "Mumbai": "BOM",
+  "Delhi": "DEL",
+  "Sydney": "SYD",
+  "Melbourne": "MEL",
+  
+  // Middle East & Africa
+  "Dubai": "DXB",
+  "Doha": "DOH",
+  "Istanbul": "IST",
+  "Cairo": "CAI",
+  "Johannesburg": "JNB",
+  
+  // South America
+  "Buenos Aires": "BUE",
+  "São Paulo": "SAO",
+  "Sao Paulo": "SAO",
+  "Rio de Janeiro": "RIO",
+  "Rio": "RIO"
+};
+
+// Get city airports for better display
+const cityAirports: Record<string, string[]> = {
+  "NYC": ["JFK", "LGA", "EWR"],
+  "LON": ["LHR", "LGW", "STN", "LTN"],
+  "PAR": ["CDG", "ORY"],
+  "MIL": ["MXP", "LIN"],
+  "ROM": ["FCO", "CIA"],
+  "BER": ["BER"],
+  "BRU": ["BRU"],
+  "STO": ["ARN"],
+  "OSL": ["OSL"],
+  "MOW": ["SVO", "DME", "VKO"],
+  "TYO": ["NRT", "HND"],
+  "SEL": ["ICN", "GMP"],
+  "SHA": ["PVG", "SHA"],
+  "BJS": ["PEK", "PKX"],
+  "TPE": ["TPE"],
+  "BKK": ["BKK"],
+  "JKT": ["CGK"],
+  "MNL": ["MNL"],
+  "BOM": ["BOM"],
+  "DEL": ["DEL"],
+  "SYD": ["SYD"],
+  "MEL": ["MEL"],
+  "DXB": ["DXB"],
+  "DOH": ["DOH"],
+  "IST": ["IST"],
+  "CAI": ["CAI"],
+  "JNB": ["JNB"],
+  "BUE": ["EZE", "AEP"],
+  "SAO": ["GRU", "CGH"],
+  "RIO": ["GIG", "SDU"],
+  "CHI": ["ORD", "MDW"],
+  "WAS": ["DCA", "IAD", "BWI"],
+  "MIA": ["MIA", "FLL"],
+  "SFO": ["SFO", "SJC", "OAK"],
+  "BOS": ["BOS"]
+};
 
 interface AirportSuggestion {
   id: string;
@@ -11,6 +109,8 @@ interface AirportSuggestion {
   cityName: string;
   countryName: string;
   description: string;
+  isCity?: boolean;
+  airportList?: string[];
 }
 
 interface AirportSearchProps {
@@ -25,7 +125,7 @@ export function AirportSearch({
   value, 
   onChange, 
   onAirportSelect, 
-  placeholder = "Search airports or enter IATA code...",
+  placeholder = "Search by city (e.g., New York, London) or airport code...",
   className 
 }: AirportSearchProps) {
   const [airports, setAirports] = useState<AirportSuggestion[]>([]);
@@ -47,7 +147,7 @@ export function AirportSearch({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Search for airports using comprehensive database
+  // Enhanced search with city code support
   useEffect(() => {
     if (!searchTerm || searchTerm.length < 1) {
       setAirports([]);
@@ -60,6 +160,28 @@ export function AirportSearch({
       try {
         console.log('Searching for airports:', searchTerm);
         
+        // Check if the search term matches a city
+        const normalizedTerm = searchTerm.trim();
+        const cityCode = cityToCodeMap[normalizedTerm] || cityToCodeMap[normalizedTerm.toLowerCase()];
+        
+        let suggestions: AirportSuggestion[] = [];
+        
+        // If it's a known city, add city option first
+        if (cityCode && cityAirports[cityCode]) {
+          const cityAirportList = cityAirports[cityCode];
+          suggestions.push({
+            id: cityCode,
+            iataCode: cityCode,
+            name: `${normalizedTerm} (All Airports)`,
+            cityName: normalizedTerm,
+            countryName: '',
+            description: `${normalizedTerm} - All airports (${cityAirportList.join(', ')})`,
+            isCity: true,
+            airportList: cityAirportList
+          });
+        }
+        
+        // Search for individual airports
         const { data, error } = await supabase.functions.invoke('comprehensive-airport-search', {
           body: { keyword: searchTerm }
         });
@@ -68,7 +190,7 @@ export function AirportSearch({
 
         if (error) {
           console.error('Error searching airports:', error);
-          handleFallbackSearch(searchTerm);
+          handleFallbackSearch(searchTerm, suggestions);
           return;
         }
 
@@ -79,17 +201,20 @@ export function AirportSearch({
             name: airport.name,
             cityName: airport.cityName,
             countryName: airport.countryName,
-            description: airport.description
+            description: airport.description,
+            isCity: false
           }));
 
-          setAirports(transformedAirports);
+          // Combine city suggestions with individual airports
+          const allSuggestions = [...suggestions, ...transformedAirports];
+          setAirports(allSuggestions);
           setShowDropdown(true);
         } else {
-          handleFallbackSearch(searchTerm);
+          handleFallbackSearch(searchTerm, suggestions);
         }
       } catch (error) {
         console.error('Airport search failed:', error);
-        handleFallbackSearch(searchTerm);
+        handleFallbackSearch(searchTerm, []);
       } finally {
         setIsLoading(false);
       }
@@ -98,7 +223,7 @@ export function AirportSearch({
     return () => clearTimeout(searchTimer);
   }, [searchTerm]);
 
-  const handleFallbackSearch = (term: string) => {
+  const handleFallbackSearch = (term: string, existingSuggestions: AirportSuggestion[] = []) => {
     // Fallback with common airports
     const commonAirports = [
       { code: 'JFK', name: 'John F. Kennedy International Airport', city: 'New York', country: 'USA' },
@@ -126,10 +251,12 @@ export function AirportSearch({
         name: airport.name,
         cityName: airport.city,
         countryName: airport.country,
-        description: `${airport.name} (${airport.code})`
+        description: `${airport.name} (${airport.code})`,
+        isCity: false
       }));
 
-      setAirports(fallbackAirports);
+      const allSuggestions = [...existingSuggestions, ...fallbackAirports];
+      setAirports(allSuggestions);
       setShowDropdown(true);
     } else if (/^[A-Z]{3}$/i.test(term)) {
       // If it looks like an IATA code, create a fallback option
@@ -140,13 +267,15 @@ export function AirportSearch({
         name: `${iataCode} Airport`,
         cityName: iataCode,
         countryName: '',
-        description: `${iataCode} (IATA Code)`
+        description: `${iataCode} (IATA Code)`,
+        isCity: false
       };
-      setAirports([fallbackAirport]);
+      const allSuggestions = [...existingSuggestions, fallbackAirport];
+      setAirports(allSuggestions);
       setShowDropdown(true);
     } else {
-      setAirports([]);
-      setShowDropdown(false);
+      setAirports(existingSuggestions);
+      setShowDropdown(existingSuggestions.length > 0);
     }
   };
 
@@ -157,9 +286,20 @@ export function AirportSearch({
   };
 
   const handleAirportSelect = (airport: AirportSuggestion) => {
-    const displayValue = `${airport.name} (${airport.iataCode})`;
-    setSearchTerm(displayValue);
-    onChange(displayValue);
+    let displayValue: string;
+    
+    if (airport.isCity) {
+      // For city selections, show just the city code for API compatibility
+      displayValue = airport.iataCode;
+      setSearchTerm(`${airport.cityName} (All Airports)`);
+      onChange(airport.iataCode); // Pass the city code (e.g., "NYC") to the API
+    } else {
+      // For individual airports, show the full name
+      displayValue = `${airport.name} (${airport.iataCode})`;
+      setSearchTerm(displayValue);
+      onChange(airport.iataCode); // Pass just the airport code for individual airports
+    }
+    
     setShowDropdown(false);
     onAirportSelect?.(airport);
   };
@@ -200,25 +340,53 @@ export function AirportSearch({
               <div
                 key={airport.id}
                 onClick={() => handleAirportSelect(airport)}
-                className="flex items-center gap-3 p-3 hover:bg-muted cursor-pointer transition-colors first:rounded-t-md last:rounded-b-md border-b border-border/50 last:border-b-0"
+                className={cn(
+                  "flex items-center gap-3 p-3 hover:bg-muted cursor-pointer transition-colors first:rounded-t-md last:rounded-b-md border-b border-border/50 last:border-b-0",
+                  airport.isCity && "bg-gradient-to-r from-primary/5 to-primary/10 border-l-2 border-l-primary"
+                )}
               >
                 <div className="flex-shrink-0">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Plane className="w-4 h-4 text-primary" />
+                  <div className={cn(
+                    "w-8 h-8 rounded-lg flex items-center justify-center",
+                    airport.isCity ? "bg-primary/20" : "bg-primary/10"
+                  )}>
+                    {airport.isCity ? (
+                      <Building2 className="w-4 h-4 text-primary" />
+                    ) : (
+                      <Plane className="w-4 h-4 text-primary" />
+                    )}
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-sm text-foreground">{airport.name}</span>
-                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded font-mono">
+                    <span className={cn(
+                      "text-sm text-foreground",
+                      airport.isCity ? "font-semibold" : "font-medium"
+                    )}>
+                      {airport.name}
+                    </span>
+                    <span className={cn(
+                      "text-xs px-2 py-0.5 rounded font-mono",
+                      airport.isCity 
+                        ? "bg-primary/20 text-primary border border-primary/30" 
+                        : "bg-primary/10 text-primary"
+                    )}>
                       {airport.iataCode}
                     </span>
                   </div>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <MapPin className="w-3 h-3" />
-                    <span>{airport.cityName}</span>
-                    {airport.cityName !== airport.countryName && airport.countryName && (
-                      <span>• {airport.countryName}</span>
+                    {airport.isCity ? (
+                      <span className="text-primary/80 font-medium">
+                        {airport.description}
+                      </span>
+                    ) : (
+                      <>
+                        <span>{airport.cityName}</span>
+                        {airport.cityName !== airport.countryName && airport.countryName && (
+                          <span>• {airport.countryName}</span>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
@@ -226,7 +394,7 @@ export function AirportSearch({
             ))
           ) : (
             <div className="p-3 text-sm text-muted-foreground text-center">
-              No airports found. Try searching by city name or IATA code.
+              No airports found. Try searching by city name (e.g., "New York", "London") or IATA code.
             </div>
           )}
         </div>
