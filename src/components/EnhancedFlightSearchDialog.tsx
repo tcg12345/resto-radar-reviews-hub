@@ -780,13 +780,15 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                     </div>
                   </div>
                   
-                  <Button 
-                    onClick={handleSearch} 
-                    className="w-full" 
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Searching...' : 'Search Flights'}
-                  </Button>
+                  <div className="sticky bottom-0 bg-background pt-4 pb-2 border-t border-border/10">
+                    <Button 
+                      onClick={handleSearch} 
+                      className="w-full" 
+                      disabled={isLoading}
+                    >
+                      {isLoading ? 'Searching...' : 'Search Flights'}
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
@@ -1054,13 +1056,15 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                 </div>
               </div>
               
-              <Button 
-                onClick={handleSearch} 
-                className="w-full" 
-                disabled={isLoading}
-              >
-                {isLoading ? 'Searching...' : 'Search Flights'}
-              </Button>
+              <div className="sticky bottom-0 bg-background pt-4 pb-2 border-t border-border/10">
+                <Button 
+                  onClick={handleSearch} 
+                  className="w-full" 
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Searching...' : 'Search Flights'}
+                </Button>
+              </div>
             </div>
           )}
         </div>
