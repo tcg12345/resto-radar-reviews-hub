@@ -157,6 +157,7 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
   const [showAirlineDropdown, setShowAirlineDropdown] = useState(false);
   const [showAirlineFilter, setShowAirlineFilter] = useState(false);
   const [use24HourFormat, setUse24HourFormat] = useState(true);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   
   const isMobile = useIsMobile();
 
@@ -174,6 +175,28 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [showAirlineFilter]);
+
+  // Define a mapping of city codes to airports (multi-airport cities)
+  const cityAirportsMap: Record<string, string[]> = {
+    NYC: ["JFK", "LGA", "EWR"],
+    LON: ["LHR", "LGW", "STN", "LTN"],
+    PAR: ["CDG", "ORY"],
+    MIL: ["MXP", "LIN"],
+    ROM: ["FCO", "CIA"],
+    BER: ["BER"],
+    WAS: ["IAD", "DCA", "BWI"],
+    CHI: ["ORD", "MDW"],
+    BAY: ["SFO", "OAK", "SJC"],
+    LA: ["LAX", "BUR", "LGB"],
+    MIA: ["MIA", "FLL", "PBI"],
+    HOU: ["IAH", "HOU"],
+    DAL: ["DFW", "DAL"],
+    TYO: ["NRT", "HND"],
+    OSA: ["KIX", "ITM"],
+    SEL: ["ICN", "GMP"],
+    BJS: ["PEK", "PKX"],
+    SHA: ["PVG", "SHA"],
+  };
 
   const handleSearch = async () => {
     if (searchType === 'route' && (!fromAirport || !toAirport || !departureDate)) {
@@ -236,10 +259,14 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
             const lastSegment = segments[segments.length - 1];
             
             // Check if flight actually departs from and arrives at the searched airports
-            const departureMatch = firstSegment?.departure?.iataCode === fromAirport;
-            const arrivalMatch = lastSegment?.arrival?.iataCode === toAirport;
+            const departCode = firstSegment?.departure?.iataCode;
+            const arriveCode = lastSegment?.arrival?.iataCode;
             
-            return departureMatch && arrivalMatch;
+            // Consider city groups - if search code is a city, match any airport in that city
+            const originMatches = cityAirportsMap[fromAirport]?.includes(departCode) || departCode === fromAirport;
+            const destMatches = cityAirportsMap[toAirport]?.includes(arriveCode) || arriveCode === toAirport;
+            
+            return originMatches && destMatches;
           });
           
           // Filter by stops if not "all"
@@ -760,7 +787,7 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                     
                     <div>
                       <label className="block text-sm font-medium text-muted-foreground mb-2">Departure Date</label>
-                      <Popover>
+                      <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                         <PopoverTrigger asChild>
                           <Button variant="outline" className="w-full justify-start text-left font-normal">
                             <CalendarIcon className="mr-2 h-4 w-4" />
@@ -771,7 +798,10 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                           <Calendar
                             mode="single"
                             selected={departureDate}
-                            onSelect={setDepartureDate}
+                            onSelect={(date) => {
+                              setDepartureDate(date);
+                              setIsCalendarOpen(false);
+                            }}
                             initialFocus
                           />
                         </PopoverContent>
@@ -930,7 +960,7 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-muted-foreground mb-2">Departure Date</label>
-                  <Popover>
+                  <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="w-full justify-start text-left font-normal">
                         <CalendarIcon className="mr-2 h-4 w-4" />
@@ -941,7 +971,10 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                       <Calendar
                         mode="single"
                         selected={departureDate}
-                        onSelect={setDepartureDate}
+                        onSelect={(date) => {
+                          setDepartureDate(date);
+                          setIsCalendarOpen(false);
+                        }}
                         initialFocus
                       />
                     </PopoverContent>
@@ -977,7 +1010,7 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
+                  <div className="col-span-2">
                     <label className="block text-sm font-medium text-muted-foreground mb-2">Airline Filter</label>
                     <div className="relative airline-filter-container">
                       <Button
