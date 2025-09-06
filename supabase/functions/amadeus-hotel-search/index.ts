@@ -71,148 +71,137 @@ async function getAmadeusToken(): Promise<string> {
   return tokenData.access_token;
 }
 
-// Search hotels using Amadeus API with extensive debugging
+// Search hotels using Amadeus API - REAL DATA ONLY
 async function searchAmadeusHotels(location: string, checkInDate: string, checkOutDate: string, guests: number) {
   console.log('🔧 DEBUG: === STARTING HOTEL SEARCH ===');
   console.log('🔧 DEBUG: Parameters:', { location, checkInDate, checkOutDate, guests });
   
-  try {
-    // Step 1: Get token
-    console.log('🔧 DEBUG: Step 1 - Getting token...');
-    const token = await getAmadeusToken();
-    console.log('✅ Token obtained for hotel search');
-    
-    // Step 2: Search for location
-    console.log('🔧 DEBUG: Step 2 - Searching for location:', location);
-    const locationUrl = `https://api.amadeus.com/v1/reference-data/locations?keyword=${encodeURIComponent(location)}&max=5&subType=CITY`;
-    console.log('🔧 DEBUG: Location URL:', locationUrl);
-    
-    const locationResponse = await fetch(locationUrl, {
-      headers: { 
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    console.log('🔧 DEBUG: Location response status:', locationResponse.status);
-    
-    if (!locationResponse.ok) {
-      const errorText = await locationResponse.text();
-      console.error('❌ LOCATION SEARCH FAILED:', locationResponse.status, errorText);
-      throw new Error(`Location search failed: ${locationResponse.status}`);
+  // Step 1: Get token
+  console.log('🔧 DEBUG: Step 1 - Getting token...');
+  const token = await getAmadeusToken();
+  console.log('✅ Token obtained for hotel search');
+  
+  // Step 2: Search for location using correct endpoint
+  console.log('🔧 DEBUG: Step 2 - Searching for location:', location);
+  const locationUrl = `https://api.amadeus.com/v1/reference-data/locations?keyword=${encodeURIComponent(location)}&subType=CITY`;
+  console.log('🔧 DEBUG: Location URL:', locationUrl);
+  
+  const locationResponse = await fetch(locationUrl, {
+    headers: { 
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
     }
-    
-    const locationData = await locationResponse.json();
-    console.log('🔧 DEBUG: Location data received:', JSON.stringify(locationData, null, 2));
-    
-    if (!locationData.data || locationData.data.length === 0) {
-      console.error('❌ NO LOCATION DATA FOUND');
-      throw new Error(`No location found for: ${location}`);
-    }
-    
-    const bestLocation = locationData.data[0];
-    console.log('🔧 DEBUG: Best location selected:', JSON.stringify(bestLocation, null, 2));
-    
-    // Step 3: Search for hotels
-    console.log('🔧 DEBUG: Step 3 - Searching for hotels...');
-    
-    let hotelSearchUrl;
-    if (bestLocation.geoCode?.latitude && bestLocation.geoCode?.longitude) {
-      hotelSearchUrl = `https://api.amadeus.com/v3/shopping/hotel-offers?latitude=${bestLocation.geoCode.latitude}&longitude=${bestLocation.geoCode.longitude}&radius=20&radiusUnit=KM&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}&adults=${guests}&max=20&currency=USD`;
-      console.log('🔧 DEBUG: Using geographic search');
-    } else if (bestLocation.address?.cityCode || bestLocation.iataCode) {
-      const destinationCode = bestLocation.address?.cityCode || bestLocation.iataCode;
-      hotelSearchUrl = `https://api.amadeus.com/v3/shopping/hotel-offers?destinationCode=${destinationCode}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}&adults=${guests}&max=20&currency=USD`;
-      console.log('🔧 DEBUG: Using city code search:', destinationCode);
-    } else {
-      console.error('❌ NO SUITABLE SEARCH PARAMETERS');
-      throw new Error('No suitable search parameters found');
-    }
-    
-    console.log('🔧 DEBUG: Hotel search URL:', hotelSearchUrl);
-    
-    const hotelResponse = await fetch(hotelSearchUrl, {
-      headers: { 
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    console.log('🔧 DEBUG: Hotel response status:', hotelResponse.status);
-    
-    if (!hotelResponse.ok) {
-      const errorText = await hotelResponse.text();
-      console.error('❌ HOTEL SEARCH FAILED:', hotelResponse.status, errorText);
-      throw new Error(`Hotel search failed: ${hotelResponse.status}`);
-    }
-    
-    const hotelData = await hotelResponse.json();
-    console.log('🔧 DEBUG: Hotel data length:', hotelData.data?.length || 0);
-    console.log('🔧 DEBUG: Sample hotel:', JSON.stringify(hotelData.data?.[0], null, 2));
-    
-    if (!hotelData.data || hotelData.data.length === 0) {
-      console.error('❌ NO HOTELS FOUND IN RESPONSE');
-      throw new Error('No hotels found for the specified criteria');
-    }
-    
-    // Step 4: Transform real data
-    console.log('🔧 DEBUG: Step 4 - Transforming', hotelData.data.length, 'real hotels');
-    
-    const realHotels = hotelData.data.map((hotelOffer: any, index: number) => {
-      const hotel = hotelOffer.hotel;
-      const offers = hotelOffer.offers || [];
-      const bestOffer = offers[0];
-      
-      console.log(`🔧 DEBUG: Processing hotel ${index + 1}:`, hotel.name);
-      
-      let priceRange = 'Contact for rates';
-      if (bestOffer?.price?.total) {
-        const currency = bestOffer.price.currency || 'USD';
-        const total = parseFloat(bestOffer.price.total);
-        priceRange = `${currency} ${Math.round(total)}`;
-      }
-      
-      let address = location;
-      if (hotel.address) {
-        const addressParts = [
-          hotel.address.lines?.[0],
-          hotel.address.cityName,
-          hotel.address.countryCode
-        ].filter(Boolean);
-        address = addressParts.join(', ') || location;
-      }
-      
-      return {
-        id: hotel.hotelId || `amadeus-${Date.now()}-${index}`,
-        name: hotel.name || `Hotel in ${location}`,
-        address: address,
-        description: `${hotel.name} offers comfortable accommodations in ${location}.`,
-        rating: hotel.rating || (4 + Math.random() * 1),
-        priceRange: priceRange,
-        amenities: hotel.amenities?.map((a: any) => a.description || a).slice(0, 6) || ['Contact hotel for amenities'],
-        photos: [getHotelPhoto(hotel.name)],
-        latitude: hotel.latitude || bestLocation.geoCode?.latitude,
-        longitude: hotel.longitude || bestLocation.geoCode?.longitude,
-        website: 'https://www.amadeus.com',
-        phone: hotel.contact?.phone || 'Contact hotel directly',
-        realData: true,
-        source: 'AMADEUS_API'
-      };
-    });
-    
-    console.log('✅ SUCCESS: Returning', realHotels.length, 'REAL hotels from Amadeus API');
-    console.log('🔧 DEBUG: === HOTEL SEARCH COMPLETED SUCCESSFULLY ===');
-    return realHotels;
-    
-  } catch (error) {
-    console.error('💥 CRITICAL ERROR in hotel search:', error);
-    console.error('💥 Error name:', error.name);
-    console.error('💥 Error message:', error.message);
-    console.error('💥 Error stack:', error.stack);
-    
-    console.log('🎭 FALLBACK: Returning mock hotels due to error');
-    return getMockHotels(location);
+  });
+  
+  console.log('🔧 DEBUG: Location response status:', locationResponse.status);
+  
+  if (!locationResponse.ok) {
+    const errorText = await locationResponse.text();
+    console.error('❌ LOCATION SEARCH FAILED:', locationResponse.status, errorText);
+    throw new Error(`Location search failed: ${locationResponse.status} - ${errorText}`);
   }
+  
+  const locationData = await locationResponse.json();
+  console.log('🔧 DEBUG: Location data received:', JSON.stringify(locationData, null, 2));
+  
+  if (!locationData.data || locationData.data.length === 0) {
+    console.error('❌ NO LOCATION DATA FOUND');
+    throw new Error(`No location found for: ${location}`);
+  }
+  
+  const bestLocation = locationData.data[0];
+  console.log('🔧 DEBUG: Best location selected:', JSON.stringify(bestLocation, null, 2));
+  
+  // Step 3: Search for hotels using correct hotel offers endpoint
+  console.log('🔧 DEBUG: Step 3 - Searching for hotels...');
+  
+  let hotelSearchUrl;
+  if (bestLocation.geoCode?.latitude && bestLocation.geoCode?.longitude) {
+    hotelSearchUrl = `https://api.amadeus.com/v3/shopping/hotel-offers?latitude=${bestLocation.geoCode.latitude}&longitude=${bestLocation.geoCode.longitude}&radius=20&radiusUnit=KM&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}&adults=${guests}&currency=USD`;
+    console.log('🔧 DEBUG: Using geographic search');
+  } else if (bestLocation.address?.cityCode || bestLocation.iataCode) {
+    const destinationCode = bestLocation.address?.cityCode || bestLocation.iataCode;
+    hotelSearchUrl = `https://api.amadeus.com/v3/shopping/hotel-offers?destinationCode=${destinationCode}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}&adults=${guests}&currency=USD`;
+    console.log('🔧 DEBUG: Using city code search:', destinationCode);
+  } else {
+    console.error('❌ NO SUITABLE SEARCH PARAMETERS');
+    throw new Error('No suitable search parameters found');
+  }
+  
+  console.log('🔧 DEBUG: Hotel search URL:', hotelSearchUrl);
+  
+  const hotelResponse = await fetch(hotelSearchUrl, {
+    headers: { 
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  
+  console.log('🔧 DEBUG: Hotel response status:', hotelResponse.status);
+  
+  if (!hotelResponse.ok) {
+    const errorText = await hotelResponse.text();
+    console.error('❌ HOTEL SEARCH FAILED:', hotelResponse.status, errorText);
+    throw new Error(`Hotel search failed: ${hotelResponse.status} - ${errorText}`);
+  }
+  
+  const hotelData = await hotelResponse.json();
+  console.log('🔧 DEBUG: Hotel data length:', hotelData.data?.length || 0);
+  console.log('🔧 DEBUG: Sample hotel:', JSON.stringify(hotelData.data?.[0], null, 2));
+  
+  if (!hotelData.data || hotelData.data.length === 0) {
+    console.error('❌ NO HOTELS FOUND IN RESPONSE');
+    throw new Error('No hotels found for the specified criteria');
+  }
+  
+  // Step 4: Transform real data
+  console.log('🔧 DEBUG: Step 4 - Transforming', hotelData.data.length, 'real hotels');
+  
+  const realHotels = hotelData.data.map((hotelOffer: any, index: number) => {
+    const hotel = hotelOffer.hotel;
+    const offers = hotelOffer.offers || [];
+    const bestOffer = offers[0];
+    
+    console.log(`🔧 DEBUG: Processing hotel ${index + 1}:`, hotel.name);
+    
+    let priceRange = 'Contact for rates';
+    if (bestOffer?.price?.total) {
+      const currency = bestOffer.price.currency || 'USD';
+      const total = parseFloat(bestOffer.price.total);
+      priceRange = `${currency} ${Math.round(total)}`;
+    }
+    
+    let address = location;
+    if (hotel.address) {
+      const addressParts = [
+        hotel.address.lines?.[0],
+        hotel.address.cityName,
+        hotel.address.countryCode
+      ].filter(Boolean);
+      address = addressParts.join(', ') || location;
+    }
+    
+    return {
+      id: hotel.hotelId || `amadeus-${Date.now()}-${index}`,
+      name: hotel.name || `Hotel in ${location}`,
+      address: address,
+      description: `${hotel.name} offers comfortable accommodations in ${location}.`,
+      rating: hotel.rating || (4 + Math.random() * 1),
+      priceRange: priceRange,
+      amenities: hotel.amenities?.map((a: any) => a.description || a).slice(0, 6) || ['Contact hotel for amenities'],
+      photos: [getHotelPhoto(hotel.name)],
+      latitude: hotel.latitude || bestLocation.geoCode?.latitude,
+      longitude: hotel.longitude || bestLocation.geoCode?.longitude,
+      website: 'https://www.amadeus.com',
+      phone: hotel.contact?.phone || 'Contact hotel directly',
+      realData: true,
+      source: 'AMADEUS_API'
+    };
+  });
+  
+  console.log('✅ SUCCESS: Returning', realHotels.length, 'REAL hotels from Amadeus API');
+  console.log('🔧 DEBUG: === HOTEL SEARCH COMPLETED SUCCESSFULLY ===');
+  return realHotels;
 }
 
 // Helper function to get hotel photos
