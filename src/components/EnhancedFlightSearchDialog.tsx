@@ -544,7 +544,7 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
     return (
       <Drawer open={isOpen} onOpenChange={onClose}>
         <DrawerContent className="h-[90vh] bg-background border-border">
-          <div className="p-6 h-full flex flex-col">
+          <div className="p-4 h-full flex flex-col overflow-x-hidden max-w-full">
             <DrawerTitle className="text-2xl font-bold text-foreground mb-6">
               {showResults ? "✈️ Flight Results" : "✈️ Flight Search"}
             </DrawerTitle>
