@@ -302,13 +302,24 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
         if (selectedAirlines.length > 0) {
           filteredResults = filteredResults.filter((flight: any) => {
             const segments = flight.itineraries?.[0]?.segments || [];
-            const flightAirlines = segments.map((segment: any) => segment.carrierCode);
-            const operatingAirlines = segments.map((segment: any) => segment.operating?.carrierCode).filter(Boolean);
             const validatingAirlines = flight.validatingAirlineCodes || [];
             
-            // Check if any of the flight's airlines (carrier, operating, or validating) match the selected airlines
-            const allAirlineCodes = [...flightAirlines, ...operatingAirlines, ...validatingAirlines];
-            return allAirlineCodes.some((airlineCode: string) => 
+            // Prioritize marketing airlines (carrierCode) and validating airlines
+            const marketingAirlines = segments.map((segment: any) => segment.carrierCode);
+            const primaryAirlines = [...marketingAirlines, ...validatingAirlines];
+            
+            // First check if any marketing or validating airline matches
+            const hasMarketingMatch = primaryAirlines.some((airlineCode: string) => 
+              selectedAirlines.includes(airlineCode)
+            );
+            
+            if (hasMarketingMatch) {
+              return true;
+            }
+            
+            // Only if no marketing match, check operating airlines as fallback
+            const operatingAirlines = segments.map((segment: any) => segment.operating?.carrierCode).filter(Boolean);
+            return operatingAirlines.some((airlineCode: string) => 
               selectedAirlines.includes(airlineCode)
             );
           });
