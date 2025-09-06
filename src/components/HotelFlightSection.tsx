@@ -872,7 +872,7 @@ export function HotelFlightSection({
       </Dialog>
 
       <Dialog open={isFlightDetailsOpen} onOpenChange={setIsFlightDetailsOpen}>
-        <DialogContent overlayClassName="bg-transparent" className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[80vw] h-[80vh] max-w-none bg-card border-border overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Plane className="w-5 h-5 text-purple-600" />
