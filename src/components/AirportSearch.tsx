@@ -47,9 +47,9 @@ export function AirportSearch({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Search for airports
+  // Search for airports using comprehensive database
   useEffect(() => {
-    if (!searchTerm || searchTerm.length < 2) {
+    if (!searchTerm || searchTerm.length < 1) {
       setAirports([]);
       setShowDropdown(false);
       return;
@@ -60,30 +60,26 @@ export function AirportSearch({
       try {
         console.log('Searching for airports:', searchTerm);
         
-        const { data, error } = await supabase.functions.invoke('amadeus-enhanced-flight-api', {
-          body: {
-            endpoint: 'searchLocations',
-            keyword: searchTerm
-          }
+        const { data, error } = await supabase.functions.invoke('comprehensive-airport-search', {
+          body: { keyword: searchTerm }
         });
 
         console.log('Airport search response:', { data, error });
 
         if (error) {
           console.error('Error searching airports:', error);
-          // Fallback to static results for common codes
           handleFallbackSearch(searchTerm);
           return;
         }
 
         if (data && Array.isArray(data)) {
-          const transformedAirports: AirportSuggestion[] = data.map((location: any) => ({
-            id: location.iataCode || location.id || searchTerm.toUpperCase(),
-            iataCode: location.iataCode || location.id || searchTerm.toUpperCase(),
-            name: location.name || `${searchTerm.toUpperCase()} Airport`,
-            cityName: location.address?.cityName || location.cityName || location.name || searchTerm,
-            countryName: location.address?.countryName || location.countryName || '',
-            description: `${location.name || searchTerm.toUpperCase()} (${location.iataCode || location.id || searchTerm.toUpperCase()})`
+          const transformedAirports: AirportSuggestion[] = data.map((airport: any) => ({
+            id: airport.iataCode,
+            iataCode: airport.iataCode,
+            name: airport.name,
+            cityName: airport.cityName,
+            countryName: airport.countryName,
+            description: airport.description
           }));
 
           setAirports(transformedAirports);
@@ -97,7 +93,7 @@ export function AirportSearch({
       } finally {
         setIsLoading(false);
       }
-    }, 300);
+    }, 200);
 
     return () => clearTimeout(searchTimer);
   }, [searchTerm]);
