@@ -416,104 +416,107 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
           )}
         </div>
         {flightResults.map((flight, index) => (
-          <Card key={index} className="border-border/20 bg-gradient-to-r from-card to-card/95 hover:shadow-md transition-all duration-300 cursor-pointer group overflow-hidden">
-            <CardContent className="p-5" onClick={() => handleSelectFlight(flight)}>
-              {/* Flight Number and Airline Header */}
-              <div className="flex items-center justify-between mb-4 pb-3 border-b border-border/10">
+          <Card key={index} className="border-0 bg-gradient-to-br from-card via-card/98 to-card/95 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 cursor-pointer group overflow-hidden rounded-xl">
+            <CardContent className="p-0" onClick={() => handleSelectFlight(flight)}>
+              {/* Header: Airline & Flight Number */}
+              <div className="flex items-center justify-between p-4 pb-3 bg-gradient-to-r from-primary/5 to-transparent">
                 <div className="flex items-center gap-3">
-                  <div className="bg-primary/10 p-2 rounded-lg">
-                    <Plane className="h-5 w-5 text-primary" />
+                  <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-sm">
+                    <Plane className="h-5 w-5 text-primary-foreground" />
                   </div>
-                  <div>
-                    <div className="text-lg font-bold text-foreground">
-                      {flight.validatingAirlineCodes?.[0] || 'N/A'} {flight.itineraries?.[0]?.segments?.[0]?.carrierCode || ''}{flight.itineraries?.[0]?.segments?.[0]?.number || 'N/A'}
+                  <div className="space-y-0.5">
+                    <div className="text-base font-bold text-foreground tracking-tight">
+                      {flight.itineraries?.[0]?.segments?.[0]?.carrierCode || ''}{flight.itineraries?.[0]?.segments?.[0]?.number || 'N/A'}
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      {getAirlineName(flight.validatingAirlineCodes?.[0] || flight.itineraries?.[0]?.segments?.[0]?.carrierCode || 'N/A')}
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span className="font-medium">{getAirlineName(flight.validatingAirlineCodes?.[0] || flight.itineraries?.[0]?.segments?.[0]?.carrierCode || 'N/A')}</span>
                       {flight.itineraries?.[0]?.segments?.[0]?.operating?.carrierCode && 
-                        flight.itineraries?.[0]?.segments?.[0]?.operating?.carrierCode !== flight.validatingAirlineCodes?.[0] &&
-                        ` • Operated by ${getAirlineName(flight.itineraries[0].segments[0].operating.carrierCode)}`}
+                        flight.itineraries?.[0]?.segments?.[0]?.operating?.carrierCode !== flight.validatingAirlineCodes?.[0] && (
+                        <>
+                          <span className="w-1 h-1 rounded-full bg-muted-foreground/50"></span>
+                          <span>operated by {getAirlineName(flight.itineraries[0].segments[0].operating.carrierCode)}</span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm text-muted-foreground">Aircraft</div>
-                  <div className="text-sm font-medium">{flight.itineraries?.[0]?.segments?.[0]?.aircraft?.code || 'N/A'}</div>
+                  <div className="text-xs text-muted-foreground uppercase tracking-wide">Price</div>
+                  <div className="text-lg font-bold text-foreground">{flight.price?.total || 'N/A'}</div>
                 </div>
               </div>
               
-              {/* Flight route and timing */}
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-8 flex-1">
+              {/* Main: Times & Route */}
+              <div className="px-4 py-3">
+                <div className="flex items-center justify-between">
                   {/* Departure */}
-                   <div className="text-center space-y-1">
-                     <div className="text-xl font-bold text-foreground tracking-tight">
-                       {flight.itineraries?.[0]?.segments?.[0]?.departure?.at ? 
-                         formatFlightTime(
-                           flight.itineraries[0].segments[0].departure.at,
-                           flight.itineraries[0].segments[0].departure.iataCode,
-                           use24HourFormat
-                         ) : 'N/A'}
-                     </div>
-                     <div className="text-sm text-muted-foreground font-semibold bg-muted/50 px-2 py-1 rounded-md">
-                       {flight.itineraries?.[0]?.segments?.[0]?.departure?.iataCode || fromAirport}
-                     </div>
-                   </div>
-                  
-                  {/* Flight path */}
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="flex-1 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
-                    <div className="flex flex-col items-center gap-2 px-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center border border-primary/20">
-                        <Plane className="h-5 w-5 text-primary transform rotate-90" />
-                      </div>
-                      <div className="text-xs text-muted-foreground flex items-center gap-1.5 bg-muted/30 px-2 py-1 rounded-full">
-                        <Clock className="h-3 w-3" />
-                        <span className="font-medium">{flight.itineraries?.[0]?.duration?.replace('PT', '').replace('H', 'h ').replace('M', 'm') || 'N/A'}</span>
-                      </div>
+                  <div className="text-center flex-shrink-0">
+                    <div className="text-2xl font-bold text-foreground mb-1">
+                      {flight.itineraries?.[0]?.segments?.[0]?.departure?.at ? 
+                        formatFlightTime(
+                          flight.itineraries[0].segments[0].departure.at,
+                          flight.itineraries[0].segments[0].departure.iataCode,
+                          use24HourFormat
+                        ) : 'N/A'}
                     </div>
-                    <div className="flex-1 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
+                    <div className="text-sm font-bold text-primary bg-primary/10 px-2 py-1 rounded-md">
+                      {flight.itineraries?.[0]?.segments?.[0]?.departure?.iataCode || fromAirport}
+                    </div>
+                  </div>
+                  
+                  {/* Flight path & duration */}
+                  <div className="flex-1 mx-6 relative">
+                    <div className="flex items-center justify-center">
+                      <div className="flex-1 h-0.5 bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20 rounded-full"></div>
+                      <div className="mx-3 flex flex-col items-center gap-1">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-sm">
+                          <ArrowRight className="h-4 w-4 text-primary-foreground" />
+                        </div>
+                        <div className="text-xs font-semibold text-muted-foreground bg-muted/80 px-2 py-1 rounded-full whitespace-nowrap">
+                          {flight.itineraries?.[0]?.duration?.replace('PT', '').replace('H', 'h ').replace('M', 'm') || 'N/A'}
+                        </div>
+                      </div>
+                      <div className="flex-1 h-0.5 bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20 rounded-full"></div>
+                    </div>
                   </div>
                   
                   {/* Arrival */}
-                   <div className="text-center space-y-1">
-                     <div className="text-xl font-bold text-foreground tracking-tight">
-                       {flight.itineraries?.[0]?.segments?.[flight.itineraries[0].segments.length - 1]?.arrival?.at ? 
-                         formatFlightTime(
-                           flight.itineraries[0].segments[flight.itineraries[0].segments.length - 1].arrival.at,
-                           flight.itineraries[0].segments[flight.itineraries[0].segments.length - 1].arrival.iataCode,
-                           use24HourFormat
-                         ) : 'N/A'}
-                     </div>
-                     <div className="text-sm text-muted-foreground font-semibold bg-muted/50 px-2 py-1 rounded-md">
-                       {flight.itineraries?.[0]?.segments?.[flight.itineraries[0].segments.length - 1]?.arrival?.iataCode || toAirport}
-                     </div>
-                   </div>
+                  <div className="text-center flex-shrink-0">
+                    <div className="text-2xl font-bold text-foreground mb-1">
+                      {flight.itineraries?.[0]?.segments?.[flight.itineraries[0].segments.length - 1]?.arrival?.at ? 
+                        formatFlightTime(
+                          flight.itineraries[0].segments[flight.itineraries[0].segments.length - 1].arrival.at,
+                          flight.itineraries[0].segments[flight.itineraries[0].segments.length - 1].arrival.iataCode,
+                          use24HourFormat
+                        ) : 'N/A'}
+                    </div>
+                    <div className="text-sm font-bold text-primary bg-primary/10 px-2 py-1 rounded-md">
+                      {flight.itineraries?.[0]?.segments?.[flight.itineraries[0].segments.length - 1]?.arrival?.iataCode || toAirport}
+                    </div>
+                  </div>
                 </div>
               </div>
               
-              <Separator className="my-4 bg-border/30" />
-              
-              {/* Flight details */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Badge variant="secondary" className="bg-gradient-to-r from-secondary/80 to-secondary/60 text-secondary-foreground font-semibold px-3 py-1">
-                    {getAirlineName(flight.validatingAirlineCodes?.[0] || 'N/A')}
+              {/* Footer: Details & CTA */}
+              <div className="flex items-center justify-between p-4 pt-3 bg-muted/20 border-t border-border/10">
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="bg-secondary/80 text-secondary-foreground font-medium px-2.5 py-1 text-xs">
+                    {flight.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.cabin || 'Economy'}
                   </Badge>
                   {flight.itineraries?.[0]?.segments?.length > 1 && (
-                    <Badge variant="outline" className="border-amber-200 text-amber-700 bg-amber-50 dark:border-amber-700 dark:text-amber-300 dark:bg-amber-900/20">
+                    <Badge variant="outline" className="border-amber-300 text-amber-700 bg-amber-50 dark:border-amber-600 dark:text-amber-300 dark:bg-amber-900/30 text-xs px-2 py-1">
                       {flight.itineraries[0].segments.length - 1} stop{flight.itineraries[0].segments.length > 2 ? 's' : ''}
                     </Badge>
                   )}
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 px-3 py-1 rounded-full">
-                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                    <span className="font-medium">{flight.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.cabin || 'Economy'}</span>
+                  <div className="text-xs text-muted-foreground bg-muted/60 px-2 py-1 rounded-md">
+                    {flight.itineraries?.[0]?.segments?.[0]?.aircraft?.code || 'N/A'}
                   </div>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-primary group-hover:text-primary/80 transition-colors font-medium">
-                  <span>Select flight</span>
-                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                </div>
+                
+                <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-4 py-2 rounded-lg shadow-sm group-hover:shadow-md transition-all duration-200">
+                  Select Flight
+                  <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
+                </Button>
               </div>
             </CardContent>
           </Card>
