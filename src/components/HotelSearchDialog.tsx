@@ -164,35 +164,20 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
     setBookingHotel(hotel.id);
     
     try {
-      // Mock booking data for demo
-      const bookingData = {
-        hotelId: hotel.id,
-        offerId: `offer-${hotel.id}`,
-        guests: [{
-          firstName: 'John',
-          lastName: 'Doe',
-          title: 'Mr',
-          email: 'john.doe@example.com',
-          phone: '+1234567890'
-        }],
-        payments: [{
-          method: 'credit_card'
-        }]
-      };
-
-      console.log('📡 Calling Amadeus Hotel Booking API edge function with data:', bookingData);
-
       const { data, error } = await supabase.functions.invoke('amadeus-hotel-booking', {
         body: {
-          endpoint: 'book-hotel',
-          ...bookingData
+          hotelId: hotel.id,
+          hotelName: hotel.name,
+          checkInDate: checkInDate ? format(checkInDate, 'yyyy-MM-dd') : '2025-01-15',
+          checkOutDate: checkOutDate ? format(checkOutDate, 'yyyy-MM-dd') : '2025-01-16',
+          guests: 1,
+          totalPrice: hotel.priceRange,
+          location: selectedLocation !== 'all' ? selectedLocation : 'Paris'
         }
       });
 
-      console.log('📡 Supabase response:', { data, error });
-
       if (error) {
-        console.error('❌ Supabase error:', error);
+        console.error('❌ Booking error:', error);
         throw error;
       }
 
