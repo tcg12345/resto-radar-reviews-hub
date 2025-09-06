@@ -137,7 +137,7 @@ export function AirportSearch({
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Close dropdown when clicking outside
+  // Close dropdown when clicking outside and handle scroll updates
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -145,9 +145,28 @@ export function AirportSearch({
       }
     };
 
+    const handleScroll = () => {
+      if (showDropdown) {
+        updateDropdownPosition();
+      }
+    };
+
+    const handleResize = () => {
+      if (showDropdown) {
+        updateDropdownPosition();
+      }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    window.addEventListener('scroll', handleScroll, true);
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll, true);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [showDropdown]);
 
   // Enhanced search with city code support
   useEffect(() => {
@@ -363,6 +382,8 @@ export function AirportSearch({
             width: dropdownPosition.width,
             minWidth: '300px'
           }}
+          onWheel={(e) => e.stopPropagation()}
+          onScroll={(e) => e.stopPropagation()}
         >
           {airports.length > 0 ? (
             airports.map((airport) => (
