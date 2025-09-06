@@ -108,41 +108,31 @@ const formatFlightTime = (timeString: string, airportCode: string, use24HourForm
   if (!timeString) return 'N/A';
   
   try {
-    // Parse the ISO string directly to preserve the timezone information
-    // The API returns times like "2024-10-20T23:00-04:00" which includes timezone offset
+    // The API returns times in ISO format with timezone offset like "2024-10-20T21:52-07:00"
+    // We want to display the local time at the airport (21:52 in this example)
     const timeFormat = use24HourFormat ? 'HH:mm' : 'h:mm a';
     
-    // Extract just the local time part from the ISO string to avoid timezone conversion
-    const isoMatch = timeString.match(/(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})/);
-    if (isoMatch) {
-      // Parse as if it's in UTC to avoid any timezone conversion, then format
-      const localTimeString = isoMatch[1] + 'Z'; // Add Z to treat as UTC
-      const date = new Date(localTimeString);
-      return format(date, timeFormat);
+    // Extract the local time portion before the timezone offset
+    const timeMatch = timeString.match(/T(\d{2}:\d{2})/);
+    if (timeMatch) {
+      const [, timeOnly] = timeMatch;
+      const [hours, minutes] = timeOnly.split(':').map(Number);
+      
+      if (use24HourFormat) {
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+      } else {
+        // Convert to 12-hour format
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const displayHours = hours % 12 || 12;
+        return `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+      }
     }
     
-    // Fallback: try to parse the original string
-    return format(new Date(timeString), timeFormat);
+    // Fallback: try to parse as regular date if no timezone info
+    const date = new Date(timeString);
+    return format(date, timeFormat);
   } catch (error) {
     console.error('Error formatting flight time:', error, timeString);
-    // Final fallback: extract time manually from ISO string
-    try {
-      const timeMatch = timeString.match(/T(\d{2}:\d{2})/);
-      if (timeMatch) {
-        const [, time] = timeMatch;
-        if (use24HourFormat) {
-          return time;
-        } else {
-          // Convert to 12-hour format
-          const [hours, minutes] = time.split(':').map(Number);
-          const ampm = hours >= 12 ? 'PM' : 'AM';
-          const displayHours = hours % 12 || 12;
-          return `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
-        }
-      }
-    } catch (fallbackError) {
-      console.error('Fallback time parsing failed:', fallbackError);
-    }
     return 'N/A';
   }
 };
