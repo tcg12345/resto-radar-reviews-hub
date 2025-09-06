@@ -95,17 +95,11 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
           priceRange: undefined // No price filter by default
         });
         
-        // Add location info to results and filter by search query
-        const resultsWithLocation = results
-          .filter(hotel => 
-            hotel.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            hotel.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            hotel.amenities?.some(amenity => amenity.toLowerCase().includes(searchQuery.toLowerCase()))
-          )
-          .map(hotel => ({
-            ...hotel,
-            searchLocation: location
-          }));
+        // Add location info to results - let the API handle filtering by search query
+        const resultsWithLocation = results.map(hotel => ({
+          ...hotel,
+          searchLocation: location
+        }));
         
         allResults = [...allResults, ...resultsWithLocation];
       }
