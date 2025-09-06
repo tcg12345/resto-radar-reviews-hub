@@ -567,41 +567,45 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
             
             <div className="flex-1 overflow-y-auto min-h-0 bg-[#0A0A0A]">
               {showResults ? renderFlightResults() : (
-                <div className="px-4 pt-2 pb-20 space-y-4">
+                <div className="px-3 pt-1 pb-16 space-y-3">
                   {/* Modern Segmented Control Toggle */}
-                  <div className="bg-[#1A1A1A] rounded-full p-1 shadow-lg border border-[#2A2A2A]">
-                    <button
-                      onClick={() => setSearchType('route')}
-                      className={cn(
-                        "flex-1 px-4 py-3 text-sm font-semibold rounded-full transition-all duration-200",
-                        searchType === 'route' 
-                          ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/25" 
-                          : "text-gray-400 hover:text-gray-200"
-                      )}
-                    >
-                      By Route
-                    </button>
-                    <button
-                      onClick={() => setSearchType('flight')}
-                      className={cn(
-                        "flex-1 px-4 py-3 text-sm font-semibold rounded-full transition-all duration-200",
-                        searchType === 'flight' 
-                          ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/25" 
-                          : "text-gray-400 hover:text-gray-200"
-                      )}
-                    >
-                      By Flight #
-                    </button>
+                  <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-1 shadow-premium border border-border/50">
+                    <div className="flex">
+                      <button
+                        onClick={() => setSearchType('route')}
+                        className={cn(
+                          "flex-1 px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-300 hover-scale",
+                          searchType === 'route' 
+                            ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/25 scale-105" 
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                        )}
+                      >
+                        By Route
+                      </button>
+                      <button
+                        onClick={() => setSearchType('flight')}
+                        className={cn(
+                          "flex-1 px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-300 hover-scale",
+                          searchType === 'flight' 
+                            ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/25 scale-105" 
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                        )}
+                      >
+                        By Flight #
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {searchType === 'route' ? (
                       <>
                         {/* From Airport Card */}
-                        <div className="bg-[#1A1A1A] rounded-2xl p-4 border border-[#2A2A2A] shadow-lg">
-                          <div className="flex items-center gap-3 mb-2">
-                            <Plane className="h-4 w-4 text-blue-400 opacity-70" />
-                            <label className="text-xs font-medium text-gray-400 uppercase tracking-wide">From</label>
+                        <div className="glass-card rounded-2xl p-4 border border-border/50 shadow-premium transition-all duration-200 hover:shadow-premium-glow focus-within:border-primary/50 focus-within:shadow-premium-glow">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center">
+                              <Plane className="h-3.5 w-3.5 text-primary" />
+                            </div>
+                            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">FROM</label>
                           </div>
                           <AirportSearch
                             value={fromAirport}
@@ -610,18 +614,20 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                               setFromAirport(airport.iataCode);
                             }}
                             placeholder="Choose departure airport"
-                            className="w-full bg-transparent border-none text-gray-100 text-base placeholder:text-gray-500 focus:outline-none focus:ring-0"
+                            className="w-full bg-transparent border-none text-foreground text-base placeholder:text-muted-foreground/60 focus:outline-none focus:ring-0"
                           />
                           {!fromAirport && (
-                            <p className="text-xs text-gray-500 mt-1">Choose departure airport</p>
+                            <p className="text-xs text-muted-foreground/70 mt-2">Choose departure airport</p>
                           )}
                         </div>
 
                         {/* To Airport Card */}
-                        <div className="bg-[#1A1A1A] rounded-2xl p-4 border border-[#2A2A2A] shadow-lg">
-                          <div className="flex items-center gap-3 mb-2">
-                            <Plane className="h-4 w-4 text-blue-400 opacity-70 rotate-90" />
-                            <label className="text-xs font-medium text-gray-400 uppercase tracking-wide">To</label>
+                        <div className="glass-card rounded-2xl p-4 border border-border/50 shadow-premium transition-all duration-200 hover:shadow-premium-glow focus-within:border-primary/50 focus-within:shadow-premium-glow">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center">
+                              <Plane className="h-3.5 w-3.5 text-primary rotate-90" />
+                            </div>
+                            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">TO</label>
                           </div>
                           <AirportSearch
                             value={toAirport}
@@ -630,33 +636,35 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                               setToAirport(airport.iataCode);
                             }}
                             placeholder="Choose destination airport"
-                            className="w-full bg-transparent border-none text-gray-100 text-base placeholder:text-gray-500 focus:outline-none focus:ring-0"
+                            className="w-full bg-transparent border-none text-foreground text-base placeholder:text-muted-foreground/60 focus:outline-none focus:ring-0"
                           />
                           {!toAirport && (
-                            <p className="text-xs text-gray-500 mt-1">Choose destination airport</p>
+                            <p className="text-xs text-muted-foreground/70 mt-2">Choose destination airport</p>
                           )}
                         </div>
 
                         {/* Date & Passengers Row */}
                         <div className="grid grid-cols-2 gap-3">
                           {/* Departure Date Card */}
-                          <div className="bg-[#1A1A1A] rounded-2xl p-4 border border-[#2A2A2A] shadow-lg">
-                            <div className="flex items-center gap-3 mb-2">
-                              <CalendarIcon className="h-4 w-4 text-blue-400 opacity-70" />
-                              <label className="text-xs font-medium text-gray-400 uppercase tracking-wide">Date</label>
+                          <div className="glass-card rounded-2xl p-4 border border-border/50 shadow-premium transition-all duration-200 hover:shadow-premium-glow focus-within:border-primary/50">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center">
+                                <CalendarIcon className="h-3.5 w-3.5 text-primary" />
+                              </div>
+                              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">DATE</label>
                             </div>
                             <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                               <PopoverTrigger asChild>
-                                <button className="w-full text-left">
-                                  <div className="text-base text-gray-100">
+                                <button className="w-full text-left hover-scale transition-transform duration-200">
+                                  <div className="text-base text-foreground font-medium">
                                     {departureDate ? format(departureDate, "MMM dd") : "Select date"}
                                   </div>
                                   {!departureDate && (
-                                    <p className="text-xs text-gray-500 mt-1">Choose departure date</p>
+                                    <p className="text-xs text-muted-foreground/70 mt-2">Choose departure date</p>
                                   )}
                                 </button>
                               </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0 bg-[#1A1A1A] border-[#2A2A2A]" align="start">
+                              <PopoverContent className="w-auto p-0 bg-card border-border shadow-premium" align="start">
                                 <Calendar
                                   mode="single"
                                   selected={departureDate}
@@ -665,25 +673,27 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                                     setIsCalendarOpen(false);
                                   }}
                                   initialFocus
-                                  className="bg-[#1A1A1A] text-gray-100"
+                                  className="bg-card text-foreground"
                                 />
                               </PopoverContent>
                             </Popover>
                           </div>
 
                           {/* Passengers Card */}
-                          <div className="bg-[#1A1A1A] rounded-2xl p-4 border border-[#2A2A2A] shadow-lg">
-                            <div className="flex items-center gap-3 mb-2">
-                              <Search className="h-4 w-4 text-blue-400 opacity-70" />
-                              <label className="text-xs font-medium text-gray-400 uppercase tracking-wide">Passengers</label>
+                          <div className="glass-card rounded-2xl p-4 border border-border/50 shadow-premium transition-all duration-200 hover:shadow-premium-glow focus-within:border-primary/50">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center">
+                                <Search className="h-3.5 w-3.5 text-primary" />
+                              </div>
+                              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">PASSENGERS</label>
                             </div>
                             <Select value={passengers} onValueChange={setPassengers}>
-                              <SelectTrigger className="w-full bg-transparent border-none text-gray-100 text-base p-0 h-auto focus:ring-0">
+                              <SelectTrigger className="w-full bg-transparent border-none text-foreground text-base p-0 h-auto focus:ring-0 hover-scale transition-transform duration-200">
                                 <SelectValue />
                               </SelectTrigger>
-                              <SelectContent className="bg-[#1A1A1A] border-[#2A2A2A] text-gray-100 z-50">
+                              <SelectContent className="bg-card border-border text-foreground shadow-premium z-50">
                                 {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-                                  <SelectItem key={num} value={num.toString()} className="text-gray-100 focus:bg-[#2A2A2A] focus:text-gray-100">
+                                  <SelectItem key={num} value={num.toString()} className="text-foreground focus:bg-muted focus:text-foreground">
                                     {num} passenger{num > 1 ? 's' : ''}
                                   </SelectItem>
                                 ))}
@@ -693,20 +703,22 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                         </div>
 
                         {/* Stops Card */}
-                        <div className="bg-[#1A1A1A] rounded-2xl p-4 border border-[#2A2A2A] shadow-lg">
-                          <div className="flex items-center gap-3 mb-2">
-                            <ArrowRight className="h-4 w-4 text-blue-400 opacity-70" />
-                            <label className="text-xs font-medium text-gray-400 uppercase tracking-wide">Stops</label>
+                        <div className="glass-card rounded-2xl p-4 border border-border/50 shadow-premium transition-all duration-200 hover:shadow-premium-glow focus-within:border-primary/50">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center">
+                              <ArrowRight className="h-3.5 w-3.5 text-primary" />
+                            </div>
+                            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">STOPS</label>
                           </div>
                           <Select value={stops} onValueChange={setStops}>
-                            <SelectTrigger className="w-full bg-transparent border-none text-gray-100 text-base p-0 h-auto focus:ring-0">
+                            <SelectTrigger className="w-full bg-transparent border-none text-foreground text-base p-0 h-auto focus:ring-0 hover-scale transition-transform duration-200">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="bg-[#1A1A1A] border-[#2A2A2A] text-gray-100 z-50">
-                              <SelectItem value="all" className="text-gray-100 focus:bg-[#2A2A2A] focus:text-gray-100">All flights</SelectItem>
-                              <SelectItem value="nonstop" className="text-gray-100 focus:bg-[#2A2A2A] focus:text-gray-100">Nonstop only</SelectItem>
-                              <SelectItem value="onestop" className="text-gray-100 focus:bg-[#2A2A2A] focus:text-gray-100">1 stop max</SelectItem>
-                              <SelectItem value="twostops" className="text-gray-100 focus:bg-[#2A2A2A] focus:text-gray-100">2 stops max</SelectItem>
+                            <SelectContent className="bg-card border-border text-foreground shadow-premium z-50">
+                              <SelectItem value="all" className="text-foreground focus:bg-muted focus:text-foreground">All flights</SelectItem>
+                              <SelectItem value="nonstop" className="text-foreground focus:bg-muted focus:text-foreground">Nonstop only</SelectItem>
+                              <SelectItem value="onestop" className="text-foreground focus:bg-muted focus:text-foreground">1 stop max</SelectItem>
+                              <SelectItem value="twostops" className="text-foreground focus:bg-muted focus:text-foreground">2 stops max</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
