@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Search, Plane, MapPin, Building2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -214,6 +215,7 @@ export function AirportSearch({
           // Combine city suggestions with individual airports
           const allSuggestions = [...suggestions, ...transformedAirports];
           setAirports(allSuggestions);
+          updateDropdownPosition();
           setShowDropdown(true);
         } else {
           handleFallbackSearch(searchTerm, suggestions);
@@ -314,8 +316,8 @@ export function AirportSearch({
   };
 
   const handleInputFocus = () => {
+    updateDropdownPosition();
     if (airports.length > 0) {
-      updateDropdownPosition();
       setShowDropdown(true);
     }
   };
@@ -351,10 +353,16 @@ export function AirportSearch({
         )}
       </div>
 
-      {/* Dropdown Results */}
-      {showDropdown && (
+      {/* Dropdown Results - Rendered as Portal */}
+      {showDropdown && createPortal(
         <div 
-          className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-premium max-h-60 overflow-y-auto z-[999999]"
+          className="fixed bg-card border border-border rounded-lg shadow-premium max-h-60 overflow-y-auto z-[9999]"
+          style={{
+            top: dropdownPosition.top + 4,
+            left: dropdownPosition.left,
+            width: dropdownPosition.width,
+            minWidth: '300px'
+          }}
         >
           {airports.length > 0 ? (
             airports.map((airport) => (
@@ -418,7 +426,8 @@ export function AirportSearch({
               No airports found. Try searching by city name (e.g., "New York", "London") or IATA code.
             </div>
           )}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
