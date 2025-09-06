@@ -600,7 +600,13 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                     {searchType === 'route' ? (
                       <>
                         {/* From Airport Card */}
-                        <div className="glass-card rounded-2xl p-4 border border-border/50 shadow-premium transition-all duration-200 hover:shadow-premium-glow focus-within:border-primary/50 focus-within:shadow-premium-glow">
+                        <div 
+                          className="glass-card rounded-2xl p-4 border border-border/50 shadow-premium transition-all duration-200 hover:shadow-premium-glow focus-within:border-primary/50 focus-within:shadow-premium-glow cursor-pointer"
+                          onClick={() => {
+                            const input = document.querySelector('[placeholder="Choose departure airport"]') as HTMLInputElement;
+                            input?.focus();
+                          }}
+                        >
                           <div className="flex items-center gap-2 mb-3">
                             <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center">
                               <Plane className="h-3.5 w-3.5 text-primary" />
@@ -622,7 +628,13 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                         </div>
 
                         {/* To Airport Card */}
-                        <div className="glass-card rounded-2xl p-4 border border-border/50 shadow-premium transition-all duration-200 hover:shadow-premium-glow focus-within:border-primary/50 focus-within:shadow-premium-glow">
+                        <div 
+                          className="glass-card rounded-2xl p-4 border border-border/50 shadow-premium transition-all duration-200 hover:shadow-premium-glow focus-within:border-primary/50 focus-within:shadow-premium-glow cursor-pointer"
+                          onClick={() => {
+                            const input = document.querySelector('[placeholder="Choose destination airport"]') as HTMLInputElement;
+                            input?.focus();
+                          }}
+                        >
                           <div className="flex items-center gap-2 mb-3">
                             <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center">
                               <Plane className="h-3.5 w-3.5 text-primary rotate-90" />
@@ -646,7 +658,10 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                         {/* Date & Passengers Row */}
                         <div className="grid grid-cols-2 gap-3">
                           {/* Departure Date Card */}
-                          <div className="glass-card rounded-2xl p-4 border border-border/50 shadow-premium transition-all duration-200 hover:shadow-premium-glow focus-within:border-primary/50">
+                          <div 
+                            className="glass-card rounded-2xl p-4 border border-border/50 shadow-premium transition-all duration-200 hover:shadow-premium-glow focus-within:border-primary/50 cursor-pointer"
+                            onClick={() => setIsCalendarOpen(true)}
+                          >
                             <div className="flex items-center gap-2 mb-3">
                               <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center">
                                 <CalendarIcon className="h-3.5 w-3.5 text-primary" />
@@ -680,7 +695,7 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                           </div>
 
                           {/* Passengers Card */}
-                          <div className="glass-card rounded-2xl p-4 border border-border/50 shadow-premium transition-all duration-200 hover:shadow-premium-glow focus-within:border-primary/50">
+                          <div className="glass-card rounded-2xl p-4 border border-border/50 shadow-premium transition-all duration-200 hover:shadow-premium-glow focus-within:border-primary/50 cursor-pointer">
                             <div className="flex items-center gap-2 mb-3">
                               <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center">
                                 <Search className="h-3.5 w-3.5 text-primary" />
@@ -724,7 +739,10 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                         </div>
 
                         {/* Airline Filter Card */}
-                        <div className="glass-card rounded-2xl p-4 border border-border/50 shadow-premium transition-all duration-200 hover:shadow-premium-glow focus-within:border-primary/50">
+                        <div 
+                          className="glass-card rounded-2xl p-4 border border-border/50 shadow-premium transition-all duration-200 hover:shadow-premium-glow focus-within:border-primary/50 cursor-pointer"
+                          onClick={() => setShowAirlineFilter(!showAirlineFilter)}
+                        >
                           <div className="flex items-center gap-2 mb-3">
                             <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center">
                               <Plane className="h-3.5 w-3.5 text-primary" />
