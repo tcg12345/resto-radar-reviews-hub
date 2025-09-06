@@ -1082,17 +1082,66 @@ export function HotelFlightSection({
                            <span>Data: Last 12 months</span>
                          </div>
                        </div>
-                     </div>
-                   )}
-                   
-                   {isStatsLoading && (
-                     <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                       <div className="flex items-center gap-2">
-                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
-                         <span className="text-sm text-gray-600 dark:text-gray-400">Loading flight performance data...</span>
-                       </div>
-                     </div>
-                   )}
+                      </div>
+                    )}
+
+                    {/* Flight Delay Prediction */}
+                    {flightStats?.delayPrediction && (
+                      <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Radar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                          <h4 className="font-semibold text-blue-900 dark:text-blue-100">Delay Prediction</h4>
+                        </div>
+                        
+                        <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4">
+                          <div className="flex items-start gap-3">
+                            {flightStats.delayPrediction.result?.prediction === 'LESS_THAN_30_MINUTES' && (
+                              <CheckCircle className="w-6 h-6 text-green-500 mt-0.5 flex-shrink-0" />
+                            )}
+                            {flightStats.delayPrediction.result?.prediction === 'BETWEEN_30_AND_60_MINUTES' && (
+                              <AlertCircle className="w-6 h-6 text-yellow-500 mt-0.5 flex-shrink-0" />
+                            )}
+                            {flightStats.delayPrediction.result?.prediction === 'BETWEEN_60_AND_120_MINUTES' && (
+                              <AlertCircle className="w-6 h-6 text-orange-500 mt-0.5 flex-shrink-0" />
+                            )}
+                            {flightStats.delayPrediction.result?.prediction === 'OVER_120_MINUTES_OR_CANCELLED' && (
+                              <AlertCircle className="w-6 h-6 text-red-500 mt-0.5 flex-shrink-0" />
+                            )}
+                            {!flightStats.delayPrediction.result?.prediction && (
+                              <Info className="w-6 h-6 text-blue-500 mt-0.5 flex-shrink-0" />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="font-semibold text-foreground mb-1">
+                                {flightStats.delayPrediction.result?.prediction ? 
+                                  flightStats.delayPrediction.result.prediction
+                                    .replace(/_/g, ' ')
+                                    .toLowerCase()
+                                    .replace(/\b\w/g, (l: string) => l.toUpperCase()) :
+                                  'Prediction Analysis Available'
+                                }
+                              </div>
+                              {flightStats.delayPrediction.result?.probability && (
+                                <div className="text-sm text-muted-foreground mb-2">
+                                  <span className="font-medium">Confidence:</span> {Math.round(flightStats.delayPrediction.result.probability * 100)}%
+                                </div>
+                              )}
+                              <div className="text-xs text-muted-foreground">
+                                Based on historical data, weather conditions, and current airline performance
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {isStatsLoading && (
+                      <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Loading flight performance data...</span>
+                        </div>
+                      </div>
+                    )}
 
                    {/* Action Buttons */}
                   <div className="flex flex-col gap-3">
@@ -1715,6 +1764,128 @@ export function HotelFlightSection({
                       <Badge variant="secondary">{formatFlightPrice(selectedFlight.price)}</Badge>
                     </div>}
                 </div>
+
+                {/* Flight Stats - Desktop */}
+                {flightStats && !isStatsLoading && (
+                  <div className="space-y-4">
+                    {/* On-Time Performance */}
+                    <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border border-green-200 dark:border-green-700">
+                      <div className="flex items-center gap-2 mb-3">
+                        <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
+                        <h4 className="font-semibold text-green-900 dark:text-green-100">On-Time Performance</h4>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-4 mb-4">
+                        <div className="text-center p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
+                          <div className="flex items-center justify-center gap-1 mb-1">
+                            {flightStats.onTimePerformance.onTimePercentage >= 80 ? (
+                              <CheckCircle className="w-4 h-4 text-green-600" />
+                            ) : flightStats.onTimePerformance.onTimePercentage >= 70 ? (
+                              <AlertCircle className="w-4 h-4 text-yellow-600" />
+                            ) : (
+                              <AlertCircle className="w-4 h-4 text-red-600" />
+                            )}
+                            <span className="text-xs text-gray-600 dark:text-gray-400">On Time</span>
+                          </div>
+                          <div className={`text-lg font-bold ${
+                            flightStats.onTimePerformance.onTimePercentage >= 80 
+                              ? 'text-green-700 dark:text-green-300'
+                              : flightStats.onTimePerformance.onTimePercentage >= 70
+                              ? 'text-yellow-700 dark:text-yellow-300'
+                              : 'text-red-700 dark:text-red-300'
+                          }`}>
+                            {flightStats.onTimePerformance.onTimePercentage}%
+                          </div>
+                        </div>
+                        
+                        <div className="text-center p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
+                          <div className="flex items-center justify-center gap-1 mb-1">
+                            <Info className="w-4 h-4 text-blue-600" />
+                            <span className="text-xs text-gray-600 dark:text-gray-400">Avg Delay</span>
+                          </div>
+                          <div className="text-lg font-bold text-blue-700 dark:text-blue-300">
+                            {flightStats.onTimePerformance.averageDelayMinutes}m
+                          </div>
+                        </div>
+                        
+                        <div className="text-center p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
+                          <div className="flex items-center justify-center gap-1 mb-1">
+                            <Star className="w-4 h-4 text-purple-600" />
+                            <span className="text-xs text-gray-600 dark:text-gray-400">Rating</span>
+                          </div>
+                          <div className="text-sm font-bold text-purple-700 dark:text-purple-300">
+                            {flightStats.onTimePerformance.reliability}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-600 pt-2">
+                        <div className="flex justify-between items-center">
+                          <span>Cancellation Rate: {flightStats.onTimePerformance.cancellationRate}%</span>
+                          <span>Data: Last 12 months</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Flight Delay Prediction - Desktop */}
+                    {flightStats.delayPrediction && (
+                      <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Radar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                          <h4 className="font-semibold text-blue-900 dark:text-blue-100">Delay Prediction</h4>
+                        </div>
+                        
+                        <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4">
+                          <div className="flex items-start gap-3">
+                            {flightStats.delayPrediction.result?.prediction === 'LESS_THAN_30_MINUTES' && (
+                              <CheckCircle className="w-6 h-6 text-green-500 mt-0.5 flex-shrink-0" />
+                            )}
+                            {flightStats.delayPrediction.result?.prediction === 'BETWEEN_30_AND_60_MINUTES' && (
+                              <AlertCircle className="w-6 h-6 text-yellow-500 mt-0.5 flex-shrink-0" />
+                            )}
+                            {flightStats.delayPrediction.result?.prediction === 'BETWEEN_60_AND_120_MINUTES' && (
+                              <AlertCircle className="w-6 h-6 text-orange-500 mt-0.5 flex-shrink-0" />
+                            )}
+                            {flightStats.delayPrediction.result?.prediction === 'OVER_120_MINUTES_OR_CANCELLED' && (
+                              <AlertCircle className="w-6 h-6 text-red-500 mt-0.5 flex-shrink-0" />
+                            )}
+                            {!flightStats.delayPrediction.result?.prediction && (
+                              <Info className="w-6 h-6 text-blue-500 mt-0.5 flex-shrink-0" />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="font-semibold text-foreground mb-1">
+                                {flightStats.delayPrediction.result?.prediction ? 
+                                  flightStats.delayPrediction.result.prediction
+                                    .replace(/_/g, ' ')
+                                    .toLowerCase()
+                                    .replace(/\b\w/g, (l: string) => l.toUpperCase()) :
+                                  'Prediction Analysis Available'
+                                }
+                              </div>
+                              {flightStats.delayPrediction.result?.probability && (
+                                <div className="text-sm text-muted-foreground mb-2">
+                                  <span className="font-medium">Confidence:</span> {Math.round(flightStats.delayPrediction.result.probability * 100)}%
+                                </div>
+                              )}
+                              <div className="text-xs text-muted-foreground">
+                                Based on historical data, weather conditions, and current airline performance
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {isStatsLoading && (
+                  <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Loading flight performance data...</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Action Buttons */}
                 <div className="flex flex-wrap gap-2">
