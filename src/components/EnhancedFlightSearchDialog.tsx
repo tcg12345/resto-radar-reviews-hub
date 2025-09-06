@@ -108,17 +108,42 @@ const formatFlightTime = (timeString: string, airportCode: string, use24HourForm
   if (!timeString) return 'N/A';
   
   try {
-    const timezone = getAirportTimezone(airportCode);
+    // Parse the ISO string directly to preserve the timezone information
+    // The API returns times like "2024-10-20T23:00-04:00" which includes timezone offset
     const timeFormat = use24HourFormat ? 'HH:mm' : 'h:mm a';
     
-    // The API returns times in ISO format with timezone info
-    // We need to format them in the local timezone of the airport
-    return formatInTimeZone(new Date(timeString), timezone, timeFormat);
-  } catch (error) {
-    console.error('Error formatting flight time:', error);
-    // Fallback to simple format if timezone formatting fails
-    const timeFormat = use24HourFormat ? 'HH:mm' : 'h:mm a';
+    // Extract just the local time part from the ISO string to avoid timezone conversion
+    const isoMatch = timeString.match(/(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})/);
+    if (isoMatch) {
+      // Parse as if it's in UTC to avoid any timezone conversion, then format
+      const localTimeString = isoMatch[1] + 'Z'; // Add Z to treat as UTC
+      const date = new Date(localTimeString);
+      return format(date, timeFormat);
+    }
+    
+    // Fallback: try to parse the original string
     return format(new Date(timeString), timeFormat);
+  } catch (error) {
+    console.error('Error formatting flight time:', error, timeString);
+    // Final fallback: extract time manually from ISO string
+    try {
+      const timeMatch = timeString.match(/T(\d{2}:\d{2})/);
+      if (timeMatch) {
+        const [, time] = timeMatch;
+        if (use24HourFormat) {
+          return time;
+        } else {
+          // Convert to 12-hour format
+          const [hours, minutes] = time.split(':').map(Number);
+          const ampm = hours >= 12 ? 'PM' : 'AM';
+          const displayHours = hours % 12 || 12;
+          return `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+        }
+      }
+    } catch (fallbackError) {
+      console.error('Fallback time parsing failed:', fallbackError);
+    }
+    return 'N/A';
   }
 };
 
