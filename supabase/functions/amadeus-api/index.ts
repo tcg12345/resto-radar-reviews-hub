@@ -431,17 +431,45 @@ async function searchHotels(params: HotelSearchRequest) {
   }
 }
 
-// Get hotels by city using Amadeus Hotel List API
+// Get hotels by location using Amadeus Hotel List API
 async function getHotelsByCity(token: string, location: string) {
-  console.log('🏨 Getting hotels by city:', location);
+  console.log('🏨 Getting hotels by location:', location);
   
   try {
-    // First get city code
-    const cityCode = await getCityCode(token, location);
-    if (!cityCode) {
-      throw new Error('City code not found');
+    // First get location data
+    const locationData = await getLocationData(token, location);
+    
+    let hotels = [];
+    
+    // Try multiple approaches to find hotels
+    if (locationData?.iataCode) {
+      console.log('🎯 Trying city code approach:', locationData.iataCode);
+      hotels = await searchHotelsByCityCode(token, locationData.iataCode);
     }
     
+    // If city code approach fails, try geocode approach
+    if ((!hotels || hotels.length === 0) && locationData?.geocode) {
+      console.log('🌍 Trying geocode approach:', locationData.geocode);
+      hotels = await searchHotelsByGeocode(token, locationData.geocode);
+    }
+    
+    // If both fail, try direct hotel search with location name
+    if (!hotels || hotels.length === 0) {
+      console.log('🔍 Trying direct hotel search for:', location);
+      hotels = await searchHotelsDirect(token, location);
+    }
+    
+    return hotels || [];
+    
+  } catch (error) {
+    console.error('❌ Error getting hotels by location:', error);
+    return null;
+  }
+}
+
+// Search hotels by city code
+async function searchHotelsByCityCode(token: string, cityCode: string) {
+  try {
     const searchParams = new URLSearchParams({
       cityCode: cityCode,
       radius: '50',
@@ -450,7 +478,6 @@ async function getHotelsByCity(token: string, location: string) {
     });
 
     const url = `https://api.amadeus.com/v1/reference-data/locations/hotels/by-city?${searchParams.toString()}`;
-    console.log('🌐 Hotel List API URL:', url);
     
     const response = await fetch(url, {
       method: 'GET',
@@ -461,22 +488,94 @@ async function getHotelsByCity(token: string, location: string) {
     });
 
     if (!response.ok) {
-      console.error('❌ Hotel List API failed:', response.status);
-      return null;
+      console.error('❌ Hotel search by city code failed:', response.status);
+      return [];
     }
 
     const data = await response.json();
     return data.data || [];
-    
   } catch (error) {
-    console.error('❌ Error getting hotels by city:', error);
-    return null;
+    console.error('❌ Error in city code hotel search:', error);
+    return [];
   }
 }
 
-// Get city code for hotel search
-async function getCityCode(token: string, location: string) {
-  console.log('🏙️ Getting city code for:', location);
+// Search hotels by geocode
+async function searchHotelsByGeocode(token: string, geocode: any) {
+  try {
+    const searchParams = new URLSearchParams({
+      latitude: geocode.latitude.toString(),
+      longitude: geocode.longitude.toString(),
+      radius: '50',
+      radiusUnit: 'KM',
+      hotelSource: 'ALL'
+    });
+
+    const url = `https://api.amadeus.com/v1/reference-data/locations/hotels/by-geocode?${searchParams.toString()}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      console.error('❌ Hotel search by geocode failed:', response.status);
+      return [];
+    }
+
+    const data = await response.json();
+    return data.data || [];
+  } catch (error) {
+    console.error('❌ Error in geocode hotel search:', error);
+    return [];
+  }
+}
+
+// Direct hotel search using location keywords
+async function searchHotelsDirect(token: string, location: string) {
+  try {
+    const searchParams = new URLSearchParams({
+      keyword: location,
+      'subType[]': 'HOTEL'
+    });
+
+    const url = `https://api.amadeus.com/v1/reference-data/locations?${searchParams.toString()}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      console.error('❌ Direct hotel search failed:', response.status);
+      return [];
+    }
+
+    const data = await response.json();
+    
+    // Transform location results to hotel-like format
+    return (data.data || []).map(loc => ({
+      hotelId: loc.id,
+      name: loc.name,
+      iataCode: loc.iataCode,
+      geoCode: loc.geoCode,
+      address: loc.address
+    }));
+  } catch (error) {
+    console.error('❌ Error in direct hotel search:', error);
+    return [];
+  }
+}
+
+// Get location data for hotel search
+async function getLocationData(token: string, location: string) {
+  console.log('🏙️ Getting location data for:', location);
   
   try {
     const searchParams = new URLSearchParams({
@@ -495,22 +594,29 @@ async function getCityCode(token: string, location: string) {
     });
 
     if (!response.ok) {
-      console.error('❌ City search failed:', response.status);
+      console.error('❌ Location search failed:', response.status);
       return null;
     }
 
     const data = await response.json();
     
     if (data.data && data.data.length > 0) {
-      const cityCode = data.data[0].iataCode;
-      console.log('✅ Found city code:', cityCode);
-      return cityCode;
+      const locationData = data.data[0];
+      console.log('✅ Found location data:', locationData);
+      
+      // Return both IATA code and geocode for flexibility
+      return {
+        iataCode: locationData.iataCode,
+        geocode: locationData.geoCode,
+        name: locationData.name,
+        countryCode: locationData.address?.countryCode
+      };
     }
     
     return null;
     
   } catch (error) {
-    console.error('❌ Error getting city code:', error);
+    console.error('❌ Error getting location data:', error);
     return null;
   }
 }
@@ -696,110 +802,64 @@ function generateHotelDescription(name: string, amenities: string[]) {
 
 // Enhanced mock hotel data with all features
 function getEnhancedMockHotelData(params: HotelSearchRequest) {
-  console.log('🎭 Generating enhanced mock hotel data');
+  console.log('🎭 Generating location-specific mock hotel data for:', params.location);
   
-  const mockHotels = [
-    {
-      id: 'amadeus-mock-1',
-      name: 'Grand Plaza Hotel & Spa',
-      address: `123 Main Street, ${params.location}`,
-      description: 'A luxurious five-star hotel in the heart of the city with stunning views, world-class amenities, and exceptional service.',
-      rating: 4.6,
-      priceRange: '$280-$450/night',
-      amenities: ['WiFi', 'Pool', 'Spa', 'Gym', 'Restaurant', 'Bar', 'Concierge', 'Valet Parking', 'Room Service'],
-      latitude: 40.7589,
-      longitude: -73.9851,
-      phone: '+1-555-0123',
-      website: 'https://grandplaza.com',
-      bookingUrl: 'https://booking.com/grandplaza',
-      locationScore: 9.4,
-      bookingAvailable: true,
-      userRatings: {
-        overall: 4.6,
-        service: 4.7,
-        cleanliness: 4.8,
-        comfort: 4.5,
-        location: 4.9,
-        value: 4.2,
-        totalReviews: 1247
-      }
-    },
-    {
-      id: 'amadeus-mock-2',
-      name: 'Metropolitan Business Center',
-      address: `456 Business Avenue, ${params.location}`,
-      description: 'Modern business hotel perfect for corporate travelers with state-of-the-art meeting facilities and convenient location.',
-      rating: 4.3,
-      priceRange: '$180-$280/night',
-      amenities: ['WiFi', 'Business Center', 'Gym', 'Coffee Bar', 'Meeting Rooms', 'Express Check-in', 'Parking'],
-      latitude: 40.7505,
-      longitude: -73.9934,
-      phone: '+1-555-0456',
-      website: 'https://metrobusiness.com',
-      bookingUrl: 'https://booking.com/metro',
-      locationScore: 8.8,
-      bookingAvailable: true,
-      userRatings: {
-        overall: 4.3,
-        service: 4.4,
-        cleanliness: 4.5,
-        comfort: 4.2,
-        location: 4.6,
-        value: 4.4,
-        totalReviews: 893
-      }
-    },
-    {
-      id: 'amadeus-mock-3',
-      name: 'Boutique Heritage Suites',
-      address: `789 Heritage Lane, ${params.location}`,
-      description: 'Charming boutique hotel with historic character, personalized service, and unique design in each room.',
-      rating: 4.8,
-      priceRange: '$220-$380/night',
-      amenities: ['WiFi', 'Rooftop Terrace', 'Library', 'Wine Bar', 'Concierge', 'Pet-Friendly', 'Bicycle Rental'],
-      latitude: 40.7614,
-      longitude: -73.9776,
-      phone: '+1-555-0789',
-      website: 'https://heritagesuites.com',
-      bookingUrl: 'https://booking.com/heritage',
-      locationScore: 9.6,
-      bookingAvailable: true,
-      userRatings: {
-        overall: 4.8,
-        service: 4.9,
-        cleanliness: 4.7,
-        comfort: 4.8,
-        location: 4.9,
-        value: 4.6,
-        totalReviews: 567
-      }
-    },
-    {
-      id: 'amadeus-mock-4',
-      name: 'Riverside Resort & Conference Center',
-      address: `321 Waterfront Drive, ${params.location}`,
-      description: 'Full-service resort hotel with conference facilities, multiple dining options, and beautiful river views.',
-      rating: 4.4,
-      priceRange: '$160-$320/night',
-      amenities: ['WiFi', 'Pool', 'Multiple Restaurants', 'Conference Center', 'Spa', 'Tennis Court', 'Marina', 'Golf Course'],
-      latitude: 40.7456,
-      longitude: -73.9832,
-      phone: '+1-555-0321',
-      website: 'https://riversideresort.com',
-      bookingUrl: 'https://booking.com/riverside',
-      locationScore: 8.2,
-      bookingAvailable: true,
-      userRatings: {
-        overall: 4.4,
-        service: 4.3,
-        cleanliness: 4.4,
-        comfort: 4.5,
-        location: 4.1,
-        value: 4.6,
-        totalReviews: 1456
-      }
-    }
+  // Generate different hotels based on location to simulate real search results
+  const locationKey = params.location.toLowerCase().replace(/[^a-z]/g, '');
+  const seed = locationKey.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+  
+  // Use seed for consistent but different results per location
+  const random = (seed: number, index: number) => ((seed + index * 31) % 100) / 100;
+  
+  const hotelTemplates = [
+    { type: 'luxury', names: ['Grand Palace', 'Royal Crown', 'Diamond Suites', 'Platinum Resort', 'Golden Gate'] },
+    { type: 'business', names: ['Business Center', 'Executive Inn', 'Corporate Plaza', 'Metro Business', 'Commerce Hotel'] },
+    { type: 'boutique', names: ['Heritage Boutique', 'Artisan Suites', 'Historic Inn', 'Culture House', 'Design Hotel'] },
+    { type: 'modern', names: ['Modern Tower', 'Contemporary Suites', 'Urban Loft', 'City Central', 'Skyline Hotel'] },
+    { type: 'resort', names: ['Resort & Spa', 'Waterfront Resort', 'Garden Resort', 'Bay Resort', 'Scenic Resort'] }
   ];
+  
+  const amenitiesByType = {
+    luxury: ['WiFi', 'Pool', 'Spa', 'Gym', 'Restaurant', 'Bar', 'Concierge', 'Valet Parking', 'Room Service', 'Butler Service'],
+    business: ['WiFi', 'Business Center', 'Gym', 'Coffee Bar', 'Meeting Rooms', 'Express Check-in', 'Parking', 'Airport Shuttle'],
+    boutique: ['WiFi', 'Rooftop Terrace', 'Library', 'Wine Bar', 'Concierge', 'Pet-Friendly', 'Bicycle Rental', 'Art Gallery'],
+    modern: ['WiFi', 'Fitness Center', 'Rooftop Bar', 'Co-working Space', 'Smart TV', 'USB Charging', 'Tech Support'],
+    resort: ['WiFi', 'Pool', 'Multiple Restaurants', 'Conference Center', 'Spa', 'Tennis Court', 'Marina', 'Golf Course']
+  };
+  
+  const mockHotels = hotelTemplates.map((template, index) => {
+    const nameIndex = Math.floor(random(seed, index) * template.names.length);
+    const rating = 3.5 + random(seed, index + 10) * 1.3;
+    const basePrice = 120 + random(seed, index + 20) * 200;
+    
+    return {
+      id: `${locationKey}-${template.type}-${index}`,
+      name: `${template.names[nameIndex]} ${params.location}`,
+      address: `${100 + index * 123} ${template.type} Street, ${params.location}`,
+      description: `A ${template.type} hotel in ${params.location} offering exceptional service and comfort for discerning travelers.`,
+      rating: Math.round(rating * 10) / 10,
+      priceRange: `$${Math.round(basePrice)}-$${Math.round(basePrice * 1.5)}/night`,
+      amenities: amenitiesByType[template.type as keyof typeof amenitiesByType],
+      latitude: 40.7 + random(seed, index + 30) * 0.2 - 0.1,
+      longitude: -74.0 + random(seed, index + 40) * 0.2 - 0.1,
+      phone: `+1-555-${String(1000 + index * 111).slice(-4)}`,
+      website: `https://${template.type}-hotel-${params.location.toLowerCase().replace(/\s+/g, '')}.com`,
+      bookingUrl: `https://booking.com/${template.type}-${params.location.toLowerCase().replace(/\s+/g, '')}`,
+      locationScore: 7.5 + random(seed, index + 50) * 2,
+      bookingAvailable: true,
+      userRatings: {
+        overall: rating,
+        service: Math.round((rating + random(seed, index + 60) * 0.4 - 0.2) * 10) / 10,
+        cleanliness: Math.round((rating + random(seed, index + 70) * 0.3 - 0.15) * 10) / 10,
+        comfort: Math.round((rating + random(seed, index + 80) * 0.3 - 0.15) * 10) / 10,
+        location: Math.round((rating + random(seed, index + 90) * 0.5 - 0.25) * 10) / 10,
+        value: Math.round((rating + random(seed, index + 100) * 0.4 - 0.2) * 10) / 10,
+        totalReviews: Math.floor(200 + random(seed, index + 110) * 1500)
+      }
+    };
+  });
+  
+  const selectedHotels = mockHotels.slice(0, 8); // Return 8 different hotels
 
   // Filter by price range if specified
   if (params.priceRange) {
