@@ -88,34 +88,46 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
       for (const location of searchLocations) {
         console.log('🏨 Searching hotels in:', location, 'using Amadeus API');
         
-        // Use Amadeus hotel search instead of Google Places
-        const results = await searchAmadeusHotels({
-          location: location,
-          checkInDate: '2025-01-15',
-          checkOutDate: '2025-01-16',
-          guests: 1
-        });
-        
-        console.log('✅ Amadeus hotel search results for', location, ':', results.length);
-        
-        // Convert Amadeus results to expected format
-        const convertedResults = results.map(hotel => ({
-          id: hotel.id,
-          name: hotel.name,
-          address: hotel.address,
-          description: hotel.description,
-          rating: hotel.rating,
-          priceRange: hotel.priceRange,
-          amenities: hotel.amenities || [],
-          photos: hotel.photos || [],
-          latitude: hotel.latitude,
-          longitude: hotel.longitude,
-          website: hotel.website,
-          phone: hotel.phone,
-          searchLocation: location
-        }));
-        
-        allResults = [...allResults, ...convertedResults];
+        try {
+          // Use Amadeus hotel search edge function
+          const { data, error } = await supabase.functions.invoke('amadeus-hotel-search', {
+            body: {
+              location: location,
+              checkInDate: '2025-01-15',
+              checkOutDate: '2025-01-16',
+              guests: 1
+            }
+          });
+          
+          if (error) {
+            console.error('❌ Amadeus search error for', location, ':', error);
+            continue;
+          }
+          
+          const results = data?.data || [];
+          console.log('✅ Amadeus hotel search results for', location, ':', results.length);
+          
+          // Convert results to expected format and add location info
+          const convertedResults = results.map((hotel: any) => ({
+            id: hotel.id,
+            name: hotel.name,
+            address: hotel.address,
+            description: hotel.description,
+            rating: hotel.rating,
+            priceRange: hotel.priceRange,
+            amenities: hotel.amenities || [],
+            photos: hotel.photos || [],
+            latitude: hotel.latitude,
+            longitude: hotel.longitude,
+            website: hotel.website,
+            phone: hotel.phone,
+            searchLocation: location
+          }));
+          
+          allResults = [...allResults, ...convertedResults];
+        } catch (error) {
+          console.error('❌ Error searching hotels in', location, ':', error);
+        }
       }
       
       // Remove duplicates based on hotel ID
