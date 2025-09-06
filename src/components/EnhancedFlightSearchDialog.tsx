@@ -567,7 +567,7 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
             
             <div className="flex-1 overflow-y-auto min-h-0 bg-[#0A0A0A]">
               {showResults ? renderFlightResults() : (
-                <div className="px-3 pt-1 pb-32 space-y-3">
+                <div className="px-3 pt-1 pb-24 space-y-3">
                   {/* Modern Segmented Control Toggle */}
                   <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-1 shadow-premium border border-border/50">
                     <div className="flex">
