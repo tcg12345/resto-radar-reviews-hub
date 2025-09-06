@@ -193,19 +193,14 @@ export function AirportSearch({
       {/* Dropdown Results */}
       {showDropdown && (
         <div 
-          className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-2xl max-h-60 overflow-y-auto z-[10000]"
-          style={{ 
-            backgroundColor: 'var(--background)', 
-            borderColor: 'var(--border)',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
-          }}
+          className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-md shadow-2xl max-h-60 overflow-y-auto z-[10000]"
         >
           {airports.length > 0 ? (
             airports.map((airport) => (
               <div
                 key={airport.id}
                 onClick={() => handleAirportSelect(airport)}
-                className="flex items-center gap-3 p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors first:rounded-t-md last:rounded-b-md"
+                className="flex items-center gap-3 p-3 hover:bg-muted cursor-pointer transition-colors first:rounded-t-md last:rounded-b-md border-b border-border/50 last:border-b-0"
               >
                 <div className="flex-shrink-0">
                   <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
