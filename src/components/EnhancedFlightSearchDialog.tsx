@@ -416,7 +416,7 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
           )}
         </div>
         {flightResults.map((flight, index) => (
-          <Card key={index} className="border-0 bg-gradient-to-br from-card via-card/98 to-card/95 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 cursor-pointer group overflow-hidden rounded-xl">
+          <Card key={index} className="border border-border/30 bg-gradient-to-br from-background via-card/50 to-card/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 cursor-pointer group overflow-hidden rounded-xl">
             <CardContent className="p-0" onClick={() => handleSelectFlight(flight)}>
               {/* Header: Airline & Flight Number */}
               <div className="flex items-center justify-between p-4 pb-3 bg-gradient-to-r from-primary/5 to-transparent">
