@@ -149,9 +149,9 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
         }]
       };
 
-      console.log('📡 Calling Amadeus API edge function with data:', bookingData);
+      console.log('📡 Calling REAL Amadeus Hotel Booking API edge function with data:', bookingData);
 
-      const { data, error } = await supabase.functions.invoke('amadeus-api', {
+      const { data, error } = await supabase.functions.invoke('hotel-booking', {
         body: {
           endpoint: 'book-hotel',
           ...bookingData
