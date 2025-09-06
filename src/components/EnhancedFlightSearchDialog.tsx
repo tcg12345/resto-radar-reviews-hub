@@ -329,38 +329,58 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
   
   const renderFlightResults = () => (
     <div className="space-y-4">
-      {/* Header with route and date info */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
+      {/* Modern header with route and date info */}
+      <div className="bg-gradient-to-r from-card/30 to-card/10 border border-border/20 rounded-xl p-4 mb-6">
+        <div className="flex items-center justify-between">
+          {/* Left: Back Button */}
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={handleBack}
-            className="flex items-center gap-2 hover:bg-accent"
+            className="flex items-center gap-2 h-10 px-4 rounded-lg bg-background/80 border-border/40 hover:bg-accent hover:border-border/60 transition-all duration-200"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to search
+            <span className="font-medium">Back</span>
           </Button>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">24h</span>
-            <Switch
-              checked={!use24HourFormat}
-              onCheckedChange={(checked) => setUse24HourFormat(!checked)}
-              className="data-[state=checked]:bg-primary"
-            />
-            <span className="text-sm text-muted-foreground">12h</span>
+
+          {/* Center: Route & Date */}
+          <div className="flex-1 text-center mx-6">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <span className="text-lg font-bold text-foreground">
+                {searchType === 'route' ? fromAirport : airline}
+              </span>
+              <ArrowRight className="h-4 w-4 text-primary" />
+              <span className="text-lg font-bold text-foreground">
+                {searchType === 'route' ? toAirport : flightNumber}
+              </span>
+            </div>
+            <div className="text-sm font-medium text-muted-foreground">
+              {departureDate && format(departureDate, 'MMM dd, yyyy (EEE)')}
+            </div>
           </div>
-          <div className="text-right">
-            <div className="text-sm text-muted-foreground">
-              {searchType === 'route' ? 
-                `${fromAirport} → ${toAirport}` : 
-                `${airline} ${flightNumber}`}
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {departureDate && format(departureDate, 'EEE, MMM dd, yyyy')}
-            </div>
+
+          {/* Right: Time Format Toggle */}
+          <div className="flex items-center bg-muted/60 rounded-lg p-1 border border-border/30">
+            <button
+              onClick={() => setUse24HourFormat(true)}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
+                use24HourFormat 
+                  ? 'bg-primary text-primary-foreground shadow-sm' 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              24h
+            </button>
+            <button
+              onClick={() => setUse24HourFormat(false)}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
+                !use24HourFormat 
+                  ? 'bg-primary text-primary-foreground shadow-sm' 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              12h
+            </button>
           </div>
         </div>
       </div>
