@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
 import { AirportSearch } from '@/components/AirportSearch';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { supabase } from '@/integrations/supabase/client';
@@ -186,6 +187,7 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
   const [error, setError] = useState<string | null>(null);
   const [showAirlineDropdown, setShowAirlineDropdown] = useState(false);
   const [showAirlineFilter, setShowAirlineFilter] = useState(false);
+  const [use24HourFormat, setUse24HourFormat] = useState(true);
   
   const isMobile = useIsMobile();
 
@@ -370,14 +372,25 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
             Back to search
           </Button>
         </div>
-        <div className="text-right">
-          <div className="text-sm text-muted-foreground">
-            {searchType === 'route' ? 
-              `${fromAirport} → ${toAirport}` : 
-              `${airline} ${flightNumber}`}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">24h</span>
+            <Switch
+              checked={!use24HourFormat}
+              onCheckedChange={(checked) => setUse24HourFormat(!checked)}
+              className="data-[state=checked]:bg-primary"
+            />
+            <span className="text-sm text-muted-foreground">12h</span>
           </div>
-          <div className="text-xs text-muted-foreground">
-            {departureDate && format(departureDate, 'EEE, MMM dd, yyyy')}
+          <div className="text-right">
+            <div className="text-sm text-muted-foreground">
+              {searchType === 'route' ? 
+                `${fromAirport} → ${toAirport}` : 
+                `${airline} ${flightNumber}`}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {departureDate && format(departureDate, 'EEE, MMM dd, yyyy')}
+            </div>
           </div>
         </div>
       </div>
@@ -468,8 +481,8 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                        {flight.itineraries?.[0]?.segments?.[0]?.departure?.at ? 
                          (() => {
                            const departureTime = flight.itineraries[0].segments[0].departure.at;
-                           // Handle timezone properly - the API returns times in local airport timezone
-                           return format(new Date(departureTime), 'HH:mm');
+                           const timeFormat = use24HourFormat ? 'HH:mm' : 'h:mm a';
+                           return format(new Date(departureTime), timeFormat);
                          })() : 'N/A'}
                      </div>
                      <div className="text-sm text-muted-foreground font-semibold bg-muted/50 px-2 py-1 rounded-md">
@@ -498,8 +511,8 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                        {flight.itineraries?.[0]?.segments?.[flight.itineraries[0].segments.length - 1]?.arrival?.at ? 
                          (() => {
                            const arrivalTime = flight.itineraries[0].segments[flight.itineraries[0].segments.length - 1].arrival.at;
-                           // Handle timezone properly - the API returns times in local airport timezone
-                           return format(new Date(arrivalTime), 'HH:mm');
+                           const timeFormat = use24HourFormat ? 'HH:mm' : 'h:mm a';
+                           return format(new Date(arrivalTime), timeFormat);
                          })() : 'N/A'}
                      </div>
                      <div className="text-sm text-muted-foreground font-semibold bg-muted/50 px-2 py-1 rounded-md">
