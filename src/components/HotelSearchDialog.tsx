@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useAmadeusApi, Hotel as HotelType } from '@/hooks/useAmadeusApi';
+import { useGooglePlacesHotelSearch, Hotel as HotelType } from '@/hooks/useGooglePlacesHotelSearch';
 import { SearchResultSkeleton } from '@/components/skeletons/SearchResultSkeleton';
 import { HotelStayDetailsDialog, StayDetails } from '@/components/HotelStayDetailsDialog';
 import { format } from 'date-fns';
@@ -60,16 +60,11 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
   const isMobile = useIsMobile();
   const [showFilters, setShowFilters] = useState(!isMobile);
   
-  const { searchHotels, hotelAutocomplete, getLocationScore } = useAmadeusApi();
+  const { searchHotels } = useGooglePlacesHotelSearch();
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
       toast.error('Please enter a hotel name or search term');
-      return;
-    }
-
-    if (!checkInDate || !checkOutDate) {
-      toast.error('Please select check-in and check-out dates');
       return;
     }
 
@@ -88,14 +83,11 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
       
       for (const location of searchLocations) {
         const results = await searchHotels({
-          location: location,
-          checkInDate: checkInDate.toISOString().split('T')[0],
-          checkOutDate: checkOutDate.toISOString().split('T')[0],
-          guests: 1, // Default to 1 guest, can be made configurable
-          priceRange: undefined // No price filter by default
+          query: searchQuery,
+          location: location
         });
         
-        // Add location info to results - let the API handle filtering by search query
+        // Add location info to results
         const resultsWithLocation = results.map(hotel => ({
           ...hotel,
           searchLocation: location
@@ -114,7 +106,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
       if (uniqueResults.length === 0) {
         toast.info('No hotels found for the specified criteria');
       } else {
-        toast.success(`Found ${uniqueResults.length} hotels with enhanced Amadeus data`);
+        toast.success(`Found ${uniqueResults.length} hotels`);
         setShowResults(true); // Show results popup
       }
     } catch (error) {
@@ -238,7 +230,7 @@ if (isMobile) {
 
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto px-6">
-              {/* Filters Section */}
+              {/* Location Filter Only */}
               <div className="space-y-4 pb-6">
                 {/* Location Card */}
                 <Card className="p-4 bg-muted/5 border-muted/20 shadow-sm">
@@ -262,75 +254,6 @@ if (isMobile) {
                     </Select>
                   </div>
                 </Card>
-
-                {/* Date Selection Cards */}
-                <div className="grid grid-cols-2 gap-3">
-                  {/* Check-in Date */}
-                  <Card className="p-4 bg-muted/5 border-muted/20 shadow-sm">
-                    <div className="space-y-3">
-                      <Label className="text-sm font-semibold flex items-center gap-2 text-foreground">
-                        <Calendar className="w-4 h-4 text-primary" />
-                        Check-in
-                      </Label>
-                      <Popover open={isCheckInOpen} onOpenChange={setIsCheckInOpen}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full justify-start text-left font-normal bg-background border-border/30",
-                              !checkInDate && "text-muted-foreground"
-                            )}
-                          >
-                            {checkInDate ? format(checkInDate, "MMM dd") : "Select date"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <CalendarComponent
-                            mode="single"
-                            selected={checkInDate}
-                            onSelect={handleCheckInSelect}
-                            disabled={(date) => date < new Date()}
-                            initialFocus
-                            className="p-3 pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </Card>
-
-                  {/* Check-out Date */}
-                  <Card className="p-4 bg-muted/5 border-muted/20 shadow-sm">
-                    <div className="space-y-3">
-                      <Label className="text-sm font-semibold flex items-center gap-2 text-foreground">
-                        <Calendar className="w-4 h-4 text-primary" />
-                        Check-out
-                      </Label>
-                      <Popover open={isCheckOutOpen} onOpenChange={setIsCheckOutOpen}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full justify-start text-left font-normal bg-background border-border/30",
-                              !checkOutDate && "text-muted-foreground"
-                            )}
-                          >
-                            {checkOutDate ? format(checkOutDate, "MMM dd") : "Select date"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <CalendarComponent
-                            mode="single"
-                            selected={checkOutDate}
-                            onSelect={handleCheckOutSelect}
-                            disabled={(date) => !checkInDate || date <= checkInDate}
-                            initialFocus
-                            className="p-3 pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </Card>
-                </div>
               </div>
             </div>
 
@@ -338,7 +261,7 @@ if (isMobile) {
             <div className="sticky bottom-0 bg-gradient-to-t from-background via-background to-background/95 p-6 border-t border-border/20">
               <Button
                 onClick={handleSearch}
-                disabled={isSearching || !searchQuery.trim() || !checkInDate || !checkOutDate}
+                disabled={isSearching || !searchQuery.trim()}
                 className="w-full h-12 text-base font-semibold rounded-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all"
               >
                 {isSearching ? (
@@ -627,9 +550,8 @@ return (
                     mode="single"
                     selected={checkInDate}
                     onSelect={handleCheckInSelect}
-                    disabled={(date) => date < new Date()}
                     initialFocus
-                    className="p-3 pointer-events-auto"
+                    className={cn("p-3 pointer-events-auto")}
                   />
                 </PopoverContent>
               </Popover>
@@ -658,9 +580,9 @@ return (
                     mode="single"
                     selected={checkOutDate}
                     onSelect={handleCheckOutSelect}
-                    disabled={(date) => !checkInDate || date <= checkInDate}
                     initialFocus
-                    className="p-3 pointer-events-auto"
+                    disabled={(date) => checkInDate ? date <= checkInDate : false}
+                    className={cn("p-3 pointer-events-auto")}
                   />
                 </PopoverContent>
               </Popover>
@@ -670,7 +592,7 @@ return (
           {!isMobile && (
             <Button
               onClick={handleSearch}
-              disabled={isSearching || !searchQuery.trim() || !checkInDate || !checkOutDate}
+              disabled={isSearching || !searchQuery.trim()}
               className="w-full h-12 text-lg bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg"
             >
               <Search className="w-5 h-5 mr-2" />

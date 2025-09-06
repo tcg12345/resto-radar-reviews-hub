@@ -77,56 +77,6 @@ export interface Hotel {
   website?: string;
   phone?: string;
   bookingUrl?: string;
-  locationScore?: number;
-  bookingAvailable?: boolean;
-  userRatings?: {
-    overall: number;
-    service: number;
-    cleanliness: number;
-    comfort: number;
-    location: number;
-    value: number;
-    totalReviews: number;
-  };
-}
-
-export interface HotelAutocomplete {
-  id: string;
-  name: string;
-  address: {
-    cityName: string;
-    countryName: string;
-  };
-  geoCode: {
-    latitude: number;
-    longitude: number;
-  };
-}
-
-export interface HotelBooking {
-  bookingId: string;
-  status: string;
-  hotelId: string;
-  checkInDate: string;
-  checkOutDate: string;
-  guests: number;
-  roomType: string;
-  totalPrice: string;
-  confirmationNumber: string;
-  bookingUrl: string;
-}
-
-export interface LocationScore {
-  score: number;
-  latitude: number;
-  longitude: number;
-  factors: {
-    cityCenter: number;
-    transportation: number;
-    attractions: number;
-    dining: number;
-    shopping: number;
-  };
 }
 
 export interface FlightOffer {
@@ -213,108 +163,9 @@ export const useAmadeusApi = () => {
     }
   };
 
-  const hotelAutocomplete = async (query: string, location?: string): Promise<HotelAutocomplete[]> => {
-    try {
-      const { data, error } = await supabase.functions.invoke('amadeus-api', {
-        body: {
-          endpoint: 'hotel-autocomplete',
-          query,
-          location
-        }
-      });
-
-      if (error) {
-        console.error('Error getting hotel autocomplete:', error);
-        throw error;
-      }
-
-      return data?.data || [];
-    } catch (error) {
-      console.error('Failed to get hotel autocomplete:', error);
-      throw error;
-    }
-  };
-
-  const getHotelRatings = async (hotelId: string) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('amadeus-api', {
-        body: {
-          endpoint: 'hotel-ratings',
-          hotelId
-        }
-      });
-
-      if (error) {
-        console.error('Error getting hotel ratings:', error);
-        throw error;
-      }
-
-      return data?.data || {};
-    } catch (error) {
-      console.error('Failed to get hotel ratings:', error);
-      throw error;
-    }
-  };
-
-  const bookHotel = async (params: {
-    hotelId: string;
-    checkInDate: string;
-    checkOutDate: string;
-    guests: number;
-    roomType?: string;
-  }): Promise<HotelBooking> => {
-    try {
-      const { data, error } = await supabase.functions.invoke('amadeus-api', {
-        body: {
-          endpoint: 'hotel-booking',
-          ...params
-        }
-      });
-
-      if (error) {
-        console.error('Error booking hotel:', error);
-        throw error;
-      }
-
-      return data?.data || {};
-    } catch (error) {
-      console.error('Failed to book hotel:', error);
-      throw error;
-    }
-  };
-
-  const getLocationScore = async (params: {
-    latitude?: number;
-    longitude?: number;
-    location?: string;
-  }): Promise<LocationScore> => {
-    try {
-      const { data, error } = await supabase.functions.invoke('amadeus-api', {
-        body: {
-          endpoint: 'location-score',
-          ...params
-        }
-      });
-
-      if (error) {
-        console.error('Error getting location score:', error);
-        throw error;
-      }
-
-      return data?.data || {};
-    } catch (error) {
-      console.error('Failed to get location score:', error);
-      throw error;
-    }
-  };
-
   return {
     searchFlights,
     searchCities,
-    searchHotels,
-    hotelAutocomplete,
-    getHotelRatings,
-    bookHotel,
-    getLocationScore
+    searchHotels
   };
 };
