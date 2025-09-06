@@ -446,9 +446,9 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                         {flight.itineraries?.[0]?.segments?.[0]?.carrierCode || ''}{flight.itineraries?.[0]?.segments?.[0]?.number || 'N/A'}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {getAirlineName(flight.validatingAirlineCodes?.[0] || flight.itineraries?.[0]?.segments?.[0]?.carrierCode || 'N/A')}
+                        {getAirlineName(flight.itineraries?.[0]?.segments?.[0]?.carrierCode || 'N/A')}
                         {flight.itineraries?.[0]?.segments?.[0]?.operating?.carrierCode && 
-                          flight.itineraries?.[0]?.segments?.[0]?.operating?.carrierCode !== flight.validatingAirlineCodes?.[0] && (
+                          flight.itineraries?.[0]?.segments?.[0]?.operating?.carrierCode !== flight.itineraries?.[0]?.segments?.[0]?.carrierCode && (
                           <span> • Operated by {getAirlineName(flight.itineraries[0].segments[0].operating.carrierCode)}</span>
                         )}
                       </div>
