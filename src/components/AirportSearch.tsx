@@ -341,7 +341,7 @@ export function AirportSearch({
       {/* Dropdown Results */}
       {showDropdown && (
         <div 
-          className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-md shadow-2xl max-h-60 overflow-y-auto z-[10000]"
+          className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-premium max-h-60 overflow-y-auto z-[10000]"
         >
           {airports.length > 0 ? (
             airports.map((airport) => (
@@ -349,8 +349,8 @@ export function AirportSearch({
                 key={airport.id}
                 onClick={() => handleAirportSelect(airport)}
                 className={cn(
-                  "flex items-center gap-3 p-3 hover:bg-muted cursor-pointer transition-colors first:rounded-t-md last:rounded-b-md border-b border-border/50 last:border-b-0",
-                  airport.isCity && "bg-gradient-to-r from-primary/5 to-primary/10 border-l-2 border-l-primary"
+                  "flex items-center gap-3 p-4 hover:bg-muted/50 cursor-pointer transition-all duration-200 first:rounded-t-lg last:rounded-b-lg border-b border-border/30 last:border-b-0",
+                  airport.isCity && "bg-gradient-to-r from-primary/10 to-primary/5 border-l-4 border-l-primary/60"
                 )}
               >
                 <div className="flex-shrink-0">
