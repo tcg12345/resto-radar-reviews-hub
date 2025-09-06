@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useGooglePlacesHotelSearch, Hotel as HotelType } from '@/hooks/useGooglePlacesHotelSearch';
+import { useAmadeusApi, Hotel as HotelType } from '@/hooks/useAmadeusApi';
 import { SearchResultSkeleton } from '@/components/skeletons/SearchResultSkeleton';
 import { HotelStayDetailsDialog, StayDetails } from '@/components/HotelStayDetailsDialog';
 import { format } from 'date-fns';
@@ -60,11 +60,16 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
   const isMobile = useIsMobile();
   const [showFilters, setShowFilters] = useState(!isMobile);
   
-  const { searchHotels } = useGooglePlacesHotelSearch();
+  const { searchHotels, hotelAutocomplete, getLocationScore } = useAmadeusApi();
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
       toast.error('Please enter a hotel name or search term');
+      return;
+    }
+
+    if (!checkInDate || !checkOutDate) {
+      toast.error('Please select check-in and check-out dates');
       return;
     }
 
@@ -83,15 +88,24 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
       
       for (const location of searchLocations) {
         const results = await searchHotels({
-          query: searchQuery,
-          location: location
+          location: location,
+          checkInDate: checkInDate.toISOString().split('T')[0],
+          checkOutDate: checkOutDate.toISOString().split('T')[0],
+          guests: 1, // Default to 1 guest, can be made configurable
+          priceRange: undefined // No price filter by default
         });
         
-        // Add location info to results
-        const resultsWithLocation = results.map(hotel => ({
-          ...hotel,
-          searchLocation: location
-        }));
+        // Add location info to results and filter by search query
+        const resultsWithLocation = results
+          .filter(hotel => 
+            hotel.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            hotel.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            hotel.amenities?.some(amenity => amenity.toLowerCase().includes(searchQuery.toLowerCase()))
+          )
+          .map(hotel => ({
+            ...hotel,
+            searchLocation: location
+          }));
         
         allResults = [...allResults, ...resultsWithLocation];
       }
@@ -106,7 +120,7 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
       if (uniqueResults.length === 0) {
         toast.info('No hotels found for the specified criteria');
       } else {
-        toast.success(`Found ${uniqueResults.length} hotels`);
+        toast.success(`Found ${uniqueResults.length} hotels with enhanced Amadeus data`);
         setShowResults(true); // Show results popup
       }
     } catch (error) {
