@@ -495,17 +495,15 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
               
               {/* Footer: Details & CTA */}
               <div className="flex items-center justify-between p-4 pt-3 bg-muted/20 border-t border-border/10">
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="bg-secondary/80 text-secondary-foreground font-medium px-2.5 py-1 text-xs">
-                    {flight.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.cabin || 'Economy'}
-                  </Badge>
+                <div className="flex items-center gap-3">
                   {flight.itineraries?.[0]?.segments?.length > 1 && (
                     <Badge variant="outline" className="border-amber-300 text-amber-700 bg-amber-50 dark:border-amber-600 dark:text-amber-300 dark:bg-amber-900/30 text-xs px-2 py-1">
                       {flight.itineraries[0].segments.length - 1} stop{flight.itineraries[0].segments.length > 2 ? 's' : ''}
                     </Badge>
                   )}
-                  <div className="text-xs text-muted-foreground bg-muted/60 px-2 py-1 rounded-md">
-                    {flight.itineraries?.[0]?.segments?.[0]?.aircraft?.code || 'N/A'}
+                  <div className="flex items-center gap-2 text-sm text-foreground bg-muted/60 px-3 py-1.5 rounded-lg border border-border/20">
+                    <Plane className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-semibold">{flight.itineraries?.[0]?.segments?.[0]?.aircraft?.code || 'Aircraft TBD'}</span>
                   </div>
                 </div>
                 
