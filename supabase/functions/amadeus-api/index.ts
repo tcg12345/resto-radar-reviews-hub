@@ -1179,9 +1179,6 @@ serve(async (req) => {
           );
         }
       }
-          );
-        }
-      }
 
       default:
         return new Response(
