@@ -758,7 +758,7 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                               <p className="text-xs text-muted-foreground/70 mt-2">No airlines selected</p>
                             )}
                             {showAirlineFilter && (
-                              <div className="absolute top-full left-0 right-0 mt-2 bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto">
+                              <div className="absolute bottom-full left-0 right-0 mb-2 bg-card border border-border rounded-xl shadow-premium z-50 max-h-60 overflow-y-auto">
                                 <div className="p-3 space-y-2">
                                   <div className="relative mb-3">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
