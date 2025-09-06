@@ -551,15 +551,14 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                     ) : (
                       <>
                         <div>
-                          <label className="block text-sm font-medium text-muted-foreground mb-2">Airline Code</label>
+                          <label className="block text-sm font-medium text-muted-foreground mb-2">Airline</label>
                           <div className="relative">
                             <input
                               type="text"
                               value={airline}
-                              onChange={(e) => setAirline(e.target.value.toUpperCase())}
-                              placeholder="e.g., BA, AA, DL"
+                              onChange={(e) => setAirline(e.target.value)}
+                              placeholder="Search by name or code (e.g., British Airways, BA)"
                               className="w-full px-3 py-2 pr-12 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                              maxLength={3}
                             />
                             <Popover>
                               <PopoverTrigger asChild>
@@ -575,7 +574,12 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                                   <div className="p-2 border-b border-border">
                                     <div className="text-sm font-medium text-foreground">Select Airline</div>
                                   </div>
-                                  {getAirlineOptions().map((option) => (
+                                  {getAirlineOptions()
+                                    .filter((option) => 
+                                      option.name.toLowerCase().includes(airline.toLowerCase()) ||
+                                      option.code.toLowerCase().includes(airline.toLowerCase())
+                                    )
+                                    .map((option) => (
                                     <button
                                       key={option.code}
                                       type="button"
@@ -710,15 +714,14 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
               ) : (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-muted-foreground mb-2">Airline Code</label>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Airline</label>
                     <div className="relative">
                       <input
                         type="text"
                         value={airline}
-                        onChange={(e) => setAirline(e.target.value.toUpperCase())}
-                        placeholder="e.g., BA, AA, DL"
+                        onChange={(e) => setAirline(e.target.value)}
+                        placeholder="Search by name or code (e.g., British Airways, BA)"
                         className="w-full px-3 py-2 pr-12 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                        maxLength={3}
                       />
                       <Popover>
                         <PopoverTrigger asChild>
@@ -734,7 +737,12 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                             <div className="p-2 border-b border-border">
                               <div className="text-sm font-medium text-foreground">Select Airline</div>
                             </div>
-                            {getAirlineOptions().map((option) => (
+                            {getAirlineOptions()
+                              .filter((option) => 
+                                option.name.toLowerCase().includes(airline.toLowerCase()) ||
+                                option.code.toLowerCase().includes(airline.toLowerCase())
+                              )
+                              .map((option) => (
                               <button
                                 key={option.code}
                                 type="button"
