@@ -86,18 +86,36 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
       let allResults: HotelType[] = [];
       
       for (const location of searchLocations) {
-        const results = await searchHotels({
-          query: searchQuery,
-          location: location
+        console.log('🏨 Searching hotels in:', location, 'using Amadeus API');
+        
+        // Use Amadeus hotel search instead of Google Places
+        const results = await searchAmadeusHotels({
+          location: location,
+          checkInDate: '2025-01-15',
+          checkOutDate: '2025-01-16',
+          guests: 1
         });
         
-        // Add location info to results
-        const resultsWithLocation = results.map(hotel => ({
-          ...hotel,
+        console.log('✅ Amadeus hotel search results for', location, ':', results.length);
+        
+        // Convert Amadeus results to expected format
+        const convertedResults = results.map(hotel => ({
+          id: hotel.id,
+          name: hotel.name,
+          address: hotel.address,
+          description: hotel.description,
+          rating: hotel.rating,
+          priceRange: hotel.priceRange,
+          amenities: hotel.amenities || [],
+          photos: hotel.photos || [],
+          latitude: hotel.latitude,
+          longitude: hotel.longitude,
+          website: hotel.website,
+          phone: hotel.phone,
           searchLocation: location
         }));
         
-        allResults = [...allResults, ...resultsWithLocation];
+        allResults = [...allResults, ...convertedResults];
       }
       
       // Remove duplicates based on hotel ID
@@ -149,9 +167,9 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
         }]
       };
 
-      console.log('📡 Calling REAL Amadeus Hotel Booking API edge function with data:', bookingData);
+      console.log('📡 Calling Amadeus Hotel Booking API edge function with data:', bookingData);
 
-      const { data, error } = await supabase.functions.invoke('hotel-booking', {
+      const { data, error } = await supabase.functions.invoke('amadeus-hotel-booking', {
         body: {
           endpoint: 'book-hotel',
           ...bookingData
