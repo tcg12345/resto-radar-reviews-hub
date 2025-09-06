@@ -901,7 +901,13 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                         </div>
 
                         {/* Flight Number Card */}
-                        <div className="glass-card rounded-2xl p-4 border border-border/50 shadow-premium transition-all duration-200 hover:shadow-premium-glow focus-within:border-primary/50 focus-within:shadow-premium-glow">
+                        <div 
+                          className="glass-card rounded-2xl p-4 border border-border/50 shadow-premium transition-all duration-200 hover:shadow-premium-glow focus-within:border-primary focus-within:shadow-premium-glow cursor-pointer"
+                          onClick={() => {
+                            const input = document.querySelector('input[placeholder="e.g., 123, 1847"]') as HTMLInputElement;
+                            input?.focus();
+                          }}
+                        >
                           <div className="flex items-center gap-2 mb-3">
                             <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center">
                               <Search className="h-3.5 w-3.5 text-primary" />
@@ -913,7 +919,7 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                             value={flightNumber}
                             onChange={(e) => setFlightNumber(e.target.value)}
                             placeholder="e.g., 123, 1847"
-                            className="w-full bg-transparent border-none text-foreground text-base placeholder:text-muted-foreground/60 focus:outline-none focus:ring-0"
+                            className="w-full bg-transparent border border-transparent rounded-lg px-3 py-2 text-foreground text-base placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                           />
                           {!flightNumber && (
                             <p className="text-xs text-muted-foreground/70 mt-2">Enter flight number</p>
