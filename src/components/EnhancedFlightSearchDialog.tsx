@@ -547,8 +547,8 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
     console.log('🛩️ Rendering MOBILE version');
     return (
       <Drawer open={isOpen} onOpenChange={onClose}>
-        <DrawerContent className="max-h-[90vh] bg-background border-border">
-          <div className="flex flex-col max-h-[90vh]">
+        <DrawerContent className="h-[80vh] bg-background border-border">
+          <div className="flex flex-col h-[80vh]">
             {!showResults && (
               <div className="flex items-center justify-between p-4 pb-3">
                 <DrawerTitle className="text-xl font-bold text-foreground">
@@ -989,14 +989,14 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
   console.log('🛩️ Rendering DESKTOP version');
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl bg-card border-border max-h-[90vh] overflow-hidden">
+      <DialogContent className="w-[80vw] h-[80vh] max-w-none bg-card border-border overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-foreground">
             {showResults ? "✈️ Flight Results" : "✈️ Flight Search"}
           </DialogTitle>
         </DialogHeader>
         
-        <div className="overflow-y-auto max-h-[70vh]">
+        <div className="flex-1 overflow-y-auto min-h-0">
           {showResults ? renderFlightResults() : (
             <div className="space-y-6">
               {/* Search Type Toggle */}
