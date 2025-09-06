@@ -328,42 +328,40 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
   };
   
   const renderFlightResults = () => (
-    <div className="space-y-4">
-      {/* Modern header with route and date info */}
-      <div className="bg-gradient-to-r from-card/30 to-card/10 border border-border/20 rounded-xl p-4 mb-6">
+    <div className="flex flex-col h-full">
+      {/* Compact sticky header */}
+      <div className="sticky top-0 z-10 bg-background border-b border-border/20 p-3">
         <div className="flex items-center justify-between">
           {/* Left: Back Button */}
-          <Button
-            variant="outline"
-            size="sm"
+          <button
             onClick={handleBack}
-            className="flex items-center gap-2 h-10 px-4 rounded-lg bg-background/80 border-border/40 hover:bg-accent hover:border-border/60 transition-all duration-200"
+            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors min-h-[44px]"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span className="font-medium">Back</span>
-          </Button>
+            Back
+          </button>
 
           {/* Center: Route & Date */}
-          <div className="flex-1 text-center mx-6">
-            <div className="flex items-center justify-center gap-2 mb-1">
-              <span className="text-lg font-bold text-foreground">
+          <div className="text-center flex-1 mx-3">
+            <div className="flex items-center justify-center gap-1.5 mb-0.5">
+              <span className="text-base font-bold text-foreground">
                 {searchType === 'route' ? fromAirport : airline}
               </span>
-              <ArrowRight className="h-4 w-4 text-primary" />
-              <span className="text-lg font-bold text-foreground">
+              <ArrowRight className="h-3.5 w-3.5 text-primary" />
+              <span className="text-base font-bold text-foreground">
                 {searchType === 'route' ? toAirport : flightNumber}
               </span>
             </div>
-            <div className="text-sm font-medium text-muted-foreground">
+            <div className="text-xs text-muted-foreground">
               {departureDate && format(departureDate, 'MMM dd, yyyy (EEE)')}
             </div>
           </div>
 
           {/* Right: Time Format Toggle */}
-          <div className="flex items-center bg-muted/60 rounded-lg p-1 border border-border/30">
+          <div className="flex bg-muted rounded-full p-0.5 border border-border/30">
             <button
               onClick={() => setUse24HourFormat(true)}
-              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
+              className={`px-2.5 py-1.5 text-xs font-medium rounded-full transition-all duration-200 min-h-[44px] min-w-[44px] ${
                 use24HourFormat 
                   ? 'bg-primary text-primary-foreground shadow-sm' 
                   : 'text-muted-foreground hover:text-foreground'
@@ -373,7 +371,7 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
             </button>
             <button
               onClick={() => setUse24HourFormat(false)}
-              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
+              className={`px-2.5 py-1.5 text-xs font-medium rounded-full transition-all duration-200 min-h-[44px] min-w-[44px] ${
                 !use24HourFormat 
                   ? 'bg-primary text-primary-foreground shadow-sm' 
                   : 'text-muted-foreground hover:text-foreground'
@@ -417,124 +415,103 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
         </Card>
       )}
 
-      {/* Flight results list - Scrollable container for up to 100 results */}
-      <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2 scroll-smooth">
-        <div className="text-sm text-muted-foreground mb-4 bg-muted/30 px-3 py-2 rounded-lg">
-          {flightResults.length > 0 && (
-            <span>
-              {searchType === 'flight' ? (
-                flightResults.some(flight => 
-                  flight.itineraries?.[0]?.segments?.[0]?.carrierCode === airline &&
-                  flight.itineraries?.[0]?.segments?.[0]?.number === flightNumber
-                ) 
-                ? `Found flight ${airline} ${flightNumber}`
-                : `Flight ${airline} ${flightNumber} not found. Showing ${flightResults.length} alternative flight${flightResults.length !== 1 ? 's' : ''} on similar routes`
-              ) : (
-                `Showing ${flightResults.length} flight${flightResults.length !== 1 ? 's' : ''} for this route`
-              )}
-            </span>
-          )}
-        </div>
-        {flightResults.map((flight, index) => (
-          <Card key={index} className="border border-border/30 bg-gradient-to-br from-background via-card/50 to-card/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 cursor-pointer group overflow-hidden rounded-xl">
-            <CardContent className="p-0" onClick={() => handleSelectFlight(flight)}>
-              {/* Header: Airline & Flight Number */}
-              <div className="flex items-center justify-between p-4 pb-3 bg-gradient-to-r from-primary/5 to-transparent">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-sm">
-                    <Plane className="h-5 w-5 text-primary-foreground" />
-                  </div>
-                  <div className="space-y-0.5">
-                    <div className="text-base font-bold text-foreground tracking-tight">
-                      {flight.itineraries?.[0]?.segments?.[0]?.carrierCode || ''}{flight.itineraries?.[0]?.segments?.[0]?.number || 'N/A'}
+      {/* Scrollable flight results */}
+      <div className="flex-1 overflow-y-auto px-3 pb-3">
+        {flightResults.length > 0 && (
+          <div className="text-sm text-muted-foreground mb-3 bg-muted/30 px-3 py-2 rounded-lg mx-1">
+            {searchType === 'flight' ? (
+              flightResults.some(flight => 
+                flight.itineraries?.[0]?.segments?.[0]?.carrierCode === airline &&
+                flight.itineraries?.[0]?.segments?.[0]?.number === flightNumber
+              ) 
+              ? `Found flight ${airline} ${flightNumber}`
+              : `Flight ${airline} ${flightNumber} not found. Showing ${flightResults.length} alternative flight${flightResults.length !== 1 ? 's' : ''}`
+            ) : (
+              `Showing ${flightResults.length} flight${flightResults.length !== 1 ? 's' : ''} for this route`
+            )}
+          </div>
+        )}
+        <div className="space-y-3">
+          {flightResults.map((flight, index) => (
+            <Card key={index} className="border border-border/30 bg-card hover:shadow-md transition-all duration-200 cursor-pointer group overflow-hidden rounded-xl">
+              <CardContent className="p-0" onClick={() => handleSelectFlight(flight)}>
+                {/* Top row: Flight info and select button */}
+                <div className="flex items-center justify-between p-4 pb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                      <Plane className="h-4 w-4 text-primary-foreground" />
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span className="font-medium">{getAirlineName(flight.validatingAirlineCodes?.[0] || flight.itineraries?.[0]?.segments?.[0]?.carrierCode || 'N/A')}</span>
-                      {flight.itineraries?.[0]?.segments?.[0]?.operating?.carrierCode && 
-                        flight.itineraries?.[0]?.segments?.[0]?.operating?.carrierCode !== flight.validatingAirlineCodes?.[0] && (
-                        <>
-                          <span className="w-1 h-1 rounded-full bg-muted-foreground/50"></span>
-                          <span>operated by {getAirlineName(flight.itineraries[0].segments[0].operating.carrierCode)}</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Main: Times & Route */}
-              <div className="px-4 py-3">
-                <div className="flex items-center justify-between">
-                  {/* Departure */}
-                  <div className="text-center flex-shrink-0">
-                    <div className="text-2xl font-bold text-foreground mb-1">
-                      {flight.itineraries?.[0]?.segments?.[0]?.departure?.at ? 
-                        formatFlightTime(
-                          flight.itineraries[0].segments[0].departure.at,
-                          flight.itineraries[0].segments[0].departure.iataCode,
-                          use24HourFormat
-                        ) : 'N/A'}
-                    </div>
-                    <div className="text-sm font-bold text-primary bg-primary/10 px-2 py-1 rounded-md">
-                      {flight.itineraries?.[0]?.segments?.[0]?.departure?.iataCode || fromAirport}
-                    </div>
-                  </div>
-                  
-                  {/* Flight path & duration */}
-                  <div className="flex-1 mx-6 relative">
-                    <div className="flex items-center justify-center">
-                      <div className="flex-1 h-0.5 bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20 rounded-full"></div>
-                      <div className="mx-3 flex flex-col items-center gap-1">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-sm">
-                          <ArrowRight className="h-4 w-4 text-primary-foreground" />
-                        </div>
-                        <div className="text-xs font-semibold text-muted-foreground bg-muted/80 px-2 py-1 rounded-full whitespace-nowrap">
-                          {flight.itineraries?.[0]?.duration?.replace('PT', '').replace('H', 'h ').replace('M', 'm') || 'N/A'}
-                        </div>
+                    <div className="space-y-0.5">
+                      <div className="text-sm font-bold text-foreground">
+                        {flight.itineraries?.[0]?.segments?.[0]?.carrierCode || ''}{flight.itineraries?.[0]?.segments?.[0]?.number || 'N/A'}
                       </div>
-                      <div className="flex-1 h-0.5 bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20 rounded-full"></div>
+                      <div className="text-xs text-muted-foreground">
+                        {getAirlineName(flight.validatingAirlineCodes?.[0] || flight.itineraries?.[0]?.segments?.[0]?.carrierCode || 'N/A')}
+                        {flight.itineraries?.[0]?.segments?.[0]?.operating?.carrierCode && 
+                          flight.itineraries?.[0]?.segments?.[0]?.operating?.carrierCode !== flight.validatingAirlineCodes?.[0] && (
+                          <span> • Operated by {getAirlineName(flight.itineraries[0].segments[0].operating.carrierCode)}</span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  
-                  {/* Arrival */}
-                  <div className="text-center flex-shrink-0">
-                    <div className="text-2xl font-bold text-foreground mb-1">
-                      {flight.itineraries?.[0]?.segments?.[flight.itineraries[0].segments.length - 1]?.arrival?.at ? 
-                        formatFlightTime(
-                          flight.itineraries[0].segments[flight.itineraries[0].segments.length - 1].arrival.at,
-                          flight.itineraries[0].segments[flight.itineraries[0].segments.length - 1].arrival.iataCode,
-                          use24HourFormat
-                        ) : 'N/A'}
-                    </div>
-                    <div className="text-sm font-bold text-primary bg-primary/10 px-2 py-1 rounded-md">
-                      {flight.itineraries?.[0]?.segments?.[flight.itineraries[0].segments.length - 1]?.arrival?.iataCode || toAirport}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Footer: Details & CTA */}
-              <div className="flex items-center justify-between p-4 pt-3 bg-muted/20 border-t border-border/10">
-                <div className="flex items-center gap-3">
-                  {flight.itineraries?.[0]?.segments?.length > 1 && (
-                    <Badge variant="outline" className="border-amber-300 text-amber-700 bg-amber-50 dark:border-amber-600 dark:text-amber-300 dark:bg-amber-900/30 text-xs px-2 py-1">
-                      {flight.itineraries[0].segments.length - 1} stop{flight.itineraries[0].segments.length > 2 ? 's' : ''}
-                    </Badge>
-                  )}
-                  <div className="flex items-center gap-2 text-sm text-foreground bg-muted/60 px-3 py-1.5 rounded-lg border border-border/20">
-                    <Plane className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-semibold">{flight.itineraries?.[0]?.segments?.[0]?.aircraft?.code || 'Aircraft TBD'}</span>
-                  </div>
+                  <button className="px-3 py-1.5 text-xs font-medium text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors min-h-[44px]">
+                    Select →
+                  </button>
                 </div>
                 
-                <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-4 py-2 rounded-lg shadow-sm group-hover:shadow-md transition-all duration-200">
-                  Select Flight
-                  <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                {/* Second row: Flight times and route */}
+                <div className="px-4 pb-4">
+                  <div className="flex items-center justify-between">
+                    {/* Departure */}
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-foreground">
+                        {flight.itineraries?.[0]?.segments?.[0]?.departure?.at ? 
+                          formatFlightTime(
+                            flight.itineraries[0].segments[0].departure.at,
+                            flight.itineraries[0].segments[0].departure.iataCode,
+                            use24HourFormat
+                          ) : 'N/A'}
+                      </div>
+                      <div className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-md mt-1">
+                        {flight.itineraries?.[0]?.segments?.[0]?.departure?.iataCode || fromAirport}
+                      </div>
+                    </div>
+                    
+                    {/* Duration */}
+                    <div className="text-center px-4">
+                      <div className="text-xs text-muted-foreground mb-1">
+                        {flight.itineraries?.[0]?.duration?.replace('PT', '').replace('H', 'h ').replace('M', 'm') || 'N/A'}
+                      </div>
+                      <div className="h-0.5 bg-border rounded-full relative">
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-primary rounded-full"></div>
+                      </div>
+                      {flight.itineraries?.[0]?.segments?.length > 1 && (
+                        <div className="text-xs text-amber-600 mt-1 font-medium">
+                          {flight.itineraries[0].segments.length - 1} stop{flight.itineraries[0].segments.length > 2 ? 's' : ''}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Arrival */}
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-foreground">
+                        {flight.itineraries?.[0]?.segments?.[flight.itineraries[0].segments.length - 1]?.arrival?.at ? 
+                          formatFlightTime(
+                            flight.itineraries[0].segments[flight.itineraries[0].segments.length - 1].arrival.at,
+                            flight.itineraries[0].segments[flight.itineraries[0].segments.length - 1].arrival.iataCode,
+                            use24HourFormat
+                          ) : 'N/A'}
+                      </div>
+                      <div className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-md mt-1">
+                        {flight.itineraries?.[0]?.segments?.[flight.itineraries[0].segments.length - 1]?.arrival?.iataCode || toAirport}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -544,14 +521,16 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
     return (
       <Drawer open={isOpen} onOpenChange={onClose}>
         <DrawerContent className="h-[90vh] bg-background border-border overflow-x-hidden">
-          <div className="p-4 h-full flex flex-col overflow-x-hidden max-w-full min-w-0">
-            <DrawerTitle className="text-2xl font-bold text-foreground mb-6 truncate">
-              {showResults ? "✈️ Flight Results" : "✈️ Flight Search"}
-            </DrawerTitle>
+          <div className="h-full flex flex-col overflow-x-hidden">
+            {!showResults && (
+              <DrawerTitle className="text-xl font-bold text-foreground p-4 pb-3">
+                ✈️ Flight Search
+              </DrawerTitle>
+            )}
             
-            <div className="flex-1 overflow-y-auto overflow-x-hidden min-w-0">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden">
               {showResults ? renderFlightResults() : (
-                <div className="space-y-6">
+                <div className="p-4 space-y-6">
                   {/* Search Type Toggle */}
                   <div className="flex bg-muted rounded-lg p-1">
                     <button
@@ -800,7 +779,7 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                     </div>
                   </div>
                   
-                  <div className="sticky bottom-0 bg-background pt-4 pb-2 border-t border-border/10">
+                  <div className="sticky bottom-0 bg-background pt-4 pb-4 border-t border-border/10 mx-4">
                     <Button 
                       onClick={handleSearch} 
                       className="w-full" 
