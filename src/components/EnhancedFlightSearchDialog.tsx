@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { AirportSearch } from '@/components/AirportSearch';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { supabase } from '@/integrations/supabase/client';
-import { CalendarIcon, ArrowLeft, Plane, Clock, ArrowRight, ChevronDown } from 'lucide-react';
+import { CalendarIcon, ArrowLeft, Plane, Clock, ArrowRight, ChevronDown, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -183,6 +183,7 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
   const [flightResults, setFlightResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showAirlineDropdown, setShowAirlineDropdown] = useState(false);
   
   const isMobile = useIsMobile();
 
@@ -553,46 +554,50 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                         <div>
                           <label className="block text-sm font-medium text-muted-foreground mb-2">Airline</label>
                           <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <input
                               type="text"
                               value={airline}
-                              onChange={(e) => setAirline(e.target.value)}
+                              onChange={(e) => {
+                                setAirline(e.target.value);
+                                setShowAirlineDropdown(e.target.value.length > 0);
+                              }}
+                              onFocus={() => setShowAirlineDropdown(airline.length > 0)}
+                              onBlur={() => setTimeout(() => setShowAirlineDropdown(false), 200)}
                               placeholder="Search by name or code (e.g., British Airways, BA)"
-                              className="w-full px-3 py-2 pr-12 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                              className="w-full pl-10 pr-3 py-2 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                             />
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <button
-                                  type="button"
-                                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:bg-muted rounded-md transition-colors"
-                                >
-                                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                                </button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-80 p-0 z-50 bg-background border border-border" align="end">
-                                <div className="max-h-60 overflow-y-auto">
-                                  <div className="p-2 border-b border-border">
-                                    <div className="text-sm font-medium text-foreground">Select Airline</div>
-                                  </div>
-                                  {getAirlineOptions()
-                                    .filter((option) => 
-                                      option.name.toLowerCase().includes(airline.toLowerCase()) ||
-                                      option.code.toLowerCase().includes(airline.toLowerCase())
-                                    )
-                                    .map((option) => (
-                                    <button
-                                      key={option.code}
-                                      type="button"
-                                      onClick={() => setAirline(option.code)}
-                                      className="w-full px-3 py-2 text-left hover:bg-muted transition-colors flex items-center justify-between"
-                                    >
-                                      <span className="text-sm text-foreground">{option.name}</span>
-                                      <span className="text-xs text-muted-foreground font-mono">{option.code}</span>
-                                    </button>
-                                  ))}
-                                </div>
-                              </PopoverContent>
-                            </Popover>
+                            {showAirlineDropdown && airline.length > 0 && (
+                              <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
+                                {getAirlineOptions()
+                                  .filter((option) => 
+                                    option.name.toLowerCase().includes(airline.toLowerCase()) ||
+                                    option.code.toLowerCase().includes(airline.toLowerCase())
+                                  )
+                                  .slice(0, 10)
+                                  .map((option) => (
+                                  <button
+                                    key={option.code}
+                                    type="button"
+                                    onClick={() => {
+                                      setAirline(option.code);
+                                      setShowAirlineDropdown(false);
+                                    }}
+                                    className="w-full px-3 py-2 text-left hover:bg-muted transition-colors flex items-center justify-between border-b border-border/20 last:border-b-0"
+                                  >
+                                    <span className="text-sm text-foreground">{option.name}</span>
+                                    <span className="text-xs text-muted-foreground font-mono">{option.code}</span>
+                                  </button>
+                                ))}
+                                {getAirlineOptions()
+                                  .filter((option) => 
+                                    option.name.toLowerCase().includes(airline.toLowerCase()) ||
+                                    option.code.toLowerCase().includes(airline.toLowerCase())
+                                  ).length === 0 && (
+                                  <div className="px-3 py-2 text-sm text-muted-foreground">No airlines found</div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                         <div>
@@ -716,46 +721,50 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                   <div>
                     <label className="block text-sm font-medium text-muted-foreground mb-2">Airline</label>
                     <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <input
                         type="text"
                         value={airline}
-                        onChange={(e) => setAirline(e.target.value)}
+                        onChange={(e) => {
+                          setAirline(e.target.value);
+                          setShowAirlineDropdown(e.target.value.length > 0);
+                        }}
+                        onFocus={() => setShowAirlineDropdown(airline.length > 0)}
+                        onBlur={() => setTimeout(() => setShowAirlineDropdown(false), 200)}
                         placeholder="Search by name or code (e.g., British Airways, BA)"
-                        className="w-full px-3 py-2 pr-12 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                        className="w-full pl-10 pr-3 py-2 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                       />
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <button
-                            type="button"
-                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:bg-muted rounded-md transition-colors"
-                          >
-                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                          </button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-80 p-0 z-50 bg-background border border-border" align="end">
-                          <div className="max-h-60 overflow-y-auto">
-                            <div className="p-2 border-b border-border">
-                              <div className="text-sm font-medium text-foreground">Select Airline</div>
-                            </div>
-                            {getAirlineOptions()
-                              .filter((option) => 
-                                option.name.toLowerCase().includes(airline.toLowerCase()) ||
-                                option.code.toLowerCase().includes(airline.toLowerCase())
-                              )
-                              .map((option) => (
-                              <button
-                                key={option.code}
-                                type="button"
-                                onClick={() => setAirline(option.code)}
-                                className="w-full px-3 py-2 text-left hover:bg-muted transition-colors flex items-center justify-between"
-                              >
-                                <span className="text-sm text-foreground">{option.name}</span>
-                                <span className="text-xs text-muted-foreground font-mono">{option.code}</span>
-                              </button>
-                            ))}
-                          </div>
-                        </PopoverContent>
-                      </Popover>
+                      {showAirlineDropdown && airline.length > 0 && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
+                          {getAirlineOptions()
+                            .filter((option) => 
+                              option.name.toLowerCase().includes(airline.toLowerCase()) ||
+                              option.code.toLowerCase().includes(airline.toLowerCase())
+                            )
+                            .slice(0, 10)
+                            .map((option) => (
+                            <button
+                              key={option.code}
+                              type="button"
+                              onClick={() => {
+                                setAirline(option.code);
+                                setShowAirlineDropdown(false);
+                              }}
+                              className="w-full px-3 py-2 text-left hover:bg-muted transition-colors flex items-center justify-between border-b border-border/20 last:border-b-0"
+                            >
+                              <span className="text-sm text-foreground">{option.name}</span>
+                              <span className="text-xs text-muted-foreground font-mono">{option.code}</span>
+                            </button>
+                          ))}
+                          {getAirlineOptions()
+                            .filter((option) => 
+                              option.name.toLowerCase().includes(airline.toLowerCase()) ||
+                              option.code.toLowerCase().includes(airline.toLowerCase())
+                            ).length === 0 && (
+                            <div className="px-3 py-2 text-sm text-muted-foreground">No airlines found</div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div>
