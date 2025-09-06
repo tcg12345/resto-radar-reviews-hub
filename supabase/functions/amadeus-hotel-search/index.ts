@@ -54,58 +54,167 @@ async function searchAmadeusHotels(location: string, checkInDate: string, checkO
     const token = await getAmadeusToken();
     console.log('✅ Got Amadeus token for hotel search');
     
-    // Search for city code first
-    const cityResponse = await fetch(`https://api.amadeus.com/v1/reference-data/locations?keyword=${encodeURIComponent(location)}&max=1`, {
+    // Search for city/location first to get proper codes
+    const locationResponse = await fetch(`https://api.amadeus.com/v1/reference-data/locations?keyword=${encodeURIComponent(location)}&max=5&subType=CITY,AIRPORT`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     
-    let cityCode = location;
-    if (cityResponse.ok) {
-      const cityData = await cityResponse.json();
-      if (cityData.data && cityData.data.length > 0) {
-        cityCode = cityData.data[0].address?.cityCode || cityData.data[0].id || location;
+    let searchLocation = location;
+    let geoCode = null;
+    
+    if (locationResponse.ok) {
+      const locationData = await locationResponse.json();
+      console.log('🌍 Location search results:', locationData.data?.length || 0);
+      
+      if (locationData.data && locationData.data.length > 0) {
+        const bestMatch = locationData.data[0];
+        searchLocation = bestMatch.address?.cityCode || bestMatch.iataCode || location;
+        geoCode = bestMatch.geoCode;
+        console.log('📍 Using location:', searchLocation, 'with geocode:', geoCode);
       }
     }
     
-    console.log('🌍 City code for search:', cityCode);
+    // Search hotels using Hotel Shopping API (Shopping/Hotel offers)
+    let hotelOffersUrl = `https://api.amadeus.com/v3/shopping/hotel-offers?destinationCode=${encodeURIComponent(searchLocation)}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}&adults=${guests}&max=20`;
     
-    // Search for hotels in the city
-    const hotelResponse = await fetch(`https://api.amadeus.com/v1/reference-data/locations/hotels/by-city?cityCode=${cityCode}&max=20`, {
+    // If we have geocode, use radius search for better results
+    if (geoCode?.latitude && geoCode?.longitude) {
+      hotelOffersUrl = `https://api.amadeus.com/v3/shopping/hotel-offers?latitude=${geoCode.latitude}&longitude=${geoCode.longitude}&radius=5&radiusUnit=KM&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}&adults=${guests}&max=20`;
+    }
+    
+    console.log('🔍 Hotel offers URL:', hotelOffersUrl);
+    
+    const hotelOffersResponse = await fetch(hotelOffersUrl, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     
-    if (!hotelResponse.ok) {
-      console.log('⚠️ Amadeus hotel search failed, using mock data');
-      return getMockHotels(location);
+    if (!hotelOffersResponse.ok) {
+      console.log('⚠️ Hotel offers failed with status:', hotelOffersResponse.status);
+      const errorText = await hotelOffersResponse.text();
+      console.log('Error details:', errorText);
+      
+      // Fallback to hotel list by city if offers fail
+      return await searchHotelsByCity(token, searchLocation, location);
     }
     
-    const hotelData = await hotelResponse.json();
-    console.log('✅ Amadeus hotel search successful:', hotelData.data?.length || 0, 'hotels');
+    const offersData = await hotelOffersResponse.json();
+    console.log('✅ Hotel offers found:', offersData.data?.length || 0);
     
-    if (!hotelData.data || hotelData.data.length === 0) {
-      return getMockHotels(location);
+    if (!offersData.data || offersData.data.length === 0) {
+      console.log('No offers found, trying hotel list fallback');
+      return await searchHotelsByCity(token, searchLocation, location);
     }
     
-    // Convert to expected format
-    return hotelData.data.slice(0, 10).map((hotel: any) => ({
-      id: hotel.hotelId || `hotel-${Date.now()}-${Math.random()}`,
-      name: hotel.name || `Hotel in ${location}`,
-      address: hotel.address ? `${hotel.address.lines?.join(', ') || ''}, ${location}` : location,
-      description: `Experience comfort and luxury at ${hotel.name || 'this hotel'} in ${location}. Perfect for travelers seeking quality accommodations.`,
-      rating: 4 + Math.random(),
-      priceRange: 'USD 150-300',
-      amenities: ['Free WiFi', 'Pool', 'Restaurant', 'Fitness Center', 'Room Service'],
-      photos: ['https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=80'],
-      latitude: hotel.geoCode?.latitude,
-      longitude: hotel.geoCode?.longitude,
-      website: 'https://www.amadeus.com',
-      phone: '+1-555-HOTEL'
-    }));
+    // Convert offers to our format
+    return offersData.data.map((offer: any) => {
+      const hotel = offer.hotel;
+      const offers = offer.offers || [];
+      const bestOffer = offers[0]; // Take the first/best offer
+      
+      return {
+        id: hotel.hotelId || `hotel-${Date.now()}-${Math.random()}`,
+        name: hotel.name || `Hotel in ${location}`,
+        address: hotel.address ? formatAddress(hotel.address) : `${location}`,
+        description: hotel.description || `Experience comfort at ${hotel.name || 'this hotel'} in ${location}.`,
+        rating: hotel.rating || (4 + Math.random()),
+        priceRange: bestOffer ? formatPriceRange(bestOffer) : 'Contact for pricing',
+        amenities: hotel.amenities?.map((a: any) => a.description).slice(0, 6) || ['Free WiFi', 'Restaurant', 'Room Service'],
+        photos: [getHotelPhoto(hotel.name)],
+        latitude: hotel.latitude || geoCode?.latitude,
+        longitude: hotel.longitude || geoCode?.longitude,
+        website: hotel.contact?.phone ? `https://www.amadeus.com` : undefined,
+        phone: hotel.contact?.phone || '+1-555-HOTEL',
+        checkInDate,
+        checkOutDate,
+        guests,
+        bookingDetails: bestOffer ? {
+          currency: bestOffer.price?.currency,
+          total: bestOffer.price?.total,
+          roomType: bestOffer.room?.typeEstimated?.category,
+          cancellation: bestOffer.policies?.cancellations?.[0]?.type
+        } : null
+      };
+    });
     
   } catch (error) {
     console.error('❌ Amadeus hotel search error:', error);
     return getMockHotels(location);
   }
+}
+
+// Helper function to search hotels by city as fallback
+async function searchHotelsByCity(token: string, cityCode: string, originalLocation: string) {
+  try {
+    const hotelListResponse = await fetch(`https://api.amadeus.com/v1/reference-data/locations/hotels/by-city?cityCode=${cityCode}&max=15`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (!hotelListResponse.ok) {
+      console.log('⚠️ Hotel list also failed, using mock data');
+      return getMockHotels(originalLocation);
+    }
+    
+    const hotelListData = await hotelListResponse.json();
+    console.log('✅ Hotel list found:', hotelListData.data?.length || 0);
+    
+    if (!hotelListData.data || hotelListData.data.length === 0) {
+      return getMockHotels(originalLocation);
+    }
+    
+    return hotelListData.data.slice(0, 10).map((hotel: any) => ({
+      id: hotel.hotelId || `hotel-${Date.now()}-${Math.random()}`,
+      name: hotel.name || `Hotel in ${originalLocation}`,
+      address: hotel.address ? formatAddress(hotel.address) : originalLocation,
+      description: `Discover ${hotel.name || 'this hotel'} in ${originalLocation}. A perfect choice for travelers seeking quality accommodations.`,
+      rating: 4 + Math.random(),
+      priceRange: 'Contact for rates',
+      amenities: ['Free WiFi', 'Restaurant', 'Room Service', 'Fitness Center'],
+      photos: [getHotelPhoto(hotel.name)],
+      latitude: hotel.geoCode?.latitude,
+      longitude: hotel.geoCode?.longitude,
+      website: 'https://www.amadeus.com',
+      phone: '+1-555-HOTEL'
+    }));
+  } catch (error) {
+    console.error('❌ Hotel list fallback error:', error);
+    return getMockHotels(originalLocation);
+  }
+}
+
+// Helper functions
+function formatAddress(address: any): string {
+  const parts = [
+    address.lines?.join(', '),
+    address.postalCode,
+    address.cityName,
+    address.countryCode
+  ].filter(Boolean);
+  return parts.join(', ');
+}
+
+function formatPriceRange(offer: any): string {
+  if (offer.price?.total && offer.price?.currency) {
+    const total = parseFloat(offer.price.total);
+    const currency = offer.price.currency;
+    return `${currency} ${total.toFixed(0)}`;
+  }
+  return 'Contact for rates';
+}
+
+function getHotelPhoto(hotelName?: string): string {
+  const photos = [
+    'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=80',
+    'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=80',
+    'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=400&q=80',
+    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&q=80'
+  ];
+  
+  if (hotelName) {
+    const hash = hotelName.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+    return photos[hash % photos.length];
+  }
+  
+  return photos[0];
 }
 
 // Generate mock hotels when API fails
