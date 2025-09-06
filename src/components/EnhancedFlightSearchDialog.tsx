@@ -304,22 +304,15 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
             const segments = flight.itineraries?.[0]?.segments || [];
             const validatingAirlines = flight.validatingAirlineCodes || [];
             
-            // Prioritize marketing airlines (carrierCode) and validating airlines
+            // Get all possible airline codes for this flight
             const marketingAirlines = segments.map((segment: any) => segment.carrierCode);
-            const primaryAirlines = [...marketingAirlines, ...validatingAirlines];
-            
-            // First check if any marketing or validating airline matches
-            const hasMarketingMatch = primaryAirlines.some((airlineCode: string) => 
-              selectedAirlines.includes(airlineCode)
-            );
-            
-            if (hasMarketingMatch) {
-              return true;
-            }
-            
-            // Only if no marketing match, check operating airlines as fallback
             const operatingAirlines = segments.map((segment: any) => segment.operating?.carrierCode).filter(Boolean);
-            return operatingAirlines.some((airlineCode: string) => 
+            
+            // Combine all airline codes (marketing, operating, validating)
+            const allAirlineCodes = [...new Set([...marketingAirlines, ...operatingAirlines, ...validatingAirlines])];
+            
+            // Check if any of the flight's airline codes match the selected airlines
+            return allAirlineCodes.some((airlineCode: string) => 
               selectedAirlines.includes(airlineCode)
             );
           });
