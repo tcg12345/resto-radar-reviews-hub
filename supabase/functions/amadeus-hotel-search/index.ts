@@ -64,7 +64,7 @@ async function getAmadeusToken(): Promise<string> {
   return tokenData.access_token;
 }
 
-// Search hotels using production Amadeus Hotel Offers API
+// Search hotels using production Amadeus Hotel List + Hotel Offers API
 async function searchAmadeusHotels(location: string, checkInDate: string, checkOutDate: string, guests: number) {
   console.log('🏨 === STARTING PRODUCTION HOTEL SEARCH ===');
   console.log('📍 Search parameters:', { location, checkInDate, checkOutDate, guests });
@@ -106,52 +106,80 @@ async function searchAmadeusHotels(location: string, checkInDate: string, checkO
     const bestLocation = locationData.data[0];
     console.log('✅ Using location:', bestLocation.name, bestLocation.address?.cityCode || 'No city code');
     
-    // Step 3: Search for hotels using production Hotel Offers API
-    console.log('🏨 Step 3: Searching for hotels with production API...');
+    // Step 3: Get hotel list using Hotel List API
+    console.log('🏨 Step 3: Getting hotel list for location...');
     
-    let hotelSearchUrl;
-    const baseParams = `checkInDate=${checkInDate}&checkOutDate=${checkOutDate}&adults=${guests}&currency=USD`;
-    
+    let hotelListUrl;
     if (bestLocation.geoCode?.latitude && bestLocation.geoCode?.longitude) {
-      hotelSearchUrl = `${AMADEUS_API_BASE}/v3/shopping/hotel-offers?latitude=${bestLocation.geoCode.latitude}&longitude=${bestLocation.geoCode.longitude}&radius=20&radiusUnit=KM&${baseParams}`;
-      console.log('📍 Using geographic search (lat/lng)');
+      hotelListUrl = `${AMADEUS_API_BASE}/v1/reference-data/locations/hotels/by-geocode?latitude=${bestLocation.geoCode.latitude}&longitude=${bestLocation.geoCode.longitude}&radius=20&radiusUnit=KM`;
+      console.log('📍 Using geographic hotel search (lat/lng)');
     } else if (bestLocation.address?.cityCode || bestLocation.iataCode) {
       const destinationCode = bestLocation.address?.cityCode || bestLocation.iataCode;
-      hotelSearchUrl = `${AMADEUS_API_BASE}/v3/shopping/hotel-offers?destinationCode=${destinationCode}&${baseParams}`;
-      console.log('🏙️ Using city code search:', destinationCode);
+      hotelListUrl = `${AMADEUS_API_BASE}/v1/reference-data/locations/hotels/by-city?cityCode=${destinationCode}`;
+      console.log('🏙️ Using city code hotel search:', destinationCode);
     } else {
       console.error('❌ No suitable search parameters found');
       console.error('❌ Location data:', JSON.stringify(bestLocation, null, 2));
-      throw new Error('Unable to determine search parameters for hotel search');
+      throw new Error('Unable to determine search parameters for hotel list');
     }
     
-    console.log('🔗 Hotel search URL:', hotelSearchUrl);
+    console.log('🔗 Hotel list URL:', hotelListUrl);
     
-    const hotelResponse = await fetch(hotelSearchUrl, {
+    const hotelListResponse = await fetch(hotelListUrl, {
       headers: { 
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
     });
     
-    console.log('🏨 Hotel response status:', hotelResponse.status);
+    console.log('🏨 Hotel list response status:', hotelListResponse.status);
     
-    if (!hotelResponse.ok) {
-      const errorText = await hotelResponse.text();
-      console.error('❌ Hotel search failed:', hotelResponse.status, errorText);
-      throw new Error(`Hotel search failed: ${hotelResponse.status} - ${errorText}`);
+    if (!hotelListResponse.ok) {
+      const errorText = await hotelListResponse.text();
+      console.error('❌ Hotel list search failed:', hotelListResponse.status, errorText);
+      throw new Error(`Hotel list search failed: ${hotelListResponse.status} - ${errorText}`);
     }
     
-    const hotelData = await hotelResponse.json();
-    console.log('🏨 Hotels found:', hotelData.data?.length || 0);
+    const hotelListData = await hotelListResponse.json();
+    console.log('🏨 Hotels in list:', hotelListData.data?.length || 0);
     
-    if (!hotelData.data || hotelData.data.length === 0) {
-      console.log('⚠️ No hotels found, but API call succeeded');
-      throw new Error(`No hotels found for ${location} on the specified dates`);
+    if (!hotelListData.data || hotelListData.data.length === 0) {
+      console.log('⚠️ No hotels found in list for this location');
+      throw new Error(`No hotels found for ${location}`);
+    }
+    
+    // Step 4: Get hotel offers for the first few hotels (limit to avoid timeout)
+    const hotelIds = hotelListData.data.slice(0, 20).map((hotel: any) => hotel.hotelId).join(',');
+    console.log('🔍 Step 4: Getting offers for hotel IDs:', hotelIds.substring(0, 50) + '...');
+    
+    const hotelOffersUrl = `${AMADEUS_API_BASE}/v3/shopping/hotel-offers?hotelIds=${hotelIds}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}&adults=${guests}&currency=USD`;
+    console.log('🔗 Hotel offers URL (truncated):', hotelOffersUrl.substring(0, 100) + '...');
+    
+    const hotelOffersResponse = await fetch(hotelOffersUrl, {
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    console.log('🏨 Hotel offers response status:', hotelOffersResponse.status);
+    
+    if (!hotelOffersResponse.ok) {
+      const errorText = await hotelOffersResponse.text();
+      console.error('❌ Hotel offers search failed:', hotelOffersResponse.status, errorText);
+      throw new Error(`Hotel offers search failed: ${hotelOffersResponse.status} - ${errorText}`);
+    }
+    
+    const hotelOffersData = await hotelOffersResponse.json();
+    console.log('🏨 Hotel offers found:', hotelOffersData.data?.length || 0);
+    
+    if (!hotelOffersData.data || hotelOffersData.data.length === 0) {
+      console.log('⚠️ No hotel offers found, but API call succeeded');
+      throw new Error(`No hotel offers available for ${location} on the specified dates`);
     }
   
-    // Step 4: Transform production hotel data
-    const realHotels = hotelData.data.map((hotelOffer: any, index: number) => {
+    // Step 5: Transform production hotel data with offers
+    const realHotels = hotelOffersData.data.map((hotelOffer: any, index: number) => {
       const hotel = hotelOffer.hotel;
       const offers = hotelOffer.offers || [];
       const bestOffer = offers[0];
