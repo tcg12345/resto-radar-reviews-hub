@@ -942,7 +942,7 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                     <button 
                       onClick={handleSearch} 
                       disabled={isLoading}
-                      className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-lg font-semibold py-4 rounded-2xl shadow-lg shadow-blue-500/25 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.98]"
+                      className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-base font-medium py-3 rounded-xl shadow-lg shadow-blue-500/25 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.98]"
                     >
                       {isLoading ? 'Searching...' : 'Search Flights'}
                     </button>
