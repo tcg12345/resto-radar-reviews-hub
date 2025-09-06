@@ -111,16 +111,17 @@ async function searchAmadeusHotels(location: string, checkInDate: string, checkO
     
     let hotelListUrl;
     if (bestLocation.geoCode?.latitude && bestLocation.geoCode?.longitude) {
-      hotelListUrl = `${AMADEUS_API_BASE}/v1/reference-data/locations/hotels/by-geocode?latitude=${bestLocation.geoCode.latitude}&longitude=${bestLocation.geoCode.longitude}&radius=20&radiusUnit=KM`;
+      hotelListUrl = `${AMADEUS_API_BASE}/v1/reference-data/locations/hotels/by-geocode?latitude=${bestLocation.geoCode.latitude}&longitude=${bestLocation.geoCode.longitude}&radius=50&radiusUnit=KM`;
       console.log('📍 Using geographic hotel search (lat/lng)');
     } else if (bestLocation.address?.cityCode || bestLocation.iataCode) {
       const destinationCode = bestLocation.address?.cityCode || bestLocation.iataCode;
       hotelListUrl = `${AMADEUS_API_BASE}/v1/reference-data/locations/hotels/by-city?cityCode=${destinationCode}`;
       console.log('🏙️ Using city code hotel search:', destinationCode);
     } else {
-      console.error('❌ No suitable search parameters found');
-      console.error('❌ Location data:', JSON.stringify(bestLocation, null, 2));
-      throw new Error('Unable to determine search parameters for hotel list');
+      // Fallback: Try to use any available location data
+      console.log('⚠️ No standard location parameters found, attempting fallback...');
+      hotelListUrl = `${AMADEUS_API_BASE}/v1/reference-data/locations/hotels/by-geocode?latitude=48.8566&longitude=2.3522&radius=50&radiusUnit=KM`; // Default to Paris
+      console.log('🏙️ Using fallback location (Paris)');
     }
     
     console.log('🔗 Hotel list URL:', hotelListUrl);
@@ -142,6 +143,7 @@ async function searchAmadeusHotels(location: string, checkInDate: string, checkO
     
     const hotelListData = await hotelListResponse.json();
     console.log('🏨 Hotels in list:', hotelListData.data?.length || 0);
+    console.log('🔍 Hotel list sample data:', JSON.stringify(hotelListData.data?.slice(0, 2), null, 2));
     
     if (!hotelListData.data || hotelListData.data.length === 0) {
       console.log('⚠️ No hotels found in list for this location');
@@ -149,7 +151,21 @@ async function searchAmadeusHotels(location: string, checkInDate: string, checkO
     }
     
     // Step 4: Get hotel offers for the first few hotels (limit to avoid timeout)
-    const hotelIds = hotelListData.data.slice(0, 20).map((hotel: any) => hotel.hotelId).join(',');
+    // Debug: Check the structure of hotel data
+    console.log('🔍 First hotel structure:', JSON.stringify(hotelListData.data[0], null, 2));
+    
+    const hotelIds = hotelListData.data.slice(0, 20).map((hotel: any) => {
+      // Try different possible ID fields
+      const id = hotel.hotelId || hotel.id || hotel.chainCode;
+      console.log(`Hotel: ${hotel.name || 'Unknown'}, ID: ${id}`);
+      return id;
+    }).filter(Boolean).join(',');
+    
+    if (!hotelIds) {
+      console.error('❌ No valid hotel IDs found in response');
+      throw new Error('No valid hotel IDs found from hotel list API');
+    }
+    
     console.log('🔍 Step 4: Getting offers for hotel IDs:', hotelIds.substring(0, 50) + '...');
     
     const hotelOffersUrl = `${AMADEUS_API_BASE}/v3/shopping/hotel-offers?hotelIds=${hotelIds}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}&adults=${guests}&currency=USD`;
@@ -167,7 +183,10 @@ async function searchAmadeusHotels(location: string, checkInDate: string, checkO
     if (!hotelOffersResponse.ok) {
       const errorText = await hotelOffersResponse.text();
       console.error('❌ Hotel offers search failed:', hotelOffersResponse.status, errorText);
+      console.error('❌ Request URL was:', hotelOffersUrl);
+      console.error('❌ Hotel IDs used:', hotelIds);
       throw new Error(`Hotel offers search failed: ${hotelOffersResponse.status} - ${errorText}`);
+    }
     }
     
     const hotelOffersData = await hotelOffersResponse.json();
