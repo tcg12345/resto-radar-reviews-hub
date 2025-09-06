@@ -20,6 +20,19 @@ const WORLD_AIRPORTS = [
   { code: 'LGA', name: 'LaGuardia Airport', city: 'New York', country: 'USA', region: 'North America' },
   { code: 'EWR', name: 'Newark Liberty International Airport', city: 'Newark', country: 'USA', region: 'North America' },
   
+  // Central America & Caribbean - Costa Rica
+  { code: 'SJO', name: 'Juan Santamaría International Airport', city: 'San José', country: 'Costa Rica', region: 'Central America' },
+  { code: 'LIR', name: 'Daniel Oduber Quirós International Airport', city: 'Liberia', country: 'Costa Rica', region: 'Central America' },
+  { code: 'PBP', name: 'Pavas Airport', city: 'San José', country: 'Costa Rica', region: 'Central America' },
+  
+  // More Central America
+  { code: 'GUA', name: 'La Aurora International Airport', city: 'Guatemala City', country: 'Guatemala', region: 'Central America' },
+  { code: 'SAL', name: 'Monseñor Óscar Arnulfo Romero International Airport', city: 'San Salvador', country: 'El Salvador', region: 'Central America' },
+  { code: 'TGU', name: 'Toncontín International Airport', city: 'Tegucigalpa', country: 'Honduras', region: 'Central America' },
+  { code: 'MGA', name: 'Augusto C. Sandino International Airport', city: 'Managua', country: 'Nicaragua', region: 'Central America' },
+  { code: 'PTY', name: 'Tocumen International Airport', city: 'Panama City', country: 'Panama', region: 'Central America' },
+  { code: 'BZE', name: 'Philip S. W. Goldson International Airport', city: 'Belize City', country: 'Belize', region: 'Central America' },
+  
   // European Airports
   { code: 'FCO', name: 'Leonardo da Vinci–Fiumicino Airport', city: 'Rome', country: 'Italy', region: 'Europe' },
   { code: 'MAD', name: 'Adolfo Suárez Madrid–Barajas Airport', city: 'Madrid', country: 'Spain', region: 'Europe' },
@@ -31,6 +44,18 @@ const WORLD_AIRPORTS = [
   { code: 'VIE', name: 'Vienna International Airport', city: 'Vienna', country: 'Austria', region: 'Europe' },
   { code: 'CPH', name: 'Copenhagen Airport', city: 'Copenhagen', country: 'Denmark', region: 'Europe' },
   { code: 'ARN', name: 'Stockholm Arlanda Airport', city: 'Stockholm', country: 'Sweden', region: 'Europe' },
+  { code: 'LGW', name: 'London Gatwick Airport', city: 'London', country: 'UK', region: 'Europe' },
+  { code: 'STN', name: 'London Stansted Airport', city: 'London', country: 'UK', region: 'Europe' },
+  { code: 'LTN', name: 'London Luton Airport', city: 'London', country: 'UK', region: 'Europe' },
+  { code: 'MAN', name: 'Manchester Airport', city: 'Manchester', country: 'UK', region: 'Europe' },
+  { code: 'EDI', name: 'Edinburgh Airport', city: 'Edinburgh', country: 'UK', region: 'Europe' },
+  { code: 'DUB', name: 'Dublin Airport', city: 'Dublin', country: 'Ireland', region: 'Europe' },
+  { code: 'BRU', name: 'Brussels Airport', city: 'Brussels', country: 'Belgium', region: 'Europe' },
+  { code: 'OSL', name: 'Oslo Airport', city: 'Oslo', country: 'Norway', region: 'Europe' },
+  { code: 'HEL', name: 'Helsinki Airport', city: 'Helsinki', country: 'Finland', region: 'Europe' },
+  { code: 'WAW', name: 'Warsaw Chopin Airport', city: 'Warsaw', country: 'Poland', region: 'Europe' },
+  { code: 'PRG', name: 'Václav Havel Airport Prague', city: 'Prague', country: 'Czech Republic', region: 'Europe' },
+  { code: 'BUD', name: 'Budapest Ferenc Liszt International Airport', city: 'Budapest', country: 'Hungary', region: 'Europe' },
   
   // Asian Airports
   { code: 'PEK', name: 'Beijing Capital International Airport', city: 'Beijing', country: 'China', region: 'Asia' },
@@ -43,6 +68,15 @@ const WORLD_AIRPORTS = [
   { code: 'MNL', name: 'Ninoy Aquino International Airport', city: 'Manila', country: 'Philippines', region: 'Asia' },
   { code: 'DEL', name: 'Indira Gandhi International Airport', city: 'New Delhi', country: 'India', region: 'Asia' },
   { code: 'BOM', name: 'Chhatrapati Shivaji Maharaj International Airport', city: 'Mumbai', country: 'India', region: 'Asia' },
+  { code: 'CAN', name: 'Guangzhou Baiyun International Airport', city: 'Guangzhou', country: 'China', region: 'Asia' },
+  { code: 'CTU', name: 'Chengdu Shuangliu International Airport', city: 'Chengdu', country: 'China', region: 'Asia' },
+  { code: 'XIY', name: 'Xi\'an Xianyang International Airport', city: 'Xi\'an', country: 'China', region: 'Asia' },
+  { code: 'KMG', name: 'Kunming Changshui International Airport', city: 'Kunming', country: 'China', region: 'Asia' },
+  { code: 'TPE', name: 'Taiwan Taoyuan International Airport', city: 'Taipei', country: 'Taiwan', region: 'Asia' },
+  { code: 'HKG', name: 'Hong Kong International Airport', city: 'Hong Kong', country: 'Hong Kong', region: 'Asia' },
+  { code: 'CEB', name: 'Mactan-Cebu International Airport', city: 'Cebu', country: 'Philippines', region: 'Asia' },
+  { code: 'SGN', name: 'Tan Son Nhat International Airport', city: 'Ho Chi Minh City', country: 'Vietnam', region: 'Asia' },
+  { code: 'HAN', name: 'Noi Bai International Airport', city: 'Hanoi', country: 'Vietnam', region: 'Asia' },
   
   // Middle East & Africa
   { code: 'DXB', name: 'Dubai International Airport', city: 'Dubai', country: 'UAE', region: 'Middle East' },
@@ -67,8 +101,12 @@ const WORLD_AIRPORTS = [
   { code: 'LIM', name: 'Jorge Chávez International Airport', city: 'Lima', country: 'Peru', region: 'South America' },
   { code: 'MEX', name: 'Mexico City International Airport', city: 'Mexico City', country: 'Mexico', region: 'North America' },
   { code: 'CUN', name: 'Cancún International Airport', city: 'Cancún', country: 'Mexico', region: 'North America' },
+  { code: 'EZE', name: 'Ezeiza International Airport', city: 'Buenos Aires', country: 'Argentina', region: 'South America' },
+  { code: 'SCL', name: 'Arturo Merino Benítez International Airport', city: 'Santiago', country: 'Chile', region: 'South America' },
+  { code: 'UIO', name: 'Mariscal Sucre International Airport', city: 'Quito', country: 'Ecuador', region: 'South America' },
+  { code: 'CCS', name: 'Simón Bolívar International Airport', city: 'Caracas', country: 'Venezuela', region: 'South America' },
   
-  // More US Regional Airports
+  // More US Airports
   { code: 'ATL', name: 'Hartsfield-Jackson Atlanta International Airport', city: 'Atlanta', country: 'USA', region: 'North America' },
   { code: 'DFW', name: 'Dallas/Fort Worth International Airport', city: 'Dallas', country: 'USA', region: 'North America' },
   { code: 'DEN', name: 'Denver International Airport', city: 'Denver', country: 'USA', region: 'North America' },
@@ -86,52 +124,6 @@ const WORLD_AIRPORTS = [
   { code: 'BWI', name: 'Baltimore/Washington International Airport', city: 'Baltimore', country: 'USA', region: 'North America' },
   { code: 'DCA', name: 'Ronald Reagan Washington National Airport', city: 'Washington DC', country: 'USA', region: 'North America' },
   { code: 'IAD', name: 'Washington Dulles International Airport', city: 'Washington DC', country: 'USA', region: 'North America' },
-  
-  // Canadian Airports
-  { code: 'YYZ', name: 'Toronto Pearson International Airport', city: 'Toronto', country: 'Canada', region: 'North America' },
-  { code: 'YVR', name: 'Vancouver International Airport', city: 'Vancouver', country: 'Canada', region: 'North America' },
-  { code: 'YUL', name: 'Montréal-Pierre Elliott Trudeau International Airport', city: 'Montreal', country: 'Canada', region: 'North America' },
-  { code: 'YYC', name: 'Calgary International Airport', city: 'Calgary', country: 'Canada', region: 'North America' },
-  { code: 'YEG', name: 'Edmonton International Airport', city: 'Edmonton', country: 'Canada', region: 'North America' },
-  
-  // More European Regional
-  { code: 'LGW', name: 'London Gatwick Airport', city: 'London', country: 'UK', region: 'Europe' },
-  { code: 'STN', name: 'London Stansted Airport', city: 'London', country: 'UK', region: 'Europe' },
-  { code: 'LTN', name: 'London Luton Airport', city: 'London', country: 'UK', region: 'Europe' },
-  { code: 'MAN', name: 'Manchester Airport', city: 'Manchester', country: 'UK', region: 'Europe' },
-  { code: 'EDI', name: 'Edinburgh Airport', city: 'Edinburgh', country: 'UK', region: 'Europe' },
-  { code: 'DUB', name: 'Dublin Airport', city: 'Dublin', country: 'Ireland', region: 'Europe' },
-  { code: 'BRU', name: 'Brussels Airport', city: 'Brussels', country: 'Belgium', region: 'Europe' },
-  { code: 'OSL', name: 'Oslo Airport', city: 'Oslo', country: 'Norway', region: 'Europe' },
-  { code: 'HEL', name: 'Helsinki Airport', city: 'Helsinki', country: 'Finland', region: 'Europe' },
-  { code: 'WAW', name: 'Warsaw Chopin Airport', city: 'Warsaw', country: 'Poland', region: 'Europe' },
-  { code: 'PRG', name: 'Václav Havel Airport Prague', city: 'Prague', country: 'Czech Republic', region: 'Europe' },
-  { code: 'BUD', name: 'Budapest Ferenc Liszt International Airport', city: 'Budapest', country: 'Hungary', region: 'Europe' },
-  
-  // Caribbean
-  { code: 'SJU', name: 'Luis Muñoz Marín International Airport', city: 'San Juan', country: 'Puerto Rico', region: 'Caribbean' },
-  { code: 'NAS', name: 'Lynden Pindling International Airport', city: 'Nassau', country: 'Bahamas', region: 'Caribbean' },
-  { code: 'BGI', name: 'Grantley Adams International Airport', city: 'Bridgetown', country: 'Barbados', region: 'Caribbean' },
-  { code: 'KIN', name: 'Norman Manley International Airport', city: 'Kingston', country: 'Jamaica', region: 'Caribbean' },
-  
-  // Central Asia & Russia
-  { code: 'SVO', name: 'Sheremetyevo International Airport', city: 'Moscow', country: 'Russia', region: 'Europe' },
-  { code: 'DME', name: 'Domodedovo International Airport', city: 'Moscow', country: 'Russia', region: 'Europe' },
-  { code: 'LED', name: 'Pulkovo Airport', city: 'St. Petersburg', country: 'Russia', region: 'Europe' },
-  { code: 'TSE', name: 'Nur-Sultan Nazarbayev International Airport', city: 'Nur-Sultan', country: 'Kazakhstan', region: 'Asia' },
-  
-  // More Asian Regional
-  { code: 'CAN', name: 'Guangzhou Baiyun International Airport', city: 'Guangzhou', country: 'China', region: 'Asia' },
-  { code: 'CTU', name: 'Chengdu Shuangliu International Airport', city: 'Chengdu', country: 'China', region: 'Asia' },
-  { code: 'XIY', name: 'Xi\'an Xianyang International Airport', city: 'Xi\'an', country: 'China', region: 'Asia' },
-  { code: 'KMG', name: 'Kunming Changshui International Airport', city: 'Kunming', country: 'China', region: 'Asia' },
-  { code: 'TPE', name: 'Taiwan Taoyuan International Airport', city: 'Taipei', country: 'Taiwan', region: 'Asia' },
-  { code: 'HKG', name: 'Hong Kong International Airport', city: 'Hong Kong', country: 'Hong Kong', region: 'Asia' },
-  { code: 'CEB', name: 'Mactan-Cebu International Airport', city: 'Cebu', country: 'Philippines', region: 'Asia' },
-  { code: 'SGN', name: 'Tan Son Nhat International Airport', city: 'Ho Chi Minh City', country: 'Vietnam', region: 'Asia' },
-  { code: 'HAN', name: 'Noi Bai International Airport', city: 'Hanoi', country: 'Vietnam', region: 'Asia' },
-  
-  // Regional US Airports
   { code: 'SAN', name: 'San Diego International Airport', city: 'San Diego', country: 'USA', region: 'North America' },
   { code: 'TPA', name: 'Tampa International Airport', city: 'Tampa', country: 'USA', region: 'North America' },
   { code: 'MCO', name: 'Orlando International Airport', city: 'Orlando', country: 'USA', region: 'North America' },
@@ -150,11 +142,46 @@ const WORLD_AIRPORTS = [
   { code: 'MEM', name: 'Memphis International Airport', city: 'Memphis', country: 'USA', region: 'North America' },
   { code: 'BNA', name: 'Nashville International Airport', city: 'Nashville', country: 'USA', region: 'North America' },
   { code: 'RDU', name: 'Raleigh-Durham International Airport', city: 'Raleigh', country: 'USA', region: 'North America' },
-  { code: 'GSO', name: 'Piedmont Triad International Airport', city: 'Greensboro', country: 'USA', region: 'North America' },
-  { code: 'CHS', name: 'Charleston International Airport', city: 'Charleston', country: 'USA', region: 'North America' },
-  { code: 'SAV', name: 'Savannah/Hilton Head International Airport', city: 'Savannah', country: 'USA', region: 'North America' },
-  { code: 'JAX', name: 'Jacksonville International Airport', city: 'Jacksonville', country: 'USA', region: 'North America' },
-  { code: 'PBI', name: 'Palm Beach International Airport', city: 'West Palm Beach', country: 'USA', region: 'North America' },
+  { code: 'CLE', name: 'Cleveland Hopkins International Airport', city: 'Cleveland', country: 'USA', region: 'North America' },
+  { code: 'PIT', name: 'Pittsburgh International Airport', city: 'Pittsburgh', country: 'USA', region: 'North America' },
+  
+  // Canadian Airports
+  { code: 'YYZ', name: 'Toronto Pearson International Airport', city: 'Toronto', country: 'Canada', region: 'North America' },
+  { code: 'YVR', name: 'Vancouver International Airport', city: 'Vancouver', country: 'Canada', region: 'North America' },
+  { code: 'YUL', name: 'Montréal-Pierre Elliott Trudeau International Airport', city: 'Montreal', country: 'Canada', region: 'North America' },
+  { code: 'YYC', name: 'Calgary International Airport', city: 'Calgary', country: 'Canada', region: 'North America' },
+  { code: 'YEG', name: 'Edmonton International Airport', city: 'Edmonton', country: 'Canada', region: 'North America' },
+  
+  // Caribbean
+  { code: 'SJU', name: 'Luis Muñoz Marín International Airport', city: 'San Juan', country: 'Puerto Rico', region: 'Caribbean' },
+  { code: 'NAS', name: 'Lynden Pindling International Airport', city: 'Nassau', country: 'Bahamas', region: 'Caribbean' },
+  { code: 'BGI', name: 'Grantley Adams International Airport', city: 'Bridgetown', country: 'Barbados', region: 'Caribbean' },
+  { code: 'KIN', name: 'Norman Manley International Airport', city: 'Kingston', country: 'Jamaica', region: 'Caribbean' },
+  { code: 'MBJ', name: 'Sangster International Airport', city: 'Montego Bay', country: 'Jamaica', region: 'Caribbean' },
+  { code: 'AUA', name: 'Queen Beatrix International Airport', city: 'Oranjestad', country: 'Aruba', region: 'Caribbean' },
+  { code: 'CUR', name: 'Curaçao International Airport', city: 'Willemstad', country: 'Curaçao', region: 'Caribbean' },
+  
+  // Central Asia & Russia
+  { code: 'SVO', name: 'Sheremetyevo International Airport', city: 'Moscow', country: 'Russia', region: 'Europe' },
+  { code: 'DME', name: 'Domodedovo International Airport', city: 'Moscow', country: 'Russia', region: 'Europe' },
+  { code: 'LED', name: 'Pulkovo Airport', city: 'St. Petersburg', country: 'Russia', region: 'Europe' },
+  { code: 'TSE', name: 'Nur-Sultan Nazarbayev International Airport', city: 'Nur-Sultan', country: 'Kazakhstan', region: 'Asia' },
+  
+  // More Regional US
+  { code: 'ALB', name: 'Albany International Airport', city: 'Albany', country: 'USA', region: 'North America' },
+  { code: 'SYR', name: 'Syracuse Hancock International Airport', city: 'Syracuse', country: 'USA', region: 'North America' },
+  { code: 'ROC', name: 'Greater Rochester International Airport', city: 'Rochester', country: 'USA', region: 'North America' },
+  { code: 'BUF', name: 'Buffalo Niagara International Airport', city: 'Buffalo', country: 'USA', region: 'North America' },
+  { code: 'RIC', name: 'Richmond International Airport', city: 'Richmond', country: 'USA', region: 'North America' },
+  { code: 'ORF', name: 'Norfolk International Airport', city: 'Norfolk', country: 'USA', region: 'North America' },
+  { code: 'GSP', name: 'Greenville–Spartanburg International Airport', city: 'Greenville', country: 'USA', region: 'North America' },
+  { code: 'CAE', name: 'Columbia Metropolitan Airport', city: 'Columbia', country: 'USA', region: 'North America' },
+  { code: 'MYR', name: 'Myrtle Beach International Airport', city: 'Myrtle Beach', country: 'USA', region: 'North America' },
+  { code: 'AVL', name: 'Asheville Regional Airport', city: 'Asheville', country: 'USA', region: 'North America' },
+  { code: 'TYS', name: 'McGhee Tyson Airport', city: 'Knoxville', country: 'USA', region: 'North America' },
+  { code: 'CHA', name: 'Chattanooga Metropolitan Airport', city: 'Chattanooga', country: 'USA', region: 'North America' },
+  { code: 'HSV', name: 'Huntsville International Airport', city: 'Huntsville', country: 'USA', region: 'North America' },
+  { code: 'BHM', name: 'Birmingham-Shuttlesworth International Airport', city: 'Birmingham', country: 'USA', region: 'North America' },
   { code: 'TUS', name: 'Tucson International Airport', city: 'Tucson', country: 'USA', region: 'North America' },
   { code: 'ABQ', name: 'Albuquerque International Sunport', city: 'Albuquerque', country: 'USA', region: 'North America' },
   { code: 'OKC', name: 'Will Rogers World Airport', city: 'Oklahoma City', country: 'USA', region: 'North America' },
@@ -162,31 +189,6 @@ const WORLD_AIRPORTS = [
   { code: 'OMA', name: 'Eppley Airfield', city: 'Omaha', country: 'USA', region: 'North America' },
   { code: 'ICT', name: 'Wichita Dwight D. Eisenhower National Airport', city: 'Wichita', country: 'USA', region: 'North America' },
   { code: 'DSM', name: 'Des Moines International Airport', city: 'Des Moines', country: 'USA', region: 'North America' },
-  { code: 'CID', name: 'Eastern Iowa Airport', city: 'Cedar Rapids', country: 'USA', region: 'North America' },
-  { code: 'MDT', name: 'Harrisburg International Airport', city: 'Harrisburg', country: 'USA', region: 'North America' },
-  { code: 'ALB', name: 'Albany International Airport', city: 'Albany', country: 'USA', region: 'North America' },
-  { code: 'SYR', name: 'Syracuse Hancock International Airport', city: 'Syracuse', country: 'USA', region: 'North America' },
-  { code: 'ROC', name: 'Greater Rochester International Airport', city: 'Rochester', country: 'USA', region: 'North America' },
-  { code: 'BUF', name: 'Buffalo Niagara International Airport', city: 'Buffalo', country: 'USA', region: 'North America' },
-  { code: 'CLE', name: 'Cleveland Hopkins International Airport', city: 'Cleveland', country: 'USA', region: 'North America' },
-  { code: 'PIT', name: 'Pittsburgh International Airport', city: 'Pittsburgh', country: 'USA', region: 'North America' },
-  { code: 'RIC', name: 'Richmond International Airport', city: 'Richmond', country: 'USA', region: 'North America' },
-  { code: 'ORF', name: 'Norfolk International Airport', city: 'Norfolk', country: 'USA', region: 'North America' },
-  { code: 'ROA', name: 'Roanoke–Blacksburg Regional Airport', city: 'Roanoke', country: 'USA', region: 'North America' },
-  { code: 'GSP', name: 'Greenville–Spartanburg International Airport', city: 'Greenville', country: 'USA', region: 'North America' },
-  { code: 'CAE', name: 'Columbia Metropolitan Airport', city: 'Columbia', country: 'USA', region: 'North America' },
-  { code: 'MYR', name: 'Myrtle Beach International Airport', city: 'Myrtle Beach', country: 'USA', region: 'North America' },
-  { code: 'AVL', name: 'Asheville Regional Airport', city: 'Asheville', country: 'USA', region: 'North America' },
-  { code: 'TRI', name: 'Tri-Cities Airport', city: 'Bristol', country: 'USA', region: 'North America' },
-  { code: 'TYS', name: 'McGhee Tyson Airport', city: 'Knoxville', country: 'USA', region: 'North America' },
-  { code: 'CHA', name: 'Chattanooga Metropolitan Airport', city: 'Chattanooga', country: 'USA', region: 'North America' },
-  { code: 'HSV', name: 'Huntsville International Airport', city: 'Huntsville', country: 'USA', region: 'North America' },
-  { code: 'BHM', name: 'Birmingham-Shuttlesworth International Airport', city: 'Birmingham', country: 'USA', region: 'North America' },
-  { code: 'MOB', name: 'Mobile Regional Airport', city: 'Mobile', country: 'USA', region: 'North America' },
-  { code: 'PNS', name: 'Pensacola International Airport', city: 'Pensacola', country: 'USA', region: 'North America' },
-  { code: 'VPS', name: 'Destin-Fort Walton Beach Airport', city: 'Valparaiso', country: 'USA', region: 'North America' },
-  { code: 'TLH', name: 'Tallahassee International Airport', city: 'Tallahassee', country: 'USA', region: 'North America' },
-  { code: 'GNV', name: 'Gainesville Regional Airport', city: 'Gainesville', country: 'USA', region: 'North America' },
 ];
 
 serve(async (req) => {
@@ -209,7 +211,7 @@ serve(async (req) => {
 
     const searchTerm = keyword.toLowerCase().trim();
     
-    // Search through comprehensive airport database
+    // Enhanced search through comprehensive airport database with city support
     const matchingAirports = WORLD_AIRPORTS.filter(airport => {
       const nameMatch = airport.name.toLowerCase().includes(searchTerm);
       const codeMatch = airport.code.toLowerCase().includes(searchTerm);
@@ -219,8 +221,36 @@ serve(async (req) => {
       return nameMatch || codeMatch || cityMatch || countryMatch;
     });
 
+    // Group airports by city for city-based searches
+    const cityGroups = new Map();
+    matchingAirports.forEach(airport => {
+      const cityKey = `${airport.city}-${airport.country}`;
+      if (!cityGroups.has(cityKey)) {
+        cityGroups.set(cityKey, []);
+      }
+      cityGroups.get(cityKey).push(airport);
+    });
+
+    // If searching by city name, show all airports in matching cities
+    let finalResults = [...matchingAirports];
+    
+    // Check if we should include all airports from matching cities
+    if (searchTerm.length > 2) {
+      for (const [cityKey, airportsInCity] of cityGroups.entries()) {
+        const [cityName, countryName] = cityKey.split('-');
+        if (cityName.toLowerCase().includes(searchTerm) && airportsInCity.length > 1) {
+          // Add all airports from this city if not already included
+          airportsInCity.forEach(airport => {
+            if (!finalResults.find(existing => existing.code === airport.code)) {
+              finalResults.push(airport);
+            }
+          });
+        }
+      }
+    }
+
     // Sort results by relevance
-    const sortedResults = matchingAirports.sort((a, b) => {
+    const sortedResults = finalResults.sort((a, b) => {
       // Prioritize exact IATA code matches
       if (a.code.toLowerCase() === searchTerm) return -1;
       if (b.code.toLowerCase() === searchTerm) return 1;
