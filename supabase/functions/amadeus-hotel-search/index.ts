@@ -108,9 +108,9 @@ function generateMockHotels(location: string, checkInDate: string, checkOutDate:
 }
 
 // Search hotels with fallback to mock data
-async function searchAmadeusHotels(location: string, checkInDate: string, checkOutDate: string, guests: number) {
+async function searchAmadeusHotels(location: string, checkInDate: string, checkOutDate: string, guests: number, hotelName?: string) {
   console.log('🏨 === STARTING HOTEL SEARCH ===');
-  console.log('📍 Search parameters:', { location, checkInDate, checkOutDate, guests });
+  console.log('📍 Search parameters:', { location, checkInDate, checkOutDate, guests, hotelName });
   
   try {
     // Step 1: Get production token
@@ -189,8 +189,28 @@ async function searchAmadeusHotels(location: string, checkInDate: string, checkO
       return generateMockHotels(location, checkInDate, checkOutDate, guests);
     }
     
-    // Step 4: Transform hotel list into mock-like format for consistency
-    const hotels = hotelListData.data.slice(0, 10).map((hotel: any, index: number) => ({
+    // Step 4: Filter hotels by name if provided, then transform
+    let filteredHotels = hotelListData.data;
+    
+    if (hotelName) {
+      console.log('🔍 Filtering hotels by name:', hotelName);
+      filteredHotels = hotelListData.data.filter((hotel: any) => 
+        hotel.name?.toLowerCase().includes(hotelName.toLowerCase())
+      );
+      console.log('🏨 Hotels after name filtering:', filteredHotels.length);
+      
+      // If no exact matches, try broader search
+      if (filteredHotels.length === 0) {
+        const hotelWords = hotelName.toLowerCase().split(' ');
+        filteredHotels = hotelListData.data.filter((hotel: any) => 
+          hotelWords.some(word => hotel.name?.toLowerCase().includes(word))
+        );
+        console.log('🏨 Hotels after broader name search:', filteredHotels.length);
+      }
+    }
+    
+    // Step 5: Transform hotel list into mock-like format for consistency
+    const hotels = filteredHotels.slice(0, 10).map((hotel: any, index: number) => ({
       id: hotel.hotelId || hotel.id || `amadeus-${Date.now()}-${index}`,
       name: hotel.name || `Hotel in ${location}`,
       address: hotel.address ? `${hotel.address.lines?.[0] || ''}, ${hotel.address.cityName || location}` : `${location}`,
@@ -241,7 +261,7 @@ serve(async (req) => {
     const body = await req.json();
     console.log('📋 Request body:', JSON.stringify(body, null, 2));
     
-    const { location, checkInDate, checkOutDate, guests } = body;
+    const { location, checkInDate, checkOutDate, guests, hotelName } = body;
     
     // Validate required parameters
     if (!location) {
@@ -260,7 +280,8 @@ serve(async (req) => {
       location: location.trim(),
       checkInDate: checkInDate || '2025-01-15',
       checkOutDate: checkOutDate || '2025-01-16',
-      guests: guests || 1
+      guests: guests || 1,
+      hotelName: hotelName?.trim()
     };
     
     console.log('🔍 Final search params:', searchParams);
@@ -270,7 +291,8 @@ serve(async (req) => {
       searchParams.location, 
       searchParams.checkInDate, 
       searchParams.checkOutDate, 
-      searchParams.guests
+      searchParams.guests,
+      searchParams.hotelName
     );
     
     const response = {

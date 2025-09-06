@@ -60,6 +60,7 @@ export interface HotelSearchParams {
   checkInDate: string;
   checkOutDate: string;
   guests: number;
+  hotelName?: string;
   priceRange?: string;
 }
 
@@ -144,11 +145,8 @@ export const useAmadeusApi = () => {
 
   const searchHotels = async (params: HotelSearchParams): Promise<Hotel[]> => {
     try {
-      const { data, error } = await supabase.functions.invoke('amadeus-api', {
-        body: {
-          endpoint: 'search-hotels',
-          ...params
-        }
+      const { data, error } = await supabase.functions.invoke('amadeus-hotel-search', {
+        body: params
       });
 
       if (error) {
