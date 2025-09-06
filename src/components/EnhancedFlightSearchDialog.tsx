@@ -626,8 +626,33 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                             {showAirlineFilter && (
                               <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
                                 <div className="p-2 space-y-1">
-                                  {getAirlineOptions().slice(0, 15).map((airline) => (
-                                    <label key={airline.code} className="flex items-center gap-2 p-2 hover:bg-muted rounded-sm cursor-pointer">
+                                  <div className="relative mb-2">
+                                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                                    <input
+                                      type="text"
+                                      placeholder="Search airlines..."
+                                      className="w-full pl-7 pr-2 py-1 text-xs border border-border rounded bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                                      onChange={(e) => {
+                                        const searchTerm = e.target.value.toLowerCase();
+                                        const filteredAirlines = getAirlineOptions().filter(airline => 
+                                          airline.name.toLowerCase().includes(searchTerm) ||
+                                          airline.code.toLowerCase().includes(searchTerm)
+                                        );
+                                        e.target.parentElement?.parentElement?.setAttribute('data-search', searchTerm);
+                                        e.target.parentElement?.parentElement?.querySelectorAll('.airline-option').forEach((option: any) => {
+                                          const airlineName = option.querySelector('.airline-name')?.textContent?.toLowerCase() || '';
+                                          const airlineCode = option.querySelector('.airline-code')?.textContent?.toLowerCase() || '';
+                                          if (airlineName.includes(searchTerm) || airlineCode.includes(searchTerm)) {
+                                            option.style.display = '';
+                                          } else {
+                                            option.style.display = 'none';
+                                          }
+                                        });
+                                      }}
+                                    />
+                                  </div>
+                                  {getAirlineOptions().map((airline) => (
+                                    <label key={airline.code} className="airline-option flex items-center gap-2 p-2 hover:bg-muted rounded-sm cursor-pointer">
                                       <input
                                         type="checkbox"
                                         checked={selectedAirlines.includes(airline.code)}
@@ -641,8 +666,8 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                                         className="rounded border-border"
                                       />
                                       <div className="flex-1 flex items-center justify-between">
-                                        <span className="text-sm text-foreground">{airline.name}</span>
-                                        <span className="text-xs text-muted-foreground font-mono">{airline.code}</span>
+                                        <span className="airline-name text-sm text-foreground">{airline.name}</span>
+                                        <span className="airline-code text-xs text-muted-foreground font-mono">{airline.code}</span>
                                       </div>
                                     </label>
                                   ))}
@@ -963,8 +988,28 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                       {showAirlineFilter && (
                         <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
                           <div className="p-2 space-y-1">
-                            {getAirlineOptions().slice(0, 15).map((airline) => (
-                              <label key={airline.code} className="flex items-center gap-2 p-2 hover:bg-muted rounded-sm cursor-pointer">
+                            <div className="relative mb-2">
+                              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                              <input
+                                type="text"
+                                placeholder="Search airlines..."
+                                className="w-full pl-7 pr-2 py-1 text-xs border border-border rounded bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                                onChange={(e) => {
+                                  const searchTerm = e.target.value.toLowerCase();
+                                  e.target.parentElement?.parentElement?.querySelectorAll('.airline-option').forEach((option: any) => {
+                                    const airlineName = option.querySelector('.airline-name')?.textContent?.toLowerCase() || '';
+                                    const airlineCode = option.querySelector('.airline-code')?.textContent?.toLowerCase() || '';
+                                    if (airlineName.includes(searchTerm) || airlineCode.includes(searchTerm)) {
+                                      option.style.display = '';
+                                    } else {
+                                      option.style.display = 'none';
+                                    }
+                                  });
+                                }}
+                              />
+                            </div>
+                            {getAirlineOptions().map((airline) => (
+                              <label key={airline.code} className="airline-option flex items-center gap-2 p-2 hover:bg-muted rounded-sm cursor-pointer">
                                 <input
                                   type="checkbox"
                                   checked={selectedAirlines.includes(airline.code)}
@@ -978,8 +1023,8 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                                   className="rounded border-border"
                                 />
                                 <div className="flex-1 flex items-center justify-between">
-                                  <span className="text-sm text-foreground">{airline.name}</span>
-                                  <span className="text-xs text-muted-foreground font-mono">{airline.code}</span>
+                                  <span className="airline-name text-sm text-foreground">{airline.name}</span>
+                                  <span className="airline-code text-xs text-muted-foreground font-mono">{airline.code}</span>
                                 </div>
                               </label>
                             ))}
