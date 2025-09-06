@@ -318,6 +318,18 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
           });
         }
         
+        // Log flight data for debugging
+        console.log('Raw flight data:', filteredResults.slice(0, 2));
+        filteredResults.forEach((flight, index) => {
+          const segments = flight.itineraries?.[0]?.segments || [];
+          console.log(`Flight ${index}:`, {
+            flightNumber: `${segments[0]?.carrierCode}${segments[0]?.number}`,
+            departure: segments[0]?.departure,
+            arrival: segments[segments.length - 1]?.arrival,
+            segments: segments.length
+          });
+        });
+        
         setFlightResults(filteredResults);
         setShowResults(true);
       } else {
@@ -451,15 +463,19 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-8 flex-1">
                   {/* Departure */}
-                  <div className="text-center space-y-1">
-                    <div className="text-xl font-bold text-foreground tracking-tight">
-                      {flight.itineraries?.[0]?.segments?.[0]?.departure?.at ? 
-                        format(new Date(flight.itineraries[0].segments[0].departure.at), 'HH:mm') : 'N/A'}
-                    </div>
-                    <div className="text-sm text-muted-foreground font-semibold bg-muted/50 px-2 py-1 rounded-md">
-                      {flight.itineraries?.[0]?.segments?.[0]?.departure?.iataCode || fromAirport}
-                    </div>
-                  </div>
+                   <div className="text-center space-y-1">
+                     <div className="text-xl font-bold text-foreground tracking-tight">
+                       {flight.itineraries?.[0]?.segments?.[0]?.departure?.at ? 
+                         (() => {
+                           const departureTime = flight.itineraries[0].segments[0].departure.at;
+                           // Handle timezone properly - the API returns times in local airport timezone
+                           return format(new Date(departureTime), 'HH:mm');
+                         })() : 'N/A'}
+                     </div>
+                     <div className="text-sm text-muted-foreground font-semibold bg-muted/50 px-2 py-1 rounded-md">
+                       {flight.itineraries?.[0]?.segments?.[0]?.departure?.iataCode || fromAirport}
+                     </div>
+                   </div>
                   
                   {/* Flight path */}
                   <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -477,15 +493,19 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                   </div>
                   
                   {/* Arrival */}
-                  <div className="text-center space-y-1">
-                    <div className="text-xl font-bold text-foreground tracking-tight">
-                      {flight.itineraries?.[0]?.segments?.[flight.itineraries[0].segments.length - 1]?.arrival?.at ? 
-                        format(new Date(flight.itineraries[0].segments[flight.itineraries[0].segments.length - 1].arrival.at), 'HH:mm') : 'N/A'}
-                    </div>
-                    <div className="text-sm text-muted-foreground font-semibold bg-muted/50 px-2 py-1 rounded-md">
-                      {flight.itineraries?.[0]?.segments?.[flight.itineraries[0].segments.length - 1]?.arrival?.iataCode || toAirport}
-                    </div>
-                  </div>
+                   <div className="text-center space-y-1">
+                     <div className="text-xl font-bold text-foreground tracking-tight">
+                       {flight.itineraries?.[0]?.segments?.[flight.itineraries[0].segments.length - 1]?.arrival?.at ? 
+                         (() => {
+                           const arrivalTime = flight.itineraries[0].segments[flight.itineraries[0].segments.length - 1].arrival.at;
+                           // Handle timezone properly - the API returns times in local airport timezone
+                           return format(new Date(arrivalTime), 'HH:mm');
+                         })() : 'N/A'}
+                     </div>
+                     <div className="text-sm text-muted-foreground font-semibold bg-muted/50 px-2 py-1 rounded-md">
+                       {flight.itineraries?.[0]?.segments?.[flight.itineraries[0].segments.length - 1]?.arrival?.iataCode || toAirport}
+                     </div>
+                   </div>
                 </div>
               </div>
               
