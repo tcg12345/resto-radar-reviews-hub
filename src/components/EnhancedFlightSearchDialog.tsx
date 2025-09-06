@@ -237,18 +237,47 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
       if (data?.data) {
         let filteredResults = data.data;
         
-        // Filter by stops if not "all"
-        if (searchType === 'route' && stops !== 'all') {
+        // Validate flight routes match search criteria
+        if (searchType === 'route') {
           filteredResults = data.data.filter((flight: any) => {
             const segments = flight.itineraries?.[0]?.segments || [];
-            const stopCount = segments.length - 1;
+            if (segments.length === 0) return false;
             
-            switch (stops) {
-              case 'nonstop': return stopCount === 0;
-              case 'onestop': return stopCount === 1;
-              case 'twostops': return stopCount === 2;
-              default: return true;
-            }
+            const firstSegment = segments[0];
+            const lastSegment = segments[segments.length - 1];
+            
+            // Check if flight actually departs from and arrives at the searched airports
+            const departureMatch = firstSegment?.departure?.iataCode === fromAirport;
+            const arrivalMatch = lastSegment?.arrival?.iataCode === toAirport;
+            
+            return departureMatch && arrivalMatch;
+          });
+          
+          // Filter by stops if not "all"
+          if (stops !== 'all') {
+            filteredResults = filteredResults.filter((flight: any) => {
+              const segments = flight.itineraries?.[0]?.segments || [];
+              const stopCount = segments.length - 1;
+              
+              switch (stops) {
+                case 'nonstop': return stopCount === 0;
+                case 'onestop': return stopCount === 1;
+                case 'twostops': return stopCount === 2;
+                default: return true;
+              }
+            });
+          }
+        } else if (searchType === 'flight') {
+          // For specific flight searches, validate the flight number and airline match
+          filteredResults = data.data.filter((flight: any) => {
+            const segments = flight.itineraries?.[0]?.segments || [];
+            if (segments.length === 0) return false;
+            
+            const firstSegment = segments[0];
+            const carrierMatch = firstSegment?.carrierCode === airline;
+            const flightNumberMatch = firstSegment?.number === flightNumber;
+            
+            return carrierMatch && flightNumberMatch;
           });
         }
         
