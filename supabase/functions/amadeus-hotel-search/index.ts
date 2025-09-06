@@ -69,74 +69,87 @@ async function searchAmadeusHotels(location: string, checkInDate: string, checkO
   console.log('🏨 === STARTING PRODUCTION HOTEL SEARCH ===');
   console.log('📍 Search parameters:', { location, checkInDate, checkOutDate, guests });
   
-  // Step 1: Get production token
-  const token = await getAmadeusToken();
-  
-  // Step 2: Search for location to get city code or coordinates
-  console.log('🔍 Searching for location:', location);
-  const locationUrl = `${AMADEUS_API_BASE}/v1/reference-data/locations?keyword=${encodeURIComponent(location)}&subType=CITY`;
-  
-  const locationResponse = await fetch(locationUrl, {
-    headers: { 
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+  try {
+    // Step 1: Get production token
+    console.log('🔑 Step 1: Getting production token...');
+    const token = await getAmadeusToken();
+    console.log('✅ Token obtained successfully');
+    
+    // Step 2: Search for location to get city code or coordinates
+    console.log('🔍 Step 2: Searching for location:', location);
+    const locationUrl = `${AMADEUS_API_BASE}/v1/reference-data/locations?keyword=${encodeURIComponent(location)}&subType=CITY`;
+    console.log('🔗 Location URL:', locationUrl);
+    
+    const locationResponse = await fetch(locationUrl, {
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    console.log('📍 Location response status:', locationResponse.status);
+    
+    if (!locationResponse.ok) {
+      const errorText = await locationResponse.text();
+      console.error('❌ Location search failed:', locationResponse.status, errorText);
+      throw new Error(`Location search failed: ${locationResponse.status} - ${errorText}`);
     }
-  });
-  
-  if (!locationResponse.ok) {
-    const errorText = await locationResponse.text();
-    console.error('❌ Location search failed:', locationResponse.status, errorText);
-    throw new Error(`Location search failed: ${locationResponse.status} - ${errorText}`);
-  }
-  
-  const locationData = await locationResponse.json();
-  console.log('📍 Location search results:', locationData.data?.length || 0, 'locations found');
-  
-  if (!locationData.data || locationData.data.length === 0) {
-    throw new Error(`No location found for: ${location}`);
-  }
-  
-  const bestLocation = locationData.data[0];
-  console.log('✅ Using location:', bestLocation.name, bestLocation.address?.cityCode || 'No city code');
-  
-  // Step 3: Search for hotels using production Hotel Offers API
-  console.log('🏨 Searching for hotels with production API...');
-  
-  let hotelSearchUrl;
-  const baseParams = `checkInDate=${checkInDate}&checkOutDate=${checkOutDate}&adults=${guests}&currency=USD`;
-  
-  if (bestLocation.geoCode?.latitude && bestLocation.geoCode?.longitude) {
-    hotelSearchUrl = `${AMADEUS_API_BASE}/v3/shopping/hotel-offers?latitude=${bestLocation.geoCode.latitude}&longitude=${bestLocation.geoCode.longitude}&radius=20&radiusUnit=KM&${baseParams}`;
-    console.log('📍 Using geographic search (lat/lng)');
-  } else if (bestLocation.address?.cityCode || bestLocation.iataCode) {
-    const destinationCode = bestLocation.address?.cityCode || bestLocation.iataCode;
-    hotelSearchUrl = `${AMADEUS_API_BASE}/v3/shopping/hotel-offers?destinationCode=${destinationCode}&${baseParams}`;
-    console.log('🏙️ Using city code search:', destinationCode);
-  } else {
-    throw new Error('Unable to determine search parameters for hotel search');
-  }
-  
-  console.log('🔗 Hotel search URL:', hotelSearchUrl);
-  
-  const hotelResponse = await fetch(hotelSearchUrl, {
-    headers: { 
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+    
+    const locationData = await locationResponse.json();
+    console.log('📍 Location search results:', JSON.stringify(locationData, null, 2));
+    
+    if (!locationData.data || locationData.data.length === 0) {
+      console.error('❌ No location data found for:', location);
+      throw new Error(`No location found for: ${location}`);
     }
-  });
-  
-  if (!hotelResponse.ok) {
-    const errorText = await hotelResponse.text();
-    console.error('❌ Hotel search failed:', hotelResponse.status, errorText);
-    throw new Error(`Hotel search failed: ${hotelResponse.status} - ${errorText}`);
-  }
-  
-  const hotelData = await hotelResponse.json();
-  console.log('🏨 Hotels found:', hotelData.data?.length || 0);
-  
-  if (!hotelData.data || hotelData.data.length === 0) {
-    throw new Error(`No hotels found for ${location} on the specified dates`);
-  }
+    
+    const bestLocation = locationData.data[0];
+    console.log('✅ Using location:', bestLocation.name, bestLocation.address?.cityCode || 'No city code');
+    
+    // Step 3: Search for hotels using production Hotel Offers API
+    console.log('🏨 Step 3: Searching for hotels with production API...');
+    
+    let hotelSearchUrl;
+    const baseParams = `checkInDate=${checkInDate}&checkOutDate=${checkOutDate}&adults=${guests}&currency=USD`;
+    
+    if (bestLocation.geoCode?.latitude && bestLocation.geoCode?.longitude) {
+      hotelSearchUrl = `${AMADEUS_API_BASE}/v3/shopping/hotel-offers?latitude=${bestLocation.geoCode.latitude}&longitude=${bestLocation.geoCode.longitude}&radius=20&radiusUnit=KM&${baseParams}`;
+      console.log('📍 Using geographic search (lat/lng)');
+    } else if (bestLocation.address?.cityCode || bestLocation.iataCode) {
+      const destinationCode = bestLocation.address?.cityCode || bestLocation.iataCode;
+      hotelSearchUrl = `${AMADEUS_API_BASE}/v3/shopping/hotel-offers?destinationCode=${destinationCode}&${baseParams}`;
+      console.log('🏙️ Using city code search:', destinationCode);
+    } else {
+      console.error('❌ No suitable search parameters found');
+      console.error('❌ Location data:', JSON.stringify(bestLocation, null, 2));
+      throw new Error('Unable to determine search parameters for hotel search');
+    }
+    
+    console.log('🔗 Hotel search URL:', hotelSearchUrl);
+    
+    const hotelResponse = await fetch(hotelSearchUrl, {
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    console.log('🏨 Hotel response status:', hotelResponse.status);
+    
+    if (!hotelResponse.ok) {
+      const errorText = await hotelResponse.text();
+      console.error('❌ Hotel search failed:', hotelResponse.status, errorText);
+      throw new Error(`Hotel search failed: ${hotelResponse.status} - ${errorText}`);
+    }
+    
+    const hotelData = await hotelResponse.json();
+    console.log('🏨 Hotels found:', hotelData.data?.length || 0);
+    console.log('🏨 Sample hotel data:', JSON.stringify(hotelData.data?.[0], null, 2));
+    
+    if (!hotelData.data || hotelData.data.length === 0) {
+      console.log('⚠️ No hotels found, but API call succeeded');
+      throw new Error(`No hotels found for ${location} on the specified dates`);
+    }
   
   // Step 4: Transform production hotel data
   const realHotels = hotelData.data.map((hotelOffer: any, index: number) => {
@@ -198,11 +211,13 @@ async function searchAmadeusHotels(location: string, checkInDate: string, checkO
 }
 
 serve(async (req) => {
-  console.log('🚀 Amadeus Hotel Search - Production API');
+  console.log('🚀 === AMADEUS HOTEL SEARCH - PRODUCTION API ===');
   console.log('📅 Request method:', req.method);
+  console.log('🌐 API Base URL:', AMADEUS_API_BASE);
   
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('✅ Handling OPTIONS request');
     return new Response('ok', { 
       status: 200,
       headers: {
@@ -213,6 +228,7 @@ serve(async (req) => {
   }
 
   try {
+    console.log('📝 Processing POST request...');
     const body = await req.json()
     console.log('📋 Request body:', JSON.stringify(body, null, 2))
     
@@ -268,20 +284,52 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('💥 Production API Error:', error);
-    console.error('💥 Error details:', error.message);
+    console.error('💥 === PRODUCTION API ERROR ===');
+    console.error('💥 Error type:', error.constructor.name);
+    console.error('💥 Error message:', error.message);
+    console.error('💥 Error stack:', error.stack);
+    
+    let errorMessage = 'Hotel search failed';
+    let statusCode = 500;
+    let errorType = 'PRODUCTION_API_ERROR';
+    
+    // Handle specific error types
+    if (error.message.includes('credentials not configured') || error.message.includes('API credentials')) {
+      errorMessage = 'Amadeus API credentials not configured';
+      errorType = 'CREDENTIALS_ERROR';
+      statusCode = 500;
+    } else if (error.message.includes('Location search failed')) {
+      errorMessage = 'Invalid location or location not found';
+      errorType = 'LOCATION_ERROR';
+      statusCode = 400;
+    } else if (error.message.includes('Hotel search failed')) {
+      errorMessage = 'Hotel search API failed';
+      errorType = 'HOTEL_SEARCH_ERROR';
+      statusCode = 500;
+    } else if (error.message.includes('No hotels found')) {
+      errorMessage = 'No hotels available for the specified criteria';
+      errorType = 'NO_RESULTS';
+      statusCode = 404;
+    }
     
     // Return proper error response - no mock data fallback
+    const errorResponse = {
+      error: errorMessage,
+      details: error.message,
+      timestamp: new Date().toISOString(),
+      type: errorType,
+      apiBase: AMADEUS_API_BASE,
+      suggestion: errorType === 'CREDENTIALS_ERROR' 
+        ? 'Please check your Amadeus production credentials in Supabase secrets'
+        : 'Please check your search parameters and try again'
+    };
+    
+    console.error('💥 Returning error response:', JSON.stringify(errorResponse, null, 2));
+    
     return new Response(
-      JSON.stringify({ 
-        error: 'Hotel search failed', 
-        details: error.message,
-        timestamp: new Date().toISOString(),
-        type: 'PRODUCTION_API_ERROR',
-        suggestion: 'Please check your Amadeus production credentials and try again'
-      }),
+      JSON.stringify(errorResponse),
       { 
-        status: 500, 
+        status: statusCode, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     )
