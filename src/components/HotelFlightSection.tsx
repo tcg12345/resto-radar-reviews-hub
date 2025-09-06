@@ -266,6 +266,44 @@ export function HotelFlightSection({
   const getFlightTrackingUrl = (airline: string, flightNumber: string) => {
     return `https://www.flightradar24.com/data/flights/${airline}${flightNumber}`;
   };
+
+  const getAirlineWebsite = (airline: string) => {
+    const airlineWebsites: { [key: string]: string } = {
+      'delta': 'https://www.delta.com',
+      'delta air lines': 'https://www.delta.com',
+      'american': 'https://www.aa.com',
+      'american airlines': 'https://www.aa.com',
+      'united': 'https://www.united.com',
+      'united airlines': 'https://www.united.com',
+      'southwest': 'https://www.southwest.com',
+      'southwest airlines': 'https://www.southwest.com',
+      'jetblue': 'https://www.jetblue.com',
+      'jetblue airways': 'https://www.jetblue.com',
+      'alaska': 'https://www.alaskaair.com',
+      'alaska airlines': 'https://www.alaskaair.com',
+      'spirit': 'https://www.spirit.com',
+      'spirit airlines': 'https://www.spirit.com',
+      'frontier': 'https://www.flyfrontier.com',
+      'frontier airlines': 'https://www.flyfrontier.com',
+      'hawaiian': 'https://www.hawaiianairlines.com',
+      'hawaiian airlines': 'https://www.hawaiianairlines.com',
+      'lufthansa': 'https://www.lufthansa.com',
+      'british airways': 'https://www.britishairways.com',
+      'air france': 'https://www.airfrance.com',
+      'klm': 'https://www.klm.com',
+      'emirates': 'https://www.emirates.com',
+      'qatar airways': 'https://www.qatarairways.com',
+      'singapore airlines': 'https://www.singaporeair.com',
+      'cathay pacific': 'https://www.cathaypacific.com',
+      'virgin atlantic': 'https://www.virginatlantic.com',
+      'virgin america': 'https://www.alaskaair.com',
+      'air canada': 'https://www.aircanada.com',
+      'westjet': 'https://www.westjet.com'
+    };
+    
+    const normalizedAirline = airline.toLowerCase().trim();
+    return airlineWebsites[normalizedAirline] || `https://www.google.com/search?q=${encodeURIComponent(airline + ' official website')}`;
+  };
   const handlePhotoClick = (index: number) => {
     setPhotoGalleryIndex(index);
     setIsPhotoGalleryOpen(true);
@@ -997,10 +1035,10 @@ export function HotelFlightSection({
                       <Radar className="w-4 h-4 mr-2" />
                       Track Flight
                     </Button>
-                    <Button 
+                     <Button 
                       variant="outline" 
                       size="sm" 
-                      onClick={() => window.open(`https://www.${selectedFlight.airline.toLowerCase().replace(' ', '')}.com`, '_blank')}
+                      onClick={() => window.open(getAirlineWebsite(selectedFlight.airline), '_blank')}
                       className="w-full"
                     >
                       <ExternalLink className="w-4 h-4 mr-2" />
@@ -1190,7 +1228,7 @@ export function HotelFlightSection({
                           <Radar className="w-3 h-3 mr-1" />
                           Track
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => window.open(`https://www.${flight.airline.toLowerCase().replace(' ', '')}.com`, '_blank')} className="h-6 px-2 text-xs text-purple-600 hover:text-purple-800 dark:text-purple-400">
+                        <Button size="sm" variant="ghost" onClick={() => window.open(getAirlineWebsite(flight.airline), '_blank')} className="h-6 px-2 text-xs text-purple-600 hover:text-purple-800 dark:text-purple-400">
                           <ExternalLink className="w-3 h-3 mr-1" />
                           Airline
                         </Button>
@@ -1610,7 +1648,7 @@ export function HotelFlightSection({
                     Track Flight
                   </Button>
                   
-                  <Button variant="outline" size="sm" onClick={() => window.open(`https://www.${selectedFlight.airline.toLowerCase().replace(' ', '')}.com`, '_blank')}>
+                  <Button variant="outline" size="sm" onClick={() => window.open(getAirlineWebsite(selectedFlight.airline), '_blank')}>
                     <ExternalLink className="w-4 h-4 mr-2" />
                     Airline Website
                   </Button>
