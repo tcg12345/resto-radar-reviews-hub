@@ -195,7 +195,8 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
           adults: parseInt(passengers),
           currencyCode: 'USD',
           max: 100,
-          nonStop: stops === 'nonstop' ? true : undefined
+          nonStop: stops === 'nonstop' ? true : undefined,
+          includedAirlineCodes: selectedAirlines.length > 0 ? selectedAirlines : undefined
         };
       }
 
