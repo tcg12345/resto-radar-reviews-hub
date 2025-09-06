@@ -497,297 +497,381 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose }: FlightSearchDial
               <div className="w-16"></div> {/* Spacer for center alignment */}
             </div>
             
-            <div className="flex-1 overflow-y-auto min-h-0 px-4">
+            <div className="flex-1 overflow-y-auto min-h-0 bg-gradient-to-b from-slate-900 to-slate-950">
               {showResults ? renderFlightResults() : (
-                <div className="py-4 space-y-4">
-                  {/* Slim Segmented Control */}
-                  <div className="bg-slate-800/50 rounded-2xl p-1 backdrop-blur-sm">
-                    <div className="grid grid-cols-2 gap-1">
+                <div className="p-6 space-y-6">
+                  {/* Premium Mode Toggle with Smooth Transitions */}
+                  <div className="relative bg-slate-800/30 backdrop-blur-xl rounded-2xl p-1.5 border border-slate-700/50 shadow-xl">
+                    <div className="flex relative">
                       <button
                         onClick={() => setSearchType('route')}
                         className={cn(
-                          "px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 tracking-tight",
+                          "flex-1 relative z-10 px-6 py-3.5 rounded-xl text-sm font-semibold tracking-tight transition-all duration-300 ease-in-out",
                           searchType === 'route'
-                            ? "bg-blue-500 text-white shadow-lg shadow-blue-500/20"
-                            : "text-slate-400 hover:text-slate-300 hover:bg-slate-700/30"
+                            ? "text-white"
+                            : "text-slate-400 hover:text-slate-200"
                         )}
                       >
-                        By Route
+                        <div className="flex items-center justify-center space-x-2">
+                          <Plane className="h-4 w-4" />
+                          <span>By Route</span>
+                        </div>
                       </button>
                       <button
                         onClick={() => setSearchType('flight')}
                         className={cn(
-                          "px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 tracking-tight",
+                          "flex-1 relative z-10 px-6 py-3.5 rounded-xl text-sm font-semibold tracking-tight transition-all duration-300 ease-in-out",
                           searchType === 'flight'
-                            ? "bg-blue-500 text-white shadow-lg shadow-blue-500/20"
-                            : "text-slate-400 hover:text-slate-300 hover:bg-slate-700/30"
+                            ? "text-white"
+                            : "text-slate-400 hover:text-slate-200"
                         )}
                       >
-                        By Number
+                        <div className="flex items-center justify-center space-x-2">
+                          <Search className="h-4 w-4" />
+                          <span>By Number</span>
+                        </div>
                       </button>
+                      {/* Sliding indicator */}
+                      <div 
+                        className={cn(
+                          "absolute top-1.5 bottom-1.5 w-1/2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg shadow-blue-500/25 transition-transform duration-300 ease-in-out",
+                          searchType === 'flight' && "translate-x-full"
+                        )}
+                      />
                     </div>
                   </div>
 
-                  {searchType === 'route' ? (
-                    <>
-                      {/* From Airport Card */}
-                      <div className="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/50 shadow-lg backdrop-blur-sm">
-                        <label className="block text-xs font-medium text-slate-400 mb-3 tracking-wide uppercase">From</label>
-                        <div className="flex items-center space-x-3">
-                          <Plane className="h-4 w-4 text-slate-400 opacity-70" />
-                          <div className="flex-1">
-                            <AirportSearch
-                              value={fromAirport}
-                              onChange={setFromAirport}
-                              placeholder="Choose departure airport"
-                              className="bg-transparent border-0 text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500/50 p-0 text-sm font-medium"
-                            />
+                  {/* Animated Form Content */}
+                  <div 
+                    key={searchType}
+                    className="animate-fade-in space-y-5"
+                  >
+                    {searchType === 'route' ? (
+                      <>
+                        {/* Route Section Header */}
+                        <div className="text-center pb-2">
+                          <h3 className="text-lg font-semibold text-slate-100 mb-1">Flight Route Search</h3>
+                          <p className="text-sm text-slate-400">Find flights between airports</p>
+                        </div>
+
+                        {/* From & To Airport Cards */}
+                        <div className="space-y-4">
+                          <div className="group relative bg-slate-800/50 backdrop-blur-sm rounded-2xl p-5 border border-slate-700/30 shadow-lg hover:shadow-xl hover:border-slate-600/50 transition-all duration-300">
+                            <label className="flex items-center space-x-2 text-xs font-medium text-slate-400 mb-4 tracking-wide uppercase">
+                              <Plane className="h-3.5 w-3.5 opacity-60" />
+                              <span>Departure Airport</span>
+                            </label>
+                            <div className="relative">
+                              <AirportSearch
+                                value={fromAirport}
+                                onChange={setFromAirport}
+                                placeholder="Search departure airport..."
+                                className="w-full bg-transparent border-0 text-slate-100 placeholder:text-slate-500 focus:ring-0 text-base font-medium p-0 focus:outline-none"
+                              />
+                              {!fromAirport && (
+                                <p className="text-xs text-slate-500 mt-3 flex items-center space-x-1">
+                                  <span className="w-1 h-1 bg-slate-500 rounded-full opacity-60"></span>
+                                  <span>Choose your departure city or airport</span>
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="group relative bg-slate-800/50 backdrop-blur-sm rounded-2xl p-5 border border-slate-700/30 shadow-lg hover:shadow-xl hover:border-slate-600/50 transition-all duration-300">
+                            <label className="flex items-center space-x-2 text-xs font-medium text-slate-400 mb-4 tracking-wide uppercase">
+                              <Plane className="h-3.5 w-3.5 opacity-60 rotate-90" />
+                              <span>Arrival Airport</span>
+                            </label>
+                            <div className="relative">
+                              <AirportSearch
+                                value={toAirport}
+                                onChange={setToAirport}
+                                placeholder="Search arrival airport..."
+                                className="w-full bg-transparent border-0 text-slate-100 placeholder:text-slate-500 focus:ring-0 text-base font-medium p-0 focus:outline-none"
+                              />
+                              {!toAirport && (
+                                <p className="text-xs text-slate-500 mt-3 flex items-center space-x-1">
+                                  <span className="w-1 h-1 bg-slate-500 rounded-full opacity-60"></span>
+                                  <span>Choose your destination city or airport</span>
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Route Direction Indicator */}
+                          <div className="flex justify-center -my-2 relative z-10">
+                            <div className="bg-slate-800/80 backdrop-blur-sm border border-slate-700/50 rounded-full p-2 shadow-lg">
+                              <ArrowRight className="h-4 w-4 text-slate-400" />
+                            </div>
                           </div>
                         </div>
-                        {!fromAirport && (
-                          <p className="text-xs text-slate-500 mt-2">Choose departure airport</p>
-                        )}
-                      </div>
 
-                      {/* To Airport Card */}
-                      <div className="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/50 shadow-lg backdrop-blur-sm">
-                        <label className="block text-xs font-medium text-slate-400 mb-3 tracking-wide uppercase">To</label>
-                        <div className="flex items-center space-x-3">
-                          <Plane className="h-4 w-4 text-slate-400 opacity-70 rotate-90" />
-                          <div className="flex-1">
-                            <AirportSearch
-                              value={toAirport}
-                              onChange={setToAirport}
-                              placeholder="Choose arrival airport"
-                              className="bg-transparent border-0 text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500/50 p-0 text-sm font-medium"
-                            />
-                          </div>
-                        </div>
-                        {!toAirport && (
-                          <p className="text-xs text-slate-500 mt-2">Choose arrival airport</p>
-                        )}
-                      </div>
-
-                      {/* Departure Date Card */}
-                      <div className="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/50 shadow-lg backdrop-blur-sm">
-                        <label className="block text-xs font-medium text-slate-400 mb-3 tracking-wide uppercase">Departure Date</label>
-                        <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                          <PopoverTrigger asChild>
-                            <div className="flex items-center space-x-3 cursor-pointer">
-                              <CalendarIcon className="h-4 w-4 text-slate-400 opacity-70" />
-                              <div className="flex-1">
-                                <span className={cn(
-                                  "text-sm font-medium",
+                        {/* Date Selection */}
+                        <div className="group relative bg-slate-800/50 backdrop-blur-sm rounded-2xl p-5 border border-slate-700/30 shadow-lg hover:shadow-xl hover:border-slate-600/50 transition-all duration-300">
+                          <label className="flex items-center space-x-2 text-xs font-medium text-slate-400 mb-4 tracking-wide uppercase">
+                            <CalendarIcon className="h-3.5 w-3.5 opacity-60" />
+                            <span>Departure Date</span>
+                          </label>
+                          <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                            <PopoverTrigger asChild>
+                              <div className="cursor-pointer">
+                                <div className={cn(
+                                  "text-base font-medium transition-colors duration-200",
                                   departureDate ? "text-slate-100" : "text-slate-500"
                                 )}>
-                                  {departureDate ? format(departureDate, "PPP") : "Select departure date"}
-                                </span>
+                                  {departureDate ? format(departureDate, "EEEE, MMMM dd, yyyy") : "Select your departure date"}
+                                </div>
+                                {!departureDate && (
+                                  <p className="text-xs text-slate-500 mt-3 flex items-center space-x-1">
+                                    <span className="w-1 h-1 bg-slate-500 rounded-full opacity-60"></span>
+                                    <span>Tap to open calendar</span>
+                                  </p>
+                                )}
                               </div>
-                            </div>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0 bg-slate-800 border-slate-700" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={departureDate}
-                              onSelect={(date) => {
-                                setDepartureDate(date);
-                                setIsCalendarOpen(false);
-                              }}
-                              initialFocus
-                              className="pointer-events-auto"
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        {!departureDate && (
-                          <p className="text-xs text-slate-500 mt-2">Select departure date</p>
-                        )}
-                      </div>
-
-                      {/* Passengers & Stops Cards */}
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/50 shadow-lg backdrop-blur-sm">
-                          <label className="block text-xs font-medium text-slate-400 mb-3 tracking-wide uppercase">Passengers</label>
-                          <Select value={passengers} onValueChange={setPassengers}>
-                            <SelectTrigger className="bg-transparent border-0 text-slate-100 focus:ring-2 focus:ring-blue-500/50 p-0 h-auto">
-                              <SelectValue className="text-sm font-medium" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-slate-800 border-slate-700">
-                              <SelectItem value="1" className="text-slate-100">1 Adult</SelectItem>
-                              <SelectItem value="2" className="text-slate-100">2 Adults</SelectItem>
-                              <SelectItem value="3" className="text-slate-100">3 Adults</SelectItem>
-                              <SelectItem value="4" className="text-slate-100">4 Adults</SelectItem>
-                              <SelectItem value="5" className="text-slate-100">5+ Adults</SelectItem>
-                            </SelectContent>
-                          </Select>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0 bg-slate-800/95 backdrop-blur-xl border-slate-700/50 shadow-2xl" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={departureDate}
+                                onSelect={(date) => {
+                                  setDepartureDate(date);
+                                  setIsCalendarOpen(false);
+                                }}
+                                initialFocus
+                                className="pointer-events-auto bg-slate-800/95 text-slate-100"
+                              />
+                            </PopoverContent>
+                          </Popover>
                         </div>
 
-                        <div className="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/50 shadow-lg backdrop-blur-sm">
-                          <label className="block text-xs font-medium text-slate-400 mb-3 tracking-wide uppercase">Stops</label>
-                          <Select value={stops} onValueChange={setStops}>
-                            <SelectTrigger className="bg-transparent border-0 text-slate-100 focus:ring-2 focus:ring-blue-500/50 p-0 h-auto">
-                              <SelectValue className="text-sm font-medium" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-slate-800 border-slate-700">
-                              <SelectItem value="all" className="text-slate-100">Any stops</SelectItem>
-                              <SelectItem value="nonstop" className="text-slate-100">Nonstop</SelectItem>
-                              <SelectItem value="onestop" className="text-slate-100">1 stop</SelectItem>
-                              <SelectItem value="twostops" className="text-slate-100">2+ stops</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
+                        {/* Passengers & Stops Grid */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="group relative bg-slate-800/50 backdrop-blur-sm rounded-2xl p-5 border border-slate-700/30 shadow-lg hover:shadow-xl hover:border-slate-600/50 transition-all duration-300">
+                            <label className="flex items-center space-x-2 text-xs font-medium text-slate-400 mb-4 tracking-wide uppercase">
+                              <ArrowRight className="h-3.5 w-3.5 opacity-60" />
+                              <span>Passengers</span>
+                            </label>
+                            <Select value={passengers} onValueChange={setPassengers}>
+                              <SelectTrigger className="bg-transparent border-0 text-slate-100 focus:ring-0 p-0 h-auto text-base font-medium">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-slate-800/95 backdrop-blur-xl border-slate-700/50 shadow-2xl">
+                                <SelectItem value="1" className="text-slate-100 hover:bg-slate-700/50">1 Adult</SelectItem>
+                                <SelectItem value="2" className="text-slate-100 hover:bg-slate-700/50">2 Adults</SelectItem>
+                                <SelectItem value="3" className="text-slate-100 hover:bg-slate-700/50">3 Adults</SelectItem>
+                                <SelectItem value="4" className="text-slate-100 hover:bg-slate-700/50">4 Adults</SelectItem>
+                                <SelectItem value="5" className="text-slate-100 hover:bg-slate-700/50">5+ Adults</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
 
-                      {/* Airline Filter Card */}
-                      <div className="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/50 shadow-lg backdrop-blur-sm">
-                        <label className="block text-xs font-medium text-slate-400 mb-3 tracking-wide uppercase">Airline Filter</label>
-                        <div className="relative">
-                          <Button
-                            variant="ghost"
-                            onClick={() => setShowAirlineFilter(!showAirlineFilter)}
-                            className="w-full justify-between bg-transparent hover:bg-slate-700/30 text-slate-100 p-0 h-auto"
-                          >
-                            <div className="flex items-center space-x-3">
-                              <Plane className="h-4 w-4 text-slate-400 opacity-70" />
-                              <span className="text-sm font-medium">
+                          <div className="group relative bg-slate-800/50 backdrop-blur-sm rounded-2xl p-5 border border-slate-700/30 shadow-lg hover:shadow-xl hover:border-slate-600/50 transition-all duration-300">
+                            <label className="flex items-center space-x-2 text-xs font-medium text-slate-400 mb-4 tracking-wide uppercase">
+                              <Clock className="h-3.5 w-3.5 opacity-60" />
+                              <span>Stops</span>
+                            </label>
+                            <Select value={stops} onValueChange={setStops}>
+                              <SelectTrigger className="bg-transparent border-0 text-slate-100 focus:ring-0 p-0 h-auto text-base font-medium">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-slate-800/95 backdrop-blur-xl border-slate-700/50 shadow-2xl">
+                                <SelectItem value="all" className="text-slate-100 hover:bg-slate-700/50">Any stops</SelectItem>
+                                <SelectItem value="nonstop" className="text-slate-100 hover:bg-slate-700/50">Nonstop only</SelectItem>
+                                <SelectItem value="onestop" className="text-slate-100 hover:bg-slate-700/50">1 stop max</SelectItem>
+                                <SelectItem value="twostops" className="text-slate-100 hover:bg-slate-700/50">2+ stops</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        {/* Airline Preference */}
+                        <div className="group relative bg-slate-800/50 backdrop-blur-sm rounded-2xl p-5 border border-slate-700/30 shadow-lg hover:shadow-xl hover:border-slate-600/50 transition-all duration-300">
+                          <label className="flex items-center space-x-2 text-xs font-medium text-slate-400 mb-4 tracking-wide uppercase">
+                            <Plane className="h-3.5 w-3.5 opacity-60" />
+                            <span>Airline Preference</span>
+                          </label>
+                          <div className="relative">
+                            <Button
+                              variant="ghost"
+                              onClick={() => setShowAirlineFilter(!showAirlineFilter)}
+                              className="w-full justify-between bg-transparent hover:bg-slate-700/30 text-slate-100 p-0 h-auto text-base font-medium"
+                            >
+                              <span>
                                 {airline ? getAirlineName(airline) : (
-                                  <span className="text-slate-500">No airlines selected</span>
+                                  <span className="text-slate-500">Any airline</span>
                                 )}
                               </span>
-                            </div>
-                            <ChevronDown className={cn(
-                              "h-4 w-4 text-slate-400 transition-transform duration-200",
-                              showAirlineFilter && "rotate-180"
-                            )} />
-                          </Button>
-                          
-                          {showAirlineFilter && (
-                            <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-slate-700 rounded-xl shadow-xl max-h-48 overflow-y-auto z-50">
-                              <div className="p-2">
-                                <input
-                                  type="text"
-                                  placeholder="Search airlines..."
-                                  value={airlineSearchTerm}
-                                  onChange={(e) => setAirlineSearchTerm(e.target.value)}
-                                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-100 placeholder:text-slate-400 text-sm focus:ring-2 focus:ring-blue-500/50"
-                                />
+                              <ChevronDown className={cn(
+                                "h-4 w-4 text-slate-400 transition-transform duration-300",
+                                showAirlineFilter && "rotate-180"
+                              )} />
+                            </Button>
+                            
+                            {showAirlineFilter && (
+                              <div className="absolute top-full left-0 right-0 mt-3 bg-slate-800/95 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl max-h-48 overflow-y-auto z-50 animate-fade-in">
+                                <div className="p-3 border-b border-slate-700/50">
+                                  <input
+                                    type="text"
+                                    placeholder="Search airlines..."
+                                    value={airlineSearchTerm}
+                                    onChange={(e) => setAirlineSearchTerm(e.target.value)}
+                                    className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-slate-100 placeholder:text-slate-400 text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
+                                  />
+                                </div>
+                                {getAirlineOptions()
+                                  .filter((option) => 
+                                    option.name.toLowerCase().includes(airlineSearchTerm.toLowerCase()) ||
+                                    option.code.toLowerCase().includes(airlineSearchTerm.toLowerCase())
+                                  )
+                                  .map((option) => (
+                                    <button
+                                      key={option.code}
+                                      onClick={() => {
+                                        setAirline(option.code);
+                                        setShowAirlineFilter(false);
+                                        setAirlineSearchTerm('');
+                                      }}
+                                      className="w-full px-4 py-3 text-left hover:bg-slate-700/50 flex items-center justify-between transition-all duration-200 group"
+                                    >
+                                      <span className="text-sm text-slate-100 group-hover:text-white">{option.name}</span>
+                                      <span className="text-xs text-slate-400 font-mono group-hover:text-slate-300">{option.code}</span>
+                                    </button>
+                                  ))}
                               </div>
-                              {getAirlineOptions()
-                                .filter((option) => 
-                                  option.name.toLowerCase().includes(airlineSearchTerm.toLowerCase()) ||
-                                  option.code.toLowerCase().includes(airlineSearchTerm.toLowerCase())
-                                )
-                                .map((option) => (
-                                  <button
-                                    key={option.code}
-                                    onClick={() => {
-                                      setAirline(option.code);
-                                      setShowAirlineFilter(false);
-                                      setAirlineSearchTerm('');
-                                    }}
-                                    className="w-full px-4 py-2.5 text-left hover:bg-slate-700/50 flex items-center justify-between transition-colors"
-                                  >
-                                    <span className="text-sm text-slate-100">{option.name}</span>
-                                    <span className="text-xs text-slate-400 font-mono">{option.code}</span>
-                                  </button>
-                                ))}
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      {/* Airline Search Card */}
-                      <div className="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/50 shadow-lg backdrop-blur-sm">
-                        <label className="block text-xs font-medium text-slate-400 mb-3 tracking-wide uppercase">Airline</label>
-                        <div className="flex items-center space-x-3">
-                          <Plane className="h-4 w-4 text-slate-400 opacity-70" />
-                          <input
-                            type="text"
-                            value={airline}
-                            onChange={(e) => setAirline(e.target.value.toUpperCase())}
-                            placeholder="Enter airline code (e.g. AA, UA)"
-                            className="flex-1 bg-transparent border-0 text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500/50 text-sm font-medium p-0 outline-none"
-                          />
+                      </>
+                    ) : (
+                      <>
+                        {/* Flight Number Section Header */}
+                        <div className="text-center pb-2">
+                          <h3 className="text-lg font-semibold text-slate-100 mb-1">Flight Number Search</h3>
+                          <p className="text-sm text-slate-400">Track specific flights by number</p>
                         </div>
-                        {!airline && (
-                          <p className="text-xs text-slate-500 mt-2">Enter airline code (e.g. AA, UA)</p>
-                        )}
-                      </div>
 
-                      {/* Flight Number Card */}
-                      <div className="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/50 shadow-lg backdrop-blur-sm">
-                        <label className="block text-xs font-medium text-slate-400 mb-3 tracking-wide uppercase">Flight Number</label>
-                        <div className="flex items-center space-x-3">
-                          <Search className="h-4 w-4 text-slate-400 opacity-70" />
-                          <input
-                            type="text"
-                            value={flightNumber}
-                            onChange={(e) => setFlightNumber(e.target.value)}
-                            placeholder="Enter flight number"
-                            className="flex-1 bg-transparent border-0 text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500/50 text-sm font-medium p-0 outline-none"
-                          />
-                        </div>
-                        {!flightNumber && (
-                          <p className="text-xs text-slate-500 mt-2">Enter flight number</p>
-                        )}
-                      </div>
+                        {/* Airline & Flight Number Group */}
+                        <div className="space-y-4">
+                          <div className="group relative bg-slate-800/50 backdrop-blur-sm rounded-2xl p-5 border border-slate-700/30 shadow-lg hover:shadow-xl hover:border-slate-600/50 transition-all duration-300">
+                            <label className="flex items-center space-x-2 text-xs font-medium text-slate-400 mb-4 tracking-wide uppercase">
+                              <Plane className="h-3.5 w-3.5 opacity-60" />
+                              <span>Airline</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={airline}
+                              onChange={(e) => setAirline(e.target.value.toUpperCase())}
+                              placeholder="Enter airline code (e.g. AA, UA, DL)"
+                              className="w-full bg-transparent border-0 text-slate-100 placeholder:text-slate-500 focus:ring-0 text-base font-medium p-0 outline-none"
+                            />
+                            {!airline && (
+                              <p className="text-xs text-slate-500 mt-3 flex items-center space-x-1">
+                                <span className="w-1 h-1 bg-slate-500 rounded-full opacity-60"></span>
+                                <span>Enter two-letter airline code</span>
+                              </p>
+                            )}
+                          </div>
 
-                      {/* Departure Date Card for Flight Search */}
-                      <div className="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/50 shadow-lg backdrop-blur-sm">
-                        <label className="block text-xs font-medium text-slate-400 mb-3 tracking-wide uppercase">Departure Date</label>
-                        <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                          <PopoverTrigger asChild>
-                            <div className="flex items-center space-x-3 cursor-pointer">
-                              <CalendarIcon className="h-4 w-4 text-slate-400 opacity-70" />
-                              <div className="flex-1">
-                                <span className={cn(
-                                  "text-sm font-medium",
+                          <div className="group relative bg-slate-800/50 backdrop-blur-sm rounded-2xl p-5 border border-slate-700/30 shadow-lg hover:shadow-xl hover:border-slate-600/50 transition-all duration-300">
+                            <label className="flex items-center space-x-2 text-xs font-medium text-slate-400 mb-4 tracking-wide uppercase">
+                              <Search className="h-3.5 w-3.5 opacity-60" />
+                              <span>Flight Number</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={flightNumber}
+                              onChange={(e) => setFlightNumber(e.target.value)}
+                              placeholder="Enter flight number (e.g. 1234)"
+                              className="w-full bg-transparent border-0 text-slate-100 placeholder:text-slate-500 focus:ring-0 text-base font-medium p-0 outline-none"
+                            />
+                            {!flightNumber && (
+                              <p className="text-xs text-slate-500 mt-3 flex items-center space-x-1">
+                                <span className="w-1 h-1 bg-slate-500 rounded-full opacity-60"></span>
+                                <span>Enter the flight number digits</span>
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Flight Date */}
+                        <div className="group relative bg-slate-800/50 backdrop-blur-sm rounded-2xl p-5 border border-slate-700/30 shadow-lg hover:shadow-xl hover:border-slate-600/50 transition-all duration-300">
+                          <label className="flex items-center space-x-2 text-xs font-medium text-slate-400 mb-4 tracking-wide uppercase">
+                            <CalendarIcon className="h-3.5 w-3.5 opacity-60" />
+                            <span>Flight Date</span>
+                          </label>
+                          <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                            <PopoverTrigger asChild>
+                              <div className="cursor-pointer">
+                                <div className={cn(
+                                  "text-base font-medium transition-colors duration-200",
                                   departureDate ? "text-slate-100" : "text-slate-500"
                                 )}>
-                                  {departureDate ? format(departureDate, "PPP") : "Select departure date"}
-                                </span>
+                                  {departureDate ? format(departureDate, "EEEE, MMMM dd, yyyy") : "Select flight date"}
+                                </div>
+                                {!departureDate && (
+                                  <p className="text-xs text-slate-500 mt-3 flex items-center space-x-1">
+                                    <span className="w-1 h-1 bg-slate-500 rounded-full opacity-60"></span>
+                                    <span>Tap to open calendar</span>
+                                  </p>
+                                )}
                               </div>
-                            </div>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0 bg-slate-800 border-slate-700" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={departureDate}
-                              onSelect={(date) => {
-                                setDepartureDate(date);
-                                setIsCalendarOpen(false);
-                              }}
-                              initialFocus
-                              className="pointer-events-auto"
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        {!departureDate && (
-                          <p className="text-xs text-slate-500 mt-2">Select departure date</p>
-                        )}
-                      </div>
-                    </>
-                  )}
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0 bg-slate-800/95 backdrop-blur-xl border-slate-700/50 shadow-2xl" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={departureDate}
+                                onSelect={(date) => {
+                                  setDepartureDate(date);
+                                  setIsCalendarOpen(false);
+                                }}
+                                initialFocus
+                                className="pointer-events-auto bg-slate-800/95 text-slate-100"
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Bottom Spacer for Sticky Button */}
+                  <div className="h-20"></div>
                 </div>
               )}
             </div>
             
-            {/* Sticky Bottom CTA */}
+            {/* Premium Sticky Search Button */}
             {!showResults && (
-              <div className="sticky bottom-0 z-50 p-4 bg-slate-900/95 backdrop-blur-md border-t border-slate-700">
-                <Button
-                  onClick={handleSearch}
-                  disabled={isLoading || (searchType === 'route' && (!fromAirport || !toAirport || !departureDate)) || (searchType === 'flight' && (!flightNumber || !airline || !departureDate))}
-                  className={cn(
-                    "w-full h-12 rounded-2xl font-semibold text-base tracking-tight transition-all duration-200 shadow-lg",
-                    isLoading || (searchType === 'route' && (!fromAirport || !toAirport || !departureDate)) || (searchType === 'flight' && (!flightNumber || !airline || !departureDate))
-                      ? "bg-slate-700 text-slate-400 opacity-60"
-                      : "bg-blue-500 hover:bg-blue-600 text-white shadow-blue-500/25"
-                  )}
-                >
-                  {isLoading ? "Searching..." : "Search Flights"}
-                </Button>
+              <div className="sticky bottom-0 z-50 bg-gradient-to-t from-slate-950 via-slate-900/95 to-transparent pt-6 pb-4 px-4 backdrop-blur-xl">
+                <div className="relative">
+                  {/* Glow effect behind button */}
+                  <div className="absolute -top-1 -left-1 -right-1 -bottom-1 bg-gradient-to-r from-blue-500/20 to-blue-600/20 rounded-3xl blur opacity-75"></div>
+                  
+                  <Button
+                    onClick={handleSearch}
+                    disabled={isLoading || (searchType === 'route' && (!fromAirport || !toAirport || !departureDate)) || (searchType === 'flight' && (!flightNumber || !airline || !departureDate))}
+                    className={cn(
+                      "relative w-full h-14 rounded-2xl font-bold text-lg tracking-tight transition-all duration-300 ease-out shadow-2xl border border-blue-500/20",
+                      isLoading || (searchType === 'route' && (!fromAirport || !toAirport || !departureDate)) || (searchType === 'flight' && (!flightNumber || !airline || !departureDate))
+                        ? "bg-slate-700/80 text-slate-400 shadow-slate-900/50 cursor-not-allowed"
+                        : "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-blue-500/30 hover:shadow-blue-500/40 hover:scale-[1.02] active:scale-[0.98]"
+                    )}
+                  >
+                    <div className="flex items-center justify-center space-x-3">
+                      {isLoading ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                          <span>Searching Flights...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Search className="h-5 w-5" />
+                          <span>Search Flights</span>
+                        </>
+                      )}
+                    </div>
+                  </Button>
+                </div>
               </div>
             )}
           </div>
