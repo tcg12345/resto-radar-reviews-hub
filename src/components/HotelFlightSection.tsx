@@ -15,6 +15,7 @@ import { HotelSearchDialog } from '@/components/HotelSearchDialog';
 import { EnhancedFlightSearchDialog } from '@/components/EnhancedFlightSearchDialog';
 import { StayDetails, HotelStayDetailsDialog } from '@/components/HotelStayDetailsDialog';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Hotel as HotelType } from '@/hooks/useGooglePlacesHotelSearch';
 interface TripLocation {
@@ -871,70 +872,81 @@ export function HotelFlightSection({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isFlightDetailsOpen} onOpenChange={setIsFlightDetailsOpen}>
-        <DialogContent className="w-[80vw] h-[80vh] max-w-none bg-card border-border overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Plane className="w-5 h-5 text-purple-600" />
-              {selectedFlight?.airline} {selectedFlight?.flightNumber}
-            </DialogTitle>
-            <DialogDescription>Flight booking details and information</DialogDescription>
-          </DialogHeader>
-          {selectedFlight && (
-            <div className="space-y-6">
-              <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <div className="text-center">
-                    <div className="font-bold text-lg">{selectedFlight.departure?.time || 'N/A'}</div>
-                    <div className="text-sm text-muted-foreground">{selectedFlight.departure?.airport || 'N/A'}</div>
-                    <div className="text-xs text-muted-foreground">{selectedFlight.departure?.date || 'N/A'}</div>
-                  </div>
-                  <div className="flex-1 flex flex-col items-center mx-4">
-                    <Plane className="w-6 h-6 text-purple-600 mb-1" />
-                    <div className="w-full h-px bg-purple-300"></div>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-bold text-lg">{selectedFlight.arrival?.time || 'N/A'}</div>
-                    <div className="text-sm text-muted-foreground">{selectedFlight.arrival?.airport || 'N/A'}</div>
-                    <div className="text-xs text-muted-foreground">{selectedFlight.arrival?.date || 'N/A'}</div>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Airline:</span>
-                  <span className="text-sm">{selectedFlight.airline}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Flight Number:</span>
-                  <span className="text-sm font-mono">{selectedFlight.flightNumber}</span>
-                </div>
-                {selectedFlight.price && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">Price:</span>
-                    <span className="text-sm">{formatFlightPrice(selectedFlight.price)}</span>
-                  </div>
-                )}
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Button variant="outline" size="sm" onClick={() => window.open(getAirportDirectionsUrl(selectedFlight.departure?.airport || ''), '_blank')} disabled={!selectedFlight.departure?.airport}>
-                  <Navigation className="w-4 h-4 mr-2" />
-                  Directions to Airport
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => window.open(getFlightTrackingUrl(selectedFlight.airline, selectedFlight.flightNumber), '_blank')}>
-                  <Radar className="w-4 h-4 mr-2" />
-                  Track Flight
-                </Button>
-                {selectedFlight.bookingUrl && (
-                  <Button size="sm" onClick={() => window.open(selectedFlight.bookingUrl, '_blank')}>
-                    View Booking
-                  </Button>
-                )}
-              </div>
+      <Drawer open={isFlightDetailsOpen} onOpenChange={setIsFlightDetailsOpen}>
+        <DrawerContent className="h-[80vh] bg-background border-border">
+          <div className="flex flex-col h-[80vh]">
+            <div className="flex items-center justify-between p-4 pb-3">
+              <DrawerTitle className="text-xl font-bold text-foreground flex items-center gap-2">
+                <Plane className="w-5 h-5 text-purple-600" />
+                {selectedFlight?.airline} {selectedFlight?.flightNumber}
+              </DrawerTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsFlightDetailsOpen(false)}
+                className="h-8 w-8 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+            <div className="flex-1 overflow-y-auto p-4">
+              {selectedFlight && (
+                <div className="space-y-6">
+                  <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="text-center">
+                        <div className="font-bold text-lg">{selectedFlight.departure?.time || 'N/A'}</div>
+                        <div className="text-sm text-muted-foreground">{selectedFlight.departure?.airport || 'N/A'}</div>
+                        <div className="text-xs text-muted-foreground">{selectedFlight.departure?.date || 'N/A'}</div>
+                      </div>
+                      <div className="flex-1 flex flex-col items-center mx-4">
+                        <Plane className="w-6 h-6 text-purple-600 mb-1" />
+                        <div className="w-full h-px bg-purple-300"></div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-bold text-lg">{selectedFlight.arrival?.time || 'N/A'}</div>
+                        <div className="text-sm text-muted-foreground">{selectedFlight.arrival?.airport || 'N/A'}</div>
+                        <div className="text-xs text-muted-foreground">{selectedFlight.arrival?.date || 'N/A'}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">Airline:</span>
+                      <span className="text-sm">{selectedFlight.airline}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">Flight Number:</span>
+                      <span className="text-sm font-mono">{selectedFlight.flightNumber}</span>
+                    </div>
+                    {selectedFlight.price && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">Price:</span>
+                        <span className="text-sm">{formatFlightPrice(selectedFlight.price)}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button variant="outline" size="sm" onClick={() => window.open(getAirportDirectionsUrl(selectedFlight.departure?.airport || ''), '_blank')} disabled={!selectedFlight.departure?.airport}>
+                      <Navigation className="w-4 h-4 mr-2" />
+                      Directions to Airport
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => window.open(getFlightTrackingUrl(selectedFlight.airline, selectedFlight.flightNumber), '_blank')}>
+                      <Radar className="w-4 h-4 mr-2" />
+                      Track Flight
+                    </Button>
+                    {selectedFlight.bookingUrl && (
+                      <Button size="sm" onClick={() => window.open(selectedFlight.bookingUrl, '_blank')}>
+                        View Booking
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
 
       {/* Hotel & Flight Search Dialogs - Mobile */}
       <HotelSearchDialog
