@@ -154,6 +154,21 @@ interface FlightStatsRequest {
   arrivalAirport: string;
 }
 
+interface PointsOfInterestRequest {
+  latitude: number;
+  longitude: number;
+  radius?: number;
+  category?: string;
+  page?: number;
+}
+
+interface ToursActivitiesRequest {
+  latitude: number;
+  longitude: number;
+  radius?: number;
+  page?: number;
+}
+
 // Get Amadeus API credentials
 function getAmadeusCredentials(): { apiKey: string; apiSecret: string } {
   const apiKey = Deno.env.get('AMADEUS_API_KEY');
@@ -741,6 +756,103 @@ async function getFlightStats(params: FlightStatsRequest) {
   }
 }
 
+// Get Points of Interest
+async function getPointsOfInterest(params: PointsOfInterestRequest) {
+  console.log('🏛️ Getting points of interest for location:', params.latitude, params.longitude);
+  
+  try {
+    const token = await getAmadeusToken();
+    
+    const searchParams = new URLSearchParams({
+      latitude: params.latitude.toString(),
+      longitude: params.longitude.toString(),
+      radius: (params.radius || 1).toString(),
+      page: (params.page || 1).toString()
+    });
+
+    if (params.category) {
+      searchParams.append('category', params.category);
+    }
+
+    const url = `https://api.amadeus.com/v1/reference-data/locations/pois?${searchParams.toString()}`;
+    console.log('🌐 Points of Interest API URL:', url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Points of Interest API failed:', response.status, errorText);
+      
+      if (response.status === 404 || response.status === 400) {
+        return { data: [], meta: { count: 0 } };
+      }
+      
+      throw new Error(`Points of Interest API error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ Points of Interest retrieved successfully:', data.data?.length || 0, 'POIs');
+    
+    return data;
+  } catch (error) {
+    console.error('❌ Points of Interest error:', error);
+    // Return empty data instead of throwing to avoid complete failure
+    return { data: [], meta: { count: 0 } };
+  }
+}
+
+// Get Tours & Activities
+async function getToursActivities(params: ToursActivitiesRequest) {
+  console.log('🎯 Getting tours and activities for location:', params.latitude, params.longitude);
+  
+  try {
+    const token = await getAmadeusToken();
+    
+    const searchParams = new URLSearchParams({
+      latitude: params.latitude.toString(),
+      longitude: params.longitude.toString(),
+      radius: (params.radius || 1).toString(),
+      page: (params.page || 1).toString()
+    });
+
+    const url = `https://api.amadeus.com/v1/shopping/activities?${searchParams.toString()}`;
+    console.log('🌐 Tours & Activities API URL:', url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Tours & Activities API failed:', response.status, errorText);
+      
+      if (response.status === 404 || response.status === 400) {
+        return { data: [], meta: { count: 0 } };
+      }
+      
+      throw new Error(`Tours & Activities API error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ Tours & Activities retrieved successfully:', data.data?.length || 0, 'activities');
+    
+    return data;
+  } catch (error) {
+    console.error('❌ Tours & Activities error:', error);
+    // Return empty data instead of throwing to avoid complete failure
+    return { data: [], meta: { count: 0 } };
+  }
+
 // Generate realistic mock on-time performance data
 function generateMockOnTimeStats(carrierCode: string) {
   const airlinePerformance: Record<string, { onTime: number; avgDelay: number; reliability: string }> = {
@@ -884,6 +996,26 @@ serve(async (req) => {
       case 'search-locations': {
         const { keyword } = requestBody;
         const data = await searchLocations(keyword);
+        
+        return new Response(
+          JSON.stringify(data),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      case 'points-of-interest': {
+        const poiParams: PointsOfInterestRequest = requestBody;
+        const data = await getPointsOfInterest(poiParams);
+        
+        return new Response(
+          JSON.stringify(data),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      case 'tours-activities': {
+        const toursParams: ToursActivitiesRequest = requestBody;
+        const data = await getToursActivities(toursParams);
         
         return new Response(
           JSON.stringify(data),
