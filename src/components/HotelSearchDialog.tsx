@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Hotel, Star, MapPin, Wifi, Car, Coffee, Dumbbell, Waves, Utensils, Calendar, ArrowLeft, X, CreditCard } from 'lucide-react';
+import { Search, Hotel, Star, MapPin, Wifi, Car, Coffee, Dumbbell, Waves, Utensils, Calendar, ArrowLeft, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,13 +11,11 @@ import { Separator } from '@/components/ui/separator';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useGooglePlacesHotelSearch, Hotel as HotelType } from '@/hooks/useGooglePlacesHotelSearch';
-import { useAmadeusApi } from '@/hooks/useAmadeusApi';
 import { SearchResultSkeleton } from '@/components/skeletons/SearchResultSkeleton';
 import { HotelStayDetailsDialog, StayDetails } from '@/components/HotelStayDetailsDialog';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { Drawer, DrawerContent, DrawerTitle, DrawerDescription } from '@/components/ui/drawer';
 
@@ -59,12 +57,10 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
   const [showResults, setShowResults] = useState(false);
   const [selectedHotel, setSelectedHotel] = useState<HotelType | null>(null);
   const [showStayDetails, setShowStayDetails] = useState(false);
-  const [bookingHotel, setBookingHotel] = useState<string | null>(null);
   const isMobile = useIsMobile();
   const [showFilters, setShowFilters] = useState(!isMobile);
   
   const { searchHotels } = useGooglePlacesHotelSearch();
-  const { searchHotels: searchAmadeusHotels } = useAmadeusApi();
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
@@ -86,49 +82,18 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
       let allResults: HotelType[] = [];
       
       for (const location of searchLocations) {
-        console.log('🏨 Searching hotels in:', location, 'using Amadeus API');
+        const results = await searchHotels({
+          query: searchQuery,
+          location: location
+        });
         
-        try {
-          // Use Amadeus hotel search edge function
-          const { data, error } = await supabase.functions.invoke('amadeus-hotel-search', {
-            body: {
-              location: location,
-              checkInDate: '2025-01-15',
-              checkOutDate: '2025-01-16',
-              guests: 1,
-              hotelName: searchQuery.trim() // Pass the search query as hotel name
-            }
-          });
-          
-          if (error) {
-            console.error('❌ Amadeus search error for', location, ':', error);
-            continue;
-          }
-          
-          const results = data?.data || [];
-          console.log('✅ Amadeus hotel search results for', location, ':', results.length);
-          
-          // Convert results to expected format and add location info
-          const convertedResults = results.map((hotel: any) => ({
-            id: hotel.id,
-            name: hotel.name,
-            address: hotel.address,
-            description: hotel.description,
-            rating: hotel.rating,
-            priceRange: hotel.priceRange,
-            amenities: hotel.amenities || [],
-            photos: hotel.photos || [],
-            latitude: hotel.latitude,
-            longitude: hotel.longitude,
-            website: hotel.website,
-            phone: hotel.phone,
-            searchLocation: location
-          }));
-          
-          allResults = [...allResults, ...convertedResults];
-        } catch (error) {
-          console.error('❌ Error searching hotels in', location, ':', error);
-        }
+        // Add location info to results
+        const resultsWithLocation = results.map(hotel => ({
+          ...hotel,
+          searchLocation: location
+        }));
+        
+        allResults = [...allResults, ...resultsWithLocation];
       }
       
       // Remove duplicates based on hotel ID
@@ -157,51 +122,6 @@ export function HotelSearchDialog({ isOpen, onClose, onSelect, locations, isMult
     setSelectedHotel(hotel);
     setShowResults(false);
     setShowStayDetails(true);
-  };
-
-  const handleHotelBook = async (hotel: HotelType) => {
-    console.log('🏨 Starting hotel booking for:', hotel.name);
-    setBookingHotel(hotel.id);
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('amadeus-hotel-booking', {
-        body: {
-          hotelId: hotel.id,
-          hotelName: hotel.name,
-          checkInDate: checkInDate ? format(checkInDate, 'yyyy-MM-dd') : '2025-01-15',
-          checkOutDate: checkOutDate ? format(checkOutDate, 'yyyy-MM-dd') : '2025-01-16',
-          guests: 1,
-          totalPrice: hotel.priceRange,
-          location: selectedLocation !== 'all' ? selectedLocation : 'Paris'
-        }
-      });
-
-      if (error) {
-        console.error('❌ Booking error:', error);
-        throw error;
-      }
-
-      if (data?.data) {
-        const booking = data.data;
-        console.log('✅ Booking successful:', booking);
-        if (booking.message) {
-          toast.success(`✅ ${booking.message} Confirmation: ${booking.confirmationNumber}`);
-        } else {
-          toast.success(`Hotel booked successfully! Confirmation: ${booking.confirmationNumber}`);
-        }
-      } else {
-        console.error('❌ No booking data in response');
-        throw new Error('Booking failed - no data received');
-      }
-    } catch (error) {
-      console.error('❌ Booking failed:', error);
-      
-      // For now, let's show a simple demo success message to verify the flow works
-      const demoConfirmation = `DEMO-${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
-      toast.success(`✅ DEMO: Hotel booking workflow tested successfully! Confirmation: ${demoConfirmation}. (Edge function deployment issue - this demonstrates the UI flow)`);
-    } finally {
-      setBookingHotel(null);
-    }
   };
 
   const handleStayDetailsConfirm = (stayDetails: StayDetails) => {
@@ -293,7 +213,7 @@ if (isMobile) {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder="Search hotels by name or type..."
+                    placeholder="Search hotels..."
                     className="pl-10 h-12 rounded-full border-2 border-border/20 bg-muted/10 shadow-sm focus:shadow-md transition-all"
                   />
                   <Button
@@ -460,30 +380,12 @@ if (isMobile) {
                               )}
                             </div>
 
-                            <div className={cn("flex-shrink-0 flex flex-col justify-center gap-2", isMobile && "w-full")}>
+                            <div className={cn("flex-shrink-0 flex flex-col justify-center", isMobile && "w-full")}>
                               <Button
                                 onClick={() => handleHotelSelect(hotel)}
                                 className={cn("whitespace-nowrap bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md group-hover:shadow-lg transition-all", isMobile && "w-full")}
                               >
                                 Select Hotel
-                              </Button>
-                              <Button
-                                onClick={() => handleHotelBook(hotel)}
-                                disabled={bookingHotel === hotel.id}
-                                variant="outline"
-                                className={cn("whitespace-nowrap border-primary/20 hover:border-primary/40 hover:bg-primary/5", isMobile && "w-full")}
-                              >
-                                {bookingHotel === hotel.id ? (
-                                  <>
-                                    <div className="animate-spin rounded-full h-3 w-3 border border-primary border-t-transparent mr-2" />
-                                    Booking...
-                                  </>
-                                ) : (
-                                  <>
-                                    <CreditCard className="w-3 h-3 mr-2" />
-                                    Book Now
-                                  </>
-                                )}
                               </Button>
                             </div>
                           </div>
@@ -801,30 +703,12 @@ return (
                           )}
                         </div>
 
-                        <div className={cn("flex-shrink-0 flex flex-col justify-center gap-2", isMobile && "w-full")}>
+                        <div className={cn("flex-shrink-0 flex flex-col justify-center", isMobile && "w-full")}>
                           <Button
                             onClick={() => handleHotelSelect(hotel)}
                             className={cn("whitespace-nowrap bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md group-hover:shadow-lg transition-all", isMobile && "w-full")}
                           >
                             Select Hotel
-                          </Button>
-                          <Button
-                            onClick={() => handleHotelBook(hotel)}
-                            disabled={bookingHotel === hotel.id}
-                            variant="outline"
-                            className={cn("whitespace-nowrap border-primary/20 hover:border-primary/40 hover:bg-primary/5", isMobile && "w-full")}
-                          >
-                            {bookingHotel === hotel.id ? (
-                              <>
-                                <div className="animate-spin rounded-full h-3 w-3 border border-primary border-t-transparent mr-2" />
-                                Booking...
-                              </>
-                            ) : (
-                              <>
-                                <CreditCard className="w-3 h-3 mr-2" />
-                                Book Now
-                              </>
-                            )}
                           </Button>
                         </div>
                       </div>

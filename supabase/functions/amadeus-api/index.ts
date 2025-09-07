@@ -76,24 +76,6 @@ interface FlightSearchRequest {
   departureTimeTo?: string;
 }
 
-interface HotelBookingRequest {
-  hotelId: string;
-  offerId: string;
-  guests: Array<{
-    firstName: string;
-    lastName: string;
-    title: string;
-    email: string;
-    phone: string;
-  }>;
-  payments: Array<{
-    method: string;
-    cardNumber?: string;
-    expiryDate?: string;
-    holderName?: string;
-  }>;
-}
-
 interface HotelSearchRequest {
   location: string;
   checkInDate: string;
@@ -348,364 +330,6 @@ async function searchAirportsAndCitiesStatic(keyword: string) {
   
   console.log('Airport search results:', transformedData.length);
   return transformedData;
-}
-
-// Search hotels using Amadeus Hotel List and Hotel Offers APIs
-async function searchHotels(params: HotelSearchRequest) {
-  console.log('🏨 Searching hotels with params:', params);
-  
-  try {
-    const token = await getAmadeusToken();
-    
-    // Step 1: Get city code from location using the geocoding API
-    const citySearchParams = new URLSearchParams({
-      keyword: params.location,
-      max: '1'
-    });
-
-    const cityUrl = `https://api.amadeus.com/v1/reference-data/locations?${citySearchParams.toString()}`;
-    console.log('🌐 Searching for city code:', cityUrl);
-    
-    const cityResponse = await fetch(cityUrl, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    let cityCode = '';
-    if (cityResponse.ok) {
-      const cityData = await cityResponse.json();
-      if (cityData.data && cityData.data.length > 0) {
-        cityCode = cityData.data[0].address.cityCode || cityData.data[0].id;
-        console.log('✅ Found city code:', cityCode);
-      }
-    }
-
-    // If no city code found, use the location as is
-    if (!cityCode) {
-      cityCode = params.location.split(',')[0].trim();
-      console.log('⚠️ Using location as city code:', cityCode);
-    }
-
-    // Step 2: Search for hotels in the city using Hotel List API
-    const hotelListParams = new URLSearchParams({
-      cityCode: cityCode,
-      max: '20'
-    });
-
-    const hotelListUrl = `https://api.amadeus.com/v1/reference-data/locations/hotels/by-city?${hotelListParams.toString()}`;
-    console.log('🏨 Amadeus Hotel List API request URL:', hotelListUrl);
-    
-    const hotelListResponse = await fetch(hotelListUrl, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!hotelListResponse.ok) {
-      console.log('❌ Amadeus Hotel List API failed, falling back to mock data');
-      return getMockHotelData(params);
-    }
-
-    const hotelListData = await hotelListResponse.json();
-    
-    if (!hotelListData.data || hotelListData.data.length === 0) {
-      console.log('ℹ️ No hotels found in Amadeus Hotel List API, falling back to mock data');
-      return getMockHotelData(params);
-    }
-
-    console.log('✅ Found hotels in list:', hotelListData.data.length);
-
-    // Step 3: Get hotel offers for the found hotels using Hotel Offers API
-    const hotelIds = hotelListData.data.slice(0, 10).map((hotel: any) => hotel.hotelId);
-    const hotels = [];
-
-    for (const hotelId of hotelIds) {
-      try {
-        const offersParams = new URLSearchParams({
-          hotelIds: hotelId,
-          checkInDate: params.checkInDate,
-          checkOutDate: params.checkOutDate,
-          adults: params.guests.toString(),
-          max: '1'
-        });
-
-        const offersUrl = `https://api.amadeus.com/v3/shopping/hotel-offers?${offersParams.toString()}`;
-        console.log('💰 Searching hotel offers for:', hotelId);
-        
-        const offersResponse = await fetch(offersUrl, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (offersResponse.ok) {
-          const offersData = await offersResponse.json();
-          
-          if (offersData.data && offersData.data.length > 0) {
-            const hotelData = offersData.data[0];
-            const hotel = hotelData.hotel;
-            const offers = hotelData.offers || [];
-            
-            const transformedHotel = {
-              id: hotel.hotelId,
-              name: hotel.name,
-              address: hotel.address ? `${hotel.address.lines?.join(', ') || ''}, ${hotel.address.cityName || ''}, ${hotel.address.countryCode || ''}`.trim().replace(/^,\s*/, '') : `${params.location}`,
-              description: hotel.description?.text || `Experience luxury and comfort at ${hotel.name} in ${params.location}. This premier hotel offers exceptional service and modern amenities for the discerning traveler.`,
-              rating: hotel.rating || (4 + Math.random()),
-              priceRange: offers.length > 0 ? `${offers[0].price?.currency || 'USD'} ${offers[0].price?.total || '200'}` : 'Price on request',
-              amenities: generateAmenities(hotel.name),
-              photos: [`https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=80`],
-              latitude: hotel.address?.geoCode?.latitude || undefined,
-              longitude: hotel.address?.geoCode?.longitude || undefined,
-              website: hotel.contact?.website || undefined,
-              phone: hotel.contact?.phone || undefined,
-              bookingUrl: offers.length > 0 ? `https://www.amadeus.com/booking/${hotel.hotelId}` : undefined
-            };
-            
-            hotels.push(transformedHotel);
-            console.log('✅ Added hotel with offers:', hotel.name);
-          }
-        }
-      } catch (error) {
-        console.log('⚠️ Error getting offers for hotel:', hotelId, error);
-      }
-    }
-
-    // If we have some hotels with offers, return them
-    if (hotels.length > 0) {
-      console.log('✅ Returning hotels with offers:', hotels.length);
-      return hotels;
-    }
-
-    // Fallback: return hotels from list without offers
-    const fallbackHotels = hotelListData.data.slice(0, 10).map((hotel: any) => ({
-      id: hotel.hotelId,
-      name: hotel.name,
-      address: hotel.address ? `${hotel.address.lines?.join(', ') || ''}, ${hotel.address.cityName || ''}, ${hotel.address.countryCode || ''}`.trim().replace(/^,\s*/, '') : `${params.location}`,
-      description: `Experience luxury and comfort at ${hotel.name} in ${params.location}. This premier hotel offers exceptional service and modern amenities for the discerning traveler.`,
-      rating: 4 + Math.random(),
-      priceRange: 'Price on request',
-      amenities: generateAmenities(hotel.name),
-      photos: [`https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=80`],
-      latitude: hotel.geoCode?.latitude || undefined,
-      longitude: hotel.geoCode?.longitude || undefined,
-      website: undefined,
-      phone: undefined,
-      bookingUrl: undefined
-    }));
-
-    console.log('✅ Returning fallback hotels from list:', fallbackHotels.length);
-    return fallbackHotels;
-    
-  } catch (error) {
-    console.error('❌ Amadeus hotel search error:', error);
-    console.log('🔄 Falling back to mock hotel data');
-    return getMockHotelData(params);
-  }
-}
-
-// Generate realistic amenities based on hotel name
-function generateAmenities(hotelName: string): string[] {
-  const baseAmenities = ['Free WiFi', 'Air Conditioning', '24-Hour Front Desk'];
-  const luxuryAmenities = ['Spa', 'Fitness Center', 'Pool', 'Restaurant', 'Room Service', 'Concierge'];
-  const businessAmenities = ['Business Center', 'Meeting Rooms', 'Conference Facilities'];
-  const familyAmenities = ['Family Rooms', 'Kids Club', 'Babysitting'];
-  
-  let amenities = [...baseAmenities];
-  
-  const nameLower = hotelName.toLowerCase();
-  
-  if (nameLower.includes('resort') || nameLower.includes('spa')) {
-    amenities.push(...luxuryAmenities.slice(0, 4));
-  }
-  
-  if (nameLower.includes('business') || nameLower.includes('executive')) {
-    amenities.push(...businessAmenities);
-  }
-  
-  if (nameLower.includes('family') || nameLower.includes('suites')) {
-    amenities.push(...familyAmenities.slice(0, 2));
-  }
-  
-  // Add some random luxury amenities for upscale hotels
-  if (nameLower.includes('luxury') || nameLower.includes('grand') || nameLower.includes('royal')) {
-    amenities.push('Valet Parking', 'Butler Service', 'Premium Bedding');
-  }
-  
-  return amenities;
-}
-
-// Mock hotel data for when API fails or quota is exceeded
-function getMockHotelData(params: HotelSearchRequest) {
-  console.log('🎭 Generating mock hotel data for:', params.location);
-  
-  const locationName = params.location.split(',')[0].trim();
-  
-  const mockHotels = [
-    {
-      id: 'mock-hotel-1',
-      name: `Grand ${locationName} Hotel`,
-      address: `123 Main Street, ${params.location}`,
-      description: `Experience luxury at the Grand ${locationName} Hotel, featuring elegant rooms and world-class amenities in the heart of ${locationName}.`,
-      rating: 4.5,
-      priceRange: 'USD 250-400',
-      amenities: ['Free WiFi', 'Pool', 'Spa', 'Restaurant', 'Fitness Center', 'Room Service'],
-      photos: ['https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=80'],
-      website: `https://grand${locationName.toLowerCase().replace(/\s+/g, '')}.com`,
-      phone: '+1-555-0123',
-      bookingUrl: 'https://booking.example.com'
-    },
-    {
-      id: 'mock-hotel-2',
-      name: `${locationName} Business Center`,
-      address: `456 Business Ave, ${params.location}`,
-      description: `Perfect for business travelers, the ${locationName} Business Center offers modern facilities and convenient location.`,
-      rating: 4.2,
-      priceRange: 'USD 180-280',
-      amenities: ['Free WiFi', 'Business Center', 'Meeting Rooms', 'Fitness Center', 'Restaurant'],
-      photos: ['https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=80'],
-      website: `https://${locationName.toLowerCase().replace(/\s+/g, '')}business.com`,
-      phone: '+1-555-0124'
-    },
-    {
-      id: 'mock-hotel-3',
-      name: `${locationName} Suites`,
-      address: `789 Family Blvd, ${params.location}`,
-      description: `Spacious suites perfect for families and extended stays in ${locationName}, with full kitchen facilities.`,
-      rating: 4.0,
-      priceRange: 'USD 150-250',
-      amenities: ['Free WiFi', 'Kitchenette', 'Family Rooms', 'Pool', 'Laundry Service'],
-      photos: ['https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=400&q=80'],
-      phone: '+1-555-0125'
-    }
-  ];
-  
-  return mockHotels;
-}
-
-// Book hotel using Amadeus Hotel Booking API
-async function bookHotel(params: HotelBookingRequest) {
-  console.log('🏨 Booking hotel with params:', JSON.stringify(params, null, 2));
-  
-  try {
-    // Check if Amadeus credentials are available
-    const { apiKey, apiSecret } = getAmadeusCredentials();
-    console.log('✅ Amadeus credentials available - attempting real booking via Amadeus Hotel Booking API');
-    
-    const token = await getAmadeusToken();
-    console.log('✅ Got Amadeus token for real hotel booking');
-    
-    const bookingUrl = 'https://api.amadeus.com/v1/booking/hotel-bookings';
-    console.log('💳 Calling Amadeus Hotel Booking API:', bookingUrl);
-    
-    const bookingData = {
-      data: {
-        type: 'hotel-booking',
-        hotelId: params.hotelId,
-        offerId: params.offerId,
-        guests: params.guests.map(guest => ({
-          name: {
-            title: guest.title,
-            firstName: guest.firstName,
-            lastName: guest.lastName
-          },
-          contact: {
-            email: guest.email,
-            phone: guest.phone
-          }
-        })),
-        payments: params.payments.map(payment => ({
-          method: payment.method,
-          card: payment.cardNumber ? {
-            number: payment.cardNumber,
-            expiryDate: payment.expiryDate,
-            holderName: payment.holderName
-          } : undefined
-        }))
-      }
-    };
-    
-    const response = await fetch(bookingUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(bookingData)
-    });
-
-    console.log('📡 Amadeus booking response status:', response.status);
-    
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.log('❌ Amadeus Hotel Booking API failed:', response.status, errorData);
-      
-      // For demo purposes, even if API fails, return a demo confirmation
-      console.log('🎭 API failed, returning demo booking confirmation');
-      return getMockBookingConfirmation(params);
-    }
-
-    const bookingResult = await response.json();
-    console.log('✅ Real Amadeus Hotel Booking API successful:', bookingResult);
-    
-    return {
-      success: true,
-      bookingId: bookingResult.data?.id || `amadeus-${Date.now()}`,
-      confirmationNumber: bookingResult.data?.confirmationNumber || `AMADEUS-${Math.random().toString(36).substr(2, 8).toUpperCase()}`,
-      status: bookingResult.data?.status || 'confirmed',
-      totalPrice: bookingResult.data?.totalPrice || 'Confirmed via Amadeus',
-      checkIn: bookingResult.data?.checkIn || new Date().toISOString(),
-      checkOut: bookingResult.data?.checkOut || new Date(Date.now() + 86400000).toISOString(),
-      message: 'SUCCESS: Hotel booked via real Amadeus Hotel Booking API!',
-      hotelInfo: {
-        name: bookingResult.data?.hotel?.name || 'Hotel Booking Confirmed',
-        address: bookingResult.data?.hotel?.address || 'Booking confirmed via Amadeus Hotel Booking API'
-      },
-      apiUsed: 'Amadeus Hotel Booking API (Production)',
-      note: 'This booking was processed through the official Amadeus Hotel Booking API.'
-    };
-    
-  } catch (error) {
-    console.error('❌ Amadeus hotel booking error:', error);
-    
-    // Check if it's a credentials error
-    if (error.message?.includes('credentials')) {
-      console.log('🔑 Credentials not available - returning demo booking');
-    } else {
-      console.log('🔄 API error - falling back to demo booking');
-    }
-    
-    return getMockBookingConfirmation(params);
-  }
-}
-
-// Mock booking confirmation for demo purposes
-function getMockBookingConfirmation(params: HotelBookingRequest) {
-  console.log('🎭 Generating demo booking confirmation');
-  
-  return {
-    success: true,
-    bookingId: `amadeus-demo-${Date.now()}`,
-    confirmationNumber: `DEMO-${Math.random().toString(36).substr(2, 8).toUpperCase()}`,
-    status: 'confirmed',
-    totalPrice: 'Demo Booking (No Charge)',
-    checkIn: new Date().toISOString(),
-    checkOut: new Date(Date.now() + 86400000).toISOString(),
-    hotelInfo: {
-      name: 'Amadeus Demo Hotel Booking',
-      address: 'Demo booking via Amadeus Hotel Booking API integration'
-    },
-    guests: params.guests,
-    message: 'SUCCESS: This booking was processed through the Amadeus Hotel Booking API integration. In production, this would create a real hotel reservation.',
-    note: 'This demonstrates the complete Amadeus hotel booking workflow.'
-  };
 }
 
 // Mock flight data for when quota is exceeded
@@ -1034,7 +658,7 @@ serve(async (req) => {
   }
 
   try {
-    console.log('🚀 Amadeus API function called, method:', req.method);
+    console.log('🚀 FlightAPI.io function called, method:', req.method);
     
     // Parse request body to get endpoint type
     let requestBody;
@@ -1051,6 +675,8 @@ serve(async (req) => {
     
     const { endpoint } = requestBody;
     console.log('🎯 Endpoint requested:', endpoint);
+    
+    // Amadeus API is configured via environment variables
 
     switch (endpoint) {
       case 'search-flights': {
@@ -1128,11 +754,11 @@ serve(async (req) => {
 
         try {
           console.log('🔍 Starting hotel search...');
-          const hotels = await searchHotels({ location, checkInDate, checkOutDate, guests, priceRange });
+          const data = await searchHotels({ location, checkInDate, checkOutDate, guests, priceRange });
           console.log('✅ Hotel search completed successfully');
           
           return new Response(
-            JSON.stringify({ data: hotels }),
+            JSON.stringify(data),
             { 
               status: 200, 
               headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -1156,47 +782,6 @@ serve(async (req) => {
         }
       }
 
-      case 'book-hotel': {
-        const { hotelId, offerId, guests, payments } = requestBody;
-        
-        if (!hotelId || !guests || !Array.isArray(guests) || guests.length === 0) {
-          console.error('❌ Missing required hotel booking parameters');
-          return new Response(
-            JSON.stringify({ error: 'Hotel ID and guest information are required' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        try {
-          console.log('🔍 Starting hotel booking...');
-          const booking = await bookHotel({ hotelId, offerId, guests, payments });
-          console.log('✅ Hotel booking completed successfully');
-          
-          return new Response(
-            JSON.stringify({ data: booking }),
-            { 
-              status: 200, 
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-            }
-          );
-        } catch (bookingError) {
-          console.error('❌ Hotel booking failed:', bookingError.message);
-          console.error('❌ Booking error details:', bookingError);
-          
-          return new Response(
-            JSON.stringify({ 
-              error: 'Hotel booking failed', 
-              details: bookingError.message,
-              params: { hotelId, offerId, guests, payments }
-            }),
-            { 
-              status: 500, 
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-            }
-          );
-        }
-      }
-
       default:
         return new Response(
           JSON.stringify({ 
@@ -1204,8 +789,7 @@ serve(async (req) => {
             available_endpoints: [
               'search-flights - Search for real flights using FlightAPI.io',
               'search-cities - Search for airports and cities',
-              'search-hotels - Search for hotels using Amadeus Hotel List and Hotel Offers APIs',
-              'book-hotel - Book a hotel using Amadeus Hotel Booking API'
+              'search-hotels - Search for hotels in specified location'
             ]
           }),
           { 
@@ -1216,7 +800,7 @@ serve(async (req) => {
     }
 
   } catch (error) {
-    console.error('Error in Amadeus API function:', error)
+    console.error('Error in FlightAPI.io function:', error)
     return new Response(
       JSON.stringify({ error: 'Internal server error', details: error.message }),
       { 
