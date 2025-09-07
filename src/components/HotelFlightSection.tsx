@@ -559,129 +559,112 @@ export function HotelFlightSection({
           {isFlightsExpanded && <div className="pb-4 animate-fade-in">
               {flights.length > 0 ? <div className="space-y-3">
                   {flights.map(flight => (
-                    <div key={flight.id} className="group relative bg-background border border-border rounded-2xl shadow-sm hover:shadow-md transition-all duration-200">
-                      {/* Remove button */}
-                      <Button 
-                        onClick={() => onRemoveFlight(flight.id)} 
-                        size="sm" 
-                        variant="ghost" 
-                        className="absolute top-4 right-4 z-10 h-8 w-8 p-0 rounded-full bg-muted/50 backdrop-blur-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-
-                      <div className="p-6">
-                        {/* Header: Airline + Flight Number + Price */}
-                        <div className="flex items-start justify-between mb-6">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-muted">
-                              <Plane className="w-5 h-5 text-muted-foreground" />
-                            </div>
-                            <div>
-                              <h4 className="font-semibold text-foreground text-lg">
-                                {flight.airline}
-                              </h4>
-                              <div className="text-sm text-muted-foreground font-mono">
-                                {flight.flightNumber}
-                              </div>
-                            </div>
+                    <div key={flight.id} className="group relative bg-background border border-border rounded-2xl p-6 space-y-6 hover:shadow-md transition-all duration-200">
+                      {/* Top Row: Airline + Flight Number + Actions */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="text-xs font-bold text-muted-foreground tracking-wider">
+                            {flight.airline?.split(' ')[0]?.toUpperCase() || 'AIRLINE'}
                           </div>
-                          
+                          <div className="text-sm font-mono text-muted-foreground">
+                            {flight.flightNumber}
+                          </div>
                           {flight.price && (
-                            <div className="text-right">
-                              <div className="text-lg font-bold text-primary">
-                                {formatFlightPrice(flight.price)}
-                              </div>
+                            <div className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
+                              {formatFlightPrice(flight.price)}
                             </div>
                           )}
                         </div>
                         
-                        {/* Flight route */}
-                        <div className="mb-6">
-                          <div className="bg-muted/30 rounded-xl p-4">
-                            <div className="flex items-center justify-between">
-                              {/* Departure */}
-                              <div className="text-center flex-1">
-                                <div className="font-bold text-xl text-foreground mb-1">
-                                  {flight.departure?.airport || 'N/A'}
-                                </div>
-                                <div className="text-base font-semibold text-primary mb-1">
-                                  {flight.departure?.time || 'N/A'}
-                                </div>
-                                <div className="text-sm text-muted-foreground">
-                                  {flight.departure?.date || 'N/A'}
-                                </div>
-                              </div>
-                              
-                              {/* Flight path */}
-                              <div className="flex-1 flex items-center justify-center mx-6">
-                                <div className="relative w-full max-w-24">
-                                  <div className="h-px bg-border w-full"></div>
-                                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                                    <div className="p-1 bg-background rounded-full border border-border">
-                                      <Plane className="w-3 h-3 text-muted-foreground rotate-90" />
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                              
-                              {/* Arrival */}
-                              <div className="text-center flex-1">
-                                <div className="font-bold text-xl text-foreground mb-1">
-                                  {flight.arrival?.airport || 'N/A'}
-                                </div>
-                                <div className="text-base font-semibold text-primary mb-1">
-                                  {flight.arrival?.time || 'N/A'}
-                                </div>
-                                <div className="text-sm text-muted-foreground">
-                                  {flight.arrival?.date || 'N/A'}
-                                </div>
-                              </div>
-                            </div>
+                        <Button 
+                          onClick={() => onRemoveFlight(flight.id)} 
+                          size="sm" 
+                          variant="ghost" 
+                          className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      
+                      {/* Middle Row: Flight Route - Main Focus */}
+                      <div className="flex items-center justify-between">
+                        {/* Departure */}
+                        <div className="text-left">
+                          <div className="text-2xl font-bold text-foreground mb-1">
+                            {flight.departure?.airport || 'N/A'}
+                          </div>
+                          <div className="text-lg font-semibold text-primary">
+                            {flight.departure?.time || 'N/A'}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {flight.departure?.date || 'N/A'}
                           </div>
                         </div>
                         
-                        {/* Action buttons */}
-                        <div className="flex flex-wrap gap-2">
-                          <Button 
-                            onClick={() => handleFlightCardClick(flight)} 
-                            size="sm"
-                            className="rounded-full bg-primary/10 text-primary hover:bg-primary/20 border-primary/20" 
-                            variant="outline"
-                          >
-                            View Details
-                          </Button>
-                          
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            onClick={() => window.open(getAirportDirectionsUrl(flight.departure?.airport || ''), '_blank')} 
-                            className="rounded-full text-muted-foreground hover:text-foreground" 
-                            disabled={!flight.departure?.airport}
-                          >
-                            Directions
-                          </Button>
-                          
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            onClick={() => window.open(getFlightTrackingUrl(flight.airline, flight.flightNumber), '_blank')} 
-                            className="rounded-full text-muted-foreground hover:text-foreground"
-                          >
-                            Track
-                          </Button>
-                          
-                          {flight.bookingUrl && (
-                            <Button 
-                              onClick={() => window.open(flight.bookingUrl, '_blank')} 
-                              size="sm"
-                              className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
-                            >
-                              View Booking
-                            </Button>
-                          )}
+                        {/* Arrow Separator */}
+                        <div className="flex-1 flex items-center justify-center mx-8">
+                          <div className="flex items-center text-muted-foreground">
+                            <div className="h-px bg-border flex-1"></div>
+                            <div className="mx-3 text-sm">→</div>
+                            <div className="h-px bg-border flex-1"></div>
+                          </div>
+                        </div>
+                        
+                        {/* Arrival */}
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-foreground mb-1">
+                            {flight.arrival?.airport || 'N/A'}
+                          </div>
+                          <div className="text-lg font-semibold text-primary">
+                            {flight.arrival?.time || 'N/A'}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {flight.arrival?.date || 'N/A'}
+                          </div>
                         </div>
                       </div>
+                      
+                      {/* Bottom Row: Equal Actions */}
+                      <div className="flex gap-2 pt-2">
+                        <Button 
+                          onClick={() => handleFlightCardClick(flight)} 
+                          size="sm"
+                          variant="outline"
+                          className="flex-1 h-9 rounded-full border-primary/20 text-primary hover:bg-primary/10"
+                        >
+                          View Details
+                        </Button>
+                        
+                        <Button 
+                          onClick={() => window.open(getAirportDirectionsUrl(flight.departure?.airport || ''), '_blank')} 
+                          size="sm" 
+                          variant="outline" 
+                          className="flex-1 h-9 rounded-full" 
+                          disabled={!flight.departure?.airport}
+                        >
+                          Directions
+                        </Button>
+                        
+                        <Button 
+                          onClick={() => window.open(getFlightTrackingUrl(flight.airline, flight.flightNumber), '_blank')} 
+                          size="sm" 
+                          variant="outline" 
+                          className="flex-1 h-9 rounded-full"
+                        >
+                          Track
+                        </Button>
+                      </div>
+                      
+                      {/* Optional Booking Link */}
+                      {flight.bookingUrl && (
+                        <Button 
+                          onClick={() => window.open(flight.bookingUrl, '_blank')} 
+                          size="sm"
+                          className="w-full h-9 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
+                        >
+                          View Booking
+                        </Button>
+                      )}
                     </div>
                   ))}
                 </div> : <div className="text-center py-6 text-white/90">
