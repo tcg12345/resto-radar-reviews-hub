@@ -213,7 +213,7 @@ if (isMobile) {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder="Search hotels..."
+                    placeholder="Search hotels by name or type..."
                     className="pl-10 h-12 rounded-full border-2 border-border/20 bg-muted/10 shadow-sm focus:shadow-md transition-all"
                   />
                   <Button
