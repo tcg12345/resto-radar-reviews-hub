@@ -21,20 +21,12 @@ export default function ActivityRecommendationsDialog({
   
   return (
     <BottomSheet open={isOpen} onOpenChange={onClose}>
-      <BottomSheetHeader className="px-4 py-4 border-b bg-background/95 backdrop-blur rounded-t-3xl">
-        <h2 className="text-xl font-semibold text-center">
-          Discover Activities in {city || 'Your Destination'}
+      <div className="bg-red-500 text-white p-8 text-center">
+        <h2 className="text-2xl font-bold">
+          TEST: Activities for {city}
         </h2>
-      </BottomSheetHeader>
-      <BottomSheetContent className="p-0">
-        <div className="p-4">
-          <ActivityRecommendations 
-            latitude={latitude} 
-            longitude={longitude} 
-            city={city} 
-          />
-        </div>
-      </BottomSheetContent>
+        <p>If you can see this red box, the BottomSheet is working!</p>
+      </div>
     </BottomSheet>
   );
 }
