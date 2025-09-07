@@ -74,6 +74,7 @@ export default function ActivityRecommendations({
       });
 
       if (error) throw error;
+      console.log('POI API Response:', data);
       setPointsOfInterest(data?.data || []);
     } catch (error) {
       console.error('Error fetching points of interest:', error);
@@ -100,6 +101,7 @@ export default function ActivityRecommendations({
       });
 
       if (error) throw error;
+      console.log('Tours & Activities API Response:', data);
       setToursActivities(data?.data || []);
     } catch (error) {
       console.error('Error fetching tours and activities:', error);
@@ -218,7 +220,7 @@ export default function ActivityRecommendations({
                       <div className="flex items-center text-muted-foreground text-xs">
                         <MapPin className="w-3 h-3 mr-1" />
                         <span>
-                          {poi.geoCode.latitude.toFixed(4)}, {poi.geoCode.longitude.toFixed(4)}
+                          {poi.geoCode?.latitude?.toFixed(4) || 'N/A'}, {poi.geoCode?.longitude?.toFixed(4) || 'N/A'}
                         </span>
                       </div>
                     </div>
@@ -255,10 +257,10 @@ export default function ActivityRecommendations({
             </div>
           ) : toursActivities.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {toursActivities.map((activity) => (
+              {toursActivities.filter(activity => activity && activity.name).map((activity) => (
                 <Card key={activity.id} className="hover:shadow-md transition-shadow">
                   <CardHeader>
-                    <CardTitle className="text-xl line-clamp-2">{activity.name}</CardTitle>
+                    <CardTitle className="text-xl line-clamp-2">{activity.name || 'Unknown Activity'}</CardTitle>
                     <div className="flex items-center gap-2">
                       {activity.rating && (
                         <div className="flex items-center text-primary">
@@ -267,7 +269,7 @@ export default function ActivityRecommendations({
                         </div>
                       )}
                       <Badge variant="outline" className="text-xs">
-                        {activity.supplier.name}
+                        {activity.supplier?.name || 'Unknown Supplier'}
                       </Badge>
                     </div>
                   </CardHeader>
