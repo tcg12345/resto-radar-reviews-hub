@@ -12,7 +12,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ItineraryEvent, HotelBooking } from '@/components/ItineraryBuilder';
 import ActivityRecommendationsDialog from '@/components/ActivityRecommendationsDialog';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+
 interface TripLocation {
   id: string;
   name: string;
@@ -58,8 +60,44 @@ export function TripCalendar({
   const [selectedEvent, setSelectedEvent] = useState<ItineraryEvent | null>(null);
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
   const [isActivityDialogOpen, setIsActivityDialogOpen] = useState(false);
+  const [currentLocationCoords, setCurrentLocationCoords] = useState<{latitude: number; longitude: number} | null>(null);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+
+  // Geocode location name to get coordinates
+  const geocodeLocation = useCallback(async (locationName: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('geocode', {
+        body: { address: '', city: locationName }
+      });
+
+      if (error) {
+        console.error('Geocoding error:', error);
+        return null;
+      }
+
+      return { latitude: data.latitude, longitude: data.longitude };
+    } catch (error) {
+      console.error('Error geocoding location:', error);
+      return null;
+    }
+  }, []);
+
+  // Open activity dialog with geocoded coordinates
+  const openActivityDialog = useCallback(async () => {
+    const currentLocation = locations[0]?.name || 'New York City';
+    
+    // Try to get coordinates for the current location
+    const coords = await geocodeLocation(currentLocation);
+    if (coords) {
+      setCurrentLocationCoords(coords);
+    } else {
+      // Fallback to NYC coordinates if geocoding fails
+      setCurrentLocationCoords({ latitude: 40.7128, longitude: -74.0060 });
+    }
+    
+    setIsActivityDialogOpen(true);
+  }, [locations, geocodeLocation]);
   const toggleDayCollapse = (dateStr: string) => {
     const newCollapsed = new Set(collapsedDays);
     if (newCollapsed.has(dateStr)) {
@@ -168,7 +206,7 @@ export function TripCalendar({
               Find popular attractions, tours, and points of interest
             </p>
             <Button 
-              onClick={() => setIsActivityDialogOpen(true)} 
+              onClick={openActivityDialog} 
               variant="outline"
               className="w-full border-primary/20 text-primary hover:bg-primary/10"
             >
@@ -734,8 +772,8 @@ export function TripCalendar({
     <ActivityRecommendationsDialog
       isOpen={isActivityDialogOpen}
       onClose={() => setIsActivityDialogOpen(false)}
-      latitude={40.7128} // Default to NYC coordinates 
-      longitude={-74.0060}
+      latitude={currentLocationCoords?.latitude || 40.7128}
+      longitude={currentLocationCoords?.longitude || -74.0060}
       city={locations[0]?.name || 'New York City'}
     />
   </div>;
