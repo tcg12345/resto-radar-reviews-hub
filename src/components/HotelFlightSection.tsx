@@ -559,92 +559,81 @@ export function HotelFlightSection({
           {isFlightsExpanded && <div className="pb-4 animate-fade-in">
               {flights.length > 0 ? <div className="space-y-3">
                   {flights.map(flight => (
-                    <div key={flight.id} className="group relative overflow-hidden bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1">
-                      {/* Background gradient overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                      
-                      {/* Remove button with improved positioning */}
+                    <div key={flight.id} className="group relative bg-background border border-border rounded-2xl shadow-sm hover:shadow-md transition-all duration-200">
+                      {/* Remove button */}
                       <Button 
                         onClick={() => onRemoveFlight(flight.id)} 
                         size="sm" 
                         variant="ghost" 
-                        className="absolute top-3 right-3 z-10 h-8 w-8 p-0 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-600 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-200 transition-all duration-300 shadow-md"
+                        className="absolute top-4 right-4 z-10 h-8 w-8 p-0 rounded-full bg-muted/50 backdrop-blur-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
                       >
                         <X className="w-4 h-4" />
                       </Button>
 
-                      <div className="relative p-6">
-                        {/* Header with airline info */}
-                        <div className="flex items-start gap-4 mb-6">
-                          <div className="relative">
-                            <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg">
-                              <Plane className="w-6 h-6 text-white" />
+                      <div className="p-6">
+                        {/* Header: Airline + Flight Number + Price */}
+                        <div className="flex items-start justify-between mb-6">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-muted">
+                              <Plane className="w-5 h-5 text-muted-foreground" />
                             </div>
-                            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl blur opacity-20 group-hover:opacity-40 transition-opacity duration-500"></div>
+                            <div>
+                              <h4 className="font-semibold text-foreground text-lg">
+                                {flight.airline}
+                              </h4>
+                              <div className="text-sm text-muted-foreground font-mono">
+                                {flight.flightNumber}
+                              </div>
+                            </div>
                           </div>
                           
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-bold text-gray-900 dark:text-white text-xl leading-tight mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
-                              {flight.airline}
-                            </h4>
-                            <div className="flex items-center gap-3">
-                              <div className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                                <span className="text-sm font-mono font-semibold text-gray-700 dark:text-gray-300">
-                                  {flight.flightNumber}
-                                </span>
+                          {flight.price && (
+                            <div className="text-right">
+                              <div className="text-lg font-bold text-primary">
+                                {formatFlightPrice(flight.price)}
                               </div>
-                              {flight.price && (
-                                <div className="px-3 py-1.5 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 rounded-lg border border-green-200 dark:border-green-700">
-                                  <span className="text-sm font-bold text-green-700 dark:text-green-300">
-                                    {formatFlightPrice(flight.price)}
-                                  </span>
-                                </div>
-                              )}
                             </div>
-                          </div>
+                          )}
                         </div>
                         
-                        {/* Flight route with enhanced design */}
-                        <div className="relative mb-6">
-                          <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-indigo-50 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-indigo-900/20 rounded-2xl p-5 border border-blue-100 dark:border-blue-800/30">
+                        {/* Flight route */}
+                        <div className="mb-6">
+                          <div className="bg-muted/30 rounded-xl p-4">
                             <div className="flex items-center justify-between">
                               {/* Departure */}
                               <div className="text-center flex-1">
-                                <div className="font-bold text-2xl text-gray-900 dark:text-white mb-1">
+                                <div className="font-bold text-xl text-foreground mb-1">
                                   {flight.departure?.airport || 'N/A'}
                                 </div>
-                                <div className="text-base font-semibold text-blue-600 dark:text-blue-400 mb-1">
+                                <div className="text-base font-semibold text-primary mb-1">
                                   {flight.departure?.time || 'N/A'}
                                 </div>
-                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                <div className="text-sm text-muted-foreground">
                                   {flight.departure?.date || 'N/A'}
                                 </div>
                               </div>
                               
-                              {/* Flight path animation */}
-                              <div className="flex-1 flex flex-col items-center mx-6">
-                                <div className="relative w-full">
-                                  <div className="h-px bg-gradient-to-r from-blue-400 via-purple-500 to-indigo-400 w-full"></div>
+                              {/* Flight path */}
+                              <div className="flex-1 flex items-center justify-center mx-6">
+                                <div className="relative w-full max-w-24">
+                                  <div className="h-px bg-border w-full"></div>
                                   <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                                    <div className="p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg border border-gray-200 dark:border-gray-600">
-                                      <Plane className="w-5 h-5 text-purple-600 dark:text-purple-400 rotate-90" />
+                                    <div className="p-1 bg-background rounded-full border border-border">
+                                      <Plane className="w-3 h-3 text-muted-foreground rotate-90" />
                                     </div>
                                   </div>
-                                  {/* Animated dots */}
-                                  <div className="absolute top-1/2 left-1/4 w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                                  <div className="absolute top-1/2 right-1/4 w-2 h-2 bg-indigo-400 rounded-full animate-pulse animation-delay-300"></div>
                                 </div>
                               </div>
                               
                               {/* Arrival */}
                               <div className="text-center flex-1">
-                                <div className="font-bold text-2xl text-gray-900 dark:text-white mb-1">
+                                <div className="font-bold text-xl text-foreground mb-1">
                                   {flight.arrival?.airport || 'N/A'}
                                 </div>
-                                <div className="text-base font-semibold text-indigo-600 dark:text-indigo-400 mb-1">
+                                <div className="text-base font-semibold text-primary mb-1">
                                   {flight.arrival?.time || 'N/A'}
                                 </div>
-                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                <div className="text-sm text-muted-foreground">
                                   {flight.arrival?.date || 'N/A'}
                                 </div>
                               </div>
@@ -652,46 +641,42 @@ export function HotelFlightSection({
                           </div>
                         </div>
                         
-                        {/* Action buttons with improved design */}
-                        <div className="flex flex-col gap-3">
-                          <div className="flex gap-3">
-                            <Button 
-                              onClick={() => handleFlightCardClick(flight)} 
-                              className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                            >
-                              <Eye className="w-4 h-4 mr-2" />
-                              View Details
-                            </Button>
-                          </div>
+                        {/* Action buttons */}
+                        <div className="flex flex-wrap gap-2">
+                          <Button 
+                            onClick={() => handleFlightCardClick(flight)} 
+                            size="sm"
+                            className="rounded-full bg-primary/10 text-primary hover:bg-primary/20 border-primary/20" 
+                            variant="outline"
+                          >
+                            View Details
+                          </Button>
                           
-                          <div className="grid grid-cols-2 gap-3">
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              onClick={() => window.open(getAirportDirectionsUrl(flight.departure?.airport || ''), '_blank')} 
-                              className="h-10 bg-white dark:bg-gray-800 border-2 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-300 rounded-xl font-medium transition-all duration-300" 
-                              disabled={!flight.departure?.airport}
-                            >
-                              <Navigation className="w-4 h-4 mr-2" />
-                              Directions
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              onClick={() => window.open(getFlightTrackingUrl(flight.airline, flight.flightNumber), '_blank')} 
-                              className="h-10 bg-white dark:bg-gray-800 border-2 border-purple-200 dark:border-purple-700 text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:border-purple-300 rounded-xl font-medium transition-all duration-300"
-                            >
-                              <Radar className="w-4 h-4 mr-2" />
-                              Track
-                            </Button>
-                          </div>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => window.open(getAirportDirectionsUrl(flight.departure?.airport || ''), '_blank')} 
+                            className="rounded-full text-muted-foreground hover:text-foreground" 
+                            disabled={!flight.departure?.airport}
+                          >
+                            Directions
+                          </Button>
+                          
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => window.open(getFlightTrackingUrl(flight.airline, flight.flightNumber), '_blank')} 
+                            className="rounded-full text-muted-foreground hover:text-foreground"
+                          >
+                            Track
+                          </Button>
                           
                           {flight.bookingUrl && (
                             <Button 
                               onClick={() => window.open(flight.bookingUrl, '_blank')} 
-                              className="w-full h-12 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                              size="sm"
+                              className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
                             >
-                              <ExternalLink className="w-4 h-4 mr-2" />
                               View Booking
                             </Button>
                           )}
