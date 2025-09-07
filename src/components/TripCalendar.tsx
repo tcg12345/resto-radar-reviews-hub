@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ItineraryEvent, HotelBooking } from '@/components/ItineraryBuilder';
+import ActivityRecommendationsDialog from '@/components/ActivityRecommendationsDialog';
 import { useState } from 'react';
 interface TripLocation {
   id: string;
@@ -56,6 +57,7 @@ export function TripCalendar({
   const [changingEventId, setChangingEventId] = useState<string | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<ItineraryEvent | null>(null);
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
+  const [isActivityDialogOpen, setIsActivityDialogOpen] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const toggleDayCollapse = (dateStr: string) => {
@@ -154,6 +156,29 @@ export function TripCalendar({
     }
   };
   return <div className="w-full space-y-4 flex flex-col items-center lg:items-stretch lg:px-8 xl:px-16">
+      {/* Discover Activities Button */}
+      <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
+        <CardContent className="px-4 py-4 md:px-6 md:py-6">
+          <div className="max-w-sm mx-auto text-center space-y-2 md:space-y-3">
+            <div className="hidden md:flex items-center justify-center gap-2">
+              <Compass className="w-5 h-5 text-primary" />
+              <h3 className="font-semibold text-lg">Discover Local Activities</h3>
+            </div>
+            <p className="hidden md:block text-sm text-muted-foreground">
+              Find popular attractions, tours, and points of interest
+            </p>
+            <Button 
+              onClick={() => setIsActivityDialogOpen(true)} 
+              variant="outline"
+              className="w-full border-primary/20 text-primary hover:bg-primary/10"
+            >
+              <Compass className="w-4 h-4 mr-2" />
+              Discover Activities
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Main Add Event Button */}
       <Card className="bg-primary/5 border-0">
         <CardContent className="px-4 py-4 md:px-6 md:py-6 animate-fade-in">
@@ -704,5 +729,14 @@ export function TripCalendar({
         )}
       </DialogContent>
     </Dialog>
+
+    {/* Activity Recommendations Dialog */}
+    <ActivityRecommendationsDialog
+      isOpen={isActivityDialogOpen}
+      onClose={() => setIsActivityDialogOpen(false)}
+      latitude={locations[0]?.name ? undefined : 40.7128} // Default to NYC coordinates if no location
+      longitude={locations[0]?.name ? undefined : -74.0060}
+      city={locations[0]?.name || 'your destination'}
+    />
   </div>;
 }

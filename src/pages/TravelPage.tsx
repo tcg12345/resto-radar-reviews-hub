@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ItineraryBuilder, Itinerary } from '@/components/ItineraryBuilder';
 import { TripPlanner } from '@/components/TripPlanner';
-import ActivityRecommendations from '@/components/ActivityRecommendations';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, MapPin, Compass } from 'lucide-react';
+import { Calendar, MapPin } from 'lucide-react';
 
 export default function TravelPage() {
   const [searchParams] = useSearchParams();
@@ -50,40 +49,26 @@ export default function TravelPage() {
         {/* Ultra-Premium Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="flex justify-center mb-4 lg:mb-8">
-            <TabsList className="grid grid-cols-3 bg-card/60 backdrop-blur-xl border border-border/30 rounded-3xl p-1.5 shadow-premium-xl h-auto">
+            <TabsList className="grid grid-cols-2 bg-card/60 backdrop-blur-xl border border-border/30 rounded-3xl p-1.5 shadow-premium-xl h-auto">
               <TabsTrigger 
                 value="itinerary" 
-                className="flex items-center gap-2 px-3 lg:px-6 py-3 lg:py-4 rounded-2xl font-bold text-xs lg:text-base transition-all duration-500 data-[state=active]:bg-gradient-premium data-[state=active]:text-primary-foreground data-[state=active]:shadow-premium-glow data-[state=active]:scale-105"
+                className="flex items-center gap-2 px-4 lg:px-8 py-3 lg:py-4 rounded-2xl font-bold text-sm lg:text-base transition-all duration-500 data-[state=active]:bg-gradient-premium data-[state=active]:text-primary-foreground data-[state=active]:shadow-premium-glow data-[state=active]:scale-105"
               >
                 <Calendar className="w-4 h-4 lg:w-5 lg:h-5" />
-                <span className="hidden sm:inline">Plan Trip</span>
-                <span className="sm:hidden">Plan</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="activities" 
-                className="flex items-center gap-2 px-3 lg:px-6 py-3 lg:py-4 rounded-2xl font-bold text-xs lg:text-base transition-all duration-500 data-[state=active]:bg-gradient-premium data-[state=active]:text-primary-foreground data-[state=active]:shadow-premium-glow data-[state=active]:scale-105"
-              >
-                <Compass className="w-4 h-4 lg:w-5 lg:h-5" />
-                <span className="hidden sm:inline">Activities</span>
-                <span className="sm:hidden">Do</span>
+                <span>Plan Trip</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="trip-planner" 
-                className="flex items-center gap-2 px-3 lg:px-6 py-3 lg:py-4 rounded-2xl font-bold text-xs lg:text-base transition-all duration-500 data-[state=active]:bg-gradient-premium data-[state=active]:text-primary-foreground data-[state=active]:shadow-premium-glow data-[state=active]:scale-105"
+                className="flex items-center gap-2 px-4 lg:px-8 py-3 lg:py-4 rounded-2xl font-bold text-sm lg:text-base transition-all duration-500 data-[state=active]:bg-gradient-premium data-[state=active]:text-primary-foreground data-[state=active]:shadow-premium-glow data-[state=active]:scale-105"
               >
                 <MapPin className="w-4 h-4 lg:w-5 lg:h-5" />
-                <span className="hidden sm:inline">My Trips</span>
-                <span className="sm:hidden">Trips</span>
+                <span>My Trips</span>
               </TabsTrigger>
             </TabsList>
           </div>
           
           <TabsContent value="itinerary" className="mt-0 animate-fade-in-up">
             <ItineraryBuilder key={itineraryBuilderKey} onLoadItinerary={handleLoadItinerary} />
-          </TabsContent>
-          
-          <TabsContent value="activities" className="mt-0 animate-fade-in-up">
-            <ActivityRecommendations />
           </TabsContent>
           
           <TabsContent value="trip-planner" className="mt-0 animate-fade-in-up">
