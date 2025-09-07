@@ -67,6 +67,8 @@ export function TripCalendar({
 
   const selectedLocation = locations[selectedLocationIndex];
 
+  console.log('TripCalendar render debug:', { selectedLocation, locationCoords, selectedLocationIndex, locations });
+
   // Fetch coordinates when selected location changes
   useEffect(() => {
     if (!selectedLocation) return;
