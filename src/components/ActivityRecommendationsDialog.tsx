@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { BottomSheet, BottomSheetContent, BottomSheetHeader } from '@/components/ui/bottom-sheet';
 import ActivityRecommendations from '@/components/ActivityRecommendations';
 
 interface ActivityRecommendationsDialogProps {
@@ -20,21 +20,28 @@ export default function ActivityRecommendationsDialog({
   console.log('ActivityRecommendationsDialog render:', { isOpen, latitude, longitude, city });
   
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl w-[95vw] h-[90vh] max-h-[90vh] overflow-hidden flex flex-col p-0 gap-0">
-        <DialogHeader className="px-6 py-4 border-b">
-          <DialogTitle className="text-xl font-semibold text-center">
-            Discover Activities in {city || 'Your Destination'}
-          </DialogTitle>
-        </DialogHeader>
-        <div className="flex-1 overflow-y-auto p-6">
-          <ActivityRecommendations 
-            latitude={latitude} 
-            longitude={longitude} 
-            city={city} 
-          />
-        </div>
-      </DialogContent>
-    </Dialog>
+    <BottomSheet 
+      open={isOpen} 
+      onOpenChange={onClose}
+      className="min-h-[50vh] max-h-[90vh]"
+    >
+      <div 
+        className="bg-background border rounded-t-3xl p-6"
+        style={{ 
+          minHeight: '300px',
+          backgroundColor: 'white',
+          borderRadius: '24px 24px 0 0'
+        }}
+      >
+        <h2 className="text-xl font-semibold text-center mb-4">
+          Discover Activities in {city || 'Your Destination'}
+        </h2>
+        <ActivityRecommendations 
+          latitude={latitude} 
+          longitude={longitude} 
+          city={city} 
+        />
+      </div>
+    </BottomSheet>
   );
 }
