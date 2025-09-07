@@ -49,10 +49,12 @@ interface ActivityRecommendationsProps {
 }
 
 export default function ActivityRecommendations({ 
-  latitude = 40.7128, 
-  longitude = -74.0060, 
-  city = "New York" 
+  latitude, 
+  longitude, 
+  city 
 }: ActivityRecommendationsProps) {
+  console.log('🏛️ ActivityRecommendations received coordinates:', { latitude, longitude, city });
+  
   const [pointsOfInterest, setPointsOfInterest] = useState<PointOfInterest[]>([]);
   const [toursActivities, setToursActivities] = useState<TourActivity[]>([]);
   const [isLoadingPOI, setIsLoadingPOI] = useState(false);
@@ -60,7 +62,18 @@ export default function ActivityRecommendations({
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const { toast } = useToast();
 
+  // Don't proceed without coordinates
+  if (!latitude || !longitude) {
+    console.warn('🚨 ActivityRecommendations: No coordinates provided');
+    return (
+      <div className="text-center p-8">
+        <p className="text-muted-foreground">Waiting for location coordinates...</p>
+      </div>
+    );
+  }
+
   const fetchPointsOfInterest = async () => {
+    console.log('🔍 Fetching POI with coordinates:', { latitude, longitude, city, selectedCategory });
     setIsLoadingPOI(true);
     try {
       const { data, error } = await supabase.functions.invoke('amadeus-enhanced-flight-api', {
@@ -89,6 +102,7 @@ export default function ActivityRecommendations({
   };
 
   const fetchToursActivities = async () => {
+    console.log('🎯 Fetching Tours & Activities with coordinates:', { latitude, longitude, city });
     setIsLoadingTours(true);
     try {
       const { data, error } = await supabase.functions.invoke('amadeus-enhanced-flight-api', {
