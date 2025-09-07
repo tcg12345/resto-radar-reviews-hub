@@ -734,9 +734,9 @@ export function TripCalendar({
     <ActivityRecommendationsDialog
       isOpen={isActivityDialogOpen}
       onClose={() => setIsActivityDialogOpen(false)}
-      latitude={locations[0]?.name ? undefined : 40.7128} // Default to NYC coordinates if no location
-      longitude={locations[0]?.name ? undefined : -74.0060}
-      city={locations[0]?.name || 'your destination'}
+      latitude={40.7128} // Default to NYC coordinates 
+      longitude={-74.0060}
+      city={locations[0]?.name || 'New York City'}
     />
   </div>;
 }
