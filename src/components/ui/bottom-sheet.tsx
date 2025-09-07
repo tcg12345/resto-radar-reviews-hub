@@ -110,7 +110,9 @@ export function BottomSheet({ open, onOpenChange, children, className }: BottomS
           <X className="h-4 w-4" />
         </button>
 
-        {children}
+        <div className="flex-1 overflow-y-auto">
+          {children}
+        </div>
       </div>
     </>
   );
