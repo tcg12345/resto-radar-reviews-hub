@@ -12,7 +12,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ItineraryEvent, HotelBooking } from '@/components/ItineraryBuilder';
 import ActivityRecommendationsDialog from '@/components/ActivityRecommendationsDialog';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface TripLocation {
@@ -60,44 +60,60 @@ export function TripCalendar({
   const [selectedEvent, setSelectedEvent] = useState<ItineraryEvent | null>(null);
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
   const [isActivityDialogOpen, setIsActivityDialogOpen] = useState(false);
-  const [currentLocationCoords, setCurrentLocationCoords] = useState<{latitude: number; longitude: number} | null>(null);
+  const [selectedLocationIndex, setSelectedLocationIndex] = useState<number>(0);
+  const [locationCoords, setLocationCoords] = useState<{latitude: number; longitude: number} | null>(null);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-  // Geocode location name to get coordinates
-  const geocodeLocation = useCallback(async (locationName: string) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('geocode', {
-        body: { address: '', city: locationName }
-      });
+  const selectedLocation = locations[selectedLocationIndex];
 
-      if (error) {
-        console.error('Geocoding error:', error);
-        return null;
+  // Fetch coordinates when selected location changes
+  useEffect(() => {
+    if (!selectedLocation) return;
+    
+    const fetchCoordinates = async () => {
+      try {
+        // Try using location-suggestions function first
+        const { data, error } = await supabase.functions.invoke('location-suggestions', {
+          body: { input: selectedLocation.name }
+        });
+
+        if (!error && data?.suggestions?.length) {
+          const first = data.suggestions[0];
+          if (first.geoCode) {
+            setLocationCoords({ 
+              latitude: first.geoCode.latitude, 
+              longitude: first.geoCode.longitude 
+            });
+            return;
+          }
+        }
+
+        // Fallback to geocode function if location-suggestions doesn't work
+        const geocodeResult = await supabase.functions.invoke('geocode', {
+          body: { address: '', city: selectedLocation.name }
+        });
+
+        if (!geocodeResult.error && geocodeResult.data) {
+          setLocationCoords({ 
+            latitude: geocodeResult.data.latitude, 
+            longitude: geocodeResult.data.longitude 
+          });
+          return;
+        }
+
+        // Final fallback to NYC coordinates
+        console.warn(`Could not geocode ${selectedLocation.name}, using NYC coordinates`);
+        setLocationCoords({ latitude: 40.7128, longitude: -74.0060 });
+        
+      } catch (error) {
+        console.error('Error fetching coordinates:', error);
+        setLocationCoords({ latitude: 40.7128, longitude: -74.0060 });
       }
+    };
 
-      return { latitude: data.latitude, longitude: data.longitude };
-    } catch (error) {
-      console.error('Error geocoding location:', error);
-      return null;
-    }
-  }, []);
-
-  // Open activity dialog with geocoded coordinates
-  const openActivityDialog = useCallback(async () => {
-    const currentLocation = locations[0]?.name || 'New York City';
-    
-    // Try to get coordinates for the current location
-    const coords = await geocodeLocation(currentLocation);
-    if (coords) {
-      setCurrentLocationCoords(coords);
-    } else {
-      // Fallback to NYC coordinates if geocoding fails
-      setCurrentLocationCoords({ latitude: 40.7128, longitude: -74.0060 });
-    }
-    
-    setIsActivityDialogOpen(true);
-  }, [locations, geocodeLocation]);
+    fetchCoordinates();
+  }, [selectedLocation]);
   const toggleDayCollapse = (dateStr: string) => {
     const newCollapsed = new Set(collapsedDays);
     if (newCollapsed.has(dateStr)) {
@@ -205,14 +221,46 @@ export function TripCalendar({
             <p className="hidden md:block text-sm text-muted-foreground">
               Find popular attractions, tours, and points of interest
             </p>
+            
+            {/* Location Selector */}
+            {locations.length > 1 && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">
+                  Select Location:
+                </label>
+                <Select 
+                  value={String(selectedLocationIndex)} 
+                  onValueChange={(value) => setSelectedLocationIndex(Number(value))}
+                >
+                  <SelectTrigger className="w-full max-w-xs mx-auto">
+                    <SelectValue placeholder="Choose a location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {locations.map((location, index) => (
+                      <SelectItem key={location.id} value={String(index)}>
+                        {location.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            
             <Button 
-              onClick={openActivityDialog} 
+              onClick={() => setIsActivityDialogOpen(true)} 
               variant="outline"
               className="w-full border-primary/20 text-primary hover:bg-primary/10"
+              disabled={!locationCoords}
             >
               <Compass className="w-4 h-4 mr-2" />
-              Discover Activities
+              Discover Activities in {selectedLocation?.name || 'Selected City'}
             </Button>
+            
+            {!locationCoords && selectedLocation && (
+              <p className="text-xs text-muted-foreground">
+                Loading coordinates for {selectedLocation.name}...
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -772,9 +820,9 @@ export function TripCalendar({
     <ActivityRecommendationsDialog
       isOpen={isActivityDialogOpen}
       onClose={() => setIsActivityDialogOpen(false)}
-      latitude={currentLocationCoords?.latitude || 40.7128}
-      longitude={currentLocationCoords?.longitude || -74.0060}
-      city={locations[0]?.name || 'New York City'}
+      latitude={locationCoords?.latitude || 40.7128}
+      longitude={locationCoords?.longitude || -74.0060}
+      city={selectedLocation?.name || 'Your Destination'}
     />
   </div>;
 }
