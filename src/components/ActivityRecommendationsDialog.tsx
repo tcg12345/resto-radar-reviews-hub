@@ -17,6 +17,8 @@ export default function ActivityRecommendationsDialog({
   longitude, 
   city 
 }: ActivityRecommendationsDialogProps) {
+  console.log('ActivityRecommendationsDialog render:', { isOpen, latitude, longitude, city });
+  
   return (
     <BottomSheet open={isOpen} onOpenChange={onClose}>
       <BottomSheetContent className="h-[90vh] overflow-hidden flex flex-col">
