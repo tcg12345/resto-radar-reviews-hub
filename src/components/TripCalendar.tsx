@@ -88,29 +88,8 @@ export function TripCalendar({
       console.log('🌍 Starting coordinate fetch for:', selectedLocation.name);
       
       try {
-        // Try using location-suggestions function first
-        console.log('📡 Trying location-suggestions...');
-        const { data, error } = await supabase.functions.invoke('location-suggestions', {
-          body: { input: selectedLocation.name }
-        });
-
-        console.log('📡 Location-suggestions response:', { data, error });
-
-        if (!error && data?.suggestions?.length) {
-          const first = data.suggestions[0];
-          if (first.geoCode) {
-            const coords = { 
-              latitude: first.geoCode.latitude, 
-              longitude: first.geoCode.longitude 
-            };
-            console.log('✅ Got coordinates from location-suggestions:', coords);
-            setLocationCoords(coords);
-            return;
-          }
-        }
-
-        // Fallback to geocode function if location-suggestions doesn't work
-        console.log('📡 Trying geocode function...');
+        // Use geocode function directly with the location name
+        console.log('📡 Using geocode function for:', selectedLocation.name);
         const geocodeResult = await supabase.functions.invoke('geocode', {
           body: { address: '', city: selectedLocation.name }
         });
