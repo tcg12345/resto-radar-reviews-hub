@@ -67,49 +67,72 @@ export function TripCalendar({
 
   const selectedLocation = locations[selectedLocationIndex];
 
-  console.log('TripCalendar render debug:', { selectedLocation, locationCoords, selectedLocationIndex, locations });
+  console.log('🔍 TripCalendar render:', { 
+    locationsLength: locations?.length, 
+    selectedLocationIndex, 
+    selectedLocation: selectedLocation?.name, 
+    locationCoords,
+    hasLocations: !!locations 
+  });
 
   // Fetch coordinates when selected location changes
   useEffect(() => {
-    if (!selectedLocation) return;
+    console.log('🔍 useEffect triggered:', { selectedLocation: selectedLocation?.name });
+    
+    if (!selectedLocation) {
+      console.log('❌ No selected location');
+      return;
+    }
     
     const fetchCoordinates = async () => {
+      console.log('🌍 Starting coordinate fetch for:', selectedLocation.name);
+      
       try {
         // Try using location-suggestions function first
+        console.log('📡 Trying location-suggestions...');
         const { data, error } = await supabase.functions.invoke('location-suggestions', {
           body: { input: selectedLocation.name }
         });
 
+        console.log('📡 Location-suggestions response:', { data, error });
+
         if (!error && data?.suggestions?.length) {
           const first = data.suggestions[0];
           if (first.geoCode) {
-            setLocationCoords({ 
+            const coords = { 
               latitude: first.geoCode.latitude, 
               longitude: first.geoCode.longitude 
-            });
+            };
+            console.log('✅ Got coordinates from location-suggestions:', coords);
+            setLocationCoords(coords);
             return;
           }
         }
 
         // Fallback to geocode function if location-suggestions doesn't work
+        console.log('📡 Trying geocode function...');
         const geocodeResult = await supabase.functions.invoke('geocode', {
           body: { address: '', city: selectedLocation.name }
         });
 
+        console.log('📡 Geocode response:', { data: geocodeResult.data, error: geocodeResult.error });
+
         if (!geocodeResult.error && geocodeResult.data) {
-          setLocationCoords({ 
+          const coords = { 
             latitude: geocodeResult.data.latitude, 
             longitude: geocodeResult.data.longitude 
-          });
+          };
+          console.log('✅ Got coordinates from geocode:', coords);
+          setLocationCoords(coords);
           return;
         }
 
         // Final fallback to NYC coordinates
-        console.warn(`Could not geocode ${selectedLocation.name}, using NYC coordinates`);
+        console.warn(`⚠️  Could not geocode ${selectedLocation.name}, using NYC coordinates`);
         setLocationCoords({ latitude: 40.7128, longitude: -74.0060 });
         
       } catch (error) {
-        console.error('Error fetching coordinates:', error);
+        console.error('❌ Error fetching coordinates:', error);
         setLocationCoords({ latitude: 40.7128, longitude: -74.0060 });
       }
     };

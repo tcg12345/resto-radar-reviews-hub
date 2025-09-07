@@ -22,6 +22,13 @@ export default function ActivityRecommendationsDialog({
 }: ActivityRecommendationsDialogProps) {
   const isMobile = useIsMobile();
 
+  console.log('🎯 ActivityRecommendationsDialog received:', { 
+    isOpen, 
+    latitude, 
+    longitude, 
+    city 
+  });
+
   return (
     <Drawer open={isOpen} onOpenChange={onClose}>
       <DrawerContent className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-0">
