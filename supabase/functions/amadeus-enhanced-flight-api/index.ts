@@ -852,6 +852,7 @@ async function getToursActivities(params: ToursActivitiesRequest) {
     // Return empty data instead of throwing to avoid complete failure
     return { data: [], meta: { count: 0 } };
   }
+}
 
 // Generate realistic mock on-time performance data
 function generateMockOnTimeStats(carrierCode: string) {
