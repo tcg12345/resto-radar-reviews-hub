@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BottomSheet, BottomSheetContent, BottomSheetHeader } from '@/components/ui/bottom-sheet';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import ActivityRecommendations from '@/components/ActivityRecommendations';
 
 interface ActivityRecommendationsDialogProps {
@@ -20,21 +20,19 @@ export default function ActivityRecommendationsDialog({
   console.log('ActivityRecommendationsDialog render:', { isOpen, latitude, longitude, city });
   
   return (
-    <BottomSheet open={isOpen} onOpenChange={onClose}>
-      <BottomSheetContent className="h-[90vh] overflow-hidden flex flex-col">
-        <BottomSheetHeader className="flex-shrink-0 pb-4">
-          <h2 className="text-2xl font-bold text-center">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold">
             Discover Activities in {city || 'Your Destination'}
-          </h2>
-        </BottomSheetHeader>
-        <div className="flex-1 overflow-y-auto px-4 pb-6">
-          <ActivityRecommendations 
-            latitude={latitude} 
-            longitude={longitude} 
-            city={city} 
-          />
-        </div>
-      </BottomSheetContent>
-    </BottomSheet>
+          </DialogTitle>
+        </DialogHeader>
+        <ActivityRecommendations 
+          latitude={latitude} 
+          longitude={longitude} 
+          city={city} 
+        />
+      </DialogContent>
+    </Dialog>
   );
 }
