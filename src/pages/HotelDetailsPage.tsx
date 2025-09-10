@@ -384,14 +384,8 @@ export function HotelDetailsPage() {
   };
 
   const handleBack = () => {
-    // Check if there's a stored referrer (like from itinerary page)
-    const referrer = sessionStorage.getItem('hotel_referrer');
-    if (referrer) {
-      sessionStorage.removeItem('hotel_referrer');
-      navigate(referrer);
-    } else {
-      navigate('/travel');
-    }
+    // Always navigate back to the travel page (itinerary builder)
+    navigate('/travel');
   };
 
   const copyConfirmationNumber = (confirmationNumber: string) => {
