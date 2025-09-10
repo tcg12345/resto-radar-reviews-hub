@@ -285,6 +285,7 @@ export function ItineraryBuilder({
       locationNights,
       wasCreatedWithLengthOfStay
     };
+    console.log('🏨 Saving to localStorage - Hotels count:', hotels.length);
     try {
       localStorage.setItem('currentItineraryBuilder', JSON.stringify(stateToSave));
     } catch (error) {
@@ -841,6 +842,7 @@ export function ItineraryBuilder({
     }
   }, [events, hotels, flights]);
   const handleAddHotel = (hotel: HotelType, location?: string, checkIn?: Date, checkOut?: Date) => {
+    console.log('🏨 Adding hotel:', hotel.name, 'Current hotels count:', hotels.length);
     const newBooking: HotelBooking = {
       id: crypto.randomUUID(),
       hotel,
@@ -856,6 +858,7 @@ export function ItineraryBuilder({
       totalCost: '',
       notes: ''
     };
+    console.log('🏨 Setting hotels:', [...hotels, newBooking].length, 'hotels');
     setHotels(prev => [...prev, newBooking]);
   };
   const handleAddFlight = (flight: any) => {

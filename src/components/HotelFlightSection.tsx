@@ -217,7 +217,10 @@ export function HotelFlightSection({
     
     // Store current itinerary state so we can restore it when coming back
     const currentItineraryState = localStorage.getItem('currentItineraryBuilder');
+    console.log('🏨 BEFORE Navigation - Current itinerary state:', currentItineraryState);
     if (currentItineraryState) {
+      const parsedState = JSON.parse(currentItineraryState);
+      console.log('🏨 BEFORE Navigation - Hotels in state:', parsedState.hotels?.length || 0);
       sessionStorage.setItem('hotel_itinerary_state', currentItineraryState);
     }
     

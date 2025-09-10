@@ -386,10 +386,12 @@ export function HotelDetailsPage() {
   const handleBack = () => {
     // Check if we came from the itinerary builder and preserve state
     const itineraryState = sessionStorage.getItem('hotel_itinerary_state');
+    console.log('🏨 AFTER Navigation - Retrieved itinerary state:', itineraryState);
     if (itineraryState) {
       try {
         // Parse and validate the state before restoring
         const parsedState = JSON.parse(itineraryState);
+        console.log('🏨 AFTER Navigation - Parsed state hotels:', parsedState.hotels?.length || 0);
         
         // Ensure locations and events arrays exist
         if (parsedState) {
@@ -402,6 +404,8 @@ export function HotelDetailsPage() {
           if (parsedState.currentItinerary) {
             parsedState.currentItinerary.locations = parsedState.currentItinerary.locations || [];
           }
+          
+          console.log('🏨 AFTER Navigation - Final hotels before restore:', parsedState.hotels?.length || 0);
           
           // Restore the itinerary state to localStorage
           localStorage.setItem('currentItineraryBuilder', JSON.stringify(parsedState));
