@@ -67,11 +67,11 @@ export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItin
     content += `${startDate} - ${endDate}\n\n`;
     
     // Add locations
-    if (itinerary.locations.length > 0) {
+    if (itinerary.locations && itinerary.locations.length > 0) {
       content += `Destinations: ${itinerary.locations.map(loc => loc.name).join(' → ')}\n\n`;
     }
     
-    if (itinerary.events.length > 0) {
+    if (itinerary.events && itinerary.events.length > 0) {
       const eventsByDate = itinerary.events.reduce((acc, event) => {
         if (!acc[event.date]) acc[event.date] = [];
         acc[event.date].push(event);
@@ -116,7 +116,7 @@ export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItin
     console.log('ExportItineraryDialog - generatePDF called with itinerary:', {
       title: itinerary.title,
       wasCreatedWithLengthOfStay: itinerary.wasCreatedWithLengthOfStay,
-      eventsCount: itinerary.events.length
+      eventsCount: itinerary.events ? itinerary.events.length : 0
     });
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
@@ -191,7 +191,7 @@ export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItin
     doc.setFont('helvetica', 'bold');
     doc.text('Total Events:', margin + 5, yPosition + 35);
     doc.setFont('helvetica', 'normal');
-    doc.text(`${itinerary.events.length} events planned`, margin + 35, yPosition + 35);
+    doc.text(`${itinerary.events ? itinerary.events.length : 0} events planned`, margin + 35, yPosition + 35);
     
     yPosition += 55;
 
@@ -202,9 +202,9 @@ export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItin
     doc.text('Trip Statistics', margin, yPosition);
     yPosition += 10;
 
-    const restaurantCount = itinerary.events.filter(e => e.type === 'restaurant').length;
-    const attractionCount = itinerary.events.filter(e => e.type === 'attraction').length;
-    const otherCount = itinerary.events.filter(e => e.type === 'other').length;
+    const restaurantCount = itinerary.events ? itinerary.events.filter(e => e.type === 'restaurant').length : 0;
+    const attractionCount = itinerary.events ? itinerary.events.filter(e => e.type === 'attraction').length : 0;
+    const otherCount = itinerary.events ? itinerary.events.filter(e => e.type === 'other').length : 0;
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
@@ -214,7 +214,7 @@ export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItin
     yPosition += 20;
 
     // Detailed itinerary section
-    if (itinerary.events.length > 0) {
+    if (itinerary.events && itinerary.events.length > 0) {
       checkNewPage(25);
       doc.setFontSize(16);
       doc.setFont('helvetica', 'bold');
@@ -275,9 +275,9 @@ export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItin
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'normal');
                 doc.setTextColor(75, 85, 99); // Gray text
-                const splitDescription = doc.splitTextToSize(event.description, pageWidth - margin * 2 - 20);
+                const splitDescription = doc.splitTextToSize(event.description || '', pageWidth - margin * 2 - 20);
                 doc.text(splitDescription, margin + 15, yPosition);
-                yPosition += splitDescription.length * 4 + 3;
+                yPosition += (Array.isArray(splitDescription) ? splitDescription.length : 1) * 4 + 3;
               }
 
               // Location details for restaurants
@@ -300,8 +300,8 @@ export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItin
                 
                 // Website
                 if (event.restaurantData.website) {
-                  const websiteText = event.restaurantData.website.length > 50 
-                    ? event.restaurantData.website.substring(0, 47) + '...'
+                  const websiteText = (event.restaurantData.website || '').length > 50 
+                    ? (event.restaurantData.website || '').substring(0, 47) + '...'
                     : event.restaurantData.website;
                   doc.text(`Website: ${websiteText}`, margin + 15, yPosition);
                   yPosition += 4;
@@ -330,8 +330,8 @@ export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItin
                 }
                 
                 if (event.attractionData.website) {
-                  const websiteText = event.attractionData.website.length > 50 
-                    ? event.attractionData.website.substring(0, 47) + '...'
+                  const websiteText = (event.attractionData.website || '').length > 50 
+                    ? (event.attractionData.website || '').substring(0, 47) + '...'
                     : event.attractionData.website;
                   doc.text(`Website: ${websiteText}`, margin + 15, yPosition);
                   yPosition += 4;
@@ -544,12 +544,12 @@ export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItin
                       <div className="space-y-2">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Total Events:</span>
-                          <span className="font-medium text-right">{itinerary.events.length}</span>
+                          <span className="font-medium text-right">{itinerary.events ? itinerary.events.length : 0}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Restaurants:</span>
                           <span className="font-medium text-right">
-                            {itinerary.events.filter(e => e.type === 'restaurant').length}
+                            {itinerary.events ? itinerary.events.filter(e => e.type === 'restaurant').length : 0}
                           </span>
                         </div>
                       </div>
@@ -676,12 +676,12 @@ export function ExportItineraryDialog({ isOpen, onClose, itinerary }: ExportItin
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Total Events:</span>
-                    <span className="font-medium text-right">{itinerary.events.length}</span>
+                    <span className="font-medium text-right">{itinerary.events ? itinerary.events.length : 0}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Restaurants:</span>
                     <span className="font-medium text-right">
-                      {itinerary.events.filter(e => e.type === 'restaurant').length}
+                      {itinerary.events ? itinerary.events.filter(e => e.type === 'restaurant').length : 0}
                     </span>
                   </div>
                 </div>
