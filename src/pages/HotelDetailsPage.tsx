@@ -384,6 +384,18 @@ export function HotelDetailsPage() {
   };
 
   const handleBack = () => {
+    // Check if we came from the itinerary builder and preserve state
+    const itineraryState = sessionStorage.getItem('hotel_itinerary_state');
+    if (itineraryState) {
+      try {
+        // Restore the itinerary state to localStorage
+        localStorage.setItem('currentItineraryBuilder', itineraryState);
+        sessionStorage.removeItem('hotel_itinerary_state');
+      } catch (error) {
+        console.error('Error restoring itinerary state:', error);
+      }
+    }
+    
     // Navigate back to the travel page with itinerary tab active
     navigate('/travel?tab=itinerary');
   };

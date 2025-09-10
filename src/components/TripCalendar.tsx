@@ -341,9 +341,16 @@ export function TripCalendar({
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (dayHotel.hotel?.id) {
-                                    // Store hotel data in sessionStorage for the details page
-                                    sessionStorage.setItem(`hotel_${dayHotel.hotel.id}`, JSON.stringify(dayHotel.hotel));
-                                    navigate(`/hotel/${dayHotel.hotel.id}`);
+                                     // Store hotel data in sessionStorage for the details page
+                                     sessionStorage.setItem(`hotel_${dayHotel.hotel.id}`, JSON.stringify(dayHotel.hotel));
+                                     
+                                     // Store current itinerary state so we can restore it when coming back
+                                     const currentItineraryState = localStorage.getItem('currentItineraryBuilder');
+                                     if (currentItineraryState) {
+                                       sessionStorage.setItem('hotel_itinerary_state', currentItineraryState);
+                                     }
+                                     
+                                     navigate(`/hotel/${dayHotel.hotel.id}`);
                                   }
                                 }}
                               >

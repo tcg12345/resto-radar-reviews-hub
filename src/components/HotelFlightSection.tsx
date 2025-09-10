@@ -214,6 +214,13 @@ export function HotelFlightSection({
       }
     };
     sessionStorage.setItem(`hotel_${booking.hotel.id}`, JSON.stringify(hotelDetailsData));
+    
+    // Store current itinerary state so we can restore it when coming back
+    const currentItineraryState = localStorage.getItem('currentItineraryBuilder');
+    if (currentItineraryState) {
+      sessionStorage.setItem('hotel_itinerary_state', currentItineraryState);
+    }
+    
     navigate(`/hotel/${booking.hotel.id}`);
   };
   const handleFlightCardClick = (flight: FlightBooking) => {
