@@ -637,7 +637,7 @@ const preloadImages = async () => {
           </Button>
         </div>
         ) : (
-          <div className={view === 'grid' ? "grid gap-6 sm:grid-cols-2 lg:grid-cols-3" : "space-y-4"}>
+          <div className={view === 'grid' ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3" : "space-y-4"}>
             {filteredRestaurants.map((restaurant) => (
               view === 'grid' ? (
                 <RestaurantCard
