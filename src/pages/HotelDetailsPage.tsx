@@ -393,10 +393,11 @@ export function HotelDetailsPage() {
         
         // Ensure locations and events arrays exist
         if (parsedState) {
-          parsedState.locations = parsedState.locations || [];
-          parsedState.events = parsedState.events || [];
-          parsedState.hotels = parsedState.hotels || [];
-          parsedState.flights = parsedState.flights || [];
+          // Only initialize arrays if they don't exist, don't overwrite existing data
+          if (!Array.isArray(parsedState.locations)) parsedState.locations = [];
+          if (!Array.isArray(parsedState.events)) parsedState.events = [];
+          if (!Array.isArray(parsedState.hotels)) parsedState.hotels = [];
+          if (!Array.isArray(parsedState.flights)) parsedState.flights = [];
           
           if (parsedState.currentItinerary) {
             parsedState.currentItinerary.locations = parsedState.currentItinerary.locations || [];
