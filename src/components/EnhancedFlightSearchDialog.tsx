@@ -12,7 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { AirportSearch } from '@/components/AirportSearch';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { supabase } from '@/integrations/supabase/client';
-import { CalendarIcon, ArrowLeft, Plane, Clock, ArrowRight, ChevronDown, Search, X } from 'lucide-react';
+import { CalendarIcon, ArrowLeft, Plane, Clock, ArrowRight, ChevronDown, Search, X, ArrowUpDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 import { cn } from '@/lib/utils';
@@ -627,8 +627,24 @@ export function EnhancedFlightSearchDialog({ isOpen, onClose, onSelect, location
                           )}
                         </div>
 
+                        {/* Swap Button */}
+                        <div className="flex justify-center py-2">
+                          <Button
+                            onClick={() => {
+                              const tempFrom = fromAirport;
+                              setFromAirport(toAirport);
+                              setToAirport(tempFrom);
+                            }}
+                            variant="outline"
+                            size="sm"
+                            className="w-10 h-10 rounded-full p-0 border-2 border-border/50 bg-background/80 backdrop-blur-sm hover:bg-primary/10 hover:border-primary/30 transition-all duration-200 hover-scale"
+                          >
+                            <ArrowUpDown className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors duration-200" />
+                          </Button>
+                        </div>
+
                         {/* To Airport Card */}
-                        <div 
+                        <div
                           className="glass-card rounded-2xl p-4 border border-border/50 shadow-premium transition-all duration-200 hover:shadow-premium-glow focus-within:border-primary/50 focus-within:shadow-premium-glow cursor-pointer relative z-10"
                           onClick={() => {
                             const input = document.querySelector('[placeholder="Choose destination airport"]') as HTMLInputElement;
