@@ -154,7 +154,7 @@ export function ItineraryBuilder({
             ...parsed.currentItinerary,
             startDate: new Date(parsed.currentItinerary.startDate),
             endDate: new Date(parsed.currentItinerary.endDate),
-            locations: parsed.currentItinerary.locations.map((loc: any) => ({
+            locations: (parsed.currentItinerary.locations || []).map((loc: any) => ({
               ...loc,
               startDate: loc.startDate ? new Date(loc.startDate) : undefined,
               endDate: loc.endDate ? new Date(loc.endDate) : undefined
@@ -163,7 +163,7 @@ export function ItineraryBuilder({
           events: parsed.events || [],
           hotels: parsed.hotels || [],
           flights: parsed.flights || [],
-          locations: parsed.locations.map((loc: any) => ({
+          locations: (parsed.locations || []).map((loc: any) => ({
             ...loc,
             startDate: loc.startDate ? new Date(loc.startDate) : undefined,
             endDate: loc.endDate ? new Date(loc.endDate) : undefined

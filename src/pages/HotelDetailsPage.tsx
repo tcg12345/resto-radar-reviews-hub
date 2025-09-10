@@ -388,11 +388,29 @@ export function HotelDetailsPage() {
     const itineraryState = sessionStorage.getItem('hotel_itinerary_state');
     if (itineraryState) {
       try {
-        // Restore the itinerary state to localStorage
-        localStorage.setItem('currentItineraryBuilder', itineraryState);
+        // Parse and validate the state before restoring
+        const parsedState = JSON.parse(itineraryState);
+        
+        // Ensure locations and events arrays exist
+        if (parsedState) {
+          parsedState.locations = parsedState.locations || [];
+          parsedState.events = parsedState.events || [];
+          parsedState.hotels = parsedState.hotels || [];
+          parsedState.flights = parsedState.flights || [];
+          
+          if (parsedState.currentItinerary) {
+            parsedState.currentItinerary.locations = parsedState.currentItinerary.locations || [];
+          }
+          
+          // Restore the itinerary state to localStorage
+          localStorage.setItem('currentItineraryBuilder', JSON.stringify(parsedState));
+        }
+        
         sessionStorage.removeItem('hotel_itinerary_state');
       } catch (error) {
         console.error('Error restoring itinerary state:', error);
+        // Clean up if there's an error
+        sessionStorage.removeItem('hotel_itinerary_state');
       }
     }
     
