@@ -1,14 +1,21 @@
 import { useAuth } from '@/contexts/AuthContext';
-import { RestaurantProvider } from '@/contexts/RestaurantContext';
-import { Layout } from '@/components/Layout';
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import LandingPage from './LandingPage';
-import HomePageWrapper from './HomePageWrapper';
 
 export default function Index() {
   const { user, isLoading } = useAuth();
+  const navigate = useNavigate();
 
   // Debug: Log the current authentication state
   console.log('Auth state:', { user: !!user, isLoading, userEmail: user?.email });
+
+  // Redirect authenticated users to the feed page
+  useEffect(() => {
+    if (!isLoading && user) {
+      navigate('/home');
+    }
+  }, [user, isLoading, navigate]);
 
   if (isLoading) {
     return (
@@ -18,14 +25,6 @@ export default function Index() {
     );
   }
 
-  // Show home page if user is authenticated, otherwise show landing page
-  return user ? (
-    <RestaurantProvider>
-      <Layout activeTab="home">
-        <HomePageWrapper />
-      </Layout>
-    </RestaurantProvider>
-  ) : (
-    <LandingPage />
-  );
+  // Show landing page for unauthenticated users
+  return user ? null : <LandingPage />;
 }
