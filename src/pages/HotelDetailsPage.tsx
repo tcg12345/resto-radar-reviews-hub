@@ -384,8 +384,8 @@ export function HotelDetailsPage() {
   };
 
   const handleBack = () => {
-    // Always navigate back to the travel page (itinerary builder)
-    navigate('/travel');
+    // Navigate back to the travel page with itinerary tab active
+    navigate('/travel?tab=itinerary');
   };
 
   const copyConfirmationNumber = (confirmationNumber: string) => {
