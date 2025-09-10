@@ -237,7 +237,7 @@ export function RestaurantCard({
           </div>}
         
         {/* Premium Content Layout */}
-        <div className="relative flex flex-col flex-1 p-5 space-y-4" style={{
+        <div className="relative flex flex-col flex-1 p-4 space-y-3" style={{
         backgroundColor: 'rgb(10,23,43)'
       }}>
           {/* Close button for no-photos layout */}
