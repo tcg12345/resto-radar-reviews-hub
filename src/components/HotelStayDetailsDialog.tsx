@@ -232,121 +232,125 @@ export function HotelStayDetailsDialog({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          {wasCreatedWithLengthOfStay ? (
-            <>
-              <div className="space-y-3">
-                <div className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Check-in Day</div>
-                <Select value={checkInDay.toString()} onValueChange={(value) => {
-                  const day = parseInt(value);
-                  setCheckInDay(day);
-                  if (checkOutDay <= day) {
-                    setCheckOutDay(day + 1);
-                  }
-                }}>
-                  <SelectTrigger className="h-14 bg-background/60 border-border/30 rounded-xl text-left">
-                    <SelectValue placeholder="Select check-in day" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({ length: itineraryDuration || 7 }, (_, i) => i + 1).map((day) => (
-                      <SelectItem key={day} value={day.toString()}>
-                        Day {day}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-3">
-                <div className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Check-out Day</div>
-                <Select value={checkOutDay.toString()} onValueChange={(value) => setCheckOutDay(parseInt(value))}>
-                  <SelectTrigger className="h-14 bg-background/60 border-border/30 rounded-xl text-left">
-                    <SelectValue placeholder="Select check-out day" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({ length: (itineraryDuration || 7) + 1 }, (_, i) => i + 1)
-                      .filter(day => day > checkInDay)
-                      .map((day) => (
-                        <SelectItem key={day} value={day.toString()}>
-                          Day {day}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="space-y-3">
-                <div className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Check-in</div>
-                <Popover open={isCheckInOpen} onOpenChange={setIsCheckInOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="h-14 w-full justify-start text-left font-normal bg-background/60 border-border/30 rounded-xl hover:bg-background/80"
-                    >
-                      <Calendar className="mr-3 h-4 w-4 text-muted-foreground" />
-                      <span className="text-foreground">
-                        {checkIn ? format(checkIn, "MMM dd, yyyy") : "Choose check-in date"}
-                      </span>
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 z-[9999]" align="start">
-                    <CalendarComponent
-                      mode="single"
-                      selected={checkIn}
-                      onSelect={handleCheckInSelect}
-                      initialFocus
-                      disabled={(date) => {
-                        const startDate = itineraryStartDate ? new Date(itineraryStartDate) : null;
-                        const endDate = itineraryEndDate ? new Date(itineraryEndDate) : null;
-                        if (startDate && date < startDate) return true;
-                        if (endDate && date > endDate) return true;
-                        return false;
-                      }}
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
+        {wasCreatedWithLengthOfStay ? (
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <div className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Number of Nights</div>
+              <Select value={(checkOutDay - checkInDay).toString()} onValueChange={(value) => {
+                const nights = parseInt(value);
+                setCheckOutDay(checkInDay + nights);
+              }}>
+                <SelectTrigger className="h-14 bg-background/60 border-border/30 rounded-xl text-left">
+                  <SelectValue placeholder="Select number of nights" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: Math.max(1, (itineraryDuration || 7) - checkInDay + 1) }, (_, i) => i + 1).map((nights) => (
+                    <SelectItem key={nights} value={nights.toString()}>
+                      {nights} night{nights > 1 ? 's' : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Starting Day</div>
+              <Select value={checkInDay.toString()} onValueChange={(value) => {
+                const day = parseInt(value);
+                setCheckInDay(day);
+                // Keep the same number of nights, but adjust if it goes beyond itinerary duration
+                const currentNights = checkOutDay - checkInDay;
+                const newCheckOut = day + currentNights;
+                if (newCheckOut <= (itineraryDuration || 7)) {
+                  setCheckOutDay(newCheckOut);
+                } else {
+                  setCheckOutDay(day + 1); // Default to 1 night if it would exceed duration
+                }
+              }}>
+                <SelectTrigger className="h-14 bg-background/60 border-border/30 rounded-xl text-left">
+                  <SelectValue placeholder="Select starting day" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: itineraryDuration || 7 }, (_, i) => i + 1).map((day) => (
+                    <SelectItem key={day} value={day.toString()}>
+                      Day {day}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-3">
+              <div className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Check-in</div>
+              <Popover open={isCheckInOpen} onOpenChange={setIsCheckInOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="h-14 w-full justify-start text-left font-normal bg-background/60 border-border/30 rounded-xl hover:bg-background/80"
+                  >
+                    <Calendar className="mr-3 h-4 w-4 text-muted-foreground" />
+                    <span className="text-foreground">
+                      {checkIn ? format(checkIn, "MMM dd, yyyy") : "Choose check-in date"}
+                    </span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 z-[9999]" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={checkIn}
+                    onSelect={handleCheckInSelect}
+                    initialFocus
+                    disabled={(date) => {
+                      const startDate = itineraryStartDate ? new Date(itineraryStartDate) : null;
+                      const endDate = itineraryEndDate ? new Date(itineraryEndDate) : null;
+                      if (startDate && date < startDate) return true;
+                      if (endDate && date > endDate) return true;
+                      return false;
+                    }}
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
 
-              <div className="space-y-3">
-                <div className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Check-out</div>
-                <Popover open={isCheckOutOpen} onOpenChange={setIsCheckOutOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="h-14 w-full justify-start text-left font-normal bg-background/60 border-border/30 rounded-xl hover:bg-background/80"
-                    >
-                      <Calendar className="mr-3 h-4 w-4 text-muted-foreground" />
-                      <span className="text-foreground">
-                        {checkOut ? format(checkOut, "MMM dd, yyyy") : "Choose check-out date"}
-                      </span>
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 z-[9999]" align="start">
-                    <CalendarComponent
-                      mode="single"
-                      selected={checkOut}
-                      onSelect={handleCheckOutSelect}
-                      initialFocus
-                      disabled={(date) => {
-                        if (!checkIn) return true;
-                        if (date <= checkIn) return true;
-                        const startDate = itineraryStartDate ? new Date(itineraryStartDate) : null;
-                        const endDate = itineraryEndDate ? new Date(itineraryEndDate) : null;
-                        if (startDate && date < startDate) return true;
-                        if (endDate && date > endDate) return true;
-                        return false;
-                      }}
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </>
-          )}
-        </div>
+            <div className="space-y-3">
+              <div className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Check-out</div>
+              <Popover open={isCheckOutOpen} onOpenChange={setIsCheckOutOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="h-14 w-full justify-start text-left font-normal bg-background/60 border-border/30 rounded-xl hover:bg-background/80"
+                  >
+                    <Calendar className="mr-3 h-4 w-4 text-muted-foreground" />
+                    <span className="text-foreground">
+                      {checkOut ? format(checkOut, "MMM dd, yyyy") : "Choose check-out date"}
+                    </span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 z-[9999]" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={checkOut}
+                    onSelect={handleCheckOutSelect}
+                    initialFocus
+                    disabled={(date) => {
+                      if (!checkIn) return true;
+                      if (date <= checkIn) return true;
+                      const startDate = itineraryStartDate ? new Date(itineraryStartDate) : null;
+                      const endDate = itineraryEndDate ? new Date(itineraryEndDate) : null;
+                      if (startDate && date < startDate) return true;
+                      if (endDate && date > endDate) return true;
+                      return false;
+                    }}
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Guests Section */}
