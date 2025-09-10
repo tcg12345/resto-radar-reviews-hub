@@ -143,8 +143,10 @@ export function ItineraryBuilder({
   const persistedState = useMemo(() => {
     try {
       const savedState = localStorage.getItem('currentItineraryBuilder');
+      console.log('🏨 LOADING from localStorage - Raw saved state:', savedState);
       if (savedState) {
         const parsed = JSON.parse(savedState);
+        console.log('🏨 LOADING from localStorage - Parsed hotels:', parsed.hotels?.length || 0, parsed.hotels);
         return {
           dateRange: {
             start: parsed.dateRange.start ? new Date(parsed.dateRange.start) : null,
@@ -195,7 +197,11 @@ export function ItineraryBuilder({
   });
   const [currentItinerary, setCurrentItinerary] = useState<Itinerary | null>(persistedState?.currentItinerary || null);
   const [events, setEvents] = useState<ItineraryEvent[]>(persistedState?.events || []);
-  const [hotels, setHotels] = useState<HotelBooking[]>(persistedState?.hotels || []);
+  const [hotels, setHotels] = useState<HotelBooking[]>(() => {
+    const initialHotels = persistedState?.hotels || [];
+    console.log('🏨 INITIALIZING hotels state with:', initialHotels.length, 'hotels', initialHotels);
+    return initialHotels;
+  });
   const [flights, setFlights] = useState<FlightBooking[]>(persistedState?.flights || []);
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);

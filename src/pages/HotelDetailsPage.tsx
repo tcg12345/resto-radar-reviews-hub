@@ -395,11 +395,15 @@ export function HotelDetailsPage() {
         
         // Ensure locations and events arrays exist
         if (parsedState) {
+          console.log('🏨 RESTORING - Before validation - Hotels:', parsedState.hotels?.length || 0);
+          
           // Only initialize arrays if they don't exist, don't overwrite existing data
           if (!Array.isArray(parsedState.locations)) parsedState.locations = [];
           if (!Array.isArray(parsedState.events)) parsedState.events = [];
           if (!Array.isArray(parsedState.hotels)) parsedState.hotels = [];
           if (!Array.isArray(parsedState.flights)) parsedState.flights = [];
+          
+          console.log('🏨 RESTORING - After validation - Hotels:', parsedState.hotels?.length || 0);
           
           if (parsedState.currentItinerary) {
             parsedState.currentItinerary.locations = parsedState.currentItinerary.locations || [];
