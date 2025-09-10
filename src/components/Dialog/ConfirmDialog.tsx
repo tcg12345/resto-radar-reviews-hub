@@ -7,6 +7,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogOverlay,
+  AlertDialogPortal,
 } from "@/components/ui/alert-dialog";
 
 interface ConfirmDialogProps {
@@ -30,16 +32,19 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="rounded-2xl max-w-md shadow-2xl border-0 bg-card/95 backdrop-blur-sm">
-        <AlertDialogHeader>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>{description}</AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>{cancelText}</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm}>{confirmText}</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
+      <AlertDialogPortal>
+        <AlertDialogOverlay className="backdrop-blur-md bg-black/90" />
+        <AlertDialogContent className="rounded-2xl max-w-xs shadow-2xl border border-border bg-background">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{title}</AlertDialogTitle>
+            <AlertDialogDescription>{description}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{cancelText}</AlertDialogCancel>
+            <AlertDialogAction onClick={onConfirm}>{confirmText}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialogPortal>
     </AlertDialog>
   );
 }
