@@ -314,7 +314,7 @@ export function RestaurantCard({
             </div>}
 
           {/* Compact Action Row */}
-          <div className="flex items-center justify-between pt-1 mx-0 py-0">
+          <div className="flex items-center justify-between mx-0 py-0">
             <Button variant="ghost" size="sm" className="h-9 px-4 rounded-full bg-gradient-to-r from-primary/8 to-primary/12 hover:from-primary/12 hover:to-primary/16 text-primary border-0 transition-all duration-200 hover:scale-105 shadow-none font-semibold text-sm" onMouseEnter={handlePrefetch} onFocus={handlePrefetch} onTouchStart={handlePrefetch} onClick={() => {
             const preview = {
               id: restaurant.id,
