@@ -308,8 +308,14 @@ export function ItineraryBuilder({
             locations: currentItinerary.locations,
             isMultiCity: currentItinerary.isMultiCity
           } : null,
+          events: [], // Keep empty events
+          hotels, // PRESERVE hotels even in minimal state
+          flights, // PRESERVE flights even in minimal state
+          locations: [],
+          isMultiCity: false,
           hasCreatedItinerary,
-          useLengthOfStay
+          useLengthOfStay,
+          wasCreatedWithLengthOfStay
         };
         try {
           localStorage.setItem('currentItineraryBuilder', JSON.stringify(minimalState));
