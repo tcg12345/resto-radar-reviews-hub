@@ -1309,10 +1309,6 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
           Cancel
         </Button>
         <Button type="submit" disabled={
-          !formData.name || 
-          !formData.address || 
-          !formData.city || 
-          !formData.cuisine || 
           (!formData.isWishlist && !formData.rating) ||
           isProcessingPhotos
         }>
