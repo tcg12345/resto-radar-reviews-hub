@@ -700,38 +700,45 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       // Get AI-enhanced restaurant data
       let aiData = null;
       try {
+        console.log('🤖 Starting AI enhancement for:', placeDetails.name);
         toast.dismiss();
         toast.loading('AI analyzing restaurant details...');
         setIsAIEnhancing(true);
         
+        const enhancementBody = {
+          restaurant: {
+            name: placeDetails.name,
+            address: placeDetails.formatted_address,
+            city: extractCity(placeDetails.formatted_address),
+            country: placeDetails.formatted_address?.split(',').pop()?.trim()
+          },
+          availableCuisines: cuisineOptions.filter(c => c !== 'Other'),
+          websiteUrl: placeDetails.website
+        };
+        
+        console.log('🤖 AI enhancement request body:', enhancementBody);
+        
         const { data: aiEnhancement, error: aiError } = await supabase.functions.invoke('ai-restaurant-enhancer', {
-          body: {
-            restaurant: {
-              name: placeDetails.name,
-              address: placeDetails.formatted_address,
-              city: extractCity(placeDetails.formatted_address),
-              country: placeDetails.formatted_address?.split(',').pop()?.trim()
-            },
-            availableCuisines: cuisineOptions.filter(c => c !== 'Other'),
-            websiteUrl: placeDetails.website
-          }
+          body: enhancementBody
         });
+
+        console.log('🤖 AI enhancement response:', { aiEnhancement, aiError });
 
         if (aiError) {
           console.warn('AI enhancement failed:', aiError);
           toast.warning('Could not enhance with AI, using basic info');
         } else {
           aiData = aiEnhancement;
-          console.log('AI enhanced data received:', aiData);
+          console.log('✅ AI enhanced data received:', aiData);
           if (aiData?.priceRange) {
-            console.log(`AI detected price range: ${aiData.priceRange} (${'$'.repeat(aiData.priceRange)})`);
+            console.log(`💰 AI detected price range: ${aiData.priceRange} (${'$'.repeat(aiData.priceRange)})`);
           }
           if (aiData?.michelinStars) {
-            console.log(`AI detected Michelin stars: ${aiData.michelinStars}`);
+            console.log(`⭐ AI detected Michelin stars: ${aiData.michelinStars}`);
           }
         }
       } catch (error) {
-        console.warn('AI enhancement error:', error);
+        console.error('🚨 AI enhancement error:', error);
         toast.warning('Could not enhance with AI, using basic info');
       } finally {
         setIsAIEnhancing(false);
