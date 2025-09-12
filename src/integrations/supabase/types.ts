@@ -631,6 +631,57 @@ export type Database = {
         }
         Relationships: []
       }
+      restaurant_list_items: {
+        Row: {
+          added_at: string
+          id: string
+          list_id: string
+          restaurant_id: string
+        }
+        Insert: {
+          added_at?: string
+          id?: string
+          list_id: string
+          restaurant_id: string
+        }
+        Update: {
+          added_at?: string
+          id?: string
+          list_id?: string
+          restaurant_id?: string
+        }
+        Relationships: []
+      }
+      restaurant_lists: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_default: boolean
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       restaurant_shares: {
         Row: {
           created_at: string
