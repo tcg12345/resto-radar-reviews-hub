@@ -701,7 +701,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       let aiData = null;
       try {
         toast.dismiss();
-        toast.loading('Enhancing details with AI...');
+        toast.loading('AI analyzing restaurant details...');
         setIsAIEnhancing(true);
         
         const { data: aiEnhancement, error: aiError } = await supabase.functions.invoke('ai-restaurant-enhancer', {
@@ -719,12 +719,20 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
 
         if (aiError) {
           console.warn('AI enhancement failed:', aiError);
+          toast.warning('Could not enhance with AI, using basic info');
         } else {
           aiData = aiEnhancement;
-          console.log('AI enhancement data:', aiData);
+          console.log('AI enhanced data received:', aiData);
+          if (aiData?.priceRange) {
+            console.log(`AI detected price range: ${aiData.priceRange} (${'$'.repeat(aiData.priceRange)})`);
+          }
+          if (aiData?.michelinStars) {
+            console.log(`AI detected Michelin stars: ${aiData.michelinStars}`);
+          }
         }
       } catch (error) {
         console.warn('AI enhancement error:', error);
+        toast.warning('Could not enhance with AI, using basic info');
       } finally {
         setIsAIEnhancing(false);
       }
@@ -775,9 +783,11 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
       // Show success message with AI enhancement details
       toast.dismiss();
       if (aiData) {
+        const priceInfo = aiData.priceRange ? ` - ${'$'.repeat(aiData.priceRange)}` : '';
+        const michelinInfo = aiData.michelinStars ? ` (${aiData.michelinStars}★ Michelin)` : '';
         const reservationInfo = aiData.reservable ? ` | Reservable via ${aiData.reservationPlatform || 'Website'}` : '';
         toast.success(
-          `${placeDetails.name} selected! AI enhanced: ${aiData.cuisine}${aiData.michelinStars ? ` (${aiData.michelinStars}★)` : ''}, ${aiData.city} - ${'$'.repeat(aiData.priceRange)}${reservationInfo}`
+          `✨ ${placeDetails.name} enhanced! ${aiData.cuisine}${michelinInfo}, ${aiData.city}${priceInfo}${reservationInfo}`
         );
       } else {
         toast.success(`${placeDetails.name} selected! Details auto-filled from Google Places.`);

@@ -45,7 +45,7 @@ serve(async (req) => {
       ? availableCuisines.join(', ') 
       : 'American, Italian, French, Chinese, Japanese, Indian, Mediterranean, Mexican, Thai, Vietnamese, Korean, Spanish, Greek, Brazilian, Steakhouse, Seafood, Modern, Classic';
 
-    const prompt = `Analyze this restaurant and provide accurate information:
+    const prompt = `Analyze this restaurant/establishment and provide accurate information:
 
 Restaurant Name: ${restaurant.name}
 ${restaurant.address ? `Address: ${restaurant.address}` : ''}
@@ -56,8 +56,13 @@ ${websiteUrl ? `Website: ${websiteUrl}` : ''}
 Please provide:
 1. Cuisine type - Choose the BEST match from these available options: ${cuisineList}
 2. City - Extract and clean the city name from the address (just the city name, no state/country)
-3. Michelin stars (0-3, or null if not a Michelin-starred restaurant)
-4. Price range (1-4 scale: 1=$ budget, 2=$$ moderate, 3=$$$ expensive, 4=$$$$ luxury)
+3. Michelin stars (0-3, or null if not a Michelin-starred restaurant) - Be very conservative, only assign if definitely Michelin-starred
+4. Price range (1-4 scale based on typical meal cost):
+   - 1 = $ (budget: under $15/person)
+   - 2 = $$ (moderate: $15-30/person) 
+   - 3 = $$$ (expensive: $30-60/person)
+   - 4 = $$$$ (luxury: $60+/person)
+   For bars/pubs, base this on food prices if they serve food, or drink prices
 5. Reservable - Whether the restaurant accepts reservations (true/false)
 6. Reservation Platform - If reservable, identify the likely platform: "OpenTable", "Resy", "SevenRooms", "Tock", or null if unknown
 7. Brief reasoning for your analysis
@@ -76,7 +81,8 @@ Response format (JSON only):
 Important: 
 - Only respond with valid JSON
 - For cuisine, ONLY use one of the available options provided
-- Be conservative with Michelin stars - only assign them if you're confident`;
+- Be very conservative with Michelin stars - only assign them if you're confident
+- Always assign a price range from 1-4, never null`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
