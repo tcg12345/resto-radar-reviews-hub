@@ -181,7 +181,7 @@ export function RestaurantCard({
       <PhotoGallery photos={photos} photoCaptions={restaurant.photoDishNames || []} initialIndex={currentPhotoIndex} isOpen={isGalleryOpen} onClose={() => setIsGalleryOpen(false)} restaurantName={restaurant.name} isMobile={isMobile} />
       <Card className="overflow-hidden bg-card border-0 shadow-[0_6px_25px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.15)] transition-all duration-300 rounded-3xl flex flex-col h-full group">
         {/* Hero Restaurant Image */}
-        {photos.length > 0 && <div className="relative w-full h-52 overflow-hidden bg-gradient-to-br from-muted/30 to-muted/60">
+        {photos.length > 0 && !restaurant.isWishlist && <div className="relative w-full h-52 overflow-hidden bg-gradient-to-br from-muted/30 to-muted/60">
             <img src={resolveImageUrl(photos[currentPhotoIndex], {
           width: 600
         })} alt={`${restaurant.name} photo ${currentPhotoIndex + 1}`} className="h-full w-full object-cover cursor-pointer transition-transform duration-700 group-hover:scale-[1.02]" onLoad={() => setImageLoading(false)} onError={() => setImageLoading(false)} loading="lazy" />
