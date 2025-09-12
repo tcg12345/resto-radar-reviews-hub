@@ -121,6 +121,65 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     formData.dateVisited ? new Date(formData.dateVisited) : undefined
   );
 
+  // AI Enhancement on component mount when restaurant data is available
+  useEffect(() => {
+    const runAIEnhancement = async () => {
+      // Only run AI enhancement if we have a restaurant name and it's not a wishlist item
+      if (initialData?.name && !defaultWishlist && 
+          !initialData?.priceRange && !initialData?.michelinStars) {
+        
+        try {
+          console.log('🤖 Starting AI enhancement for rating dialog...');
+          
+          const { data: aiEnhancement, error: aiError } = await supabase.functions.invoke('ai-restaurant-enhancer', {
+            body: {
+              restaurant: {
+                name: initialData.name,
+                address: initialData.address || '',
+                city: initialData.city || '',
+                country: initialData.country || ''
+              },
+              availableCuisines: cuisineOptions.filter(c => c !== 'Other'),
+              websiteUrl: (initialData as any).website
+            }
+          });
+
+          if (aiError) {
+            console.warn('🤖 AI enhancement failed:', aiError);
+          } else {
+            console.log('✅ AI enhanced data received:', aiEnhancement);
+            
+            // Update form data with AI enhancement
+            setFormData(prev => {
+              const updates: Partial<RestaurantFormData> = {};
+              
+              if (aiEnhancement?.priceRange && !prev.priceRange) {
+                console.log(`💰 AI detected price range: ${aiEnhancement.priceRange} (${'$'.repeat(aiEnhancement.priceRange)})`);
+                updates.priceRange = aiEnhancement.priceRange;
+              }
+              
+              if (aiEnhancement?.michelinStars && !prev.michelinStars) {
+                console.log(`⭐ AI detected Michelin stars: ${aiEnhancement.michelinStars}`);
+                updates.michelinStars = aiEnhancement.michelinStars;
+              }
+              
+              if (aiEnhancement?.cuisine && !prev.cuisine) {
+                console.log(`🍽️ AI detected cuisine: ${aiEnhancement.cuisine}`);
+                updates.cuisine = aiEnhancement.cuisine;
+              }
+              
+              return { ...prev, ...updates };
+            });
+          }
+        } catch (error) {
+          console.error('🚨 AI enhancement error:', error);
+        }
+      }
+    };
+
+    runAIEnhancement();
+  }, [initialData?.name, defaultWishlist, initialData?.priceRange, initialData?.michelinStars]);
+
   const [previewImages, setPreviewImages] = useState<string[]>(initialData?.photos || []);
   const [photoDishNames, setPhotoDishNames] = useState<string[]>(initialData?.photoDishNames || []);
   const [dishRatings, setDishRatings] = useState<number[]>((initialData as any)?.dishRatings || []);

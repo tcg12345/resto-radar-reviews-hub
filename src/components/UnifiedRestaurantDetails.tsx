@@ -438,75 +438,8 @@ export function UnifiedRestaurantDetails({
     }
   };
 
-  const handleAddToRatedList = async () => {
+  const handleAddToRatedList = () => {
     console.log('📋 Opening restaurant rating dialog');
-    
-    // Run AI enhancement to get price range and Michelin stars before opening dialog
-    try {
-      console.log('🤖 Starting AI enhancement for rating dialog...');
-      toast.loading('Analyzing restaurant details...');
-      
-      const { data: aiEnhancement, error: aiError } = await supabase.functions.invoke('ai-restaurant-enhancer', {
-        body: {
-          restaurant: {
-            name: restaurantData.name,
-            address: restaurantData.address,
-            city: restaurantData.city,
-            country: restaurantData.country
-          },
-          availableCuisines: [
-            'American', 'Asian', 'Brazilian', 'Chinese', 'Classic', 'French', 'French Steakhouse',
-            'Greek', 'Indian', 'Italian', 'Japanese', 'Korean', 'Mediterranean', 'Mexican', 
-            'Modern', 'Seafood', 'Spanish', 'Steakhouse', 'Thai', 'Vietnamese'
-          ],
-          websiteUrl: restaurantData.website
-        }
-      });
-
-      if (aiError) {
-        console.warn('🤖 AI enhancement failed:', aiError);
-        toast.dismiss();
-        toast.warning('Could not enhance with AI, using basic info');
-      } else {
-        console.log('✅ AI enhanced data received:', aiEnhancement);
-        
-        // Update restaurant data with AI enhancement
-        if (aiEnhancement?.priceRange) {
-          console.log(`💰 AI detected price range: ${aiEnhancement.priceRange} (${'$'.repeat(aiEnhancement.priceRange)})`);
-          // Update the restaurant data with AI enhancement
-          setRestaurantData(prev => ({
-            ...prev,
-            priceRange: aiEnhancement.priceRange,
-            price_range: aiEnhancement.priceRange
-          }));
-        }
-        
-        if (aiEnhancement?.michelinStars) {
-          console.log(`⭐ AI detected Michelin stars: ${aiEnhancement.michelinStars}`);
-          setRestaurantData(prev => ({
-            ...prev,
-            michelinStars: aiEnhancement.michelinStars,
-            michelin_stars: aiEnhancement.michelinStars
-          }));
-        }
-        
-        if (aiEnhancement?.cuisine) {
-          console.log(`🍽️ AI detected cuisine: ${aiEnhancement.cuisine}`);
-          setRestaurantData(prev => ({
-            ...prev,
-            cuisine: aiEnhancement.cuisine
-          }));
-        }
-        
-        toast.dismiss();
-        toast.success(`✨ Enhanced with AI: ${aiEnhancement.cuisine || restaurantData.cuisine}${aiEnhancement.michelinStars ? ` (${aiEnhancement.michelinStars}★)` : ''}${aiEnhancement.priceRange ? ` - ${'$'.repeat(aiEnhancement.priceRange)}` : ''}`);
-      }
-    } catch (error) {
-      console.error('🚨 AI enhancement error:', error);
-      toast.dismiss();
-      toast.warning('Could not enhance with AI, using basic info');
-    }
-    
     setIsRestaurantDialogOpen(true);
   };
 
