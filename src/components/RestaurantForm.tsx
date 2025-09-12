@@ -99,7 +99,8 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     rating: initialData?.rating,
     categoryRatings: initialData?.categoryRatings,
     useWeightedRating: initialData?.useWeightedRating || false,
-    priceRange: initialData?.priceRange,
+    // Use Google Places price_level if available, otherwise fall back to existing data
+    priceRange: (initialData as any)?.price_level || initialData?.priceRange || (initialData as any)?.price_range || 1,
     michelinStars: initialData?.michelinStars,
     notes: initialData?.notes || '',
     dateVisited: initialData?.dateVisited || '',
