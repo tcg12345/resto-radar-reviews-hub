@@ -16,12 +16,14 @@ import { PhotoGallery } from '@/components/PhotoGallery';
 import { FriendPhotoGallery } from '@/components/FriendPhotoGallery';
 import { CommunityRating } from '@/components/CommunityRating';
 import { UnifiedPhotoGallery } from '@/components/UnifiedPhotoGallery';
+import { RestaurantDialog } from '@/components/Dialog/RestaurantDialog';
 import { useRestaurantReviews } from '@/hooks/useRestaurantReviews';
 import { useCommunityData } from '@/contexts/CommunityDataContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRatingStats } from '@/hooks/useRatingStats';
 import { resolveImageUrl } from '@/utils/imageUtils';
+import { RestaurantFormData } from '@/types/restaurant';
 
 interface UnifiedRestaurantData {
   id?: string;
@@ -107,6 +109,7 @@ export function UnifiedRestaurantDetails({
   const [hasLoadedHeroImage, setHasLoadedHeroImage] = useState(false);
   const [heroLoadError, setHeroLoadError] = useState(false);
   const [isOnWishlist, setIsOnWishlist] = useState(restaurantData.isWishlist || restaurantData.is_wishlist || false);
+  const [isRestaurantDialogOpen, setIsRestaurantDialogOpen] = useState(false);
   const mapRef = useRef<HTMLDivElement | null>(null);
   const enhancedPlaceIdsRef = useRef<Set<string>>(new Set());
   const linkedPlaceIdsRef = useRef<Set<string>>(new Set());
@@ -435,6 +438,82 @@ export function UnifiedRestaurantDetails({
     }
   };
 
+  const handleAddToRatedList = () => {
+    console.log('📋 Opening restaurant rating dialog');
+    setIsRestaurantDialogOpen(true);
+  };
+
+  const handleRestaurantFormSubmit = async (data: RestaurantFormData) => {
+    console.log('💾 Saving rated restaurant:', data);
+    try {
+      // Convert File objects to empty array since we'll handle photos separately if needed
+      const photosToSave: string[] = [];
+      
+      const { error } = await supabase.from('restaurants').insert({
+        name: data.name,
+        address: data.address,
+        city: data.city,
+        country: data.country || '',
+        cuisine: data.cuisine,
+        rating: data.rating,
+        category_ratings: data.categoryRatings as any, // Cast to match database Json type
+        use_weighted_rating: data.useWeightedRating,
+        price_range: data.priceRange,
+        michelin_stars: data.michelinStars,
+        photos: photosToSave,
+        photo_captions: data.photoNotes || [],
+        photo_dish_names: data.photoDishNames || [],
+        notes: data.notes || '',
+        date_visited: data.dateVisited,
+        latitude: restaurantData.latitude,
+        longitude: restaurantData.longitude,
+        google_place_id: restaurantData.place_id,
+        website: restaurantData.website || '',
+        phone_number: data.phone_number || restaurantData.phone || restaurantData.phone_number || restaurantData.formatted_phone_number || '',
+        opening_hours: typeof restaurantData.opening_hours === 'object' ? restaurantData.opening_hours?.weekday_text?.join('\n') || '' : restaurantData.opening_hours || restaurantData.openingHours || '',
+        reservable: restaurantData.reservable || false,
+        reservation_url: restaurantData.reservationUrl || restaurantData.reservation_url || '',
+        is_wishlist: false, // This is a rated restaurant, not wishlist
+        user_id: user?.id
+      });
+
+      if (error) {
+        console.error('❌ Error saving rated restaurant:', error);
+        toast.error('Failed to save restaurant');
+        return;
+      }
+
+      console.log('✅ Successfully saved rated restaurant');
+      toast.success('Restaurant added to your list!');
+      setIsRestaurantDialogOpen(false);
+    } catch (error) {
+      console.error('💥 Exception during restaurant save:', error);
+      toast.error('Failed to save restaurant');
+    }
+  };
+
+  // Create pre-filled restaurant data for the form
+  const getPrefilledRestaurantData = () => {
+    return {
+      name: restaurantData.name,
+      address: restaurantData.address,
+      city: restaurantData.city || '',
+      country: restaurantData.country || '',
+      cuisine: restaurantData.cuisine,
+      latitude: restaurantData.latitude,
+      longitude: restaurantData.longitude,
+      website: restaurantData.website || '',
+      phone_number: restaurantData.phone || restaurantData.phone_number || restaurantData.formatted_phone_number || '',
+      opening_hours: typeof restaurantData.opening_hours === 'object' ? restaurantData.opening_hours?.weekday_text?.join('\n') || '' : restaurantData.opening_hours || restaurantData.openingHours || '',
+      reservable: restaurantData.reservable || false,
+      reservation_url: restaurantData.reservationUrl || restaurantData.reservation_url || '',
+      price_range: restaurantData.priceRange || restaurantData.price_range,
+      michelin_stars: restaurantData.michelinStars || restaurantData.michelin_stars,
+      photos: [],
+      isWishlist: false
+    };
+  };
+
   const handleShare = () => {
     if (navigator.share && restaurantData) {
       navigator.share({
@@ -625,13 +704,12 @@ export function UnifiedRestaurantDetails({
                   {isAdding ? 'Adding...' : isOnWishlist ? 'On Wishlist' : 'Wishlist'}
                 </Button>
                 <Button
-                  onClick={handleAddToWishlist}
+                  onClick={handleAddToRatedList}
                   variant="outline"
                   className="flex-1 flex items-center gap-2 bg-gray-900/50 border-gray-700 text-white hover:bg-gray-800"
-                  disabled={isAdding}
                 >
                   <Plus className="h-4 w-4" />
-                  {isAdding ? 'Adding...' : 'Add to List'}
+                  Add to List
                 </Button>
               </div>
             )}
@@ -924,6 +1002,17 @@ export function UnifiedRestaurantDetails({
         onClose={() => setIsPhotoGalleryOpen(false)} 
         restaurantName={restaurantData.name} 
         isMobile={actualIsMobile} 
+      />
+
+      {/* Restaurant Rating Dialog */}
+      <RestaurantDialog
+        isOpen={isRestaurantDialogOpen}
+        onOpenChange={setIsRestaurantDialogOpen}
+        restaurant={getPrefilledRestaurantData() as any}
+        onSave={handleRestaurantFormSubmit}
+        dialogType="add"
+        defaultWishlist={false}
+        hideSearch={true}
       />
     </>
   );
