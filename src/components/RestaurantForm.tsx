@@ -1313,7 +1313,6 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
           !formData.address || 
           !formData.city || 
           !formData.cuisine || 
-          !formData.priceRange ||
           (!formData.isWishlist && !formData.rating) ||
           isProcessingPhotos
         }>
