@@ -195,9 +195,16 @@ export function UnifiedRestaurantDetails({
     }
   }, [communityStats, restaurantData.place_id, setPreloadedStats]);
   useEffect(() => {
+    console.log('🔄 Restaurant data changed:', { 
+      name: restaurant.name, 
+      isWishlist: restaurant.isWishlist || restaurant.is_wishlist,
+      place_id: restaurant.place_id 
+    });
     setRestaurantData(restaurant);
     setPhotos(restaurant.photos || []);
-    setIsOnWishlist(restaurant.isWishlist || restaurant.is_wishlist || false);
+    const initialWishlistState = restaurant.isWishlist || restaurant.is_wishlist || false;
+    console.log('🎯 Setting initial wishlist state to:', initialWishlistState);
+    setIsOnWishlist(initialWishlistState);
     setHeroLoadError(false); // Reset error state when restaurant changes
 
     // Fetch additional details if we have a place_id and missing info (deferred)
@@ -234,6 +241,8 @@ export function UnifiedRestaurantDetails({
     const checkWishlistStatus = async () => {
       if (!user || !restaurantData?.place_id) return;
       
+      console.log('🔍 Checking wishlist status for:', restaurantData.name, restaurantData.place_id);
+      
       try {
         const { data, error } = await supabase
           .from('restaurants')
@@ -243,8 +252,14 @@ export function UnifiedRestaurantDetails({
           .or(`google_place_id.eq.${restaurantData.place_id},name.ilike.%${restaurantData.name}%`)
           .limit(1);
         
+        console.log('🔍 Wishlist check result:', { data, error, found: data && data.length > 0 });
+        
         if (!error && data && data.length > 0) {
+          console.log('✅ Restaurant is on wishlist, setting state to true');
           setIsOnWishlist(true);
+        } else {
+          console.log('❌ Restaurant not on wishlist, setting state to false');
+          setIsOnWishlist(false);
         }
       } catch (error) {
         console.error('Error checking wishlist status:', error);
@@ -346,16 +361,41 @@ export function UnifiedRestaurantDetails({
 
   const handleAddToWishlist = async () => {
     if (!user || !restaurantData) return;
+    
+    console.log('🍽️ Adding to wishlist - current state:', { isOnWishlist, isAdding });
+    
     if (isOnWishlist) {
+      console.log('⚠️ Already on wishlist, showing toast');
       toast.info('Already on your wishlist!');
       return;
     }
     if (onToggleWishlist) {
+      console.log('🔄 Using toggle callback');
       onToggleWishlist();
       return;
     }
+    
+    console.log('➕ Starting wishlist addition process');
     setIsAdding(true);
     try {
+      console.log('💾 About to insert restaurant to wishlist');
+      
+      // Check if restaurant already exists first to prevent duplicates
+      const { data: existing } = await supabase
+        .from('restaurants')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('is_wishlist', true)
+        .or(`google_place_id.eq.${restaurantData.place_id},name.ilike.%${restaurantData.name}%`)
+        .limit(1);
+      
+      if (existing && existing.length > 0) {
+        console.log('🔄 Restaurant already exists, updating state');
+        setIsOnWishlist(true);
+        toast.info('Already on your wishlist!');
+        return;
+      }
+      
       const { error } = await supabase.from('restaurants').insert({
         name: restaurantData.name,
         address: restaurantData.address,
@@ -379,16 +419,18 @@ export function UnifiedRestaurantDetails({
         user_id: user.id
       });
       if (error) {
-        console.error('Error adding to wishlist:', error);
+        console.error('❌ Error adding to wishlist:', error);
         toast.error('Failed to add to wishlist');
         return;
       }
+      console.log('✅ Successfully added to wishlist');
       setIsOnWishlist(true);
       toast.success('Added to wishlist!');
     } catch (error) {
-      console.error('Error adding to wishlist:', error);
+      console.error('💥 Exception during wishlist addition:', error);
       toast.error('Failed to add to wishlist');
     } finally {
+      console.log('🏁 Wishlist addition process complete, setting isAdding to false');
       setIsAdding(false);
     }
   };
