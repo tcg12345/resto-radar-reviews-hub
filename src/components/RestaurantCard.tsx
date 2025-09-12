@@ -256,7 +256,7 @@ export function RestaurantCard({
               </h3>
               
               {/* Inline Star Rating - aligned to right */}
-              {restaurant.rating !== undefined && <div className="flex items-center gap-1.5 flex-shrink-0 pr-0">
+              {restaurant.rating !== undefined && !restaurant.isWishlist && <div className="flex items-center gap-1.5 flex-shrink-0 pr-0">
                   <div className="text-amber-400 text-lg">★</div>
                   <span className="text-lg font-bold text-foreground">
                     {restaurant.rating.toFixed(1)}
