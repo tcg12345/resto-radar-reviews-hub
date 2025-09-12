@@ -106,6 +106,7 @@ export function UnifiedRestaurantDetails({
   const [isHoursExpanded, setIsHoursExpanded] = useState(false);
   const [hasLoadedHeroImage, setHasLoadedHeroImage] = useState(false);
   const [heroLoadError, setHeroLoadError] = useState(false);
+  const [isOnWishlist, setIsOnWishlist] = useState(restaurantData.isWishlist || restaurantData.is_wishlist || false);
   const mapRef = useRef<HTMLDivElement | null>(null);
   const enhancedPlaceIdsRef = useRef<Set<string>>(new Set());
   const linkedPlaceIdsRef = useRef<Set<string>>(new Set());
@@ -196,6 +197,7 @@ export function UnifiedRestaurantDetails({
   useEffect(() => {
     setRestaurantData(restaurant);
     setPhotos(restaurant.photos || []);
+    setIsOnWishlist(restaurant.isWishlist || restaurant.is_wishlist || false);
     setHeroLoadError(false); // Reset error state when restaurant changes
 
     // Fetch additional details if we have a place_id and missing info (deferred)
@@ -226,6 +228,31 @@ export function UnifiedRestaurantDetails({
     };
     link();
   }, [restaurantData?.place_id, restaurantData?.name]);
+
+  // Check if restaurant is already on user's wishlist
+  useEffect(() => {
+    const checkWishlistStatus = async () => {
+      if (!user || !restaurantData?.place_id) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('restaurants')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('is_wishlist', true)
+          .or(`google_place_id.eq.${restaurantData.place_id},name.ilike.%${restaurantData.name}%`)
+          .limit(1);
+        
+        if (!error && data && data.length > 0) {
+          setIsOnWishlist(true);
+        }
+      } catch (error) {
+        console.error('Error checking wishlist status:', error);
+      }
+    };
+
+    checkWishlistStatus();
+  }, [user, restaurantData?.place_id, restaurantData?.name]);
   
   const shouldEnhanceWithAI = (restaurant: UnifiedRestaurantData): boolean => {
     const hasGenericCuisine = !restaurant.cuisine || restaurant.cuisine.toLowerCase().includes('restaurant') || restaurant.cuisine.toLowerCase().includes('bar') || restaurant.cuisine.toLowerCase().includes('food') || restaurant.cuisine.toLowerCase().includes('establishment');
@@ -319,6 +346,10 @@ export function UnifiedRestaurantDetails({
 
   const handleAddToWishlist = async () => {
     if (!user || !restaurantData) return;
+    if (isOnWishlist) {
+      toast.info('Already on your wishlist!');
+      return;
+    }
     if (onToggleWishlist) {
       onToggleWishlist();
       return;
@@ -352,6 +383,7 @@ export function UnifiedRestaurantDetails({
         toast.error('Failed to add to wishlist');
         return;
       }
+      setIsOnWishlist(true);
       toast.success('Added to wishlist!');
     } catch (error) {
       console.error('Error adding to wishlist:', error);
@@ -540,11 +572,15 @@ export function UnifiedRestaurantDetails({
                 <Button
                   onClick={handleAddToWishlist}
                   variant="outline"
-                  className="flex-1 flex items-center gap-2 bg-gray-900/50 border-gray-700 text-white hover:bg-gray-800"
-                  disabled={isAdding}
+                  className={`flex-1 flex items-center gap-2 ${
+                    isOnWishlist 
+                      ? 'bg-red-500/20 border-red-500 text-red-400 hover:bg-red-500/30' 
+                      : 'bg-gray-900/50 border-gray-700 text-white hover:bg-gray-800'
+                  }`}
+                  disabled={isAdding || isOnWishlist}
                 >
-                  <Heart className="h-4 w-4" />
-                  {isAdding ? 'Adding...' : 'Wishlist'}
+                  <Heart className={`h-4 w-4 ${isOnWishlist ? 'fill-red-500 text-red-500' : ''}`} />
+                  {isAdding ? 'Adding...' : isOnWishlist ? 'On Wishlist' : 'Wishlist'}
                 </Button>
                 <Button
                   onClick={handleAddToWishlist}
