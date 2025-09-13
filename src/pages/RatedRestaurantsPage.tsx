@@ -61,27 +61,6 @@ export function RatedRestaurantsPage({
     }
   }, [shouldOpenAddDialog]);
 
-  // Hydrate from localStorage cache for better performance
-  useEffect(() => {
-    const cachedRestaurants = localStorage.getItem('cached-restaurants');
-    if (cachedRestaurants && restaurants.length === 0) {
-      try {
-        // Just for caching purposes, don't update state
-        const parsed = JSON.parse(cachedRestaurants);
-        console.log('Hydrated from cache:', parsed.length, 'restaurants');
-      } catch (error) {
-        console.error('Failed to parse cached restaurants:', error);
-      }
-    }
-  }, [restaurants.length]);
-
-  // Cache restaurants for performance
-  useEffect(() => {
-    if (restaurants.length > 0) {
-      localStorage.setItem('cached-restaurants', JSON.stringify(restaurants));
-    }
-  }, [restaurants]);
-
   // Preload images for better UX
   useEffect(() => {
     const preloadImages = async () => {
@@ -157,7 +136,7 @@ export function RatedRestaurantsPage({
   // Get unique cuisines for filter dropdown
   const uniqueCuisines = [...new Set(ratedRestaurants.map(r => r.cuisine).filter(Boolean))];
 
-  // Calculate filter counts
+  // Calculate filter counts with safety checks
   const getFilterCounts = () => {
     const cuisineCounts = uniqueCuisines.map(cuisine => ({
       cuisine,
@@ -177,7 +156,7 @@ export function RatedRestaurantsPage({
     return { cuisineCounts, priceCounts, michelinCounts };
   };
 
-  const { cuisineCounts, priceCounts, michelinCounts } = getFilterCounts();
+  const { cuisineCounts = [], priceCounts = [], michelinCounts = [] } = getFilterCounts();
 
   // Filter and sort restaurants
   const filteredRestaurants = (() => {
