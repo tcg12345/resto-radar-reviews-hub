@@ -45,28 +45,27 @@ export function SavedPlacesPage({
   return (
     <div className="w-full h-full">
       <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as 'rated' | 'wishlist' | 'recommendations')} className="w-full h-full">
-        {/* Compact Header with Tabs and Actions */}
+        {/* Unified Compact Header */}
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-          <div className="px-4 py-4 lg:px-6">
-            {/* Top row: Tabs centered, Create List on the right */}
-            <div className="flex items-center justify-between gap-4 mb-4">
-              <div className="flex-1" />
-              <TabsList className="grid grid-cols-3 w-auto min-w-[320px]">
-                <TabsTrigger value="rated" className="text-sm font-medium px-6">My Ratings</TabsTrigger>
-                <TabsTrigger value="wishlist" className="text-sm font-medium px-6">Wishlist</TabsTrigger>
-                <TabsTrigger value="recommendations" className="text-sm font-medium px-6">Recs</TabsTrigger>
+          <div className="px-4 py-3 lg:px-6">
+            <div className="flex items-center justify-center gap-6">
+              {/* Centered Tabs */}
+              <TabsList className="grid grid-cols-3 w-auto">
+                <TabsTrigger value="rated" className="text-sm font-medium px-4">My Ratings</TabsTrigger>
+                <TabsTrigger value="wishlist" className="text-sm font-medium px-4">Wishlist</TabsTrigger>
+                <TabsTrigger value="recommendations" className="text-sm font-medium px-4">Recs</TabsTrigger>
               </TabsList>
-              <div className="flex-1 flex justify-end">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsCreateListDialogOpen(true)}
-                  className="rounded-xl border border-border bg-background h-9 px-4"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create List
-                </Button>
-              </div>
+              
+              {/* Create List Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsCreateListDialogOpen(true)}
+                className="rounded-xl border border-border bg-background h-9 px-4 flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Create List
+              </Button>
             </div>
           </div>
         </div>
