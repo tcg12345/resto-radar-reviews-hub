@@ -26,6 +26,7 @@ interface RatedRestaurantsPageProps {
   onAddDialogClose?: () => void;
   onNavigateToMap?: () => void;
   onOpenSettings?: () => void;
+  onBackToLists?: () => void;
 }
 
 export function RatedRestaurantsPage({
