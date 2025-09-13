@@ -331,7 +331,7 @@ const preloadImages = async () => {
     <div className="w-full max-w-none py-6 mobile-container px-4 lg:px-6">
       <div className="mb-4 lg:mb-6 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
         <h2 className="hidden lg:block text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Rated Restaurants</h2>
-        <div className="flex items-center gap-2">
+        <div className="hidden sm:flex items-center gap-2">
           <ViewToggle currentView={view} onViewChange={setView} storageKey="rated-restaurants-view" />
           <Button size="sm" onClick={() => setIsAddDialogOpen(true)} className="mobile-button">
             <Plus className="mr-1 lg:mr-2 h-3 w-3 lg:h-4 lg:w-4" />
@@ -346,23 +346,77 @@ const preloadImages = async () => {
         </div>
       </div>
 
-      {/* Mobile layout - Search + Filter button */}
-      <div className="mb-6 flex items-center gap-2 sm:hidden">
-        <div className="flex-1">
-          <Input
-            placeholder="Search restaurants..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      {/* Mobile Compact Toolbar */}
+      <div className="sm:hidden space-y-3 mb-6">
+        {/* Single Row – View Toggle and Action Buttons */}
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <ViewToggle currentView={view} onViewChange={setView} storageKey="rated-restaurants-view" />
+          <div className="flex flex-wrap items-center gap-2">
+            <Button size="sm" onClick={() => {/* TODO: open Create List dialog */}}
+                    className="h-8 px-3 text-xs rounded-xl">
+              <Plus className="mr-1 h-3 w-3" />
+              Create List
+            </Button>
+            <Button size="sm" onClick={() => setIsAddDialogOpen(true)}
+                    className="h-8 px-3 text-xs rounded-xl">
+              <Plus className="mr-1 h-3 w-3" />
+              Add Restaurant
+            </Button>
+            {onNavigateToMap && (
+              <Button variant="outline" size="sm" onClick={onNavigateToMap}
+                      className="h-8 px-3 text-xs rounded-xl">
+                <MapPin className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowMobileFilters(true)}
-          className="h-10 w-10 p-0"
-        >
-          <Filter className="h-4 w-4" />
-        </Button>
+
+        {/* Search Row */}
+        <div className="flex items-center gap-2">
+          <div className="flex-1 relative">
+            <Input
+              placeholder="Search restaurants..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pr-10 rounded-xl border border-border bg-background"
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowMobileFilters(true)}
+              className="absolute right-1 top-1 h-8 w-8 p-0 hover:bg-muted/50 rounded-lg"
+            >
+              <Filter className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Lists Preview */}
+      <div className="mb-4 sm:hidden">
+        <h3 className="text-lg font-medium mb-2">Your Lists</h3>
+        <div className="flex space-x-3 overflow-x-auto py-2">
+          <Button variant="outline" size="sm"
+                  className="whitespace-nowrap rounded-full px-3 py-1 text-xs">
+            Favorites
+          </Button>
+          <Button variant="outline" size="sm"
+                  className="whitespace-nowrap rounded-full px-3 py-1 text-xs">
+            Weekend Eats
+          </Button>
+          <Button variant="outline" size="sm"
+                  className="whitespace-nowrap rounded-full px-3 py-1 text-xs">
+            Date Night
+          </Button>
+          <Button variant="outline" size="sm"
+                  className="whitespace-nowrap rounded-full px-3 py-1 text-xs">
+            Brunch Spots
+          </Button>
+          <Button variant="outline" size="sm"
+                  className="whitespace-nowrap rounded-full px-3 py-1 text-xs">
+            Coffee Runs
+          </Button>
+        </div>
       </div>
 
       {/* Desktop layout - Original layout */}
