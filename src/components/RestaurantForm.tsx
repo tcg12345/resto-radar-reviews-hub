@@ -1098,41 +1098,6 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
           />
         </div>
 
-
-        <div className="space-y-2">
-          <Label>Price Range *</Label>
-          <div className="flex items-center gap-2">
-            <PriceRange
-              priceRange={formData.priceRange}
-              onPriceChange={(price) => setFormData(prev => ({ ...prev, priceRange: price }))}
-              size="md"
-            />
-            <span className="text-sm text-muted-foreground">
-              {formData.priceRange ? `${'$'.repeat(formData.priceRange)}` : 'Select price range'}
-            </span>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Michelin Stars</Label>
-          <MichelinStars
-            stars={formData.michelinStars}
-            onStarsChange={(stars) => setFormData(prev => ({ ...prev, michelinStars: stars }))}
-            size="md"
-          />
-        </div>
-
-        <div className="flex items-center justify-between space-x-2">
-          <Label htmlFor="isWishlist" className="text-sm font-medium">
-            Add to wishlist
-          </Label>
-          <Switch
-            id="isWishlist"
-            checked={formData.isWishlist}
-            onCheckedChange={handleWishlistToggle}
-          />
-        </div>
-
         {/* List Selection */}
         <div className="space-y-2">
           <Label>Add to Lists</Label>
@@ -1172,6 +1137,41 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
             )}
           </div>
         </div>
+
+        <div className="space-y-2">
+          <Label>Price Range *</Label>
+          <div className="flex items-center gap-2">
+            <PriceRange
+              priceRange={formData.priceRange}
+              onPriceChange={(price) => setFormData(prev => ({ ...prev, priceRange: price }))}
+              size="md"
+            />
+            <span className="text-sm text-muted-foreground">
+              {formData.priceRange ? `${'$'.repeat(formData.priceRange)}` : 'Select price range'}
+            </span>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Michelin Stars</Label>
+          <MichelinStars
+            stars={formData.michelinStars}
+            onStarsChange={(stars) => setFormData(prev => ({ ...prev, michelinStars: stars }))}
+            size="md"
+          />
+        </div>
+
+        <div className="flex items-center justify-between space-x-2">
+          <Label htmlFor="isWishlist" className="text-sm font-medium">
+            Add to wishlist
+          </Label>
+          <Switch
+            id="isWishlist"
+            checked={formData.isWishlist}
+            onCheckedChange={handleWishlistToggle}
+          />
+        </div>
+
 
         {!formData.isWishlist && (
           <div className="space-y-4">
