@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { List } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { RatedRestaurantsPage } from './RatedRestaurantsPage';
 import { WishlistPage } from './WishlistPage';
 import { RecommendationsPage } from './RecommendationsPage';
+import { CreateListDialog } from '@/components/CreateListDialog';
+import { useRestaurantLists } from '@/hooks/useRestaurantLists';
 import { Restaurant, RestaurantFormData } from '@/types/restaurant';
 
 interface SavedPlacesPageProps {
@@ -33,6 +35,12 @@ export function SavedPlacesPage({
   activeSubTab = 'rated'
 }: SavedPlacesPageProps) {
   const [currentTab, setCurrentTab] = useState(activeSubTab);
+  const [isCreateListDialogOpen, setIsCreateListDialogOpen] = useState(false);
+  const { createList } = useRestaurantLists();
+
+  const handleCreateList = async (name: string, description?: string) => {
+    return await createList(name, description);
+  };
 
   return (
     <div className="w-full h-full">
@@ -45,19 +53,17 @@ export function SavedPlacesPage({
           </TabsList>
         </div>
         
-        {onNavigateToLists && (
-          <div className="px-4 py-3 lg:px-6 border-b">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onNavigateToLists}
-              className="flex items-center gap-2"
-            >
-              <List className="h-4 w-4" />
-              Manage Lists
-            </Button>
-          </div>
-        )}
+        <div className="px-4 py-3 lg:px-6 border-b">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsCreateListDialogOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Create List
+          </Button>
+        </div>
         
         <TabsContent value="rated" className="mt-0 h-full">
           <RatedRestaurantsPage
@@ -89,6 +95,12 @@ export function SavedPlacesPage({
           />
         </TabsContent>
       </Tabs>
+
+      <CreateListDialog
+        isOpen={isCreateListDialogOpen}
+        onClose={() => setIsCreateListDialogOpen(false)}
+        onCreateList={handleCreateList}
+      />
     </div>
   );
 }
