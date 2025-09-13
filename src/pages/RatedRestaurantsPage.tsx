@@ -329,11 +329,6 @@ const preloadImages = async () => {
 
   return (
     <div className="w-full max-w-none py-6 mobile-container px-4 lg:px-6">
-      {/* Page Title */}
-      <div className="mb-6">
-        <h2 className="hidden lg:block text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Rated Restaurants</h2>
-      </div>
-
       {/* Modern Toolbar - Clean Header Style */}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         {/* Mobile Layout */}
