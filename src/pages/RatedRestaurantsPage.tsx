@@ -41,6 +41,7 @@ export function RatedRestaurantsPage({
   onOpenSettings,
 }: RatedRestaurantsPageProps) {
   const { lists } = useRestaurantLists();
+  const [selectedListId, setSelectedListId] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -394,23 +395,30 @@ const preloadImages = async () => {
       </div>
 
       {/* Lists Preview */}
-      {lists.length > 0 && (
-        <div className="mb-4 sm:hidden">
-          <h3 className="text-lg font-medium mb-2">Your Lists</h3>
-          <div className="flex space-x-3 overflow-x-auto py-2">
-            {lists.map((list) => (
-              <Button 
-                key={list.id}
-                variant="outline" 
-                size="sm"
-                className="whitespace-nowrap rounded-full px-3 py-1 text-xs"
-              >
-                {list.name}
-              </Button>
-            ))}
-          </div>
+      <div className="mb-4 sm:hidden">
+        <h3 className="text-lg font-medium mb-2">Your Lists</h3>
+        <div className="flex space-x-3 overflow-x-auto py-2">
+          <Button 
+            variant={selectedListId === null ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedListId(null)}
+            className="whitespace-nowrap rounded-full px-3 py-1 text-xs"
+          >
+            All
+          </Button>
+          {lists.map((list) => (
+            <Button 
+              key={list.id}
+              variant={selectedListId === list.id ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedListId(list.id)}
+              className="whitespace-nowrap rounded-full px-3 py-1 text-xs"
+            >
+              {list.name}
+            </Button>
+          ))}
         </div>
-      )}
+      </div>
 
       {/* Desktop layout - Original layout */}
       <div className="mb-6 hidden sm:flex flex-col items-start gap-4 sm:flex-row sm:items-center">
