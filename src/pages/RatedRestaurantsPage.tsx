@@ -719,7 +719,7 @@ const preloadImages = async () => {
       </div>
 
       {/* Empty state for selected list */}
-      {selectedListId && filteredRestaurants.length === 0 ? (
+      {selectedListId && restaurants.length === 0 && cachedRestaurants.length === 0 ? (
         <div className="rounded-lg border border-dashed bg-muted/50 p-8 text-center">
           <h3 className="mb-2 text-lg font-medium">No restaurants in this list</h3>
           <p className="mb-4 text-muted-foreground">
@@ -730,7 +730,7 @@ const preloadImages = async () => {
             Add Restaurant
           </Button>
         </div>
-      ) : filteredRestaurants.length === 0 && ((restaurants.length === 0 && cachedRestaurants.length === 0) || (searchTerm || filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0 || ratingRange[0] > 0 || ratingRange[1] < 10)) ? (
+      ) : filteredRestaurants.length === 0 && (restaurants.length === 0 && cachedRestaurants.length === 0) ? (
         <div className="rounded-lg border border-dashed bg-muted/50 p-8 text-center">
           <h3 className="mb-2 text-lg font-medium">No rated restaurants yet</h3>
           <p className="mb-4 text-muted-foreground">
