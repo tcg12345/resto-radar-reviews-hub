@@ -37,6 +37,7 @@ export default function SavedPlacesPageWrapper({
       onAddDialogClose={onAddDialogClose}
       onNavigateToMap={() => navigate('/map')}
       onOpenSettings={() => navigate('/settings')}
+      onNavigateToLists={() => navigate('/restaurant-lists')}
       activeSubTab={activeSubTab}
     />
   );

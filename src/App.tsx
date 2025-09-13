@@ -83,9 +83,10 @@ const App = () => (
                 
                 {/* Individual section routes */}
                 <Route path="/home" element={<RequireAuth><Layout activeTab="home"><FeedPage /></Layout></RequireAuth>} />
-                <Route path="/places" element={<RequireAuth><Layout activeTab="places"><RatedRestaurantsPageWrapper /></Layout></RequireAuth>} />
+                <Route path="/places" element={<RequireAuth><Layout activeTab="places"><SavedPlacesPageWrapper /></Layout></RequireAuth>} />
                  <Route path="/rated" element={<RequireAuth><Layout activeTab="places"><SavedPlacesPageWrapper activeSubTab="rated" /></Layout></RequireAuth>} />
                 <Route path="/wishlist" element={<RequireAuth><Layout activeTab="places"><SavedPlacesPageWrapper activeSubTab="wishlist" /></Layout></RequireAuth>} />
+                <Route path="/restaurant-lists" element={<RequireAuth><Layout activeTab="places"><RatedRestaurantsPageWrapper /></Layout></RequireAuth>} />
                 <Route path="/restaurant-rankings" element={<RequireAuth><Layout showNavbar={false} showChatbot={false}><RatedRestaurantsRankingPage /></Layout></RequireAuth>} />
                 <Route path="/map" element={<RequireAuth><MapPageWrapper /></RequireAuth>} />
                  <Route path="/travel" element={<RequireAuth><Layout activeTab="travel"><TravelPage /></Layout></RequireAuth>} />
