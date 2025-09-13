@@ -45,29 +45,24 @@ export function SavedPlacesPage({
   return (
     <div className="w-full h-full">
       <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as 'rated' | 'wishlist' | 'recommendations')} className="w-full h-full">
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-          <div className="px-4 lg:px-6 pt-4 pb-2">
-            <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto">
-              <TabsTrigger value="rated" className="text-sm font-medium">My Ratings</TabsTrigger>
-              <TabsTrigger value="wishlist" className="text-sm font-medium">Wishlist</TabsTrigger>
-              <TabsTrigger value="recommendations" className="text-sm font-medium">Recs</TabsTrigger>
-            </TabsList>
-          </div>
-          
-          {/* Modern Compact Toolbar */}
-          <div className="px-4 lg:px-6 pb-3 space-y-3">
-            <div className="flex items-center justify-between">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsCreateListDialogOpen(true)}
-                className="h-8 px-3 rounded-md border-border/50 hover:border-border text-sm"
-              >
-                <Plus className="h-3.5 w-3.5 mr-1.5" />
-                Create List
-              </Button>
-            </div>
-          </div>
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b px-4 py-4 lg:px-6">
+          <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto">
+            <TabsTrigger value="rated" className="text-sm font-medium">My Ratings</TabsTrigger>
+            <TabsTrigger value="wishlist" className="text-sm font-medium">Wishlist</TabsTrigger>
+            <TabsTrigger value="recommendations" className="text-sm font-medium">Recs</TabsTrigger>
+          </TabsList>
+        </div>
+        
+        <div className="px-4 py-3 lg:px-6 border-b">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsCreateListDialogOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Create List
+          </Button>
         </div>
         
         <TabsContent value="rated" className="mt-0 h-full">

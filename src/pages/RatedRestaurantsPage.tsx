@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RestaurantCard } from '@/components/RestaurantCard';
 import { RestaurantCardList } from '@/components/RestaurantCardList';
-import { ViewToggle, useViewToggle, ViewType } from '@/components/ViewToggle';
+import { ViewToggle, useViewToggle } from '@/components/ViewToggle';
 import { RestaurantDialog } from '@/components/Dialog/RestaurantDialog';
 import { ConfirmDialog } from '@/components/Dialog/ConfirmDialog';
 import { Restaurant, RestaurantFormData } from '@/types/restaurant';
@@ -34,65 +34,101 @@ export function RatedRestaurantsPage({
   onAddRestaurant,
   onEditRestaurant,
   onDeleteRestaurant,
-  shouldOpenAddDialog,
+  shouldOpenAddDialog = false,
   onAddDialogClose,
   onNavigateToMap,
   onOpenSettings,
-  onBackToLists
 }: RatedRestaurantsPageProps) {
+  
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingRestaurant, setEditingRestaurant] = useState<Restaurant | null>(null);
-  const [restaurantToDelete, setRestaurantToDelete] = useState<string | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('rating-desc');
+  const [sortBy, setSortBy] = useState<'latest' | 'oldest' | 'rating-high' | 'rating-low' | 'name-az' | 'name-za' | 'price-low' | 'price-high' | 'michelin-high' | 'michelin-low'>('rating-high');
   const [filterCuisines, setFilterCuisines] = useState<string[]>([]);
   const [filterPrices, setFilterPrices] = useState<string[]>([]);
   const [filterMichelins, setFilterMichelins] = useState<string[]>([]);
-  const [ratingRange, setRatingRange] = useState([0, 10]);
+  const [ratingRange, setRatingRange] = useState<[number, number]>([0, 10]);
+  const [tempRatingRange, setTempRatingRange] = useState<[number, number]>([0, 10]);
+  const { view, setView } = useViewToggle('rated-restaurants-view', 'grid');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const { view, setView } = useViewToggle('grid' as ViewType);
-  const hasHydratedRef = useRef(false);
+  const photosLoadedRef = useRef(false);
+  const [cachedRestaurants, setCachedRestaurants] = useState<Restaurant[]>([]);
+  const [hydrated, setHydrated] = useState(false);
 
-  // Handle initial dialog opening
+  const sourceRestaurants = restaurants.length > 0 ? restaurants : cachedRestaurants;
+  const ratedRestaurants = sourceRestaurants.filter((r) => !r.isWishlist);
+
+  // Handle opening the add dialog when triggered from HomePage
   useEffect(() => {
-    if (shouldOpenAddDialog && !hasHydratedRef.current) {
+    if (shouldOpenAddDialog) {
       setIsAddDialogOpen(true);
-      hasHydratedRef.current = true;
+      onAddDialogClose?.();
     }
-  }, [shouldOpenAddDialog]);
+  }, [shouldOpenAddDialog, onAddDialogClose]);
 
-  // Preload images for better UX
+  // Hydrate from localStorage for instant first paint
   useEffect(() => {
-    const preloadImages = async () => {
-      const imagesToPreload = restaurants
-        .filter(r => r.photos && r.photos.length > 0)
-        .slice(0, 20) // Limit to first 20 for performance
-        .map(r => resolveImageUrl(r.photos[0]));
-      
-      const imagePromises = imagesToPreload.map(src => {
-        return new Promise((resolve, reject) => {
-          const img = new Image();
-          img.onload = () => resolve(src);
-          img.onerror = () => reject(src);
-          img.src = src;
-        });
-      });
-      
-      try {
-        await Promise.allSettled(imagePromises);
-      } catch (error) {
-        console.log('Some images failed to preload, continuing...');
+    try {
+      const raw = localStorage.getItem('ratedRestaurantsCache');
+      if (raw) {
+        const parsed: Restaurant[] = JSON.parse(raw);
+        setCachedRestaurants(parsed);
       }
-    };
+    } catch (e) {
+      console.warn('Failed to load ratedRestaurantsCache');
+    } finally {
+      setHydrated(true);
+    }
+  }, []);
 
-    if (restaurants.length > 0) {
+  // Persist cache when real data arrives
+  useEffect(() => {
+    if (restaurants.length > 0 && ratedRestaurants.length > 0) {
+      try {
+        localStorage.setItem('ratedRestaurantsCache', JSON.stringify(ratedRestaurants));
+      } catch (e) {
+        // ignore
+      }
+    }
+  }, [restaurants.length, ratedRestaurants.length]);
+
+  // Preload cover photos for faster perceived load, limited to first 10 for performance
+  useEffect(() => {
+    if (ratedRestaurants.length > 0 && !photosLoadedRef.current) {
+      photosLoadedRef.current = true;
+const preloadImages = async () => {
+  const coverPhotos = ratedRestaurants
+    .filter(r => r.photos && r.photos.length > 0)
+    .slice(0, 10)  // only preload first 10 images for performance
+    .map(r => resolveImageUrl(r.photos[0], { width: 800 }))
+    .filter(Boolean);
+  const preloadPromises = coverPhotos.map(url => new Promise<void>((resolve) => {
+    // Add prefetch hint
+    try {
+      const link = document.createElement('link');
+      link.rel = 'prefetch';
+      link.as = 'image';
+      link.href = url as string;
+      document.head.appendChild(link);
+    } catch {}
+    const img = new Image();
+    img.onload = () => resolve();
+    img.onerror = () => resolve(); // Don't block on errors
+    img.src = url as string;
+  }));
+  // Fire-and-forget
+  Promise.allSettled(preloadPromises);
+};
       preloadImages();
     }
-  }, [restaurants]);
+  }, [ratedRestaurants.length]);
 
-  const ratedRestaurants = restaurants.filter(r => !r.isWishlist && r.rating !== undefined && r.rating !== null);
+  // Get unique cuisines
+  const cuisines = Array.from(new Set(ratedRestaurants.map(r => r.cuisine).filter(cuisine => cuisine && cuisine.trim() !== '')));
 
-  // Helper functions for multi-select filters
+  // Helper functions for multi-select
   const toggleCuisine = (cuisine: string) => {
     setFilterCuisines(prev => 
       prev.includes(cuisine) 
@@ -118,217 +154,251 @@ export function RatedRestaurantsPage({
   };
 
   const clearFilters = () => {
-    setSearchTerm('');
     setFilterCuisines([]);
     setFilterPrices([]);
     setFilterMichelins([]);
     setRatingRange([0, 10]);
+    setTempRatingRange([0, 10]);
   };
 
-  const applyRatingFilter = (restaurants: Restaurant[]) => {
-    if (ratingRange[0] === 0 && ratingRange[1] === 10) return restaurants;
-    return restaurants.filter(r => 
-      r.rating !== undefined && r.rating !== null && 
-      r.rating >= ratingRange[0] && r.rating <= ratingRange[1]
-    );
+  const applyRatingFilter = () => {
+    setRatingRange(tempRatingRange);
   };
 
-  // Get unique cuisines for filter dropdown
-  const uniqueCuisines = [...new Set(ratedRestaurants.map(r => r.cuisine).filter(Boolean))];
-
-  // Calculate filter counts with safety checks
+  // Calculate counts for each filter option based on current filters
   const getFilterCounts = () => {
-    const cuisineCounts = uniqueCuisines.map(cuisine => ({
+    const baseFilteredRestaurants = ratedRestaurants.filter((restaurant) => {
+      const matchesSearch = searchTerm === '' 
+        || restaurant.name.toLowerCase().includes(searchTerm.toLowerCase())
+        || restaurant.city.toLowerCase().includes(searchTerm.toLowerCase())
+        || restaurant.cuisine.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesRating = !restaurant.rating || 
+        (restaurant.rating >= ratingRange[0] && restaurant.rating <= ratingRange[1]);
+      
+      return matchesSearch && matchesRating;
+    });
+
+    // Calculate counts for each cuisine
+    const cuisineCounts = cuisines.map(cuisine => ({
       cuisine,
-      count: ratedRestaurants.filter(r => r.cuisine === cuisine).length
-    })).sort((a, b) => b.count - a.count);
+      count: baseFilteredRestaurants.filter(r => 
+        r.cuisine === cuisine &&
+        (filterPrices.length === 0 || 
+         (r.priceRange && filterPrices.includes(r.priceRange.toString()))) &&
+         (filterMichelins.length === 0 || 
+          (r.michelinStars && filterMichelins.includes(r.michelinStars.toString())))
+      ).length
+    }));
 
-    const priceCounts = ['1', '2', '3', '4'].map(price => ({
-      price,
-      count: ratedRestaurants.filter(r => r.priceRange?.toString() === price).length
-    })).filter(p => p.count > 0);
+    // Calculate counts for each price range
+    const priceCounts = [
+      { price: '1', count: baseFilteredRestaurants.filter(r => 
+        r.priceRange === 1 &&
+        (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
+         (filterMichelins.length === 0 || 
+          (r.michelinStars && filterMichelins.includes(r.michelinStars.toString())))
+      ).length },
+      { price: '2', count: baseFilteredRestaurants.filter(r => 
+        r.priceRange === 2 &&
+        (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
+         (filterMichelins.length === 0 || 
+          (r.michelinStars && filterMichelins.includes(r.michelinStars.toString())))
+      ).length },
+      { price: '3', count: baseFilteredRestaurants.filter(r => 
+        r.priceRange === 3 &&
+         (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
+         (filterMichelins.length === 0 || 
+          (r.michelinStars && filterMichelins.includes(r.michelinStars.toString())))
+      ).length },
+      { price: '4', count: baseFilteredRestaurants.filter(r => 
+        r.priceRange === 4 &&
+        (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
+         (filterMichelins.length === 0 || 
+          (r.michelinStars && filterMichelins.includes(r.michelinStars.toString())))
+      ).length },
+    ];
 
-    const michelinCounts = ['1', '2', '3'].map(michelin => ({
-      michelin,
-      count: ratedRestaurants.filter(r => r.michelinStars?.toString() === michelin).length
-    })).filter(m => m.count > 0);
+    // Calculate counts for Michelin stars
+    const michelinCounts = [
+      { michelin: '1', count: baseFilteredRestaurants.filter(r => 
+        r.michelinStars === 1 &&
+        (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
+        (filterPrices.length === 0 || 
+         (r.priceRange && filterPrices.includes(r.priceRange.toString())))
+      ).length },
+      { michelin: '2', count: baseFilteredRestaurants.filter(r => 
+        r.michelinStars === 2 &&
+        (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
+        (filterPrices.length === 0 || 
+         (r.priceRange && filterPrices.includes(r.priceRange.toString())))
+      ).length },
+      { michelin: '3', count: baseFilteredRestaurants.filter(r => 
+        r.michelinStars === 3 &&
+        (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
+        (filterPrices.length === 0 || 
+         (r.priceRange && filterPrices.includes(r.priceRange.toString())))
+      ).length },
+    ];
 
     return { cuisineCounts, priceCounts, michelinCounts };
   };
 
-  const { cuisineCounts = [], priceCounts = [], michelinCounts = [] } = getFilterCounts();
+  const { cuisineCounts, priceCounts, michelinCounts } = getFilterCounts();
 
   // Filter and sort restaurants
-  const filteredRestaurants = (() => {
-    let filtered = ratedRestaurants;
+  const filteredRestaurants = ratedRestaurants
+    .filter((restaurant) => {
+      // Apply search filter
+      const matchesSearch = searchTerm === '' 
+        || restaurant.name.toLowerCase().includes(searchTerm.toLowerCase())
+        || restaurant.city.toLowerCase().includes(searchTerm.toLowerCase())
+        || restaurant.cuisine.toLowerCase().includes(searchTerm.toLowerCase());
 
-    // Apply search filter
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(r => 
-        r.name.toLowerCase().includes(searchLower) ||
-        r.cuisine.toLowerCase().includes(searchLower) ||
-        r.address.toLowerCase().includes(searchLower) ||
-        r.city.toLowerCase().includes(searchLower) ||
-        r.notes?.toLowerCase().includes(searchLower)
-      );
+      // Apply cuisine filter
+      const matchesCuisine = filterCuisines.length === 0 
+        || filterCuisines.includes(restaurant.cuisine);
+
+      // Apply price filter
+      const matchesPrice = filterPrices.length === 0 
+        || (restaurant.priceRange && filterPrices.includes(restaurant.priceRange.toString()));
+
+      // Apply Michelin star filter
+      const matchesMichelin = filterMichelins.length === 0 
+        || (restaurant.michelinStars && filterMichelins.includes(restaurant.michelinStars.toString()));
+
+      // Apply rating range filter
+      const matchesRating = !restaurant.rating || 
+        (restaurant.rating >= ratingRange[0] && restaurant.rating <= ratingRange[1]);
+
+      return matchesSearch && matchesCuisine && matchesPrice && matchesMichelin && matchesRating;
+    })
+    .sort((a, b) => {
+      // Apply sorting
+      if (sortBy === 'latest') {
+        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+      } else if (sortBy === 'oldest') {
+        return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+      } else if (sortBy === 'rating-high') {
+        return (b.rating || 0) - (a.rating || 0);
+      } else if (sortBy === 'rating-low') {
+        return (a.rating || 0) - (b.rating || 0);
+      } else if (sortBy === 'name-az') {
+        return a.name.localeCompare(b.name);
+      } else if (sortBy === 'name-za') {
+        return b.name.localeCompare(a.name);
+      } else if (sortBy === 'price-low') {
+        return (a.priceRange || 0) - (b.priceRange || 0);
+      } else if (sortBy === 'price-high') {
+        return (b.priceRange || 0) - (a.priceRange || 0);
+      } else if (sortBy === 'michelin-high') {
+        return (b.michelinStars || 0) - (a.michelinStars || 0);
+      } else if (sortBy === 'michelin-low') {
+        return (a.michelinStars || 0) - (b.michelinStars || 0);
+      }
+      return 0;
+    });
+
+  const handleOpenEditDialog = (id: string) => {
+    const restaurant = restaurants.find((r) => r.id === id);
+    if (restaurant) {
+      setSelectedRestaurant(restaurant);
+      setIsEditDialogOpen(true);
     }
-
-    // Apply cuisine filter
-    if (filterCuisines.length > 0) {
-      filtered = filtered.filter(r => filterCuisines.includes(r.cuisine));
-    }
-
-    // Apply price filter
-    if (filterPrices.length > 0) {
-      filtered = filtered.filter(r => 
-        r.priceRange && filterPrices.includes(r.priceRange.toString())
-      );
-    }
-
-    // Apply michelin filter
-    if (filterMichelins.length > 0) {
-      filtered = filtered.filter(r => 
-        r.michelinStars && filterMichelins.includes(r.michelinStars.toString())
-      );
-    }
-
-    // Apply rating range filter
-    filtered = applyRatingFilter(filtered);
-
-    // Apply sorting
-    switch (sortBy) {
-      case 'rating-desc':
-        return filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-      case 'rating-asc':
-        return filtered.sort((a, b) => (a.rating || 0) - (b.rating || 0));
-      case 'date-desc':
-        return filtered.sort((a, b) => {
-          const dateA = a.dateVisited ? new Date(a.dateVisited) : new Date(a.createdAt);
-          const dateB = b.dateVisited ? new Date(b.dateVisited) : new Date(b.createdAt);
-          return dateB.getTime() - dateA.getTime();
-        });
-      case 'date-asc':
-        return filtered.sort((a, b) => {
-          const dateA = a.dateVisited ? new Date(a.dateVisited) : new Date(a.createdAt);
-          const dateB = b.dateVisited ? new Date(b.dateVisited) : new Date(b.createdAt);
-          return dateA.getTime() - dateB.getTime();
-        });
-      case 'name-asc':
-        return filtered.sort((a, b) => a.name.localeCompare(b.name));
-      case 'name-desc':
-        return filtered.sort((a, b) => b.name.localeCompare(a.name));
-      case 'custom':
-        return filtered.sort((a, b) => (a.customRank || 999) - (b.customRank || 999));
-      default:
-        return filtered;
-    }
-  })();
-
-  // Event handlers
-  const handleOpenEditDialog = (restaurant: Restaurant) => {
-    setEditingRestaurant(restaurant);
-    setIsAddDialogOpen(true);
   };
 
-  const handleOpenDeleteDialog = (restaurantId: string) => {
-    setRestaurantToDelete(restaurantId);
-  };
-
-  const handleEdit = async (data: RestaurantFormData) => {
-    if (editingRestaurant) {
-      await onEditRestaurant(editingRestaurant.id, data);
-    } else {
-      await onAddRestaurant(data);
+  const handleOpenDeleteDialog = (id: string) => {
+    const restaurant = restaurants.find((r) => r.id === id);
+    if (restaurant) {
+      setSelectedRestaurant(restaurant);
+      setIsDeleteDialogOpen(true);
     }
-    setEditingRestaurant(null);
-    setIsAddDialogOpen(false);
-    onAddDialogClose?.();
   };
 
-  const handleDelete = async () => {
-    if (restaurantToDelete) {
-      await onDeleteRestaurant(restaurantToDelete);
-      setRestaurantToDelete(null);
+  const handleEdit = (data: RestaurantFormData) => {
+    if (selectedRestaurant) {
+      onEditRestaurant(selectedRestaurant.id, data);
+    }
+  };
+
+  const handleDelete = () => {
+    if (selectedRestaurant) {
+      onDeleteRestaurant(selectedRestaurant.id);
     }
   };
 
   return (
-    <div className="w-full max-w-none mobile-container">
-      {/* Modern Compact Toolbar */}
-      <div className="px-4 lg:px-6 py-3 border-b border-border/50">
-        {/* Action Buttons Row */}
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="hidden lg:block text-2xl font-semibold">Rated Restaurants</h2>
-          <div className="flex items-center gap-2">
-            <ViewToggle currentView={view} onViewChange={setView} storageKey="rated-restaurants-view" />
-            <Button 
-              size="sm" 
-              onClick={() => setIsAddDialogOpen(true)} 
-              className="h-8 px-3 rounded-md text-sm"
-            >
-              <Plus className="h-3.5 w-3.5 mr-1.5" />
-              Add Restaurant
+    <div className="w-full max-w-none py-6 mobile-container px-4 lg:px-6">
+      <div className="mb-4 lg:mb-6 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+        <h2 className="hidden lg:block text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Rated Restaurants</h2>
+        <div className="flex items-center gap-2">
+          <ViewToggle currentView={view} onViewChange={setView} storageKey="rated-restaurants-view" />
+          <Button size="sm" onClick={() => setIsAddDialogOpen(true)} className="mobile-button">
+            <Plus className="mr-1 lg:mr-2 h-3 w-3 lg:h-4 lg:w-4" />
+            Add Restaurant
+          </Button>
+          {onNavigateToMap && (
+            <Button variant="outline" size="sm" onClick={onNavigateToMap} className="mobile-button">
+              <MapPin className="h-3 w-3 lg:h-4 lg:w-4" />
+              <span className="ml-1">Map</span>
             </Button>
-            {onNavigateToMap && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={onNavigateToMap} 
-                className="h-8 px-3 rounded-md border-border/50 hover:border-border text-sm"
-              >
-                <MapPin className="h-3.5 w-3.5 mr-1.5" />
-                Map
-              </Button>
-            )}
-          </div>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile layout - Search + Filter button */}
+      <div className="mb-6 flex items-center gap-2 sm:hidden">
+        <div className="flex-1">
+          <Input
+            placeholder="Search restaurants..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowMobileFilters(true)}
+          className="h-10 w-10 p-0"
+        >
+          <Filter className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* Desktop layout - Original layout */}
+      <div className="mb-6 hidden sm:flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+        <div className="flex w-full items-center gap-2 sm:w-auto">
+          <Input
+            placeholder="Search restaurants..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-sm"
+          />
         </div>
 
-        {/* Search and Filters Row */}
-        <div className="space-y-3">
-          {/* Search Bar */}
-          <div className="relative">
-            <Input
-              placeholder="Search restaurants..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pr-10 h-9 rounded-md border-border/50 focus:border-border"
-            />
-            <Filter className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          </div>
+        <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:ml-auto">
+          {/* Clear Filters Button */}
+          {(filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0 || ratingRange[0] > 0 || ratingRange[1] < 10) && (
+            <Button variant="outline" size="sm" onClick={clearFilters} className="flex-shrink-0">
+              <X className="mr-2 h-4 w-4" />
+              Clear Filters
+            </Button>
+          )}
 
-          {/* Filter Buttons - Desktop */}
-          <div className="hidden sm:flex items-center gap-2 flex-wrap">
-            {/* Clear Filters Button */}
-            {(filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0 || ratingRange[0] > 0 || ratingRange[1] < 10) && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearFilters}
-                className="h-8 px-3 rounded-md text-xs text-muted-foreground hover:text-foreground"
-              >
-                <X className="h-3 w-3 mr-1" />
-                Clear
-              </Button>
-            )}
-
-            {/* Cuisine Filter */}
+          {/* Cuisine Filter */}
+          <div className="flex-1 min-w-[140px] max-w-[180px]">
             <Popover>
               <PopoverTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="h-8 px-3 rounded-md border-border/50 hover:border-border text-sm justify-between min-w-[100px]"
-                >
-                  <span className="truncate">
+                <Button variant="outline" className="w-full justify-between">
+                  <span>
                     {filterCuisines.length === 0 
                       ? 'Cuisine' 
                       : filterCuisines.length === 1 
-                        ? filterCuisines[0] 
+                        ? filterCuisines[0]
                         : `${filterCuisines.length} cuisines`
                     }
                   </span>
-                  <ChevronDown className="ml-2 h-3 w-3 flex-shrink-0" />
+                  <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-[200px] p-0">
@@ -350,15 +420,13 @@ export function RatedRestaurantsPage({
                 </div>
               </PopoverContent>
             </Popover>
+          </div>
 
-            {/* Price Filter */}
+          {/* Price Filter */}
+          <div className="flex-1 min-w-[140px] max-w-[180px]">
             <Popover>
               <PopoverTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="h-8 px-3 rounded-md border-border/50 hover:border-border text-sm justify-between min-w-[80px]"
-                >
+                <Button variant="outline" className="w-full justify-between">
                   <span>
                     {filterPrices.length === 0 
                       ? 'Price' 
@@ -367,7 +435,7 @@ export function RatedRestaurantsPage({
                         : `${filterPrices.length} prices`
                     }
                   </span>
-                  <ChevronDown className="ml-2 h-3 w-3 flex-shrink-0" />
+                  <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-[200px] p-0">
@@ -389,24 +457,22 @@ export function RatedRestaurantsPage({
                 </div>
               </PopoverContent>
             </Popover>
+          </div>
 
-            {/* Michelin Filter */}
+          {/* Michelin Filter */}
+          <div className="flex-1 min-w-[140px] max-w-[180px]">
             <Popover>
               <PopoverTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="h-8 px-3 rounded-md border-border/50 hover:border-border text-sm justify-between min-w-[90px]"
-                >
+                <Button variant="outline" className="w-full justify-between">
                   <span>
-                    {filterMichelins.length === 0 
-                      ? 'Michelin' 
-                      : filterMichelins.length === 1 
-                        ? `${filterMichelins[0]} Star${filterMichelins[0] === '1' ? '' : 's'}`
-                        : `${filterMichelins.length} selected`
+                      {filterMichelins.length === 0 
+                        ? 'Michelin' 
+                        : filterMichelins.length === 1 
+                          ? `${filterMichelins[0]} Star${filterMichelins[0] === '1' ? '' : 's'}`
+                          : `${filterMichelins.length} selected`
                     }
                   </span>
-                  <ChevronDown className="ml-2 h-3 w-3 flex-shrink-0" />
+                  <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-[200px] p-0">
@@ -420,7 +486,7 @@ export function RatedRestaurantsPage({
                           onCheckedChange={() => toggleMichelin(michelin)}
                         />
                         <label htmlFor={`michelin-${michelin}`} className="text-sm cursor-pointer flex-1">
-                          {`${michelin} Michelin Star${michelin === '1' ? '' : 's'}`} ({count})
+                           {`${michelin} Michelin Star${michelin === '1' ? '' : 's'}`} ({count})
                         </label>
                       </div>
                     ))}
@@ -428,159 +494,214 @@ export function RatedRestaurantsPage({
                 </div>
               </PopoverContent>
             </Popover>
+          </div>
 
-            {/* Sort & Filter Popover */}
+          {/* Sort & Filter */}
+          <div className="flex-shrink-0 w-[60px]">
             <Popover>
               <PopoverTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="h-8 px-3 rounded-md border-border/50 hover:border-border text-sm"
-                >
-                  <Sliders className="h-3.5 w-3.5" />
+                <Button variant="outline" className="w-full justify-center p-2">
+                  <Sliders className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-80 p-0">
-                <div className="p-4 space-y-4">
-                  <div>
-                    <Label className="text-sm font-medium">Sort by</Label>
-                    <Select value={sortBy} onValueChange={setSortBy}>
-                      <SelectTrigger className="mt-1 h-8">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="rating-desc">Rating (High to Low)</SelectItem>
-                        <SelectItem value="rating-asc">Rating (Low to High)</SelectItem>
-                        <SelectItem value="date-desc">Date Visited (Newest)</SelectItem>
-                        <SelectItem value="date-asc">Date Visited (Oldest)</SelectItem>
-                        <SelectItem value="name-asc">Name (A-Z)</SelectItem>
-                        <SelectItem value="name-desc">Name (Z-A)</SelectItem>
-                        <SelectItem value="custom">Custom Order</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label className="text-sm font-medium">Rating Range: {ratingRange[0]} - {ratingRange[1]}</Label>
-                    <div className="mt-2">
-                      <Slider
-                        value={ratingRange}
-                        onValueChange={setRatingRange}
-                        max={10}
-                        min={0}
-                        step={0.5}
-                        className="w-full"
-                      />
+              <PopoverContent className="w-[320px] p-0">
+                <div className="p-4">
+                  <div className="space-y-6">
+                    {/* Sort Options */}
+                    <div>
+                      <Label className="text-sm font-medium">Sort By</Label>
+                      <div className="mt-2 grid grid-cols-2 gap-2">
+                        <Button
+                          variant={sortBy === 'latest' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('latest')}
+                          className="justify-start"
+                        >
+                          Latest
+                        </Button>
+                        <Button
+                          variant={sortBy === 'oldest' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('oldest')}
+                          className="justify-start"
+                        >
+                          Oldest
+                        </Button>
+                        <Button
+                          variant={sortBy === 'rating-high' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('rating-high')}
+                          className="justify-start"
+                        >
+                          Rating ↓
+                        </Button>
+                        <Button
+                          variant={sortBy === 'rating-low' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('rating-low')}
+                          className="justify-start"
+                        >
+                          Rating ↑
+                        </Button>
+                        <Button
+                          variant={sortBy === 'name-az' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('name-az')}
+                          className="justify-start"
+                        >
+                          Name A-Z
+                        </Button>
+                        <Button
+                          variant={sortBy === 'name-za' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('name-za')}
+                          className="justify-start"
+                        >
+                          Name Z-A
+                        </Button>
+                        <Button
+                          variant={sortBy === 'price-low' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('price-low')}
+                          className="justify-start"
+                        >
+                          Price ↑
+                        </Button>
+                        <Button
+                          variant={sortBy === 'price-high' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('price-high')}
+                          className="justify-start"
+                        >
+                          Price ↓
+                        </Button>
+                        <Button
+                          variant={sortBy === 'michelin-high' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('michelin-high')}
+                          className="justify-start"
+                        >
+                          Michelin ↓
+                        </Button>
+                        <Button
+                          variant={sortBy === 'michelin-low' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setSortBy('michelin-low')}
+                          className="justify-start"
+                        >
+                          Michelin ↑
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Rating Range Filter */}
+                    <div>
+                      <Label className="text-sm font-medium">Rating Range</Label>
+                      <div className="mt-2 flex items-center space-x-2">
+                        <span className="text-sm text-muted-foreground">{tempRatingRange[0]}</span>
+                        <Slider
+                          value={tempRatingRange}
+                          onValueChange={(value) => setTempRatingRange(value as [number, number])}
+                          max={10}
+                          min={0}
+                          step={0.1}
+                          className="flex-1"
+                        />
+                        <span className="text-sm text-muted-foreground">{tempRatingRange[1]}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end">
+                      <Button onClick={applyRatingFilter} size="sm">
+                        Apply
+                      </Button>
                     </div>
                   </div>
                 </div>
               </PopoverContent>
             </Popover>
           </div>
-
-          {/* Mobile Filter Button */}
-          <div className="sm:hidden">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowMobileFilters(true)}
-              className="h-8 px-3 rounded-md border-border/50 hover:border-border text-sm"
-            >
-              <Filter className="h-3.5 w-3.5 mr-1.5" />
-              Filters
-            </Button>
-          </div>
         </div>
       </div>
 
-      {/* Restaurant Content */}
-      <div className="px-4 lg:px-6 py-4">
-        {filteredRestaurants.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-muted-foreground mb-4">
-              {searchTerm || filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0 || ratingRange[0] > 0 || ratingRange[1] < 10 ? (
-                <>
-                  No restaurants match your current filters.
-                  <div className="mt-2">
-                    <Button variant="outline" size="sm" onClick={clearFilters}>
-                      Clear Filters
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <h3 className="text-lg font-semibold mb-2">No rated restaurants yet</h3>
-                  <p className="text-sm mb-4">Start rating restaurants to build your collection</p>
-                  <Button onClick={() => setIsAddDialogOpen(true)}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Your First Restaurant
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
+      {filteredRestaurants.length === 0 && ((restaurants.length === 0 && cachedRestaurants.length === 0) || (searchTerm || filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0 || ratingRange[0] > 0 || ratingRange[1] < 10)) ? (
+        <div className="rounded-lg border border-dashed bg-muted/50 p-8 text-center">
+          <h3 className="mb-2 text-lg font-medium">No rated restaurants yet</h3>
+          <p className="mb-4 text-muted-foreground">
+            {searchTerm || filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0 || ratingRange[0] > 0 || ratingRange[1] < 10
+              ? "No restaurants match your search criteria."
+              : "Start adding restaurants you've visited!"}
+          </p>
+          <Button onClick={() => setIsAddDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Your First Restaurant
+          </Button>
+        </div>
         ) : (
-          <div className={view === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-3'}>
+          <div className={view === 'grid' ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3" : "space-y-4"}>
             {filteredRestaurants.map((restaurant) => (
               view === 'grid' ? (
                 <RestaurantCard
                   key={restaurant.id}
                   restaurant={restaurant}
-                  onEdit={() => handleOpenEditDialog(restaurant)}
-                  onDelete={() => handleOpenDeleteDialog(restaurant.id)}
+                  onEdit={handleOpenEditDialog}
+                  onDelete={handleOpenDeleteDialog}
+                  showAIReviewAssistant={true}
                 />
               ) : (
                 <RestaurantCardList
                   key={restaurant.id}
                   restaurant={restaurant}
-                  onEdit={() => handleOpenEditDialog(restaurant)}
-                  onDelete={() => handleOpenDeleteDialog(restaurant.id)}
+                  onEdit={handleOpenEditDialog}
+                  onDelete={handleOpenDeleteDialog}
                 />
               )
             ))}
           </div>
         )}
-      </div>
 
       <RestaurantDialog
         isOpen={isAddDialogOpen}
-        onOpenChange={(open) => {
-          setIsAddDialogOpen(open);
-          if (!open) {
-            setEditingRestaurant(null);
-            onAddDialogClose?.();
-          }
-        }}
-        restaurant={editingRestaurant || undefined}
+        onOpenChange={setIsAddDialogOpen}
+        onSave={onAddRestaurant}
+        dialogType="add"
+      />
+
+      <RestaurantDialog
+        isOpen={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        restaurant={selectedRestaurant}
         onSave={handleEdit}
-        dialogType={editingRestaurant ? 'edit' : 'add'}
+        dialogType="edit"
       />
 
       <ConfirmDialog
-        isOpen={!!restaurantToDelete}
-        onOpenChange={(open) => !open && setRestaurantToDelete(null)}
+        isOpen={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
         onConfirm={handleDelete}
         title="Delete Restaurant"
         description="Are you sure you want to delete this restaurant? This action cannot be undone."
+        confirmText="Delete"
       />
 
+      {/* Mobile Filter Dialog */}
       <RatedRestaurantsFilterDialog
         open={showMobileFilters}
         onOpenChange={setShowMobileFilters}
         filterCuisines={filterCuisines}
         filterPrices={filterPrices}
         filterMichelins={filterMichelins}
-        ratingRange={ratingRange as [number, number]}
-        sortBy={sortBy as any}
+        ratingRange={ratingRange}
+        sortBy={sortBy}
+        cuisineCounts={cuisineCounts}
+        priceCounts={priceCounts}
+        michelinCounts={michelinCounts}
         onCuisineToggle={toggleCuisine}
         onPriceToggle={togglePrice}
         onMichelinToggle={toggleMichelin}
         onRatingRangeChange={setRatingRange}
         onSortByChange={setSortBy}
         onClearFilters={clearFilters}
-        cuisineCounts={cuisineCounts}
-        priceCounts={priceCounts}
-        michelinCounts={michelinCounts}
       />
     </div>
   );
