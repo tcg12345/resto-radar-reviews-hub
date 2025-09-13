@@ -16,6 +16,7 @@ import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { RatedRestaurantsFilterDialog } from '@/components/RatedRestaurantsFilterDialog';
 import { resolveImageUrl } from '@/utils/imageUtils';
+import { useRestaurantLists } from '@/hooks/useRestaurantLists';
 
 interface RatedRestaurantsPageProps {
   restaurants: Restaurant[];
@@ -39,7 +40,7 @@ export function RatedRestaurantsPage({
   onNavigateToMap,
   onOpenSettings,
 }: RatedRestaurantsPageProps) {
-  
+  const { lists } = useRestaurantLists();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -393,31 +394,23 @@ const preloadImages = async () => {
       </div>
 
       {/* Lists Preview */}
-      <div className="mb-4 sm:hidden">
-        <h3 className="text-lg font-medium mb-2">Your Lists</h3>
-        <div className="flex space-x-3 overflow-x-auto py-2">
-          <Button variant="outline" size="sm"
-                  className="whitespace-nowrap rounded-full px-3 py-1 text-xs">
-            Favorites
-          </Button>
-          <Button variant="outline" size="sm"
-                  className="whitespace-nowrap rounded-full px-3 py-1 text-xs">
-            Weekend Eats
-          </Button>
-          <Button variant="outline" size="sm"
-                  className="whitespace-nowrap rounded-full px-3 py-1 text-xs">
-            Date Night
-          </Button>
-          <Button variant="outline" size="sm"
-                  className="whitespace-nowrap rounded-full px-3 py-1 text-xs">
-            Brunch Spots
-          </Button>
-          <Button variant="outline" size="sm"
-                  className="whitespace-nowrap rounded-full px-3 py-1 text-xs">
-            Coffee Runs
-          </Button>
+      {lists.length > 0 && (
+        <div className="mb-4 sm:hidden">
+          <h3 className="text-lg font-medium mb-2">Your Lists</h3>
+          <div className="flex space-x-3 overflow-x-auto py-2">
+            {lists.map((list) => (
+              <Button 
+                key={list.id}
+                variant="outline" 
+                size="sm"
+                className="whitespace-nowrap rounded-full px-3 py-1 text-xs"
+              >
+                {list.name}
+              </Button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Desktop layout - Original layout */}
       <div className="mb-6 hidden sm:flex flex-col items-start gap-4 sm:flex-row sm:items-center">
