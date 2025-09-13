@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Plus, Check, ChevronDown, X, Sliders, MapPin, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { RatedRestaurantsFilterDialog } from '@/components/RatedRestaurantsFilterDialog';
 import { resolveImageUrl } from '@/utils/imageUtils';
 import { useRestaurantLists } from '@/hooks/useRestaurantLists';
+import { CreateListDialog } from '@/components/CreateListDialog';
 
 interface RatedRestaurantsPageProps {
   restaurants: Restaurant[];
@@ -40,16 +41,16 @@ export function RatedRestaurantsPage({
   onNavigateToMap,
   onOpenSettings,
 }: RatedRestaurantsPageProps) {
-  const { lists } = useRestaurantLists();
+  const { lists, createList, getRestaurantsInList } = useRestaurantLists();
   const [selectedListId, setSelectedListId] = useState<string | null>(null);
   const [cachedLists, setCachedLists] = useState<any[]>([]);
-  const [listsHydrated, setListsHydrated] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'latest' | 'oldest' | 'rating-high' | 'rating-low' | 'name-az' | 'name-za' | 'price-low' | 'price-high' | 'michelin-high' | 'michelin-low'>('rating-high');
+  const [sortBy, setSortBy] = useState<'latest' | 'oldest' | 'rating-high' | 'rating-low' | 'name-az' | 'name-za' | 'price-low'
+| 'price-high' | 'michelin-high' | 'michelin-low'>('rating-high');
   const [filterCuisines, setFilterCuisines] = useState<string[]>([]);
   const [filterPrices, setFilterPrices] = useState<string[]>([]);
   const [filterMichelins, setFilterMichelins] = useState<string[]>([]);
@@ -60,9 +61,20 @@ export function RatedRestaurantsPage({
   const photosLoadedRef = useRef(false);
   const [cachedRestaurants, setCachedRestaurants] = useState<Restaurant[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const [listRestaurants, setListRestaurants] = useState<Restaurant[]>([]);
+  const [isListLoading, setIsListLoading] = useState(false);
+  const [isCreateListDialogOpen, setIsCreateListDialogOpen] = useState(false);
+
+  const refreshSelectedList = useCallback(() => {
+    if (!selectedListId) return;
+    setIsListLoading(true);
+    getRestaurantsInList(selectedListId)
+      .then(setListRestaurants)
+      .finally(() => setIsListLoading(false));
+  }, [selectedListId, getRestaurantsInList]);
 
   const sourceRestaurants = restaurants.length > 0 ? restaurants : cachedRestaurants;
-  const ratedRestaurants = sourceRestaurants.filter((r) => !r.isWishlist);
+  the ratedRestaurants = sourceRestaurants.filter((r) => !r.isWishlist);
 
   // Handle opening the add dialog when triggered from HomePage
   useEffect(() => {
@@ -108,8 +120,6 @@ export function RatedRestaurantsPage({
       }
     } catch (e) {
       console.warn('Failed to load restaurantListsCache');
-    } finally {
-      setListsHydrated(true);
     }
   }, []);
 
@@ -126,6 +136,15 @@ export function RatedRestaurantsPage({
 
   // Use cached lists if real lists haven't loaded yet
   const displayLists = lists.length > 0 ? lists : cachedLists;
+
+  // Load restaurants for the selected list
+  useEffect(() => {
+    if (selectedListId) {
+      refreshSelectedList();
+    } else {
+      setListRestaurants([]);
+    }
+  }, [selectedListId, refreshSelectedList]);
 
   // Preload cover photos for faster perceived load, limited to first 10 for performance
   useEffect(() => {
@@ -159,28 +178,28 @@ const preloadImages = async () => {
   }, [ratedRestaurants.length]);
 
   // Get unique cuisines
-  const cuisines = Array.from(new Set(ratedRestaurants.map(r => r.cuisine).filter(cuisine => cuisine && cuisine.trim() !== '')));
+  const cuisines = Array.from(new Set(ratedRestaurants.map(r => r.cuisine).filter(cuisine => cuisine && cuisine.trim() !== '')))
+;
 
   // Helper functions for multi-select
   const toggleCuisine = (cuisine: string) => {
-    setFilterCuisines(prev => 
-      prev.includes(cuisine) 
+    setFilterCuisines(prev =>
+      prev.includes(cuisine)
         ? prev.filter(c => c !== cuisine)
         : [...prev, cuisine]
     );
   };
 
   const togglePrice = (price: string) => {
-    setFilterPrices(prev => 
-      prev.includes(price) 
+    setFilterPrices(prev =>
+      prev.includes(price)
         ? prev.filter(p => p !== price)
         : [...prev, price]
     );
   };
 
   const toggleMichelin = (michelin: string) => {
-    setFilterMichelins(prev => 
-      prev.includes(michelin) 
+      prev.includes(michelin)
         ? prev.filter(m => m !== michelin)
         : [...prev, michelin]
     );
@@ -201,75 +220,75 @@ const preloadImages = async () => {
   // Calculate counts for each filter option based on current filters
   const getFilterCounts = () => {
     const baseFilteredRestaurants = ratedRestaurants.filter((restaurant) => {
-      const matchesSearch = searchTerm === '' 
+      const matchesSearch = searchTerm === ''
         || restaurant.name.toLowerCase().includes(searchTerm.toLowerCase())
         || restaurant.city.toLowerCase().includes(searchTerm.toLowerCase())
         || restaurant.cuisine.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesRating = !restaurant.rating || 
+
+      const matchesRating = !restaurant.rating ||
         (restaurant.rating >= ratingRange[0] && restaurant.rating <= ratingRange[1]);
-      
+
       return matchesSearch && matchesRating;
     });
 
     // Calculate counts for each cuisine
     const cuisineCounts = cuisines.map(cuisine => ({
       cuisine,
-      count: baseFilteredRestaurants.filter(r => 
+      count: baseFilteredRestaurants.filter(r =>
         r.cuisine === cuisine &&
-        (filterPrices.length === 0 || 
+        (filterPrices.length === 0 ||
          (r.priceRange && filterPrices.includes(r.priceRange.toString()))) &&
-         (filterMichelins.length === 0 || 
+         (filterMichelins.length === 0 ||
           (r.michelinStars && filterMichelins.includes(r.michelinStars.toString())))
       ).length
     }));
 
     // Calculate counts for each price range
     const priceCounts = [
-      { price: '1', count: baseFilteredRestaurants.filter(r => 
+      { price: '1', count: baseFilteredRestaurants.filter(r =>
         r.priceRange === 1 &&
         (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
-         (filterMichelins.length === 0 || 
+         (filterMichelins.length === 0 ||
           (r.michelinStars && filterMichelins.includes(r.michelinStars.toString())))
       ).length },
-      { price: '2', count: baseFilteredRestaurants.filter(r => 
+      { price: '2', count: baseFilteredRestaurants.filter(r =>
         r.priceRange === 2 &&
         (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
-         (filterMichelins.length === 0 || 
+         (filterMichelins.length === 0 ||
           (r.michelinStars && filterMichelins.includes(r.michelinStars.toString())))
       ).length },
-      { price: '3', count: baseFilteredRestaurants.filter(r => 
+      { price: '3', count: baseFilteredRestaurants.filter(r =>
         r.priceRange === 3 &&
          (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
-         (filterMichelins.length === 0 || 
+         (filterMichelins.length === 0 ||
           (r.michelinStars && filterMichelins.includes(r.michelinStars.toString())))
       ).length },
-      { price: '4', count: baseFilteredRestaurants.filter(r => 
+      { price: '4', count: baseFilteredRestaurants.filter(r =>
         r.priceRange === 4 &&
         (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
-         (filterMichelins.length === 0 || 
+         (filterMichelins.length === 0 ||
           (r.michelinStars && filterMichelins.includes(r.michelinStars.toString())))
       ).length },
     ];
 
     // Calculate counts for Michelin stars
     const michelinCounts = [
-      { michelin: '1', count: baseFilteredRestaurants.filter(r => 
+      { michelin: '1', count: baseFilteredRestaurants.filter(r =>
         r.michelinStars === 1 &&
         (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
-        (filterPrices.length === 0 || 
+        (filterPrices.length === 0 ||
          (r.priceRange && filterPrices.includes(r.priceRange.toString())))
       ).length },
-      { michelin: '2', count: baseFilteredRestaurants.filter(r => 
+      { michelin: '2', count: baseFilteredRestaurants.filter(r =>
         r.michelinStars === 2 &&
         (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
-        (filterPrices.length === 0 || 
+        (filterPrices.length === 0 ||
          (r.priceRange && filterPrices.includes(r.priceRange.toString())))
       ).length },
-      { michelin: '3', count: baseFilteredRestaurants.filter(r => 
+      { michelin: '3', count: baseFilteredRestaurants.filter(r =>
         r.michelinStars === 3 &&
         (filterCuisines.length === 0 || filterCuisines.includes(r.cuisine)) &&
-        (filterPrices.length === 0 || 
+        (filterPrices.length === 0 ||
          (r.priceRange && filterPrices.includes(r.priceRange.toString())))
       ).length },
     ];
@@ -280,36 +299,30 @@ const preloadImages = async () => {
   const { cuisineCounts, priceCounts, michelinCounts } = getFilterCounts();
 
   // Filter and sort restaurants
-  // Get the restaurants to display based on selected list (client-side filtering for instant response)
-  const displayRestaurants = selectedListId ? 
-    ratedRestaurants.filter(restaurant => {
-      // For now, since we don't have list membership data loaded, show empty for lists
-      // This will be instantly responsive and show the empty state
-      return false;
-    }) : ratedRestaurants;
+  const displayRestaurants = selectedListId ? listRestaurants : ratedRestaurants;
 
   const filteredRestaurants = displayRestaurants
     .filter((restaurant) => {
       // Apply search filter
-      const matchesSearch = searchTerm === '' 
+      const matchesSearch = searchTerm === ''
         || restaurant.name.toLowerCase().includes(searchTerm.toLowerCase())
         || restaurant.city.toLowerCase().includes(searchTerm.toLowerCase())
         || restaurant.cuisine.toLowerCase().includes(searchTerm.toLowerCase());
 
       // Apply cuisine filter
-      const matchesCuisine = filterCuisines.length === 0 
+      const matchesCuisine = filterCuisines.length === 0
         || filterCuisines.includes(restaurant.cuisine);
 
       // Apply price filter
-      const matchesPrice = filterPrices.length === 0 
+      const matchesPrice = filterPrices.length === 0
         || (restaurant.priceRange && filterPrices.includes(restaurant.priceRange.toString()));
 
       // Apply Michelin star filter
-      const matchesMichelin = filterMichelins.length === 0 
+      const matchesMichelin = filterMichelins.length === 0
         || (restaurant.michelinStars && filterMichelins.includes(restaurant.michelinStars.toString()));
 
       // Apply rating range filter
-      const matchesRating = !restaurant.rating || 
+      const matchesRating = !restaurant.rating ||
         (restaurant.rating >= ratingRange[0] && restaurant.rating <= ratingRange[1]);
 
       return matchesSearch && matchesCuisine && matchesPrice && matchesMichelin && matchesRating;
@@ -356,30 +369,51 @@ const preloadImages = async () => {
     }
   };
 
-  const handleEdit = (data: RestaurantFormData) => {
-    if (selectedRestaurant) {
-      onEditRestaurant(selectedRestaurant.id, data);
+  const handleAdd = async (data: RestaurantFormData) => {
+    await Promise.resolve(onAddRestaurant(data));
+    if (selectedListId) {
+      refreshSelectedList();
     }
   };
 
-  const handleDelete = () => {
+  const handleEdit = async (data: RestaurantFormData) => {
     if (selectedRestaurant) {
-      onDeleteRestaurant(selectedRestaurant.id);
+      await Promise.resolve(onEditRestaurant(selectedRestaurant.id, data));
+      if (selectedListId) {
+        refreshSelectedList();
+      }
+    }
+  };
+
+  const handleDelete = async () => {
+    if (selectedRestaurant) {
+      await Promise.resolve(onDeleteRestaurant(selectedRestaurant.id));
+      if (selectedListId) {
+        refreshSelectedList();
+      }
     }
   };
 
   return (
     <div className="w-full max-w-none py-6 mobile-container px-4 lg:px-6">
-      <div className="mb-4 lg:mb-6 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
-        <h2 className="hidden lg:block text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Rated Restaurants</h2>
-        <div className="hidden sm:flex items-center gap-2">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-trans
+parent">Rated Restaurants</h2>
+          <p className="text-sm text-muted-foreground">Manage and organize your dining experiences</p>
+        </div>
+        <div className="hidden sm:flex flex-wrap items-center gap-2">
           <ViewToggle currentView={view} onViewChange={setView} storageKey="rated-restaurants-view" />
-          <Button size="sm" onClick={() => setIsAddDialogOpen(true)} className="mobile-button">
-            <Plus className="mr-1 lg:mr-2 h-3 w-3 lg:h-4 lg:w-4" />
+          <Button variant="outline" size="sm" onClick={() => setIsCreateListDialogOpen(true)}>
+            <Plus className="mr-1 h-3 w-3 lg:h-4 lg:w-4" />
+            New List
+          </Button>
+          <Button size="sm" onClick={() => setIsAddDialogOpen(true)}>
+            <Plus className="mr-1 h-3 w-3 lg:h-4 lg:w-4" />
             Add Restaurant
           </Button>
           {onNavigateToMap && (
-            <Button variant="outline" size="sm" onClick={onNavigateToMap} className="mobile-button">
+            <Button variant="outline" size="sm" onClick={onNavigateToMap}>
               <MapPin className="h-3 w-3 lg:h-4 lg:w-4" />
               <span className="ml-1">Map</span>
             </Button>
@@ -393,19 +427,29 @@ const preloadImages = async () => {
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <ViewToggle currentView={view} onViewChange={setView} storageKey="rated-restaurants-view" />
           <div className="flex flex-wrap items-center gap-2">
-            <Button size="sm" onClick={() => {/* TODO: open Create List dialog */}}
-                    className="h-8 px-3 text-xs rounded-xl">
+            <Button
+              size="sm"
+              onClick={() => setIsCreateListDialogOpen(true)}
+              className="h-8 px-3 text-xs rounded-xl"
+            >
               <Plus className="mr-1 h-3 w-3" />
               Create List
             </Button>
-            <Button size="sm" onClick={() => setIsAddDialogOpen(true)}
-                    className="h-8 px-3 text-xs rounded-xl">
+            <Button
+              size="sm"
+              onClick={() => setIsAddDialogOpen(true)}
+              className="h-8 px-3 text-xs rounded-xl"
+            >
               <Plus className="mr-1 h-3 w-3" />
               Add Restaurant
             </Button>
             {onNavigateToMap && (
-              <Button variant="outline" size="sm" onClick={onNavigateToMap}
-                      className="h-8 px-3 text-xs rounded-xl">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onNavigateToMap}
+                className="h-8 px-3 text-xs rounded-xl"
+              >
                 <MapPin className="h-3 w-3" />
               </Button>
             )}
@@ -437,7 +481,7 @@ const preloadImages = async () => {
       <div className="mb-4 sm:hidden">
         <h3 className="text-lg font-medium mb-2">Your Lists</h3>
         <div className="flex space-x-3 overflow-x-auto py-2">
-          <Button 
+          <Button
             variant={selectedListId === null ? "default" : "outline"}
             size="sm"
             onClick={() => setSelectedListId(null)}
@@ -446,7 +490,7 @@ const preloadImages = async () => {
             All
           </Button>
           {displayLists.map((list) => (
-            <Button 
+            <Button
               key={list.id}
               variant={selectedListId === list.id ? "default" : "outline"}
               size="sm"
@@ -472,7 +516,8 @@ const preloadImages = async () => {
 
         <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:ml-auto">
           {/* Clear Filters Button */}
-          {(filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0 || ratingRange[0] > 0 || ratingRange[1] < 10) && (
+          {(filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0 || ratingRange[0] > 0 || ratingRa
+nge[1] < 10) && (
             <Button variant="outline" size="sm" onClick={clearFilters} className="flex-shrink-0">
               <X className="mr-2 h-4 w-4" />
               Clear Filters
@@ -485,9 +530,9 @@ const preloadImages = async () => {
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-between">
                   <span>
-                    {filterCuisines.length === 0 
-                      ? 'Cuisine' 
-                      : filterCuisines.length === 1 
+                    {filterCuisines.length === 0
+                      ? 'Cuisine'
+                      : filterCuisines.length === 1
                         ? filterCuisines[0]
                         : `${filterCuisines.length} cuisines`
                     }
@@ -522,9 +567,9 @@ const preloadImages = async () => {
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-between">
                   <span>
-                    {filterPrices.length === 0 
-                      ? 'Price' 
-                      : filterPrices.length === 1 
+                    {filterPrices.length === 0
+                      ? 'Price'
+                      : filterPrices.length === 1
                         ? filterPrices[0] === '1' ? '$' : filterPrices[0] === '2' ? '$$' : filterPrices[0] === '3' ? '$$$' : '$$$$'
                         : `${filterPrices.length} prices`
                     }
@@ -559,9 +604,9 @@ const preloadImages = async () => {
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-between">
                   <span>
-                      {filterMichelins.length === 0 
-                        ? 'Michelin' 
-                        : filterMichelins.length === 1 
+                      {filterMichelins.length === 0
+                        ? 'Michelin'
+                        : filterMichelins.length === 1
                           ? `${filterMichelins[0]} Star${filterMichelins[0] === '1' ? '' : 's'}`
                           : `${filterMichelins.length} selected`
                     }
@@ -691,7 +736,7 @@ const preloadImages = async () => {
                     {/* Rating Range Filter */}
                     <div>
                       <Label className="text-sm font-medium">Rating Range</Label>
-                      <div className="mt-2 flex items-center space-x-2">
+                      <div className="mt-2 flex items center space-x-2">
                         <span className="text-sm text-muted-foreground">{tempRatingRange[0]}</span>
                         <Slider
                           value={tempRatingRange}
@@ -718,58 +763,59 @@ const preloadImages = async () => {
         </div>
       </div>
 
-      {/* Empty state for selected list */}
-      {selectedListId && restaurants.length === 0 && cachedRestaurants.length === 0 ? (
+      {selectedListId && isListLoading ? (
+        <div className="py-8 text-center text-muted-foreground">Loading list...</div>
+      ) : selectedListId && displayRestaurants.length === 0 ? (
         <div className="rounded-lg border border-dashed bg-muted/50 p-8 text-center">
           <h3 className="mb-2 text-lg font-medium">No restaurants in this list</h3>
-          <p className="mb-4 text-muted-foreground">
-            This list is empty. Add some restaurants to get started!
-          </p>
+          <p className="mb-4 text-muted-foreground">This list is empty. Add some restaurants to get started!</p>
           <Button onClick={() => setIsAddDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Add Restaurant
           </Button>
         </div>
-      ) : filteredRestaurants.length === 0 && (restaurants.length === 0 && cachedRestaurants.length === 0) ? (
+      ) : filteredRestaurants.length === 0 ? (
         <div className="rounded-lg border border-dashed bg-muted/50 p-8 text-center">
-          <h3 className="mb-2 text-lg font-medium">No rated restaurants yet</h3>
+          <h3 className="mb-2 text-lg font-medium">
+            {displayRestaurants.length === 0 ? 'No rated restaurants yet' : 'No restaurants found'}
+          </h3>
           <p className="mb-4 text-muted-foreground">
-            {searchTerm || filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0 || ratingRange[0] > 0 || ratingRange[1] < 10
-              ? "No restaurants match your search criteria."
-              : "Start adding restaurants you've visited!"}
+            {displayRestaurants.length === 0
+              ? "Start adding restaurants you've visited!"
+              : 'No restaurants match your search criteria.'}
           </p>
           <Button onClick={() => setIsAddDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Your First Restaurant
+            {displayRestaurants.length === 0 ? 'Add Your First Restaurant' : 'Add Restaurant'}
           </Button>
         </div>
-        ) : (
-          <div className={view === 'grid' ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3" : "space-y-4"}>
-            {filteredRestaurants.map((restaurant) => (
-              view === 'grid' ? (
-                <RestaurantCard
-                  key={restaurant.id}
-                  restaurant={restaurant}
-                  onEdit={handleOpenEditDialog}
-                  onDelete={handleOpenDeleteDialog}
-                  showAIReviewAssistant={true}
-                />
-              ) : (
-                <RestaurantCardList
-                  key={restaurant.id}
-                  restaurant={restaurant}
-                  onEdit={handleOpenEditDialog}
-                  onDelete={handleOpenDeleteDialog}
-                />
-              )
-            ))}
-          </div>
-        )}
+      ) : (
+        <div className={view === 'grid' ? 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3' : 'space-y-4'}>
+          {filteredRestaurants.map((restaurant) => (
+            view === 'grid' ? (
+              <RestaurantCard
+                key={restaurant.id}
+                restaurant={restaurant}
+                onEdit={handleOpenEditDialog}
+                onDelete={handleOpenDeleteDialog}
+                showAIReviewAssistant={true}
+              />
+            ) : (
+              <RestaurantCardList
+                key={restaurant.id}
+                restaurant={restaurant}
+                onEdit={handleOpenEditDialog}
+                onDelete={handleOpenDeleteDialog}
+              />
+            )
+          ))}
+        </div>
+      )}
 
       <RestaurantDialog
         isOpen={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}
-        onSave={onAddRestaurant}
+        onSave={handleAdd}
         dialogType="add"
         defaultSelectedListId={selectedListId || undefined}
       />
@@ -809,6 +855,12 @@ const preloadImages = async () => {
         onRatingRangeChange={setRatingRange}
         onSortByChange={setSortBy}
         onClearFilters={clearFilters}
+      />
+
+      <CreateListDialog
+        isOpen={isCreateListDialogOpen}
+        onClose={() => setIsCreateListDialogOpen(false)}
+        onCreateList={createList}
       />
     </div>
   );
