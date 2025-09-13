@@ -650,7 +650,22 @@ export type Database = {
           list_id?: string
           restaurant_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_list_items_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "restaurant_lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restaurant_list_items_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       restaurant_lists: {
         Row: {
