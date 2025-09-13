@@ -74,7 +74,7 @@ export function RatedRestaurantsPage({
   }, [selectedListId, getRestaurantsInList]);
 
   const sourceRestaurants = restaurants.length > 0 ? restaurants : cachedRestaurants;
-  the ratedRestaurants = sourceRestaurants.filter((r) => !r.isWishlist);
+  const ratedRestaurants = sourceRestaurants.filter((r) => !r.isWishlist);
 
   // Handle opening the add dialog when triggered from HomePage
   useEffect(() => {
@@ -199,6 +199,7 @@ const preloadImages = async () => {
   };
 
   const toggleMichelin = (michelin: string) => {
+    setFilterMichelins(prev =>
       prev.includes(michelin)
         ? prev.filter(m => m !== michelin)
         : [...prev, michelin]
@@ -516,8 +517,7 @@ parent">Rated Restaurants</h2>
 
         <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:ml-auto">
           {/* Clear Filters Button */}
-          {(filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0 || ratingRange[0] > 0 || ratingRa
-nge[1] < 10) && (
+          {(filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0 || ratingRange[0] > 0 || ratingRange[1] < 10) && (
             <Button variant="outline" size="sm" onClick={clearFilters} className="flex-shrink-0">
               <X className="mr-2 h-4 w-4" />
               Clear Filters
