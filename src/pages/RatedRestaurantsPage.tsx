@@ -44,6 +44,8 @@ export function RatedRestaurantsPage({
   const [selectedListId, setSelectedListId] = useState<string | null>(null);
   const [listRestaurants, setListRestaurants] = useState<Restaurant[]>([]);
   const [loadingList, setLoadingList] = useState(false);
+  const [cachedLists, setCachedLists] = useState<any[]>([]);
+  const [listsHydrated, setListsHydrated] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -120,6 +122,35 @@ export function RatedRestaurantsPage({
       }
     }
   }, [restaurants.length, ratedRestaurants.length]);
+
+  // Hydrate lists from localStorage for instant first paint
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('restaurantListsCache');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setCachedLists(parsed);
+      }
+    } catch (e) {
+      console.warn('Failed to load restaurantListsCache');
+    } finally {
+      setListsHydrated(true);
+    }
+  }, []);
+
+  // Persist lists cache when real data arrives
+  useEffect(() => {
+    if (lists.length > 0) {
+      try {
+        localStorage.setItem('restaurantListsCache', JSON.stringify(lists));
+      } catch (e) {
+        // ignore
+      }
+    }
+  }, [lists]);
+
+  // Use cached lists if real lists haven't loaded yet
+  const displayLists = lists.length > 0 ? lists : cachedLists;
 
   // Preload cover photos for faster perceived load, limited to first 10 for performance
   useEffect(() => {
@@ -434,7 +465,7 @@ const preloadImages = async () => {
           >
             All
           </Button>
-          {lists.map((list) => (
+          {displayLists.map((list) => (
             <Button 
               key={list.id}
               variant={selectedListId === list.id ? "default" : "outline"}
