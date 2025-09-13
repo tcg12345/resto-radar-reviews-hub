@@ -57,4 +57,5 @@ export interface RestaurantFormData {
   customRank?: number;
   removedPhotoIndexes?: number[];
   phone_number?: string;
+  selectedListIds?: string[]; // List IDs to add restaurant to
 }

@@ -421,6 +421,29 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       const restaurant = mapDbRestaurantToRestaurant(inserted);
       setRestaurants((prev) => [restaurant, ...prev]);
       
+      // Add restaurant to selected lists
+      if (data.selectedListIds && data.selectedListIds.length > 0) {
+        try {
+          for (const listId of data.selectedListIds) {
+            const { error: listError } = await supabase
+              .from('restaurant_list_items')
+              .insert({
+                restaurant_id: inserted.id,
+                list_id: listId
+              });
+            
+            if (listError) {
+              console.error('Error adding restaurant to list:', listError);
+              // Continue with other lists even if one fails
+            }
+          }
+          console.log('Restaurant added to', data.selectedListIds.length, 'lists');
+        } catch (listError) {
+          console.error('Error adding restaurant to lists:', listError);
+          // Don't fail the whole operation if list assignment fails
+        }
+      }
+      
       console.log('Final coordinates for restaurant:', coordinates);
       
       if (coordinates && coordinates.latitude && coordinates.longitude) {

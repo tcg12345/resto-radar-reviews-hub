@@ -19,6 +19,7 @@ interface RestaurantDialogProps {
   dialogType: "add" | "edit";
   defaultWishlist?: boolean;
   hideSearch?: boolean;
+  defaultSelectedListId?: string; // Default list to select
 }
 
 export function RestaurantDialog({
@@ -29,6 +30,7 @@ export function RestaurantDialog({
   dialogType,
   defaultWishlist = false,
   hideSearch = false,
+  defaultSelectedListId,
 }: RestaurantDialogProps) {
   const isMobile = useIsMobile();
   
@@ -76,6 +78,7 @@ export function RestaurantDialog({
                 onCancel={handleCancel}
                 defaultWishlist={defaultWishlist}
                 hideSearch={hideSearch}
+                defaultSelectedListId={defaultSelectedListId}
               />
             </div>
           </div>
@@ -103,6 +106,7 @@ export function RestaurantDialog({
           onCancel={handleCancel}
           defaultWishlist={defaultWishlist}
           hideSearch={hideSearch}
+          defaultSelectedListId={defaultSelectedListId}
         />
       </DialogContent>
     </Dialog>

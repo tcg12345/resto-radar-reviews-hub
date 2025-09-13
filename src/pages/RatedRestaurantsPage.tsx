@@ -771,6 +771,7 @@ const preloadImages = async () => {
         onOpenChange={setIsAddDialogOpen}
         onSave={onAddRestaurant}
         dialogType="add"
+        defaultSelectedListId={selectedListId || undefined}
       />
 
       <RestaurantDialog

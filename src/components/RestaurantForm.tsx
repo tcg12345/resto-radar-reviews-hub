@@ -28,6 +28,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { WeightedRating } from '@/components/WeightedRating';
 import { StarRating } from '@/components/StarRating';
 import { PriceRange } from '@/components/PriceRange';
@@ -41,6 +42,7 @@ import { LazyImage } from '@/components/LazyImage';
 import { createThumbnail } from '@/utils/imageUtils';
 import { RestaurantSearchSelect } from '@/components/RestaurantSearchSelect';
 import { toast } from 'sonner';
+import { useRestaurantLists } from '@/hooks/useRestaurantLists';
 
 interface RestaurantFormProps {
   initialData?: Restaurant;
@@ -48,6 +50,7 @@ interface RestaurantFormProps {
   onCancel: () => void;
   defaultWishlist?: boolean;
   hideSearch?: boolean;
+  defaultSelectedListId?: string;
 }
 
 const cuisineOptions = [
@@ -59,8 +62,8 @@ const cuisineOptions = [
 // Add "Other" at the end
 cuisineOptions.push('Other');
 
-export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlist = false, hideSearch = false }: RestaurantFormProps) {
-  
+export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlist = false, hideSearch = false, defaultSelectedListId }: RestaurantFormProps) {
+  const { lists } = useRestaurantLists();
   const [isProcessingPhotos, setIsProcessingPhotos] = useState(false);
   const [photoProgress, setPhotoProgress] = useState(0);
   const [photosToProcess, setPhotosToProcess] = useState(0);
@@ -106,6 +109,7 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
     dateVisited: initialData?.dateVisited || '',
     photos: [],
     isWishlist: initialData?.isWishlist || defaultWishlist,
+    selectedListIds: defaultSelectedListId ? [defaultSelectedListId] : [],
     // Include Google Places data when editing existing restaurants
     ...(initialData && {
       website: (initialData as any).website,
@@ -1127,6 +1131,46 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
             checked={formData.isWishlist}
             onCheckedChange={handleWishlistToggle}
           />
+        </div>
+
+        {/* List Selection */}
+        <div className="space-y-2">
+          <Label>Add to Lists</Label>
+          <div className="space-y-2">
+            {lists.map((list) => {
+              const isSelected = formData.selectedListIds?.includes(list.id) || false;
+              return (
+                <div key={list.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`list-${list.id}`}
+                    checked={isSelected}
+                    onCheckedChange={(checked) => {
+                      setFormData(prev => {
+                        const currentIds = prev.selectedListIds || [];
+                        if (checked) {
+                          return {
+                            ...prev,
+                            selectedListIds: [...currentIds, list.id]
+                          };
+                        } else {
+                          return {
+                            ...prev,
+                            selectedListIds: currentIds.filter(id => id !== list.id)
+                          };
+                        }
+                      });
+                    }}
+                  />
+                  <Label htmlFor={`list-${list.id}`} className="text-sm font-normal cursor-pointer">
+                    {list.name}
+                  </Label>
+                </div>
+              );
+            })}
+            {lists.length === 0 && (
+              <p className="text-sm text-muted-foreground">No lists available</p>
+            )}
+          </div>
         </div>
 
         {!formData.isWishlist && (
