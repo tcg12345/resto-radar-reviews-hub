@@ -38,26 +38,26 @@ export function SavedPlacesPage({
     <div className="w-full h-full">
       <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as 'rated' | 'wishlist' | 'recommendations')} className="w-full h-full">
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b px-4 py-4 lg:px-6">
-          <div className="flex items-center justify-between mb-4">
-            <div></div>
-            {onNavigateToLists && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onNavigateToLists}
-                className="flex items-center gap-2"
-              >
-                <List className="h-4 w-4" />
-                Manage Lists
-              </Button>
-            )}
-          </div>
           <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto">
             <TabsTrigger value="rated" className="text-sm font-medium">My Ratings</TabsTrigger>
             <TabsTrigger value="wishlist" className="text-sm font-medium">Wishlist</TabsTrigger>
             <TabsTrigger value="recommendations" className="text-sm font-medium">Recs</TabsTrigger>
           </TabsList>
         </div>
+        
+        {onNavigateToLists && (
+          <div className="px-4 py-3 lg:px-6 border-b">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onNavigateToLists}
+              className="flex items-center gap-2"
+            >
+              <List className="h-4 w-4" />
+              Manage Lists
+            </Button>
+          </div>
+        )}
         
         <TabsContent value="rated" className="mt-0 h-full">
           <RatedRestaurantsPage
